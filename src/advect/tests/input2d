@@ -1,0 +1,141 @@
+// advective term options
+CTU_ONLY = -1
+SECOND_ORDER = 0
+FOURTH_ORDER = 1
+MC_LIMITED = 2
+MUSCL_LIMITED = 3
+
+// constants
+PI = 3.141592653589793e+00
+
+GodunovAdvector {
+   limiter_type = FOURTH_ORDER
+}
+
+GodunovHypPatchOps {
+   Refinement_data {
+//    refine_criteria = "QVAL_RICHARDSON", "QVAL_GRADIENT"
+      refine_criteria = "QVAL_GRADIENT"
+
+      QVAL_RICHARDSON {
+         rich_tol = 0.01, 0.01, 0.001
+      }
+ 
+      QVAL_GRADIENT {
+         grad_tol = 0.1,0.1,0.1
+      }
+   }
+}
+
+QInit {
+   init_type = "GAUSSIAN"
+   kappa = 0.001
+
+// init_type = "ZALESAK"
+// zalesak_r = 0.15
+// zalesak_slot_w = 0.025
+// zalesak_slot_l = 0.1
+// X = 0.5, 0.5
+
+// init_type = "SINUSOIDAL"
+}
+
+USet {
+// kappa = 0.0 , 0.0
+   kappa = 2.0 , 2.0
+   omega = 0.0 , 0.0
+// omega = 1.0 , 1.0
+// omega = 10.0*PI , 10.0*PI
+
+   init_type = "VORTEX"
+// init_type = "UNIFORM"
+// uniform_u = 1.0,1.0
+}
+
+N = 16
+
+Main {
+// log file parameters 
+   log_file_name    = "advect2d.log"
+   log_all_nodes    = FALSE
+
+// visualization dump parameters 
+   viz_writer            = "VisIt"
+   viz_dump_interval     = N          // zero to turn off
+   viz_dump_dirname      = "viz_advect2d"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters 
+   restart_interval        = 0        // zero to turn off
+   restart_write_dirname   = "restart_advect2d"
+
+// convergence monitoring parameters
+   monitor_convergence = TRUE
+
+// application parameters
+   timestepping = "SYNCHRONIZED"
+   u_is_div_free = TRUE
+   consv_form = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0) , (N - 1,N - 1) ]
+   x_lo         =  0   , 0       // lower end of computational domain.
+   x_up         =  1   , 1       // upper end of computational domain.
+   periodic_dimension = 1,1
+}
+
+GriddingAlgorithm {
+   max_levels             = 3    // Maximum number of levels in hierarchy.
+   ratio_to_coarser {            
+      level_1             = 2,2  // vector ratio to next coarser level
+      level_2             = 2,2
+      level_3             = 2,2 
+      level_4             = 2,2 
+      level_5             = 2,2 
+      level_6             = 2,2 
+      level_7             = 2,2 
+   }
+
+   largest_patch_size {
+      level_0=4096,4096// largest patch allowed in hierarchy
+                       // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =  8, 8  // smallest patch allowed in hierarchy
+                       // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance   = 0.95e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.75e0    // chop box if sum of volumes of smaller
+                                      // boxes < efficiency * vol of large box
+//   write_regrid_boxes    = TRUE
+//   regrid_boxes_filename  = "regrid_boxes"
+}
+
+StandardTagAndInitialize {
+//   tagging_method = "RICHARDSON_EXTRAPOLATION","GRADIENT_DETECTOR"
+//   tagging_method = "RICHARDSON_EXTRAPOLATION"
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+HyperbolicLevelIntegrator {
+   cfl                      = 0.1   // max cfl factor used in problem
+   cfl_init                 = 0.1   // initial cfl factor
+   lag_dt_computation       = FALSE
+   use_ghosts_to_compute_dt = FALSE
+}
+
+TimeRefinementIntegrator {
+   start_time            = 0.e0     // initial simulation time
+   end_time              = 2*PI     // final simulation time
+   grow_dt               = 1.1e0    // growth factor for timesteps
+   max_integrator_steps  = 10000    // max number of simulation timesteps
+// tag_buffer            = 1,1,1,1  // a max of 4 finer levels in hierarchy
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}

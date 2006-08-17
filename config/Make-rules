@@ -1,0 +1,12 @@
+MAINTAINERCLEANFILES = Makefile.in
+
+PETSC_DIR = @PETSC_DIR@
+PETSC_ARCH = @PETSC_ARCH@
+
+AM_CPPFLAGS = -I${top_srcdir}/include
+
+pkg_includedir = $(includedir)/@PACKAGE@
+
+SUFFIXES = .f.m4
+.f.m4.f:
+	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
