@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <17.Aug.2006 16:03:12 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Aug.2006 20:12:58 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -253,6 +253,11 @@ extern "C"
 //#include "GodunovAdvector.I"
 //#endif
 
+/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
+
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::GodunovAdvector>;
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -407,7 +412,7 @@ GodunovAdvector::computeStableDtOnPatch(
 #endif
 
     t_compute_stable_dt_on_patch->stop();
-    return(stable_dt);
+    return stable_dt;
 }// computeStableDtOnPatch
 
 void
@@ -708,7 +713,7 @@ GodunovAdvector::putToDatabase(
 
 void
 GodunovAdvector::printClassData(
-    ostream &os) const 
+    std::ostream &os) const 
 {
     os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
     os << "\nGodunovAdvector::printClassData...\n";
@@ -960,17 +965,5 @@ GodunovAdvector::getFromRestart()
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include "tbox/Pointer.C"
-
-//////////////////////////////////////////////////////////////////////
-///
-/// These declarations are required to use the GodunovAdvector class.
-///
-//////////////////////////////////////////////////////////////////////
-
-template class SAMRAI::tbox::Pointer<IBAMR::GodunovAdvector>;
 
 //////////////////////////////////////////////////////////////////////////////

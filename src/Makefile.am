@@ -2,6 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 SUBDIRS = fortran advect utilities .
 
+## Dimension-independent library
 lib_LTLIBRARIES = libIBAMR.la
 libIBAMR_la_LIBADD = $(FLIBS)		\
   advect/libIBAMR_advect.la		\
@@ -9,6 +10,7 @@ libIBAMR_la_LIBADD = $(FLIBS)		\
 libIBAMR_la_LDFLAGS = -version 0:0:0
 libIBAMR_la_SOURCES = 
 
+## Dimension-dependent libraries
 lib_LTLIBRARIES += libIBAMR2d.la
 libIBAMR2d_la_LIBADD = $(FLIBS)		\
   advect/libIBAMR_advect2d.la		\

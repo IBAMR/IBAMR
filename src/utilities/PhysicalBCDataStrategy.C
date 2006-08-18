@@ -1,5 +1,5 @@
 // Filename: PhysicalBCDataStrategy.C
-// Last modified: <17.Aug.2006 16:04:02 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Aug.2006 20:13:37 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -24,6 +24,11 @@
 //#ifdef DEBUG_NO_INLINE
 //#include "PhysicalBCDataStrategy.I"
 //#endif
+
+/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
+
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::PhysicalBCDataStrategy>;
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -99,7 +104,7 @@ PhysicalBCDataStrategy::setPhysicalBoundaryConditionsOnPatchLevel(
 
 void
 PhysicalBCDataStrategy::printClassData(
-    ostream& os) const
+    std::ostream& os) const
 {
     os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
     os << "\nPhysicalBCDataStrategy::printClassData...\n";
@@ -112,18 +117,5 @@ PhysicalBCDataStrategy::printClassData(
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include "tbox/Pointer.C"
-
-//////////////////////////////////////////////////////////////////////
-///
-/// These declarations are required to use the PhysicalBCDataStrategy
-/// class.
-///
-//////////////////////////////////////////////////////////////////////
-
-template class SAMRAI::tbox::Pointer<IBAMR::PhysicalBCDataStrategy>;
 
 //////////////////////////////////////////////////////////////////////////////

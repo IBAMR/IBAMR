@@ -2,7 +2,7 @@
 #define included_PhysicalBCDataStrategy
 
 // Filename: PhysicalBCDataStrategy.h
-// Last modified: <17.Aug.2006 15:55:08 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Aug.2006 20:10:40 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -17,10 +17,13 @@
 #include <tbox/Pointer.h>
 
 // C++ STDLIB INCLUDES
+#include <ostream>
 #include <string>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
+namespace IBAMR
+{
 /*!
  * @brief Interface to allow the specification of physical boundary
  * conditions for a single quantity.
@@ -34,8 +37,6 @@
  *
  * @see SetDataStrategy
  */
-namespace IBAMR
-{
 class PhysicalBCDataStrategy
     : public virtual SAMRAI::tbox::DescribedClass
 {
@@ -101,7 +102,7 @@ public:
      * Prints the name of the boundary conditions strategy.
      */
     virtual void printClassData(
-        ostream& os) const;
+        std::ostream& os) const;
 
 private:
     /*!

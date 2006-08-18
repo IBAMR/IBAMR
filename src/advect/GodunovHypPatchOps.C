@@ -1,5 +1,5 @@
 // Filename: GodunovHypPatchOps.C
-// Last modified: <17.Aug.2006 16:03:47 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Aug.2006 20:13:12 boyce@bigboy.nyconnect.com>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -41,7 +41,6 @@
 // C++ STDLIB INCLUDES
 #include <cassert>
 #include <limits>
-#include <ostream>
 
 // FORTRAN ROUTINES
 #if (NDIM == 1)
@@ -154,11 +153,15 @@ extern "C"
 //#include "GodunovHypPatchOps.I"
 //#endif
 
+/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
+
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::GodunovHypPatchOps>;
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
 {
-
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 namespace
@@ -715,7 +718,7 @@ GodunovHypPatchOps::computeStableDtOnPatch(
         computeStableDtOnPatch(*u_data,patch);
     
     t_compute_stable_dt_on_patch->stop();
-    return(stable_dt);
+    return stable_dt;
 }// computeStableDtOnPatch
 
 void
@@ -1631,7 +1634,7 @@ GodunovHypPatchOps::putToDatabase(
 
 void
 GodunovHypPatchOps::printClassData(
-    ostream &os) const 
+    std::ostream &os) const 
 {
     os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
     os << "\nGodunovHypPatchOps::printClassData...\n";
@@ -2024,22 +2027,8 @@ GodunovHypPatchOps::getFromRestart()
     return;
 }// getFromRestart
 
-
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include "tbox/Pointer.C"
-
-//////////////////////////////////////////////////////////////////////
-///
-/// These declarations are required to use the GodunovHypPatchOps
-/// class.
-///
-//////////////////////////////////////////////////////////////////////
-
-template class SAMRAI::tbox::Pointer<IBAMR::GodunovHypPatchOps>;
 
 //////////////////////////////////////////////////////////////////////////////

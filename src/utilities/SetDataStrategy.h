@@ -2,7 +2,7 @@
 #define included_SetDataStrategy
 
 // Filename: SetDataStrategy.h
-// Last modified: <17.Aug.2006 15:55:24 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Aug.2006 20:11:05 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -16,10 +16,13 @@
 #include <tbox/Pointer.h>
 
 // C++ STDLIB INCLUDES
+#include <ostream>
 #include <string>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
+namespace IBAMR
+{
 /*!
  * @brief Interface to allow the specification of data for a single
  * quantity at a specified time.
@@ -33,8 +36,6 @@
  *
  * @see PhysicalBCDataStrategy
  */
-namespace IBAMR
-{
 class SetDataStrategy
     : public virtual SAMRAI::tbox::DescribedClass
 {
@@ -102,7 +103,7 @@ public:
      * Prints the name of the strategy object.
      */
     virtual void printClassData(
-        ostream& os) const;
+        std::ostream& os) const;
 
 private:
     /*!

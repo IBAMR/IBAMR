@@ -2,7 +2,7 @@
 #define included_ConvergenceMonitor
 
 // Filename: ConvergenceMonitor.h
-// Last modified: <17.Aug.2006 15:54:13 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Aug.2006 20:10:19 boyce@bigboy.nyconnect.com>
 // Created on 19 Jun 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -25,12 +25,12 @@
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
+namespace IBAMR
+{
 /*!
  * @brief Simple class to manage convergence monitoring.  Note that
  * this class should be redesigned in the near future.
  */
-namespace IBAMR
-{
 class ConvergenceMonitor
 {
 public:

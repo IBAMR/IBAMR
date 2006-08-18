@@ -588,5 +588,5 @@ int main(int argc, char *argv[])
     tbox::SAMRAIManager::shutdown();
     tbox::MPI::finalize();
  
-    return(0);
+    return 0;
 }// main

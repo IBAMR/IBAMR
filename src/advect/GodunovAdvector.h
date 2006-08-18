@@ -2,7 +2,7 @@
 #define included_GodunovAdvector
 
 // Filename: GodunovAdvector.h
-// Last modified: <17.Aug.2006 15:54:28 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Aug.2006 20:11:32 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -16,10 +16,13 @@
 #include <tbox/Serializable.h>
 
 // C++ STDLIB INCLUDES
+#include <ostream>
 #include <string>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
+namespace IBAMR
+{
 /*!
  * The GodunovAdvector class implements the predictors required to use
  * an explicit predictor-corrector method to solve the
@@ -48,8 +51,6 @@
  * source term must be supplied to the predictor in order to obtain a
  * consistent method.
  */
-namespace IBAMR
-{
 class GodunovAdvector
     : public SAMRAI::tbox::Serializable
 {
@@ -275,7 +276,7 @@ public:
      * Print all data members for GodunovAdvector class.
      */
     virtual void printClassData(
-        ostream& os) const;
+        std::ostream& os) const;
     
 private:
     /*!

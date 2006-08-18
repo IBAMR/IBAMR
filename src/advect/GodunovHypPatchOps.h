@@ -2,7 +2,7 @@
 #define included_GodunovHypPatchOps
 
 // Filename: GodunovHypPatchOps.h
-// Last modified: <17.Aug.2006 15:54:51 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Aug.2006 20:11:55 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -33,11 +33,14 @@
 #include <tbox/Serializable.h>
 
 // C++ STDLIB INCLUDES
+#include <ostream>
 #include <string>
 #include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
+namespace IBAMR
+{
 /*!
  * Class GodunovHypPatchOps provides numerical routines for solving
  * the conservative advection equation
@@ -59,8 +62,6 @@
  * Consequently, the source term Psi must be the source term
  * corresponding to the non-conservative advection equation.
  */
-namespace IBAMR
-{
 class GodunovHypPatchOps
     : public SAMRAI::algs::HyperbolicPatchStrategy<NDIM>,
       public SAMRAI::tbox::Serializable
@@ -399,7 +400,7 @@ public:
      * Print all data members for GodunovHypPatchOps class.
      */
     virtual void printClassData(
-        ostream& os) const;
+        std::ostream& os) const;
 
 protected:
     /*

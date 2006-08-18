@@ -54,7 +54,7 @@ public:
      * Indicates whether the concrete SetDataStrategy object is time
      * dependent.
      */
-    bool isTimeDependent() const { return(true); }
+    bool isTimeDependent() const { return true; }
     
     /*!
      * Set the data on the patch interior to some values.
