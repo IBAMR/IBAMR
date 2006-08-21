@@ -2,7 +2,7 @@
 #define included_GodunovHypPatchOps
 
 // Filename: GodunovHypPatchOps.h
-// Last modified: <17.Aug.2006 20:11:55 boyce@bigboy.nyconnect.com>
+// Last modified: <21.Aug.2006 18:16:42 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -42,25 +42,43 @@
 namespace IBAMR
 {
 /*!
- * Class GodunovHypPatchOps provides numerical routines for solving
- * the conservative advection equation
- *
- *      dQ/dt + div(uQ) = Psi - Q div(u).
+ * @brief SAMRAI::algs::HyperbolicPatchStrategy interface for the
+ * GodunovAdvector class.
  * 
- * where Q is a cell centered quantity, u is a specified face centered
- * advection velocity, and Psi is an optional source term.  If u is
- * discretely divergence free, this is equivalent to
+ * Class GodunovHypPatchOps provides numerical routines for solving
+ * the advection equation in conservative form, \f[
  *
- *      dQ/dt + div(uQ) = dQ/dt + u * grad(Q) = Psi.
+ *      \frac{dQ}{dt} + \nabla \cdot (\vec{u}^{\mbox{\scriptsize ADV}} Q) = F - Q \nabla \cdot \vec{u}^{\mbox{\scriptsize ADV}},
+ * 
+ * \f] where \f$ Q \f$ is a cell-centered scalar- or vector-valued
+ * quantity, \f$ \vec{u}^{\mbox{\scriptsize ADV}} \f$ is a specified
+ * face-centered advection velocity, and \f$ F \f$ is an optional
+ * source term.  When \f$ \vec{u}^{\mbox{\scriptsize ADV}} \f$ is
+ * discretely divergence free, this is equivalent to solving\f[
  *
- * The class employs a predictor-corrector method to obtain a
- * (formally) second order accurate solution.  The predicted fluxes
- * are computed using the non-conservative advection equation, namely
+ *      \frac{dQ}{dt} + \nabla \cdot (\vec{u}^{\mbox{\scriptsize ADV}} Q) = F.
  *
- *       dQ/dt + u * grad(Q) = Psi.
+ * \f] The class employs a predictor-corrector method to obtain a
+ * (formally) second-order accurate solution.  The predicted fluxes
+ * are computed using the \em non-conservative advection equation,
+ * namely \f[
  *
- * Consequently, the source term Psi must be the source term
- * corresponding to the non-conservative advection equation.
+ *      \frac{dQ}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla) Q = F.
+ * 
+ * \f] Consequently, if the form of the source term \f$ F \f$ depends
+ * on whether \f$ Q \f$ is being conservatively or non-conservatively
+ * differenced, it is \em crucial that \f$ F \f$ correspond to the \em
+ * non-conservative form of the advection equation.
+ *
+ * This class can also be used to solve the \em non-conservative form
+ * of the advection equation, i.e., \f[
+ * 
+ *      \frac{dQ}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla) Q = F.
+ * 
+ * \f]
+ *
+ * \todo Verify that subcycling works for both conservative and
+ * non-conservative forms of the equation.
  */
 class GodunovHypPatchOps
     : public SAMRAI::algs::HyperbolicPatchStrategy<NDIM>,
@@ -105,11 +123,11 @@ public:
     ///
     
     /*!
-     * Register a cell centered quantity to be advected by the
+     * @brief Register a cell-centered quantity to be advected by the
      * GodunovAdvector according to the specified advection velocity.
      *
      * Conservative differencing is employed in updating the value of
-     * the quantity when conservation_form is true.  Otherwise,
+     * the quantity when \p conservation_form is true.  Otherwise,
      * non-conservative differencing is used to update the quantity.
      *
      * Optional concrete SetDataStrategy and PhysicalBCDataStrategy
@@ -117,14 +135,14 @@ public:
      * data for the advected quantity Q.  If an initialization object
      * is not specified, Q is initialized to zero.  If a boundary
      * condition object is not specified for Q, it is necessary that
-     * the computational domain have only periodic boundaries.
-     * (I.e. the domain can have no "physical" boundaries.)
+     * the computational domain have only periodic boundaries, i.e.,
+     * the domain has no "physical" boundaries.
      *
      * When the advected quantity Q is an incompressible velocity
-     * field, an optional face centered gradient may be specified that
+     * field, an optional face-centered gradient may be specified that
      * approximately enforces the incompressibility constraint.  The
-     * gradient is subtracted from the predicted face centered and
-     * time centered values prior to the computation of the advective
+     * gradient is subtracted from the predicted face-centered and
+     * time-centered values prior to the computation of the advective
      * fluxes.
      *
      * IMPORTANT NOTE: The advection velocity must be registered with
@@ -139,12 +157,12 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
-     * Register a cell centered quantity to be advected by the
+     * @brief Register a cell-centered quantity to be advected by the
      * GodunovAdvector according to the specified advection velocity
      * and source term.
      *
      * Conservative differencing is employed in updating the value of
-     * the quantity when conservation_form is true.  Otherwise,
+     * the quantity when \p conservation_form is true.  Otherwise,
      * non-conservative differencing is used to update the quantity.
      *
      * Optional concrete SetDataStrategy and PhysicalBCDataStrategy
@@ -152,8 +170,8 @@ public:
      * data for the advected quantity Q.  If an initialization object
      * is not specified, Q is initialized to zero.  If a boundary
      * condition object is not specified for Q, it is necessary that
-     * the computational domain have only periodic boundaries.
-     * (I.e. the domain can have no "physical" boundaries.)
+     * the computational domain have only periodic boundaries, i.e.,
+     * that the domain has no "physical" boundaries.
      *
      * The value of the source term is determined by an (optional)
      * SetDataStrategy object.  This allows for the specification of
@@ -161,10 +179,10 @@ public:
      * object is not provided, the source term is initialized to zero.
      *
      * When the advected quantity Q is an incompressible velocity
-     * field, an optional face centered gradient may be specified that
+     * field, an optional face-centered gradient may be specified that
      * approximately enforces the incompressibility constraint.  The
-     * gradient is subtracted from the predicted face centered and
-     * time centered values prior to the computation of the advective
+     * gradient is subtracted from the predicted face-centered and
+     * time-centered values prior to the computation of the advective
      * fluxes.
      *
      * IMPORTANT NOTE: The advection velocity must be registered with
@@ -173,16 +191,16 @@ public:
      */
     void registerAdvectedQuantityWithSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<SetDataStrategy> Q_init=NULL,
         SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc=NULL,
-        SAMRAI::tbox::Pointer<SetDataStrategy> Psi_set=NULL,
+        SAMRAI::tbox::Pointer<SetDataStrategy> F_set=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
     
     /*!
-     * Register a face centered advection velocity, used by the
-     * GodunovAdvector to advect the cell centered quantities
+     * @brief Register a face-centered advection velocity, used by the
+     * GodunovAdvector to advect the cell-centered quantities
      * registered with the patch strategy.
      *
      * An optional SetDataStrategy object allows for the specification
@@ -190,9 +208,9 @@ public:
      * object is not provided, the advection velocity is initialized
      * to zero.
      *
-     * The value of u_is_div_free determines whether the patch
-     * strategy is able to assume that the discrete divergence of the
-     * advection velocity is zero.
+     * The value of \p u_is_div_free determines whether the patch
+     * strategy assumes that the discrete divergence of the advection
+     * velocity is zero.
      *
      * IMPORTANT NOTE: The advection velocity must be registered with
      * the patch strategy prior to the registration of advected
@@ -227,13 +245,13 @@ public:
     ///      tagRichardsonExtrapolationCells()
     ///
     ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::algs::HyperbolicPatchStrategy<NDIM> abstract base class.
+    ///  SAMRAI::algs::HyperbolicPatchStrategy abstract base class.
     ///
 
     /*!
-     * Register GodunovHypPatchOps model variables with the
-     * SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> according to the variable
-     * registration function provided by the integrator.
+     * @brief Register GodunovHypPatchOps model variables with the
+     * SAMRAI::algs::HyperbolicLevelIntegrator according to the
+     * variable registration function provided by the integrator.
      *
      * In other words, variables are registered according to their
      * role in the integration process (e.g. time-dependent, flux,
@@ -244,9 +262,10 @@ public:
         SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* integrator);
     
     /*!
-     * Set the data on the patch interior to some initial values via
-     * the concrete SetDataStrategy objects registered with the patch
-     * strategy when provided.  Otherwise, initialize data to zero.
+     * @brief Set the data on the patch interior to some initial
+     * values via the concrete SetDataStrategy objects registered with
+     * the patch strategy when provided.  Otherwise, initialize data
+     * to zero.
      */
     virtual void initializeDataOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
@@ -254,8 +273,8 @@ public:
         const bool initial_time);
  
     /*!
-     * Compute a stable time increment for patch using an explicit CFL
-     * condition and return the computed dt.
+     * @brief Compute a stable time increment for patch using an
+     * explicit CFL condition and return the computed dt.
      */
     virtual double computeStableDtOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
@@ -263,7 +282,7 @@ public:
         const double dt_time);
  
     /*!
-     * Compute the time integral of the fluxes to be used in
+     * @brief Compute the time integral of the fluxes to be used in
      * conservative difference for patch integration.
      *
      * The conservative difference used to update the integrated
@@ -275,7 +294,7 @@ public:
         const double dt);
     
     /*!
-     * Update solution variables by performing a conservative
+     * @brief Update solution variables by performing a conservative
      * difference using the fluxes calculated by
      * computeFluxesOnPatch().
      */
@@ -286,11 +305,11 @@ public:
         bool at_synchronization);
     
     /*!
-     * Compute the values of any time-dependent source terms for use
-     * by the explicit predictor.
+     * @brief Compute the values of any time-dependent source terms
+     * for use by the explicit predictor.
      * 
-     * This routine is called after patch boundary data is filled 
-     * (i.e., ghosts) and before computeFluxesOnPatch().
+     * This routine is called \em after patch boundary data is filled
+     * (i.e., ghosts) and \em before computeFluxesOnPatch().
      *
      * Note that when this routine is called, the scratch data is
      * filled on all patches (i.e., ghost cells) and that data is the
@@ -306,10 +325,11 @@ public:
         bool regrid_advance);        
     
     /*!
-     * Add source terms to the updated solution.
+     * @brief Add source terms to the updated solution.
      * 
-     * This routine is called after conservativeDifferenceOnPatch() is
-     * called and before computeStableDtOnPatch().
+     * This routine is called \em after
+     * conservativeDifferenceOnPatch() is called and \em before
+     * computeStableDtOnPatch().
      * 
      * Note that when this routine is called, the scratch data is
      * filled on all patches (i.e., ghost cells) and that data is the
@@ -327,7 +347,7 @@ public:
         bool regrid_advance);
     
     /*!
-     * Tag cells for refinement using Richardson extrapolation.
+     * @brief Tag cells for refinement using Richardson extrapolation.
      */
     virtual void tagRichardsonExtrapolationCells(
         SAMRAI::hier::Patch<NDIM>& patch,
@@ -342,7 +362,7 @@ public:
         const bool uses_gradient_detector_too);
     
     /*!
-     * Tag cells for refinement using a gradient detector.
+     * @brief Tag cells for refinement using a gradient detector.
      */
     virtual void tagGradientDetectorCells(
         SAMRAI::hier::Patch<NDIM>& patch,
@@ -361,8 +381,8 @@ public:
     ///
 
     /*!
-     * Set the data in ghost cells corresponding to physical boundary
-     * conditions.
+     * @brief Set the data in ghost cells corresponding to physical
+     * boundary conditions.
      */ 
     virtual void setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
@@ -379,8 +399,8 @@ public:
     ///
     
     /*!
-     * Write state of GodunovHypPatchOps object to the given database
-     * for restart.
+     * @brief Write state of GodunovHypPatchOps object to the given
+     * database for restart.
      *
      * This routine is a concrete implementation of the function
      * declared in the SAMRAI::tbox::Serializable abstract base class.
@@ -397,7 +417,7 @@ public:
     ///
     
     /*!
-     * Print all data members for GodunovHypPatchOps class.
+     * @brief Print all data members for GodunovHypPatchOps class.
      */
     virtual void printClassData(
         std::ostream& os) const;
@@ -428,35 +448,35 @@ protected:
     SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* d_integrator;
     
     /*
-     * The GodunovAdvector being used to advect the cell centered
+     * The GodunovAdvector being used to advect the cell-centered
      * quantities Q.
      */
     SAMRAI::tbox::Pointer<GodunovAdvector> d_godunov_advector;
     
-    /*! 
-     * Advected quantities Q, source terms Psi (possibly NULL) and the
-     * optional face centered gradient terms used to enforce
+    /*
+     * Advected quantities Q, source terms F (possibly NULL) and the
+     * optional face-centered gradient terms used to enforce
      * incompressibility.
      
     */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_vars;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Psi_vars;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_vars;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_grad_vars;
 
-    /*!
+    /*
      * Indicates whether conservative or non-conservative differencing
      * should be employed for a given quantity.
      */
     std::vector<bool> d_Q_conservation_form;
     
-    /*!
+    /*
      * When conservative differencing is employed for a quantity Q, we
      * maintain the time integral of the advective flux corresponding
      * to that quantity.
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_flux_integral_vars;
     
-    /*!
+    /*
      * When non-conservative differencing is employed for a quantity
      * Q, we maintain the time integral of the predicted value and the
      * advection velocity.
@@ -467,16 +487,16 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_q_integral_vars;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_integral_var;
 
-    /*!
+    /*
      * Objects to set initial and boundary conditions as well as
      * forcing terms for each advected quantity.
      */    
     std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >        d_Q_inits;
     std::vector<SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> > d_Q_bcs;
     
-    std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >  d_Psi_sets;
+    std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >  d_F_sets;
     
-    /*!
+    /*
      * The advection velocity.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_var;
@@ -552,8 +572,8 @@ private:
     /*
      *  Parameters for numerical method:
      *
-     *    d_ghosts .............. number of ghost cells for cell centered
-     *                            and face/side centered variables
+     *    d_ghosts .............. number of ghost cells for cell-centered
+     *                            and face/side-centered variables
      *    d_flux_ghosts ......... number of ghost cells for fluxes
      *    d_u_is_registered ..... indicates that an advection velocity
      *                            has been registered with the patch

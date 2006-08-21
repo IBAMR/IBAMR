@@ -2,7 +2,7 @@
 #define included_ConvergenceMonitor
 
 // Filename: ConvergenceMonitor.h
-// Last modified: <17.Aug.2006 20:10:19 boyce@bigboy.nyconnect.com>
+// Last modified: <21.Aug.2006 18:19:55 boyce@bigboy.nyconnect.com>
 // Created on 19 Jun 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -46,7 +46,7 @@ public:
     ~ConvergenceMonitor();
 
     /*!
-     * TODO: Write docs.
+     * \todo Write docs.
      */
     void registerMonitoredVariableAndContext(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -54,13 +54,13 @@ public:
         SAMRAI::tbox::Pointer<SetDataStrategy> exact_soln_setter);
 
     /*!
-     * TODO: Write docs.
+     * \todo Write docs.
      */
     void monitorConvergence(
         const double data_time);
     
     /*!
-     * TODO: Write docs.
+     * \todo Write docs.
      */
     void initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
@@ -72,7 +72,7 @@ public:
         const bool allocate_data=true);
 
     /*!
-     * TODO: Write docs.
+     * \todo Write docs.
      */
     void resetHierarchyConfiguration(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,

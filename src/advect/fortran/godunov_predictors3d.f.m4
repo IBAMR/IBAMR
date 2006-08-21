@@ -431,7 +431,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine godunov_incompressibilityfix3d(
-     &     dx,dt,
+     &     dx,
      &     gradtype,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nugc0,nugc1,nugc2,
@@ -454,7 +454,7 @@ c
       
       INTEGER gradtype
       
-      REAL dx(0:NDIM-1),dt
+      REAL dx(0:NDIM-1)
       
       REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE3d1VECG(ifirst,ilast,nugc))
@@ -489,7 +489,7 @@ c
       endif
       
       call godunov_gradfix3d(
-     &     dx(0),dx(1),dx(2),dt,
+     &     dx(0),dx(1),dx(2),
      &     gradtype0,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nugc0,nugc1,nugc2,
@@ -500,7 +500,7 @@ c
      &     qhalf0,qhalf1,qhalf2)
       
       call godunov_gradfix3d(
-     &     dx(1),dx(2),dx(0),dt,
+     &     dx(1),dx(2),dx(0),
      &     gradtype1,
      &     ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
      &     nugc1,nugc2,nugc0,
@@ -511,7 +511,7 @@ c
      &     qhalf1,qhalf2,qhalf0)
       
       call godunov_gradfix3d(
-     &     dx(2),dx(0),dx(1),dt,
+     &     dx(2),dx(0),dx(1),
      &     gradtype2,
      &     ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
      &     nugc2,nugc0,nugc1,
@@ -1026,7 +1026,7 @@ c
       end
 c     
       subroutine godunov_gradfix3d(
-     &     dx0,dx1,dx2,dt,
+     &     dx0,dx1,dx2,
      &     gradtype,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nugc0,nugc1,nugc2,
@@ -1051,7 +1051,7 @@ c
       
       INTEGER gradtype
       
-      REAL dx0,dx1,dx2,dt
+      REAL dx0,dx1,dx2
       
       REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE3d1VECG(ifirst,ilast,nugc))

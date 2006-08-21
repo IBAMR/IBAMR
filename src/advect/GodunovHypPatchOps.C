@@ -1,5 +1,5 @@
 // Filename: GodunovHypPatchOps.C
-// Last modified: <17.Aug.2006 20:13:12 boyce@bigboy.nyconnect.com>
+// Last modified: <21.Aug.2006 18:18:05 boyce@bigboy.nyconnect.com>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -332,8 +332,8 @@ GodunovHypPatchOps::registerAdvectedQuantity(
 
     d_grad_vars.push_back(grad_var);
     
-    d_Psi_vars.push_back(NULL);
-    d_Psi_sets.push_back(NULL);
+    d_F_vars.push_back(NULL);
+    d_F_sets.push_back(NULL);
     
     d_flux_integral_vars.push_back(flux_integral_var);
     d_q_integral_vars.push_back(q_integral_var);
@@ -350,17 +350,17 @@ GodunovHypPatchOps::registerAdvectedQuantity(
 void
 GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<SetDataStrategy> Q_init,
     SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc,
-    SAMRAI::tbox::Pointer<SetDataStrategy> Psi_set,
+    SAMRAI::tbox::Pointer<SetDataStrategy> F_set,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_u_is_registered);
     assert(!Q_var.isNull());
-    assert(!Psi_var.isNull());
+    assert(!F_var.isNull());
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
         Q_var->getPatchDataFactory();
@@ -382,9 +382,9 @@ GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     }
     
 #ifdef DEBUG_CHECK_ASSERTIONS
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Psi_factory =
-        Psi_var->getPatchDataFactory();
-    assert(Q_factory->getDefaultDepth() == Psi_factory->getDefaultDepth());
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > F_factory =
+        F_var->getPatchDataFactory();
+    assert(Q_factory->getDefaultDepth() == F_factory->getDefaultDepth());
 #endif
     d_Q_vars .push_back(Q_var);
     d_Q_inits.push_back(Q_init);
@@ -394,8 +394,8 @@ GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
 
     d_grad_vars.push_back(grad_var);
 
-    d_Psi_vars.push_back(Psi_var);
-    d_Psi_sets.push_back(Psi_set);
+    d_F_vars.push_back(F_var);
+    d_F_sets.push_back(F_set);
 
     d_flux_integral_vars.push_back(flux_integral_var);
     d_q_integral_vars.push_back(q_integral_var);
@@ -524,16 +524,16 @@ GodunovHypPatchOps::registerModelVariables(
 #endif
     }
     
-    for (CellVariableVector::iterator it = d_Psi_vars.begin();
-         it != d_Psi_vars.end(); ++it)
+    for (CellVariableVector::iterator it = d_F_vars.begin();
+         it != d_F_vars.end(); ++it)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = *it;
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = *it;
         
         // Advected quantities do not necessarily have source terms!
-        if (!Psi_var.isNull())
+        if (!F_var.isNull())
         {
             d_integrator->registerVariable(
-                Psi_var, d_ghosts,
+                F_var, d_ghosts,
                 SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
                 d_grid_geometry,
                 "CONSERVATIVE_COARSEN",
@@ -643,29 +643,29 @@ GodunovHypPatchOps::initializeDataOnPatch(
         // We try to use the SetDataStrategy associated with the
         // source term.  If there is no strategy associated with the
         // source term, initialize its value to zero.
-        for (CellVariableVector::size_type l = 0; l < d_Psi_vars.size(); ++l)
+        for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_vars[l];
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
             
-            if (!Psi_var.isNull())
+            if (!F_var.isNull())
             {
-                const int Psi_idx = var_db->mapVariableAndContextToIndex(
-                    Psi_var, getDataContext());
-                SAMRAI::tbox::Pointer<SetDataStrategy>  Psi_set = d_Psi_sets[l];
+                const int F_idx = var_db->mapVariableAndContextToIndex(
+                    F_var, getDataContext());
+                SAMRAI::tbox::Pointer<SetDataStrategy>  F_set = d_F_sets[l];
                 
-                if (!Psi_set.isNull())
+                if (!F_set.isNull())
                 {
-                    Psi_set->setDataOnPatch(Psi_idx, Psi_var, patch,
-                                            data_time, initial_time);
+                    F_set->setDataOnPatch(F_idx, F_var, patch,
+                                          data_time, initial_time);
                 }
                 else
                 {
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Psi_data =
-                        patch.getPatchData(Psi_idx);
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_data =
+                        patch.getPatchData(F_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(!Psi_data.isNull());
+                    assert(!F_data.isNull());
 #endif
-                    Psi_data->fillAll(0.0);
+                    F_data->fillAll(0.0);
                 }
             }
         }
@@ -732,7 +732,7 @@ GodunovHypPatchOps::computeFluxesOnPatch(
     (void) time;
     
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_Q_vars.size() == d_Psi_vars.size());
+    assert(d_Q_vars.size() == d_F_vars.size());
     assert(d_Q_vars.size() == d_flux_integral_vars.size());
     assert(d_Q_vars.size() == d_q_integral_vars.size());
 #endif
@@ -751,12 +751,12 @@ GodunovHypPatchOps::computeFluxesOnPatch(
             patch.getPatchData(d_Q_vars[l], getDataContext());
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > q_integral_data =
             getQIntegralData(l, patch, getDataContext());
-        if (!d_Psi_vars[l].isNull())
+        if (!d_F_vars[l].isNull())
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Psi_data =
-                patch.getPatchData(d_Psi_vars[l], getDataContext());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_data =
+                patch.getPatchData(d_F_vars[l], getDataContext());
             d_godunov_advector->predictValueWithSourceTerm(
-                *q_integral_data, *u_data, *Q_data, *Psi_data, patch, dt);
+                *q_integral_data, *u_data, *Q_data, *F_data, patch, dt);
         }
         else
         {
@@ -777,7 +777,7 @@ GodunovHypPatchOps::computeFluxesOnPatch(
             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > grad_data =
                 patch.getPatchData(d_grad_vars[l], getDataContext());
             d_godunov_advector->enforceIncompressibility(
-                *q_integral_data, *u_data, *grad_data, patch, dt);
+                *q_integral_data, *u_data, *grad_data, patch);
         }
     }
     
@@ -1060,17 +1060,17 @@ GodunovHypPatchOps::postprocessAdvanceLevelState(
     SAMRAI::tbox::Pointer<SAMRAI::math::PatchCellDataOpsReal<NDIM,double> > patch_cc_data_ops =
         new SAMRAI::math::PatchCellDataOpsReal<NDIM,double>();
     
-    for (CellVariableVector::size_type l = 0; l < d_Psi_vars.size(); ++l)
+    for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> new_context     = d_integrator->getNewContext();
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> scratch_context = d_integrator->getScratchContext();
         
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var   = d_Q_vars[l];
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
 
-        SAMRAI::tbox::Pointer<SetDataStrategy> Psi_set = d_Psi_sets[l];
+        SAMRAI::tbox::Pointer<SetDataStrategy> F_set = d_F_sets[l];
         
-        if (!Psi_var.isNull() && !Psi_set.isNull() && Psi_set->isTimeDependent())
+        if (!F_var.isNull() && !F_set.isNull() && F_set->isTimeDependent())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -1079,18 +1079,18 @@ GodunovHypPatchOps::postprocessAdvanceLevelState(
                 
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
                     patch->getPatchData(Q_var, new_context);
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Psi_data =
-                    patch->getPatchData(Psi_var, scratch_context);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_data =
+                    patch->getPatchData(F_var, scratch_context);
                 
-                patch_cc_data_ops->axpy(Q_data,   // dst
-                                        0.5*dt,   // alpha
-                                        Psi_data, // src1
-                                        Q_data,   // src2
+                patch_cc_data_ops->axpy(Q_data, // dst
+                                        0.5*dt, // alpha
+                                        F_data, // src1
+                                        Q_data, // src2
                                         patch_box);
             }
             
-            Psi_set->setDataOnPatchLevel(Psi_var, new_context,
-                                         level, current_time+dt);
+            F_set->setDataOnPatchLevel(F_var, new_context,
+                                       level, current_time+dt);
             
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -1099,17 +1099,17 @@ GodunovHypPatchOps::postprocessAdvanceLevelState(
                 
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
                     patch->getPatchData(Q_var, new_context);
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Psi_data =
-                    patch->getPatchData(Psi_var, scratch_context);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_data =
+                    patch->getPatchData(F_var, scratch_context);
                 
-                patch_cc_data_ops->axpy(Q_data,   // dst
-                                        0.5*dt,   // alpha
-                                        Psi_data, // src1
-                                        Q_data,   // src2
+                patch_cc_data_ops->axpy(Q_data, // dst
+                                        0.5*dt, // alpha
+                                        F_data, // src1
+                                        Q_data, // src2
                                         patch_box);
             }
         }
-        else if (!Psi_var.isNull())
+        else if (!F_var.isNull())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -1118,13 +1118,13 @@ GodunovHypPatchOps::postprocessAdvanceLevelState(
 
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
                     patch->getPatchData(Q_var, new_context);
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Psi_data =
-                    patch->getPatchData(Psi_var, scratch_context);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_data =
+                    patch->getPatchData(F_var, scratch_context);
 
-                patch_cc_data_ops->axpy(Q_data,   // dst
-                                        dt,       // alpha
-                                        Psi_data, // src1
-                                        Q_data,   // src2
+                patch_cc_data_ops->axpy(Q_data, // dst
+                                        dt,     // alpha
+                                        F_data, // src1
+                                        Q_data, // src2
                                         patch_box);
             }
         }

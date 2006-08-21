@@ -2,7 +2,7 @@
 #define included_GodunovAdvector
 
 // Filename: GodunovAdvector.h
-// Last modified: <17.Aug.2006 20:11:32 boyce@bigboy.nyconnect.com>
+// Last modified: <21.Aug.2006 18:09:39 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -24,32 +24,38 @@
 namespace IBAMR
 {
 /*!
- * The GodunovAdvector class implements the predictors required to use
- * an explicit predictor-corrector method to solve the
- * non-conservative advection equation
+ * @brief Implementation of an explict second-order Godunov method for
+ * the advection equation in conservative and non-conservative forms.
+ * 
+ * Class GodunovAdvector implements the predictors required to use an
+ * explicit predictor-corrector method to solve the \em
+ * non-conservative advection equation, \f[
+ * 
+ *      \frac{dQ}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla)Q = F,
+ *      
+ * \f] where \f$Q\f$ is a cell-centered quantity,
+ * \f$\vec{u}^{\mbox{\scriptsize ADV}}\f$ is a specified face-centered
+ * advection velocity, and \f$F\f$ is an optional source term.  These
+ * methods can also be used to solve the advection equation in \em
+ * conservation form, \f[
+ *      \frac{dQ}{dt} + \nabla \cdot (\vec{u}^{\mbox{\scriptsize ADV}} Q) = F.
+ * \f]
  *
- *      dQ/dt + u * grad(Q) = Psi
+ * The class employs an upwind (Godunov) explicit predictor which can
+ * be used to generate time and face cenetered values or fluxes.
+ * These predicted values can be used in a second-order accurate
+ * predictor-corrector method for solving the advection equation, as
+ * well as related problems such as the advection-diffusion equation
+ * and the equations of incompressible flow.
  * 
- * where Q is a cell centered quantity, u is a specified face centered
- * advection velocity, and Psi is an optional source term.  These
- * routines can also be used to solve the conservative advection
- * equation
- * 
- *      dQ/dt + div(u Q) = Psi
- *
- * The class implements an upwind (Godunov) explicit predictor which
- * can be used to generate time and face cenetered values or fluxes.
- * These predicted values can be used in a second order accurate
- * predictor-corrector method for solving the advection equation (and
- * related problems, including the advection-diffusion equation and
- * the equations of incompressible flow).
- * 
- * Note that the predicted fluxes are computed using the advective
- * (i.e. non-conservative) form of the advection equation.
- * Consequently, when the advection velocity u is not discretely
+ * Note that the predicted fluxes are computed using the \em
+ * non-conservative form of the advection equation.  Consequently,
+ * when the advection velocity \f$\vec{u}\f$ is not discretely
  * divergence free, the appropriate non-conservative form of the
- * source term must be supplied to the predictor in order to obtain a
- * consistent method.
+ * source term must be supplied to the predictor in-order to obtain a
+ * formally consistent method.
+ *
+ * @see IBAMR::GodunovHypPatchOps
  */
 class GodunovAdvector
     : public SAMRAI::tbox::Serializable
@@ -107,35 +113,44 @@ public:
     ///
     
     /*!
-     * Compute a stable time increment for the patch using an explicit
-     * CFL condition and return the computed dt.
+     * @brief Compute the maximum stable time increment for the patch.
+     *
+     * @return The maximum stable timestep.
      */
     double computeStableDtOnPatch(
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::hier::Patch<NDIM>& patch) const;
  
     /*!
-     * Compute the advective derivative N = [u_ADV * grad(q)], using
-     * the specified advection velocity and predicted face centered
+     * @brief Compute the advective derivative \f$
+     * \vec{N}^{n+\frac{1}{2}} = \vec{u}^{\mbox{\scriptsize
+     * ADV},n+\frac{1}{2}} \cdot \nabla q^{n+\frac{1}{2}} \f$ using
+     * the specified advection velocity and predicted face-centered
      * values.
      */
     void computeAdvectiveDerivative(
         SAMRAI::pdat::CellData<NDIM,double>& N,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::FaceData<NDIM,double>& q,
+        const SAMRAI::pdat::FaceData<NDIM,double>& q_half,
         const SAMRAI::hier::Patch<NDIM>& patch) const;
     
     /*!
-     * Computes the time integral of the advective fluxes
-     * corresponding to a face centered value and a face centered
-     * advective velocity.
+     * @brief Compute the time integral of the advective fluxes \f$
+     * \vec{f} \f$ corresponding to a face-centered value \f$ q \f$
+     * and a MAC advection velocity \f$ \vec{u}^{\mbox{\scriptsize
+     * ADV}} \f$.
      *
-     * The advective fluxes are defined to be
+     * In three spatial dimensions, the face-centered advective fluxes
+     * \f$ \vec{f} \f$ are defined by \f{eqnarray*}
      *
-     *      f(i+1/2,j) = dt*u(i+1/2,j)*q(i+1/2,j)
-     *      f(i,j+1/2) = dt*v(i,j+1/2)*q(i,j+1/2)
+     *     f_{i+\frac{1}{2},j,k}^{n+\frac{1}{2}} &=& \Delta t \, u_{i+\frac{1}{2},j,k}^{\mbox{\scriptsize ADV},n+\frac{1}{2}} \, q_{i+\frac{1}{2},j,k}^{n+\frac{1}{2}} \\
+     *     f_{i,j+\frac{1}{2},k}^{n+\frac{1}{2}} &=& \Delta t \, v_{i,j+\frac{1}{2},k}^{\mbox{\scriptsize ADV},n+\frac{1}{2}} \, q_{i,j+\frac{1}{2},k}^{n+\frac{1}{2}} \\
+     *     f_{i,j,k+\frac{1}{2}}^{n+\frac{1}{2}} &=& \Delta t \, w_{i,j,k+\frac{1}{2}}^{\mbox{\scriptsize ADV},n+\frac{1}{2}} \, q_{i,j,k+\frac{1}{2}}^{n+\frac{1}{2}}
      *
-     * in two spatial dimensions, and similarly for other dimensions.
+     * \f} where \f$ \vec{u}^{\mbox{\scriptsize ADV}} =
+     * (u^{\mbox{\scriptsize ADV}},v^{\mbox{\scriptsize
+     * ADV}},w^{\mbox{\scriptsize ADV}}) \f$ is the MAC advection
+     * velocity.  Analogous forulae hold in other spatial dimensions.
      */
     void computeFlux(
         SAMRAI::pdat::FaceData<NDIM,double>& flux,
@@ -145,15 +160,23 @@ public:
         const double dt) const;
     
     /*!
-     * A Godunov predictor used to predict face and time centered
-     * values from cell centered values using a Taylor expansion about
-     * each cell center.
+     * @brief Compute predicted time- and face-centered values from
+     * cell-centered values using a second-order Godunov method (\em
+     * non-forced version).
      * 
-     * The predictor assumes that Q satisfies an equation of the form
+     * The predictor assumes that \f$ Q \f$ satisfies an equation of
+     * the form \f[
      * 
-     *      dQ/dt + u * grad(Q) = 0
+     *      \frac{dQ}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla)Q = 0,
      * 
-     * i.e. Q satisfies a non-conservative advection equation.
+     * \f] i.e., that \f$ Q \f$ satisfies the advection equation in
+     * \em non-conservative form.
+     *
+     * Note that if the advection velocity is not discretely
+     * divergence free, and if the predicted velocities are to be
+     * conservatively differenced (i.e. used in a discretization of
+     * the conservative form of the equation), a consistent method is
+     * obtained only when the proper source terms are included
      *
      * @see predictValueWithSourceTerm
      */
@@ -165,40 +188,52 @@ public:
         const double dt) const;
     
     /*!
-     * A Godunov predictor used to predict face and time centered
-     * values from cell centered values using a Taylor expansion about
-     * each cell center.
+     * @brief Compute predicted time- and face-centered values from
+     * cell-centered values using a second-order Godunov method (\em
+     * forced version).
      * 
-     * The predictor assumes that Q satisfies an equation of the form
+     * The predictor assumes that \f$ Q \f$ satisfies an equation of
+     * the form \f[
      * 
-     *      dQ/dt + u * grad(Q) = Psi
+     *      \frac{dQ}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla)Q = F,
      * 
-     * i.e. Q satisfies a non-conservative advection equation.
+     * \f] i.e., that \f$ Q \f$ satisfies the \em forced advection
+     * equation in \em non-conservative form.
+     *
+     * Note that if the advection velocity is not discretely
+     * divergence free, and if the predicted velocities are to be
+     * conservatively differenced (i.e. used in a discretization of
+     * the conservative form of the equation), a consistent method is
+     * obtained only when the proper source terms are included
+     *
+     * @see predictValue
      */
     void predictValueWithSourceTerm(
         SAMRAI::pdat::FaceData<NDIM,double>& q_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::CellData<NDIM,double>& Q,
-        const SAMRAI::pdat::CellData<NDIM,double>& Psi,
+        const SAMRAI::pdat::CellData<NDIM,double>& F,
         const SAMRAI::hier::Patch<NDIM>& patch,
         const double dt) const;
     
     /*!
-     * A Godunov predictor used to predict face and time centered
-     * normal velocities from cell centered values using a Taylor
-     * expansion about each cell center.
+     * @brief Compute predicted time- and face-centered MAC velocities
+     * from a cell-centered veclocity field using a second-order
+     * Godunov method (\em non-forced version).
      * 
-     * The predictor assumes that V satisfies an equation of the form
+     * The predictor assumes that \f$ \vec{V} \f$ satisfies an
+     * equation of the form \f[
      * 
-     *      dV/dt + u * grad V = 0
+     *      \frac{d\vec{V}}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla)\vec{V} = 0,
      * 
-     * i.e. V satisfies a non-conservative advection equation.
+     * \f] i.e., that \f$ \vec{V} \f$ satisfies the advection equation
+     * in \em non-conservative form.
      *
-     * Note that if the predicted velocities are to be conservatively
-     * differenced (i.e. used in a discretization of the conservative
-     * form of the equation), a consistent method is obtained only
-     * when the proper source term is included should the advection
-     * velocity not be discretely divergence free.
+     * Note that if the advection velocity is not discretely
+     * divergence free, and if the predicted velocities are to be
+     * conservatively differenced (i.e. used in a discretization of
+     * the conservative form of the equation), a consistent method is
+     * obtained only when the proper source terms are included
      *
      * @see predictNormalVelocityWithSourceTerm
      */
@@ -210,40 +245,48 @@ public:
         const double dt) const;
     
     /*!
-     * A Godunov predictor used to predict face and time centered
-     * normal velocities from cell centered values using a Taylor
-     * expansion about each cell center.
+     * @brief Compute predicted time- and face-centered MAC velocities
+     * from a cell-centered veclocity using a second-order Godunov
+     * method (\em forced version).
      * 
-     * The predictor assumes that V satisfies an equation of the form
+     * The predictor assumes that \f$ \vec{V} \f$ satisfies an
+     * equation of the form \f[
      * 
-     *      dV/dt + u * grad V = Psi
+     *      \frac{d\vec{V}}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla)\vec{V} = \vec{F},
      * 
-     * i.e. V satisfies a non-conservative advection equation.
+     * \f] i.e., that \f$ \vec{V} \f$ satisfies the \em forced
+     * advection equation in \em non-conservative form.
      *
-     * Note that if the predicted velocities are to be conservatively
-     * differenced (i.e. used in a discretization of the conservative
-     * form of the equation), a consistent method is obtained only
-     * when the proper source term is included should the advection
-     * velocity not be discretely divergence free.
+     * Note that if the advection velocity is not discretely
+     * divergence free, and if the predicted velocities are to be
+     * conservatively differenced (i.e. used in a discretization of
+     * the conservative form of the equation), a consistent method is
+     * obtained only when the proper source terms are included
+     *
+     * @see predictNormalVelocity
      */
     void predictNormalVelocityWithSourceTerm(
-        SAMRAI::pdat::FaceData<NDIM,double>& V_half,
+        SAMRAI::pdat::FaceData<NDIM,double>& v_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::CellData<NDIM,double>& V,
-        const SAMRAI::pdat::CellData<NDIM,double>& Psi,
+        const SAMRAI::pdat::CellData<NDIM,double>& F,
         const SAMRAI::hier::Patch<NDIM>& patch,
         const double dt) const;
     
     /*!
-     * Subtracts off the face centered gradient of a scalar from a
-     * predicted velocity to approximately enforce incompressibility.
+     * @brief Subtract the face-centered gradient of a scalar from a
+     * predicted face-centered velocity field to enforce
+     * incompressibility \em approximately.
+     *
+     * NOTE: The face-centerd velocity field \p v_half must provide
+     * both normal and transverse velocity components at each cell
+     * face, i.e., \p v_half must \em NOT be a MAC velocity field.
      */
     void enforceIncompressibility(
-        SAMRAI::pdat::FaceData<NDIM,double>& q_half,
+        SAMRAI::pdat::FaceData<NDIM,double>& v_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::FaceData<NDIM,double>& grad,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        const double dt) const;
+        const SAMRAI::pdat::FaceData<NDIM,double>& grad_phi,
+        const SAMRAI::hier::Patch<NDIM>& patch) const;
 
     ///
     ///  The following routines:
@@ -255,8 +298,8 @@ public:
     ///
     
     /*!
-     * Write state of GodunovAdvector object to the given database for
-     * restart.
+     * @brief Write state of GodunovAdvector object to the given
+     * database for restart.
      *
      * This routine is a concrete implementation of the function
      * declared in the SAMRAI::tbox::Serializable abstract base class.
@@ -273,7 +316,7 @@ public:
     ///
     
     /*!
-     * Print all data members for GodunovAdvector class.
+     * @brief Print all data members for GodunovAdvector class.
      */
     virtual void printClassData(
         std::ostream& os) const;
@@ -324,7 +367,7 @@ private:
         SAMRAI::pdat::FaceData<NDIM,double>& q_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::CellData<NDIM,double>& Q,
-        const SAMRAI::pdat::CellData<NDIM,double>& Psi,
+        const SAMRAI::pdat::CellData<NDIM,double>& F,
         const SAMRAI::hier::Patch<NDIM>& patch,
         const double dt) const;
     

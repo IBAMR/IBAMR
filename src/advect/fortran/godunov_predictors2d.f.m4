@@ -283,7 +283,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine godunov_incompressibilityfix2d(
-     &     dx,dt,
+     &     dx,
      &     gradtype,
      &     ifirst0,ilast0,ifirst1,ilast1,
      &     nugc0,nugc1,
@@ -306,7 +306,7 @@ c
 
       INTEGER gradtype
 
-      REAL dx(0:NDIM-1),dt
+      REAL dx(0:NDIM-1)
       
       REAL u0(FACE2d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE2d1VECG(ifirst,ilast,nugc))
@@ -332,7 +332,7 @@ c
       endif
       
       call godunov_gradfix2d(
-     &     dx(0),dx(1),dt,
+     &     dx(0),dx(1),
      &     gradtype0,
      &     ifirst0,ilast0,ifirst1,ilast1,
      &     nugc0,nugc1,
@@ -343,7 +343,7 @@ c
      &     qhalf0,qhalf1)
       
       call godunov_gradfix2d(
-     &     dx(1),dx(0),dt,
+     &     dx(1),dx(0),
      &     gradtype1,
      &     ifirst1,ilast1,ifirst0,ilast0,
      &     nugc1,nugc0,
@@ -667,7 +667,7 @@ c
       end
 c     
       subroutine godunov_gradfix2d(
-     &     dx0,dx1,dt,
+     &     dx0,dx1,
      &     gradtype,
      &     ifirst0,ilast0,ifirst1,ilast1,
      &     nugc0,nugc1,

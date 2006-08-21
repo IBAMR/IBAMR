@@ -76,6 +76,7 @@ if test -d "${SAMRAI_DIR}/include" ; then
   CPPFLAGS="-I${SAMRAI_DIR}/include $CPPFLAGS"
 fi
 
+AC_SUBST(SAMRAI_DIR,[${SAMRAI_DIR}])
 AC_SUBST(SAMRAI_FORTDIR,[${SAMRAI_DIR}/include])
 
 AC_CHECK_HEADER([SAMRAI_config.h],,AC_MSG_WARN([could not find header file SAMRAI_config.h]))
@@ -343,6 +344,7 @@ echo "Outputting files"
 echo "================"
 AC_CONFIG_FILES([
   Makefile
+  doc/Doxyfile
   src/Makefile src/fortran/Makefile
   src/advect/Makefile src/advect/fortran/Makefile src/advect/tests/Makefile
   src/utilities/Makefile

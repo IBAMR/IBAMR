@@ -2,7 +2,7 @@
 #define included_SetDataStrategy
 
 // Filename: SetDataStrategy.h
-// Last modified: <17.Aug.2006 20:11:05 boyce@bigboy.nyconnect.com>
+// Last modified: <21.Aug.2006 18:32:02 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -29,10 +29,10 @@ namespace IBAMR
  *
  * The interface specified by this class is very similar to that of
  * the PhysicalBCDataStrategy class.  The different interfaces are
- * provided for the sake of code clarity---i.e. in order to easily
- * separate classes which set internal patch data from those which set
- * boundary data.  Additionally, note that the interfaces required of
- * concrete implementations of both strategy class are different.
+ * provided for the sake of code clarity, i.e., to separate classes
+ * which set internal patch data from those which set boundary data.
+ * Additionally, note that the interfaces required of concrete
+ * implementations of both strategy class are different.
  *
  * @see PhysicalBCDataStrategy
  */
@@ -51,17 +51,21 @@ public:
      */
     virtual ~SetDataStrategy();
     
-    //@{ @name Methods to set the data.
-
     /*!
-     * Indicates whether the concrete SetDataStrategy object is time
-     * dependent.
+     * @name Methods to set patch interior data.
+     */
+    //@{
+    
+    /*!
+     * @brief Indicates whether the concrete SetDataStrategy object is
+     * time-dependent.
      */
     virtual bool isTimeDependent() const = 0;
     
     /*!
-     * Set data on the patch interiors on the specified levels of the
-     * patch hierarchy using the virtual function setDataOnPatch().
+     * @brief Set data on the patch interiors on the specified levels
+     * of the patch hierarchy using the virtual function
+     * setDataOnPatch().
      * 
      * @see setDataOnPatch
      */
@@ -75,8 +79,9 @@ public:
         const int finest_ln=-1);
     
     /*!
-     * Set data on the patch interiors on the specified level of the
-     * patch hierarchy using the virtual function setDataOnPatch().
+     * @brief Set data on the patch interiors on the specified level
+     * of the patch hierarchy using the virtual function
+     * setDataOnPatch().
      *
      * @see setDataOnPatch
      */
@@ -88,7 +93,7 @@ public:
         const bool initial_time=false);
     
     /*!
-     * Set the data on the patch interior.
+     * @brief Pure virtual function to set data on the patch interior.
      */
     virtual void setDataOnPatch(
         const int data_idx,
@@ -97,10 +102,10 @@ public:
         const double data_time,
         const bool initial_time=false) = 0;
     
-    //@}    
+    //@}
 
     /*!
-     * Prints the name of the strategy object.
+     * @brief Print the name of the strategy object.
      */
     virtual void printClassData(
         std::ostream& os) const;

@@ -70,13 +70,17 @@ print "Selecting files...\n";
 #
 
 @headers = grep /\.h$/, @allfiles;
+@headers = grep !/(tests\/|examples\/)/, @headers;
+
 @includes = grep /\.I$/, @allfiles;
+@includes = grep !/(tests\/|examples\/)/, @includes;
 
 #
 #  Gather a few fortran include files that should be in included.
 #
 
 @fincludes = grep /\.i$/, @allfiles;
+@fincludes = grep !/(tests\/|examples\/)/, @fincludes;
 
 # All of the *.C files of type "template <class TYPE>"
 # should be in include also!
@@ -88,6 +92,7 @@ print "Selecting files...\n";
     close IFILE;
     $lines =~ m/(template\s?<\s?int DIM\s?>)|(template\s?<\s?int DIM\s?,\s?class\sTYPE\s?>)|(template\s<class\sTYPE>)|(template\s<>)/;
 } @templates;
+@templates = grep !/(tests\/|examples\/)/, @templates;
 
 print "Done selecting files...\n";
 

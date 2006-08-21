@@ -2,7 +2,7 @@
 #define included_PhysicalBCDataStrategy
 
 // Filename: PhysicalBCDataStrategy.h
-// Last modified: <17.Aug.2006 20:10:40 boyce@bigboy.nyconnect.com>
+// Last modified: <21.Aug.2006 18:31:52 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -30,10 +30,10 @@ namespace IBAMR
  * 
  * The interface specified by this class is very similar to that of
  * the SetDataStrategy class.  The different interfaces are provided
- * for the sake of code clarity---i.e. in order to easily
- * separate classes which set internal patch data from those which set
- * boundary data.  Additionally, note that the interfaces required of
- * concrete implementations of both strategy class are different.
+ * for the sake of code clarity, i.e., to separate classes which set
+ * internal patch data from those which set boundary data.
+ * Additionally, note that the interfaces required of concrete
+ * implementations of both strategy class are different.
  *
  * @see SetDataStrategy
  */
@@ -52,13 +52,17 @@ public:
      * @brief Empty virtual destructor.
      */
     virtual ~PhysicalBCDataStrategy();
-    
-    //@{ @name Methods to set the boundary data.
+
+    /*!
+     *  @name Methods to set patch boundary data.
+     */
+    //@{
     
     /*!
-     * Set the data in ghost cells corresponding to physical boundary
-     * conditions on the specified levels of the patch hierarchy using
-     * the virtual function setPhysicalBoundaryConditionsOnPatch().
+     * @brief Set data in ghost cells corresponding to physical
+     * boundary conditions on the specified levels of the patch
+     * hierarchy using the virtual function
+     * setPhysicalBoundaryConditionsOnPatch().
      * 
      * @see setPhysicalBoundaryConditionsOnPatch
      */
@@ -72,9 +76,10 @@ public:
         const int finest_ln=-1);
     
     /*!
-     * Set the data in ghost cells corresponding to physical boundary
-     * conditions on the specified level of the patch hierarchy using
-     * the virtual function setPhysicalBoundaryConditionsOnPatch().
+     * @brief Set data in ghost cells corresponding to physical
+     * boundary conditions on the specified level of the patch
+     * hierarchy using the virtual function
+     * setPhysicalBoundaryConditionsOnPatch().
      * 
      * @see setPhysicalBoundaryConditionsOnPatch
      */
@@ -86,8 +91,8 @@ public:
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
     
     /*!
-     * Set the data in ghost cells corresponding to physical boundary
-     * conditions.
+     * @brief Pure virtual function to set data in ghost cells
+     * corresponding to physical boundary conditions.
      */
     virtual void setPhysicalBoundaryConditionsOnPatch(
         const int data_idx,
@@ -99,7 +104,7 @@ public:
     //@}    
 
     /*!
-     * Prints the name of the boundary conditions strategy.
+     * @brief Print the name of the boundary conditions strategy.
      */
     virtual void printClassData(
         std::ostream& os) const;

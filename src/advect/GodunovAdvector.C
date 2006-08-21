@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <17.Aug.2006 20:12:58 boyce@bigboy.nyconnect.com>
+// Last modified: <21.Aug.2006 17:40:50 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -143,7 +143,7 @@ extern "C"
 
 #if ((NDIM == 2) || (NDIM == 3))
     void GODUNOV_INCOMPRESSIBILITYFIX_F77(
-        const double* , const double& ,
+        const double* ,
         const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -419,7 +419,7 @@ void
 GodunovAdvector::computeAdvectiveDerivative(
     SAMRAI::pdat::CellData<NDIM,double>& N,
     const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-    const SAMRAI::pdat::FaceData<NDIM,double>& q,
+    const SAMRAI::pdat::FaceData<NDIM,double>& q_half,
     const SAMRAI::hier::Patch<NDIM>& patch) const
 {
     t_compute_advective_derivative->start();
@@ -428,9 +428,10 @@ GodunovAdvector::computeAdvectiveDerivative(
     assert(u_ADV.getDepth() == 1);
     assert(u_ADV.getBox()   == patch.getBox());
 
-    assert(N.getDepth() == q.getDepth());
+    assert(N.getDepth() == q_half.getDepth());
     assert(N.getBox()   == patch.getBox());
-    assert(q.getBox()   == patch.getBox());
+    
+    assert(q_half.getBox() == patch.getBox());
 #endif
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
         patch.getPatchGeometry();
@@ -439,20 +440,20 @@ GodunovAdvector::computeAdvectiveDerivative(
     const SAMRAI::hier::Index<NDIM>& ilower = patch.getBox().lower();
     const SAMRAI::hier::Index<NDIM>& iupper = patch.getBox().upper();
     
-    const SAMRAI::hier::IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
-    const SAMRAI::hier::IntVector<NDIM>& q_ghost_cells = q.getGhostCellWidth();
-    const SAMRAI::hier::IntVector<NDIM>& N_ghost_cells = N.getGhostCellWidth();
+    const SAMRAI::hier::IntVector<NDIM>&  u_ADV_ghost_cells = u_ADV .getGhostCellWidth();
+    const SAMRAI::hier::IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
+    const SAMRAI::hier::IntVector<NDIM>&      N_ghost_cells = N     .getGhostCellWidth();
 
-    for (int depth = 0; depth < q.getDepth() ; ++depth)
+    for (int depth = 0; depth < q_half.getDepth() ; ++depth)
     {
 #if (NDIM == 1)
         ADVECT_DERIVATIVE_F77(
             dx, 
             ilower(0),iupper(0),
             u_ADV_ghost_cells(0),
-            q_ghost_cells(0),
+            q_half_ghost_cells(0),
             u_ADV.getPointer(0),
-            q.getPointer(0,depth),
+            q_half.getPointer(0,depth),
             N_ghost_cells(0),
             N.getPointer(depth));
 #endif
@@ -461,9 +462,9 @@ GodunovAdvector::computeAdvectiveDerivative(
             dx, 
             ilower(0),iupper(0),ilower(1),iupper(1),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
-            q_ghost_cells(0),q_ghost_cells(1),
+            q_half_ghost_cells(0),q_half_ghost_cells(1),
             u_ADV.getPointer(0),u_ADV.getPointer(1),
-            q.getPointer(0,depth),q.getPointer(1,depth),
+            q_half.getPointer(0,depth),q_half.getPointer(1,depth),
             N_ghost_cells(0),N_ghost_cells(1),
             N.getPointer(depth));
 #endif
@@ -472,9 +473,9 @@ GodunovAdvector::computeAdvectiveDerivative(
             dx, 
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
-            q_ghost_cells(0),q_ghost_cells(1),q_ghost_cells(2),
+            q_half_ghost_cells(0),q_half_ghost_cells(1),q_half_ghost_cells(2),
             u_ADV.getPointer(0),u_ADV.getPointer(1),u_ADV.getPointer(2),
-            q.getPointer(0,depth),q.getPointer(1,depth),q.getPointer(2,depth),
+            q_half.getPointer(0,depth),q_half.getPointer(1,depth),q_half.getPointer(2,depth),
             N_ghost_cells(0),N_ghost_cells(1),N_ghost_cells(2),
             N.getPointer(depth));
 #endif
@@ -493,12 +494,21 @@ GodunovAdvector::computeFlux(
     const double dt) const
 {
     t_compute_flux->start();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(u_ADV.getDepth() == 1);
+    assert(u_ADV.getBox()   == patch.getBox());
+
+    assert(flux.getDepth() == q_half.getDepth());
+    assert(flux.getBox()   == patch.getBox());
     
+    assert(q_half.getBox() == patch.getBox());
+#endif
     const SAMRAI::hier::Index<NDIM>& ilower = patch.getBox().lower();
     const SAMRAI::hier::Index<NDIM>& iupper = patch.getBox().upper();
     
-    const SAMRAI::hier::IntVector<NDIM>& flux_ghost_cells = flux.getGhostCellWidth();
-    const SAMRAI::hier::IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
+    const SAMRAI::hier::IntVector<NDIM>&   flux_ghost_cells = flux  .getGhostCellWidth();
+    const SAMRAI::hier::IntVector<NDIM>&  u_ADV_ghost_cells = u_ADV .getGhostCellWidth();
     const SAMRAI::hier::IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
     
     for (int depth = 0; depth < q_half.getDepth(); ++depth)
@@ -563,13 +573,13 @@ GodunovAdvector::predictValueWithSourceTerm(
     SAMRAI::pdat::FaceData<NDIM,double>& q_half,
     const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
     const SAMRAI::pdat::CellData<NDIM,double>& Q,
-    const SAMRAI::pdat::CellData<NDIM,double>& Psi,
+    const SAMRAI::pdat::CellData<NDIM,double>& F,
     const SAMRAI::hier::Patch<NDIM>& patch,
     const double dt) const
 {
     t_predict_value_with_source_term->start();
 
-    predictWithSourceTerm(q_half, u_ADV, Q, Psi, patch, dt);
+    predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt);
 
     t_predict_value_with_source_term->stop();
     return;
@@ -607,7 +617,7 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
     SAMRAI::pdat::FaceData<NDIM,double>& v_half,
     const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
     const SAMRAI::pdat::CellData<NDIM,double>& V,
-    const SAMRAI::pdat::CellData<NDIM,double>& Psi,
+    const SAMRAI::pdat::CellData<NDIM,double>& F,
     const SAMRAI::hier::Patch<NDIM>& patch,
     const double dt) const
 {
@@ -615,7 +625,7 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
 
     SAMRAI::pdat::FaceData<NDIM,double> v_half_tmp(v_half.getBox(), NDIM, SAMRAI::hier::IntVector<NDIM>(FACEG));
     
-    predictWithSourceTerm(v_half_tmp, u_ADV, V, Psi, patch, dt);
+    predictWithSourceTerm(v_half_tmp, u_ADV, V, F, patch, dt);
     
     for (int axis = 0; axis < NDIM; ++axis)
     {
@@ -632,21 +642,24 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
 
 void
 GodunovAdvector::enforceIncompressibility(
-    SAMRAI::pdat::FaceData<NDIM,double>& q_half,
+    SAMRAI::pdat::FaceData<NDIM,double>& v_half,
     const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-    const SAMRAI::pdat::FaceData<NDIM,double>& grad,
-    const SAMRAI::hier::Patch<NDIM>& patch,
-    const double dt) const
+    const SAMRAI::pdat::FaceData<NDIM,double>& grad_phi,
+    const SAMRAI::hier::Patch<NDIM>& patch) const
 {
     t_enforce_incompressibility->start();
 
 #if (NDIM != 1)
     
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(grad.getDepth()   == 1);
-    assert(grad.getBox()     == patch.getBox());
+    assert(u_ADV.getDepth() == 1);
+    assert(u_ADV.getBox()   == patch.getBox());
 
-    assert(q_half.getDepth() == NDIM);
+    assert(grad_phi.getDepth() == 1);
+    assert(grad_phi.getBox()   == patch.getBox());
+
+    assert(v_half.getBox()   == patch.getBox());
+    assert(v_half.getDepth() == NDIM);
 #endif
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
@@ -654,35 +667,35 @@ GodunovAdvector::enforceIncompressibility(
     const SAMRAI::hier::Index<NDIM>& ilower = patch.getBox().lower();
     const SAMRAI::hier::Index<NDIM>& iupper = patch.getBox().upper();
 
-    const SAMRAI::hier::IntVector<NDIM>& u_ADV_ghost_cells  = u_ADV .getGhostCellWidth();
-    const SAMRAI::hier::IntVector<NDIM>& grad_ghost_cells   = grad  .getGhostCellWidth();
-    const SAMRAI::hier::IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
+    const SAMRAI::hier::IntVector<NDIM>&    u_ADV_ghost_cells = u_ADV   .getGhostCellWidth();
+    const SAMRAI::hier::IntVector<NDIM>& grad_phi_ghost_cells = grad_phi.getGhostCellWidth();
+    const SAMRAI::hier::IntVector<NDIM>&   v_half_ghost_cells = v_half  .getGhostCellWidth();
 
     for (int depth = 0; depth < NDIM; ++depth)
     {
 #if (NDIM == 2)
         GODUNOV_INCOMPRESSIBILITYFIX_F77(
-            dx,dt,
+            dx,
             depth,
             ilower(0),iupper(0),ilower(1),iupper(1),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
-            grad_ghost_cells(0),grad_ghost_cells(1),
-            q_half_ghost_cells(0),q_half_ghost_cells(1),
+            grad_phi_ghost_cells(0),grad_phi_ghost_cells(1),
+            v_half_ghost_cells(0),v_half_ghost_cells(1),
             u_ADV.getPointer(0),u_ADV.getPointer(1),
-            grad.getPointer(0),grad.getPointer(1),
-            q_half.getPointer(0,depth),q_half.getPointer(1,depth));
+            grad_phi.getPointer(0),grad_phi.getPointer(1),
+            v_half.getPointer(0,depth),v_half.getPointer(1,depth));
 #endif
 #if (NDIM == 3)
         GODUNOV_INCOMPRESSIBILITYFIX_F77(
-            dx,dt,
+            dx,
             depth,
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
-            grad_ghost_cells(0),grad_ghost_cells(1),grad_ghost_cells(2),
-            q_half_ghost_cells(0),q_half_ghost_cells(1),q_half_ghost_cells(2),
+            grad_phi_ghost_cells(0),grad_phi_ghost_cells(1),grad_phi_ghost_cells(2),
+            v_half_ghost_cells(0),v_half_ghost_cells(1),v_half_ghost_cells(2),
             u_ADV.getPointer(0),u_ADV.getPointer(1),u_ADV.getPointer(2),
-            grad.getPointer(0),grad.getPointer(1),grad.getPointer(2),
-            q_half.getPointer(0,depth),q_half.getPointer(1,depth),q_half.getPointer(2,depth));
+            grad_phi.getPointer(0),grad_phi.getPointer(1),grad_phi.getPointer(2),
+            v_half.getPointer(0,depth),v_half.getPointer(1,depth),v_half.getPointer(2,depth));
 #endif
     }
 
@@ -742,11 +755,12 @@ GodunovAdvector::predict(
     t_predict->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
+    assert(q_half.getDepth() == Q.getDepth());
+    assert(q_half.getBox()   == patch.getBox());
+
     assert(u_ADV.getDepth() == 1);
     assert(u_ADV.getBox()   == patch.getBox());
 
-    assert(q_half.getDepth() == Q.getDepth());
-    assert(q_half.getBox()   == patch.getBox());
     assert(Q.getBox()        == patch.getBox());
 #endif
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
@@ -756,8 +770,8 @@ GodunovAdvector::predict(
     const SAMRAI::hier::Index<NDIM>& ilower = patch.getBox().lower();
     const SAMRAI::hier::Index<NDIM>& iupper = patch.getBox().upper();
     
-    const SAMRAI::hier::IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
-    const SAMRAI::hier::IntVector<NDIM>& Q_ghost_cells = Q.getGhostCellWidth();
+    const SAMRAI::hier::IntVector<NDIM>&  u_ADV_ghost_cells = u_ADV .getGhostCellWidth();
+    const SAMRAI::hier::IntVector<NDIM>&      Q_ghost_cells = Q     .getGhostCellWidth();
     const SAMRAI::hier::IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
     
 #if (NDIM>1)
@@ -821,21 +835,23 @@ GodunovAdvector::predictWithSourceTerm(
     SAMRAI::pdat::FaceData<NDIM,double>& q_half,
     const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
     const SAMRAI::pdat::CellData<NDIM,double>& Q,
-    const SAMRAI::pdat::CellData<NDIM,double>& Psi,
+    const SAMRAI::pdat::CellData<NDIM,double>& F,
     const SAMRAI::hier::Patch<NDIM>& patch,
     const double dt) const
 {
     t_predict_with_source_term->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
+    assert(q_half.getDepth() == Q.getDepth());
+    assert(q_half.getDepth() == F.getDepth());
+    assert(q_half.getBox()   == patch.getBox());
+
     assert(u_ADV.getDepth() == 1);
     assert(u_ADV.getBox()   == patch.getBox());
 
-    assert(q_half.getDepth() == Q.getDepth());
-    assert(q_half.getDepth() == Psi.getDepth());
-    assert(q_half.getBox()   == patch.getBox());
-    assert(Q.getBox()        == patch.getBox());
-    assert(Psi.getBox()      == patch.getBox());
+    assert(Q.getBox() == patch.getBox());
+
+    assert(F.getBox() == patch.getBox());
 #endif
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
@@ -845,18 +861,18 @@ GodunovAdvector::predictWithSourceTerm(
 
     const SAMRAI::hier::IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
     const SAMRAI::hier::IntVector<NDIM>& Q_ghost_cells = Q.getGhostCellWidth();
-    const SAMRAI::hier::IntVector<NDIM>& Psi_ghost_cells = Psi.getGhostCellWidth();
+    const SAMRAI::hier::IntVector<NDIM>& F_ghost_cells = F.getGhostCellWidth();
     const SAMRAI::hier::IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
 
 #if (NDIM>1)
     SAMRAI::pdat::CellData<NDIM,double> Q_temp1(patch.getBox(),1,Q_ghost_cells);
-    SAMRAI::pdat::CellData<NDIM,double> Psi_temp1(patch.getBox(),1,Psi_ghost_cells);
+    SAMRAI::pdat::CellData<NDIM,double> F_temp1(patch.getBox(),1,F_ghost_cells);
     SAMRAI::pdat::FaceData<NDIM,double> q_half_temp(patch.getBox(),1,q_half_ghost_cells);
 #endif
 
 #if (NDIM>2)
     SAMRAI::pdat::CellData<NDIM,double> Q_temp2(patch.getBox(),1,Q_ghost_cells);
-    SAMRAI::pdat::CellData<NDIM,double> Psi_temp2(patch.getBox(),1,Psi_ghost_cells);
+    SAMRAI::pdat::CellData<NDIM,double> F_temp2(patch.getBox(),1,F_ghost_cells);
 #endif
     
     for (int depth = 0; depth < Q.getDepth(); ++depth)
@@ -867,9 +883,9 @@ GodunovAdvector::predictWithSourceTerm(
             d_limiter_type,
             ilower(0),iupper(0),
             Q_ghost_cells(0),
-            Psi_ghost_cells(0),
+            F_ghost_cells(0),
             Q.getPointer(depth),
-            Psi.getPointer(depth),
+            F.getPointer(depth),
             u_ADV_ghost_cells(0),
             q_half_ghost_cells(0),
             u_ADV.getPointer(0),
@@ -881,9 +897,9 @@ GodunovAdvector::predictWithSourceTerm(
             d_limiter_type,
             ilower(0),iupper(0),ilower(1),iupper(1),
             Q_ghost_cells(0),Q_ghost_cells(1),
-            Psi_ghost_cells(0),Psi_ghost_cells(1),
+            F_ghost_cells(0),F_ghost_cells(1),
             Q.getPointer(depth),Q_temp1.getPointer(0),
-            Psi.getPointer(depth),Psi_temp1.getPointer(0),
+            F.getPointer(depth),F_temp1.getPointer(0),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
             q_half_ghost_cells(0),q_half_ghost_cells(1),
             u_ADV.getPointer(0),u_ADV.getPointer(1),
@@ -897,9 +913,9 @@ GodunovAdvector::predictWithSourceTerm(
             d_limiter_type,
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
-            Psi_ghost_cells(0),Psi_ghost_cells(1),Psi_ghost_cells(2),
+            F_ghost_cells(0),F_ghost_cells(1),F_ghost_cells(2),
             Q.getPointer(depth),Q_temp1.getPointer(0),Q_temp2.getPointer(0),
-            Psi.getPointer(depth),Psi_temp1.getPointer(0),Psi_temp2.getPointer(0),
+            F.getPointer(depth),F_temp1.getPointer(0),F_temp2.getPointer(0),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
             q_half_ghost_cells(0),q_half_ghost_cells(1),q_half_ghost_cells(2),
             u_ADV.getPointer(0),u_ADV.getPointer(1),u_ADV.getPointer(2),
