@@ -32,7 +32,6 @@
 #include <PatchData.h>
 #include <VariableDatabase.h>
 #include <tbox/Array.h>
-#include <tbox/PIO.h>
 #include <tbox/RestartManager.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>

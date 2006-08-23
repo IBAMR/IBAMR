@@ -16,11 +16,13 @@ BUILT_SOURCES = \
   godunov_predictors1d.f godunov_predictors2d.f godunov_predictors3d.f
 CLEANFILES = ${BUILT_SOURCES}
 
+## Dimension-independent library
 noinst_LTLIBRARIES = libIBAMR_advect_fortran.la
 libIBAMR_advect_fortran_la_F77FLAGS = $(AM_F77FLAGS)
 libIBAMR_advect_fortran_la_SOURCES = \
   godunov_helpers.f
 
+## Dimension-dependent libraries
 noinst_LTLIBRARIES += libIBAMR_advect_fortran2d.la
 libIBAMR_advect_fortran2d_la_F77FLAGS = $(AM_F77FLAGS)
 libIBAMR_advect_fortran2d_la_SOURCES = \
