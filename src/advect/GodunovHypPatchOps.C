@@ -1,5 +1,5 @@
 // Filename: GodunovHypPatchOps.C
-// Last modified: <23.Aug.2006 00:00:14 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Aug.2006 19:41:10 boyce@bigboy.nyconnect.com>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -151,11 +151,6 @@ extern "C"
 //#ifdef DEBUG_NO_INLINE
 //#include "GodunovHypPatchOps.I"
 //#endif
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::GodunovHypPatchOps>;
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -2029,5 +2024,10 @@ GodunovHypPatchOps::getFromRestart()
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
+
+/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
+
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::GodunovHypPatchOps>;
 
 //////////////////////////////////////////////////////////////////////////////

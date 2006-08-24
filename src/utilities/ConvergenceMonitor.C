@@ -1,5 +1,5 @@
 // Filename: ConvergenceMonitor.C
-// Last modified: <17.Aug.2006 20:07:26 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Aug.2006 19:40:28 boyce@bigboy.nyconnect.com>
 // Created on 19 Jun 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -35,11 +35,6 @@
 //#ifdef DEBUG_NO_INLINE
 //#include "ConvergenceMonitor.I"
 //#endif
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::ConvergenceMonitor>;
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -275,5 +270,10 @@ ConvergenceMonitor::resetHierarchyConfiguration(
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
+
+/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
+
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::ConvergenceMonitor>;
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 // Filename: SetDataStrategy.C
-// Last modified: <17.Aug.2006 20:13:45 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Aug.2006 19:40:45 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -24,11 +24,6 @@
 //#ifdef DEBUG_NO_INLINE
 //#include "SetDataStrategy.I"
 //#endif
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::SetDataStrategy>;
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -116,5 +111,10 @@ SetDataStrategy::printClassData(
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
+
+/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
+
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::SetDataStrategy>;
 
 //////////////////////////////////////////////////////////////////////////////

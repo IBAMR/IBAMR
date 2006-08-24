@@ -56,6 +56,45 @@ fi
 
 # Required external libraries.
 
+# Check for hypre library and configure hypre options.
+echo
+echo "=================================="
+echo "Configuring required package hypre"
+echo "=================================="
+AC_ARG_WITH([hypre],
+  AS_HELP_STRING(--with-hypre=PATH,location of required hypre installation @<:@default=/usr/local/sfw/hypre/current@:>@),
+  [if test ! -d "$withval" ; then
+     AC_MSG_ERROR([you must specify an existing directory when using --with-hypre=PATH])
+   fi
+   HYPRE_DIR=$withval],
+  [HYPRE_DIR=/usr/local/sfw/hypre/current])
+
+if test -d "${HYPRE_DIR}/lib" ; then
+  LDFLAGS="-L${HYPRE_DIR}/lib -R${HYPRE_DIR}/lib $LDFLAGS"
+fi
+if test -d "${HYPRE_DIR}/include" ; then
+  CPPFLAGS="-I${HYPRE_DIR}/include $CPPFLAGS"
+fi
+
+AC_CHECK_HEADER([HYPRE.h],,AC_MSG_WARN([could not find header file HYPRE.h]))
+AC_CHECK_LIB([HYPRE_utilities],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_utilities]))
+AC_CHECK_LIB([HYPRE_multivector],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_multivector]))
+AC_CHECK_LIB([HYPRE_krylov],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_krylov]))
+AC_CHECK_LIB([HYPRE_seq_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_seq_mv]))
+AC_CHECK_LIB([HYPRE_parcsr_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_parcsr_mv]))
+AC_CHECK_LIB([HYPRE_IJ_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_IJ_mv]))
+AC_CHECK_LIB([HYPRE_DistributedMatrix],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_DistributedMatrix]))
+AC_CHECK_LIB([HYPRE_MatrixMatrix],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_MatrixMatrix]))
+AC_CHECK_LIB([HYPRE_Euclid],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_Euclid]))
+AC_CHECK_LIB([HYPRE_ParaSails],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_ParaSails]))
+AC_CHECK_LIB([HYPRE_DistributedMatrixPilutSolver],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_DistributedMatrixPilutSolver]))
+AC_CHECK_LIB([HYPRE_parcsr_block_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_parcsr_block_mv]))
+AC_CHECK_LIB([HYPRE_parcsr_ls],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_parcsr_ls]))
+AC_CHECK_LIB([HYPRE_struct_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_struct_mv]))
+AC_CHECK_LIB([HYPRE_struct_ls],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_struct_ls]))
+AC_CHECK_LIB([HYPRE_sstruct_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_sstruct_mv]))
+AC_CHECK_LIB([HYPRE_sstruct_ls],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_sstruct_ls]))
+
 # Check for SAMRAI library and configure SAMRAI options.
 echo
 echo "==================================="
@@ -184,45 +223,6 @@ AC_CHECK_LIB([petscdm],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscdm])
 AC_CHECK_LIB([petscksp],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscksp]))
 AC_CHECK_LIB([petscsnes],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscsnes]))
 AC_CHECK_LIB([petscts],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscts]))
-
-# Check for hypre library and configure hypre options.
-echo
-echo "=================================="
-echo "Configuring required package hypre"
-echo "=================================="
-AC_ARG_WITH([hypre],
-  AS_HELP_STRING(--with-hypre=PATH,location of required hypre installation @<:@default=/usr/local/sfw/hypre/current@:>@),
-  [if test ! -d "$withval" ; then
-     AC_MSG_ERROR([you must specify an existing directory when using --with-hypre=PATH])
-   fi
-   HYPRE_DIR=$withval],
-  [HYPRE_DIR=/usr/local/sfw/hypre/current])
-
-if test -d "${HYPRE_DIR}/lib" ; then
-  LDFLAGS="-L${HYPRE_DIR}/lib -R${HYPRE_DIR}/lib $LDFLAGS"
-fi
-if test -d "${HYPRE_DIR}/include" ; then
-  CPPFLAGS="-I${HYPRE_DIR}/include $CPPFLAGS"
-fi
-
-AC_CHECK_HEADER([HYPRE.h],,AC_MSG_WARN([could not find header file HYPRE.h]))
-AC_CHECK_LIB([HYPRE_utilities],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_utilities]))
-AC_CHECK_LIB([HYPRE_multivector],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_multivector]))
-AC_CHECK_LIB([HYPRE_krylov],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_krylov]))
-AC_CHECK_LIB([HYPRE_seq_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_seq_mv]))
-AC_CHECK_LIB([HYPRE_parcsr_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_parcsr_mv]))
-AC_CHECK_LIB([HYPRE_IJ_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_IJ_mv]))
-AC_CHECK_LIB([HYPRE_DistributedMatrix],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_DistributedMatrix]))
-AC_CHECK_LIB([HYPRE_MatrixMatrix],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_MatrixMatrix]))
-AC_CHECK_LIB([HYPRE_Euclid],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_Euclid]))
-AC_CHECK_LIB([HYPRE_ParaSails],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_ParaSails]))
-AC_CHECK_LIB([HYPRE_DistributedMatrixPilutSolver],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_DistributedMatrixPilutSolver]))
-AC_CHECK_LIB([HYPRE_parcsr_block_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_parcsr_block_mv]))
-AC_CHECK_LIB([HYPRE_parcsr_ls],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_parcsr_ls]))
-AC_CHECK_LIB([HYPRE_struct_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_struct_mv]))
-AC_CHECK_LIB([HYPRE_struct_ls],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_struct_ls]))
-AC_CHECK_LIB([HYPRE_sstruct_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_sstruct_mv]))
-AC_CHECK_LIB([HYPRE_sstruct_ls],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_sstruct_ls]))
 
 # Check for hdf5 library and configure hdf5 options.
 echo
