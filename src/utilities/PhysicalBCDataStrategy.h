@@ -2,7 +2,7 @@
 #define included_PhysicalBCDataStrategy
 
 // Filename: PhysicalBCDataStrategy.h
-// Last modified: <21.Aug.2006 18:31:52 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Aug.2006 00:23:01 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -153,5 +153,7 @@ private:
 //#ifndef DEBUG_NO_INLINE
 //#include "PhysicalBCDataStrategy.I"
 //#endif
+
+//////////////////////////////////////////////////////////////////////////////
 
 #endif //#ifndef included_PhysicalBCDataStrategy

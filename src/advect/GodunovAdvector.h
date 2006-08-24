@@ -2,7 +2,7 @@
 #define included_GodunovAdvector
 
 // Filename: GodunovAdvector.h
-// Last modified: <21.Aug.2006 18:09:39 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Aug.2006 00:23:12 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -414,5 +414,7 @@ private:
 //#ifndef DEBUG_NO_INLINE
 //#include "GodunovAdvector.I"
 //#endif
+
+//////////////////////////////////////////////////////////////////////////////
 
 #endif //#ifndef included_GodunovAdvector

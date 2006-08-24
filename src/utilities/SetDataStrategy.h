@@ -2,7 +2,7 @@
 #define included_SetDataStrategy
 
 // Filename: SetDataStrategy.h
-// Last modified: <21.Aug.2006 18:32:02 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Aug.2006 00:23:06 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -154,5 +154,7 @@ private:
 //#ifndef DEBUG_NO_INLINE
 //#include "SetDataStrategy.I"
 //#endif
+
+//////////////////////////////////////////////////////////////////////////////
 
 #endif //#ifndef included_SetDataStrategy

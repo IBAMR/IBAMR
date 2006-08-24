@@ -2,7 +2,7 @@
 #define included_QInit
 
 // Filename: QInit.h
-// Last modified: <17.Aug.2006 16:08:19 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Aug.2006 00:22:39 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -133,10 +133,10 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-// INLINED FUNCTION DEFINITIONS
-//
 //#ifndef DEBUG_NO_INLINE
 //#include "QInit.I"
 //#endif
+
+//////////////////////////////////////////////////////////////////////////////
 
 #endif //#ifndef included_QInit
