@@ -1,5 +1,5 @@
 // Filename: QInitAndSoln.C
-// Last modified: <17.Aug.2006 20:05:39 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Aug.2006 20:17:17 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -30,11 +30,6 @@
 //#ifdef DEBUG_NO_INLINE
 //#include "QInit.I"
 //#endif
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<QInit>;
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -237,5 +232,10 @@ QInit::getFromInput(
     }
     return;
 }// getFromInput
+
+/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
+
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<QInit>;
 
 //////////////////////////////////////////////////////////////////////////////

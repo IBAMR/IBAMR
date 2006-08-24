@@ -1,5 +1,5 @@
 // Filename: USet.C
-// Last modified: <17.Aug.2006 20:05:34 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Aug.2006 20:17:26 boyce@bigboy.nyconnect.com>
 // Created on 23 June 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -33,11 +33,6 @@
 //#ifdef DEBUG_NO_INLINE
 //#include "USet.I"
 //#endif
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<USet>;
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -217,5 +212,10 @@ USet::getFromInput(
     }
     return;
 }// getFromInput
+
+/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
+
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<USet>;
 
 //////////////////////////////////////////////////////////////////////////////
