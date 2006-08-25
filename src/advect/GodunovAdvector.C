@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <23.Aug.2006 19:40:59 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Aug.2006 00:59:26 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -246,12 +246,6 @@ extern "C"
 #endif
                                        );
 }
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#ifdef DEBUG_NO_INLINE
-//#include "GodunovAdvector.I"
-//#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

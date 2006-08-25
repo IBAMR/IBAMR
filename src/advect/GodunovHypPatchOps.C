@@ -1,5 +1,5 @@
 // Filename: GodunovHypPatchOps.C
-// Last modified: <23.Aug.2006 19:41:10 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Aug.2006 00:59:39 boyce@bigboy.nyconnect.com>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -145,12 +145,6 @@ extern "C"
         const double*,
         int* , int*);
 }
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#ifdef DEBUG_NO_INLINE
-//#include "GodunovHypPatchOps.I"
-//#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

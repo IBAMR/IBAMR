@@ -433,7 +433,7 @@ WARN_IF_DOC_ERROR      = YES
 # wrong or incomplete parameter documentation, but not about the absence of 
 # documentation.
 
-WARN_NO_PARAMDOC       = NO
+WARN_NO_PARAMDOC       = YES
 
 # The WARN_FORMAT tag determines the format of the warning messages that 
 # doxygen can produce. The string should contain the $file, $line, and $text 
@@ -448,7 +448,7 @@ WARN_FORMAT            = "$file:$line: $text"
 # and error messages should be written. If left blank the output is written 
 # to stderr.
 
-WARN_LOGFILE           = 
+WARN_LOGFILE           = doxygen.warnings
 
 #---------------------------------------------------------------------------
 # configuration options related to the input files
@@ -495,7 +495,8 @@ EXCLUDE_SYMLINKS       = NO
 # against the file with absolute path, so to exclude all test directories 
 # for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       = */src/*.[hH] \
+EXCLUDE_PATTERNS       = */include/*.C \
+                         */src/*.[hI] \
                          */tests/* \
                          */examples/* \
                          *~ \
@@ -1109,7 +1110,7 @@ CLASS_GRAPH            = YES
 # indirect implementation dependencies (inheritance, containment, and 
 # class references variables) of the class with other documented classes.
 
-COLLABORATION_GRAPH    = YES
+COLLABORATION_GRAPH    = NO
 
 # If the GROUP_GRAPHS and HAVE_DOT tags are set to YES then doxygen 
 # will generate a graph for groups, showing the direct groups dependencies

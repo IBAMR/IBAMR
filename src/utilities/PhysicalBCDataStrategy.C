@@ -1,5 +1,5 @@
 // Filename: PhysicalBCDataStrategy.C
-// Last modified: <23.Aug.2006 19:40:36 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Aug.2006 00:59:03 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -18,12 +18,6 @@
 
 // C++ STDLIB INCLUDES
 #include <cassert>
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#ifdef DEBUG_NO_INLINE
-//#include "PhysicalBCDataStrategy.I"
-//#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

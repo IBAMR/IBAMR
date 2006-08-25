@@ -1,5 +1,5 @@
 // Filename: ConvergenceMonitor.C
-// Last modified: <23.Aug.2006 19:40:28 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Aug.2006 00:58:51 boyce@bigboy.nyconnect.com>
 // Created on 19 Jun 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -29,12 +29,6 @@
 
 // C++ STDLIB INCLUDES
 #include <cassert>
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#ifdef DEBUG_NO_INLINE
-//#include "ConvergenceMonitor.I"
-//#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

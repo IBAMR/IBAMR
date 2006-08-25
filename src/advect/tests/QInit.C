@@ -1,5 +1,5 @@
 // Filename: QInitAndSoln.C
-// Last modified: <23.Aug.2006 20:17:17 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Aug.2006 00:58:24 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -24,12 +24,6 @@
 
 // C++ STDLIB INCLUDES
 #include <cassert>
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#ifdef DEBUG_NO_INLINE
-//#include "QInit.I"
-//#endif
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

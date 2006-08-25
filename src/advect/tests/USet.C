@@ -1,5 +1,5 @@
 // Filename: USet.C
-// Last modified: <23.Aug.2006 20:17:26 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Aug.2006 00:58:36 boyce@bigboy.nyconnect.com>
 // Created on 23 June 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -27,12 +27,6 @@
 
 // C++ STDLIB INCLUDES
 #include <cassert>
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#ifdef DEBUG_NO_INLINE
-//#include "USet.I"
-//#endif
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
