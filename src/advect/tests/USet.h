@@ -2,7 +2,7 @@
 #define included_USet
 
 // Filename: USet.h
-// Last modified: <25.Aug.2006 00:58:42 boyce@bigboy.nyconnect.com>
+// Last modified: <28.Aug.2006 21:40:10 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -31,14 +31,14 @@ using namespace std;
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 /*!
- * @brief Class to initialize the value of the advection velocity u.
+ * \brief Class to initialize the value of the advection velocity u.
  */
 class USet
     : public SetDataStrategy
 {
 public:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      */
     USet(
         const string& object_name,
@@ -46,7 +46,7 @@ public:
         tbox::Pointer<tbox::Database> input_db);
     
     /*!
-     * @brief Destructor.
+     * \brief Destructor.
      */
     ~USet();
     
@@ -70,24 +70,24 @@ protected:
     
 private:
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     USet(
         const USet& from);
     
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      * 
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     USet& operator=(
         const USet& that);

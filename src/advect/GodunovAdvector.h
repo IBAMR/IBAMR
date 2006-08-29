@@ -2,7 +2,7 @@
 #define included_GodunovAdvector
 
 // Filename: GodunovAdvector.h
-// Last modified: <25.Aug.2006 00:59:33 boyce@bigboy.nyconnect.com>
+// Last modified: <28.Aug.2006 21:39:34 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -24,7 +24,7 @@
 namespace IBAMR
 {
 /*!
- * @brief Implementation of an explict second-order Godunov method for
+ * \brief Implementation of an explict second-order Godunov method for
  * the advection equation in conservative and non-conservative forms.
  * 
  * Class GodunovAdvector implements the predictors required to use an
@@ -55,7 +55,7 @@ namespace IBAMR
  * source term must be supplied to the predictor in-order to obtain a
  * formally consistent method.
  *
- * @see IBAMR::GodunovHypPatchOps
+ * \see IBAMR::GodunovHypPatchOps
  */
 class GodunovAdvector
     : public SAMRAI::tbox::Serializable
@@ -113,16 +113,16 @@ public:
     ///
     
     /*!
-     * @brief Compute the maximum stable time increment for the patch.
+     * \brief Compute the maximum stable time increment for the patch.
      *
-     * @return The maximum stable timestep.
+     * \return The maximum stable timestep.
      */
     double computeStableDtOnPatch(
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::hier::Patch<NDIM>& patch) const;
  
     /*!
-     * @brief Compute the advective derivative \f$
+     * \brief Compute the advective derivative \f$
      * \vec{N}^{n+\frac{1}{2}} = \vec{u}^{\mbox{\scriptsize
      * ADV},n+\frac{1}{2}} \cdot \nabla q^{n+\frac{1}{2}} \f$ using
      * the specified advection velocity and predicted face-centered
@@ -135,7 +135,7 @@ public:
         const SAMRAI::hier::Patch<NDIM>& patch) const;
     
     /*!
-     * @brief Compute the time integral of the advective fluxes \f$
+     * \brief Compute the time integral of the advective fluxes \f$
      * \vec{f} \f$ corresponding to a face-centered value \f$ q \f$
      * and a MAC advection velocity \f$ \vec{u}^{\mbox{\scriptsize
      * ADV}} \f$.
@@ -160,7 +160,7 @@ public:
         const double dt) const;
     
     /*!
-     * @brief Compute predicted time- and face-centered values from
+     * \brief Compute predicted time- and face-centered values from
      * cell-centered values using a second-order Godunov method (\em
      * non-forced version).
      * 
@@ -178,7 +178,7 @@ public:
      * the conservative form of the equation), a consistent method is
      * obtained only when the proper source terms are included
      *
-     * @see predictValueWithSourceTerm
+     * \see predictValueWithSourceTerm
      */
     void predictValue(
         SAMRAI::pdat::FaceData<NDIM,double>& q_half,
@@ -188,7 +188,7 @@ public:
         const double dt) const;
     
     /*!
-     * @brief Compute predicted time- and face-centered values from
+     * \brief Compute predicted time- and face-centered values from
      * cell-centered values using a second-order Godunov method (\em
      * forced version).
      * 
@@ -206,7 +206,7 @@ public:
      * the conservative form of the equation), a consistent method is
      * obtained only when the proper source terms are included
      *
-     * @see predictValue
+     * \see predictValue
      */
     void predictValueWithSourceTerm(
         SAMRAI::pdat::FaceData<NDIM,double>& q_half,
@@ -217,7 +217,7 @@ public:
         const double dt) const;
     
     /*!
-     * @brief Compute predicted time- and face-centered MAC velocities
+     * \brief Compute predicted time- and face-centered MAC velocities
      * from a cell-centered veclocity field using a second-order
      * Godunov method (\em non-forced version).
      * 
@@ -235,7 +235,7 @@ public:
      * the conservative form of the equation), a consistent method is
      * obtained only when the proper source terms are included
      *
-     * @see predictNormalVelocityWithSourceTerm
+     * \see predictNormalVelocityWithSourceTerm
      */
     void predictNormalVelocity(
         SAMRAI::pdat::FaceData<NDIM,double>& v_half,
@@ -245,7 +245,7 @@ public:
         const double dt) const;
     
     /*!
-     * @brief Compute predicted time- and face-centered MAC velocities
+     * \brief Compute predicted time- and face-centered MAC velocities
      * from a cell-centered veclocity using a second-order Godunov
      * method (\em forced version).
      * 
@@ -263,7 +263,7 @@ public:
      * the conservative form of the equation), a consistent method is
      * obtained only when the proper source terms are included
      *
-     * @see predictNormalVelocity
+     * \see predictNormalVelocity
      */
     void predictNormalVelocityWithSourceTerm(
         SAMRAI::pdat::FaceData<NDIM,double>& v_half,
@@ -274,7 +274,7 @@ public:
         const double dt) const;
     
     /*!
-     * @brief Subtract the face-centered gradient of a scalar from a
+     * \brief Subtract the face-centered gradient of a scalar from a
      * predicted face-centered velocity field to enforce
      * incompressibility \em approximately.
      *
@@ -298,7 +298,7 @@ public:
     ///
     
     /*!
-     * @brief Write state of GodunovAdvector object to the given
+     * \brief Write state of GodunovAdvector object to the given
      * database for restart.
      *
      * This routine is a concrete implementation of the function
@@ -316,14 +316,14 @@ public:
     ///
     
     /*!
-     * @brief Print all data members for GodunovAdvector class.
+     * \brief Print all data members for GodunovAdvector class.
      */
     virtual void printClassData(
         std::ostream& os) const;
     
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
@@ -331,24 +331,24 @@ private:
     GodunovAdvector();
     
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
      * 
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     GodunovAdvector(
         const GodunovAdvector& from);
     
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
      * 
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      * 
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     GodunovAdvector& operator=(
         const GodunovAdvector& that);

@@ -44,7 +44,7 @@ AC_DISABLE_SHARED
 AC_PROG_LIBTOOL
 
 AC_ARG_WITH([M4],
-   AS_HELP_STRING([--with-M4=ARG],[manually set M4 to ARG]))
+  AS_HELP_STRING([--with-M4=ARG],[manually set M4 to ARG]))
 AC_CHECK_PROGS(M4, $with_M4 gm4 m4,,)
 if test -z "$M4" ; then
   AC_MSG_ERROR([m4 preprocessor not found, specify via --with-M4=ARG])
@@ -346,6 +346,7 @@ AC_CONFIG_FILES([
   Makefile
   doc/Doxyfile
   src/Makefile src/fortran/Makefile
+  src/adv_diff/Makefile src/adv_diff/fortran/Makefile
   src/advect/Makefile src/advect/fortran/Makefile src/advect/tests/Makefile
   src/utilities/Makefile
 ])

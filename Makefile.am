@@ -7,7 +7,7 @@ ACLOCAL_AMFLAGS = -I m4
 BUILT_SOURCES = relink_headers
 relink_headers:
 	cd $(top_srcdir) && bin/includes --link
-EXTRA_DIST = bootstrap bin/includes
+EXTRA_DIST = autogen.sh bin/includes doc/Doxyfile
 dist-hook:
 	mkdir $(distdir)/include
 	mkdir $(distdir)/include/@PACKAGE@

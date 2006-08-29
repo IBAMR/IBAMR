@@ -2,7 +2,7 @@
 #define included_GodunovHypPatchOps
 
 // Filename: GodunovHypPatchOps.h
-// Last modified: <25.Aug.2006 00:59:45 boyce@bigboy.nyconnect.com>
+// Last modified: <28.Aug.2006 21:16:53 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -42,7 +42,7 @@
 namespace IBAMR
 {
 /*!
- * @brief SAMRAI::algs::HyperbolicPatchStrategy interface for the
+ * \brief SAMRAI::algs::HyperbolicPatchStrategy interface for the
  * GodunovAdvector class.
  * 
  * Class GodunovHypPatchOps provides numerical routines for solving
@@ -123,7 +123,7 @@ public:
     ///
     
     /*!
-     * @brief Register a cell-centered quantity to be advected by the
+     * \brief Register a cell-centered quantity to be advected by the
      * GodunovAdvector according to the specified advection velocity.
      *
      * Conservative differencing is employed in updating the value of
@@ -157,7 +157,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
-     * @brief Register a cell-centered quantity to be advected by the
+     * \brief Register a cell-centered quantity to be advected by the
      * GodunovAdvector according to the specified advection velocity
      * and source term.
      *
@@ -199,7 +199,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
     
     /*!
-     * @brief Register a face-centered advection velocity, used by the
+     * \brief Register a face-centered advection velocity, used by the
      * GodunovAdvector to advect the cell-centered quantities
      * registered with the patch strategy.
      *
@@ -249,7 +249,7 @@ public:
     ///
 
     /*!
-     * @brief Register GodunovHypPatchOps model variables with the
+     * \brief Register GodunovHypPatchOps model variables with the
      * SAMRAI::algs::HyperbolicLevelIntegrator according to the
      * variable registration function provided by the integrator.
      *
@@ -262,7 +262,7 @@ public:
         SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* integrator);
     
     /*!
-     * @brief Set the data on the patch interior to some initial
+     * \brief Set the data on the patch interior to some initial
      * values via the concrete SetDataStrategy objects registered with
      * the patch strategy when provided.  Otherwise, initialize data
      * to zero.
@@ -273,7 +273,7 @@ public:
         const bool initial_time);
  
     /*!
-     * @brief Compute a stable time increment for patch using an
+     * \brief Compute a stable time increment for patch using an
      * explicit CFL condition and return the computed dt.
      */
     virtual double computeStableDtOnPatch(
@@ -282,7 +282,7 @@ public:
         const double dt_time);
  
     /*!
-     * @brief Compute the time integral of the fluxes to be used in
+     * \brief Compute the time integral of the fluxes to be used in
      * conservative difference for patch integration.
      *
      * The conservative difference used to update the integrated
@@ -294,7 +294,7 @@ public:
         const double dt);
     
     /*!
-     * @brief Update solution variables by performing a conservative
+     * \brief Update solution variables by performing a conservative
      * difference using the fluxes calculated by
      * computeFluxesOnPatch().
      */
@@ -305,7 +305,7 @@ public:
         bool at_synchronization);
     
     /*!
-     * @brief Compute the values of any time-dependent source terms
+     * \brief Compute the values of any time-dependent source terms
      * for use by the explicit predictor.
      * 
      * This routine is called \em after patch boundary data is filled
@@ -325,7 +325,7 @@ public:
         bool regrid_advance);        
     
     /*!
-     * @brief Add source terms to the updated solution.
+     * \brief Add source terms to the updated solution.
      * 
      * This routine is called \em after
      * conservativeDifferenceOnPatch() is called and \em before
@@ -347,7 +347,7 @@ public:
         bool regrid_advance);
     
     /*!
-     * @brief Tag cells for refinement using Richardson extrapolation.
+     * \brief Tag cells for refinement using Richardson extrapolation.
      */
     virtual void tagRichardsonExtrapolationCells(
         SAMRAI::hier::Patch<NDIM>& patch,
@@ -362,7 +362,7 @@ public:
         const bool uses_gradient_detector_too);
     
     /*!
-     * @brief Tag cells for refinement using a gradient detector.
+     * \brief Tag cells for refinement using a gradient detector.
      */
     virtual void tagGradientDetectorCells(
         SAMRAI::hier::Patch<NDIM>& patch,
@@ -381,7 +381,7 @@ public:
     ///
 
     /*!
-     * @brief Set the data in ghost cells corresponding to physical
+     * \brief Set the data in ghost cells corresponding to physical
      * boundary conditions.
      */ 
     virtual void setPhysicalBoundaryConditions(
@@ -399,7 +399,7 @@ public:
     ///
     
     /*!
-     * @brief Write state of GodunovHypPatchOps object to the given
+     * \brief Write state of GodunovHypPatchOps object to the given
      * database for restart.
      *
      * This routine is a concrete implementation of the function
@@ -417,7 +417,7 @@ public:
     ///
     
     /*!
-     * @brief Print all data members for GodunovHypPatchOps class.
+     * \brief Print all data members for GodunovHypPatchOps class.
      */
     virtual void printClassData(
         std::ostream& os) const;
@@ -506,7 +506,7 @@ protected:
 
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
@@ -514,24 +514,24 @@ private:
     GodunovHypPatchOps();
     
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
      * 
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     GodunovHypPatchOps(
         const GodunovHypPatchOps& from);
     
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
      * 
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      * 
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     GodunovHypPatchOps& operator=(
         const GodunovHypPatchOps& that);

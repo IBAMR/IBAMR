@@ -2,7 +2,7 @@
 #define included_PhysicalBCDataStrategy
 
 // Filename: PhysicalBCDataStrategy.h
-// Last modified: <25.Aug.2006 00:59:08 boyce@bigboy.nyconnect.com>
+// Last modified: <28.Aug.2006 21:39:07 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -25,7 +25,7 @@
 namespace IBAMR
 {
 /*!
- * @brief Interface to allow the specification of physical boundary
+ * \brief Interface to allow the specification of physical boundary
  * conditions for a single quantity.
  * 
  * The interface specified by this class is very similar to that of
@@ -35,36 +35,36 @@ namespace IBAMR
  * Additionally, note that the interfaces required of concrete
  * implementations of both strategy class are different.
  *
- * @see SetDataStrategy
+ * \see SetDataStrategy
  */
 class PhysicalBCDataStrategy
     : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
-     * @brief The constructor sets the name of the boundary conditions
+     * \brief The constructor sets the name of the boundary conditions
      * strategy.
      */
     PhysicalBCDataStrategy(
         const std::string& object_name);
     
     /*!
-     * @brief Empty virtual destructor.
+     * \brief Empty virtual destructor.
      */
     virtual ~PhysicalBCDataStrategy();
 
     /*!
-     *  @name Methods to set patch boundary data.
+     *  \name Methods to set patch boundary data.
      */
-    //@{
+    //\{
     
     /*!
-     * @brief Set data in ghost cells corresponding to physical
+     * \brief Set data in ghost cells corresponding to physical
      * boundary conditions on the specified levels of the patch
      * hierarchy using the virtual function
      * setPhysicalBoundaryConditionsOnPatch().
      * 
-     * @see setPhysicalBoundaryConditionsOnPatch
+     * \see setPhysicalBoundaryConditionsOnPatch
      */
     void setPhysicalBoundaryConditionsOnPatchHierarchy(
         const int data_idx,
@@ -76,12 +76,12 @@ public:
         const int finest_ln=-1);
     
     /*!
-     * @brief Set data in ghost cells corresponding to physical
+     * \brief Set data in ghost cells corresponding to physical
      * boundary conditions on the specified level of the patch
      * hierarchy using the virtual function
      * setPhysicalBoundaryConditionsOnPatch().
      * 
-     * @see setPhysicalBoundaryConditionsOnPatch
+     * \see setPhysicalBoundaryConditionsOnPatch
      */
     void setPhysicalBoundaryConditionsOnPatchLevel(
         const int data_idx,
@@ -91,7 +91,7 @@ public:
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
     
     /*!
-     * @brief Pure virtual function to set data in ghost cells
+     * \brief Pure virtual function to set data in ghost cells
      * corresponding to physical boundary conditions.
      */
     virtual void setPhysicalBoundaryConditionsOnPatch(
@@ -101,17 +101,17 @@ public:
         const double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) = 0;
     
-    //@}    
+    //\}    
 
     /*!
-     * @brief Print the name of the boundary conditions strategy.
+     * \brief Print the name of the boundary conditions strategy.
      */
     virtual void printClassData(
         std::ostream& os) const;
 
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
@@ -119,24 +119,24 @@ private:
     PhysicalBCDataStrategy();
     
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
      * 
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     PhysicalBCDataStrategy(
         const PhysicalBCDataStrategy& from);
     
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
      * 
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      * 
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     PhysicalBCDataStrategy& operator=(
         const PhysicalBCDataStrategy& that);

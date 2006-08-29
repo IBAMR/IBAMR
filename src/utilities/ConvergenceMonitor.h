@@ -2,7 +2,7 @@
 #define included_ConvergenceMonitor
 
 // Filename: ConvergenceMonitor.h
-// Last modified: <25.Aug.2006 00:58:57 boyce@bigboy.nyconnect.com>
+// Last modified: <28.Aug.2006 21:38:56 boyce@bigboy.nyconnect.com>
 // Created on 19 Jun 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -28,20 +28,20 @@
 namespace IBAMR
 {
 /*!
- * @brief Simple class to manage convergence monitoring.  Note that
+ * \brief Simple class to manage convergence monitoring.  Note that
  * this class should be redesigned in the near future.
  */
 class ConvergenceMonitor
 {
 public:
     /*!
-     * @brief Constructor.
+     * \brief Constructor.
      */
     ConvergenceMonitor(
         const std::string& object_name);
     
     /*!
-     * @brief Empty destructor.
+     * \brief Empty destructor.
      */
     ~ConvergenceMonitor();
 
@@ -81,7 +81,7 @@ public:
     
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
@@ -89,24 +89,24 @@ private:
     ConvergenceMonitor();
     
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     ConvergenceMonitor(
         const ConvergenceMonitor& from);
     
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
      * 
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      * 
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     ConvergenceMonitor& operator=(
         const ConvergenceMonitor& that);

@@ -2,7 +2,7 @@
 #define included_SetDataStrategy
 
 // Filename: SetDataStrategy.h
-// Last modified: <25.Aug.2006 00:59:20 boyce@bigboy.nyconnect.com>
+// Last modified: <28.Aug.2006 21:39:20 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -24,7 +24,7 @@
 namespace IBAMR
 {
 /*!
- * @brief Interface to allow the specification of data for a single
+ * \brief Interface to allow the specification of data for a single
  * quantity at a specified time.
  *
  * The interface specified by this class is very similar to that of
@@ -34,40 +34,40 @@ namespace IBAMR
  * Additionally, note that the interfaces required of concrete
  * implementations of both strategy class are different.
  *
- * @see PhysicalBCDataStrategy
+ * \see PhysicalBCDataStrategy
  */
 class SetDataStrategy
     : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
-     * @brief The constructor sets the name of the strategy object.
+     * \brief The constructor sets the name of the strategy object.
      */
     SetDataStrategy(
         const std::string& object_name);
     
     /*!
-     * @brief Empty virtual destructor.
+     * \brief Empty virtual destructor.
      */
     virtual ~SetDataStrategy();
     
     /*!
-     * @name Methods to set patch interior data.
+     * \name Methods to set patch interior data.
      */
-    //@{
+    //\{
     
     /*!
-     * @brief Indicates whether the concrete SetDataStrategy object is
+     * \brief Indicates whether the concrete SetDataStrategy object is
      * time-dependent.
      */
     virtual bool isTimeDependent() const = 0;
     
     /*!
-     * @brief Set data on the patch interiors on the specified levels
+     * \brief Set data on the patch interiors on the specified levels
      * of the patch hierarchy using the virtual function
      * setDataOnPatch().
      * 
-     * @see setDataOnPatch
+     * \see setDataOnPatch
      */
     void setDataOnPatchHierarchy(
         const int data_idx,
@@ -79,11 +79,11 @@ public:
         const int finest_ln=-1);
     
     /*!
-     * @brief Set data on the patch interiors on the specified level
+     * \brief Set data on the patch interiors on the specified level
      * of the patch hierarchy using the virtual function
      * setDataOnPatch().
      *
-     * @see setDataOnPatch
+     * \see setDataOnPatch
      */
     void setDataOnPatchLevel(
         const int data_idx,
@@ -93,7 +93,7 @@ public:
         const bool initial_time=false);
     
     /*!
-     * @brief Pure virtual function to set data on the patch interior.
+     * \brief Pure virtual function to set data on the patch interior.
      */
     virtual void setDataOnPatch(
         const int data_idx,
@@ -102,17 +102,17 @@ public:
         const double data_time,
         const bool initial_time=false) = 0;
     
-    //@}
+    //\}
 
     /*!
-     * @brief Print the name of the strategy object.
+     * \brief Print the name of the strategy object.
      */
     virtual void printClassData(
         std::ostream& os) const;
 
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
@@ -120,24 +120,24 @@ private:
     SetDataStrategy();
     
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
      * 
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     SetDataStrategy(
         const SetDataStrategy& from);
     
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
      * 
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      * 
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     SetDataStrategy& operator=(
         const SetDataStrategy& that);
