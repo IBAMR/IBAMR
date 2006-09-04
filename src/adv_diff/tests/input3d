@@ -9,7 +9,7 @@ MUSCL_LIMITED = 3
 PI = 3.141592653589793e+00
 
 GodunovAdvector {
-   limiter_type = MUSCL_LIMITED
+   limiter_type = FOURTH_ORDER
 }
 
 AdvDiffHierarchyIntegrator {
@@ -30,11 +30,7 @@ AdvDiffHierarchyIntegrator {
       compute_final_velocity = FALSE
 
       Refinement_data {
-         refine_criteria = "QVAL_RICHARDSON", "QVAL_GRADIENT"
-
-         QVAL_RICHARDSON {
-            rich_tol = 0.01, 0.01, 0.001
-         }
+         refine_criteria = "QVAL_GRADIENT"
 
          QVAL_GRADIENT {
             grad_tol = 25,25,0.1
@@ -77,7 +73,7 @@ AdvDiffHierarchyIntegrator {
       num_post_sweeps = 2
    }
 
-   CCPoissonAMRHypreSolver {
+   CCPoissonAMRHypreSolvers {
       solver_type = "PCG"
       precond_type = "diagonal_scaling"
       relative_residual_tol = 1.0e-12

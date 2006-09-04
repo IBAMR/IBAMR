@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <04.Sep.2006 01:59:40 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Sep.2006 03:24:26 boyce@bigboy.nyconnect.com>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -231,9 +231,9 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     {
         d_fac_pcs_db = input_db->getDatabase("FACPreconditioners");
     }
-    if (input_db->keyExists("CCPoissonHypreSolver"))
+    if (input_db->keyExists("CCPoissonHypreSolvers"))
     {
-        d_hypre_solver_db = input_db->getDatabase("CCPoissonHypreSolver");
+        d_hypre_solver_db = input_db->getDatabase("CCPoissonHypreSolvers");
     }
 
     // Obtain the Hierarchy data operations objects.

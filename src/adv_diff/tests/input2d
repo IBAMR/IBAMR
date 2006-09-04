@@ -9,7 +9,7 @@ MUSCL_LIMITED = 3
 PI = 3.141592653589793e+00
 
 GodunovAdvector {
-   limiter_type = MUSCL_LIMITED
+   limiter_type = FOURTH_ORDER
 }
 
 AdvDiffHierarchyIntegrator {
@@ -73,7 +73,7 @@ AdvDiffHierarchyIntegrator {
       num_post_sweeps = 2
    }
 
-   CCPoissonHypreSolver {
+   CCPoissonHypreSolvers {
       solver_type = "PCG"
       precond_type = "diagonal_scaling"
       relative_residual_tol = 1.0e-12
