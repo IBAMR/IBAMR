@@ -1,78 +1,65 @@
-//
-// AdvectionDiffusionHierarchyIntegrator.h
-//
-// Created on 16 Mar 2004
-//         by Boyce Griffith (boyce@bigboy.speakeasy.net).
-//
-// Last modified: <30.Jan.2006 21:32:38 boyce@boyce.cims.nyu.edu>
-//
+#ifndef included_AdvDiffHierarchyIntegrator
+#define included_AdvDiffHierarchyIntegrator
 
-#ifndef included_AdvectionDiffusionHierarchyIntegrator
-#define included_AdvectionDiffusionHierarchyIntegrator
+// Filename: AdvDiffHierarchyIntegrator.h
+// Last modified: <04.Sep.2006 01:24:23 boyce@bigboy.nyconnect.com>
+// Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
-// STL INCLUDES
-//
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+// STOOLS INCLUDES
+#include <stools/LinearSolver.h>
+#include <stools/CCLaplaceOperator.h>
+#include <stools/CCPoissonFACOperator.h>
+#include <stools/HierarchyMathOps.h>
+
+// IBAMR INCLUDES
+#include <ibamr/AdvDiffHypPatchOps.h>
+#include <ibamr/ConvergenceMonitor.h>
+#include <ibamr/GodunovAdvector.h>
+#include <ibamr/PhysicalBCDataStrategy.h>
+#include <ibamr/SetDataStrategy.h>
+
+// SAMRAI INCLUDES
+#include <CellVariable.h>
+#include <CoarsenAlgorithm.h>
+#include <CoarsenSchedule.h>
+#include <FACPreconditioner.h>
+#include <FaceVariable.h>
+#include <GriddingAlgorithm.h>
+#include <HierarchyCellDataOpsReal.h>
+#include <HyperbolicLevelIntegrator.h>
+#include <PatchHierarchy.h>
+#include <PatchLevel.h>
+#include <PoissonSpecifications.h>
+#include <RefineAlgorithm.h>
+#include <RefineSchedule.h>
+#include <RobinBcCoefStrategy.h>
+#include <SAMRAIVectorReal.h>
+#include <StandardTagAndInitStrategy.h>
+#include <VariableContext.h>
+#include <VisItDataWriter.h>
+#include <tbox/Array.h>
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+#include <tbox/Serializable.h>
+
+// C++ STDLIB INCLUDES
+#include <ostream>
 #include <map>
 #include <vector>
 
-// SAMRAI-tools INCLUDES
-//
-#include "AbstractLinearOperator.h"
-#include "AbstractLinearSolver.h"
-#include "AdvDiffHypPatchStrategy.h"
-#include "CCLaplaceOperator.h"
-#include "CCPoissonFACOperator.h"
-#include "ConvergenceMonitor.h"
-#include "GodunovAdvector.h"
-#include "HierarchyMathOps.h"
-#include "PhysicalBCDataStrategy.h"
-#include "SetDataStrategy.h"
+/////////////////////////////// CLASS DEFINITION /////////////////////////////
 
-// SAMRAI INCLUDES
-//
-#ifndef included_SAMRAI_config
-#include "SAMRAI_config.h"
-#endif
-
-#include "CellVariable.h"
-#include "CoarsenAlgorithm.h"
-#include "CoarsenSchedule.h"
-#include "FACPreconditioner.h"
-#include "FaceVariable.h"
-#include "Geometry.h"
-#include "GriddingAlgorithm.h"
-#include "HierarchyCellDataOpsReal.h"
-#include "HyperbolicLevelIntegrator.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "RefineAlgorithm.h"
-#include "RefineSchedule.h"
-#include "RobinBcCoefStrategy.h"
-#include "SAMRAIVectorReal.h"
-#include "StandardTagAndInitStrategy.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VisItDataWriter.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
-
-using namespace SAMRAI;
-using namespace std;
-
-// CLASS DEFINITION
-//
-
+namespace IBAMR
+{
 /*!
- * Class AdvectionDiffusionHierarchyIntegrator manages the spatial
- * discretization and time integration of quantities, Q, whose
- * dynamics are specified by the advection-diffusion equation.  Each
- * quantity managed by the integrator may have a unique diffusion
- * coefficient, mu, and may optionally have a forcing term, F.  Only
- * one advection velocity, u, may be registered with the integrator.
+ * Class AdvDiffHierarchyIntegrator manages the spatial discretization
+ * and time integration of quantities, Q, whose dynamics are specified
+ * by the advection-diffusion equation.  Each quantity managed by the
+ * integrator may have a unique diffusion coefficient, mu, and may
+ * optionally have a forcing term, F.  Only one advection velocity, u,
+ * may be registered with the integrator.
  *
  * This integrator employs adaptive local spatial refinement.  All
  * levels of the patch hierarchy are synchronously integrated in time.
@@ -84,45 +71,45 @@ using namespace std;
  * constructor.
  *
  * @see GodunovAdvector
- * @see algs::HyperbolicLevelIntegrator<NDIM>
- * @see mesh::StandardTagAndInitStrategy<NDIM>
- * @see algs::TimeRefinementIntegrator<NDIM>
- * @see algs::TimeRefinementLevelStrategy<NDIM>
+ * @see SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>
+ * @see SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+ * @see SAMRAI::algs::TimeRefinementIntegrator<NDIM>
+ * @see SAMRAI::algs::TimeRefinementLevelStrategy<NDIM>
  */
-class AdvectionDiffusionHierarchyIntegrator
-    : public mesh::StandardTagAndInitStrategy<NDIM>,
-      public tbox::Serializable
+class AdvDiffHierarchyIntegrator
+    : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
+      public virtual SAMRAI::tbox::Serializable
 {
 public:
-    typedef map<string,tbox::Pointer<xfer::RefineAlgorithm<NDIM> > >           RefineAlgMap;
-    typedef map<string,vector<tbox::Pointer<xfer::RefineSchedule<NDIM> > > >  RefineSchedMap;
-    
-    typedef map<string,tbox::Pointer<xfer::CoarsenAlgorithm<NDIM> > >          CoarsenAlgMap;
-    typedef map<string,vector<tbox::Pointer<xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
-    
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >           RefineAlgMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > >  RefineSchedMap;
+
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >          CoarsenAlgMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
+
     /*!
-     * The constructor for AdvectionDiffusionHierarchyIntegrator sets
-     * some default values, reads in configuration information from
-     * input and restart databases, and registers the integrator
-     * object with the restart manager when requested.
-     * 
+     * The constructor for AdvDiffHierarchyIntegrator sets some
+     * default values, reads in configuration information from input
+     * and restart databases, and registers the integrator object with
+     * the restart manager when requested.
+     *
      * When assertion checking is active, passing in any null pointer
-     * or an empty string will result in an unrecoverable exception.
+     * or an empty std::string will result in an unrecoverable
+     * exception.
      */
-    AdvectionDiffusionHierarchyIntegrator(
-        const string& object_name,
-        tbox::Pointer<tbox::Database> input_db,
-        tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
-        tbox::Pointer<GodunovAdvector> explicit_predictor,
+    AdvDiffHierarchyIntegrator(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        SAMRAI::tbox::Pointer<GodunovAdvector> explicit_predictor,
         bool register_for_restart=true);
-    
+
     /*!
-     * The destructor for AdvectionDiffusionHierarchyIntegrator
-     * unregisters the integrator object with the restart manager when
-     * so registered.
+     * The destructor for AdvDiffHierarchyIntegrator unregisters the
+     * integrator object with the restart manager when so registered.
      */
-    virtual ~AdvectionDiffusionHierarchyIntegrator();
-                
+    virtual ~AdvDiffHierarchyIntegrator();
+
     ///
     ///  The following routines:
     ///
@@ -134,7 +121,7 @@ public:
     ///  allow the specification of quantities to be advected and
     ///  diffused.
     ///
-    
+
     /*!
      * Register a cell centered quantity to be advected and diffused
      * according to the specified advection velocity and diffusion
@@ -161,12 +148,12 @@ public:
      * the advective fluxes.
      */
     void registerAdvectedAndDiffusedQuantity(
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
         const bool conservation_form=true,
-        tbox::Pointer<SetDataStrategy> Q_init=NULL,
-        tbox::Pointer<PhysicalBCDataStrategy> Q_bc=NULL,
-        tbox::Pointer<pdat::FaceVariable<NDIM,double> > grad_var=NULL);
+        SAMRAI::tbox::Pointer<SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc=NULL,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
      * Register a cell centered quantity to be advected and diffused
@@ -199,15 +186,15 @@ public:
      * the advective fluxes.
      */
     void registerAdvectedAndDiffusedQuantityWithSourceTerm(
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > F_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
-        tbox::Pointer<SetDataStrategy> Q_init=NULL,
-        tbox::Pointer<PhysicalBCDataStrategy> Q_bc=NULL,
-        tbox::Pointer<SetDataStrategy> F_set=NULL,
-        tbox::Pointer<pdat::FaceVariable<NDIM,double> > grad_var=NULL);
-    
+        SAMRAI::tbox::Pointer<SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc=NULL,
+        SAMRAI::tbox::Pointer<SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
+
     /*!
      * Register a face centered advection velocity, used by the
      * integrator to advect the cell centered quantities registered
@@ -223,25 +210,25 @@ public:
      * advection velocity is zero.
      */
     void registerAdvectionVelocity(
-        tbox::Pointer<pdat::FaceVariable<NDIM,double> > u_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
         const bool u_is_div_free,
-        tbox::Pointer<SetDataStrategy> u_set=NULL);
-    
+        SAMRAI::tbox::Pointer<SetDataStrategy> u_set=NULL);
+
     /*!
      * Register a convergence monitor with the integrator, used to
      * monitor the convergence of the computed solution to some
      * reference solution.
      */
     void registerConvergenceMonitor(
-        tbox::Pointer<ConvergenceMonitor> monitor);
-    
+        SAMRAI::tbox::Pointer<ConvergenceMonitor> monitor);
+
     /*!
      * Register a VisIt data writer so this class will write plot
      * files that may be postprocessed with the VisIt visualization
      * tool.
      */
     void registerVisItDataWriter(
-        tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_writer);
+        SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
 
     ///
     ///  The following routines:
@@ -263,8 +250,8 @@ public:
      * in computing discrete norms of quantities defined on the patch
      * hierarchy.
      */
-    tbox::Pointer<HierarchyMathOps> getHierarchyMathOps() const;
-    
+    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> getHierarchyMathOps() const;
+
     /*!
      * Set the HierarchyMathOps object being used by this integrator.
      *
@@ -275,21 +262,21 @@ public:
      * the configuration of the patch hierarchy.
      */
     void setHierarchyMathOps(
-        tbox::Pointer<HierarchyMathOps> hier_math_ops,
+        SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> hier_math_ops,
         const bool manage_ops=false);
 
     /*!
      * Returns whether this integrator is managing the state of its
-     * HierarchyMathOps object.
+     * STOOLS::HierarchyMathOps object.
      *
      * When the integrator is managing the state of its
-     * HierarchyMathOps object, the integrator is responsible for
-     * invoking HierarchyMathOps::setPatchHierarchy() and
-     * HierarchyMathOps::resetLevels() following any changes to the
+     * STOOLS::HierarchyMathOps object, the integrator is responsible for
+     * invoking STOOLS::HierarchyMathOps::setPatchHierarchy() and
+     * STOOLS::HierarchyMathOps::resetLevels() following any changes to the
      * configuration of the patch hierarchy.
      */
     bool isManagingHierarchyMathOps() const;
-    
+
     ///
     ///  The following routines:
     ///
@@ -300,30 +287,30 @@ public:
     ///
     ///  allow other objects to access the Helmholtz solvers and
     ///  related data used by this integrator.
-    ///  
+    ///
 
     /*!
      * Returns a vector containing pointers to the
-     * solv::PoissonSpecifications objects employed by the integrator
+     * SAMRAI::solv::PoissonSpecifications objects employed by the integrator
      * for the specified diffusivity.
      */
-    vector<const solv::PoissonSpecifications*> getHelmholtzSpecs(
+    std::vector<const SAMRAI::solv::PoissonSpecifications*> getHelmholtzSpecs(
         const double mu);
-    
+
     /*!
      * Returns a vector containing pointers to the
-     * solv::RobinBcCoefStrategy<NDIM> objects employed by the
+     * SAMRAI::solv::RobinBcCoefStrategy<NDIM> objects employed by the
      * integrator for the specified diffusivity.
      */
-    vector<const solv::RobinBcCoefStrategy<NDIM>*> getHelmholtzBcCoefs(
+    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> getHelmholtzBcCoefs(
         const double mu);
-    
+
     /*!
      * Returns a vector containing pointers to the concrete linear
      * solver objects employed by the integrator for the specified
      * diffusivity.
      */
-    vector<tbox::Pointer<AbstractLinearSolver> > getHelmholtzSolvers(
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::LinearSolver> > getHelmholtzSolvers(
         const double mu);
 
     /*!
@@ -333,7 +320,7 @@ public:
      */
     void maintainExtraSolvers(
         const int coeff);
-    
+
     ///
     ///  The following routines:
     ///
@@ -352,10 +339,10 @@ public:
     ///      getHyperbolicLevelIntegrator(),
     ///      getHyperbolicPatchStrategy()
     ///
-    ///  allow the AdvectionDiffusionHierarchyIntegrator to be used as
+    ///  allow the AdvDiffHierarchyIntegrator to be used as
     ///  a hierarchy integrator.
     ///
-    
+
     /*!
      * Initialize the variables and communications algorithms managed
      * and used by the integrator.
@@ -366,8 +353,8 @@ public:
      * occur.
      */
     virtual void initializeHierarchyIntegrator(
-        tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_alg);
-    
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+
     /*!
      * Set AMR patch hierarchy configuration and data at start of
      * simulation.  If the computation is begun from a restart file,
@@ -387,7 +374,7 @@ public:
      * simulation data is set properly for the advanceHierarchy()
      * function to be called.  In particular, on each level
      * constructed only the data needed for initialization exists.
-     * 
+     *
      * When assertion checking is active, the hierachy database
      * pointer must be non-null.
      */
@@ -422,7 +409,7 @@ public:
     virtual double advanceHierarchy(
         const double dt,
         const bool rebalance_coarsest=false);
-    
+
     /*!
      * Return true if the current step count indicates that regridding
      * should occur.  In particular, true is returned if both the
@@ -431,64 +418,64 @@ public:
      * is returned.
      */
     bool atRegridPoint() const;
-    
+
     /*!
      * Return the current integration time for the coarsest hierarchy
      * level.
      */
     double getIntegratorTime() const;
-    
+
     /*!
      * Return the initial integration time.
      */
     double getStartTime() const;
-    
+
     /*!
      * Return the final integration time.
      */
     double getEndTime() const;
-    
+
     /*!
      * Return the integration step count for the entire hierarchy
      * (i.e., number of steps taken on the coarsest level).
      */
-    int getIntegratorStep() const; 
-    
+    int getIntegratorStep() const;
+
     /*!
      * Return the maximum number of integration steps allowed for the
      * entire hierarchy (i.e., steps allowed on coarsest level).
      */
-    int getMaxIntegratorSteps() const; 
-    
+    int getMaxIntegratorSteps() const;
+
     /*!
      * Return true if any steps remain in current step sequence.
      * Return false otherwise.
      */
-    bool stepsRemaining() const; 
-    
+    bool stepsRemaining() const;
+
     /*!
-     * Return a const pointer to the patch hierarchy managed by integrator. 
+     * Return a const pointer to the patch hierarchy managed by integrator.
      */
-    const tbox::Pointer<hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
 
     /*!
      * Return a pointer to the gridding algorithm object.
      */
-    tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > getGriddingAlgorithm() const;
-    
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > getGriddingAlgorithm() const;
+
     /*!
-     * Return a pointer to the algs::HyperbolicLevelIntegrator<NDIM> being used to
+     * Return a pointer to the SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> being used to
      * integrate the advective terms.
      */
-    tbox::Pointer<algs::HyperbolicLevelIntegrator<NDIM> > getHyperbolicLevelIntegrator() const;
-    
+    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > getHyperbolicLevelIntegrator() const;
+
     /*!
-     * Return a pointer to the algs::HyperbolicPatchStrategy<NDIM> being used to
+     * Return a pointer to the SAMRAI::algs::HyperbolicPatchStrategy<NDIM> being used to
      * specify the numerical routines used to integrate the advective
      * terms.
      */
-    tbox::Pointer<AdvDiffHypPatchStrategy> getHyperbolicPatchStrategy() const;
-    
+    SAMRAI::tbox::Pointer<AdvDiffHypPatchOps> getHyperbolicPatchStrategy() const;
+
     ///
     ///  The following routines:
     ///
@@ -497,10 +484,10 @@ public:
     ///      integrateHierarchy(),
     ///      synchronizeHierarchy(),
     ///      synchronizeNewLevels(),
-    ///      resetTimeDependentData(),
-    ///      resetDataToPreadvanceState()
+    ///      resetTimeDependentHierData(),
+    ///      resetHierDataToPreadvanceState()
     ///
-    ///  allow the AdvectionDiffusionHierarchyIntegrator to provide
+    ///  allow the AdvDiffHierarchyIntegrator to provide
     ///  data management for a time integrator which making use of
     ///  this class.
     ///
@@ -514,13 +501,13 @@ public:
      * of the work load.
      */
     virtual void rebalanceCoarsestLevel();
-    
+
     /*!
      * Regrid the hierarchy according to the error estimator specified
      * by the patch strategy.
      */
     virtual void regridHierarchy();
-    
+
     /*!
      * Advance the data from current_time to new_time but do not
      * synchronize the data on the hierarchy.  This function assumes
@@ -543,7 +530,7 @@ public:
      * consistent between coarser levels and finer levels.
      */
     virtual void synchronizeHierarchy();
-        
+
     /*!
      * Coarsen current solution data from finest hierarchy level
      * specified down through the coarsest hierarchy level specified,
@@ -569,21 +556,21 @@ public:
      * coarsest_level > finest_level or some level is null).
      */
     virtual void synchronizeNewLevels(
-        const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level,
         const double sync_time,
         const bool initial_time);
-    
+
     /*!
      * Reset time-dependent data storage on the patch hierarchy.  This
      * routine is called when the current level data is no longer
      * needed and it is appropriate to replace the current data with
      * the new data on the hierarchy, if such data exists.
      */
-    virtual void resetTimeDependentData(
+    virtual void resetTimeDependentHierData(
         const double new_time);
-        
+
     /*!
      * Reset data on the patch hierarchy to its state before the time
      * advance.  This is needed, for example, when the integrator is
@@ -591,7 +578,7 @@ public:
      * discard the new solution data so that subsequent calls to
      * advance are provided proper data at the correct time.
      */
-    virtual void resetDataToPreadvanceState();
+    virtual void resetHierDataToPreadvanceState();
 
     ///
     ///  The following routines:
@@ -601,9 +588,9 @@ public:
     ///      applyGradientDetector()
     ///
     ///  are concrete implementations of functions declared in the
-    ///  mesh::StandardTagAndInitStrategy<NDIM> abstract base class.
+    ///  SAMRAI::mesh::StandardTagAndInitStrategy<NDIM> abstract base class.
     ///
-    
+
     /*!
      * Initialize data on a new level after it is inserted into an AMR
      * patch hierarchy by the gridding algorithm.  The level number
@@ -638,7 +625,7 @@ public:
      *
      * When a convergence monitor has been supplied to the integrator,
      * this routine calls ConvergenceMonitor::initializeLevelData().
-     * 
+     *
      * When assertion checking is active, an unrecoverable exception
      * will result if the hierarchy pointer is null, the level number
      * does not match any level in the hierarchy, or the old level
@@ -646,12 +633,12 @@ public:
      * pointer is non-null).
      */
     virtual void initializeLevelData(
-        const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time,
-        const tbox::Pointer<hier::BasePatchLevel<NDIM> > old_level=tbox::Pointer<hier::BasePatchLevel<NDIM> >(NULL),
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
         const bool allocate_data=true);
 
     /*!
@@ -664,14 +651,14 @@ public:
      * changed.  However, this routine updates communication schedules
      * every level finer than and including that indexed by the
      * coarsest level number given.  When the integrator is managing
-     * the state of its HierarchyMathOps object, the integrator also
-     * invokes HierarchyMathOps::setPatchHierarchy() and
-     * HierarchyMathOps::resetLevels().
+     * the state of its STOOLS::HierarchyMathOps object, the integrator also
+     * invokes STOOLS::HierarchyMathOps::setPatchHierarchy() and
+     * STOOLS::HierarchyMathOps::resetLevels().
      *
      * When a convergence monitor has been supplied to the integrator,
      * this routine calls
      * ConvergenceMonitor::resetHierarchyConfiguration().
-     * 
+     *
      * When assertion checking is active, an unrecoverable exception
      * will result if the hierarchy pointer is null, any pointer to a
      * level in the hierarchy that is coarser than the finest level is
@@ -679,10 +666,10 @@ public:
      * coarsest_level > finest_level.
      */
     virtual void resetHierarchyConfiguration(
-        const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level);
-    
+
     /*!
      * Set integer tags to "one" in cells where refinement of the
      * given level should occur according to some gradient criteria
@@ -701,19 +688,19 @@ public:
      * This information is passed along to the user's patch tagging
      * routines since the application of the gradient detector may be
      * different in each case.
-     * 
+     *
      * When assertion checking is active, an unrecoverable exception
      * will result if the hierarchy pointer is null or the level
      * number does not match any existing level in the hierarchy.
      */
     virtual void applyGradientDetector(
-        const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy, 
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double error_data_time,
         const int tag_index,
         const bool initial_time,
         const bool uses_richardson_extrapolation_too);
-    
+
     ///
     ///  The following routines:
     ///
@@ -726,13 +713,13 @@ public:
     ///  allow access to the various variable contexts maintained by
     ///  the integrator.
     ///
-    
+
     /*!
      * Return pointer to "current" variable context used by
      * integrator.  Current data corresponds to state data at the
      * beginning of a timestep, or when a new level is initialized.
      */
-    tbox::Pointer<hier::VariableContext> getCurrentContext() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getCurrentContext() const;
 
     /*!
      * Return pointer to "new" variable context used by integrator.
@@ -740,8 +727,8 @@ public:
      * timestep.  The data is one timestep later than the "current"
      * data.
      */
-    tbox::Pointer<hier::VariableContext> getNewContext() const;
-    
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getNewContext() const;
+
     /*!
      * Return pointer to "old" variable context used by integrator.
      * Old data corresponds to an extra time level of state data used
@@ -752,42 +739,42 @@ public:
      * estimation, such as Richardson extrapolation, is the returned
      * pointer will non-null.  See contructor for more information.
      */
-    tbox::Pointer<hier::VariableContext> getOldContext() const;
-    
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getOldContext() const;
+
     /*!
      * Return pointer to "scratch" variable context used by
      * integrator.  Scratch data typically corresponds to storage that
      * user-routines in the concrete GodunovAdvector object
      * manipulate; in particular, scratch data contains ghost cells.
      */
-    tbox::Pointer<hier::VariableContext> getScratchContext() const;
-    
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getScratchContext() const;
+
     /*!
      * Return pointer to variable context used for plotting.  This
      * context corresponds to the data storage that should be written
      * to plot files.  Typically, this is the same as the "current"
      * context.
      */
-    tbox::Pointer<hier::VariableContext> getPlotContext() const;
-    
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getPlotContext() const;
+
     ///
     ///  The following routines:
     ///
     ///      putToDatabase()
     ///
     ///  are concrete implementations of functions declared in the
-    ///  tbox::Serializable abstract base class.
+    ///  SAMRAI::tbox::Serializable abstract base class.
     ///
-    
-    /*! 
+
+    /*!
      * Write out object state to the given database.
-     * 
+     *
      * When assertion checking is active, database pointer must be
      * non-null.
      */
     virtual void putToDatabase(
-        tbox::Pointer<tbox::Database> db);
-    
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
     ///
     ///  The following routines:
     ///
@@ -795,47 +782,47 @@ public:
     ///
     ///  are provided for your viewing pleasure.
     ///
-    
+
     /*!
-     * Print all data members for AdvectionDiffusionHierarchyIntegrator
+     * Print all data members for AdvDiffHierarchyIntegrator
      * class.
      */
     virtual void printClassData(
-        ostream& os) const;
-    
+        std::ostream& os) const;
+
 protected:
-    /*! 
+    /*!
      * Advected and diffused quantities Q, source terms F (possibly
      * NULL), advection source terms Psi = F + mu*L*Q, and optional
      * face centered gradient terms to enforce incompressibility.
      */
-    vector<tbox::Pointer<pdat::CellVariable<NDIM,double> > > d_Q_vars;
-    vector<tbox::Pointer<pdat::CellVariable<NDIM,double> > > d_F_vars;
-    vector<tbox::Pointer<pdat::CellVariable<NDIM,double> > > d_Psi_vars;
-    vector<tbox::Pointer<pdat::FaceVariable<NDIM,double> > > d_grad_vars;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_vars;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_vars;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Psi_vars;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_grad_vars;
 
     /*!
      * Objects to set initial and boundary conditions as well as
      * forcing terms for each advected and diffused quantity.
      */
-    vector<tbox::Pointer<SetDataStrategy> >        d_Q_inits;
-    vector<tbox::Pointer<PhysicalBCDataStrategy> > d_Q_bcs;
-    
-    vector<tbox::Pointer<SetDataStrategy> >  d_F_sets;
-    
+    std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >        d_Q_inits;
+    std::vector<SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> > d_Q_bcs;
+
+    std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >  d_F_sets;
+
     /*!
      * The diffusivity coefficients associated with each advected and
      * diffused quantity.
      */
-    vector<double> d_Q_mus;
-    
+    std::vector<double> d_Q_mus;
+
     /*!
      * The advection velocity.
      */
-    tbox::Pointer<pdat::FaceVariable<NDIM,double> > d_u_var;
-    tbox::Pointer<SetDataStrategy> d_u_set;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_var;
+    SAMRAI::tbox::Pointer<SetDataStrategy> d_u_set;
     bool d_u_is_div_free;
-    
+
 private:
     /*!
      * @brief Default constructor.
@@ -843,8 +830,8 @@ private:
      * NOTE: This constructor is not implemented and should not be
      * used.
      */
-    AdvectionDiffusionHierarchyIntegrator();
-    
+    AdvDiffHierarchyIntegrator();
+
     /*!
      * @brief Copy constructor.
      *
@@ -853,21 +840,21 @@ private:
      *
      * @param from The value to copy to this object.
      */
-    AdvectionDiffusionHierarchyIntegrator(
-        const AdvectionDiffusionHierarchyIntegrator& from);
-    
+    AdvDiffHierarchyIntegrator(
+        const AdvDiffHierarchyIntegrator& from);
+
     /*!
      * @brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
-     * 
+     *
      * @param that The value to assign to this object.
-     * 
+     *
      * @return A reference to this object.
      */
-    AdvectionDiffusionHierarchyIntegrator& operator=(
-        const AdvectionDiffusionHierarchyIntegrator& that);
-    
+    AdvDiffHierarchyIntegrator& operator=(
+        const AdvDiffHierarchyIntegrator& that);
+
     /*!
      * Read input values, indicated below, from given database.  The
      * boolean argument is_from_restart should be set to true if the
@@ -878,29 +865,29 @@ private:
      * non-null.  Otherwise, all your base are belong to us.
      */
     void getFromInput(
-        tbox::Pointer<tbox::Database> db,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
         bool is_from_restart);
-    
+
     /*!
      * Read object state from the restart file and initialize class
      * data members.  The database from which the restart data is read
      * is determined by the object_name specified in the constructor.
      *
      * Unrecoverable Errors:
-     *  
+     *
      *    -   The database corresponding to object_name is not found
      *        in the restart file.
      *    -   The class version number and restart version number do not
      *        match.
      */
     void getFromRestart();
-    
+
     /*
      * The object name is used as a handle to databases stored in
      * restart files and for error reporting purposes.  The boolean is
      * used to control restart file writing operations.
      */
-    string d_object_name;
+    std::string d_object_name;
     bool d_registered_for_restart;
 
     /*
@@ -910,27 +897,27 @@ private:
      * The gridding algorithm provides grid generation and regridding
      * routines for the AMR hierarchy.
      */
-    tbox::Pointer<hier::PatchHierarchy<NDIM> > d_hierarchy;
-    tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
-    
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
+
     /*
      * The ConvergenceMonitor object is used to monitor the
      * convergence of the computed solution to an exact solution.
      */
-    tbox::Pointer<ConvergenceMonitor> d_convergence_monitor;
-    
+    SAMRAI::tbox::Pointer<ConvergenceMonitor> d_convergence_monitor;
+
     /*
-     * The algs::HyperbolicLevelIntegrator<NDIM> supplies generic operations
+     * The SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> supplies generic operations
      * needed to handle the explicit integration of advection terms.
      */
-    tbox::Pointer<algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
+    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
 
     /*
      * The advection patch strategy supplies the advection specific
      * operations needed to treat data on patches in the AMR
      * hierarchy.
      */
-    tbox::Pointer<AdvDiffHypPatchStrategy> d_hyp_patch_strategy;
+    SAMRAI::tbox::Pointer<AdvDiffHypPatchOps> d_hyp_patch_ops;
 
     /*
      * Integrator data read from input or set at initialization.
@@ -939,13 +926,13 @@ private:
     double d_end_time;
     double d_grow_dt;
     int d_max_integrator_steps;
-    
+
     /*
      * The regrid interval indicates the number of integration steps
      * taken between invocations of the regridding process.
      */
     int d_regrid_interval;
-    
+
     /*
      * The tag buffer indicates the number of cells on each level by
      * which tagged cells will be buffered after they have selected
@@ -956,15 +943,15 @@ private:
      * refined until the level is regridded next.
      */
     bool d_using_default_tag_buffer;
-    tbox::Array<int> d_tag_buffer;
-    
+    SAMRAI::tbox::Array<int> d_tag_buffer;
+
     /*
      * Integrator data that evolves during time integration and
      * maintains the state of the timestep sequence over the levels in
      * the AMR hierarchy.
      */
     double d_old_dt;
-    double d_integrator_time; 
+    double d_integrator_time;
     int    d_integrator_step;
 
     /*
@@ -977,87 +964,86 @@ private:
      * messages.
      */
     bool d_do_log;
-    
+
     /*
      * Hierarchy operations objects.
      */
-    tbox::Pointer<math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
-    tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
+    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> d_hier_math_ops;
     bool d_is_managing_hier_math_ops;
 
-    tbox::Pointer<pdat::CellVariable<NDIM,double> > d_wgt_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_wgt_var;
     int d_wgt_idx;
-    
+
     /*
      * Communications algorithms and schedules.
      */
     RefineAlgMap    d_ralgs;
     RefineSchedMap  d_rscheds;
-    
+
     CoarsenAlgMap   d_calgs;
     CoarsenSchedMap d_cscheds;
-    
+
     /*
      * Linear solvers (one set for each diffusion coefficient) and
      * associated data including Poisson specifications, boundary
      * conditions, and solver configuation databases.
      */
-    tbox::Pointer<pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var, d_tmp_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var, d_tmp_var;
     int d_sol_idx, d_rhs_idx, d_tmp_idx;
-    
-    tbox::Pointer<solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
-    
-    string d_solver_package;
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
+
+    std::string d_solver_package;
     bool d_using_ksp_method;
     int d_max_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
-    
-    map<double,tbox::Pointer<AbstractLinearSolver> >             d_helmholtz1_solvers;
-    map<double,tbox::Pointer<CCLaplaceOperator> >                d_helmholtz1_ops;
-    map<double,tbox::Pointer<solv::PoissonSpecifications> >      d_helmholtz1_specs;
-    map<double,tbox::Pointer<solv::RobinBcCoefStrategy<NDIM> > > d_helmholtz1_bc_coefs;    
-    map<double,tbox::Pointer<CCPoissonFACOperator> >             d_helmholtz1_fac_ops;
-    map<double,tbox::Pointer<solv::FACPreconditioner<NDIM> > >   d_helmholtz1_fac_pcs;
-    
-    map<double,tbox::Pointer<AbstractLinearSolver> >             d_helmholtz2_solvers;
-    map<double,tbox::Pointer<CCLaplaceOperator> >                d_helmholtz2_ops;
-    map<double,tbox::Pointer<solv::PoissonSpecifications> >      d_helmholtz2_specs;
-    map<double,tbox::Pointer<solv::RobinBcCoefStrategy<NDIM> > > d_helmholtz2_bc_coefs;    
-    map<double,tbox::Pointer<CCPoissonFACOperator> >             d_helmholtz2_fac_ops;
-    map<double,tbox::Pointer<solv::FACPreconditioner<NDIM> > >   d_helmholtz2_fac_pcs;
+
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::LinearSolver> >                     d_helmholtz1_solvers;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >                d_helmholtz1_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >      d_helmholtz1_specs;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > > d_helmholtz1_bc_coefs;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >             d_helmholtz1_fac_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > >   d_helmholtz1_fac_pcs;
+
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::LinearSolver> >                     d_helmholtz2_solvers;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >                d_helmholtz2_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >      d_helmholtz2_specs;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > > d_helmholtz2_bc_coefs;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >             d_helmholtz2_fac_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > >   d_helmholtz2_fac_pcs;
 
     bool d_maintain_helmholtz3_solvers;
-    
-    map<double,tbox::Pointer<AbstractLinearSolver> >             d_helmholtz3_solvers;
-    map<double,tbox::Pointer<CCLaplaceOperator> >                d_helmholtz3_ops;
-    map<double,tbox::Pointer<solv::PoissonSpecifications> >      d_helmholtz3_specs;
-    map<double,tbox::Pointer<solv::RobinBcCoefStrategy<NDIM> > > d_helmholtz3_bc_coefs;
-    map<double,tbox::Pointer<CCPoissonFACOperator> >             d_helmholtz3_fac_ops;
-    map<double,tbox::Pointer<solv::FACPreconditioner<NDIM> > >   d_helmholtz3_fac_pcs;
-    
+
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::LinearSolver> >                     d_helmholtz3_solvers;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >                d_helmholtz3_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >      d_helmholtz3_specs;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > > d_helmholtz3_bc_coefs;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >             d_helmholtz3_fac_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > >   d_helmholtz3_fac_pcs;
+
     bool d_maintain_helmholtz4_solvers;
-    
-    map<double,tbox::Pointer<AbstractLinearSolver> >             d_helmholtz4_solvers;
-    map<double,tbox::Pointer<CCLaplaceOperator> >                d_helmholtz4_ops;
-    map<double,tbox::Pointer<solv::PoissonSpecifications> >      d_helmholtz4_specs;
-    map<double,tbox::Pointer<solv::RobinBcCoefStrategy<NDIM> > > d_helmholtz4_bc_coefs;
-    map<double,tbox::Pointer<CCPoissonFACOperator> >             d_helmholtz4_fac_ops;
-    map<double,tbox::Pointer<solv::FACPreconditioner<NDIM> > >   d_helmholtz4_fac_pcs;
-    
-    map<double,bool> d_helmholtz_solvers_need_init;
+
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::LinearSolver> >                     d_helmholtz4_solvers;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >                d_helmholtz4_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >      d_helmholtz4_specs;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > > d_helmholtz4_bc_coefs;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >             d_helmholtz4_fac_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > >   d_helmholtz4_fac_pcs;
+
+    std::map<double,bool> d_helmholtz_solvers_need_init;
     int d_coarsest_reset_ln, d_finest_reset_ln;
-    
-    tbox::Pointer<tbox::Database> d_fac_ops_db;
-    tbox::Pointer<tbox::Database> d_fac_pcs_db;
-    tbox::Pointer<tbox::Database> d_hypre_solver_db;
+
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_ops_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_pcs_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hypre_solver_db;
 };
+}// namespace IBAMR
 
-// INLINED FUNCTION DEFINITIONS
-//
-//#ifndef DEBUG_NO_INLINE
-//#include "AdvectionDiffusionHierarchyIntegrator.I"
-//#endif
+/////////////////////////////// INLINE ///////////////////////////////////////
 
-#endif //#ifndef included_AdvectionDiffusionHierarchyIntegrator
+//#include "AdvDiffHierarchyIntegrator.I"
 
 //////////////////////////////////////////////////////////////////////////////
+
+#endif //#ifndef included_AdvDiffHierarchyIntegrator

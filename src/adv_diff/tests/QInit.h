@@ -1,8 +1,8 @@
-#ifndef included_USet
-#define included_USet
+#ifndef included_QInit
+#define included_QInit
 
-// Filename: USet.h
-// Last modified: <04.Sep.2006 01:51:41 boyce@bigboy.nyconnect.com>
+// Filename: QInit.h
+// Last modified: <04.Sep.2006 01:57:30 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -12,13 +12,12 @@
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
+#include <tbox/Database.h>
 #include <GridGeometry.h>
 #include <Patch.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <tbox/Array.h>
-#include <tbox/Database.h>
 #include <tbox/Pointer.h>
+#include <Variable.h>
+#include <tbox/Array.h>
 
 // C++ STDLIB INCLUDES
 #include <string>
@@ -31,16 +30,16 @@ using namespace std;
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 /*!
- * \brief Class to initialize the value of the advection velocity u.
+ * \brief Method to initialize the value of the advected scalar Q.
  */
-class USet
+class QInit
     : public SetDataStrategy
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    USet(
+    QInit(
         const string& object_name,
         tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
         tbox::Pointer<tbox::Database> input_db);
@@ -48,16 +47,16 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~USet();
+    ~QInit();
 
     /*!
      * Indicates whether the concrete SetDataStrategy object is time
      * dependent.
      */
-    bool isTimeDependent() const { return true; }
+    bool isTimeDependent() const { return(true); }
 
     /*!
-     * Set the data on the patch interior to some values.
+     * Set the data on the patch interior to the exact answer.
      */
     void setDataOnPatch(
         const int data_idx,
@@ -77,8 +76,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    USet(
-        const USet& from);
+    QInit(
+        const QInit& from);
 
     /*!
      * \brief Assignment operator.
@@ -89,8 +88,9 @@ private:
      *
      * \return A reference to this object.
      */
-    USet& operator=(
-        const USet& that);
+    QInit& operator=(
+        const QInit& that);
+
     /*!
      * Read input values, indicated above, from given database.
      */
@@ -119,21 +119,22 @@ private:
     string d_init_type;
 
     /*
-     * The amplification and frequency of the sin wave used in setting
-     * velocities.
+     * Parameters for Gaussian initial conditions.
      */
-    tbox::Array<double> d_kappa, d_omega;
+    double d_gaussian_kappa;
 
     /*
-     * Parameters for uniform constant velocity.
+     * Parameters for the Zalesak slotted cylinder.
      */
-    tbox::Array<double> d_uniform_u;
+    double d_zalesak_r;
+    double d_zalesak_slot_w;
+    double d_zalesak_slot_l;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "USet.I"
+//#include "QInit.I"
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_USet
+#endif //#ifndef included_QInit

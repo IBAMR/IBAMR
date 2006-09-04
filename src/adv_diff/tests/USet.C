@@ -1,6 +1,6 @@
 // Filename: USet.C
-// Last modified: <03.Sep.2006 22:51:40 boyce@bigboy.nyconnect.com>
-// Created on 23 June 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
+// Last modified: <04.Sep.2006 02:15:22 boyce@bigboy.nyconnect.com>
+// Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -41,8 +41,6 @@ USet::USet(
       d_grid_geom(grid_geom),
       d_X(NDIM),
       d_init_type("UNIFORM"),
-      d_kappa(NDIM),
-      d_omega(NDIM),
       d_uniform_u(NDIM)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -56,8 +54,6 @@ USet::USet(
     for (int d = 0; d < NDIM; ++d)
     {
         d_X[d] = XLower[d] + 0.5*(XUpper[d] - XLower[d]);
-        d_omega[d] = 2.0*M_PI;
-        d_kappa[d] = 0.25;
         d_uniform_u[d] = 1.0;
     }
 
@@ -81,78 +77,75 @@ USet::setDataOnPatch(
     const double data_time,
     const bool initial_time)
 {
-    tbox::Pointer< pdat::FaceData<NDIM,double> > u_data = patch.getPatchData(data_idx);
+    if (initial_time)
+    {
+        tbox::Pointer< pdat::FaceData<NDIM,double> > u_data = patch.getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!u_data.isNull());
+        assert(!u_data.isNull());
 #endif
 
-    if (d_init_type == "UNIFORM")
-    {
-        for (int axis = 0; axis < NDIM; ++axis)
+        if (d_init_type == "UNIFORM")
         {
-            u_data->getArrayData(axis).
-                fillAll(d_uniform_u[axis]*
-                        (d_kappa[axis]*sin(d_omega[axis]*data_time)+1.0));
-        }
-    }
-    else if (d_init_type == "VORTEX")
-    {
-        const hier::Box<NDIM>& patch_box = patch.getBox();
-        const hier::Index<NDIM>& patch_lower = patch_box.lower();
-        tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
-
-        const double* const XLower = pgeom->getXLower();
-        const double* const dx = pgeom->getDx();
-
-        double X[NDIM];
-
-        for (int axis = 0; axis < NDIM; ++axis)
-        {
-            for (pdat::FaceIterator<NDIM> it(patch_box,axis); it; it++)
+            for (int axis = 0; axis < NDIM; ++axis)
             {
-                const pdat::FaceIndex<NDIM>& i = it();
-                const hier::Index<NDIM>& cell_idx = i.toCell(1);
+                u_data->getArrayData(axis).fillAll(d_uniform_u[axis]);
+            }
+        }
+        else if (d_init_type == "VORTEX")
+        {
+            const hier::Box<NDIM>& patch_box = patch.getBox();
+            const hier::Index<NDIM>& patch_lower = patch_box.lower();
+            tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
 
-                for (int d = 0; d < NDIM; ++d)
+            const double* const XLower = pgeom->getXLower();
+            const double* const dx = pgeom->getDx();
+
+            double X[NDIM];
+
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                for (pdat::FaceIterator<NDIM> it(patch_box,axis); it; it++)
                 {
-                    if (d != axis)
+                    const pdat::FaceIndex<NDIM>& i = it();
+                    const hier::Index<NDIM>& cell_idx = i.toCell(1);
+
+                    for (int d = 0; d < NDIM; ++d)
                     {
-                        X[d] =
-                            XLower[d] +
-                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+0.5);
+                        if (d != axis)
+                        {
+                            X[d] =
+                                XLower[d] +
+                                dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+0.5);
+                        }
+                        else
+                        {
+                            X[d] =
+                                XLower[d] +
+                                dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d)));
+                        }
+                    }
+
+                    // 2D vortex
+                    if (axis == 0)
+                    {
+                        (*u_data)(i) = X[1] - d_X[axis];
+                    }
+                    else if (axis == 1)
+                    {
+                        (*u_data)(i) = d_X[axis] - X[0];
                     }
                     else
                     {
-                        X[d] =
-                            XLower[d] +
-                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d)));
+                        (*u_data)(i) = 0.0;
                     }
-                }
-
-                // 2D vortex
-                if (axis == 0)
-                {
-                    (*u_data)(i) =
-                        (d_kappa[axis]*sin(d_omega[axis]*data_time)+1.0)*
-                        (X[1] - d_X[axis]);
-                }
-                else if (axis == 1)
-                {
-                    (*u_data)(i) =
-                        (d_kappa[axis]*sin(d_omega[axis]*data_time)+1.0)*
-                        (d_X[axis] - X[0]);
-                }
-                else
-                {
-                    (*u_data)(i) = 0.0;
                 }
             }
         }
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << "::setDataOnPatch()\n"
-                   << "  invalid initialization type " << d_init_type << "\n");
+        else
+        {
+            TBOX_ERROR(d_object_name << "::initializeDataOnPatch()\n"
+                       << "  invalid initialization type " << d_init_type << "\n");
+        }
     }
     return;
 }// setDataOnPatch
@@ -165,16 +158,6 @@ USet::getFromInput(
 {
     if (!db.isNull())
     {
-        if (db->keyExists("omega"))
-        {
-            d_omega = db->getDoubleArray("omega");
-        }
-
-        if (db->keyExists("kappa"))
-        {
-            d_kappa = db->getDoubleArray("kappa");
-        }
-
         if (db->keyExists("X"))
         {
             d_X = db->getDoubleArray("X");
@@ -201,10 +184,5 @@ USet::getFromInput(
     }
     return;
 }// getFromInput
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<USet>;
 
 //////////////////////////////////////////////////////////////////////////////

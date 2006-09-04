@@ -1,0 +1,598 @@
+Convergence study for an advected and diffused "lattice" of Gaussians.
+The initial configuration and exact solution are taken to be the
+superposition of an 11-by-11 array of Gaussians.  For the range of
+diffusivities considered, this is a good approximation to an infinite
+lattice of Gaussians.
+
+The advection velocity is used to set the timestep.  Here,
+(u,v)=(10,5) and the timestep satisfies a CFL restriction of the form
+
+  dx/dt <= 0.9375 ||(u,v)||_oo
+
+------------------
+C-N (no advection)
+------------------
+
+===========
+kappa = 0.1
+===========
+
+N = 16
+
+  L1-norm:  0.000143072
+  L2-norm:  0.000177212
+  max-norm: 0.000353507
+
+N = 32
+
+  L1-norm:  3.58953e-05
+  L2-norm:  4.43028e-05
+  max-norm: 8.96901e-05
+
+N = 64
+
+  L1-norm:  8.98063e-06
+  L2-norm:  1.10756e-05
+  max-norm: 2.25047e-05
+
+N = 128
+
+  L1-norm:  2.24541e-06
+  L2-norm:  2.76888e-06
+  max-norm: 5.63127e-06
+
+N = 256
+
+  L1-norm:  5.61365e-07
+  L2-norm:  6.92219e-07
+  max-norm: 1.40814e-06
+
+convergence rates:
+
+  L1-norm:  1.9949  1.9989  1.9998  2.0000
+  L2-norm:  2.0000  2.0000  2.0000  2.0000
+  max-norm: 1.9787  1.9947  1.9987  1.9997
+
+============
+kappa = 0.01
+============
+
+N = 16
+
+  L1-norm:  0.00440751
+  L2-norm:  0.0077299
+  max-norm: 0.0394058
+
+N = 32
+
+  L1-norm:  0.00110973
+  L2-norm:  0.00194715
+  max-norm: 0.010884
+
+N = 64
+
+  L1-norm:  0.000278326
+  L2-norm:  0.000487679
+  max-norm: 0.00278758
+
+N = 128
+
+  L1-norm:  6.96095e-05
+  L2-norm:  0.000121975
+  max-norm: 0.000701089
+
+N = 256
+
+  L1-norm:  1.74044e-05
+  L2-norm:  3.04972e-05
+  max-norm: 0.000175535
+
+convergence rates:
+
+  L1-norm:  1.9898  1.9954  1.9994  1.9998
+  L2-norm:  1.9891  1.9974  1.9993  1.9998
+  max-norm: 1.8562  1.9651  1.9913  1.9978
+
+=============
+kappa = 0.001
+=============
+
+N = 16
+
+  L1-norm:  0.0331896
+  L2-norm:  0.120223
+  max-norm: 0.677368
+
+N = 32
+
+  L1-norm:  0.0105792
+  L2-norm:  0.0598437
+  max-norm: 0.795158
+
+N = 64
+
+  L1-norm:  0.00279045
+  L2-norm:  0.015262
+  max-norm: 0.259086
+
+N = 128
+
+  L1-norm:  0.000701983
+  L2-norm:  0.00383305
+  max-norm: 0.0688722
+
+N = 256
+
+  L1-norm:  0.000175672
+  L2-norm:  0.000959338
+  max-norm: 0.0174793
+
+convergence rates:
+
+  L1-norm:   1.6495   1.9227   1.9910   1.9986
+  L2-norm:   1.0064   1.9713   1.9934   1.9984
+  max-norm: -0.23130  1.61781  1.91144  1.97827
+
+----------------------------------
+TGA a=2-sqrt(2)-eps (no advection)
+----------------------------------
+
+===========
+kappa = 0.1
+===========
+
+N = 16
+
+  L1-norm:  0.000143321
+  L2-norm:  0.000177519
+  max-norm: 0.000354151
+
+N = 32
+
+  L1-norm:  3.59591e-05
+  L2-norm:  4.43814e-05
+  max-norm: 8.98572e-05
+
+N = 64
+
+  L1-norm:  8.9967e-06
+  L2-norm:  1.10954e-05
+  max-norm: 2.25469e-05
+
+N = 128
+
+  L1-norm:  2.24944e-06
+  L2-norm:  2.77384e-06
+  max-norm: 5.64188e-06
+
+N = 256
+
+convergence rates:
+
+  L1-norm:  
+  L2-norm:  
+  max-norm: 
+
+============
+kappa = 0.01
+============
+
+N = 16
+
+  L1-norm:  0.00440787
+  L2-norm:  0.00773069
+  max-norm: 0.0394106
+
+N = 32
+
+  L1-norm:  0.00110983
+  L2-norm:  0.00194737
+  max-norm: 0.0108855
+
+N = 64
+
+  L1-norm:  0.000278352
+  L2-norm:  0.000487736
+  max-norm: 0.002788
+
+N = 128
+
+  L1-norm:  6.96161e-05
+  L2-norm:  0.000121989
+  max-norm: 0.000701194
+
+N = 256
+
+convergence rates:
+
+  L1-norm:  
+  L2-norm:  
+  max-norm: 
+
+=============
+kappa = 0.001
+=============
+
+N = 16
+
+  L1-norm:  0.0331897
+  L2-norm:  0.120224
+  max-norm: 0.677371
+
+N = 32
+
+  L1-norm:  0.0105793
+  L2-norm:  0.0598442
+  max-norm: 0.795165
+
+N = 64
+
+  L1-norm:  0.00279047
+  L2-norm:  0.0152622
+  max-norm: 0.25909
+
+N = 128
+
+  L1-norm:  0.000701989
+  L2-norm:  0.0038331
+  max-norm: 0.0688732
+
+N = 256
+
+convergence rates:
+
+  L1-norm:  
+  L2-norm:  
+  max-norm: 
+
+-------------------------------------------------
+TGA a=2-sqrt(2)-eps (with advection, no limiters)
+-------------------------------------------------
+
+===========
+kappa = 0.1
+===========
+
+N = 16
+
+  L1-norm:  0.000116492
+  L2-norm:  0.000132516
+  max-norm: 0.000249663
+
+N = 32
+
+  L1-norm:  3.94907e-05
+  L2-norm:  4.74686e-05
+  max-norm: 0.000100222
+
+N = 64
+
+  L1-norm:  1.2135e-05
+  L2-norm:  1.49101e-05
+  max-norm: 3.17247e-05
+
+N = 128
+
+  L1-norm:  3.35497e-06
+  L2-norm:  4.12203e-06
+  max-norm: 8.73447e-06
+
+N = 256
+
+  L1-norm:  8.8159e-07
+  L2-norm:  1.0813e-06
+  max-norm: 2.28413e-06
+
+convergence rates:
+
+  L1-norm:  1.5606  1.7023  1.8548  1.9281
+  L2-norm:  1.4811  1.6707  1.8549  1.9306
+  max-norm: 1.3168  1.6595  1.8608  1.9351
+
+============
+kappa = 0.01
+============
+
+N = 16
+
+  L1-norm:  0.106447
+  L2-norm:  0.156938
+  max-norm: 0.631065
+
+N = 32
+
+  L1-norm:  0.0265324
+  L2-norm:  0.0399325
+  max-norm: 0.168057
+
+N = 64
+
+  L1-norm:  0.00654667
+  L2-norm:  0.00993292
+  max-norm: 0.0401323
+
+N = 128
+
+  L1-norm:  0.00163422
+  L2-norm:  0.00248272
+  max-norm: 0.00964609
+
+N = 256
+
+  L1-norm:  0.000408941
+  L2-norm:  0.000621568
+  max-norm: 0.00237334
+
+convergence rates:
+
+  L1-norm:  2.0043  2.0189  2.0022  1.9986
+  L2-norm:  1.9746  2.0073  2.0003  1.9979
+  max-norm: 1.9088  2.0661  2.0567  2.0230
+
+=============
+kappa = 0.001
+=============
+
+N = 16
+
+  L1-norm:  1.22915
+  L2-norm:  3.70577
+  max-norm: 27.0998
+
+N = 32
+
+  L1-norm:  0.635074
+  L2-norm:  2.25083
+  max-norm: 25.2218
+
+N = 64
+
+  L1-norm:  0.209143
+  L2-norm:  0.888108
+  max-norm: 11.1893
+
+N = 128
+
+  L1-norm:  0.0529009
+  L2-norm:  0.246528
+  max-norm: 3.2366
+
+N = 256
+
+  L1-norm:  0.0130792
+  L2-norm:  0.0620528
+  max-norm: 0.793729
+
+convergence rates:
+
+  L1-norm:  0.95266  1.60243  1.98313  2.01602
+  L2-norm:  0.71932  1.34165  1.84898  1.99018
+  max-norm: 0.10361  1.17255  1.78957  2.02776
+
+---------------------------------------------------
+TGA a=2-sqrt(2)-eps (with advection, MUSCL limiter)
+---------------------------------------------------
+
+===========
+kappa = 0.1
+===========
+
+N = 16
+
+  L1-norm:  0.000218739
+  L2-norm:  0.000268155
+  max-norm: 0.000636223
+
+N = 32
+
+  L1-norm:  5.53673e-05
+  L2-norm:  6.78151e-05
+  max-norm: 0.000162515
+
+N = 64
+
+  L1-norm:  1.43396e-05
+  L2-norm:  1.7562e-05
+  max-norm: 4.05499e-05
+
+N = 128
+
+  L1-norm:  3.65082e-06
+  L2-norm:  4.46729e-06
+  max-norm: 9.708e-06
+
+N = 256
+
+  L1-norm:  9.20278e-07
+  L2-norm:  1.1257e-06
+  max-norm: 2.44904e-06
+
+convergence rates:
+
+  L1-norm:  1.9821  1.9490  1.9737  1.9881
+  L2-norm:  1.9834  1.9491  1.9750  1.9886
+  max-norm: 1.9690  2.0028  2.0625  1.9870
+
+============
+kappa = 0.01
+============
+
+N = 16
+
+  L1-norm:  0.108167
+  L2-norm:  0.165542
+  max-norm: 0.628904
+
+N = 32
+
+  L1-norm:  0.026615
+  L2-norm:  0.0418221
+  max-norm: 0.201613
+
+N = 64
+
+  L1-norm:  0.00654633
+  L2-norm:  0.0100535
+  max-norm: 0.0487071
+
+N = 128
+
+  L1-norm:  0.00163583
+  L2-norm:  0.00249151
+  max-norm: 0.0110008
+
+N = 256
+
+  L1-norm:  0.000409433
+  L2-norm:  0.000622737
+  max-norm: 0.00256301
+
+convergence rates:
+
+  L1-norm:  2.0229  2.0235  2.0007  1.9983
+  L2-norm:  1.9849  2.0566  2.0126  2.0003
+  max-norm: 1.6413  2.0494  2.1465  2.1017
+
+=============
+kappa = 0.001
+=============
+
+N = 16
+
+  L1-norm:  1.04279
+  L2-norm:  3.71549
+  max-norm: 27.5361
+
+N = 32
+
+  L1-norm:  0.535201
+  L2-norm:  2.12473
+  max-norm: 23.7772
+
+N = 64
+
+  L1-norm:  0.195475
+  L2-norm:  0.870428
+  max-norm: 10.3818
+
+N = 128
+
+  L1-norm:  0.0522502
+  L2-norm:  0.247257
+  max-norm: 3.49464
+
+N = 256
+
+  L1-norm:  0.0130026
+  L2-norm:  0.0619711
+  max-norm: 0.892529
+
+convergence rates:
+
+  L1-norm:  0.96230  1.45310  1.90348  2.00664
+  L2-norm:  0.80627  1.28748  1.81571  1.99634
+  max-norm: 0.21175  1.19552  1.57084  1.96917
+
+---------------------------------------------------------------------
+TGA a=2-sqrt(2)-eps (with advection, MUSCL limiter, local refinement)
+---------------------------------------------------------------------
+
+   domain_boxes = [ (0,0) , (16*N - 1,16*N - 1) ]
+
+   RefineBoxes {
+      level_0 = [(4*N,4*N),(12*N - 1,12*N - 1)]
+   }
+
+   max_levels             = 2    // Maximum number of levels in hierarchy.
+   ratio_to_coarser {            
+      level_1             = 2,2  // vector ratio to next coarser level
+   }
+
+============
+kappa = 0.01
+============
+
+N = 1
+
+  L1-norm:  0.108829
+  L2-norm:  0.187289
+  max-norm: 1.15038
+
+N = 2
+
+  L1-norm:  0.0236493
+  L2-norm:  0.036902
+  max-norm: 0.270852
+
+N = 4
+
+  L1-norm:  0.00496558
+  L2-norm:  0.00686711
+  max-norm: 0.0293613
+
+N = 8
+
+  L1-norm:  0.00119319
+  L2-norm:  0.00164752
+  max-norm: 0.00517727
+
+N = 16
+
+  L1-norm:  0.000298981
+  L2-norm:  0.000414816
+  max-norm: 0.00131641
+
+convergence rates:
+
+  L1-norm:  2.2022  2.2518  2.0571
+  L2-norm:  2.3435  2.4259  2.0594
+  max-norm: 2.0865  3.2055  2.5037
+
+---------------------------------------------------------------------
+TGA a=2-sqrt(2)-eps (with advection, MUSCL limiter, local refinement)
+---------------------------------------------------------------------
+
+   domain_boxes = [ (0,0) , (16*N - 1,16*N - 1) ]
+
+   RefineBoxes {
+      level_0 = [(4*N,4*N),(12*N - 1,12*N - 1)]
+   }
+
+   max_levels             = 2    // Maximum number of levels in hierarchy.
+   ratio_to_coarser {            
+      level_1             = 4,4  // vector ratio to next coarser level
+   }
+
+============
+kappa = 0.01
+============
+
+N = 1
+
+  L1-norm:  0.114095
+  L2-norm:  0.207659
+  max-norm: 1.327
+
+N = 2
+
+  L1-norm:  0.0273903
+  L2-norm:  0.0451602
+  max-norm: 0.328957
+
+N = 4
+
+  L1-norm:  0.0059298
+  L2-norm:  0.00897579
+  max-norm: 0.0384181
+
+N = 8
+
+  L1-norm:  0.0014738
+  L2-norm:  0.00225903
+  max-norm: 0.00885167
+
+convergence rates:
+
+  L1-norm:  2.0585  2.2076  2.0084
+  L2-norm:  2.2011  2.3309  1.9903
+  max-norm: 2.0122  3.0980  2.1178

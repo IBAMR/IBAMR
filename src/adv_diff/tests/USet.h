@@ -2,7 +2,7 @@
 #define included_USet
 
 // Filename: USet.h
-// Last modified: <04.Sep.2006 01:51:41 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Sep.2006 01:53:59 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -31,7 +31,7 @@ using namespace std;
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 /*!
- * \brief Class to initialize the value of the advection velocity u.
+ * \brief Method to initialize the value of the advection velocity u.
  */
 class USet
     : public SetDataStrategy
@@ -54,10 +54,10 @@ public:
      * Indicates whether the concrete SetDataStrategy object is time
      * dependent.
      */
-    bool isTimeDependent() const { return true; }
+    bool isTimeDependent() const { return(false); }
 
     /*!
-     * Set the data on the patch interior to some values.
+     * Set the data on the patch interior to some initial values.
      */
     void setDataOnPatch(
         const int data_idx,
@@ -117,12 +117,6 @@ private:
      * The initialization type.
      */
     string d_init_type;
-
-    /*
-     * The amplification and frequency of the sin wave used in setting
-     * velocities.
-     */
-    tbox::Array<double> d_kappa, d_omega;
 
     /*
      * Parameters for uniform constant velocity.

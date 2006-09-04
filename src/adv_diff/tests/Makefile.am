@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_DIST = input1d input2d input3d
+EXTRA_DIST = input2d input3d
 
 ## Dimension-dependent testers
 SOURCES = main.C QInit.C QInit.h USet.C USet.h

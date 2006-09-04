@@ -5,44 +5,44 @@ define(INTEGER,`integer')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Determine the timestep size corresponding to a unit CFL number.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
-      subroutine gadvectstabledt(
+c
+      subroutine advect_stabledt3d(
      &     dx,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     ngc0,ngc1,ngc2,
      &     u0,u1,u2,
      &     stabdt)
-c     
+c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl     
-c     
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
 c     Input.
-c     
+c
       INTEGER ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
-      
+
       INTEGER ngc0,ngc1,ngc2
-      
+
       REAL dx(0:NDIM-1)
-      
+
       REAL u0(FACE3d0VECG(ifirst,ilast,ngc))
       REAL u1(FACE3d1VECG(ifirst,ilast,ngc))
       REAL u2(FACE3d2VECG(ifirst,ilast,ngc))
-c     
+c
 c     Input/Output.
-c     
+c
       REAL stabdt
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER i0,i1,i2,d
       REAL maxspeed(0:NDIM-1)
-c     
+c
 c     Determine the unit CFL number on the patch.
-c     
+c
       do d = 0,NDIM-1
          maxspeed(d) = 1.d-12   ! avoid division by zero
       enddo
@@ -62,7 +62,7 @@ c
             enddo
          enddo
       enddo
-      
+
       do i1 = ifirst1,ilast1
          do i0 = ifirst0,ilast0
             do i2 = ifirst2,ilast2+1
@@ -70,10 +70,10 @@ c
             enddo
          enddo
       enddo
-      
+
       stabdt = dmin1((dx(0)/maxspeed(0)),(dx(1)/maxspeed(1)),
      &               (dx(2)/maxspeed(2)))
-c     
+c
       return
       end
 c

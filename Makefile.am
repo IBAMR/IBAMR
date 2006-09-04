@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = src
+SUBDIRS = stools src
 ACLOCAL_AMFLAGS = -I m4
 
 ## Automatically link header files in $(top_srcdir)/include/ibamr

@@ -2,6 +2,9 @@
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
+// Headers for basic PETSc functions
+#include <petsc.h>
+
 // Headers for basic SAMRAI objects
 #include <PatchLevel.h>
 #include <VariableDatabase.h>
@@ -19,18 +22,15 @@
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
-#include <HyperbolicLevelIntegrator.h>
 #include <LoadBalancer.h>
 #include <PatchHierarchy.h>
 #include <StandardTagAndInitialize.h>
-#include <TimeRefinementIntegrator.h>
-#include <TimeRefinementLevelStrategy.h>
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/ConvergenceMonitor.h>
+#include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/GodunovAdvector.h>
-#include <ibamr/GodunovHypPatchOps.h>
 
 #include "QInit.h"
 #include "USet.h"
@@ -40,109 +40,27 @@ using namespace SAMRAI;
 using namespace std;
 
 /************************************************************************
+ * For each run, the input filename and restart information (if         *
+ * needed) must be given on the command line.  For non-restarted case,  *
+ * command line is:                                                     *
  *                                                                      *
- * This is the main program for an AMR solution of the linear           *
- * advection equation: dQ/dt + div(u*Q) = 0, where "Q" is a             *
- * scalar-valued function and "u" is a possibly time-dependent          *
- * advection velocity.  This application program is constructed by      *
- * composing several algorithm objects found in the SAMRAI and IBAMR    *
- * libraries with a few that are specific to this application.  A       *
- * brief description of these object follows.                           *
+ *    executable <input file name>                                      *
  *                                                                      *
- * There are two main data containment objects.  These are:             *
+ * For restarted run, command line is:                                  *
  *                                                                      *
- *    PatchHierarchy - A container for the AMR patch hierarchy and the  *
- *       data on the grid.                                              *
+ *    executable <input file name> <restart directory> <restart number> *
  *                                                                      *
- *    CartesianGridGeometry - Defines and maintains the Cartesian       *
- *       coordinate system on the grid.  The PatchHierarchy maintains   *
- *       a reference to this object.                                    *
- *                                                                      *
- * A single overarching algorithm object drives the time integration    *
-   and adaptive gridding processes:                                     *
-   *                                                                      *
-   *    TimeRefinementIntegrator - Coordinates time integration and       *
-   *       adaptive gridding procedures for the various levels in the     *
-   *       AMR patch hierarchy.  Local time refinement is employed        *
-   *       during hierarchy integration; i.e., finer levels are advanced  *
-   *       using smaller time increments than coarser level.  Thus, this  *
-   *       object also invokes data synchronization procedures which      *
-   *       couple the solution on different patch hierarchy levels.       *
-   *                                                                      *
-   * The time refinement integrator is not specific to the numerical      *
-   * methods used and the problem being solved.  It maintains references  *
-   * to two other finer grain algorithmic objects that are more specific  *
-   * to the problem at hand and with which it is configured when they     *
-   * are passed into its constructor.  These finer grain algorithm        *
-   * objects are:                                                         *
-   *                                                                      *
-   *    HyperbolicLevelIntegrator - Defines data management procedures    *
-   *       for level integration, data synchronization between levels,    *
-   *       and tagging cells for refinement.  These operations are        *
-   *       tailored to explicit time integration algorithms used for      *
-   *       hyperbolic systems of conservation laws, such as the Euler     *
-   *       equations.  This integrator manages data for numerical         *
-   *       routines that treat individual patches in the AMR patch        *
-   *       hierarchy.  In this particular application, it maintains a     *
-   *       pointer to the GodunovAdvector object that defines variables   *
-   *       and provides numerical routines for the linear advection       *
-   *       problem.                                                       *
-   *                                                                      *
-   *       GodunovAdvector - Provides the numerical routines necessary    *
-   *          to solve the discrete linear advection equation on each     *
-   *          patch in the AMR hierarchy.                                 *
-   *                                                                      *
-   *       GodunovHypPatchOps - Defines variables and numerical routines  *
-   *          for the discrete linear advection equation on each patch    *
-   *          in the AMR hierarchy and interfaces the GodunovAdvector     *
-   *          with the HyperbolicLevelIntegrator.                         *
-   *                                                                      *
-   *    GriddingAlgorithm - Drives the AMR patch hierarchy generation     *
-   *       and regridding procedures.  This object maintains references   *
-   *       to three other algorithmic objects with which it is            *
-   *       configured when they are passed into its constructor.  They    *
-   *       are:                                                           *
-   *                                                                      *
-   *       BergerRigoutsos - Clusters cells tagged for refinement on a    *
-   *          patch level into a collection of logically-rectangular box  *
-   *          domains.                                                    *
-   *                                                                      *
-   *       LoadBalancer - Processes the boxes generated by the            *
-   *          BergerRigoutsos algorithm into a configuration from which   *
-   *          patches are contructed.  The algorithm used in this class   *
-   *          assumes a spatially-uniform workload distribution; thus,    *
-   *          it attempts to produce a collection of boxes each of which  *
-   *          contains the same number of cells.  The load balancer also  *
-   *          assigns patches to processors.                              *
-   *                                                                      *
-   *       StandardTagAndInitialize - Couples the gridding algorithm      *
-   *          to the HyperbolicIntegrator. Selects cells for refinement   *
-   *          based on either Gradient detection, Richardson              *
-   *          extrapolation, or pre-defined Refine box region.  The       *
-   *          object maintains a pointer to the                           *
-   *          HyperbolicLevelIntegrator, which is passed into its         *
-   *          constructor, for this purpose.                              *
-   *                                                                      *
-   * For each run, the input filename and restart information (if         *
-   * needed) must be given on the command line.  For non-restarted case,  *
-   * command line is:                                                     *
-   *                                                                      *
-   *    executable <input file name>                                      *
-   *                                                                      *
-   * For restarted run, command line is:                                  *
-   *                                                                      *
-   *    executable <input file name> <restart directory> <restart number> *
-   *                                                                      *
-   ************************************************************************
-   */
+ ************************************************************************
+ */
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     /*
-     * Initialize MPI and SAMRAI, enable logging, and process command
-     * line.
+     * Initialize PETSc, MPI, and SAMRAI, enable logging, and process
+     * command line.
      */
-    tbox::MPI::init(&argc, &argv);
+    PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
+    tbox::MPI::setCommunicator(PETSC_COMM_WORLD);
     tbox::SAMRAIManager::startup();
 
     string input_filename;
@@ -159,7 +77,7 @@ int main(int argc, char *argv[])
                    << "  none at this time"
                    << endl;
         tbox::MPI::abort();
-        return (-1);
+        return(-1);
     }
     else
     {
@@ -188,7 +106,7 @@ int main(int argc, char *argv[])
      * dump information, which is used for writing plot files.
      * Second, if proper restart information was given on command
      * line, and the restart interval is non-zero, create a restart
-     * database.  Third, read in solution algorithm customizations.
+     * database.
      */
     tbox::Pointer<tbox::Database> main_db = input_db->getDatabase("Main");
 
@@ -312,37 +230,9 @@ int main(int argc, char *argv[])
             use_refined_timestepping = true;
         }
     }
-    if (use_refined_timestepping)
-    {
-        tbox::pout << "using subcycled timestepping.\n";
-    }
-    else
-    {
-        tbox::pout << "NOT using subcycled timestepping.\n";
-    }
 
     const bool write_restart = (restart_interval > 0)
         && !(restart_write_dirname.empty());
-
-    const bool u_is_div_free = main_db->getBoolWithDefault("u_is_div_free", false);
-    if (u_is_div_free)
-    {
-        tbox::pout << "advection velocity u is discretely divergence free.\n";
-    }
-    else
-    {
-        tbox::pout << "advection velocity u is NOT discretely divergence free.\n";
-    }
-
-    const bool consv_form = main_db->getBoolWithDefault("consv_form", false);
-    if (consv_form)
-    {
-        tbox::pout << "solving the advection equation in CONSERVATION form.\n";
-    }
-    else
-    {
-        tbox::pout << "solving the advection equation in NON-CONSERVATION form.\n";
-    }
 
     /*
      * Get the restart manager and root restart database.  If run is
@@ -357,12 +247,11 @@ int main(int argc, char *argv[])
     }
 
     /*
-     * Create major algorithm and data objects which comprise
-     * application.  Each object will be initialized either from input
-     * data or restart files, or a combination of both.  Refer to each
-     * class constructor for details.  For more information on the
-     * composition of objects for this application, see comments at
-     * top of file.
+     * Create major algorithm and data objects which comprise application.
+     * Each object will be initialized either from input data or restart
+     * files, or a combination of both.  Refer to each class constructor
+     * for details.  For more information on the composition of objects
+     * for this application, see comments at top of file.
      */
     tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
         new geom::CartesianGridGeometry<NDIM>("CartesianGeometry",
@@ -371,17 +260,17 @@ int main(int argc, char *argv[])
     tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
         new hier::PatchHierarchy<NDIM>("PatchHierarchy",grid_geometry);
 
-    tbox::Pointer<GodunovAdvector> advector =
+    tbox::Pointer<GodunovAdvector> predictor =
         new GodunovAdvector(
             "GodunovAdvector",
             input_db->getDatabase("GodunovAdvector"));
 
-    tbox::Pointer<GodunovHypPatchOps> hyp_patch_ops =
-        new GodunovHypPatchOps(
-            "GodunovHypPatchOps",
-            input_db->getDatabase("GodunovHypPatchOps"),
-            advector,
-            grid_geometry);
+    tbox::Pointer<AdvDiffHierarchyIntegrator> time_integrator =
+        new AdvDiffHierarchyIntegrator(
+            "AdvDiffHierarchyIntegrator",
+            input_db->getDatabase("AdvDiffHierarchyIntegrator"),
+            patch_hierarchy,
+            predictor);
 
     tbox::Pointer< pdat::CellVariable<NDIM,double> > Q = new pdat::CellVariable<NDIM,double>("Q");
     tbox::Pointer< pdat::FaceVariable<NDIM,double> > u = new pdat::FaceVariable<NDIM,double>("u");
@@ -389,26 +278,24 @@ int main(int argc, char *argv[])
     QInit q_init("QInit", grid_geometry, input_db->getDatabase("QInit"));
     USet u_set("USet", grid_geometry, input_db->getDatabase("USet"));
 
-    hyp_patch_ops->registerAdvectedQuantity(
-        Q, consv_form, tbox::Pointer<SetDataStrategy>(&q_init,false));
-    hyp_patch_ops->registerAdvectionVelocity(
+    const bool u_is_div_free = true;
+    time_integrator->registerAdvectionVelocity(
         u, u_is_div_free, tbox::Pointer<SetDataStrategy>(&u_set,false));
 
-    tbox::Pointer<algs::HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
-        new algs::HyperbolicLevelIntegrator<NDIM>(
-            "HyperbolicLevelIntegrator",
-            input_db->getDatabase("HyperbolicLevelIntegrator"),
-            hyp_patch_ops, true, use_refined_timestepping);
+    const double kappa = input_db->getDatabase("QInit")->getDouble("kappa");
+    const bool consv_form = false;
+    time_integrator->registerAdvectedAndDiffusedQuantity(
+        Q, kappa, consv_form, tbox::Pointer<SetDataStrategy>(&q_init,false));
 
     tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
         new mesh::StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize",
-            hyp_level_integrator,
+            time_integrator,
             input_db->getDatabase("StandardTagAndInitialize"));
 
     tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
 
-    tbox::Pointer<mesh::LoadBalancer<NDIM> >  load_balancer =
+    tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
         new mesh::LoadBalancer<NDIM>("LoadBalancer",
                                      input_db->getDatabase("LoadBalancer"));
 
@@ -419,14 +306,6 @@ int main(int argc, char *argv[])
                                           box_generator,
                                           load_balancer);
 
-    tbox::Pointer<algs::TimeRefinementIntegrator<NDIM> > time_integrator =
-        new algs::TimeRefinementIntegrator<NDIM>(
-            "TimeRefinementIntegrator",
-            input_db->getDatabase("TimeRefinementIntegrator"),
-            patch_hierarchy,
-            hyp_level_integrator,
-            gridding_algorithm);
-
     /*
      * Set up visualization plot file writer.
      */
@@ -436,7 +315,7 @@ int main(int argc, char *argv[])
                                         visit_number_procs_per_file);
     if (uses_visit)
     {
-        hyp_patch_ops->
+        time_integrator->
             registerVisItDataWriter(visit_data_writer);
     }
 
@@ -445,23 +324,24 @@ int main(int argc, char *argv[])
      * Then, close restart file and write initial state for
      * visualization.
      */
+    time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
     double dt_now = time_integrator->initializeHierarchy();
     tbox::RestartManager::getManager()->closeRestartFile();
 
     /*
      * After creating all objects and initializing their state, we
-     * print the input database and variable database contents to the
-     * log file.
+     * print the input database and variable database contents
+     * to the log file.
      */
     tbox::plog << "\nCheck input data and variables before simulation:" << endl;
     tbox::plog << "Input database..." << endl;
     input_db->printClassData(tbox::plog);
     tbox::plog << "\nVariable database..." << endl;
     hier::VariableDatabase<NDIM>::getDatabase()->printClassData(tbox::plog);
-    tbox::plog << "\nCheck Godunov Advector data... " << endl;
-    advector->printClassData(tbox::plog);
-    tbox::plog << "\nCheck Godunov Hyperbolic Patch Ops data... " << endl;
-    hyp_patch_ops->printClassData(tbox::plog);
+    tbox::plog << "\nCheck Godunov Predictor data... " << endl;
+    predictor->printClassData(tbox::plog);
+    tbox::plog << "\nCheck Advection-Diffusion Solver data... " << endl;
+    time_integrator->printClassData(tbox::plog);
 
     if (viz_dump_data)
     {
@@ -475,8 +355,8 @@ int main(int argc, char *argv[])
     }
 
     /*
-     * Time step loop.  Note that the step count and integration time
-     * are maintained by algs::TimeRefinementIntegrator.
+     * Time step loop.  Note that the step count and integration
+     * time are maintained by algs::TimeRefinementIntegrator<NDIM>.
      */
     double loop_time = time_integrator->getIntegratorTime();
     double loop_time_end = time_integrator->getEndTime();
@@ -524,7 +404,7 @@ int main(int argc, char *argv[])
     }
 
     /*
-     * Ensure the last state is written out for plotting.
+     * Ensure the last state is written out.
      */
     if (viz_dump_data && iteration_num%viz_dump_interval != 0)
     {
@@ -543,7 +423,7 @@ int main(int argc, char *argv[])
         tbox::Pointer<ConvergenceMonitor> conv_monitor = new ConvergenceMonitor("ConvergenceMonitor");
 
         conv_monitor->registerMonitoredVariableAndContext(
-            Q, hyp_level_integrator->getCurrentContext(),
+            Q, time_integrator->getCurrentContext(),
             tbox::Pointer<SetDataStrategy>(&q_init, false));
 
         const int coarsest_ln = 0;
@@ -570,16 +450,14 @@ int main(int argc, char *argv[])
     patch_hierarchy.setNull();
     box_generator.setNull();
     load_balancer.setNull();
-    advector.setNull();
-    hyp_patch_ops.setNull();
-    hyp_level_integrator.setNull();
+    predictor.setNull();
     error_detector.setNull();
     gridding_algorithm.setNull();
     time_integrator.setNull();
     visit_data_writer.setNull();
 
     tbox::SAMRAIManager::shutdown();
-    tbox::MPI::finalize();
+    PetscFinalize();
 
-    return 0;
+    return(0);
 }// main

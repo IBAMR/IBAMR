@@ -241,7 +241,7 @@ if test -d "${HDF5_DIR}/lib" ; then
   LDFLAGS="-L${HDF5_DIR}/lib -R${HDF5_DIR}/lib $LDFLAGS"
 fi
 if test -d "${HDF5_DIR}/include" ; then
-  CPPFLAGS="-I${HDF5_DIR}/include $CPPFLAGS"  
+  CPPFLAGS="-I${HDF5_DIR}/include $CPPFLAGS"
 fi
 
 AC_CHECK_HEADER([hdf5.h],,AC_MSG_WARN([could not find header file hdf5.h]))
@@ -323,7 +323,7 @@ if test "$SILO_ENABLED" = yes; then
     LDFLAGS="-L${SILO_DIR}/lib -R${SILO_DIR}/lib $LDFLAGS"
   fi
   if test -d "${SILO_DIR}/include" ; then
-    CPPFLAGS="-I${SILO_DIR}/include $CPPFLAGS"  
+    CPPFLAGS="-I${SILO_DIR}/include $CPPFLAGS"
   fi
 
   AC_CHECK_HEADER([silo.h],,AC_MSG_WARN([could not find header file silo.h]))
@@ -342,11 +342,12 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
+AC_CONFIG_SUBDIRS([stools])
 AC_CONFIG_FILES([
   Makefile
   doc/Doxyfile
   src/Makefile src/fortran/Makefile
-  src/adv_diff/Makefile src/adv_diff/fortran/Makefile
+  src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/adv_diff/tests/Makefile
   src/advect/Makefile src/advect/fortran/Makefile src/advect/tests/Makefile
   src/utilities/Makefile
 ])

@@ -2,7 +2,7 @@
 #define included_GodunovAdvector
 
 // Filename: GodunovAdvector.h
-// Last modified: <28.Aug.2006 21:39:34 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Sep.2006 00:47:25 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -26,13 +26,13 @@ namespace IBAMR
 /*!
  * \brief Implementation of an explict second-order Godunov method for
  * the advection equation in conservative and non-conservative forms.
- * 
+ *
  * Class GodunovAdvector implements the predictors required to use an
  * explicit predictor-corrector method to solve the \em
  * non-conservative advection equation, \f[
- * 
+ *
  *      \frac{dQ}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla)Q = F,
- *      
+ *
  * \f] where \f$Q\f$ is a cell-centered quantity,
  * \f$\vec{u}^{\mbox{\scriptsize ADV}}\f$ is a specified face-centered
  * advection velocity, and \f$F\f$ is an optional source term.  These
@@ -47,7 +47,7 @@ namespace IBAMR
  * predictor-corrector method for solving the advection equation, as
  * well as related problems such as the advection-diffusion equation
  * and the equations of incompressible flow.
- * 
+ *
  * Note that the predicted fluxes are computed using the \em
  * non-conservative form of the advection equation.  Consequently,
  * when the advection velocity \f$\vec{u}\f$ is not discretely
@@ -58,7 +58,7 @@ namespace IBAMR
  * \see IBAMR::GodunovHypPatchOps
  */
 class GodunovAdvector
-    : public SAMRAI::tbox::Serializable
+    : public virtual SAMRAI::tbox::Serializable
 {
 public:
     /*!
@@ -73,7 +73,7 @@ public:
         MC_LIMITED = 2,
         MUSCL_LIMITED = 3
     };
-    
+
     /*!
      * The constructor for GodunovAdvector sets default parameters for
      * the advection predictor.  The constructor also registers this
@@ -90,13 +90,13 @@ public:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         bool register_for_restart=true);
-    
+
     /*!
      * The destructor for GodunovAdvector unregisters the predictor
      * object with the restart manager when so registered.
      */
     ~GodunovAdvector();
-    
+
     ///
     ///  The following routines:
     ///
@@ -107,11 +107,11 @@ public:
     ///      predictValueWithSourceTerm(),
     ///      predictNormalVelocity(),
     ///      predictNormalVelocityWithSourceTerm()
-    ///      
+    ///
     ///  provide the explicit predictors required to solve the
     ///  advection equation using a predictor-corrector methodology.
     ///
-    
+
     /*!
      * \brief Compute the maximum stable time increment for the patch.
      *
@@ -120,7 +120,7 @@ public:
     double computeStableDtOnPatch(
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::hier::Patch<NDIM>& patch) const;
- 
+
     /*!
      * \brief Compute the advective derivative \f$
      * \vec{N}^{n+\frac{1}{2}} = \vec{u}^{\mbox{\scriptsize
@@ -133,7 +133,7 @@ public:
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::FaceData<NDIM,double>& q_half,
         const SAMRAI::hier::Patch<NDIM>& patch) const;
-    
+
     /*!
      * \brief Compute the time integral of the advective fluxes \f$
      * \vec{f} \f$ corresponding to a face-centered value \f$ q \f$
@@ -158,17 +158,17 @@ public:
         const SAMRAI::pdat::FaceData<NDIM,double>& q_half,
         const SAMRAI::hier::Patch<NDIM>& patch,
         const double dt) const;
-    
+
     /*!
      * \brief Compute predicted time- and face-centered values from
      * cell-centered values using a second-order Godunov method (\em
      * non-forced version).
-     * 
+     *
      * The predictor assumes that \f$ Q \f$ satisfies an equation of
      * the form \f[
-     * 
+     *
      *      \frac{dQ}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla)Q = 0,
-     * 
+     *
      * \f] i.e., that \f$ Q \f$ satisfies the advection equation in
      * \em non-conservative form.
      *
@@ -186,17 +186,17 @@ public:
         const SAMRAI::pdat::CellData<NDIM,double>& Q,
         const SAMRAI::hier::Patch<NDIM>& patch,
         const double dt) const;
-    
+
     /*!
      * \brief Compute predicted time- and face-centered values from
      * cell-centered values using a second-order Godunov method (\em
      * forced version).
-     * 
+     *
      * The predictor assumes that \f$ Q \f$ satisfies an equation of
      * the form \f[
-     * 
+     *
      *      \frac{dQ}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla)Q = F,
-     * 
+     *
      * \f] i.e., that \f$ Q \f$ satisfies the \em forced advection
      * equation in \em non-conservative form.
      *
@@ -215,17 +215,17 @@ public:
         const SAMRAI::pdat::CellData<NDIM,double>& F,
         const SAMRAI::hier::Patch<NDIM>& patch,
         const double dt) const;
-    
+
     /*!
      * \brief Compute predicted time- and face-centered MAC velocities
      * from a cell-centered veclocity field using a second-order
      * Godunov method (\em non-forced version).
-     * 
+     *
      * The predictor assumes that \f$ \vec{V} \f$ satisfies an
      * equation of the form \f[
-     * 
+     *
      *      \frac{d\vec{V}}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla)\vec{V} = 0,
-     * 
+     *
      * \f] i.e., that \f$ \vec{V} \f$ satisfies the advection equation
      * in \em non-conservative form.
      *
@@ -243,17 +243,17 @@ public:
         const SAMRAI::pdat::CellData<NDIM,double>& V,
         const SAMRAI::hier::Patch<NDIM>& patch,
         const double dt) const;
-    
+
     /*!
      * \brief Compute predicted time- and face-centered MAC velocities
      * from a cell-centered veclocity using a second-order Godunov
      * method (\em forced version).
-     * 
+     *
      * The predictor assumes that \f$ \vec{V} \f$ satisfies an
      * equation of the form \f[
-     * 
+     *
      *      \frac{d\vec{V}}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla)\vec{V} = \vec{F},
-     * 
+     *
      * \f] i.e., that \f$ \vec{V} \f$ satisfies the \em forced
      * advection equation in \em non-conservative form.
      *
@@ -272,7 +272,7 @@ public:
         const SAMRAI::pdat::CellData<NDIM,double>& F,
         const SAMRAI::hier::Patch<NDIM>& patch,
         const double dt) const;
-    
+
     /*!
      * \brief Subtract the face-centered gradient of a scalar from a
      * predicted face-centered velocity field to enforce
@@ -296,7 +296,7 @@ public:
     ///  are concrete implementations of functions declared in the
     ///  SAMRAI::tbox::Serializable abstract base class.
     ///
-    
+
     /*!
      * \brief Write state of GodunovAdvector object to the given
      * database for restart.
@@ -314,13 +314,13 @@ public:
     ///
     ///  are provided for your viewing pleasure.
     ///
-    
+
     /*!
      * \brief Print all data members for GodunovAdvector class.
      */
     virtual void printClassData(
         std::ostream& os) const;
-    
+
 private:
     /*!
      * \brief Default constructor.
@@ -329,25 +329,25 @@ private:
      * used.
      */
     GodunovAdvector();
-    
+
     /*!
      * \brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
-     * 
+     *
      * \param from The value to copy to this object.
      */
     GodunovAdvector(
         const GodunovAdvector& from);
-    
+
     /*!
      * \brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
-     * 
+     *
      * \param that The value to assign to this object.
-     * 
+     *
      * \return A reference to this object.
      */
     GodunovAdvector& operator=(
@@ -370,7 +370,7 @@ private:
         const SAMRAI::pdat::CellData<NDIM,double>& F,
         const SAMRAI::hier::Patch<NDIM>& patch,
         const double dt) const;
-    
+
     /*
      * These private member functions read data from input and
      * restart.  When beginning a run from a restart file, all data
@@ -383,9 +383,9 @@ private:
     void getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
         bool is_from_restart);
-    
+
     void getFromRestart();
-    
+
     /*
      * The object name is used as a handle to databases stored in
      * restart files and for error reporting purposes.  The boolean is

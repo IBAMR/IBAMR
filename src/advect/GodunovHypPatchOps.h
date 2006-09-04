@@ -2,7 +2,7 @@
 #define included_GodunovHypPatchOps
 
 // Filename: GodunovHypPatchOps.h
-// Last modified: <03.Sep.2006 19:45:00 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Sep.2006 00:47:42 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -82,7 +82,7 @@ namespace IBAMR
  */
 class GodunovHypPatchOps
     : public SAMRAI::algs::HyperbolicPatchStrategy<NDIM>,
-      public SAMRAI::tbox::Serializable
+      public virtual SAMRAI::tbox::Serializable
 {
 public:
     /*!

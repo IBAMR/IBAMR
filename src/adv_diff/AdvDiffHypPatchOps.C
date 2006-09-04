@@ -1,10 +1,10 @@
 // Filename: AdvDiffHypPatchOps.C
-// Last modified: <28.Aug.2006 21:31:02 boyce@bigboy.nyconnect.com>
+// Last modified: <03.Sep.2006 22:53:01 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "AdvDiffHypPatchOps.h" 
+#include "AdvDiffHypPatchOps.h"
 
 // IBAMR INCLUDES
 #ifndef included_IBAMR_config
@@ -34,23 +34,23 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 1)
-#define ADVDIFF_CONSDIFF_F77 F77_FUNC_(advdiff_consdiff1d, ADVDIFF_CONSDIFF1D)
-#define ADVDIFF_CONSDIFFWITHDIVSOURCE_F77 F77_FUNC_(advdiff_consdiffwithdivsource1d, ADVDIFF_CONSDIFFWITHDIVSOURCE1D)
+#define ADV_DIFF_CONSDIFF_F77 F77_FUNC_(adv_diff_consdiff1d, ADV_DIFF_CONSDIFF1D)
+#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77 F77_FUNC_(adv_diff_consdiffwithdivsource1d, ADV_DIFF_CONSDIFFWITHDIVSOURCE1D)
 #endif
 
 #if (NDIM == 2)
-#define ADVDIFF_CONSDIFF_F77 F77_FUNC_(advdiff_consdiff2d, ADVDIFF_CONSDIFF2D)
-#define ADVDIFF_CONSDIFFWITHDIVSOURCE_F77 F77_FUNC_(advdiff_consdiffwithdivsource2d, ADVDIFF_CONSDIFFWITHDIVSOURCE2D)
+#define ADV_DIFF_CONSDIFF_F77 F77_FUNC_(adv_diff_consdiff2d, ADV_DIFF_CONSDIFF2D)
+#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77 F77_FUNC_(adv_diff_consdiffwithdivsource2d, ADV_DIFF_CONSDIFFWITHDIVSOURCE2D)
 #endif
 
 #if (NDIM == 3)
-#define ADVDIFF_CONSDIFF_F77 F77_FUNC_(advdiff_consdiff3d, ADVDIFF_CONSDIFF3D)
-#define ADVDIFF_CONSDIFFWITHDIVSOURCE_F77 F77_FUNC_(advdiff_consdiffwithdivsource3d, ADVDIFF_CONSDIFFWITHDIVSOURCE3D)
+#define ADV_DIFF_CONSDIFF_F77 F77_FUNC_(adv_diff_consdiff3d, ADV_DIFF_CONSDIFF3D)
+#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77 F77_FUNC_(adv_diff_consdiffwithdivsource3d, ADV_DIFF_CONSDIFFWITHDIVSOURCE3D)
 #endif
 
 extern "C"
 {
-    void ADVDIFF_CONSDIFF_F77(
+    void ADV_DIFF_CONSDIFF_F77(
         const double*, const double&,
 #if (NDIM == 1)
         const int& , const int& ,
@@ -72,7 +72,7 @@ extern "C"
 #endif
         double*);
 
-    void ADVDIFF_CONSDIFFWITHDIVSOURCE_F77(
+    void ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77(
         const double*, const double&,
 #if (NDIM == 1)
         const int& , const int& ,
@@ -170,35 +170,35 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
     bool at_synchronization)
 {
     t_conservative_difference_on_patch->start();
-    
+
     (void) time;
     (void) at_synchronization;
-    
+
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
-    
+
     const SAMRAI::hier::Index<NDIM>& ilower = patch.getBox().lower();
     const SAMRAI::hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_Q_vars.size() == d_flux_integral_vars.size());
     assert(d_Q_vars.size() == d_q_integral_vars.size());
 #endif
-    
+
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_integral_data =
         (!d_u_integral_var.isNull()
          ? patch.getPatchData(d_u_integral_var, getDataContext())
          : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL));
-    
+
     const SAMRAI::hier::IntVector<NDIM>& u_integral_data_ghost_cells =
         (!d_u_integral_var.isNull()
          ? u_integral_data->getGhostCellWidth()
          : 0);
-    
+
     for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
@@ -211,7 +211,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
             ((!d_u_is_div_free) || (!d_Q_conservation_form[l])
              ? patch.getPatchData(d_q_integral_vars[l], getDataContext())
              : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL));
-        
+
         const SAMRAI::hier::IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
         const SAMRAI::hier::IntVector<NDIM>& flux_integral_data_ghost_cells =
             (d_Q_conservation_form[l]
@@ -221,7 +221,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
             ((!d_u_is_div_free) || (!d_Q_conservation_form[l])
              ? q_integral_data->getGhostCellWidth()
              : 0);
-        
+
         if (d_Q_conservation_form[l])
         {
             for (int depth = 0; depth < Q_data->getDepth(); ++depth)
@@ -229,7 +229,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                 if (d_u_is_div_free)
                 {
 #if (NDIM == 1)
-                    ADVDIFF_CONSDIFF_F77(
+                    ADV_DIFF_CONSDIFF_F77(
                         dx,dt,
                         ilower(0),iupper(0),
                         flux_integral_data_ghost_cells(0),
@@ -238,7 +238,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                         Q_data->getPointer(depth));
 #endif
 #if (NDIM == 2)
-                    ADVDIFF_CONSDIFF_F77(
+                    ADV_DIFF_CONSDIFF_F77(
                         dx,dt,
                         ilower(0),iupper(0),ilower(1),iupper(1),
                         flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
@@ -248,7 +248,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                         Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                    ADVDIFF_CONSDIFF_F77(
+                    ADV_DIFF_CONSDIFF_F77(
                         dx,dt,
                         ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
                         flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
@@ -262,7 +262,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                 else
                 {
 #if (NDIM == 1)
-                    ADVDIFF_CONSDIFFWITHDIVSOURCE_F77(
+                    ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77(
                         dx,dt,
                         ilower(0),iupper(0),
                         flux_integral_data_ghost_cells(0),
@@ -275,7 +275,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                         Q_data->getPointer(depth));
 #endif
 #if (NDIM == 2)
-                    ADVDIFF_CONSDIFFWITHDIVSOURCE_F77(
+                    ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77(
                         dx,dt,
                         ilower(0),iupper(0),ilower(1),iupper(1),
                         flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
@@ -291,7 +291,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                         Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                    ADVDIFF_CONSDIFFWITHDIVSOURCE_F77(
+                    ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77(
                         dx,dt,
                         ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
                         flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
@@ -318,10 +318,10 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                 new SAMRAI::math::PatchCellDataOpsReal<NDIM,double>();
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > N_data =
                 new SAMRAI::pdat::CellData<NDIM,double>(patch_box,Q_data->getDepth(),0);
-            
+
             d_godunov_advector->computeAdvectiveDerivative(
                 *N_data, *u_integral_data, *q_integral_data, patch);
-            
+
             patch_cc_data_ops->scale(Q_data,       // dst
                                      -1.0/(dt*dt), // alpha
                                      N_data,       // src1
@@ -343,7 +343,7 @@ AdvDiffHypPatchOps::preprocessAdvanceLevelState(
     bool regrid_advance)
 {
     t_preprocess_advance_level_state->start();
-    
+
     (void) dt;
     (void) first_step;
     (void) last_step;
@@ -377,7 +377,7 @@ AdvDiffHypPatchOps::postprocessAdvanceLevelState(
     (void) first_step;
     (void) last_step;
     (void) regrid_advance;
-    
+
     // Update the advection velocity.
     if (!d_u_set.isNull() && d_u_set->isTimeDependent() &&
         d_compute_final_velocity)
@@ -387,7 +387,7 @@ AdvDiffHypPatchOps::postprocessAdvanceLevelState(
             d_u_var, d_integrator->getNewContext());
         d_u_set->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
     }
-    
+
     t_postprocess_advance_level_state->stop();
     return;
 }// postprocessAdvanceLevelState

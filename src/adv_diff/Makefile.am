@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = fortran .
+SUBDIRS = fortran . tests
 
 ## Dimension-independent library
 pkg_include_HEADERS = # intentionally blank
@@ -11,8 +11,8 @@ libIBAMR_adv_diff_la_LIBADD = fortran/libIBAMR_adv_diff_fortran.la
 libIBAMR_adv_diff_la_SOURCES =
 
 ## Dimension-dependent libraries
-SOURCES = AdvDiffHypPatchOps.C
-pkg_include_HEADERS += AdvDiffHypPatchOps.h
+SOURCES = AdvDiffHierarchyIntegrator.C AdvDiffHypPatchOps.C
+pkg_include_HEADERS += AdvDiffHierarchyIntegrator.h AdvDiffHypPatchOps.h
 
 noinst_LTLIBRARIES += libIBAMR_adv_diff2d.la
 libIBAMR_adv_diff2d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
