@@ -2,7 +2,7 @@
 #define included_ConvergenceMonitor
 
 // Filename: ConvergenceMonitor.h
-// Last modified: <28.Aug.2006 21:38:56 boyce@bigboy.nyconnect.com>
+// Last modified: <03.Sep.2006 19:24:51 boyce@bigboy.nyconnect.com>
 // Created on 19 Jun 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -39,7 +39,7 @@ public:
      */
     ConvergenceMonitor(
         const std::string& object_name);
-    
+
     /*!
      * \brief Empty destructor.
      */
@@ -58,7 +58,7 @@ public:
      */
     void monitorConvergence(
         const double data_time);
-    
+
     /*!
      * \todo Write docs.
      */
@@ -78,7 +78,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level);
-    
+
 private:
     /*!
      * \brief Default constructor.
@@ -87,7 +87,7 @@ private:
      * used.
      */
     ConvergenceMonitor();
-    
+
     /*!
      * \brief Copy constructor.
      *
@@ -98,14 +98,14 @@ private:
      */
     ConvergenceMonitor(
         const ConvergenceMonitor& from);
-    
+
     /*!
      * \brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
-     * 
+     *
      * \param that The value to assign to this object.
-     * 
+     *
      * \return A reference to this object.
      */
     ConvergenceMonitor& operator=(
@@ -115,7 +115,6 @@ private:
      * The object name is used for error reporting purposes.
      */
     std::string d_object_name;
-    bool d_registered_for_restart;
 
     /*
      * SAMRAI::tbox::Pointer to the patch hierarchy this monitor object uses.

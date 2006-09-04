@@ -1,10 +1,10 @@
 // Filename: GodunovHypPatchOps.C
-// Last modified: <25.Aug.2006 00:59:39 boyce@bigboy.nyconnect.com>
+// Last modified: <03.Sep.2006 19:49:52 boyce@bigboy.nyconnect.com>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "GodunovHypPatchOps.h" 
+#include "GodunovHypPatchOps.h"
 
 // IBAMR INCLUDES
 #ifndef included_IBAMR_config
@@ -117,31 +117,30 @@ extern "C"
         const double* , const double* , const double* ,
         const double* , const double* , const double* ,
 #endif
-        double*
-                                          );
+        double*);
 
     void ADVECT_DETECTGRAD_F77(
 #if (NDIM == 1)
-        const int& , const int& , 
-        const int& , const int& , const int&, 
+        const int& , const int& ,
+        const int& , const int& , const int&,
 #endif
 #if (NDIM == 2)
-        const int& , const int& , 
-        const int& , const int& , 
-        const int& , const int& , const int&, 
-        const int& , const int& , const int&, 
+        const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& , const int&,
+        const int& , const int& , const int&,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , 
-        const int& , const int& , 
-        const int& , const int& , 
-        const int& , const int& , const int&, 
-        const int& , const int& , const int&, 
-        const int& , const int& , const int&, 
+        const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& , const int&,
+        const int& , const int& , const int&,
+        const int& , const int& , const int&,
 #endif
-        const double* , 
-        const double& , 
-        const int&, const int&,
+        const double* ,
+        const double& ,
+        const int&,
         const double*,
         int* , int*);
 }
@@ -166,7 +165,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_tag_richardson_extrapolation
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_tag_gradient_detector_cells;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_set_physical_boundary_conditions;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
-    
+
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 3;
 static const int FLUXG = 1;
@@ -189,6 +188,42 @@ GodunovHypPatchOps::GodunovHypPatchOps(
     SAMRAI::tbox::Pointer<GodunovAdvector> godunov_advector,
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
     bool register_for_restart)
+    : d_integrator(NULL),
+      d_godunov_advector(godunov_advector),
+      d_Q_vars(),
+      d_F_vars(),
+      d_grad_vars(),
+      d_Q_conservation_form(),
+      d_flux_integral_vars(),
+      d_q_integral_vars(),
+      d_u_integral_var(),
+      d_Q_inits(),
+      d_Q_bcs(),
+      d_F_sets(),
+      d_u_var(NULL),
+      d_u_set(NULL),
+      d_u_is_div_free(false),
+      d_u_is_registered(false),
+      d_compute_init_velocity(true),
+      d_compute_half_velocity(true),
+      d_compute_final_velocity(true),
+      d_object_name(object_name),
+      d_registered_for_restart(register_for_restart),
+      d_grid_geometry(grid_geom),
+      d_visit_writer(NULL),
+      d_ghosts(CELLG),
+      d_flux_ghosts(FLUXG),
+      d_refinement_criteria(),
+      d_dev_tol(),
+      d_dev(),
+      d_dev_time_max(),
+      d_dev_time_min(),
+      d_grad_tol(),
+      d_grad_time_max(),
+      d_grad_time_min(),
+      d_rich_tol(),
+      d_rich_time_max(),
+      d_rich_time_min()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
@@ -196,38 +231,18 @@ GodunovHypPatchOps::GodunovHypPatchOps(
     assert(!godunov_advector.isNull());
     assert(!grid_geom.isNull());
 #endif
-    d_object_name = object_name;
-    d_registered_for_restart = register_for_restart;
 
-    d_godunov_advector = godunov_advector;
-    d_grid_geometry = grid_geom;
-    
     if (d_registered_for_restart)
     {
         SAMRAI::tbox::RestartManager::getManager()->
             registerRestartItem(d_object_name, this);
     }
-    
-    // Default parameters for the numerical method.
-    d_ghosts      = SAMRAI::hier::IntVector<NDIM>(CELLG);
-    d_flux_ghosts = SAMRAI::hier::IntVector<NDIM>(FLUXG);
 
-    d_compute_init_velocity  = true;
-    d_compute_half_velocity  = true;
-    d_compute_final_velocity = true;
-    
     // Initialize object with data read from given input/restart
     // databases.
     bool is_from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
-    if (is_from_restart)
-    {
-        getFromRestart();
-    }
-    getFromInput(input_db, is_from_restart);
-
-    // Indicate that an advection velocity has not yet been registered
-    // with the patch strategy.
-    d_u_is_registered = false;
+    if (is_from_restart) getFromRestart();
+    if (!input_db.isNull()) getFromInput(input_db, is_from_restart);
 
     // Setup Timers.
     static bool timers_need_init = true;
@@ -297,7 +312,7 @@ GodunovHypPatchOps::registerAdvectedQuantity(
         Q_var->getPatchDataFactory();
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > flux_integral_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > q_integral_var;
-    
+
     if (conservation_form)
     {
         flux_integral_var = new SAMRAI::pdat::FaceVariable<NDIM,double>(
@@ -311,18 +326,18 @@ GodunovHypPatchOps::registerAdvectedQuantity(
             d_object_name+"::"+Q_var->getName()+" time integral",
             Q_factory->getDefaultDepth());
     }
-    
+
     d_Q_vars .push_back(Q_var);
     d_Q_inits.push_back(Q_init);
     d_Q_bcs  .push_back(Q_bc);
-    
+
     d_Q_conservation_form.push_back(conservation_form);
 
     d_grad_vars.push_back(grad_var);
-    
+
     d_F_vars.push_back(NULL);
     d_F_sets.push_back(NULL);
-    
+
     d_flux_integral_vars.push_back(flux_integral_var);
     d_q_integral_vars.push_back(q_integral_var);
 
@@ -331,7 +346,7 @@ GodunovHypPatchOps::registerAdvectedQuantity(
         d_u_integral_var = new SAMRAI::pdat::FaceVariable<NDIM,double>(
             d_object_name+"::"+d_u_var->getName()+" time integral");
     }
-    
+
     return;
 }// registerAdvectedQuantity
 
@@ -354,21 +369,21 @@ GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
         Q_var->getPatchDataFactory();
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > flux_integral_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > q_integral_var;
-    
+
     if (conservation_form)
     {
         flux_integral_var = new SAMRAI::pdat::FaceVariable<NDIM,double>(
             d_object_name+"::"+Q_var->getName()+" advective flux time integral",
             Q_factory->getDefaultDepth());
     }
-    
+
     if (!d_u_is_div_free || !conservation_form)
     {
         q_integral_var = new SAMRAI::pdat::FaceVariable<NDIM,double>(
             d_object_name+"::"+Q_var->getName()+" time integral",
             Q_factory->getDefaultDepth());
     }
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > F_factory =
         F_var->getPatchDataFactory();
@@ -377,7 +392,7 @@ GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     d_Q_vars .push_back(Q_var);
     d_Q_inits.push_back(Q_init);
     d_Q_bcs  .push_back(Q_bc);
-    
+
     d_Q_conservation_form.push_back(conservation_form);
 
     d_grad_vars.push_back(grad_var);
@@ -393,7 +408,7 @@ GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
         d_u_integral_var = new SAMRAI::pdat::FaceVariable<NDIM,double>(
             d_object_name+"::"+d_u_var->getName()+" time integral");
     }
-    
+
     return;
 }// registerAdvectedQuantityWithSourceTerm
 
@@ -416,7 +431,7 @@ GodunovHypPatchOps::registerAdvectionVelocity(
         d_u_integral_var = new SAMRAI::pdat::FaceVariable<NDIM,double>(
             d_object_name+"::"+u_var->getName()+" time integral");
     }
-    
+
     d_u_is_registered = true;
     return;
 }// registerAdvectionVelocity
@@ -456,9 +471,9 @@ GodunovHypPatchOps::registerModelVariables(
     SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* integrator)
 {
     t_register_model_vars->start();
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(integrator != (SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>*)NULL);
+    assert(integrator != static_cast<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>*>(NULL));
 #endif
     d_integrator = integrator;
 
@@ -467,26 +482,26 @@ GodunovHypPatchOps::registerModelVariables(
          it != d_Q_vars.end(); ++it)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = *it;
-        
+
         d_integrator->registerVariable(
             Q_var, d_ghosts,
             SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
             d_grid_geometry,
             "CONSERVATIVE_COARSEN",
             "CONSERVATIVE_LINEAR_REFINE");
-        
+
 #if (NDIM > 1)
         if (!(d_visit_writer.isNull()))
         {
             const int qidx = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase()->
                 mapVariableAndContextToIndex(Q_var,
                                              d_integrator->getPlotContext());
-            
+
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
                 Q_var->getPatchDataFactory();
 
             const int depth = Q_factory->getDefaultDepth();
-            
+
             if (depth == 1)
             {
                 d_visit_writer->registerPlotQuantity(
@@ -499,7 +514,7 @@ GodunovHypPatchOps::registerModelVariables(
                     d_visit_writer->registerPlotQuantity(
                         Q_var->getName(), "VECTOR", qidx);
                 }
-                
+
                 for (int d = 0; d < depth; ++d)
                 {
                     std::ostringstream stream;
@@ -511,12 +526,12 @@ GodunovHypPatchOps::registerModelVariables(
         }
 #endif
     }
-    
+
     for (CellVariableVector::iterator it = d_F_vars.begin();
          it != d_F_vars.end(); ++it)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = *it;
-        
+
         // Advected quantities do not necessarily have source terms!
         if (!F_var.isNull())
         {
@@ -546,7 +561,7 @@ GodunovHypPatchOps::registerModelVariables(
                 "NO_REFINE");
         }
     }
-    
+
     for (FaceVariableVector::iterator it = d_q_integral_vars.begin();
          it != d_q_integral_vars.end(); ++it)
     {
@@ -570,7 +585,7 @@ GodunovHypPatchOps::registerModelVariables(
         d_grid_geometry,
         "CONSERVATIVE_COARSEN",
         "CONSERVATIVE_LINEAR_REFINE");
-    
+
     // Note that this quantity is only required when non-conservative
     // differencing is employed, or when the velocity field is not
     // discretely divergence free.
@@ -583,7 +598,7 @@ GodunovHypPatchOps::registerModelVariables(
             "CONSERVATIVE_COARSEN",
             "NO_REFINE");
     }
-    
+
     t_register_model_vars->stop();
     return;
 }// registerModelVariables
@@ -599,9 +614,9 @@ GodunovHypPatchOps::initializeDataOnPatch(
     if (initial_time)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-        
+
         typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-        
+
         // We try to use the SetDataStrategy associated with each
         // advected quantity.  If there is no strategy associated with
         // a given quantity, initialize its value to zero.
@@ -611,7 +626,7 @@ GodunovHypPatchOps::initializeDataOnPatch(
             const int Q_idx = var_db->mapVariableAndContextToIndex(
                 Q_var, getDataContext());
             SAMRAI::tbox::Pointer<SetDataStrategy> Q_init = d_Q_inits[l];
-            
+
             if (!Q_init.isNull())
             {
                 Q_init->setDataOnPatch(Q_idx, Q_var, patch,
@@ -627,20 +642,20 @@ GodunovHypPatchOps::initializeDataOnPatch(
                 Q_data->fillAll(0.0);
             }
         }
-        
+
         // We try to use the SetDataStrategy associated with the
         // source term.  If there is no strategy associated with the
         // source term, initialize its value to zero.
         for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
-            
+
             if (!F_var.isNull())
             {
                 const int F_idx = var_db->mapVariableAndContextToIndex(
                     F_var, getDataContext());
                 SAMRAI::tbox::Pointer<SetDataStrategy>  F_set = d_F_sets[l];
-                
+
                 if (!F_set.isNull())
                 {
                     F_set->setDataOnPatch(F_idx, F_var, patch,
@@ -657,7 +672,7 @@ GodunovHypPatchOps::initializeDataOnPatch(
                 }
             }
         }
-        
+
         // We try to use the SetDataStrategy associated with the
         // advection velocirt.  If there is no strategy associated
         // with the advection velocity, initialize its value to zero.
@@ -675,11 +690,11 @@ GodunovHypPatchOps::initializeDataOnPatch(
                 patch.getPatchData(u_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
             assert(!u_data.isNull());
-#endif 
+#endif
             u_data->fillAll(0.0);
         }
     }
-    
+
     t_initialize_data_on_patch->stop();
     return;
 }// initializeDataOnPatch
@@ -691,20 +706,20 @@ GodunovHypPatchOps::computeStableDtOnPatch(
     const double dt_time)
 {
     t_compute_stable_dt_on_patch->start();
-    
+
     (void) initial_time;
     (void) dt_time;
-    
+
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data =
         patch.getPatchData(d_u_var, getDataContext());
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!u_data.isNull());
-#endif 
+#endif
 
     const double stable_dt = d_godunov_advector->
         computeStableDtOnPatch(*u_data,patch);
-    
+
     t_compute_stable_dt_on_patch->stop();
     return stable_dt;
 }// computeStableDtOnPatch
@@ -718,7 +733,7 @@ GodunovHypPatchOps::computeFluxesOnPatch(
     t_compute_fluxes_on_patch->start();
 
     (void) time;
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_Q_vars.size() == d_F_vars.size());
     assert(d_Q_vars.size() == d_flux_integral_vars.size());
@@ -731,7 +746,7 @@ GodunovHypPatchOps::computeFluxesOnPatch(
     SAMRAI::math::PatchFaceDataOpsReal<NDIM,double> patch_fc_data_ops;
 
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-    
+
     // Predict time- and face-centered values.
     for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
     {
@@ -768,7 +783,7 @@ GodunovHypPatchOps::computeFluxesOnPatch(
                 *q_integral_data, *u_data, *grad_data, patch);
         }
     }
-    
+
     // Update the advection velocity.
     if (!d_u_set.isNull() && d_u_set->isTimeDependent() &&
         d_compute_half_velocity)
@@ -778,7 +793,7 @@ GodunovHypPatchOps::computeFluxesOnPatch(
             d_u_var, getDataContext());
         d_u_set->setDataOnPatch(u_idx, d_u_var, patch, time+0.5*dt);
     }
-    
+
     // Compute fluxes for those quantities that are to be
     // conservatively differenced.
     for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
@@ -793,7 +808,7 @@ GodunovHypPatchOps::computeFluxesOnPatch(
                 *flux_integral_data, *u_data, *q_integral_data, patch, dt);
         }
     }
-    
+
     // When u is not discretely divergence free or when Q is not
     // conservatively differenced, we maintain the time integral of
     // the predicted face values.  These values are used in computing
@@ -812,7 +827,7 @@ GodunovHypPatchOps::computeFluxesOnPatch(
                                     patch_box);
         }
     }
-    
+
     // When u is not discretely divergence free or when any quantity
     // is not conservatively differenced, we maintain the time
     // integral of the advection velocity.  This value is used in
@@ -828,7 +843,7 @@ GodunovHypPatchOps::computeFluxesOnPatch(
                                 u_data,          // src
                                 patch_box);
     }
-    
+
     t_compute_fluxes_on_patch->stop();
     return;
 }// computeFluxesOnPatch
@@ -841,22 +856,22 @@ GodunovHypPatchOps::conservativeDifferenceOnPatch(
     bool at_synchronization)
 {
     t_conservative_difference_on_patch->start();
-    
+
     (void) time;
     (void) at_synchronization;
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_Q_vars.size() == d_flux_integral_vars.size());
     assert(d_Q_vars.size() == d_q_integral_vars.size());
 #endif
-    
+
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
-    
+
     const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
     const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
     const SAMRAI::hier::Index<NDIM>& iupper = patch_box.upper();
-    
+
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_integral_data =
         (!d_u_integral_var.isNull()
          ? patch.getPatchData(d_u_integral_var, getDataContext())
@@ -866,9 +881,9 @@ GodunovHypPatchOps::conservativeDifferenceOnPatch(
          ? u_integral_data->getGhostCellWidth()
          : 0);
     SAMRAI::math::PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
-    
+
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-    
+
     for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
@@ -877,7 +892,7 @@ GodunovHypPatchOps::conservativeDifferenceOnPatch(
             getFluxIntegralData(l, patch, getDataContext());
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > q_integral_data =
             getQIntegralData(l, patch, getDataContext());
-        
+
         const SAMRAI::hier::IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
         const SAMRAI::hier::IntVector<NDIM>& flux_integral_data_ghost_cells =
             (!flux_integral_data.isNull()
@@ -887,7 +902,7 @@ GodunovHypPatchOps::conservativeDifferenceOnPatch(
             (!q_integral_data.isNull()
              ? q_integral_data->getGhostCellWidth()
              : 0);
-        
+
         if (d_Q_conservation_form[l])
         {
             for (int depth = 0; depth < Q_data->getDepth(); ++depth)
@@ -1011,7 +1026,7 @@ GodunovHypPatchOps::preprocessAdvanceLevelState(
     (void) first_step;
     (void) last_step;
     (void) regrid_advance;
-    
+
     // Update the advection velocity.
     if (!d_u_set.isNull() && d_u_set->isTimeDependent() &&
         d_compute_init_velocity)
@@ -1040,56 +1055,56 @@ GodunovHypPatchOps::postprocessAdvanceLevelState(
     (void) first_step;
     (void) last_step;
     (void) regrid_advance;
-    
+
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-    
+
     // Update the values of any time-dependent source terms and add
     // the values of all source terms to the advected quantities.
     SAMRAI::tbox::Pointer<SAMRAI::math::PatchCellDataOpsReal<NDIM,double> > patch_cc_data_ops =
         new SAMRAI::math::PatchCellDataOpsReal<NDIM,double>();
-    
+
     for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> new_context     = d_integrator->getNewContext();
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> scratch_context = d_integrator->getScratchContext();
-        
+
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var   = d_Q_vars[l];
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
 
         SAMRAI::tbox::Pointer<SetDataStrategy> F_set = d_F_sets[l];
-        
+
         if (!F_var.isNull() && !F_set.isNull() && F_set->isTimeDependent())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                
+
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
                     patch->getPatchData(Q_var, new_context);
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_data =
                     patch->getPatchData(F_var, scratch_context);
-                
+
                 patch_cc_data_ops->axpy(Q_data, // dst
                                         0.5*dt, // alpha
                                         F_data, // src1
                                         Q_data, // src2
                                         patch_box);
             }
-            
+
             F_set->setDataOnPatchLevel(F_var, new_context,
                                        level, current_time+dt);
-            
+
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                
+
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
                     patch->getPatchData(Q_var, new_context);
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_data =
                     patch->getPatchData(F_var, scratch_context);
-                
+
                 patch_cc_data_ops->axpy(Q_data, // dst
                                         0.5*dt, // alpha
                                         F_data, // src1
@@ -1127,16 +1142,16 @@ GodunovHypPatchOps::postprocessAdvanceLevelState(
             d_u_var, d_integrator->getNewContext());
         d_u_set->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
     }
-    
+
     t_postprocess_advance_level_state->stop();
     return;
 }// postprocessAdvanceLevelState
 
 void
 GodunovHypPatchOps::tagRichardsonExtrapolationCells(
-    SAMRAI::hier::Patch<NDIM>& patch, 
+    SAMRAI::hier::Patch<NDIM>& patch,
     const int error_level_number,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> coarsened_fine, 
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> coarsened_fine,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> advanced_coarse,
     const double regrid_time,
     const double deltat,
@@ -1148,15 +1163,15 @@ GodunovHypPatchOps::tagRichardsonExtrapolationCells(
     t_tag_richardson_extrapolation_cells->start();
 
     (void) initial_error;
-    
+
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
-    
+
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tags = patch.getPatchData(tag_index);
-    
-    // Possible tagging criteria includes 
+
+    // Possible tagging criteria includes
     //    QVAL_RICHARDSON
     // The criteria is specified over a time interval.
     //
@@ -1171,24 +1186,24 @@ GodunovHypPatchOps::tagRichardsonExtrapolationCells(
         int size;
         double tol;
         bool time_allowed;
-        
+
         if (ref == "QVAL_RICHARDSON")
         {
             size = d_rich_tol.getSize();
-            tol = (error_level_number < size 
-                   ? d_rich_tol[error_level_number] 
+            tol = (error_level_number < size
+                   ? d_rich_tol[error_level_number]
                    : d_rich_tol[size-1]);
             size = d_rich_time_min.getSize();
-            double time_min = (error_level_number < size 
-                               ? d_rich_time_min[error_level_number] 
+            double time_min = (error_level_number < size
+                               ? d_rich_time_min[error_level_number]
                                : d_rich_time_min[size-1]);
             size = d_rich_time_max.getSize();
-            double time_max = (error_level_number < size 
-                               ? d_rich_time_max[error_level_number] 
+            double time_max = (error_level_number < size
+                               ? d_rich_time_max[error_level_number]
                                : d_rich_time_max[size-1]);
             time_allowed =
                 (time_min <= regrid_time) && (time_max > regrid_time);
-            
+
             if (time_allowed)
             {
                 // We tag wherever the global error > specified
@@ -1206,10 +1221,10 @@ GodunovHypPatchOps::tagRichardsonExtrapolationCells(
                 //       delta t = timestep on current level
                 const double* const xdomainlo = d_grid_geometry->getXLower();
                 const double* const xdomainhi = d_grid_geometry->getXUpper();
-                
+
                 double max_dx = 0.0;
                 double max_length = 0.0;
-                
+
                 for (int idir = 0; idir < NDIM; ++idir)
                 {
                     max_dx = SAMRAI::tbox::Utilities::dmax(max_dx, dx[idir]);
@@ -1230,12 +1245,12 @@ GodunovHypPatchOps::tagRichardsonExtrapolationCells(
                 int order = 2;
                 double r = error_coarsen_ratio;
                 double rnminus1 = pow(r,order) - 1;
-                
+
                 double diff = 0.0;
                 double error = 0.0;
 
                 typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-                
+
                 for (CellVariableVector::size_type l = 0;
                      l < d_Q_vars.size(); ++l)
                 {
@@ -1243,12 +1258,12 @@ GodunovHypPatchOps::tagRichardsonExtrapolationCells(
                         patch.getPatchData(d_Q_vars[l], coarsened_fine);
                     advanced_coarse_var =
                         patch.getPatchData(d_Q_vars[l], advanced_coarse);
-                    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
                     assert(!coarsened_fine_var.isNull());
                     assert(!advanced_coarse_var.isNull());
 #endif
-                    
+
                     for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
                     {
                         // Compute error norm.
@@ -1257,15 +1272,15 @@ GodunovHypPatchOps::tagRichardsonExtrapolationCells(
                         for (int depth = 0;
                              depth < coarsened_fine_var->getDepth();
                              ++depth)
-                        {                                  
-                            diff += pow((*advanced_coarse_var)(ic(),0) - 
+                        {
+                            diff += pow((*advanced_coarse_var)(ic(),0) -
                                         (*coarsened_fine_var)(ic(),0),
                                         2.0);
                         }
 
                         diff = sqrt(diff);
                         error = SAMRAI::tbox::Utilities::dabs(diff)*rnminus1*steps;
-                        
+
                         // Tag cell if error exceeds the prescribed
                         // threshold.  Since we are operating on the
                         // actual tag values (not temporary ones)
@@ -1275,7 +1290,7 @@ GodunovHypPatchOps::tagRichardsonExtrapolationCells(
                         //
                         //     RICHARDSON_ALREADY_TAGGED: tagged
                         //     before coming into this method
-                        //     
+                        //
                         //     RICHARDSON_NEWLY_TAGGED: newly tagged
                         //     in this method
                         if (error > tol)
@@ -1294,7 +1309,7 @@ GodunovHypPatchOps::tagRichardsonExtrapolationCells(
             } // time_allowed
         } // if QVAL_RICHARDSON
     } // loop over refinement criteria
-    
+
     // If we are NOT performing gradient detector (i.e. only doing
     // Richardson extrapolation) set tags marked in this method to
     // TRUE_VAL and all others false.  Otherwise, leave tags set to
@@ -1335,21 +1350,21 @@ GodunovHypPatchOps::tagGradientDetectorCells(
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox(); 
+    const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
     const SAMRAI::hier::Index<NDIM>& ilower = patch.getBox().lower();
     const SAMRAI::hier::Index<NDIM>& iupper = patch.getBox().upper();
-    
+
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tags = patch.getPatchData(tag_indx);
 
     const int not_refine_tag_val = FALSE_VAL;
     const int refine_tag_val = TRUE_VAL;
-    
+
     // Create a set of temporary tags and set to untagged value.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > temp_tags = new SAMRAI::pdat::CellData<NDIM,int>(
         patch_box, 1, d_ghosts);
     temp_tags->fillAll(not_refine_tag_val);
-    
-    // Possible tagging criteria includes 
+
+    // Possible tagging criteria includes
     //    QVAL_DEVIATION, QVAL_GRADIENT
     // The criteria is specified over a time interval.
     //
@@ -1360,32 +1375,32 @@ GodunovHypPatchOps::tagGradientDetectorCells(
     {
         std::string ref = d_refinement_criteria[ncrit];
         const SAMRAI::hier::IntVector<NDIM>& tagghost = tags->getGhostCellWidth();
-        
+
         int size = 0;
         double tol = 0.0;
         bool time_allowed = false;
-        
+
         if (ref == "QVAL_DEVIATION")
         {
             size = d_dev_tol.getSize();
-            tol = (error_level_number < size 
-                   ? d_dev_tol[error_level_number] 
+            tol = (error_level_number < size
+                   ? d_dev_tol[error_level_number]
                    : d_dev_tol[size-1]);
             size = d_dev.getSize();
-            double dev = (error_level_number < size 
-                          ? d_dev[error_level_number] 
-                          : d_dev[size-1]);        
+            double dev = (error_level_number < size
+                          ? d_dev[error_level_number]
+                          : d_dev[size-1]);
             size = d_dev_time_min.getSize();
-            double time_min = (error_level_number < size 
-                               ? d_dev_time_min[error_level_number] 
+            double time_min = (error_level_number < size
+                               ? d_dev_time_min[error_level_number]
                                : d_dev_time_min[size-1]);
             size = d_dev_time_max.getSize();
-            double time_max = (error_level_number < size 
-                               ? d_dev_time_max[error_level_number] 
+            double time_max = (error_level_number < size
+                               ? d_dev_time_max[error_level_number]
                                : d_dev_time_max[size-1]);
             time_allowed =
                 (time_min <= regrid_time) && (time_max > regrid_time);
-            
+
             if (time_allowed)
             {
                 // Check for tags that have already been set in a
@@ -1393,12 +1408,12 @@ GodunovHypPatchOps::tagGradientDetectorCells(
                 // value RICHARDSON_NEWLY_TAGGED since these were set
                 // most recently by Richardson extrapolation.
                 typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > >
-                    CellVariableVector;                
-                
+                    CellVariableVector;
+
                 for (CellVariableVector::size_type l = 0;
                      l < d_Q_vars.size(); ++l)
                 {
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > var = 
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > var =
                         patch.getPatchData(d_Q_vars[l], getDataContext());
 #ifdef DEBUG_CHECK_ASSERTIONS
                     assert(!var.isNull());
@@ -1419,45 +1434,45 @@ GodunovHypPatchOps::tagGradientDetectorCells(
                             if (SAMRAI::tbox::Utilities::
                                 fabs((*var)(ic(),depth)-dev) > locden)
                             {
-                                (*temp_tags)(ic(),0) = refine_tag_val; 
+                                (*temp_tags)(ic(),0) = refine_tag_val;
                             }
                         }
                     }
                 }
             }
         }
-        
+
         if (ref == "QVAL_GRADIENT")
         {
             size = d_grad_tol.getSize();
-            tol = (error_level_number < size 
-                   ? d_grad_tol[error_level_number] 
+            tol = (error_level_number < size
+                   ? d_grad_tol[error_level_number]
                    : d_grad_tol[size-1]);
             size = d_grad_time_min.getSize();
-            double time_min = (error_level_number < size 
-                               ? d_grad_time_min[error_level_number] 
+            double time_min = (error_level_number < size
+                               ? d_grad_time_min[error_level_number]
                                : d_grad_time_min[size-1]);
             size = d_grad_time_max.getSize();
             double time_max = (error_level_number < size
-                               ? d_grad_time_max[error_level_number] 
+                               ? d_grad_time_max[error_level_number]
                                : d_grad_time_max[size-1]);
             time_allowed =
                 (time_min <= regrid_time) && (time_max > regrid_time);
-            
+
             if (time_allowed)
             {
                 typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-                
+
                 for (CellVariableVector::size_type l = 0;
                      l < d_Q_vars.size(); ++l)
                 {
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > var = 
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > var =
                         patch.getPatchData(d_Q_vars[l], getDataContext());
 #ifdef DEBUG_CHECK_ASSERTIONS
                     assert(!var.isNull());
-#endif   
+#endif
                     const SAMRAI::hier::IntVector<NDIM>& vghost = var->getGhostCellWidth();
-                    
+
                     for (int depth = 0; depth < var->getDepth(); ++depth)
                     {
                         ADVECT_DETECTGRAD_F77(
@@ -1478,15 +1493,15 @@ GodunovHypPatchOps::tagGradientDetectorCells(
 #endif
                             dx,
                             tol,
-                            refine_tag_val,not_refine_tag_val,
+                            refine_tag_val,
                             var->getPointer(depth),
                             tags->getPointer(),temp_tags->getPointer());
                     }
                 }
             }
-        }  
+        }
     } // loop over criteria
-    
+
     // Adjust temp_tags from those tags set in Richardson
     // extrapolation.  Here, we just reset any tags that were set in
     // Richardson extrapolation to be the designated "refine_tag_val".
@@ -1501,7 +1516,7 @@ GodunovHypPatchOps::tagGradientDetectorCells(
             }
         }
     }
-    
+
     // Update tags.
     for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
     {
@@ -1523,7 +1538,7 @@ GodunovHypPatchOps::tagGradientDetectorCells(
 
 void
 GodunovHypPatchOps::setPhysicalBoundaryConditions(
-    SAMRAI::hier::Patch<NDIM>& patch, 
+    SAMRAI::hier::Patch<NDIM>& patch,
     const double fill_time,
     const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill)
 {
@@ -1537,7 +1552,7 @@ GodunovHypPatchOps::setPhysicalBoundaryConditions(
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
         SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc  = d_Q_bcs [l];
-        
+
         if (!Q_bc.isNull())
         {
             Q_bc->setPhysicalBoundaryConditionsOnPatch(
@@ -1570,16 +1585,16 @@ GodunovHypPatchOps::putToDatabase(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
     t_put_to_database->start();
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!db.isNull());
 #endif
-    
+
     db->putInteger("GODUNOV_HYP_PATCH_OPS_VERSION",
                    GODUNOV_HYP_PATCH_OPS_VERSION);
-    
-    db->putIntegerArray("d_ghosts", (int*)d_ghosts, NDIM);
-    db->putIntegerArray("d_flux_ghosts", (int*)d_flux_ghosts, NDIM);
+
+    db->putIntegerArray("d_ghosts", static_cast<int*>(d_ghosts), NDIM);
+    db->putIntegerArray("d_flux_ghosts", static_cast<int*>(d_flux_ghosts), NDIM);
 
     if (d_refinement_criteria.getSize() > 0)
     {
@@ -1622,19 +1637,18 @@ GodunovHypPatchOps::putToDatabase(
 
 void
 GodunovHypPatchOps::printClassData(
-    std::ostream &os) const 
+    std::ostream &os) const
 {
     os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
     os << "\nGodunovHypPatchOps::printClassData...\n";
-    os << "GodunovHypPatchOps: this = " << (GodunovHypPatchOps*)this << "\n";
+    os << "GodunovHypPatchOps: this = " << const_cast<GodunovHypPatchOps*>(this) << "\n";
     os << "d_object_name = " << d_object_name << "\n";
-    os << "d_grid_geometry = "
-       << (SAMRAI::geom::CartesianGridGeometry<NDIM>*)d_grid_geometry << "\n";
-    
+    os << "d_grid_geometry = " << static_cast<SAMRAI::geom::CartesianGridGeometry<NDIM>*>(d_grid_geometry) << "\n";
+
     os << "Parameters for numerical method ...\n";
     os << "   d_ghosts = " << d_ghosts << "\n";
     os << "   d_flux_ghosts = " << d_flux_ghosts << "\n";
-    
+
     os << "   Refinement criteria parameters \n";
     for (int j = 0; j < d_refinement_criteria.getSize(); ++j)
     {
@@ -1758,16 +1772,16 @@ GodunovHypPatchOps::getFromInput(
         "compute_half_velocity" , d_compute_half_velocity);
     d_compute_final_velocity = db->getBoolWithDefault(
         "compute_final_velocity", d_compute_final_velocity);
-    
+
     if (db->keyExists("Refinement_data"))
     {
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> refine_db = db->getDatabase("Refinement_data");
         SAMRAI::tbox::Array<std::string> refinement_keys = refine_db->getAllKeys();
         int num_keys = refinement_keys.getSize();
-        
+
         if (refine_db->keyExists("refine_criteria"))
         {
-            d_refinement_criteria = 
+            d_refinement_criteria =
                 refine_db->getStringArray("refine_criteria");
         }
         else
@@ -1776,22 +1790,22 @@ GodunovHypPatchOps::getFromInput(
                          << "  No key `refine_criteria' found in data for"
                          << " RefinementData. No refinement will occur.\n");
         }
-        
+
         SAMRAI::tbox::Array<std::string> ref_keys_defined(num_keys);
         int def_key_cnt = 0;
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> error_db;
-        
+
         for (int i = 0; i < refinement_keys.getSize(); ++i)
         {
             std::string error_key = refinement_keys[i];
             error_db.setNull();
-            
+
             if (!(error_key == "refine_criteria"))
             {
                 if (!(error_key == "QVAL_DEVIATION" ||
                       error_key == "QVAL_GRADIENT" ||
                       error_key == "QVAL_RICHARDSON"))
-                { 
+                {
                     TBOX_ERROR(d_object_name << ":\n"
                                << "  Unknown refinement criteria: " << error_key
                                << "\nin input.\n");
@@ -1802,7 +1816,7 @@ GodunovHypPatchOps::getFromInput(
                     ref_keys_defined[def_key_cnt] = error_key;
                     def_key_cnt++;
                 }
-                
+
                 if (!error_db.isNull() && error_key == "QVAL_DEVIATION")
                 {
                     if (error_db->keyExists("dev_tol"))
@@ -1815,7 +1829,7 @@ GodunovHypPatchOps::getFromInput(
                                    << "  No key `dev_tol' found in data for "
                                    << error_key << "\n");
                     }
-                    
+
                     if (error_db->keyExists("qval_dev"))
                     {
                         d_dev = error_db->getDoubleArray("qval_dev");
@@ -1826,7 +1840,7 @@ GodunovHypPatchOps::getFromInput(
                                    << "  No key `qval_dev' found in data for "
                                    << error_key << "\n");
                     }
-                    
+
                     if (error_db->keyExists("time_max"))
                     {
                         d_dev_time_max = error_db->getDoubleArray("time_max");
@@ -1836,7 +1850,7 @@ GodunovHypPatchOps::getFromInput(
                         d_dev_time_max.resizeArray(1);
                         d_dev_time_max[0] = std::numeric_limits<double>::max();
                     }
-                    
+
                     if (error_db->keyExists("time_min"))
                     {
                         d_dev_time_min = error_db->getDoubleArray("time_min");
@@ -1847,7 +1861,7 @@ GodunovHypPatchOps::getFromInput(
                         d_dev_time_min[0] = 0.0;
                     }
                 }
-      
+
                 if (!error_db.isNull() && error_key == "QVAL_GRADIENT")
                 {
                     if (error_db->keyExists("grad_tol"))
@@ -1860,7 +1874,7 @@ GodunovHypPatchOps::getFromInput(
                                    << "  No key `grad_tol' found in data for "
                                    << error_key << "\n");
                     }
-                    
+
                     if (error_db->keyExists("time_max"))
                     {
                         d_grad_time_max = error_db->getDoubleArray("time_max");
@@ -1870,7 +1884,7 @@ GodunovHypPatchOps::getFromInput(
                         d_grad_time_max.resizeArray(1);
                         d_grad_time_max[0] = std::numeric_limits<double>::max();
                     }
-                    
+
                     if (error_db->keyExists("time_min"))
                     {
                         d_grad_time_min = error_db->getDoubleArray("time_min");
@@ -1881,7 +1895,7 @@ GodunovHypPatchOps::getFromInput(
                         d_grad_time_min[0] = 0.0;
                     }
                 }
-                
+
                 if (!error_db.isNull() && error_key == "QVAL_RICHARDSON")
                 {
                     if (error_db->keyExists("rich_tol"))
@@ -1904,7 +1918,7 @@ GodunovHypPatchOps::getFromInput(
                         d_rich_time_max.resizeArray(1);
                         d_rich_time_max[0] = std::numeric_limits<double>::max();
                     }
-                    
+
                     if (error_db->keyExists("time_min"))
                     {
                         d_rich_time_min = error_db->getDoubleArray("time_min");
@@ -1917,7 +1931,7 @@ GodunovHypPatchOps::getFromInput(
                 }
             }
         } // loop over refine criteria
-        
+
         // Check that input is found for each string identifier in key
         // list.
         for (int k0 = 0; k0 < d_refinement_criteria.getSize(); ++k0)
@@ -1932,7 +1946,7 @@ GodunovHypPatchOps::getFromInput(
                     key_found = true;
                 }
             }
-            
+
             if (!key_found)
             {
                 TBOX_ERROR(d_object_name << ":\n"
@@ -1940,17 +1954,17 @@ GodunovHypPatchOps::getFromInput(
                            << d_refinement_criteria[k0] << "\n");
             }
         }
-    } // refine db entry exists 
-    
+    } // refine db entry exists
+
     return;
 }// getFromInput
 
 void
 GodunovHypPatchOps::getFromRestart()
 {
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> root_db = 
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> root_db =
         SAMRAI::tbox::RestartManager::getManager()->getRootDatabase();
-    
+
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db;
 
     if (root_db->isDatabase(d_object_name))
@@ -1963,28 +1977,28 @@ GodunovHypPatchOps::getFromRestart()
                    << "Restart database corresponding to "
                    << d_object_name << " not found in restart file.");
     }
-    
+
     int ver = db->getInteger("GODUNOV_HYP_PATCH_OPS_VERSION");
     if (ver != GODUNOV_HYP_PATCH_OPS_VERSION)
     {
         TBOX_ERROR(d_object_name << ":\n"
                    << "  Restart file version different than class version.");
     }
-    
-    db->getIntegerArray("d_ghosts", (int*)d_ghosts, NDIM);
+
+    db->getIntegerArray("d_ghosts", static_cast<int*>(d_ghosts), NDIM);
     if (!(d_ghosts == SAMRAI::hier::IntVector<NDIM>(CELLG)))
     {
         TBOX_ERROR(d_object_name << ":\n"
                    << "  Key data `d_ghosts' in restart file != CELLG.\n");
     }
-    
-    db->getIntegerArray("d_flux_ghosts", (int*)d_flux_ghosts, NDIM);
+
+    db->getIntegerArray("d_flux_ghosts", static_cast<int*>(d_flux_ghosts), NDIM);
     if (!(d_flux_ghosts == SAMRAI::hier::IntVector<NDIM>(FLUXG)))
     {
         TBOX_ERROR(d_object_name << ":\n"
                    << "  Key data `d_flux_ghosts' in restart file != FLUXG.\n");
     }
-    
+
     if (db->keyExists("d_refinement_criteria"))
     {
         d_refinement_criteria = db->getStringArray("d_refinement_criteria");
@@ -2011,7 +2025,7 @@ GodunovHypPatchOps::getFromRestart()
             d_rich_time_min = db->getDoubleArray("d_rich_time_min");
         }
     }
-    
+
     return;
 }// getFromRestart
 

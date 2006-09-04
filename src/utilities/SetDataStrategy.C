@@ -1,5 +1,5 @@
 // Filename: SetDataStrategy.C
-// Last modified: <25.Aug.2006 00:59:13 boyce@bigboy.nyconnect.com>
+// Last modified: <03.Sep.2006 19:53:23 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -96,7 +96,7 @@ SetDataStrategy::printClassData(
 {
     os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
     os << "\nSetDataStrategy::printClassData...\n";
-    os << "SetDataStrategy: this = " << (SetDataStrategy*)this << "\n";
+    os << "SetDataStrategy: this = " << const_cast<SetDataStrategy*>(this) << "\n";
     os << "d_object_name = " << d_object_name << "\n";
     os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
     return;

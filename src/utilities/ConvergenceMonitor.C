@@ -1,5 +1,5 @@
 // Filename: ConvergenceMonitor.C
-// Last modified: <25.Aug.2006 00:58:51 boyce@bigboy.nyconnect.com>
+// Last modified: <03.Sep.2006 19:57:01 boyce@bigboy.nyconnect.com>
 // Created on 19 Jun 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -40,17 +40,20 @@ namespace IBAMR
 
 ConvergenceMonitor::ConvergenceMonitor(
     const std::string& object_name)
+    : d_object_name(object_name),
+      d_hierarchy(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_context(SAMRAI::hier::VariableDatabase<NDIM>::getDatabase()->getContext(d_object_name+"::CONTEXT")),
+      d_wgt_var(new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::wgt",1)),
+      d_wgt_idx(SAMRAI::hier::VariableDatabase<NDIM>::getDatabase()->
+                registerVariableAndContext(d_wgt_var, d_context, SAMRAI::hier::IntVector<NDIM>(0))),
+      d_monitored_indices(),
+      d_monitored_vars(),
+      d_monitored_var_ctxs(),
+      d_exact_soln_setters()
 {
-    d_object_name = object_name;
-
-    // Initialize Variables and contexts.
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    
-    d_context = var_db->getContext(d_object_name+"::CONTEXT");
-    d_wgt_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::wgt",1);
-    d_wgt_idx = var_db->
-        registerVariableAndContext(d_wgt_var, d_context, SAMRAI::hier::IntVector<NDIM>(0));
-    
+    // intentionally blank
     return;
 }// ConvergenceMonitor
 
@@ -90,7 +93,7 @@ ConvergenceMonitor::monitorConvergence(
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_data_ops_manager =
         SAMRAI::math::HierarchyDataOpsManager<NDIM>::getManager();
-    
+
     for (set<int>::const_iterator it = d_monitored_indices.begin();
          it != d_monitored_indices.end(); ++it)
     {
@@ -98,10 +101,10 @@ ConvergenceMonitor::monitorConvergence(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var = d_monitored_vars[var_idx];
         SAMRAI::tbox::Pointer<SetDataStrategy>& exact_soln_setter =
             d_exact_soln_setters[var_idx];
-        
+
         const int cloned_idx = var_db->
             registerClonedPatchDataIndex(var,var_idx);
-        
+
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
             d_hierarchy->getPatchLevel(ln)->
@@ -115,18 +118,18 @@ ConvergenceMonitor::monitorConvergence(
         // Compute the exact solution.
         exact_soln_setter->setDataOnPatchHierarchy(
             cloned_idx, var, d_hierarchy, data_time);
-        
+
         hier_data_ops->subtract(cloned_idx, var_idx, cloned_idx);
-        
+
         // Compute error norms.
         //
         // For cell centered variables, we weight each cell by its
         // length/area/volume when computing error norms.
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cc_var = var;
-        
+
         SAMRAI::tbox::pout << "Error in " << var->getName()
                            << " at time " << data_time << ":\n";
-        
+
         if (cc_var.isNull())
         {
             SAMRAI::tbox::pout << "  L1-norm:  " << hier_data_ops->L1Norm(cloned_idx)  << "\n";
@@ -139,12 +142,12 @@ ConvergenceMonitor::monitorConvergence(
             SAMRAI::tbox::pout << "  L2-norm:  " << hier_data_ops->L2Norm(cloned_idx,d_wgt_idx)  << "\n";
             SAMRAI::tbox::pout << "  max-norm: " << hier_data_ops->maxNorm(cloned_idx,d_wgt_idx) << "\n";
         }
-        
+
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
             d_hierarchy->getPatchLevel(ln)->deallocatePatchData(cloned_idx);
         }
-        
+
         var_db->removePatchDataIndex(cloned_idx);
     }
     return;
@@ -162,7 +165,7 @@ ConvergenceMonitor::initializeLevelData(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!hierarchy.isNull());
-    assert((level_number >= 0) 
+    assert((level_number >= 0)
            && (level_number <= hierarchy->getFinestLevelNumber()));
     if (!(old_level.isNull())) {
         assert(level_number == old_level->getLevelNumber());
@@ -187,7 +190,7 @@ ConvergenceMonitor::resetHierarchyConfiguration(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!hierarchy.isNull());
     assert((coarsest_level >= 0)
-           && (coarsest_level <= finest_level) 
+           && (coarsest_level <= finest_level)
            && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln0 = 0; ln0 <= finest_level; ++ln0)
     {
@@ -198,20 +201,20 @@ ConvergenceMonitor::resetHierarchyConfiguration(
     d_hierarchy = hierarchy;
     d_coarsest_ln = 0;
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
-    
+
     // Each cell's weight is set to its cell volume, unless the cell
     // is refined on a finer level, in which case the weight is set to
     // zero.  This insures that no part of the physical domain is
     // counted twice when discrete norms and integrals are calculated
     // on the entire hierarchy.
     const int finest_hier_level = d_finest_ln;
-    
+
     for (int ln = SAMRAI::tbox::Utilities::imax(coarsest_level-1,0);
          ln <= finest_hier_level; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
         SAMRAI::hier::BoxArray<NDIM> refined_region_boxes;
-        
+
         if (ln < finest_hier_level)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > next_finer_level =
@@ -220,13 +223,13 @@ ConvergenceMonitor::resetHierarchyConfiguration(
             refined_region_boxes.coarsen(next_finer_level->
                                          getRatioToCoarserLevel());
         }
-        
+
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
             SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            
+
             const double* dx = pgeom->getDx();
             const double cell_vol = dx[0]
 #if (NDIM > 1)
@@ -236,12 +239,12 @@ ConvergenceMonitor::resetHierarchyConfiguration(
 #endif
 #endif
                 ;
-            
+
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > wgt_data =
                 patch->getPatchData(d_wgt_idx);
-            
+
             wgt_data->fillAll(cell_vol);
-            
+
             if (ln < finest_hier_level)
             {
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes();
@@ -249,7 +252,7 @@ ConvergenceMonitor::resetHierarchyConfiguration(
                 {
                     const SAMRAI::hier::Box<NDIM>& refined_box = refined_region_boxes(i);
                     const SAMRAI::hier::Box<NDIM> intersection = patch_box * refined_box;
-                    
+
                     if (!intersection.empty())
                     {
                         wgt_data->fillAll(0.0, intersection);

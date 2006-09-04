@@ -5,18 +5,18 @@ define(INTEGER,`integer')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Detect sharp spatial gradients.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine advect_detectgrad2d(
      &  ifirst0,ilast0,ifirst1,ilast1,
      &  vghost0,tagghost0,ttagghost0,
      &  vghost1,tagghost1,ttagghost1,
      &  dx,
      &  gradtol,
-     &  dotag,donttag,
+     &  dotag,
      &  var,
      &  tags,temptags)
 c
@@ -25,7 +25,7 @@ include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
       INTEGER
      &  ifirst0,ifirst1,ilast0,ilast1,
-     &  dotag,donttag,
+     &  dotag,
      &  vghost0,vghost1,
      &  tagghost0,tagghost1,
      &  ttagghost0,ttagghost1
@@ -52,10 +52,10 @@ c
 
           if (tags(ic0,ic1) .ne. 0) then
             loctol = 0.125*tol
-          else 
+          else
             loctol = tol
           endif
-   
+
           tagcell = .false.
 
           presm1 = var(ic0-1,ic1)

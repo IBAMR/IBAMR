@@ -1,5 +1,5 @@
 // Filename: PhysicalBCDataStrategy.C
-// Last modified: <25.Aug.2006 00:59:03 boyce@bigboy.nyconnect.com>
+// Last modified: <03.Sep.2006 19:53:13 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -97,7 +97,7 @@ PhysicalBCDataStrategy::printClassData(
 {
     os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
     os << "\nPhysicalBCDataStrategy::printClassData...\n";
-    os << "PhysicalBCDataStrategy: this = " << (PhysicalBCDataStrategy*)this << "\n";
+    os << "PhysicalBCDataStrategy: this = " << const_cast<PhysicalBCDataStrategy*>(this) << "\n";
     os << "d_object_name = " << d_object_name << "\n";
     os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
     return;
