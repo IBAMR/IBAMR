@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = fortran adv_diff advect utilities .
+SUBDIRS = fortran adv_diff advect navier_stokes utilities .
 
 ## Dimension-independent library
 lib_LTLIBRARIES = libIBAMR.la
