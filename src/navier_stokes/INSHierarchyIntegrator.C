@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <05.Sep.2006 02:06:19 boyce@bigboy.nyconnect.com>
+// Last modified: <05.Sep.2006 02:43:14 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -149,7 +149,7 @@ static const int INS_HIERARCHY_INTEGRATOR_VERSION = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSHierarchyIntegrator::INSHierarchyIntegrator(
-    const string& object_name,
+    const std::string& object_name,
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     SAMRAI::tbox::Pointer<GodunovAdvector> explicit_predictor,
@@ -189,9 +189,9 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_Q_scale = 1.0;
 
     d_start_time = 0.0;
-    d_end_time = numeric_limits<double>::max();
+    d_end_time = std::numeric_limits<double>::max();
     d_grow_dt = 2.0;
-    d_max_integrator_steps = numeric_limits<int>::max();
+    d_max_integrator_steps = std::numeric_limits<int>::max();
     d_cfl = 1.0;
 
     d_using_synch_projection = true;
@@ -210,9 +210,9 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 
     d_regrid_interval = 1;
     d_old_dt = -1.0;
-    d_stable_dt = numeric_limits<double>::max();
-    d_integrator_time = numeric_limits<double>::quiet_NaN();
-    d_integrator_step = numeric_limits<int>::max();
+    d_stable_dt = std::numeric_limits<double>::max();
+    d_integrator_time = std::numeric_limits<double>::quiet_NaN();
+    d_integrator_step = std::numeric_limits<int>::max();
 
     d_conservation_form = false;
 
@@ -230,12 +230,12 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_output_Div_u = false;
     d_output_Div_u_adv = false;
 
-    d_rho = numeric_limits<double>::quiet_NaN();
-    d_mu  = numeric_limits<double>::quiet_NaN();
-    d_nu  = numeric_limits<double>::quiet_NaN();
+    d_rho = std::numeric_limits<double>::quiet_NaN();
+    d_mu  = std::numeric_limits<double>::quiet_NaN();
+    d_nu  = std::numeric_limits<double>::quiet_NaN();
 
-    d_dt_max = numeric_limits<double>::max();
-    d_dt_max_time_max = numeric_limits<double>::max();
+    d_dt_max = std::numeric_limits<double>::max();
+    d_dt_max_time_max = std::numeric_limits<double>::max();
     d_dt_max_time_min = -(d_dt_max_time_max-numeric_limits<double>::epsilon());
 
     d_is_initialized = false;
@@ -563,8 +563,8 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_calgs["SYNCH_CURRENT_STATE_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
     d_calgs["SYNCH_NEW_STATE_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
 
-    d_rscheds["NONE"] = vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >();
-    d_cscheds["NONE"] = vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >();
+    d_rscheds["NONE"] = std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >();
+    d_cscheds["NONE"] = std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >();
 
     // Register state variables that are maintained by the
     // INSHierarchyIntegrator.
@@ -1207,7 +1207,7 @@ INSHierarchyIntegrator::getStableTimestep()
 
     const bool initial_time =
         SAMRAI::tbox::Utilities::deq(d_integrator_time, d_start_time);
-    double dt_next = numeric_limits<double>::max();
+    double dt_next = std::numeric_limits<double>::max();
 
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
@@ -1496,7 +1496,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
     for (int d = 0; d < NDIM; ++d)
     {
-        vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& V_bdry_fill =
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& V_bdry_fill =
             (d == 0) ?
             d_rscheds["U->V::C->S::CONSTANT_REFINE"] :
             d_rscheds["NONE"];
@@ -1893,7 +1893,7 @@ INSHierarchyIntegrator::updatePressure(
 
     // Compute P(n+1/2) from P~(n+1/2) and Phi.
     const double dt = new_time - current_time;
-    const string& time_disc = "TGA";  // TODO: This should be specified by
+    const std::string& time_disc = "TGA";  // TODO: This should be specified by
                                       // the advection-diffusion solver!!!
     if (time_disc == "TGA")
     {
@@ -1973,7 +1973,7 @@ INSHierarchyIntegrator::updatePressure(
                 }
 
                 // Setup the RHS.
-                vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& H_bdry_fill =
+                std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& H_bdry_fill =
                     (d == 0) ?
                     d_rscheds["U->V::C->S::CONSTANT_REFINE"] :
                     d_rscheds["NONE"];
@@ -2491,7 +2491,7 @@ INSHierarchyIntegrator::initializeLevelData(
             STOOLS::PatchMathOps patch_math_ops;
 
             const int nghost = 1;
-            vector<SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > > cf_boundary;
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > > cf_boundary;
             cf_boundary.clear();
             cf_boundary.resize(level_number+1);
 
@@ -3070,7 +3070,7 @@ INSHierarchyIntegrator::putToDatabase(
 
 void
 INSHierarchyIntegrator::printClassData(
-    ostream& os) const
+    std::ostream& os) const
 {
     os << "\nINSHierarchyIntegrator::printClassData..." << endl;
     os << "\nINSHierarchyIntegrator: this = " << const_cast<INSHierarchyIntegrator*>(this) << endl;
@@ -3097,8 +3097,8 @@ INSHierarchyIntegrator::registerVariable(
     int& scratch_idx,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
     const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts,
-    const string& coarsen_name,
-    const string& refine_name)
+    const std::string& coarsen_name,
+    const std::string& refine_name)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!variable.isNull());
@@ -3286,14 +3286,14 @@ INSHierarchyIntegrator::computeStableDt(
 {
     t_compute_stable_dt->start();
 
-    double proc_dt = numeric_limits<double>::max();
+    double proc_dt = std::numeric_limits<double>::max();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            double patch_dt = numeric_limits<double>::max();
+            double patch_dt = std::numeric_limits<double>::max();
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
 
             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
