@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <04.Sep.2006 03:24:26 boyce@bigboy.nyconnect.com>
+// Last modified: <06.Sep.2006 22:05:06 boyce@bigboy.nyconnect.com>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -321,13 +321,23 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     return;
 }// ~AdvDiffHierarchyIntegrator
 
+void
+AdvDiffHierarchyIntegrator::registerVisItDataWriter(
+    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(!(visit_writer.isNull()));
+#endif
+    d_hyp_patch_ops->registerVisItDataWriter(visit_writer);
+    return;
+}// registerVisItDataWriter
+
 ///
 ///  The following routines:
 ///
 ///      registerAdvectedAndDiffusedQuantity(),
 ///      registerAdvectedAndDiffusedQuantityWithSourceTerm(),
-///      registerAdvectionVelocity(),
-///      registerVisItDataWriter()
+///      registerAdvectionVelocity()
 ///
 ///  allow the specification of quantities to be advected and
 ///  diffused.
@@ -447,17 +457,6 @@ AdvDiffHierarchyIntegrator::registerConvergenceMonitor(
     return;
 }// registerConvergenceMonitor
 
-void
-AdvDiffHierarchyIntegrator::registerVisItDataWriter(
-    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!(visit_writer.isNull()));
-#endif
-    d_hyp_patch_ops->registerVisItDataWriter(visit_writer);
-    return;
-}// registerVisItDataWriter
-
 ///
 ///  The following routines:
 ///
@@ -475,7 +474,7 @@ AdvDiffHierarchyIntegrator::getHierarchyMathOps() const
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!d_hier_math_ops.isNull());
 #endif
-    return(d_hier_math_ops);
+    return d_hier_math_ops;
 }// getHierarchyMathOps
 
 void
@@ -494,7 +493,7 @@ AdvDiffHierarchyIntegrator::setHierarchyMathOps(
 bool
 AdvDiffHierarchyIntegrator::isManagingHierarchyMathOps() const
 {
-    return(d_is_managing_hier_math_ops);
+    return d_is_managing_hier_math_ops;
 }// isManagingHierarchyMathOps
 
 ///
@@ -525,7 +524,7 @@ AdvDiffHierarchyIntegrator::getHelmholtzSpecs(
     return_vec.push_back(d_helmholtz3_specs[mu]);
     return_vec.push_back(d_helmholtz4_specs[mu]);
 
-    return(return_vec);
+    return return_vec;
 }// getHelmholtzSpecs
 
 std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>
@@ -544,7 +543,7 @@ AdvDiffHierarchyIntegrator::getHelmholtzBcCoefs(
     return_vec.push_back(d_helmholtz3_bc_coefs[mu]);
     return_vec.push_back(d_helmholtz4_bc_coefs[mu]);
 
-    return(return_vec);
+    return return_vec;
 }// getHelmholtzBcCoefs
 
 std::vector<SAMRAI::tbox::Pointer<STOOLS::LinearSolver> >
@@ -561,7 +560,7 @@ AdvDiffHierarchyIntegrator::getHelmholtzSolvers(
     return_vec.push_back(d_helmholtz3_solvers[mu]);
     return_vec.push_back(d_helmholtz4_solvers[mu]);
 
-    return(return_vec);
+    return return_vec;
 }// getHelmholtzSolvers
 
 void
@@ -1053,7 +1052,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchy()
     }
 
     t_initialize_hierarchy->stop();
-    return(dt_next);
+    return dt_next;
 }// initializeHierarchy
 
 double
@@ -1068,31 +1067,23 @@ AdvDiffHierarchyIntegrator::advanceHierarchy(
 #endif
 
     // First: rebalance the coarsest level (when requested).
-    if (rebalance_coarsest)
-    {
-        rebalanceCoarsestLevel();
-    }
+    if (rebalance_coarsest) rebalanceCoarsestLevel();
 
     // Second: integrate the data and synchronize the hierarchy.
-    const double dt_next =
-        integrateHierarchy(d_integrator_time, d_integrator_time+dt);
-
+    const double dt_next = integrateHierarchy(d_integrator_time, d_integrator_time+dt);
     synchronizeHierarchy();
 
     // Third: reset all time dependent data.
     resetTimeDependentHierData(d_integrator_time+dt);
 
     // Fourth: regrid (when appropriate).
-    const bool do_regrid = (d_regrid_interval == 0
+    const bool do_regrid = ((d_regrid_interval == 0)
                             ? false
                             : (d_integrator_step % d_regrid_interval == 0));
-    if (do_regrid)
-    {
-        regridHierarchy();
-    }
+    if (do_regrid) regridHierarchy();
 
     t_advance_hierarchy->stop();
-    return(dt_next);
+    return dt_next;
 }// advanceHierarchy
 
 bool
@@ -1100,71 +1091,71 @@ AdvDiffHierarchyIntegrator::atRegridPoint() const
 {
     const int level_number = 0;
 
-    return((d_integrator_step>0)
-           && d_gridding_alg->levelCanBeRefined(level_number)
-           && (d_regrid_interval == 0
-               ? false
-               : (d_integrator_step % d_regrid_interval == 0)));
+    return ((d_integrator_step > 0)
+            && d_gridding_alg->levelCanBeRefined(level_number)
+            && (d_regrid_interval == 0
+                ? false
+                : (d_integrator_step % d_regrid_interval == 0)));
 }// atRegridPoint
 
 double
 AdvDiffHierarchyIntegrator::getIntegratorTime() const
 {
-    return(d_integrator_time);
+    return d_integrator_time;
 }// getIntegratorTime
 
 double
 AdvDiffHierarchyIntegrator::getStartTime() const
 {
-    return(d_start_time);
+    return d_start_time;
 }// getStartTime
 
 double
 AdvDiffHierarchyIntegrator::getEndTime() const
 {
-    return(d_end_time);
+    return d_end_time;
 }// getEndTime
 
 int
 AdvDiffHierarchyIntegrator::getIntegratorStep() const
 {
-    return(d_integrator_step);
+    return d_integrator_step;
 }// getIntegratorStep
 
 int
 AdvDiffHierarchyIntegrator::getMaxIntegratorSteps() const
 {
-    return(d_max_integrator_steps);
+    return d_max_integrator_steps;
 }// getMaxIntegratorSteps
 
 bool
 AdvDiffHierarchyIntegrator::stepsRemaining() const
 {
-    return(d_integrator_step < d_max_integrator_steps);
+    return (d_integrator_step < d_max_integrator_steps);
 }// stepsRemaining
 
 const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
 AdvDiffHierarchyIntegrator::getPatchHierarchy() const
 {
-    return(d_hierarchy);
+    return d_hierarchy;
 }// getPatchHierarchy
 
 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
 AdvDiffHierarchyIntegrator::getGriddingAlgorithm() const
 {
-    return(d_gridding_alg);
+    return d_gridding_alg;
 }// getGriddingAlgorithm
 
 SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> >
 AdvDiffHierarchyIntegrator::getHyperbolicLevelIntegrator() const
 {
-    return(d_hyp_level_integrator);
+    return d_hyp_level_integrator;
 }// getHyperbolicLevelIntegrator
 
 SAMRAI::tbox::Pointer<AdvDiffHypPatchOps>
 AdvDiffHierarchyIntegrator::getHyperbolicPatchStrategy() const
 {
-    return(d_hyp_patch_ops);
+    return d_hyp_patch_ops;
 }// getHyperbolicPatchStrategy
 
 ///
@@ -1617,7 +1608,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
     }
 
     t_integrate_hierarchy->stop();
-    return(dt_next);
+    return dt_next;
 }// integrateHierarchy
 
 void
@@ -1990,31 +1981,31 @@ AdvDiffHierarchyIntegrator::applyGradientDetector(
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
 AdvDiffHierarchyIntegrator::getCurrentContext() const
 {
-    return(d_hyp_level_integrator->getCurrentContext());
+    return d_hyp_level_integrator->getCurrentContext();
 }// getCurrentContext
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
 AdvDiffHierarchyIntegrator::getNewContext() const
 {
-    return(d_hyp_level_integrator->getNewContext());
+    return d_hyp_level_integrator->getNewContext();
 }// getNewContext
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
 AdvDiffHierarchyIntegrator::getOldContext() const
 {
-    return(d_hyp_level_integrator->getOldContext());
+    return d_hyp_level_integrator->getOldContext();
 }// getOldContext
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
 AdvDiffHierarchyIntegrator::getScratchContext() const
 {
-    return(d_hyp_level_integrator->getScratchContext());
+    return d_hyp_level_integrator->getScratchContext();
 }// getScratchContext
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
 AdvDiffHierarchyIntegrator::getPlotContext() const
 {
-    return(d_hyp_level_integrator->getPlotContext());
+    return d_hyp_level_integrator->getPlotContext();
 }// getPlotContext
 
 ///

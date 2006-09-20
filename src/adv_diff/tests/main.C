@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
                    << "  none at this time"
                    << endl;
         tbox::MPI::abort();
-        return(-1);
+        return -1;
     }
     else
     {
@@ -459,5 +459,5 @@ int main(int argc, char* argv[])
     tbox::SAMRAIManager::shutdown();
     PetscFinalize();
 
-    return(0);
+    return 0;
 }// main

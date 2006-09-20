@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <05.Sep.2006 02:43:14 boyce@bigboy.nyconnect.com>
+// Last modified: <06.Sep.2006 01:34:17 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -27,7 +27,6 @@
 #include <HierarchyDataOpsManager.h>
 #include <Index.h>
 #include <IntVector.h>
-#include <NodeData.h>
 #include <PatchCellDataOpsReal.h>
 #include <PatchData.h>
 #include <RefineOperator.h>
@@ -140,7 +139,6 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_stable_dt;
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 static const int FACEG = 1;
-static const int NODEG = 0;
 
 // Version of INSHierarchyIntegrator restart file data.
 static const int INS_HIERARCHY_INTEGRATOR_VERSION = 1;
@@ -427,7 +425,7 @@ INSHierarchyIntegrator::getHierarchyMathOps() const
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!d_hier_math_ops.isNull());
 #endif
-    return(d_hier_math_ops);
+    return d_hier_math_ops;
 }// getHierarchyMathOps
 
 void
@@ -446,7 +444,7 @@ INSHierarchyIntegrator::setHierarchyMathOps(
 bool
 INSHierarchyIntegrator::isManagingHierarchyMathOps() const
 {
-    return(d_is_managing_hier_math_ops);
+    return d_is_managing_hier_math_ops;
 }// isManagingHierarchyMathOps
 
 ///
@@ -571,7 +569,6 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     const SAMRAI::hier::IntVector<NDIM> cell_ghosts = CELLG;
     const SAMRAI::hier::IntVector<NDIM> face_ghosts = CELLG;
-    const SAMRAI::hier::IntVector<NDIM> node_ghosts = NODEG;
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
     registerVariable(d_u_current_idx, d_u_new_idx, d_u_scratch_idx,
@@ -764,12 +761,9 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // AdvDiffHierarchyIntegrator.
     //
     // XXXX: Kludge!
-    d_sol_var = var_db->getVariable(
-        "AdvDiffHierarchyIntegrator::sol");
-    d_rhs_var = var_db->getVariable(
-        "AdvDiffHierarchyIntegrator::rhs");
-    d_tmp_var = var_db->getVariable(
-        "AdvDiffHierarchyIntegrator::tmp");
+    d_sol_var = var_db->getVariable("AdvDiffHierarchyIntegrator::sol");
+    d_rhs_var = var_db->getVariable("AdvDiffHierarchyIntegrator::rhs");
+    d_tmp_var = var_db->getVariable("AdvDiffHierarchyIntegrator::tmp");
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!d_sol_var.isNull());
@@ -1083,7 +1077,7 @@ INSHierarchyIntegrator::initializeHierarchy()
     double dt_next = getStableTimestep();
 
     t_initialize_hierarchy->stop();
-    return(dt_next);
+    return dt_next;
 }// initializeHierarchy
 
 double
@@ -1101,15 +1095,11 @@ INSHierarchyIntegrator::advanceHierarchy(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Rebalance the coarsest level (when requested).
-    if (rebalance_coarsest)
-    {
-        rebalanceCoarsestLevel();
-    }
+    if (rebalance_coarsest) rebalanceCoarsestLevel();
 
     const double current_time = d_integrator_time;
     const double new_time = d_integrator_time+dt;
-    const bool initial_time =
-        SAMRAI::tbox::Utilities::deq(d_integrator_time,d_start_time);
+    const bool initial_time = SAMRAI::tbox::Utilities::deq(d_integrator_time,d_start_time);
 
     // The pressure at start_time is not an initial value for the
     // incompressible Navier-Stokes equations, so we solve for it by
@@ -1184,7 +1174,7 @@ INSHierarchyIntegrator::advanceHierarchy(
     resetTimeDependentHierData(new_time);
 
     // Regrid (when appropriate).
-    const bool do_regrid = (d_regrid_interval == 0
+    const bool do_regrid = ((d_regrid_interval == 0)
                             ? false
                             : (d_integrator_step % d_regrid_interval == 0));
     if (do_regrid)
@@ -1197,7 +1187,7 @@ INSHierarchyIntegrator::advanceHierarchy(
     const double dt_next = getStableTimestep();
 
     t_advance_hierarchy->stop();
-    return(dt_next);
+    return dt_next;
 }// advanceHierarchy
 
 double
@@ -1236,85 +1226,84 @@ INSHierarchyIntegrator::getStableTimestep()
     }
 
     t_get_stable_timestep->stop();
-    return(dt_next);
+    return dt_next;
 }// getStableTimestep()
 
 bool
 INSHierarchyIntegrator::atRegridPoint() const
 {
     const int level_number = 0;
-
-    return((d_integrator_step>0)
-           && d_gridding_alg->levelCanBeRefined(level_number)
-           && (d_regrid_interval == 0
-               ? false
-               : (d_integrator_step % d_regrid_interval == 0)));
+    return ((d_integrator_step > 0)
+            && d_gridding_alg->levelCanBeRefined(level_number)
+            && (d_regrid_interval == 0
+                ? false
+                : (d_integrator_step % d_regrid_interval == 0)));
 }// atRegridPoint
 
 double
 INSHierarchyIntegrator::getIntegratorTime() const
 {
-    return(d_integrator_time);
+    return d_integrator_time;
 }// getIntegratorTime
 
 double
 INSHierarchyIntegrator::getStartTime() const
 {
-    return(d_start_time);
+    return d_start_time;
 }// getStartTime
 
 double
 INSHierarchyIntegrator::getEndTime() const
 {
-    return(d_end_time);
+    return d_end_time;
 }// getEndTime
 
 int
 INSHierarchyIntegrator::getIntegratorStep() const
 {
-    return(d_integrator_step);
+    return d_integrator_step;
 }// getIntegratorStep
 
 int
 INSHierarchyIntegrator::getMaxIntegratorSteps() const
 {
-    return(d_max_integrator_steps);
+    return d_max_integrator_steps;
 }// getMaxIntegratorSteps
 
 bool
 INSHierarchyIntegrator::stepsRemaining() const
 {
-    return(d_integrator_step < d_max_integrator_steps);
+    return (d_integrator_step < d_max_integrator_steps);
 }// stepsRemaining
 
 const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
 INSHierarchyIntegrator::getPatchHierarchy() const
 {
-    return(d_hierarchy);
+    return d_hierarchy;
 }// getPatchHierarchy
 
 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
 INSHierarchyIntegrator::getGriddingAlgorithm() const
 {
-    return(d_gridding_alg);
+    return d_gridding_alg;
 }// getGriddingAlgorithm
 
 SAMRAI::tbox::Pointer<GodunovAdvector>
 INSHierarchyIntegrator::getGodunovAdvector() const
 {
-    return(d_explicit_predictor);
+    return d_explicit_predictor;
 }// getGodunovAdvector
 
 SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator>
 INSHierarchyIntegrator::getAdvDiffHierarchyIntegrator() const
 {
-    return(d_adv_diff_hier_integrator);
+    return d_adv_diff_hier_integrator;
 }// getAdvDiffHierarchyIntegrator
 
 SAMRAI::tbox::Pointer<HierarchyProjector>
 INSHierarchyIntegrator::getHierarchyProjector() const
 {
-    return(d_hier_projector);
+    return d_hier_projector;
 }// getHierarchyProjector
 
 ///
@@ -2296,15 +2285,14 @@ INSHierarchyIntegrator::resetHierDataToPreadvanceState()
 {
     t_reset_data_to_preadvance_state->start();
 
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
     // We use the AdvDiffHierarchyIntegrator to handle as
     // much data management as possible.
     d_adv_diff_hier_integrator->resetHierDataToPreadvanceState();
 
     // Deallocate the scratch and new data and reset the time of the
     // current data.
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -2705,18 +2693,12 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
     // We use the AdvDiffHierarchyIntegrator and
     // HierarchyProjector objects to handle as much data management as
     // possible.
-    d_adv_diff_hier_integrator->
-        resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
-    d_hier_projector->
-        resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+    d_adv_diff_hier_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+    d_hier_projector          ->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
     // If a ConvergenceMonitor object is registered with the
     // integrator, reset any data associated with it.
-    if (!d_convergence_monitor.isNull())
-    {
-        d_convergence_monitor->resetHierarchyConfiguration(
-            hierarchy, coarsest_level, finest_level);
-    }
+    if (!d_convergence_monitor.isNull()) d_convergence_monitor->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
     // Indicate that the velocity field needs to be re-projected (but
     // only in the multi-level case).
@@ -2931,31 +2913,31 @@ INSHierarchyIntegrator::applyGradientDetector(
 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
 INSHierarchyIntegrator::getVelocityVar()
 {
-    return(d_U_var);
+    return d_U_var;
 }// getVelocityVar
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
 INSHierarchyIntegrator::getPressureVar()
 {
-    return(d_P_var);
+    return d_P_var;
 }// getPressureVar
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >
 INSHierarchyIntegrator::getAdvectionVelocityVar()
 {
-    return(d_u_adv_var);
+    return d_u_adv_var;
 }// getAdvectionVelocityVar
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
 INSHierarchyIntegrator::getForceVar()
 {
-    return(d_F_var);
+    return d_F_var;
 }// getForceVar
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
 INSHierarchyIntegrator::getDivergenceVar()
 {
-    return(d_Q_var);
+    return d_Q_var;
 }// getDivergenceVar
 
 ///
@@ -2979,31 +2961,31 @@ INSHierarchyIntegrator::getDivergenceVar()
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
 INSHierarchyIntegrator::getCurrentContext() const
 {
-    return(d_adv_diff_hier_integrator->getCurrentContext());
+    return d_adv_diff_hier_integrator->getCurrentContext();
 }// getCurrentContext
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
 INSHierarchyIntegrator::getNewContext() const
 {
-    return(d_adv_diff_hier_integrator->getNewContext());
+    return d_adv_diff_hier_integrator->getNewContext();
 }// getNewContext
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
 INSHierarchyIntegrator::getOldContext() const
 {
-    return(d_adv_diff_hier_integrator->getOldContext());
+    return d_adv_diff_hier_integrator->getOldContext();
 }// getOldContext
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
 INSHierarchyIntegrator::getScratchContext() const
 {
-    return(d_adv_diff_hier_integrator->getScratchContext());
+    return d_adv_diff_hier_integrator->getScratchContext();
 }// getScratchContext
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
 INSHierarchyIntegrator::getPlotContext() const
 {
-    return(d_adv_diff_hier_integrator->getPlotContext());
+    return d_adv_diff_hier_integrator->getPlotContext();
 }// getPlotContext
 
 ///
@@ -3326,7 +3308,7 @@ INSHierarchyIntegrator::computeStableDt(
     const double stable_dt = SAMRAI::tbox::MPI::minReduction(proc_dt);
 
     t_compute_stable_dt->stop();
-    return(stable_dt);
+    return stable_dt;
 }// computeStableDt
 
 void

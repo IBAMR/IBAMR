@@ -2,7 +2,7 @@
 #define included_QInit
 
 // Filename: QInit.h
-// Last modified: <04.Sep.2006 01:57:30 boyce@bigboy.nyconnect.com>
+// Last modified: <06.Sep.2006 01:01:52 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -53,7 +53,7 @@ public:
      * Indicates whether the concrete SetDataStrategy object is time
      * dependent.
      */
-    bool isTimeDependent() const { return(true); }
+    bool isTimeDependent() const { return true; }
 
     /*!
      * Set the data on the patch interior to the exact answer.

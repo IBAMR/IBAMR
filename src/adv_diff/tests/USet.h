@@ -2,7 +2,7 @@
 #define included_USet
 
 // Filename: USet.h
-// Last modified: <04.Sep.2006 01:53:59 boyce@bigboy.nyconnect.com>
+// Last modified: <06.Sep.2006 01:02:00 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -54,7 +54,7 @@ public:
      * Indicates whether the concrete SetDataStrategy object is time
      * dependent.
      */
-    bool isTimeDependent() const { return(false); }
+    bool isTimeDependent() const { return false; }
 
     /*!
      * Set the data on the patch interior to some initial values.

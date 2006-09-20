@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <05.Sep.2006 01:55:35 boyce@bigboy.nyconnect.com>
+// Last modified: <06.Sep.2006 00:13:39 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1129,21 +1129,21 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
 
     double d_poisson_abs_residual_tol, d_poisson_rel_residual_tol;
-    const SAMRAI::solv::PoissonSpecifications*  d_poisson_spec;
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*    d_poisson_bc_coef;
-    SAMRAI::tbox::Pointer<STOOLS::LinearSolver> d_poisson_solver;
+    const SAMRAI::solv::PoissonSpecifications*     d_poisson_spec;
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_poisson_bc_coef;
+    SAMRAI::tbox::Pointer<STOOLS::LinearSolver>    d_poisson_solver;
 
-    const SAMRAI::solv::PoissonSpecifications*  d_helmholtz1_spec;
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*    d_helmholtz1_bc_coef;
-    SAMRAI::tbox::Pointer<STOOLS::LinearSolver> d_helmholtz1_solver;
+    const SAMRAI::solv::PoissonSpecifications*     d_helmholtz1_spec;
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_helmholtz1_bc_coef;
+    SAMRAI::tbox::Pointer<STOOLS::LinearSolver>    d_helmholtz1_solver;
 
-    const SAMRAI::solv::PoissonSpecifications*  d_helmholtz2_spec;
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*    d_helmholtz2_bc_coef;
-    SAMRAI::tbox::Pointer<STOOLS::LinearSolver> d_helmholtz2_solver;
+    const SAMRAI::solv::PoissonSpecifications*     d_helmholtz2_spec;
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_helmholtz2_bc_coef;
+    SAMRAI::tbox::Pointer<STOOLS::LinearSolver>    d_helmholtz2_solver;
 
-    const SAMRAI::solv::PoissonSpecifications*  d_helmholtz4_spec;
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*    d_helmholtz4_bc_coef;
-    SAMRAI::tbox::Pointer<STOOLS::LinearSolver> d_helmholtz4_solver;
+    const SAMRAI::solv::PoissonSpecifications*     d_helmholtz4_spec;
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_helmholtz4_bc_coef;
+    SAMRAI::tbox::Pointer<STOOLS::LinearSolver>    d_helmholtz4_solver;
 
     /*
      * SAMRAI::hier::Variable<NDIM> lists and SAMRAI::hier::ComponentSelector objects

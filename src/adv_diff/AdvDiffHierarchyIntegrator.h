@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <04.Sep.2006 01:24:23 boyce@bigboy.nyconnect.com>
+// Last modified: <06.Sep.2006 22:04:44 boyce@bigboy.nyconnect.com>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -81,10 +81,10 @@ class AdvDiffHierarchyIntegrator
       public virtual SAMRAI::tbox::Serializable
 {
 public:
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >           RefineAlgMap;
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >               RefineAlgMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > >  RefineSchedMap;
 
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >          CoarsenAlgMap;
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
 
     /*!
@@ -110,13 +110,20 @@ public:
      */
     virtual ~AdvDiffHierarchyIntegrator();
 
+    /*!
+     * Register a VisIt data writer so this class will write plot
+     * files that may be postprocessed with the VisIt visualization
+     * tool.
+     */
+    void registerVisItDataWriter(
+        SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
+
     ///
     ///  The following routines:
     ///
     ///      registerAdvectedAndDiffusedQuantity(),
     ///      registerAdvectedAndDiffusedQuantityWithSourceTerm(),
-    ///      registerAdvectionVelocity(),
-    ///      registerVisItDataWriter()
+    ///      registerAdvectionVelocity()
     ///
     ///  allow the specification of quantities to be advected and
     ///  diffused.
@@ -221,14 +228,6 @@ public:
      */
     void registerConvergenceMonitor(
         SAMRAI::tbox::Pointer<ConvergenceMonitor> monitor);
-
-    /*!
-     * Register a VisIt data writer so this class will write plot
-     * files that may be postprocessed with the VisIt visualization
-     * tool.
-     */
-    void registerVisItDataWriter(
-        SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
 
     ///
     ///  The following routines:

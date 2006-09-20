@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <05.Sep.2006 01:11:39 boyce@bigboy.nyconnect.com>
+// Last modified: <06.Sep.2006 01:01:26 boyce@bigboy.nyconnect.com>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -283,7 +283,7 @@ HierarchyProjector::getHierarchyMathOps() const
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!d_hier_math_ops.isNull());
 #endif
-    return(d_hier_math_ops);
+    return d_hier_math_ops;
 }// getHierarchyMathOps
 
 void
@@ -302,7 +302,7 @@ HierarchyProjector::setHierarchyMathOps(
 bool
 HierarchyProjector::isManagingHierarchyMathOps() const
 {
-    return(d_is_managing_hier_math_ops);
+    return d_is_managing_hier_math_ops;
 }// isManagingHierarchyMathOps
 
 ///
@@ -323,7 +323,7 @@ HierarchyProjector::getPoissonSpec()
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_poisson_spec != NULL);
 #endif
-    return(d_poisson_spec);
+    return d_poisson_spec;
 }// getPoissonSpec
 
 const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
@@ -332,7 +332,7 @@ HierarchyProjector::getPoissonBcCoef()
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_poisson_bc_coef != NULL);
 #endif
-    return(d_poisson_bc_coef);
+    return d_poisson_bc_coef;
 }// getPoissonBcCoef
 
 SAMRAI::tbox::Pointer<STOOLS::LinearSolver>
@@ -341,7 +341,7 @@ HierarchyProjector::getPoissonSolver()
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!d_poisson_solver.isNull());
 #endif
-    return(d_poisson_solver);
+    return d_poisson_solver;
 }// getPoissonSolver
 
 void
