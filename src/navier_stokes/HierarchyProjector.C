@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <25.Sep.2006 22:49:14 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <26.Sep.2006 16:29:08 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -163,7 +163,7 @@ HierarchyProjector::HierarchyProjector(
     }
     else if (d_solver_package == "SAMRAI")
     {
-        d_poisson_solver = new STOOLS::FACPreconditionerLSWrapper(d_poisson_fac_pc);
+        d_poisson_solver = new STOOLS::FACPreconditionerLSWrapper(d_poisson_fac_pc, fac_pc_db);
         d_using_ksp_method = false;
     }
     else
@@ -189,7 +189,7 @@ HierarchyProjector::HierarchyProjector(
         krylov_solver->setInitialGuessNonzero(true);
         krylov_solver->setOperator(d_laplace_op);
         krylov_solver->setPreconditioner(
-            new STOOLS::FACPreconditionerLSWrapper(d_poisson_fac_pc));
+            new STOOLS::FACPreconditionerLSWrapper(d_poisson_fac_pc, fac_pc_db));
     }
 
     // Initialize Variables and contexts.

@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <24.Sep.2006 18:59:34 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <26.Sep.2006 16:23:17 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -847,16 +847,16 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
             }
             else if (d_solver_package == "SAMRAI")
             {
-                d_helmholtz1_solvers[mu] = new STOOLS::FACPreconditionerLSWrapper(d_helmholtz1_fac_pcs[mu]);
-                d_helmholtz2_solvers[mu] = new STOOLS::FACPreconditionerLSWrapper(d_helmholtz2_fac_pcs[mu]);
+                d_helmholtz1_solvers[mu] = new STOOLS::FACPreconditionerLSWrapper(d_helmholtz1_fac_pcs[mu], d_fac_ops_db);
+                d_helmholtz2_solvers[mu] = new STOOLS::FACPreconditionerLSWrapper(d_helmholtz2_fac_pcs[mu], d_fac_ops_db);
 
                 if (d_maintain_helmholtz3_solvers)
                 {
-                    d_helmholtz3_solvers[mu] = new STOOLS::FACPreconditionerLSWrapper(d_helmholtz3_fac_pcs[mu]);
+                    d_helmholtz3_solvers[mu] = new STOOLS::FACPreconditionerLSWrapper(d_helmholtz3_fac_pcs[mu], d_fac_ops_db);
                 }
                 if (d_maintain_helmholtz4_solvers)
                 {
-                    d_helmholtz4_solvers[mu] = new STOOLS::FACPreconditionerLSWrapper(d_helmholtz4_fac_pcs[mu]);
+                    d_helmholtz4_solvers[mu] = new STOOLS::FACPreconditionerLSWrapper(d_helmholtz4_fac_pcs[mu], d_fac_ops_db);
                 }
 
                 d_using_ksp_method = false;
@@ -907,9 +907,9 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
                 krylov2_solver->setOperator(d_helmholtz2_ops[mu]);
 
                 krylov1_solver->setPreconditioner(
-                    new STOOLS::FACPreconditionerLSWrapper(d_helmholtz1_fac_pcs[mu]));
+                    new STOOLS::FACPreconditionerLSWrapper(d_helmholtz1_fac_pcs[mu], d_fac_ops_db));
                 krylov2_solver->setPreconditioner(
-                    new STOOLS::FACPreconditionerLSWrapper(d_helmholtz2_fac_pcs[mu]));
+                    new STOOLS::FACPreconditionerLSWrapper(d_helmholtz2_fac_pcs[mu], d_fac_ops_db));
 
                 if (d_maintain_helmholtz3_solvers)
                 {
@@ -921,7 +921,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
                     krylov3_solver->setInitialGuessNonzero(true);
                     krylov3_solver->setOperator(d_helmholtz3_ops[mu]);
                     krylov3_solver->setPreconditioner(
-                        new STOOLS::FACPreconditionerLSWrapper(d_helmholtz3_fac_pcs[mu]));
+                        new STOOLS::FACPreconditionerLSWrapper(d_helmholtz3_fac_pcs[mu], d_fac_ops_db));
                 }
                 if (d_maintain_helmholtz4_solvers)
                 {
@@ -933,7 +933,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
                     krylov4_solver->setInitialGuessNonzero(true);
                     krylov4_solver->setOperator(d_helmholtz4_ops[mu]);
                     krylov4_solver->setPreconditioner(
-                        new STOOLS::FACPreconditionerLSWrapper(d_helmholtz4_fac_pcs[mu]));
+                        new STOOLS::FACPreconditionerLSWrapper(d_helmholtz4_fac_pcs[mu], d_fac_ops_db));
                 }
             }
 
