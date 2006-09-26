@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <06.Sep.2006 01:34:17 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Sep.2006 22:52:09 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -959,9 +959,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // for reprojecting the pressure.
     if (d_reproject_pressure)
     {
-        d_poisson_spec    = d_hier_projector->getPoissonSpec();
-        d_poisson_bc_coef = d_hier_projector->getPoissonBcCoef();
-        d_poisson_solver  = d_hier_projector->getPoissonSolver();
+        d_poisson_solver = d_hier_projector->getPoissonSolver();
 
         d_helmholtz1_spec = d_adv_diff_hier_integrator->
             getHelmholtzSpecs(d_nu)[0];

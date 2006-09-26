@@ -9,9 +9,9 @@ BUILT_SOURCES = \
 CLEANFILES = ${BUILT_SOURCES}
 
 ## Dimension-independent library
-noinst_LTLIBRARIES = libIBAMR_adv_diff_fortran.la
-libIBAMR_adv_diff_fortran_la_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_adv_diff_fortran_la_SOURCES = # intentionally blank
+noinst_LTLIBRARIES = #libIBAMR_adv_diff_fortran.la
+#libIBAMR_adv_diff_fortran_la_F77FLAGS = $(AM_F77FLAGS)
+#libIBAMR_adv_diff_fortran_la_SOURCES =
 
 ## Dimension-dependent libraries
 noinst_LTLIBRARIES += libIBAMR_adv_diff_fortran2d.la

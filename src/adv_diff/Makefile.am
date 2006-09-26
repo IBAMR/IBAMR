@@ -5,10 +5,10 @@ SUBDIRS = fortran . tests
 ## Dimension-independent library
 pkg_include_HEADERS = # intentionally blank
 
-noinst_LTLIBRARIES = libIBAMR_adv_diff.la
-libIBAMR_adv_diff_la_CXXFLAGS = $(AM_CXXFLAGS)
-libIBAMR_adv_diff_la_LIBADD = fortran/libIBAMR_adv_diff_fortran.la
-libIBAMR_adv_diff_la_SOURCES =
+noinst_LTLIBRARIES = #libIBAMR_adv_diff.la
+#libIBAMR_adv_diff_la_CXXFLAGS = $(AM_CXXFLAGS)
+#libIBAMR_adv_diff_la_LIBADD = fortran/libIBAMR_adv_diff_fortran.la
+#libIBAMR_adv_diff_la_SOURCES =
 
 ## Dimension-dependent libraries
 SOURCES = AdvDiffHierarchyIntegrator.C AdvDiffHypPatchOps.C

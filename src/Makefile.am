@@ -6,11 +6,9 @@ SUBDIRS = fortran adv_diff advect navier_stokes utilities .
 lib_LTLIBRARIES = libIBAMR.la
 libIBAMR_la_LIBADD = $(FLIBS)			\
   $(top_builddir)/stools/src/libSTOOLS.la	\
-  adv_diff/libIBAMR_adv_diff.la			\
-  advect/libIBAMR_advect.la			\
-  utilities/libIBAMR_utilities.la
+  advect/libIBAMR_advect.la
 libIBAMR_la_LDFLAGS = -version 0:0:0
-libIBAMR_la_SOURCES =
+libIBAMR_la_SOURCES = # intentionally blank
 
 ## Dimension-dependent libraries
 lib_LTLIBRARIES += libIBAMR2d.la

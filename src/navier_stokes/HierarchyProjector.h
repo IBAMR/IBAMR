@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <05.Sep.2006 01:28:54 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Sep.2006 22:49:00 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -23,6 +23,7 @@
 #include <HierarchyCellDataOpsReal.h>
 #include <HierarchyFaceDataOpsReal.h>
 #include <HierarchySideDataOpsReal.h>
+#include <LocationIndexRobinBcCoefs.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <PoissonSpecifications.h>
@@ -133,40 +134,65 @@ public:
     ///
     ///  The following routines:
     ///
-    ///      getPoissonSpec(),
+    ///      getPhysicalBcCoef(),
+    ///      getHomogeneousBc(),
     ///      getPoissonBcCoef(),
-    ///      getPoissonSolver(),
-    ///      setPoissonBcCoef()
+    ///      getPoissonSolver()
     ///
     ///  allow other objects to access the Poisson solver and related
     ///  data used by this integrator.
     ///
 
     /*!
-     * Returns a pointer to the SAMRAI::solv::PoissonSpecifications object employed
-     * by the projector to solve the elliptic projection equation.
+     * Returns a pointer to the SAMRAI::solv::RobinBcCoefStrategy
+     * object employed by the projector to solve the elliptic
+     * projection equation.
      */
-    const SAMRAI::solv::PoissonSpecifications* getPoissonSpec();
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPhysicalBcCoef() const;
 
     /*!
-     * Returns a pointer to the SAMRAI::solv::RobinBcCoefStrategy<NDIM> object employed by
-     * the projector to solve the elliptic projection equation.
+     * Returns a boolean indicating whether the
+     * SAMRAI::solv::RobinBcCoefStrategy object employed by the
+     * projector to sole the elliptic projection equation employs
+     * homogeneous boundary conditions.
      */
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPoissonBcCoef();
+    bool getHomogeneousBc() const;
 
     /*!
      * Returns a pointer to the concrete linear solver object employed
      * by the projector to solve the elliptic projection equation.
      */
-    SAMRAI::tbox::Pointer<STOOLS::LinearSolver> getPoissonSolver();
+    SAMRAI::tbox::Pointer<STOOLS::LinearSolver> getPoissonSolver() const;
+
+    ///
+    ///  The following routines:
+    ///
+    ///      setPhysicalBcCoef(),
+    ///      setHomogeneousBc()
+    ///
+    ///  allow users of this class to specify the physical boundary
+    ///  conditions employed by the projector when solving the
+    ///  elliptic projection equation.
+    ///
 
     /*!
-     * Specify the SAMRAI::solv::RobinBcCoefStrategy<NDIM> object employed by the
-     * projector to solve the elliptic projection equation.
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to
+     * specify physical boundary conditions.
+     *
+     * \note \a bc_coef may be NULL.  In this case, homogeneous
+     * Neumann boundary conditions are employed.
+     *
+     * \param bc_coef pointer to an object that can set the Robin
+     *        boundary condition coefficients
      */
-    void setPoissonBcCoef(
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* poisson_bc_coef,
-        const bool homogeneous_bc=false);
+    void setPhysicalBcCoef(
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+
+    /*!
+     * \brief Specify whether the boundary conditions are homogeneous.
+     */
+    void setHomogeneousBc(
+        const bool homogeneous_bc);
 
     ///
     ///  The following routines:
@@ -450,13 +476,14 @@ private:
     int d_max_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
 
-    SAMRAI::tbox::Pointer<STOOLS::LinearSolver>      d_poisson_solver;
-    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> d_poisson_op;
+    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
+    bool d_homogeneous_bc;
 
-    SAMRAI::solv::PoissonSpecifications*                          d_poisson_spec;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*                      d_default_bc_coef;
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*                d_poisson_bc_coef;
-    SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator>           d_poisson_fac_op;
+    SAMRAI::tbox::Pointer<STOOLS::LinearSolver> d_poisson_solver;
+    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> d_laplace_op;
+    SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> d_poisson_fac_op;
     SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_poisson_fac_pc;
 
     /*

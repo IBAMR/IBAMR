@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <06.Sep.2006 22:04:44 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Sep.2006 18:54:14 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1035,7 +1035,6 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_ops_db;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_pcs_db;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hypre_solver_db;
 };
 }// namespace IBAMR
 

@@ -5,10 +5,10 @@ SUBDIRS = .
 ## Dimension-independent library
 pkg_include_HEADERS = # intentionally blank
 
-noinst_LTLIBRARIES = libIBAMR_utilities.la
-libIBAMR_utilities_la_CXXFLAGS = $(AM_CXXFLAGS)
-libIBAMR_utilities_la_LIBADD =
-libIBAMR_utilities_la_SOURCES =
+noinst_LTLIBRARIES = #libIBAMR_utilities.la
+#libIBAMR_utilities_la_CXXFLAGS = $(AM_CXXFLAGS)
+#libIBAMR_utilities_la_LIBADD =
+#libIBAMR_utilities_la_SOURCES =
 
 ## Dimension-dependent libraries
 SOURCES = ConvergenceMonitor.C PhysicalBCDataStrategy.C SetDataStrategy.C

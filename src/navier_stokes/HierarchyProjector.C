@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <06.Sep.2006 01:01:26 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Sep.2006 22:49:14 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -23,7 +23,6 @@
 
 #include <HierarchyDataOpsManager.h>
 #include <IntVector.h>
-#include <LocationIndexRobinBcCoefs.h>
 #include <Patch.h>
 #include <RefineOperator.h>
 #include <Variable.h>
@@ -85,11 +84,13 @@ HierarchyProjector::HierarchyProjector(
       d_max_iterations(50),
       d_abs_residual_tol(1.0e-12),
       d_rel_residual_tol(1.0e-8),
+      d_poisson_spec(d_object_name+"::Poisson spec"),
+      d_default_bc_coef(new SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>(
+                            d_object_name+"::default_bc_coef", SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL))),
+      d_bc_coef(NULL),
+      d_homogeneous_bc(false),
       d_poisson_solver(NULL),
-      d_poisson_op(NULL),
-      d_poisson_spec(NULL),
-      d_default_bc_coef(NULL),
-      d_poisson_bc_coef(NULL),
+      d_laplace_op(NULL),
       d_poisson_fac_op(NULL),
       d_poisson_fac_pc(NULL),
       d_sol_var(NULL),
@@ -115,6 +116,22 @@ HierarchyProjector::HierarchyProjector(
     if (from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
 
+    // Initialize the Poisson specifications.
+    d_poisson_spec.setCZero();
+    d_poisson_spec.setDConstant(-1.0);
+
+    // Setup a default bc strategy object that specifies homogeneous
+    // Neumann boundary conditions.
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_default_bc_coef->setBoundarySlope(2*d  ,0.0);
+        d_default_bc_coef->setBoundarySlope(2*d+1,0.0);
+    }
+
+    // Initialize the boundary conditions objects.
+    setHomogeneousBc(d_homogeneous_bc);
+    setPhysicalBcCoef(d_default_bc_coef);
+
     // Get initialization data for the FAC ops and FAC preconditioners
     // and initialize them.
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> fac_op_db, fac_pc_db;
@@ -128,26 +145,10 @@ HierarchyProjector::HierarchyProjector(
         fac_pc_db = input_db->getDatabase("FACPreconditioner");
     }
 
-    d_poisson_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::Poisson Spec");
-    d_poisson_spec->setCZero();
-    d_poisson_spec->setDConstant(-1.0);
-
-    static const bool homogeneous_bc = true;
-    d_default_bc_coef = new SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>(
-        d_object_name+"::default_bc_coef", SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL));
-    for (int d = 0; d < NDIM; ++d)
-    {
-        dynamic_cast<SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef)->
-            setBoundarySlope(2*d  ,0.0);
-        dynamic_cast<SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef)->
-            setBoundarySlope(2*d+1,0.0);
-    }
-    d_poisson_bc_coef = d_default_bc_coef;
-
     d_poisson_fac_op = new STOOLS::CCPoissonFACOperator(
-        d_object_name+"::FAC Op", "proj_fac_", fac_op_db);
-    d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
-    d_poisson_fac_op->setPhysicalBcCoefObject(d_poisson_bc_coef);
+        d_object_name+"::FAC Op", fac_op_db);
+    d_poisson_fac_op->setPoissonSpecifications(d_poisson_spec);
+    d_poisson_fac_op->setPhysicalBcCoef(d_bc_coef);
 
     d_poisson_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(
         d_object_name+"::FAC Preconditioner", *d_poisson_fac_op, fac_pc_db);
@@ -178,15 +179,15 @@ HierarchyProjector::HierarchyProjector(
     // Initilize the Laplace operator when using a Krylov solver.
     if (d_using_ksp_method)
     {
-        d_poisson_op = new STOOLS::CCLaplaceOperator(
-            d_object_name+"::Laplace Operator", d_poisson_spec,
-            d_poisson_bc_coef, homogeneous_bc);
+        d_laplace_op = new STOOLS::CCLaplaceOperator(
+            d_object_name+"::Laplace Operator", &d_poisson_spec,
+            d_bc_coef, d_homogeneous_bc);
         SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> krylov_solver = d_poisson_solver;
 #ifdef DEBUG_CHECK_ASSERTIONS
         assert(!krylov_solver.isNull());
 #endif
         krylov_solver->setInitialGuessNonzero(true);
-        krylov_solver->setOperator(d_poisson_op);
+        krylov_solver->setOperator(d_laplace_op);
         krylov_solver->setPreconditioner(
             new STOOLS::FACPreconditionerLSWrapper(d_poisson_fac_pc));
     }
@@ -260,7 +261,6 @@ HierarchyProjector::~HierarchyProjector()
     d_poisson_solver.setNull();
 
     // Deallocate other components.
-    delete d_poisson_spec;
     delete d_default_bc_coef;
 
     return;
@@ -308,35 +308,31 @@ HierarchyProjector::isManagingHierarchyMathOps() const
 ///
 ///  The following routines:
 ///
-///      getPoissonSpec(),
-///      getPoissonBcCoef(),
-///      getPoissonSolver(),
-///      setPoissonBcCoef()
+///      getPhysicalBcCoef(),
+///      getHomogeneousBc(),
+///      getPoissonSolver()
 ///
 ///  allow other objects to access the Poisson solver and related data
 ///  used by this integrator.
 ///
 
-const SAMRAI::solv::PoissonSpecifications*
-HierarchyProjector::getPoissonSpec()
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_poisson_spec != NULL);
-#endif
-    return d_poisson_spec;
-}// getPoissonSpec
-
 const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
-HierarchyProjector::getPoissonBcCoef()
+HierarchyProjector::getPhysicalBcCoef() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_poisson_bc_coef != NULL);
+    assert(d_bc_coef != NULL);
 #endif
-    return d_poisson_bc_coef;
-}// getPoissonBcCoef
+    return d_bc_coef;
+}// getPhysicalBcCoef
+
+bool
+HierarchyProjector::getHomogeneousBc() const
+{
+    return d_homogeneous_bc;
+}// getHomogeneousBc
 
 SAMRAI::tbox::Pointer<STOOLS::LinearSolver>
-HierarchyProjector::getPoissonSolver()
+HierarchyProjector::getPoissonSolver() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!d_poisson_solver.isNull());
@@ -344,29 +340,40 @@ HierarchyProjector::getPoissonSolver()
     return d_poisson_solver;
 }// getPoissonSolver
 
+///
+///  The following routines:
+///
+///      setPhysicalBcCoef(),
+///      setHomogeneousBc()
+///
+///  allow users of this class to specify the physical boundary
+///  conditions employed by the projector when solving the elliptic
+///  projection equation.
+///
+
 void
-HierarchyProjector::setPoissonBcCoef(
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* poisson_bc_coef,
-    const bool homogeneous_bc)
+HierarchyProjector::setPhysicalBcCoef(
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(poisson_bc_coef != NULL);
-#endif
-    d_poisson_bc_coef = poisson_bc_coef;
-    d_poisson_fac_op->setPhysicalBcCoefObject(
-        d_poisson_bc_coef, homogeneous_bc);
-    if (d_using_ksp_method)
+    if (bc_coef != NULL)
     {
-        if (!homogeneous_bc)
-        {
-            TBOX_ERROR(d_object_name << "::setPoissonBcCoef()\n"
-                       << "  Krylov solver presently does not handle inhomogeneous boundary conditions.\n");
-        }
-        d_poisson_op->setRobinBcCoefStrategy(
-            d_poisson_bc_coef, homogeneous_bc);
+        d_bc_coef = bc_coef;
+    }
+    else
+    {
+        d_bc_coef = d_default_bc_coef;
+        setHomogeneousBc(true);
     }
     return;
-}// setPoissonBcCoef
+}// setPhysicalBcCoef
+
+void
+HierarchyProjector::setHomogeneousBc(
+    const bool homogeneous_bc)
+{
+    d_homogeneous_bc = homogeneous_bc;
+    return;
+}// setHomogeneousBc
 
 ///
 ///  The following routines:
@@ -398,7 +405,7 @@ HierarchyProjector::projectHierarchy(
 
     if (d_using_ksp_method)
     {
-        d_poisson_op->setTime(Phi_bdry_fill_time);
+        d_laplace_op->setTime(Phi_bdry_fill_time);
     }
 
     const int coarsest_ln = 0;
@@ -486,7 +493,7 @@ HierarchyProjector::projectHierarchy(
 
     if (d_using_ksp_method)
     {
-        d_poisson_op->setTime(Phi_bdry_fill_time);
+        d_laplace_op->setTime(Phi_bdry_fill_time);
     }
 
     const int coarsest_ln = 0;
@@ -653,7 +660,7 @@ HierarchyProjector::resetHierarchyConfiguration(
     // (Re)-initialize the Poisson solver.
     if (d_using_ksp_method)
     {
-        d_poisson_op->setHierarchyMathOps(d_hier_math_ops);
+        d_laplace_op->setHierarchyMathOps(d_hier_math_ops);
     }
     d_poisson_fac_op->setResetLevels(coarsest_level, finest_level);
     d_poisson_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);

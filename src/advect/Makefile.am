@@ -8,7 +8,7 @@ pkg_include_HEADERS = # intentionally blank
 noinst_LTLIBRARIES = libIBAMR_advect.la
 libIBAMR_advect_la_CXXFLAGS = $(AM_CXXFLAGS)
 libIBAMR_advect_la_LIBADD = fortran/libIBAMR_advect_fortran.la
-libIBAMR_advect_la_SOURCES =
+libIBAMR_advect_la_SOURCES = # intentionally blank
 
 ## Dimension-dependent libraries
 SOURCES = GodunovAdvector.C GodunovHypPatchOps.C

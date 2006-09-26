@@ -11,9 +11,9 @@ BUILT_SOURCES = \
 CLEANFILES = ${BUILT_SOURCES}
 
 ## Dimension-independent library
-noinst_LTLIBRARIES = libIBAMR_navier_stokes_fortran.la
-libIBAMR_navier_stokes_fortran_la_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_navier_stokes_fortran_la_SOURCES = # intentionally blank
+noinst_LTLIBRARIES = #libIBAMR_navier_stokes_fortran.la
+#libIBAMR_navier_stokes_fortran_la_F77FLAGS = $(AM_F77FLAGS)
+#libIBAMR_navier_stokes_fortran_la_SOURCES = # intentionally blank
 
 ## Dimension-dependent libraries
 noinst_LTLIBRARIES += libIBAMR_navier_stokes_fortran2d.la

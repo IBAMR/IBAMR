@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <06.Sep.2006 00:13:39 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Sep.2006 23:23:09 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1129,8 +1129,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
 
     double d_poisson_abs_residual_tol, d_poisson_rel_residual_tol;
-    const SAMRAI::solv::PoissonSpecifications*     d_poisson_spec;
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_poisson_bc_coef;
     SAMRAI::tbox::Pointer<STOOLS::LinearSolver>    d_poisson_solver;
 
     const SAMRAI::solv::PoissonSpecifications*     d_helmholtz1_spec;
