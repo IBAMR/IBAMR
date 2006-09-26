@@ -17,7 +17,6 @@ c
      &     stabdt)
 c
       implicit none
-include(CONSTDIR/const.i)dnl
 c
 c     Input.
 c

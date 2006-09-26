@@ -72,14 +72,6 @@ AdvDiffHierarchyIntegrator {
       num_pre_sweeps  = 0  // this should always be 0
       num_post_sweeps = 2
    }
-
-   CCPoissonAMRHypreSolvers {
-      solver_type = "PCG"
-      precond_type = "diagonal_scaling"
-      relative_residual_tol = 1.0e-12
-      max_iterations = 50
-      initial_guess_nonzero = TRUE
-   }
 }
 
 QInit {

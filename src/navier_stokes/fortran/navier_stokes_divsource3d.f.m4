@@ -14,7 +14,7 @@ c     (i.e., nonconservative) form of the equation.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine naver_stokes_advective_divsource3d(
+      subroutine navier_stokes_advective_divsource3d(
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nugc0,nugc1,nugc2,
      &     nQgc0,nQgc1,nQgc2,
@@ -24,7 +24,6 @@ c
      &     F)
 c
       implicit none
-include(CONSTDIR/const.i)dnl
 c
 c     Input.
 c
@@ -104,7 +103,6 @@ c
      &     F)
 c
       implicit none
-include(CONSTDIR/const.i)dnl
 c
 c     Input.
 c

@@ -349,7 +349,7 @@ AC_CONFIG_FILES([
   src/Makefile src/fortran/Makefile
   src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/adv_diff/tests/Makefile
   src/advect/Makefile src/advect/fortran/Makefile src/advect/tests/Makefile
-  src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile
+  src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/navier_stokes/tests/Makefile
   src/utilities/Makefile
 ])
 AC_OUTPUT

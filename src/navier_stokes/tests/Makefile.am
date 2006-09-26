@@ -1,17 +1,17 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
 
-#EXTRA_DIST = input2d input3d
+EXTRA_DIST = input2d input3d
 
 ## Dimension-dependent testers
-#SOURCES = main.C QInit.C QInit.h USet.C USet.h
+SOURCES = main.C PInit.C PInit.h UInit.C UInit.h
 
-#check_PROGRAMS = main2d main3d
+check_PROGRAMS = main2d main3d
 
-#main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-#main2d_LDADD = ../../libIBAMR2d.la ../../libIBAMR.la
-#main2d_SOURCES = $(SOURCES)
+main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+main2d_LDADD = ../../libIBAMR2d.la ../../libIBAMR.la
+main2d_SOURCES = $(SOURCES)
 
-#main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-#main3d_LDADD = ../../libIBAMR3d.la ../../libIBAMR.la
-#main3d_SOURCES = $(SOURCES)
+main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+main3d_LDADD = ../../libIBAMR3d.la ../../libIBAMR.la
+main3d_SOURCES = $(SOURCES)

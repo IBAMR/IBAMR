@@ -24,7 +24,6 @@ c
      &     F)
 c
       implicit none
-include(CONSTDIR/const.i)dnl
 c
 c     Input.
 c
@@ -87,7 +86,6 @@ c
      &     F)
 c
       implicit none
-include(CONSTDIR/const.i)dnl
 c
 c     Input.
 c
