@@ -80,7 +80,6 @@ PInit::setDataOnPatch(
     const double* const XLower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
-    double r_squared;
     double X[NDIM];
     const double t = data_time;
 
