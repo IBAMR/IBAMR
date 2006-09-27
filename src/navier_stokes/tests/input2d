@@ -139,6 +139,7 @@ HierarchyProjector {
          num_post_relax_steps  = 1
          max_iterations        = 1
          relative_residual_tol = 1.0e-6
+         enable_logging = TRUE
       }
    }
 

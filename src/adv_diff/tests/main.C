@@ -69,12 +69,12 @@ int main(int argc, char* argv[])
 
     bool is_from_restart = false;
 
-    if ((argc != 2) && (argc != 4))
+    if (argc == 1)
     {
         tbox::pout << "USAGE:  " << argv[0] << " <input filename> "
                    << "<restart dir> <restore number> [options]\n"
                    << "  options:\n"
-                   << "  none at this time"
+                   << "  PETSc command line options; use -help for more information"
                    << endl;
         tbox::MPI::abort();
         return -1;
@@ -82,12 +82,24 @@ int main(int argc, char* argv[])
     else
     {
         input_filename = argv[1];
-        if (argc == 4)
+        if (argc >= 4)
         {
-            restart_read_dirname = argv[2];
-            restore_num = atoi(argv[3]);
-
-            is_from_restart = true;
+            FILE* fstream = NULL;
+            if (tbox::MPI::getRank() == 0)
+            {
+                fstream = fopen(argv[2], "r");
+            }
+            int worked = (fstream ? 1 : 0);
+#ifdef HAVE_MPI
+            worked = tbox::MPI::bcast(worked, 0);
+#endif
+            if (worked)
+            {
+                restart_read_dirname = argv[2];
+                restore_num = atoi(argv[3]);
+                is_from_restart = true;
+            }
+            if (fstream) fclose(fstream);
         }
     }
 
