@@ -1,47 +1,35 @@
-//
-// LNodeIndex.h
-//
-// Created on 28 Feb 2004
-//         by Boyce Griffith (boyce@bigboy.speakeasy.net).
-//
-// Last modified: <16.Jun.2005 16:17:25 boyce@mstu1.cims.nyu.edu>
-//
-
 #ifndef included_LNodeIndex
 #define included_LNodeIndex
 
-// STL INCLUDES
-//
-#include <vector>
+// Filename: LNodeIndex.h
+// Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
+// Last modified: <02.Oct.2006 11:56:30 boyce@boyce-griffiths-powerbook-g4-15.local>
 
-// SAMRAI-tools INCLUDES
-//
-#include "Stashable.h"
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+// IBAMR INCLUDES
+#include <ibamr/Stashable.h>
 
 // SAMRAI INCLUDES
-//
-#ifndef included_SAMRAI_config
-#include "SAMRAI_config.h"
-#endif
+#include <Index.h>
+#include <IntVector.h>
+#include <tbox/AbstractStream.h>
+#include <tbox/DescribedClass.h>
+#include <tbox/Pointer.h>
 
-#include "Index.h"
-#include "IntVector.h"
-#include "tbox/AbstractStream.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+// C++ STDLIB INCLUDES
+#include <vector>
 
-using namespace SAMRAI;
-using namespace std;
+/////////////////////////////// CLASS DEFINITION /////////////////////////////
 
-// CLASS DEFINITION
-//
-
+namespace IBAMR
+{
 /*!
  * @brief Class LNodeIndex provides index information about a single
  * node of a Lagrangian mesh.
  */
 class LNodeIndex
-    : public tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     //@{ @name Friend declarations.
@@ -49,7 +37,7 @@ public:
         const LNodeIndex&,
         const LNodeIndex&);
     //@}
-    
+
     /*!
      * @brief Default constructor.
      */
@@ -57,8 +45,8 @@ public:
         const int lagrangian_nidx=-1,
         const int local_petsc_nidx=-1,
         double* const X_ptr=NULL,
-        const vector<tbox::Pointer<Stashable> >& stash_data=vector<tbox::Pointer<Stashable> >());
-    
+        const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data=vector<SAMRAI::tbox::Pointer<Stashable> >());
+
     /*!
      * @brief Copy constructor.
      *
@@ -66,19 +54,19 @@ public:
      */
     LNodeIndex(
         const LNodeIndex& from);
-    
+
     /*!
      * @brief Destructor.
      *
      * The LNodeIndex destructor does nothing interesting.
      */
     ~LNodeIndex();
-    
+
     /*!
      * @brief Assignment operator.
      *
      * @param that The value to assign to this object.
-     * 
+     *
      * @return A reference to this object.
      */
     LNodeIndex& operator=(
@@ -94,19 +82,19 @@ public:
      */
     void setLagrangianIndex(
         const int lagrangian_nidx);
-    
+
     /*!
      * @return The local PETSc index refrenced by this LNodeIndex.
      */
     int getLocalPETScIndex() const;
-    
+
     /*!
      * @brief Reset the local PETSc index refrenced by this
      * LNodeIndex.
      */
     void setLocalPETScIndex(
         const int local_petsc_nidx);
-    
+
     /*!
      * @return A pointer to the physical location of the node
      * refrenced by this LNodeIndex.
@@ -124,14 +112,14 @@ public:
      * @return A constant refrence to any additional data associated
      * with the node refrenced by this LNodeIndex.
      */
-    const vector<tbox::Pointer<Stashable> >& getStashData() const;
-    
+    const std::vector<SAMRAI::tbox::Pointer<Stashable> >& getStashData() const;
+
     /*!
      * @return A non-constant refrence to any additional data
      * associated with the node refrenced by this LNodeIndex.
      */
-    vector<tbox::Pointer<Stashable> >& getStashData();
-    
+    std::vector<SAMRAI::tbox::Pointer<Stashable> >& getStashData();
+
     /*!
      * @brief Copy data from the source.
      *
@@ -139,46 +127,46 @@ public:
      * src_offset.
      */
     void copySourceItem(
-        const hier::Index<NDIM>& src_index,
-        const hier::IntVector<NDIM>& src_offset,
+        const SAMRAI::hier::Index<NDIM>& src_index,
+        const SAMRAI::hier::IntVector<NDIM>& src_offset,
         const LNodeIndex& src_item);
-    
+
     /*!
      * @brief Return an upper bound on the amount of space required to
      * pack the object to a buffer.
      */
     size_t getDataStreamSize() const;
-    
+
     /*!
      * @brief Pack data into the output stream.
      */
     void packStream(
-        tbox::AbstractStream& stream);
-    
+        SAMRAI::tbox::AbstractStream& stream);
+
     /*!
      * @brief Unpack data from the input stream.
      */
     void unpackStream(
-        tbox::AbstractStream& stream,
-        const hier::IntVector<NDIM>& offset);
-    
+        SAMRAI::tbox::AbstractStream& stream,
+        const SAMRAI::hier::IntVector<NDIM>& offset);
+
 private:
     /*!
      * Assign that to this.
      */
     void assignThatToThis(
         const LNodeIndex& that);
-    
+
     int d_lagrangian_nidx;  // the fixed global Lagrangian index
 
     int d_local_petsc_nidx; // the local PETSc index
 
     double* d_X_ptr;        // a pointer to the physical location of
                             // the node
-    
+
     // a (possibly empty) collection of objects which are associated
     // with the node
-    vector<tbox::Pointer<Stashable> > d_stash_data;
+    std::vector<SAMRAI::tbox::Pointer<Stashable> > d_stash_data;
 };
 
 /*!
@@ -197,12 +185,12 @@ bool operator<(
     const LNodeIndex& lhs,
     const LNodeIndex& rhs);
 
-// INLINED FUNCTION DEFINITIONS
-//
-#ifndef DEBUG_NO_INLINE
-#include "LNodeIndex.I"
-#endif
+}// namespace IBAMR
 
-#endif //#ifndef included_LNodeIndex
+/////////////////////////////// INLINE ///////////////////////////////////////
+
+#include "LNodeIndex.I"
 
 //////////////////////////////////////////////////////////////////////////////
+
+#endif //#ifndef included_LNodeIndex

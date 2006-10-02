@@ -1,27 +1,37 @@
-//
-// LNodeIndexVariable.C
-//
-// Created on 01 Mar 2004
-//         by Boyce Griffith (boyce@bigboy.speakeasy.net).
-//
-// Last modified: <07.Mar.2005 13:38:30 boyce@trasnaform.cims.nyu.edu>
-//
+// Filename: LNodeIndexVariable.C
+// Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
+// Last modified: <02.Oct.2006 13:16:26 boyce@boyce-griffiths-powerbook-g4-15.local>
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "LNodeIndexVariable.h"
 
-#ifdef DEBUG_CHECK_ASSERTIONS
-#include <assert.h>
+// IBAMR INCLUDES
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
 #endif
 
-// SAMRAI-tools INCLUDES
-//
-#include "LNodeIndexDataFactory.h"
+#include <ibamr/LNodeIndexDataFactory.h>
+
+// SAMRAI INCLUDES
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
+
+// C++ STDLIB INCLUDES
+#include <cassert>
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+namespace IBAMR
+{
+/////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LNodeIndexVariable::LNodeIndexVariable(
-    const string& name)
-    : hier::Variable<NDIM>(name,new LNodeIndexDataFactory(hier::IntVector<NDIM>(0)))
+    const std::string& name)
+    : SAMRAI::hier::Variable<NDIM>(name, new LNodeIndexDataFactory(SAMRAI::hier::IntVector<NDIM>(0)))
 {
     // intentionally blank
     return;
@@ -33,31 +43,29 @@ LNodeIndexVariable::~LNodeIndexVariable()
     return;
 }// ~LNodeIndexVariable
 
-bool LNodeIndexVariable::dataLivesOnPatchBorder() const
+bool
+LNodeIndexVariable::dataLivesOnPatchBorder() const
 {
-    return(false);
+    return false;
 }// dataLivesOnPatchBorder
 
-bool LNodeIndexVariable::fineBoundaryRepresentsVariable() const
+bool
+LNodeIndexVariable::fineBoundaryRepresentsVariable() const
 {
-    return(true);
+    return true;
 }// fineBoundaryRepresentsVariable
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+} // namespace IBAMR
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-#ifndef LACKS_EXPLICIT_TEMPLATE_INSTANTIATION
-
-#include "tbox/Pointer.C"
-
-//////////////////////////////////////////////////////////////////////
-///
-/// These declarations are required to use the LNodeIndexVariable
-/// class.
-///
-//////////////////////////////////////////////////////////////////////
-
-template class tbox::Pointer<LNodeIndexVariable>;
-
-#endif
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::LNodeIndexVariable>;
 
 //////////////////////////////////////////////////////////////////////////////

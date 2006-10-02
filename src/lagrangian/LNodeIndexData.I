@@ -1,36 +1,31 @@
-//
-// LNodeIndexData.I
-//
-// Created on 17 Apr 2004
-//         by Boyce Griffith (boyce@trasnaform.speakeasy.net).
-//
-// Last modified: <11.Jul.2004 21:38:52 boyce@trasnaform.speakeasy.net>
-//
+// Filename: LNodeIndexData.I
+// Created on 17 Apr 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
+// Last modified: <02.Oct.2006 13:36:02 boyce@boyce-griffiths-powerbook-g4-15.local>
 
-//////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifdef DEBUG_NO_INLINE
-#define inline
-#endif
+/////////////////////////////// NAMESPACE ////////////////////////////////////
 
+namespace IBAMR
+{
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline
-const vector<int>& LNodeIndexData::getInteriorLocalIndices() const
+const std::vector<int>&
+LNodeIndexData::getInteriorLocalIndices() const
 {
-    return(d_interior_local_indices);
+    return d_interior_local_indices;
 }// getInteriorLocalIndices
 
 inline
-const vector<int>& LNodeIndexData::getGhostLocalIndices() const
+const std::vector<int>&
+LNodeIndexData::getGhostLocalIndices() const
 {
-    return(d_ghost_local_indices);
+    return d_ghost_local_indices;
 }// getGhostLocalIndices
 
 //////////////////////////////////////////////////////////////////////////////
 
-#ifdef DEBUG_NO_INLINE
-#undef inline
-#endif
+}// namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

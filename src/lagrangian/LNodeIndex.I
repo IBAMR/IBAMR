@@ -1,31 +1,24 @@
-//
-// LNodeIndex.I
-//
-// Created on 28 Feb 2004
-//         by Boyce Griffith (boyce@bigboy.speakeasy.net).
-//
-// Last modified: <27.Jun.2005 00:46:04 boyce@mstu1.cims.nyu.edu>
-//
+// Filename: LNodeIndex.I
+// Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
+// Last modified: <02.Oct.2006 11:57:10 boyce@boyce-griffiths-powerbook-g4-15.local>
 
-#ifdef DEBUG_CHECK_ASSERTIONS
-#include <assert.h>
-#endif
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI-tools INCLUDES
-//
-#include "StashableManager.h"
+// IBAMR INCLUDES
+#include <ibamr/StashableManager.h>
 
 // SAMRAI INCLUDES
-//
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
-
-//////////////////////////////////////////////////////////////////////////////
-
-#ifdef DEBUG_NO_INLINE
-#define inline
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
 #endif
 
+#include <tbox/PIO.h>
+#include <tbox/Utilities.h>
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+namespace IBAMR
+{
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline
@@ -33,7 +26,7 @@ LNodeIndex::LNodeIndex(
     const int lagrangian_nidx,
     const int local_petsc_nidx,
     double* const X_ptr,
-    const vector<tbox::Pointer<Stashable> >& stash_data)
+    const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data)
     : d_lagrangian_nidx(lagrangian_nidx),
       d_local_petsc_nidx(local_petsc_nidx),
       d_X_ptr(X_ptr),
@@ -59,24 +52,27 @@ LNodeIndex::~LNodeIndex()
 }// ~LNodeIndex
 
 inline
-LNodeIndex& LNodeIndex::operator=(
+LNodeIndex&
+LNodeIndex::operator=(
     const LNodeIndex& that)
 {
     if (this != &that)
     {
         assignThatToThis(that);
     }
-    return(*this);
+    return *this;
 }// operator=
 
 inline
-int LNodeIndex::getLagrangianIndex() const
+int
+LNodeIndex::getLagrangianIndex() const
 {
-    return(d_lagrangian_nidx);
+    return d_lagrangian_nidx;
 }// getLagrangianIndex
 
 inline
-void LNodeIndex::setLagrangianIndex(
+void
+LNodeIndex::setLagrangianIndex(
     const int lagrangian_nidx)
 {
     d_lagrangian_nidx = lagrangian_nidx;
@@ -84,13 +80,15 @@ void LNodeIndex::setLagrangianIndex(
 }// setLagrangianIndex
 
 inline
-int LNodeIndex::getLocalPETScIndex() const
+int
+LNodeIndex::getLocalPETScIndex() const
 {
-    return(d_local_petsc_nidx);
+    return d_local_petsc_nidx;
 }// getLocalPETScIndex
 
 inline
-void LNodeIndex::setLocalPETScIndex(
+void
+LNodeIndex::setLocalPETScIndex(
     const int local_petsc_nidx)
 {
     d_local_petsc_nidx = local_petsc_nidx;
@@ -98,16 +96,18 @@ void LNodeIndex::setLocalPETScIndex(
 }// setLocalPETScIndex
 
 inline
-double* LNodeIndex::getNodeLocation() const
+double*
+LNodeIndex::getNodeLocation() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_X_ptr != NULL);
 #endif
-    return(d_X_ptr);
+    return d_X_ptr;
 }// getNodeLocation
 
 inline
-void LNodeIndex::setNodeLocation(
+void
+LNodeIndex::setNodeLocation(
     double* const X_ptr)
 {
     d_X_ptr = X_ptr;
@@ -115,21 +115,24 @@ void LNodeIndex::setNodeLocation(
 }// setNodeLocation
 
 inline
-const vector<tbox::Pointer<Stashable> >& LNodeIndex::getStashData() const
+const std::vector<SAMRAI::tbox::Pointer<Stashable> >&
+LNodeIndex::getStashData() const
 {
-    return(d_stash_data);
+    return d_stash_data;
 }// getStashData
 
 inline
-vector<tbox::Pointer<Stashable> >& LNodeIndex::getStashData()
+vector<SAMRAI::tbox::Pointer<Stashable> >&
+LNodeIndex::getStashData()
 {
-    return(d_stash_data);
+    return d_stash_data;
 }// getStashData
 
 inline
-void LNodeIndex::copySourceItem(
-    const hier::Index<NDIM>& src_index,
-    const hier::IntVector<NDIM>& src_offset,
+void
+LNodeIndex::copySourceItem(
+    const SAMRAI::hier::Index<NDIM>& src_index,
+    const SAMRAI::hier::IntVector<NDIM>& src_offset,
     const LNodeIndex& src_item)
 {
     assignThatToThis(src_item);
@@ -137,15 +140,17 @@ void LNodeIndex::copySourceItem(
 }// copySourceItem
 
 inline
-size_t LNodeIndex::getDataStreamSize() const
+size_t
+LNodeIndex::getDataStreamSize() const
 {
-    return(2*tbox::AbstractStream::sizeofInt() +
-           StashableManager::getManager()->getDataStreamSize(d_stash_data));
+    return 2*SAMRAI::tbox::AbstractStream::sizeofInt()
+        + StashableManager::getManager()->getDataStreamSize(d_stash_data);
 }// getDataStreamSize
 
 inline
-void LNodeIndex::packStream(
-    tbox::AbstractStream& stream)
+void
+LNodeIndex::packStream(
+    SAMRAI::tbox::AbstractStream& stream)
 {
     stream.pack(&d_lagrangian_nidx,1);
     stream.pack(&d_local_petsc_nidx, 1);
@@ -155,14 +160,15 @@ void LNodeIndex::packStream(
 }// packStream
 
 inline
-void LNodeIndex::unpackStream(
-    tbox::AbstractStream& stream,
-    const hier::IntVector<NDIM>& offset)
+void
+LNodeIndex::unpackStream(
+    SAMRAI::tbox::AbstractStream& stream,
+    const SAMRAI::hier::IntVector<NDIM>& offset)
 {
     stream.unpack(&d_lagrangian_nidx,1);
     stream.unpack(&d_local_petsc_nidx, 1);
     d_X_ptr = NULL;
-    
+
     d_stash_data.clear();
     StashableManager::getManager()->unpackStream(stream, offset, d_stash_data);
     return;
@@ -171,7 +177,8 @@ void LNodeIndex::unpackStream(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 inline
-void LNodeIndex::assignThatToThis(
+void
+LNodeIndex::assignThatToThis(
     const LNodeIndex& that)
 {
     d_lagrangian_nidx = that.d_lagrangian_nidx;
@@ -196,11 +203,11 @@ bool operator<(
                << NDIM << endl);
 #endif
 #endif
-    
-    return((lhs.d_X_ptr[0]<rhs.d_X_ptr[0]) ||
+
+    return (lhs.d_X_ptr[0]<rhs.d_X_ptr[0]) ||
 #if (NDIM>1)
            ((lhs.d_X_ptr[0]==rhs.d_X_ptr[0])&&
-            (lhs.d_X_ptr[1]< rhs.d_X_ptr[1])) ||        
+            (lhs.d_X_ptr[1]< rhs.d_X_ptr[1])) ||
 #if (NDIM>2)
            ((lhs.d_X_ptr[0]==rhs.d_X_ptr[0])&&
             (lhs.d_X_ptr[1]==rhs.d_X_ptr[1])&&
@@ -214,14 +221,11 @@ bool operator<(
             (lhs.d_X_ptr[2]==rhs.d_X_ptr[2])&&
 #endif
 #endif
-            (lhs.d_lagrangian_nidx<rhs.d_lagrangian_nidx))
-           );
+            (lhs.d_lagrangian_nidx<rhs.d_lagrangian_nidx));
 }// operator<
 
 //////////////////////////////////////////////////////////////////////////////
 
-#ifdef DEBUG_NO_INLINE
-#undef inline
-#endif
+}// namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

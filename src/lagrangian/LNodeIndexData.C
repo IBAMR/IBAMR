@@ -1,32 +1,38 @@
-//
-// LNodeIndexData.C
-//
-// Created on 01 Mar 2004
-//         by Boyce Griffith (boyce@bigboy.speakeasy.net).
-//
-// Last modified: <07.Mar.2005 13:38:39 boyce@trasnaform.cims.nyu.edu>
-//
+// Filename: LNodeIndexData.C
+// Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
+// Last modified: <02.Oct.2006 13:34:33 boyce@boyce-griffiths-powerbook-g4-15.local>
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "LNodeIndexData.h"
 
-#include "LNodeIndexVariable.h"
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-#include <assert.h>
+// IBAMR INCLUDES
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
 #endif
 
-/////////////////////////////// INLINE ///////////////////////////////////////
+#include <ibamr/LNodeIndexVariable.h>
 
-#ifdef DEBUG_NO_INLINE
-#include "LNodeIndexData.I"
+// SAMRAI INCLUDES
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
 #endif
+
+// C++ STDLIB INCLUDES
+#include <cassert>
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+namespace IBAMR
+{
+/////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LNodeIndexData::LNodeIndexData(
-    const hier::Box<NDIM>& box,
-    const hier::IntVector<NDIM>& ghosts)
-        : pdat::IndexData<NDIM,LNodeIndexSet>(box,ghosts)
+    const SAMRAI::hier::Box<NDIM>& box,
+    const SAMRAI::hier::IntVector<NDIM>& ghosts)
+    : SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet>(box,ghosts)
 {
     // intentionally blank
     return;
@@ -38,20 +44,17 @@ LNodeIndexData::~LNodeIndexData()
     return;
 }// ~LNodeIndexData
 
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+} // namespace IBAMR
+
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-#ifndef LACKS_EXPLICIT_TEMPLATE_INSTANTIATION
-
-#include "tbox/Pointer.C"
-
-//////////////////////////////////////////////////////////////////////
-///
-/// These declarations are required to use the LNodeIndexData class.
-///
-//////////////////////////////////////////////////////////////////////
-
-template class tbox::Pointer<LNodeIndexData>;
-
-#endif
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::LNodeIndexData>;
 
 //////////////////////////////////////////////////////////////////////////////

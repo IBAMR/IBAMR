@@ -1,39 +1,28 @@
-//
-// LNodeIndexVariable.h
-//
-// Created on 01 Mar 2004
-//         by Boyce Griffith (boyce@bigboy.speakeasy.net).
-//
-// Last modified: <07.Mar.2005 17:56:31 boyce@trasnaform.cims.nyu.edu>
-//
-
 #ifndef included_LNodeIndexVariable
 #define included_LNodeIndexVariable
 
-// SAMRAI-tools INCLUDES
-//
-#include "LNodeIndexSet.h"
+// Filename: LNodeIndexVariable.h
+// Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
+// Last modified: <02.Oct.2006 13:07:45 boyce@boyce-griffiths-powerbook-g4-15.local>
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+// IBAMR INCLUDES
+#include <ibamr/LNodeIndexSet.h>
 
 // SAMRAI INCLUDES
-//
-#ifndef included_SAMRAI_config
-#include "SAMRAI_config.h"
-#endif
+#include <Variable.h>
 
-#include "Variable.h"
+/////////////////////////////// CLASS DEFINITION /////////////////////////////
 
-using namespace SAMRAI;
-using namespace std;
-
-// CLASS DEFINITION
-//
-
+namespace IBAMR
+{
 /*!
  * @brief Class LNodeIndexVariable provides a hier::Variable<NDIM> class
  * corresponding to patch data of type LNodeIndexData.
  */
 class LNodeIndexVariable
-    : public hier::Variable<NDIM>
+    : public SAMRAI::hier::Variable<NDIM>
 {
 public:
     /*!
@@ -41,7 +30,7 @@ public:
      */
     LNodeIndexVariable(
         const string& name);
-    
+
     /*!
      * Virtual destructor for LNodeIndexVariable objects.
      */
@@ -64,7 +53,7 @@ public:
      * coarse-fine interface values.
      */
     bool fineBoundaryRepresentsVariable() const;
-    
+
 private:
     /*!
      * @brief Default constructor.
@@ -73,31 +62,36 @@ private:
      * used.
      */
     LNodeIndexVariable();
-    
+
     /*!
      * @brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
-     * 
+     *
      * @param from The value to copy to this object.
      */
     LNodeIndexVariable(
         const LNodeIndexVariable& from);
-    
+
     /*!
      * @brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
-     * 
+     *
      * @param that The value to assign to this object.
-     * 
+     *
      * @return A reference to this object.
      */
     LNodeIndexVariable& operator=(
         const LNodeIndexVariable& that);
 };
+}// namespace IBAMR
 
-#endif //#ifndef included_LNodeIndexVariable
+/////////////////////////////// INLINE ///////////////////////////////////////
+
+//#include "LNodeIndexVariable.I"
 
 //////////////////////////////////////////////////////////////////////////////
+
+#endif //#ifndef included_LNodeIndexVariable

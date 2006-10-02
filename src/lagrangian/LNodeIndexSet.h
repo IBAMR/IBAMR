@@ -1,46 +1,37 @@
-//
-// LNodeIndexSet.h
-//
-// Created on 29 Feb 2004
-//         by Boyce Griffith (boyce@bigboy.speakeasy.net).
-//
-// Last modified: <29.Jun.2005 16:27:45 boyce@mstu1.cims.nyu.edu>
-//
-
 #ifndef included_LNodeIndexSet
 #define included_LNodeIndexSet
 
-// STL INCLUDES
-//
-#include <vector>
+// Filename: LNodeIndexSet.h
+// Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
+// Last modified: <02.Oct.2006 13:15:50 boyce@boyce-griffiths-powerbook-g4-15.local>
 
-// SAMRAI-tools INCLUDES
-//
-#include "LNodeIndex.h"
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+// IBAMR INCLUDES
+#include <ibamr/LNodeIndex.h>
 
 // SAMRAI INCLUDES
-//
-#ifndef included_SAMRAI_config
-#include "SAMRAI_config.h"
-#endif
+#include <Index.h>
+#include <IntVector.h>
+#include <tbox/AbstractStream.h>
+#include <tbox/Database.h>
+#include <tbox/DescribedClass.h>
+#include <tbox/Pointer.h>
 
-#include "Index.h"
-#include "IntVector.h"
-#include "tbox/AbstractStream.h"
-#include "tbox/Database.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+// C++ STDLIB INCLUDES
+#include <vector>
 
-using namespace SAMRAI;
-using namespace std;
+/////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
-// FORWARD DECLARATIONS
-//
+namespace IBAMR
+{
 class LDataManager;
+}// namespace IBAMR
 
-// CLASS DEFINITION
-//
+/////////////////////////////// CLASS DEFINITION /////////////////////////////
 
+namespace IBAMR
+{
 /*!
  * @brief Class LNodeIndexSet provides interprocessor communications
  * and database access funtionality to a collection of LNodexIndex
@@ -48,15 +39,18 @@ class LDataManager;
  * the templated pdat::IndexData<NDIM> class.
  */
 class LNodeIndexSet
-    : public tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
-    //@{ @name Class typedefs.
+    /*!
+     * @name Class typedefs.
+     */
+    //@{
 
     /*!
      * @brief The type of the collection.
      */
-    typedef vector<tbox::Pointer<LNodeIndex> > IndexSet;
+    typedef std::vector<SAMRAI::tbox::Pointer<LNodeIndex> > IndexSet;
 
     /*!
      * @brief The type of object, T, stored in the collection.
@@ -64,7 +58,7 @@ public:
     typedef IndexSet::value_type value_type;
 
     /*!
-     * @brief tbox::Pointer to T.
+     * @brief SAMRAI::tbox::Pointer to T.
      */
     typedef IndexSet::pointer pointer;
 
@@ -72,7 +66,7 @@ public:
      * @brief Reference to T.
      */
     typedef IndexSet::reference reference;
-    
+
     /*!
      * @brief Const refrence to T.
      */
@@ -99,16 +93,16 @@ public:
     typedef IndexSet::const_iterator const_iterator;
 
     //@}
-    
+
     //@{ @name Friend declarations.
     friend class LDataManager;
     //@}
-    
+
     /*!
      * @brief Default constructor.
      */
     LNodeIndexSet();
-    
+
     /*!
      * @brief Copy constructor.
      *
@@ -116,17 +110,17 @@ public:
      */
     LNodeIndexSet(
         const LNodeIndexSet& from);
-    
+
     /*!
      * @brief Destructor.
      */
     ~LNodeIndexSet();
-    
+
     /*!
      * @brief Assignment operator.
      *
      * @param that The value to assign to this object.
-     * 
+     *
      * @return A reference to this object.
      */
     LNodeIndexSet& operator=(
@@ -177,8 +171,8 @@ public:
      * NOTE: If the LNodeIndexSet lives in cell i, the index of the
      * source object is src_index = i - offset.
      */
-    const hier::IntVector<NDIM>& getPeriodicOffset() const;
-    
+    const SAMRAI::hier::IntVector<NDIM>& getPeriodicOffset() const;
+
     /*!
      * @brief Set the value of the periodic offset.
      *
@@ -186,8 +180,8 @@ public:
      * source object is src_index = i - offset.
      */
     void setPeriodicOffset(
-        const hier::IntVector<NDIM>& offset);
-    
+        const SAMRAI::hier::IntVector<NDIM>& offset);
+
     /*!
      * @brief Copy data from the source.
      *
@@ -195,8 +189,8 @@ public:
      * src_offset.
      */
     void copySourceItem(
-        const hier::Index<NDIM>& src_index,
-        const hier::IntVector<NDIM>& src_offset,
+        const SAMRAI::hier::Index<NDIM>& src_index,
+        const SAMRAI::hier::IntVector<NDIM>& src_offset,
         const LNodeIndexSet& src_item);
 
     /*!
@@ -209,26 +203,26 @@ public:
      * @brief Pack data into the output stream.
      */
     void packStream(
-        tbox::AbstractStream& stream);
+        SAMRAI::tbox::AbstractStream& stream);
 
     /*!
      * @brief Unpack data from the input stream.
      */
     void unpackStream(
-        tbox::AbstractStream& stream,
-        const hier::IntVector<NDIM>& offset);
+        SAMRAI::tbox::AbstractStream& stream,
+        const SAMRAI::hier::IntVector<NDIM>& offset);
 
     /*!
      * @brief Unpack data from a database.
      */
     void getFromDatabase(
-        tbox::Pointer<tbox::Database>& database);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database);
 
     /*!
      * @brief Pack data into a database.
      */
     void putToDatabase(
-        tbox::Pointer<tbox::Database>& database);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database);
 
 private:
     /*!
@@ -236,7 +230,7 @@ private:
      */
     void assignThatToThis(
         const LNodeIndexSet& that);
-    
+
     /*!
      * @brief Reorder the collection of indices.
      */
@@ -255,15 +249,14 @@ private:
     /*!
      * @brief The periodic offset.
      */
-    hier::IntVector<NDIM> d_offset;
+    SAMRAI::hier::IntVector<NDIM> d_offset;
 };
+}// namespace IBAMR
 
-// INLINED FUNCTION DEFINITIONS
-//
-#ifndef DEBUG_NO_INLINE
+/////////////////////////////// INLINE ///////////////////////////////////////
+
 #include "LNodeIndexSet.I"
-#endif
-
-#endif //#ifndef included_LNodeIndexSet
 
 //////////////////////////////////////////////////////////////////////////////
+
+#endif //#ifndef included_LNodeIndexSet

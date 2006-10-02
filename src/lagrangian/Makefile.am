@@ -11,8 +11,9 @@ libIBAMR_lagrangian_la_LIBADD = fortran/libIBAMR_lagrangian_fortran.la
 libIBAMR_lagrangian_la_SOURCES =
 
 ## Dimension-dependent libraries
-SOURCES =
-pkg_include_HEADERS +=
+SOURCES =              LNodeIndex.C LNodeIndexData.C LNodeIndexDataFactory.C LNodeIndexSet.C LNodeIndexVariable.C
+pkg_include_HEADERS += LNodeIndex.h LNodeIndexData.h LNodeIndexDataFactory.h LNodeIndexSet.h LNodeIndexVariable.h
+pkg_include_HEADERS += LNodeIndex.I LNodeIndexData.I                         LNodeIndexSet.I
 
 noinst_LTLIBRARIES += libIBAMR_lagrangian2d.la
 libIBAMR_lagrangian2d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

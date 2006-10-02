@@ -1,44 +1,33 @@
-//
-// LNodeIndexDataFactory.h
-//
-// Created on 01 Mar 2004
-//         by Boyce Griffith (boyce@bigboy.speakeasy.net).
-//
-// Last modified: <07.Mar.2005 17:56:22 boyce@trasnaform.cims.nyu.edu>
-//
-
 #ifndef included_LNodeIndexDataFactory
 #define included_LNodeIndexDataFactory
 
-// SAMRAI-tools INCLUDES
-//
-#include "LNodeIndexSet.h"
+// Filename: LNodeIndexDataFactory.h
+// Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
+// Last modified: <02.Oct.2006 13:14:32 boyce@boyce-griffiths-powerbook-g4-15.local>
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+// IBAMR INCLUDES
+#include <ibamr/LNodeIndexSet.h>
 
 // SAMRAI INCLUDES
-//
-#ifndef included_SAMRAI_config
-#include "SAMRAI_config.h"
-#endif
+#include <Box.h>
+#include <IndexDataFactory.h>
+#include <PatchData.h>
+#include <PatchDataFactory.h>
+#include <tbox/Arena.h>
 
-#include "Box.h"
-#include "IndexDataFactory.h"
-#include "PatchData.h"
-#include "PatchDataFactory.h"
-#include "tbox/Arena.h"
+/////////////////////////////// CLASS DEFINITION /////////////////////////////
 
-using namespace SAMRAI;
-using namespace std;
-
-// CLASS DEFINITION
-//
-
+namespace IBAMR
+{
 /*!
  * @brief Class LNodeIndexDataFactory is a specialization of the
- * templated pdat::IndexDataFactory<NDIM> class.  It is used to construct objects
- * of type LNodeIndexData.
+ * templated SAMRAI::pdat::IndexDataFactory class.  It is used to
+ * construct objects of type LNodeIndexData.
  */
 class LNodeIndexDataFactory
-    : public pdat::IndexDataFactory<NDIM,LNodeIndexSet>
+    : public SAMRAI::pdat::IndexDataFactory<NDIM,LNodeIndexSet>
 {
 public:
     /*!
@@ -47,13 +36,13 @@ public:
      * irregular data objects created with this factory.
      */
     LNodeIndexDataFactory(
-        const hier::IntVector<NDIM>& ghosts);
-    
+        const SAMRAI::hier::IntVector<NDIM>& ghosts);
+
     /*!
      * Virtual destructor for the irregular data factory class.
      */
     virtual ~LNodeIndexDataFactory();
-    
+
     /*!
      * Virtual function to clone the irregular data factory.  This
      * will return a new instantiation of the factory with the same
@@ -61,7 +50,7 @@ public:
      * properties of the cloned factory can then be changed (e.g.,
      * change the ghost cell width) without modifying the original.
      */
-    virtual tbox::Pointer<hier::PatchDataFactory<NDIM> > cloneFactory();
+    virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> > cloneFactory();
 
     /*!
      * Virtual factory function to allocate a concrete irregular data
@@ -70,10 +59,10 @@ public:
      * provided, the allocation routine assumes some default memory
      * pool.
      */
-    virtual tbox::Pointer<hier::PatchData<NDIM> > allocate(
-        const hier::Box<NDIM>& box,
-        tbox::Pointer<tbox::Arena> pool=(tbox::Arena*)NULL) const;
-    
+    virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > allocate(
+        const SAMRAI::hier::Box<NDIM>& box,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool=(SAMRAI::tbox::Arena*)NULL) const;
+
     /*!
      * Calculate the amount of memory needed to store the irregular
      * data object, including object data but not dynamically
@@ -83,17 +72,17 @@ public:
      * new/free mechanisms.
      */
     virtual size_t getSizeOfMemory(
-        const hier::Box<NDIM>& box) const;
+        const SAMRAI::hier::Box<NDIM>& box) const;
 
     /*!
-     * The remaining hier::PatchDataFactory<NDIM> functionality of
+     * The remaining SAMRAI::hier::PatchDataFactory<NDIM> functionality of
      * LNodeIndexDataFactory is provided by the
-     * pdat::IndexDataFactory<NDIM,LNodeIndexSet> class.
+     * SAMRAI::pdat::IndexDataFactory<NDIM,LNodeIndexSet> class.
      */
-    using pdat::IndexDataFactory<NDIM,LNodeIndexSet>::getBoxGeometry;
-    using pdat::IndexDataFactory<NDIM,LNodeIndexSet>::getDefaultGhostCellWidth;
-    using pdat::IndexDataFactory<NDIM,LNodeIndexSet>::setDefaultGhostCellWidth;
-    
+    using SAMRAI::pdat::IndexDataFactory<NDIM,LNodeIndexSet>::getBoxGeometry;
+    using SAMRAI::pdat::IndexDataFactory<NDIM,LNodeIndexSet>::getDefaultGhostCellWidth;
+    using SAMRAI::pdat::IndexDataFactory<NDIM,LNodeIndexSet>::setDefaultGhostCellWidth;
+
 private:
     /*!
      * @brief Default constructor.
@@ -102,31 +91,36 @@ private:
      * used.
      */
     LNodeIndexDataFactory();
-    
+
     /*!
      * @brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
-     * 
+     *
      * @param from The value to copy to this object.
      */
     LNodeIndexDataFactory(
         const LNodeIndexDataFactory& from);
-    
+
     /*!
      * @brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
-     * 
+     *
      * @param that The value to assign to this object.
-     * 
+     *
      * @return A reference to this object.
      */
     LNodeIndexDataFactory& operator=(
         const LNodeIndexDataFactory& that);
 };
+}// namespace IBAMR
 
-#endif //#ifndef included_LNodeIndexDataFactory
+/////////////////////////////// INLINE ///////////////////////////////////////
+
+//#include "LNodeIndexDataFactory.I"
 
 //////////////////////////////////////////////////////////////////////////////
+
+#endif //#ifndef included_LNodeIndexDataFactory

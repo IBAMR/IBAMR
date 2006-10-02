@@ -1,27 +1,36 @@
-//
-// LNodeIndexDataFactory.C
-//
-// Created on 01 Mar 2004
-//         by Boyce Griffith (boyce@bigboy.speakeasy.net).
-//
-// Last modified: <14.Jun.2005 22:31:28 boyce@bigboy.verizon.net>
-//
+// Filename: LNodeIndexDataFactory.C
+// Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
+// Last modified: <02.Oct.2006 13:37:58 boyce@boyce-griffiths-powerbook-g4-15.local>
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "LNodeIndexDataFactory.h"
 
-// SAMRAI-tools INCLUDES
-//
-#include "LNodeIndexData.h"
+// IBAMR INCLUDES
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#endif
+
+#include <ibamr/LNodeIndexData.h>
 
 // SAMRAI INCLUDES
-//
-#include "tbox/ArenaManager.h"
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
+
+#include <tbox/ArenaManager.h>
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+namespace IBAMR
+{
+/////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LNodeIndexDataFactory::LNodeIndexDataFactory(
-    const hier::IntVector<NDIM>& ghosts)
-    : pdat::IndexDataFactory<NDIM,LNodeIndexSet>(ghosts)
+    const SAMRAI::hier::IntVector<NDIM>& ghosts)
+    : SAMRAI::pdat::IndexDataFactory<NDIM,LNodeIndexSet>(ghosts)
 {
     // intentionally blank
     return;
@@ -33,45 +42,44 @@ LNodeIndexDataFactory::~LNodeIndexDataFactory()
     return;
 }// ~LNodeIndexDataFactory
 
-tbox::Pointer<hier::PatchDataFactory<NDIM> > LNodeIndexDataFactory::cloneFactory()
+SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >
+LNodeIndexDataFactory::cloneFactory()
 {
-    return(new LNodeIndexDataFactory(getDefaultGhostCellWidth()));
+    return new LNodeIndexDataFactory(getDefaultGhostCellWidth());
 }// cloneFactory
 
-tbox::Pointer<hier::PatchData<NDIM> > LNodeIndexDataFactory::allocate(
-    const hier::Box<NDIM>& box,
-    tbox::Pointer<tbox::Arena> pool) const
+SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
+LNodeIndexDataFactory::allocate(
+    const SAMRAI::hier::Box<NDIM>& box,
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool) const
 {
     if (pool.isNull())
     {
-        pool = tbox::ArenaManager::getManager()->getStandardAllocator();
+        pool = SAMRAI::tbox::ArenaManager::getManager()->getStandardAllocator();
     }
-    hier::PatchData<NDIM> *pd = new (pool) LNodeIndexData(box,getDefaultGhostCellWidth());
-    return(tbox::Pointer<hier::PatchData<NDIM> >(pd, pool));
+    SAMRAI::hier::PatchData<NDIM>* pd = new (pool) LNodeIndexData(box,getDefaultGhostCellWidth());
+    return SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(pd, pool);
 }// allocate
 
-size_t LNodeIndexDataFactory::getSizeOfMemory(
-    const hier::Box<NDIM>& box) const
+size_t
+LNodeIndexDataFactory::getSizeOfMemory(
+    const SAMRAI::hier::Box<NDIM>& box) const
 {
     (void) box;
-    return(tbox::Arena::align(sizeof(LNodeIndexData)));
+    return SAMRAI::tbox::Arena::align(sizeof(LNodeIndexData));
 }// getSizeOfMemory
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+} // namespace IBAMR
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-#ifndef LACKS_EXPLICIT_TEMPLATE_INSTANTIATION
-
-#include "tbox/Pointer.C"
-
-//////////////////////////////////////////////////////////////////////
-///
-/// These declarations are required to use the LNodeIndexDataFactory
-/// class.
-///
-//////////////////////////////////////////////////////////////////////
-
-template class tbox::Pointer<LNodeIndexDataFactory>;
-
-#endif
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::LNodeIndexDataFactory>;
 
 //////////////////////////////////////////////////////////////////////////////
