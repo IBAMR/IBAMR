@@ -3,7 +3,7 @@
 
 // Filename: StashableStream.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 11:36:56 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <02.Oct.2006 11:40:11 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -128,9 +128,9 @@ public:
      */
     //@{
     /// Pack a single bool into the message stream.
-    virtual AbstractStream& operator<<(const bool& data);
+    virtual SAMRAI::tbox::AbstractStream& operator<<(const bool& data);
     /// Remove a single bool from the message stream.
-    virtual AbstractStream& operator>>(bool& data);
+    virtual SAMRAI::tbox::AbstractStream& operator>>(bool& data);
     /// Pack an array of bools into the message stream.
     virtual void pack(const bool* data, const int n=1);
     /// Remove an array of bools from the message stream.
@@ -143,9 +143,9 @@ public:
      */
     //@{
     /// Pack a single char into the message stream.
-    virtual AbstractStream& operator<<(const char& data);
+    virtual SAMRAI::tbox::AbstractStream& operator<<(const char& data);
     /// Remove a single char from the message stream.
-    virtual AbstractStream& operator>>(char& data);
+    virtual SAMRAI::tbox::AbstractStream& operator>>(char& data);
     /// Pack an array of chars into the message stream.
     virtual void pack(const char* data, const int n=1);
     /// Remove an array of chars from the message stream.
@@ -158,9 +158,9 @@ public:
      */
     //@{
     /// Pack a single double complex into the message stream.
-    virtual AbstractStream& operator<<(const dcomplex& data);
+    virtual SAMRAI::tbox::AbstractStream& operator<<(const dcomplex& data);
     /// Remove a single double complex from the message stream.
-    virtual AbstractStream& operator>>(dcomplex& data);
+    virtual SAMRAI::tbox::AbstractStream& operator>>(dcomplex& data);
     /// Pack an array of double complex into the message stream.
     virtual void pack(const dcomplex* data, const int n=1);
     /// Remove an array of double complex from the message stream.
@@ -173,9 +173,9 @@ public:
      */
     //@{
     /// Pack a single double into the message stream.
-    virtual AbstractStream& operator<<(const double& data);
+    virtual SAMRAI::tbox::AbstractStream& operator<<(const double& data);
     /// Remove a single double from the message stream.
-    virtual AbstractStream& operator>>(double& data);
+    virtual SAMRAI::tbox::AbstractStream& operator>>(double& data);
     /// Pack an array of doubles into the message stream.
     virtual void pack(const double* data, const int n=1);
     /// Remove an array of doubles from the message stream.
@@ -188,9 +188,9 @@ public:
      */
     //@{
     /// Pack a single float into the message stream.
-    virtual AbstractStream& operator<<(const float& data);
+    virtual SAMRAI::tbox::AbstractStream& operator<<(const float& data);
     /// Remove a single float from the message stream.
-    virtual AbstractStream& operator>>(float& data);
+    virtual SAMRAI::tbox::AbstractStream& operator>>(float& data);
     /// Pack an array of floats into the message stream.
     virtual void pack(const float* data, const int n=1);
     /// Remove an array of floats from the message stream.
@@ -203,9 +203,9 @@ public:
      */
     //@{
     /// Pack a single integer into the message stream.
-    virtual AbstractStream& operator<<(const int& data);
+    virtual SAMRAI::tbox::AbstractStream& operator<<(const int& data);
     /// Remove a single integer from the message stream.
-    virtual AbstractStream& operator>>(int& data);
+    virtual SAMRAI::tbox::AbstractStream& operator>>(int& data);
     /// Pack an array of integers into the message stream.
     virtual void pack(const int* data, const int n=1);
     /// Remove an array of integers from the message stream.

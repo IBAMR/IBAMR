@@ -1,6 +1,6 @@
 // Filename: StashableStream.C
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 11:34:25 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <02.Oct.2006 11:39:28 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -238,7 +238,7 @@ StashableStream::getPointerAndAdvanceCursor(
 *************************************************************************
 */
 
-AbstractStream&
+SAMRAI::tbox::AbstractStream&
 StashableStream::operator<<(
     const bool& data)
 {
@@ -246,7 +246,7 @@ StashableStream::operator<<(
     return *this;
 }// operator<<
 
-AbstractStream&
+SAMRAI::tbox::AbstractStream&
 StashableStream::operator>>(
     bool& data)
 {
@@ -259,7 +259,7 @@ StashableStream::pack(
     const bool* data,
     const int n)
 {
-    const int bytes = AbstractStream::sizeofBool(n);
+    const int bytes = SAMRAI::tbox::AbstractStream::sizeofBool(n);
     void *ptr = getPointerAndAdvanceCursor(bytes);
     if (d_use_xdr)
     {
@@ -283,7 +283,7 @@ StashableStream::unpack(
     bool* data,
     const int n)
 {
-    const int bytes = AbstractStream::sizeofBool(n);
+    const int bytes = SAMRAI::tbox::AbstractStream::sizeofBool(n);
     void *ptr = getPointerAndAdvanceCursor(bytes);
     if (d_use_xdr)
     {
@@ -310,7 +310,7 @@ StashableStream::unpack(
 *************************************************************************
 */
 
-AbstractStream&
+SAMRAI::tbox::AbstractStream&
 StashableStream::operator<<(
     const char& data)
 {
@@ -318,7 +318,7 @@ StashableStream::operator<<(
     return *this;
 }// operator<<
 
-AbstractStream&
+SAMRAI::tbox::AbstractStream&
 StashableStream::operator>>(
     char& data)
 {
@@ -331,7 +331,7 @@ StashableStream::pack(
     const char* data,
     const int n)
 {
-    const int bytes = AbstractStream::sizeofChar(n);
+    const int bytes = SAMRAI::tbox::AbstractStream::sizeofChar(n);
     PACK(data, n, bytes);
     return;
 }// pack
@@ -341,7 +341,7 @@ StashableStream::unpack(
     char* data,
     const int n)
 {
-    const int bytes = AbstractStream::sizeofChar(n);
+    const int bytes = SAMRAI::tbox::AbstractStream::sizeofChar(n);
     UNPACK(data, n, bytes);
     return;
 }// unpack
@@ -354,7 +354,7 @@ StashableStream::unpack(
 *************************************************************************
 */
 
-AbstractStream&
+SAMRAI::tbox::AbstractStream&
 StashableStream::operator<<(
     const dcomplex& data)
 {
@@ -362,7 +362,7 @@ StashableStream::operator<<(
     return *this;
 }// operator<<
 
-AbstractStream&
+SAMRAI::tbox::AbstractStream&
 StashableStream::operator>>(
     dcomplex& data)
 {
@@ -378,7 +378,7 @@ StashableStream::pack(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(sizeof(dcomplex) == 2*sizeof(double));
 #endif
-    const int bytes = AbstractStream::sizeofDoubleComplex(n);
+    const int bytes = SAMRAI::tbox::AbstractStream::sizeofDoubleComplex(n);
     PACK(data, n, bytes);
     return;
 }// pack
@@ -391,7 +391,7 @@ StashableStream::unpack(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(sizeof(dcomplex) == 2*sizeof(double));
 #endif
-    const int bytes = AbstractStream::sizeofDoubleComplex(n);
+    const int bytes = SAMRAI::tbox::AbstractStream::sizeofDoubleComplex(n);
     UNPACK(data, n, bytes);
     return;
 }// unpack
@@ -404,7 +404,7 @@ StashableStream::unpack(
 *************************************************************************
 */
 
-AbstractStream&
+SAMRAI::tbox::AbstractStream&
 StashableStream::operator<<(
     const double& data)
 {
@@ -412,7 +412,7 @@ StashableStream::operator<<(
     return *this;
 }// operator<<
 
-AbstractStream&
+SAMRAI::tbox::AbstractStream&
 StashableStream::operator>>(
     double& data)
 {
@@ -425,7 +425,7 @@ StashableStream::pack(
     const double* data,
     const int n)
 {
-    const int bytes = AbstractStream::sizeofDouble(n);
+    const int bytes = SAMRAI::tbox::AbstractStream::sizeofDouble(n);
     PACK(data, n, bytes);
     return;
 }// pack
@@ -435,7 +435,7 @@ StashableStream::unpack(
     double* data,
     const int n)
 {
-    const int bytes = AbstractStream::sizeofDouble(n);
+    const int bytes = SAMRAI::tbox::AbstractStream::sizeofDouble(n);
     UNPACK(data, n, bytes);
     return;
 }// unpack
@@ -448,7 +448,7 @@ StashableStream::unpack(
 *************************************************************************
 */
 
-AbstractStream&
+SAMRAI::tbox::AbstractStream&
 StashableStream::operator<<(
     const float& data)
 {
@@ -456,7 +456,7 @@ StashableStream::operator<<(
     return *this;
 }// operator<<
 
-AbstractStream&
+SAMRAI::tbox::AbstractStream&
 StashableStream::operator>>(
     float& data)
 {
@@ -469,7 +469,7 @@ StashableStream::pack(
     const float* data,
     const int n)
 {
-    const int bytes = AbstractStream::sizeofFloat(n);
+    const int bytes = SAMRAI::tbox::AbstractStream::sizeofFloat(n);
     PACK(data, n, bytes);
     return;
 }// pack
@@ -479,7 +479,7 @@ StashableStream::unpack(
     float* data,
     const int n)
 {
-    const int bytes = AbstractStream::sizeofFloat(n);
+    const int bytes = SAMRAI::tbox::AbstractStream::sizeofFloat(n);
     UNPACK(data, n, bytes);
     return;
 }// unpack
@@ -492,7 +492,7 @@ StashableStream::unpack(
 *************************************************************************
 */
 
-AbstractStream&
+SAMRAI::tbox::AbstractStream&
 StashableStream::operator<<(
     const int& data)
 {
@@ -500,7 +500,7 @@ StashableStream::operator<<(
     return *this;
 }// operator<<
 
-AbstractStream&
+SAMRAI::tbox::AbstractStream&
 StashableStream::operator>>(
     int& data)
 {
@@ -513,7 +513,7 @@ StashableStream::pack(
     const int* data,
     const int n)
 {
-    const int bytes = AbstractStream::sizeofInt(n);
+    const int bytes = SAMRAI::tbox::AbstractStream::sizeofInt(n);
     PACK(data, n, bytes);
     return;
 }// pack
@@ -523,7 +523,7 @@ StashableStream::unpack(
     int* data,
     const int n)
 {
-    const int bytes = AbstractStream::sizeofInt(n);
+    const int bytes = SAMRAI::tbox::AbstractStream::sizeofInt(n);
     UNPACK(data, n, bytes);
     return;
 }// unpack

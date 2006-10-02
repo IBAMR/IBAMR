@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <02.Oct.2006 14:16:26 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <02.Oct.2006 14:44:45 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -1400,9 +1400,11 @@ LagSiloDataWriter::writePlotData(
         }
     }
     SAMRAI::tbox::MPI::barrier();
+#else
+    TBOX_WARNING("LagSiloDataWriter::writePlotData(): SILO is not installed; cannot write data." << endl);
 #endif //if HAVE_LIBSILO
     return;
-}// setLagrangianAO
+}// writePlotData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
