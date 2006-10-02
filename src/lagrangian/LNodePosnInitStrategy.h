@@ -1,49 +1,38 @@
-//
-// LNodePosnInitStrategy.h
-//
-// Created on 11 Jul 2004
-//         by Boyce Griffith (boyce@trasnaform.speakeasy.net).
-//
-// Last modified: <17.Jun.2005 16:05:41 boyce@bigboy.verizon.net>
-//
-
 #ifndef included_LNodePosnInitStrategy
 #define included_LNodePosnInitStrategy
 
-// SAMRAI-tools INCLUDES
-//
-#include "LNodeLevelData.h"
+// Filename: LNodePosnInitStrategy.h
+// Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
+// Last modified: <02.Oct.2006 14:19:52 boyce@boyce-griffiths-powerbook-g4-15.local>
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+// IBAMR INCLUDES
+#include <ibamr/LNodeLevelData.h>
 
 // SAMRAI INCLUDES
-//
-#ifndef included_SAMRAI_config
-#include "SAMRAI_config.h"
-#endif
+#include <PatchHierarchy.h>
+#include <PatchLevel.h>
+#include <tbox/DescribedClass.h>
+#include <tbox/Pointer.h>
 
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+/////////////////////////////// CLASS DEFINITION /////////////////////////////
 
-using namespace SAMRAI;
-using namespace std;
-
-// CLASS DEFINITION
-//
-
+namespace IBAMR
+{
 /*!
  * @brief Class LNodePosnInitStrategy provides a mechanism for
  * specifying the initial configuration of the curvilinear mesh.
  */
 class LNodePosnInitStrategy
-    : public virtual tbox::DescribedClass
+    : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * @brief Default constructor.
      */
     LNodePosnInitStrategy();
-    
+
     /*!
      * @brief Destructor.
      */
@@ -61,7 +50,7 @@ public:
      * @return The number of local nodes on the patch level.
      */
     virtual int getLocalNodeCountOnPatchLevel(
-        const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
@@ -74,8 +63,8 @@ public:
      */
     virtual void initializeDataOnPatchLevel(
         const int lag_node_index_idx,
-        tbox::Pointer<LNodeLevelData>& X_data,
-        const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
+        SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
@@ -95,11 +84,11 @@ public:
      * for local mesh refinement is not required.
      */
     virtual void tagCellsForInitialRefinement(
-        const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy, 
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double error_data_time,
         const int tag_index);
-    
+
 private:
     /*!
      * @brief Copy constructor.
@@ -111,26 +100,25 @@ private:
      */
     LNodePosnInitStrategy(
         const LNodePosnInitStrategy& from);
-    
+
     /*!
      * @brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
-     * 
+     *
      * @param that The value to assign to this object.
-     * 
+     *
      * @return A reference to this object.
      */
     LNodePosnInitStrategy& operator=(
         const LNodePosnInitStrategy& that);
 };
+}// namespace IBAMR
 
-// INLINED FUNCTION DEFINITIONS
-//
-//#ifndef DEBUG_NO_INLINE
+/////////////////////////////// INLINE ///////////////////////////////////////
+
 //#include "LNodePosnInitStrategy.I"
-//#endif
-
-#endif //#ifndef included_LNodePosnInitStrategy
 
 //////////////////////////////////////////////////////////////////////////////
+
+#endif //#ifndef included_LNodePosnInitStrategy

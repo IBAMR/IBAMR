@@ -1,73 +1,52 @@
-//
-// LNodeLevelData.h
-//
-// Created on 08 Mar 2004
-//         by Boyce E. Griffith (boyce@trasnaform.speakeasy.net).
-//
-// Last modified: <27.Jun.2005 01:31:09 boyce@mstu1.cims.nyu.edu>
-//
-
 #ifndef included_LNodeLevelData
 #define included_LNodeLevelData
 
-// STL INCLUDES
-//
-#include <vector>
+// Filename: LNodeLevelData.h
+// Created on 08 Mar 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
+// Last modified: <02.Oct.2006 14:09:59 boyce@boyce-griffiths-powerbook-g4-15.local>
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
-//
-#ifndef included_SAMRAI_config
-#include "SAMRAI_config.h"
-#endif
-
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
-
-using namespace SAMRAI;
-using namespace std;
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+#include <tbox/Serializable.h>
 
 // PETSc INCLUDES
-//
+#include <petscvec.h>
+#include <petscao.h>
 
-//
-//  Include "petscvec.h" so that we can use PETSc Vecs.  Note that
-//  this file automatically includes:
-//  
-//     petsc.h       - base PETSc routines   petscis.h     - index sets
-//     petscsys.h    - system routines       petscviewer.h - viewers
-//
-// Include "petscao.h" allows use of PETSc AOs (application
-// orderings), used herein for mapping Lagrangian nodes to global
-// PETSc Vec indices.
-//
-#include "petscvec.h"
-#include "petscao.h"
+// C++ STDLIB INCLUDES
+#include <vector>
 
-// FORWARD DECLARATIONS
-//
+/////////////////////////////// FORWARD DECLARATIONS /////////////////////////
+
+namespace IBAMR
+{
 class LDataManager;
+}// namespace IBAMR
 
-// CLASS DEFINITION
-//
+/////////////////////////////// CLASS DEFINITION /////////////////////////////
 
+namespace IBAMR
+{
 /*!
  * @brief Lagrangian data on a patch level.
  */
 class LNodeLevelData
-    : public tbox::Serializable
+    : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
      * @brief Destructor.
      */
     ~LNodeLevelData();
-    
+
     /*!
      * @brief Assignment operator.
      *
      * @param that The value to assign to this object.
-     * 
+     *
      * @return A reference to this object.
      */
     LNodeLevelData& operator=(
@@ -89,7 +68,7 @@ public:
      * @return The total number of nodes of the Lagrangian data.
      */
     int getGlobalNodeCount();
-    
+
     /*!
      * @return The number of local (i.e., on processor) nodes of the
      * Lagrangian data.
@@ -97,23 +76,23 @@ public:
      * NOTE: This count does not include ghost nodes.
      */
     int getLocalNodeCount();
-    
+
     /*!
      * @return The depth (i.e., number of components per node) of the
      * Lagrangian data.
      */
     int getDepth() const;
-    
+
     /*!
      * @brief Begin updating the ghost nodes.
      */
     void beginGhostUpdate();
-    
+
     /*!
      * @brief End updating the ghost nodes.
      */
     void endGhostUpdate();
-    
+
     /*!
      * @return The global PETSc Vec object which contains the level
      * data.
@@ -150,20 +129,20 @@ public:
     ///      putToDatabase()
     ///
     ///  are concrete implementations of functions declared in the
-    ///  tbox::Serializable abstract base class.
+    ///  SAMRAI::tbox::Serializable abstract base class.
     ///
-    
+
     /*!
      * Store the contents of the class in a database.
      */
     void putToDatabase(
-        tbox::Pointer<tbox::Database> db);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
     //@{ @name Friend declarations.
     friend class LDataManager;
     //@}
-    
+
     /*!
      * @brief Constructor.
      */
@@ -172,13 +151,13 @@ protected:
         const int num_local_nodes,
         const int depth,
         const vector<int>& nonlocal_petsc_indices=vector<int>(0));
-    
+
     /*!
      * @brief Constructor.
      */
     LNodeLevelData(
-        tbox::Pointer<tbox::Database> db);
-    
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
     /*!
      * @brief Copy constructor.
      *
@@ -193,7 +172,7 @@ protected:
     void resetData(
         Vec& new_global_vec,
         const vector<int>& new_nonlocal_petsc_indices);
-    
+
 private:
     /*!
      * @brief Default constructor.
@@ -208,7 +187,7 @@ private:
      */
     void assignThatToThis(
         const LNodeLevelData& that);
-    
+
     /*
      * The name of the LNodeLevelData.
      */
@@ -224,27 +203,26 @@ private:
      * The nonlocal PETSc indices available in the ghosted local form.
      */
     vector<int> d_nonlocal_petsc_indices;
-    
+
     /*
      * The global PETSc Vec object which contains the level data and
      * its ghosted local form.
      */
     Vec d_global_vec, d_local_vec;
     bool d_in_local_form;
-    
+
     /*
      * The array corresponding to the PETSc Vec object in local form.
      */
     PetscScalar* d_local_vec_array;
     bool d_extracted_local_array;
 };
+}// namespace IBAMR
 
-// INLINED FUNCTION DEFINITIONS
-//
-#ifndef DEBUG_NO_INLINE
-#include "LNodeLevelData.I"
-#endif
+/////////////////////////////// INLINE ///////////////////////////////////////
 
-#endif //#ifndef included_LNodeLevelData
+//#include "LNodeLevelData.I" XXXX
 
 //////////////////////////////////////////////////////////////////////////////
+
+#endif //#ifndef included_LNodeLevelData

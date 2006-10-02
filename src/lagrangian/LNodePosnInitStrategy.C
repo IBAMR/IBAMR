@@ -1,19 +1,16 @@
-//
-// LNodePosnInitStrategy.C
-//
-// Created on 11 Jul 2004
-//         by Boyce Griffith (boyce@trasnaform.speakeasy.net).
-//
-// Last modified: <02.May.2005 00:28:40 boyce@mstu1.cims.nyu.edu>
-//
+// Filename: LNodePosnInitStrategy.C
+// Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
+// Last modified: <02.Oct.2006 14:21:38 boyce@boyce-griffiths-powerbook-g4-15.local>
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "LNodePosnInitStrategy.h"
 
-/////////////////////////////// INLINE ///////////////////////////////////////
+/////////////////////////////// NAMESPACE ////////////////////////////////////
 
-//#ifdef DEBUG_NO_INLINE
-//#include "LNodePosnInitStrategy.I"
-//#endif
+namespace IBAMR
+{
+/////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -29,8 +26,9 @@ LNodePosnInitStrategy::~LNodePosnInitStrategy()
     return;
 }// ~LNodePosnInitStrategy
 
-void LNodePosnInitStrategy::tagCellsForInitialRefinement(
-    const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy, 
+void
+LNodePosnInitStrategy::tagCellsForInitialRefinement(
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double error_data_time,
     const int tag_index)
@@ -39,22 +37,18 @@ void LNodePosnInitStrategy::tagCellsForInitialRefinement(
                  << "  default implementation employed, no cells tagged for refinement.\n");
     return;
 }// tagCellsForInitialRefinement
-    
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+} // namespace IBAMR
+
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-#ifndef LACKS_EXPLICIT_TEMPLATE_INSTANTIATION
-
-#include "tbox/Pointer.C"
-
-//////////////////////////////////////////////////////////////////////
-///
-/// These declarations are required to use the LNodePosnInitStrategy
-/// class.
-///
-//////////////////////////////////////////////////////////////////////
-
-template class tbox::Pointer<LNodePosnInitStrategy>;
-
-#endif
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::LNodePosnInitStrategy>;
 
 //////////////////////////////////////////////////////////////////////////////
