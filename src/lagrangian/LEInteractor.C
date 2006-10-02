@@ -1,64 +1,75 @@
-//
-// LEInteractor.C
-//
-// Created on 14 Jul 2004
-//         by Boyce Griffith (boyce@trasnaform.speakeasy.net).
-//
-// Last modified: <27.May.2006 17:27:55 boyce@boyce.cims.nyu.edu>
-//
+// Filename: LEInteractor.C
+// Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
+// Last modified: <02.Oct.2006 15:29:16 boyce@boyce-griffiths-powerbook-g4-15.local>
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "LEInteractor.h"
 
-#ifdef DEBUG_CHECK_ASSERTIONS
-#include <assert.h>
+// IBAMR INCLUDES
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
 #endif
 
-// STL INCLUDES
-//
+#include <ibamr/LNodeIndex.h>
+#include <ibamr/LNodeIndexSet.h>
+
+// STOOLS INCLUDES
+#include <stools/STOOLS_Utilities.h>
+
+// SAMRAI INCLUDES
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
+
+#include <CellIndex.h>
+#include <CartesianPatchGeometry.h>
+#include <Index.h>
+#include <IntVector.h>
+#include <tbox/Timer.h>
+#include <tbox/TimerManager.h>
+#include <tbox/Utilities.h>
+
+// C++ STDLIB INCLUDES
 #include <algorithm>
+#include <cassert>
 #include <functional>
 #include <vector>
 
-// SAMRAI-tools INCLUDES
-//
-#include "LNodeIndex.h"
-#include "LNodeIndexSet.h"
-#include "SAMRAI_tools_Utilities.h"
-
-// SAMRAI INCLUDES
-//
-#include "CellIndex.h"
-#include "CartesianPatchGeometry.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
-
 // FORTRAN ROUTINES
-//
-#include <math.h>
-#include <signal.h>
+#if (NDIM == 2)
+#define LAGRANGIAN_PWCUBIC_INTERP_F77 F77_FUNC_(lagrangian_pwcubic_interp2d, LAGRANGIAN_PWCUBIC_INTERP2D)
+#define LAGRANGIAN_PWCUBIC_SPREAD_F77 F77_FUNC_(lagrangian_pwcubic_spread2d, LAGRANGIAN_PWCUBIC_SPREAD2D)
 
-// Link between C/C++ and Fortran files
-//       name in                         name in
-//      C/C++ code                     Fortran code
-//      ----------                     ------------
-#define FORT_PW_CUBIC_INTERP           lagpwcubicinterp_
-#define FORT_PW_CUBIC_SPREAD           lagpwcubicspread_
+#define LAGRANGIAN_IB4_INTERP_F77 F77_FUNC_(lagrangian_ib4_interp2d, LAGRANGIAN_IB4_INTERP2D)
+#define LAGRANGIAN_IB4_SPREAD_F77 F77_FUNC_(lagrangian_ib4_spread2d, LAGRANGIAN_IB4_SPREAD2D)
 
-#define FORT_IB_4_INTERP               lagib4interp_
-#define FORT_IB_4_SPREAD               lagib4spread_
+#define LAGRANGIAN_WIB4_INTERP_F77 F77_FUNC_(lagrangian_wib4_interp2d, LAGRANGIAN_WIB4_INTERP2D)
+#define LAGRANGIAN_WIB4_SPREAD_F77 F77_FUNC_(lagrangian_wib4_spread2d, LAGRANGIAN_WIB4_SPREAD2D)
 
-#define FORT_IB_6_INTERP               lagib6interp_
-#define FORT_IB_6_SPREAD               lagib6spread_
+#define LAGRANGIAN_IB6_INTERP_F77 F77_FUNC_(lagrangian_ib6_interp2d, LAGRANGIAN_IB6_INTERP2D)
+#define LAGRANGIAN_IB6_SPREAD_F77 F77_FUNC_(lagrangian_ib6_spread2d, LAGRANGIAN_IB6_SPREAD2D)
 
-#define FORT_WIDE_IB_4_INTERP          lagwib4interp_
-#define FORT_WIDE_IB_4_SPREAD          lagwib4spread_
+#endif
 
-// Function interfaces
-extern "C" {
-    void FORT_PW_CUBIC_INTERP(
+#if (NDIM == 3)
+#define LAGRANGIAN_PWCUBIC_INTERP_F77 F77_FUNC_(lagrangian_pwcubic_interp3d, LAGRANGIAN_PWCUBIC_INTERP3D)
+#define LAGRANGIAN_PWCUBIC_SPREAD_F77 F77_FUNC_(lagrangian_pwcubic_spread3d, LAGRANGIAN_PWCUBIC_SPREAD3D)
+
+#define LAGRANGIAN_IB4_INTERP_F77 F77_FUNC_(lagrangian_ib4_interp3d, LAGRANGIAN_IB4_INTERP3D)
+#define LAGRANGIAN_IB4_SPREAD_F77 F77_FUNC_(lagrangian_ib4_spread3d, LAGRANGIAN_IB4_SPREAD3D)
+
+#define LAGRANGIAN_WIB4_INTERP_F77 F77_FUNC_(lagrangian_wib4_interp3d, LAGRANGIAN_WIB4_INTERP3D)
+#define LAGRANGIAN_WIB4_SPREAD_F77 F77_FUNC_(lagrangian_wib4_spread3d, LAGRANGIAN_WIB4_SPREAD3D)
+
+#define LAGRANGIAN_IB6_INTERP_F77 F77_FUNC_(lagrangian_ib6_interp3d, LAGRANGIAN_IB6_INTERP3D)
+#define LAGRANGIAN_IB6_SPREAD_F77 F77_FUNC_(lagrangian_ib6_spread3d, LAGRANGIAN_IB6_SPREAD3D)
+
+#endif
+
+extern "C"
+{
+    void LAGRANGIAN_PW_CUBIC_INTERP_F77(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -73,7 +84,7 @@ extern "C" {
         const double* , double*
         );
 
-    void FORT_PW_CUBIC_SPREAD(
+    void LAGRANGIAN_PWCUBIC_SPREAD_F77(
         const double* , const double* , const double* , const int& ,
         const int* , const double* , const int& ,
         const double* , const double* ,
@@ -90,7 +101,7 @@ extern "C" {
 
 
 
-    void FORT_IB_4_INTERP(
+    void LAGRANGIAN_IB4_INTERP_F77(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -105,7 +116,7 @@ extern "C" {
         const double* , double*
         );
 
-    void FORT_IB_4_SPREAD(
+    void LAGRANGIAN_IB4_SPREAD_F77(
         const double* , const double* , const double* , const int& ,
         const int* , const double* , const int& ,
         const double* , const double* ,
@@ -122,7 +133,7 @@ extern "C" {
 
 
 
-    void FORT_IB_6_INTERP(
+    void LAGRANGIAN_IB6_INTERP_F77(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -137,7 +148,7 @@ extern "C" {
         const double* , double*
         );
 
-    void FORT_IB_6_SPREAD(
+    void LAGRANGIAN_IB6_SPREAD_F77(
         const double* , const double* , const double* , const int& ,
         const int* , const double* , const int& ,
         const double* , const double* ,
@@ -154,7 +165,7 @@ extern "C" {
 
 
 
-    void FORT_WIDE_IB_4_INTERP(
+    void LAGRANGIAN_WIB4_INTERP(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -169,7 +180,7 @@ extern "C" {
         const double* , double*
         );
 
-    void FORT_WIDE_IB_4_SPREAD(
+    void LAGRANGIAN_WIB4_SPREAD_F77(
         const double* , const double* , const double* , const int& ,
         const int* , const double* , const int& ,
         const double* , const double* ,
@@ -185,58 +196,58 @@ extern "C" {
         );
 }
 
-/////////////////////////////// INLINE ///////////////////////////////////////
+/////////////////////////////// NAMESPACE ////////////////////////////////////
 
-//#ifdef DEBUG_NO_INLINE
-//#include "LEInteractor.I"
-//#endif
-
+namespace IBAMR
+{
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 namespace
 {
-    // Timers.
-    static tbox::Pointer<tbox::Timer> t_interpolate;
-    static tbox::Pointer<tbox::Timer> t_interpolate_f77;
-    static tbox::Pointer<tbox::Timer> t_spread;
-    static tbox::Pointer<tbox::Timer> t_spread_f77;
+// Timers.
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_interpolate;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_interpolate_f77;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_spread;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_spread_f77;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void LEInteractor::initializeTimers()
+void
+LEInteractor::initializeTimers()
 {
     // Setup Timers.
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_interpolate = tbox::TimerManager::getManager()->
+        t_interpolate = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LEInteractor::interpolate()");
-        t_interpolate_f77 = tbox::TimerManager::getManager()->
+        t_interpolate_f77 = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LEInteractor::interpolate()[fortran]");
-        t_spread = tbox::TimerManager::getManager()->
+        t_spread = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LEInteractor::spread()");
-        t_spread_f77 = tbox::TimerManager::getManager()->
+        t_spread_f77 = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LEInteractor::spread()[fortran]");
         timers_need_init = false;
-    }    
+    }
     return;
 }// initializeTimers
 
 namespace
 {
     struct GetLocalPETScIndex
-        : unary_function<tbox::Pointer<LNodeIndex>,int>
+        : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
     {
         int operator()(
-            const tbox::Pointer<LNodeIndex>& index) const
+            const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
             {
                 return(index->getLocalPETScIndex());
             }
-    };        
+    };
 }
 
-int LEInteractor::getStencilSize(
+int
+LEInteractor::getStencilSize(
     const string& weighting_fcn)
 {
     if (weighting_fcn == "PIECEWISE_CUBIC") return(4);
@@ -251,13 +262,14 @@ int LEInteractor::getStencilSize(
     return(-1);
 }// getStencilSize
 
-void LEInteractor::interpolate(
-    tbox::Pointer<LNodeLevelData>& Q_data,
-    const tbox::Pointer<LNodeLevelData>& X_data,
-    const tbox::Pointer<LNodeIndexData>& idx_data,
-    const tbox::Pointer<pdat::CellData<NDIM,double> > q_data,
-    const tbox::Pointer<hier::Patch<NDIM> >& patch,
-    const hier::Box<NDIM>& box,
+void
+LEInteractor::interpolate(
+    SAMRAI::tbox::Pointer<LNodeLevelData>& Q_data,
+    const SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
+    const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& box,
     const string& interp_fcn,
     const bool enforce_periodic_bcs)
 {
@@ -280,15 +292,16 @@ void LEInteractor::interpolate(
     return;
 }// interpolate
 
-void LEInteractor::interpolate(
+void
+LEInteractor::interpolate(
     double* const Q_data,
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
-    const tbox::Pointer<LNodeIndexData>& idx_data,
-    const tbox::Pointer<pdat::CellData<NDIM,double> > q_data,
-    const tbox::Pointer<hier::Patch<NDIM> >& patch,
-    const hier::Box<NDIM>& box,
+    const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& box,
     const string& interp_fcn,
     const bool enforce_periodic_bcs)
 {
@@ -302,20 +315,20 @@ void LEInteractor::interpolate(
     assert(X_depth == NDIM);
 #endif
 
-    const hier::Box<NDIM>& patch_box = patch->getBox();
-    const hier::Index<NDIM>& ilower = patch_box.lower();
-    const hier::Index<NDIM>& iupper = patch_box.upper();
-    
-    const hier::Box<NDIM>& idx_ghost_box = idx_data->getGhostBox();
-    const hier::IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
-    
-    const tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
+    const SAMRAI::hier::Index<NDIM>& iupper = patch_box.upper();
+
+    const SAMRAI::hier::Box<NDIM>& idx_ghost_box = idx_data->getGhostBox();
+    const SAMRAI::hier::IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+
+    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const xLower = pgeom->getXLower();
     const double* const xUpper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
 
     const int depth = q_data->getDepth();
-    
+
     // Generate a list of local indices which lie in the specified
     // box.
     vector<int> local_indices;
@@ -335,14 +348,14 @@ void LEInteractor::interpolate(
     {
         local_indices.reserve(idx_data->getInteriorLocalIndices().size() +
                               idx_data->getGhostLocalIndices().size());
-        
+
         for (LNodeIndexData::Iterator it(*idx_data); it; it++)
         {
             if (box.contains(it.getIndex()))
             {
                 const LNodeIndexSet& node_set = *it;
                 const LNodeIndexSet::size_type& num_ids = node_set.size();
-                
+
                 local_indices.resize(local_indices.size()+num_ids);
                 transform(node_set.begin(), node_set.end(),
                           local_indices.end()-num_ids,
@@ -368,7 +381,7 @@ void LEInteractor::interpolate(
                 if (!patch_box.contains(it.getIndex()))
                 {
                     const LNodeIndexSet& node_set = *it;
-                    const hier::IntVector<NDIM>& offset =
+                    const SAMRAI::hier::IntVector<NDIM>& offset =
                         node_set.getPeriodicOffset();
 
                     for (LNodeIndexSet::size_type n = 0;
@@ -390,7 +403,7 @@ void LEInteractor::interpolate(
                 if (box.contains(it.getIndex()))
                 {
                     const LNodeIndexSet& node_set = *it;
-                    const hier::IntVector<NDIM>& offset =
+                    const SAMRAI::hier::IntVector<NDIM>& offset =
                         node_set.getPeriodicOffset();
 
                     for (LNodeIndexSet::size_type n = 0;
@@ -405,7 +418,7 @@ void LEInteractor::interpolate(
             }
         }
     }
-    
+
     // Interpolate.
     t_interpolate_f77->start();
 
@@ -414,7 +427,7 @@ void LEInteractor::interpolate(
     {
         if (interp_fcn == "PIECEWISE_CUBIC")
         {
-            FORT_PW_CUBIC_INTERP(
+            LAGRANGIAN_PW_CUBIC_INTERP_F77(
                 dx,xLower,xUpper,depth,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -430,7 +443,7 @@ void LEInteractor::interpolate(
         }
         else if (interp_fcn == "IB_4")
         {
-            FORT_IB_4_INTERP(
+            LAGRANGIAN_IB4_INTERP_F77(
                 dx,xLower,xUpper,depth,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -446,7 +459,7 @@ void LEInteractor::interpolate(
         }
         else if (interp_fcn == "IB_6")
         {
-            FORT_IB_6_INTERP(
+            LAGRANGIAN_IB6_INTERP_F77(
                 dx,xLower,xUpper,depth,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -462,7 +475,7 @@ void LEInteractor::interpolate(
         }
         else if (interp_fcn == "WIDE_IB_4")
         {
-            FORT_WIDE_IB_4_INTERP(
+            LAGRANGIAN_WIB4_INTERP(
                 dx,xLower,xUpper,depth,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -484,20 +497,21 @@ void LEInteractor::interpolate(
         }
     }
     t_interpolate_f77->stop();
-    
+
     t_interpolate->stop();
     return;
 }// interpolate
 
-void LEInteractor::interpolate(
+void
+LEInteractor::interpolate(
     double* const Q_data,
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
     const int num_vals,
-    const tbox::Pointer<pdat::CellData<NDIM,double> > q_data,
-    const tbox::Pointer<hier::Patch<NDIM> >& patch,
-    const hier::Box<NDIM>& box,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& box,
     const string& interp_fcn)
 {
     t_interpolate->start();
@@ -510,34 +524,34 @@ void LEInteractor::interpolate(
     assert(num_vals > 0);
 #endif
 
-    const hier::Box<NDIM>& patch_box = patch->getBox();
-    const hier::Index<NDIM>& ilower = patch_box.lower();
-    const hier::Index<NDIM>& iupper = patch_box.upper();
-    
-    const hier::IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
-    
-    const tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
+    const SAMRAI::hier::Index<NDIM>& iupper = patch_box.upper();
+
+    const SAMRAI::hier::IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+
+    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const xLower = pgeom->getXLower();
     const double* const xUpper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
 
     const int depth = q_data->getDepth();
-    
+
     // Generate a list of local indices which lie in the specified
     // box.
     vector<int> local_indices;
     for (int l = 0; l < num_vals; ++l)
     {
-        const pdat::CellIndex<NDIM> idx =
-            SAMRAI_tools_Utilities::getCellIndex(
-                &X_data[l*NDIM],xLower,dx,ilower);
+        const SAMRAI::pdat::CellIndex<NDIM> idx =
+            STOOLS::STOOLS_Utilities::getCellIndex(
+                &X_data[l*NDIM],xLower,xUpper,dx,ilower,iupper);
         if (box.contains(idx)) local_indices.push_back(l);
     }
-    
+
     // This routine does not have enough data to generate periodic
     // offsets.
     vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
-    
+
     // Interpolate.
     t_interpolate_f77->start();
 
@@ -546,7 +560,7 @@ void LEInteractor::interpolate(
     {
         if (interp_fcn == "PIECEWISE_CUBIC")
         {
-            FORT_PW_CUBIC_INTERP(
+            LAGRANGIAN_PW_CUBIC_INTERP_F77(
                 dx,xLower,xUpper,depth,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -562,7 +576,7 @@ void LEInteractor::interpolate(
         }
         else if (interp_fcn == "IB_4")
         {
-            FORT_IB_4_INTERP(
+            LAGRANGIAN_IB4_INTERP_F77(
                 dx,xLower,xUpper,depth,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -578,7 +592,7 @@ void LEInteractor::interpolate(
         }
         else if (interp_fcn == "IB_6")
         {
-            FORT_IB_6_INTERP(
+            LAGRANGIAN_IB6_INTERP_F77(
                 dx,xLower,xUpper,depth,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -594,7 +608,7 @@ void LEInteractor::interpolate(
         }
         else if (interp_fcn == "WIDE_IB_4")
         {
-            FORT_WIDE_IB_4_INTERP(
+            LAGRANGIAN_WIB4_INTERP(
                 dx,xLower,xUpper,depth,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -616,18 +630,19 @@ void LEInteractor::interpolate(
         }
     }
     t_interpolate_f77->stop();
-    
+
     t_interpolate->stop();
     return;
 }// interpolate
 
-void LEInteractor::spread(
-    tbox::Pointer<pdat::CellData<NDIM,double> > q_data,
-    const tbox::Pointer<LNodeLevelData>& Q_data,
-    const tbox::Pointer<LNodeLevelData>& X_data,
-    const tbox::Pointer<LNodeIndexData>& idx_data,
-    const tbox::Pointer<hier::Patch<NDIM> >& patch,
-    const hier::Box<NDIM>& box,
+void
+LEInteractor::spread(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<LNodeLevelData>& Q_data,
+    const SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
+    const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& box,
     const string& spread_fcn,
     const bool enforce_periodic_bcs)
 {
@@ -646,19 +661,20 @@ void LEInteractor::spread(
            &(*X_data)(0), X_data->getDepth(),
            idx_data,
            patch, box, spread_fcn, enforce_periodic_bcs);
-    
+
     return;
 }// spread
 
-void LEInteractor::spread(
-    tbox::Pointer<pdat::CellData<NDIM,double> > q_data,
+void
+LEInteractor::spread(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
     const double* const Q_data,
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
-    const tbox::Pointer<LNodeIndexData>& idx_data,
-    const tbox::Pointer<hier::Patch<NDIM> >& patch,
-    const hier::Box<NDIM>& box,
+    const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& box,
     const string& spread_fcn,
     const bool enforce_periodic_bcs)
 {
@@ -672,20 +688,20 @@ void LEInteractor::spread(
     assert(X_depth == NDIM);
 #endif
 
-    const hier::Box<NDIM>& patch_box = patch->getBox();
-    const hier::Index<NDIM>& ilower = patch_box.lower();
-    const hier::Index<NDIM>& iupper = patch_box.upper();
-    
-    const hier::Box<NDIM>& idx_ghost_box = idx_data->getGhostBox();
-    const hier::IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
-    
-    const tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
+    const SAMRAI::hier::Index<NDIM>& iupper = patch_box.upper();
+
+    const SAMRAI::hier::Box<NDIM>& idx_ghost_box = idx_data->getGhostBox();
+    const SAMRAI::hier::IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+
+    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const xLower = pgeom->getXLower();
     const double* const xUpper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
 
     const int depth = q_data->getDepth();
-    
+
     // Generate a list of local indices which lie in the specified
     // box.
     vector<int> local_indices;
@@ -705,14 +721,14 @@ void LEInteractor::spread(
     {
         local_indices.reserve(idx_data->getInteriorLocalIndices().size() +
                               idx_data->getGhostLocalIndices().size());
-        
+
         for (LNodeIndexData::Iterator it(*idx_data); it; it++)
         {
             if (box.contains(it.getIndex()))
             {
                 const LNodeIndexSet& node_set = *it;
                 const LNodeIndexSet::size_type& num_ids = node_set.size();
-                
+
                 local_indices.resize(local_indices.size()+num_ids);
                 transform(node_set.begin(), node_set.end(),
                           local_indices.end()-num_ids,
@@ -738,7 +754,7 @@ void LEInteractor::spread(
                 if (!patch_box.contains(it.getIndex()))
                 {
                     const LNodeIndexSet& node_set = *it;
-                    const hier::IntVector<NDIM>& offset =
+                    const SAMRAI::hier::IntVector<NDIM>& offset =
                         node_set.getPeriodicOffset();
 
                     for (LNodeIndexSet::size_type n = 0;
@@ -760,7 +776,7 @@ void LEInteractor::spread(
                 if (box.contains(it.getIndex()))
                 {
                     const LNodeIndexSet& node_set = *it;
-                    const hier::IntVector<NDIM>& offset =
+                    const SAMRAI::hier::IntVector<NDIM>& offset =
                         node_set.getPeriodicOffset();
 
                     for (LNodeIndexSet::size_type n = 0;
@@ -775,7 +791,7 @@ void LEInteractor::spread(
             }
         }
     }
-    
+
     // Spread.
     t_spread_f77->start();
 
@@ -784,7 +800,7 @@ void LEInteractor::spread(
     {
         if (spread_fcn == "PIECEWISE_CUBIC")
         {
-            FORT_PW_CUBIC_SPREAD(
+            LAGRANGIAN_PWCUBIC_SPREAD_F77(
                 dx,xLower,xUpper,depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
@@ -800,7 +816,7 @@ void LEInteractor::spread(
         }
         else if (spread_fcn == "IB_4")
         {
-            FORT_IB_4_SPREAD(
+            LAGRANGIAN_IB4_SPREAD_F77(
                 dx,xLower,xUpper,depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
@@ -816,7 +832,7 @@ void LEInteractor::spread(
         }
         else if (spread_fcn == "IB_6")
         {
-            FORT_IB_6_SPREAD(
+            LAGRANGIAN_IB6_SPREAD_F77(
                 dx,xLower,xUpper,depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
@@ -832,7 +848,7 @@ void LEInteractor::spread(
         }
         else if (spread_fcn == "WIDE_IB_4")
         {
-            FORT_WIDE_IB_4_SPREAD(
+            LAGRANGIAN_WIB4_SPREAD_F77(
                 dx,xLower,xUpper,depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data,Q_data,
@@ -854,20 +870,21 @@ void LEInteractor::spread(
         }
     }
     t_spread_f77->stop();
-    
+
     t_spread->stop();
     return;
 }// spread
 
-void LEInteractor::spread(
-    tbox::Pointer<pdat::CellData<NDIM,double> > q_data,
+void
+LEInteractor::spread(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
     const double* const Q_data,
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
     const int num_vals,
-    const tbox::Pointer<hier::Patch<NDIM> >& patch,
-    const hier::Box<NDIM>& box,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& box,
     const string& spread_fcn)
 {
     t_spread->start();
@@ -880,34 +897,34 @@ void LEInteractor::spread(
     assert(num_vals > 0);
 #endif
 
-    const hier::Box<NDIM>& patch_box = patch->getBox();
-    const hier::Index<NDIM>& ilower = patch_box.lower();
-    const hier::Index<NDIM>& iupper = patch_box.upper();
-    
-    const hier::IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
-    
-    const tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
+    const SAMRAI::hier::Index<NDIM>& iupper = patch_box.upper();
+
+    const SAMRAI::hier::IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+
+    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const xLower = pgeom->getXLower();
     const double* const xUpper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
 
     const int depth = q_data->getDepth();
-    
+
     // Generate a list of local indices which lie in the specified
     // box.
     vector<int> local_indices;
     for (int l = 0; l < num_vals; ++l)
     {
-        const pdat::CellIndex<NDIM> idx =
-            SAMRAI_tools_Utilities::getCellIndex(
-                &X_data[l*NDIM],xLower,dx,ilower);
+        const SAMRAI::pdat::CellIndex<NDIM> idx =
+            STOOLS::STOOLS_Utilities::getCellIndex(
+                &X_data[l*NDIM],xLower,xUpper,dx,ilower,iupper);
         if (box.contains(idx)) local_indices.push_back(l);
     }
 
     // This routine does not have enough data to generate periodic
     // offsets.
     vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
-    
+
     // Spread.
     t_spread_f77->start();
 
@@ -916,7 +933,7 @@ void LEInteractor::spread(
     {
         if (spread_fcn == "PIECEWISE_CUBIC")
         {
-            FORT_PW_CUBIC_SPREAD(
+            LAGRANGIAN_PWCUBIC_SPREAD_F77(
                 dx,xLower,xUpper,depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data,Q_data,
@@ -932,7 +949,7 @@ void LEInteractor::spread(
         }
         else if (spread_fcn == "IB_4")
         {
-            FORT_IB_4_SPREAD(
+            LAGRANGIAN_IB4_SPREAD_F77(
                 dx,xLower,xUpper,depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data,Q_data,
@@ -948,7 +965,7 @@ void LEInteractor::spread(
         }
         else if (spread_fcn == "IB_6")
         {
-            FORT_IB_6_SPREAD(
+            LAGRANGIAN_IB6_SPREAD_F77(
                 dx,xLower,xUpper,depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data,Q_data,
@@ -964,7 +981,7 @@ void LEInteractor::spread(
         }
         else if (spread_fcn == "WIDE_IB_4")
         {
-            FORT_WIDE_IB_4_SPREAD(
+            LAGRANGIAN_WIB4_SPREAD_F77(
                 dx,xLower,xUpper,depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data,Q_data,
@@ -986,9 +1003,19 @@ void LEInteractor::spread(
         }
     }
     t_spread_f77->stop();
-    
+
     t_spread->stop();
     return;
 }// spread
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+} // namespace IBAMR
+
+/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

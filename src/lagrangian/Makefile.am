@@ -11,9 +11,9 @@ libIBAMR_lagrangian_la_LIBADD = fortran/libIBAMR_lagrangian_fortran.la
 libIBAMR_lagrangian_la_SOURCES =
 
 ## Dimension-dependent libraries
-SOURCES =              LNodeIndex.C LNodeIndexData.C LNodeIndexDataFactory.C LNodeIndexSet.C LNodeIndexVariable.C LNodeJacobianInitStrategy.C LNodePosnInitStrategy.C LagSiloDataWriter.C
-pkg_include_HEADERS += LNodeIndex.h LNodeIndexData.h LNodeIndexDataFactory.h LNodeIndexSet.h LNodeIndexVariable.h LNodeJacobianInitStrategy.h LNodePosnInitStrategy.h LagSiloDataWriter.h
-pkg_include_HEADERS += LNodeIndex.I LNodeIndexData.I                         LNodeIndexSet.I
+SOURCES =              LEInteractor.C LNodeIndex.C LNodeIndexData.C LNodeIndexDataFactory.C LNodeIndexSet.C LNodeIndexVariable.C LNodeJacobianInitStrategy.C LNodePosnInitStrategy.C LagSiloDataWriter.C
+pkg_include_HEADERS += LEInteractor.h LNodeIndex.h LNodeIndexData.h LNodeIndexDataFactory.h LNodeIndexSet.h LNodeIndexVariable.h LNodeJacobianInitStrategy.h LNodePosnInitStrategy.h LagSiloDataWriter.h
+pkg_include_HEADERS +=                LNodeIndex.I LNodeIndexData.I                         LNodeIndexSet.I
 
 noinst_LTLIBRARIES += libIBAMR_lagrangian2d.la
 libIBAMR_lagrangian2d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
