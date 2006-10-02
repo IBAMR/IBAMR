@@ -1,63 +1,68 @@
-//
-// LNodeLevelData.I
-//
-// Created on 17 Apr 2004
-//         by Boyce E. Griffith (boyce@trasnaform.speakeasy.net).
-//
-// Last modified: <27.Jun.2005 01:37:42 boyce@mstu1.cims.nyu.edu>
-//
+// Filename: LNodeLevelData.I
+// Created on 17 Apr 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
+// Last modified: <02.Oct.2006 15:48:12 boyce@boyce-griffiths-powerbook-g4-15.local>
 
-// SAMRAI-tools INCLUDES
-//
-#include "PETSC_SAMRAI_ERROR.h"
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+// STOOLS INCLUDES
+#include <stools/PETSC_SAMRAI_ERROR.h>
 
 // SAMRAI INCLUDES
-//
-#include "tbox/Utilities.h"
-
-//////////////////////////////////////////////////////////////////////////////
-
-#ifdef DEBUG_NO_INLINE
-#define inline
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
 #endif
 
+#include <tbox/Utilities.h>
+
+// C++ STDLIB INCLUDES
+#include <cassert>
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+namespace IBAMR
+{
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline
-double& LNodeLevelData::operator()(
+double&
+LNodeLevelData::operator()(
     const int i,
     const int depth)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(0<=depth && depth<d_depth);
 #endif
-    return(getLocalFormArray()[d_depth*i+depth]);
+    return getLocalFormArray()[d_depth*i+depth];
 }// operator()
 
 inline
-int LNodeLevelData::getGlobalNodeCount()
+int
+LNodeLevelData::getGlobalNodeCount()
 {
     int ret_val;
     int ierr = VecGetSize(getGlobalVec(),&ret_val);  PETSC_SAMRAI_ERROR(ierr);
-    return(ret_val/d_depth);
+    return ret_val/d_depth;
 }// getGlobalNodeCount
 
 inline
-int LNodeLevelData::getLocalNodeCount()
+int
+LNodeLevelData::getLocalNodeCount()
 {
     int ret_val;
     int ierr = VecGetLocalSize(getGlobalVec(),&ret_val);  PETSC_SAMRAI_ERROR(ierr);
-    return(ret_val/d_depth);
+    return ret_val/d_depth;
 }// getLocalNodeCount
 
 inline
-int LNodeLevelData::getDepth() const
+int
+LNodeLevelData::getDepth() const
 {
-    return(d_depth);
+    return d_depth;
 }// getDepth
 
 inline
-void LNodeLevelData::beginGhostUpdate()
+void
+LNodeLevelData::beginGhostUpdate()
 {
     const int ierr = VecGhostUpdateBegin(
         getGlobalVec(), INSERT_VALUES, SCATTER_FORWARD);  PETSC_SAMRAI_ERROR(ierr);
@@ -65,7 +70,8 @@ void LNodeLevelData::beginGhostUpdate()
 }// beginGhostUpdate
 
 inline
-void LNodeLevelData::endGhostUpdate()
+void
+LNodeLevelData::endGhostUpdate()
 {
     const int ierr = VecGhostUpdateEnd(
         getGlobalVec(), INSERT_VALUES, SCATTER_FORWARD);  PETSC_SAMRAI_ERROR(ierr);
@@ -75,33 +81,35 @@ void LNodeLevelData::endGhostUpdate()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 inline
-Vec& LNodeLevelData::getGlobalVec()
+Vec&
+LNodeLevelData::getGlobalVec()
 {
     if (d_in_local_form)
     {
         restoreLocalFormVec();
     }
-    return(d_global_vec);
+    return d_global_vec;
 }// getGlobalVec
 
 inline
-Vec& LNodeLevelData::getLocalFormVec()
+Vec&
+LNodeLevelData::getLocalFormVec()
 {
     if (!d_in_local_form)
     {
-        const int ierr = VecGhostGetLocalForm(d_global_vec, &d_local_vec);
-        PETSC_SAMRAI_ERROR(ierr);
+        const int ierr = VecGhostGetLocalForm(d_global_vec, &d_local_vec);  PETSC_SAMRAI_ERROR(ierr);
         d_in_local_form = true;
     }
     else if (d_extracted_local_array)
     {
         restoreLocalFormArray();
     }
-    return(d_local_vec);
+    return d_local_vec;
 }// getLocalFormVec
 
 inline
-void LNodeLevelData::restoreLocalFormVec()
+void
+LNodeLevelData::restoreLocalFormVec()
 {
     if (d_in_local_form)
     {
@@ -109,15 +117,15 @@ void LNodeLevelData::restoreLocalFormVec()
         {
             restoreLocalFormArray();
         }
-        const int ierr = VecGhostRestoreLocalForm(d_global_vec, &d_local_vec);
-        PETSC_SAMRAI_ERROR(ierr);
+        const int ierr = VecGhostRestoreLocalForm(d_global_vec, &d_local_vec);  PETSC_SAMRAI_ERROR(ierr);
         d_in_local_form = false;
     }
     return;
 }// restoreLocalFormVec
 
 inline
-PetscScalar* LNodeLevelData::getLocalFormArray()
+PetscScalar*
+LNodeLevelData::getLocalFormArray()
 {
     if (!d_extracted_local_array)
     {
@@ -125,27 +133,24 @@ PetscScalar* LNodeLevelData::getLocalFormArray()
         {
             getLocalFormVec();
         }
-        const int ierr = VecGetArray(d_local_vec, &d_local_vec_array);
-        PETSC_SAMRAI_ERROR(ierr);
+        const int ierr = VecGetArray(d_local_vec, &d_local_vec_array);  PETSC_SAMRAI_ERROR(ierr);
         d_extracted_local_array = true;
     }
-    return(d_local_vec_array);
+    return d_local_vec_array;
 }// getLocalFormArray
 
 inline
-void LNodeLevelData::restoreLocalFormArray()
+void
+LNodeLevelData::restoreLocalFormArray()
 {
     if (!d_in_local_form || !d_extracted_local_array) return;
-    const int ierr = VecRestoreArray(d_local_vec, &d_local_vec_array);
-    PETSC_SAMRAI_ERROR(ierr);
+    const int ierr = VecRestoreArray(d_local_vec, &d_local_vec_array);  PETSC_SAMRAI_ERROR(ierr);
     d_extracted_local_array = false;
     return;
 }// restoreLocalFormArray
 
 //////////////////////////////////////////////////////////////////////////////
 
-#ifdef DEBUG_NO_INLINE
-#undef inline
-#endif
+}// namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

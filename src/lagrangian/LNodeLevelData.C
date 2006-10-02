@@ -1,32 +1,23 @@
-//
-// LNodeLevelData.C
-//
-// Created on 17 Apr 2004
-//         by Boyce E. Griffith (boyce@trasnaform.speakeasy.net).
-//
-// Last modified: <27.Jun.2005 01:49:48 boyce@mstu1.cims.nyu.edu>
-//
+// Filename: LNodeLevelData.C
+// Created on 17 Apr 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
+// Last modified: <02.Oct.2006 15:56:29 boyce@boyce-griffiths-powerbook-g4-15.local>
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "LNodeLevelData.h"
 
-#ifdef DEBUG_CHECK_ASSERTIONS
-#include <assert.h>
+// IBAMR INCLUDES
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
 #endif
 
-// SAMRAI-tools INCLUDES
-//
-#include "LDataManager.h"
-#include "PETSC_SAMRAI_ERROR.h"
+#include <ibamr/LDataManager.h>
 
-// SAMRAI INCLUDES
-//
-#include "tbox/Utilities.h"
+/////////////////////////////// NAMESPACE ////////////////////////////////////
 
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-#ifdef DEBUG_NO_INLINE
-#include "LNodeLevelData.I"
-#endif
+namespace IBAMR
+{
+/////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -37,7 +28,8 @@ LNodeLevelData::~LNodeLevelData()
     return;
 }// ~LNodeLevelData
 
-LNodeLevelData& LNodeLevelData::operator=(
+LNodeLevelData&
+LNodeLevelData::operator=(
     const LNodeLevelData& that)
 {
     if (that.d_in_local_form)
@@ -45,17 +37,18 @@ LNodeLevelData& LNodeLevelData::operator=(
         TBOX_ERROR("LNodeLevelData operator=:\n" <<
                    "  operator=() source object must NOT be in local form." << endl);
     }
-    if (this == &that) return(*this);  // check for self-assignment
+    if (this == &that) return *this;  // check for self-assignment
 
     restoreLocalFormVec();
     const int ierr = VecDestroy(d_global_vec);  PETSC_SAMRAI_ERROR(ierr);
-    
+
     assignThatToThis(that);
-    return(*this);
+    return *this;
 }// operator=
 
-void LNodeLevelData::putToDatabase(
-    tbox::Pointer<tbox::Database> db)
+void
+LNodeLevelData::putToDatabase(
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!db.isNull());
@@ -66,7 +59,7 @@ void LNodeLevelData::putToDatabase(
     const int num_local_nodes = getLocalNodeCount();
     const double* const local_form_array = getLocalFormArray();
     const int n_nonlocal_indices = static_cast<int>(d_nonlocal_petsc_indices.size());
-    
+
     db->putString("d_name", d_name);
     db->putInteger("d_depth", d_depth);
     db->putInteger("num_local_nodes", num_local_nodes);
@@ -82,10 +75,10 @@ void LNodeLevelData::putToDatabase(
         db->putDoubleArray("vals", local_form_array,
                            d_depth*num_local_nodes + n_nonlocal_indices);
     }
-    
+
     if (restore_local_array) restoreLocalFormArray();
     if (restore_local_vec  ) restoreLocalFormVec();
-    
+
     return;
 }// putToDatabase
 
@@ -105,7 +98,7 @@ LNodeLevelData::LNodeLevelData(
     d_name = name;
     d_depth = depth;
     d_nonlocal_petsc_indices = nonlocal_petsc_indices;
-    
+
     // Create the PETSc Vec which actually provides the storage for
     // the Lagrangian data.
     int ierr;
@@ -130,17 +123,17 @@ LNodeLevelData::LNodeLevelData(
     }
 
     ierr = VecSetBlockSize(d_global_vec, d_depth);  PETSC_SAMRAI_ERROR(ierr);
-    
+
     d_in_local_form = false;
 
     d_local_vec_array = NULL;
     d_extracted_local_array = false;
-    
+
     return;
 }// LNodeLevelData
 
 LNodeLevelData::LNodeLevelData(
-    tbox::Pointer<tbox::Database> db)
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
     d_name = db->getString("d_name");
     d_depth = db->getInteger("d_depth");
@@ -152,11 +145,11 @@ LNodeLevelData::LNodeLevelData(
         db->getIntegerArray("d_nonlocal_petsc_indices",
                             &d_nonlocal_petsc_indices[0], n_nonlocal_indices);
     }
-    
+
     // Create the PETSc Vec which actually provides the storage for
     // the Lagrangian data.
     int ierr;
-    
+
     if (d_depth == 1)
     {
         ierr = VecCreateGhost(PETSC_COMM_WORLD,
@@ -175,9 +168,9 @@ LNodeLevelData::LNodeLevelData(
                                    &d_global_vec);
         PETSC_SAMRAI_ERROR(ierr);
     }
-    
+
     ierr = VecSetBlockSize(d_global_vec, d_depth);  PETSC_SAMRAI_ERROR(ierr);
-    
+
     d_in_local_form = false;
 
     d_local_vec_array = NULL;
@@ -202,16 +195,17 @@ LNodeLevelData::LNodeLevelData(
         TBOX_ERROR("LNodeLevelData copy constructor:\n" <<
                    "  copy constructor source object must NOT be in local form." << endl);
     }
-    
+
     d_in_local_form = false;
     d_local_vec_array = NULL;
     d_extracted_local_array = false;
-    
-    assignThatToThis(from);    
+
+    assignThatToThis(from);
     return;
 }// LNodeLevelData
 
-void LNodeLevelData::resetData(
+void
+LNodeLevelData::resetData(
     Vec& new_global_vec,
     const vector<int>& new_nonlocal_petsc_indices)
 {
@@ -224,44 +218,38 @@ void LNodeLevelData::resetData(
     d_nonlocal_petsc_indices = new_nonlocal_petsc_indices;
     return;
 }// resetData
-    
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void LNodeLevelData::assignThatToThis(
+void
+LNodeLevelData::assignThatToThis(
     const LNodeLevelData& that)
 {
     d_name = that.d_name;
     d_depth = that.d_depth;
-    
+
     int ierr;
 
     ierr = VecDuplicate(that.d_global_vec, &d_global_vec);
     PETSC_SAMRAI_ERROR(ierr);
-    
+
     ierr = VecCopy(that.d_global_vec, d_global_vec);
     PETSC_SAMRAI_ERROR(ierr);
-    
+
     d_in_local_form = false;
-    
+
     d_local_vec_array = NULL;
     d_extracted_local_array = false;
     return;
 }// assignThatToThis
 
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+} // namespace IBAMR
+
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-#ifndef LACKS_EXPLICIT_TEMPLATE_INSTANTIATION
-
-#include "tbox/Pointer.C"
-
-//////////////////////////////////////////////////////////////////////
-///
-/// These declarations are required to use the LNodeLevelData class.
-///
-//////////////////////////////////////////////////////////////////////
-
-template class tbox::Pointer<LNodeLevelData>;
-
-#endif
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::LNodeLevelData>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -1,86 +1,84 @@
-//
-// LDataManager.C
-//
-// Created on 01 Mar 2004
-//         by Boyce Griffith (boyce@bigboy.speakeasy.net).
-//
-// Last modified: <08.Aug.2006 17:34:48 boyce@boyce.cims.nyu.edu>
-//
+// Filename: LDataManager.C
+// Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
+// Last modified: <02.Oct.2006 16:11:43 boyce@boyce-griffiths-powerbook-g4-15.local>
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "LDataManager.h"
 
-#ifdef DEBUG_CHECK_ASSERTIONS
-#include <assert.h>
+// IBAMR INCLUDES
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
 #endif
 
-// STL INCLUDES
-//
+#include <ibamr/LEInteractor.h>
+#include <ibamr/LNodeIndexSet.h>
+#include <ibamr/LNodeIndexData.h>
+#include <ibamr/LNodeLevelData.h>
+#include <ibamr/LagSiloDataWriter.h>
+
+// STOOLS INCLUDES
+#include <stools/PETSC_SAMRAI_ERROR.h>
+#include <stools/STOOLS_Utilities.h>
+
+// SAMRAI INCLUDES
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
+
+#include <Box.h>
+#include <BoxList.h>
+#include <CartesianCellDoubleWeightedAverage.h>
+#include <CartesianPatchGeometry.h>
+#include <CellData.h>
+#include <CellIterator.h>
+#include <CoarsenOperator.h>
+#include <Patch.h>
+#include <PatchLevel.h>
+#include <ProcessorMapping.h>
+#include <RefineOperator.h>
+#include <VariableDatabase.h>
+#include <tbox/MPI.h>
+#include <tbox/RestartManager.h>
+#include <tbox/Timer.h>
+#include <tbox/TimerManager.h>
+#include <tbox/ShutdownRegistry.h>
+#include <tbox/Utilities.h>
+
+// C++ STDLIB INCLUDES
 #include <algorithm>
 #include <functional>
 #include <numeric>
 #include <set>
 
-// SAMRAI-tools INCLUDES
-//
-#include "LEInteractor.h"
-#include "LNodeIndexSet.h"
-#include "LNodeIndexData.h"
-#include "LNodeLevelData.h"
-#include "LagSiloDataWriter.h"
-#include "PETSC_SAMRAI_ERROR.h"
-#include "SAMRAI_tools_Utilities.h"
+/////////////////////////////// NAMESPACE ////////////////////////////////////
 
-// SAMRAI INCLUDES
-//
-#include "Box.h"
-#include "BoxList.h"
-#include "CartesianCellDoubleWeightedAverage.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIterator.h"
-#include "CoarsenOperator.h"
-#include "Patch.h"
-#include "PatchLevel.h"
-#include "ProcessorMapping.h"
-#include "RefineOperator.h"
-#include "VariableDatabase.h"
-#include "tbox/MPI.h"
-#include "tbox/RestartManager.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/ShutdownRegistry.h"
-#include "tbox/Utilities.h"
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#ifdef DEBUG_NO_INLINE
-//#include "LDataManager.I"
-//#endif
-
+namespace IBAMR
+{
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 namespace
 {
     // Timers.
-    static tbox::Pointer<tbox::Timer> t_map_lagrangian_to_petsc;
-    static tbox::Pointer<tbox::Timer> t_map_petsc_to_lagrangian;
-    static tbox::Pointer<tbox::Timer> t_begin_data_redistribution;
-    static tbox::Pointer<tbox::Timer> t_end_data_redistribution;
-    static tbox::Pointer<tbox::Timer> t_update_workload_and_node_count;
-    static tbox::Pointer<tbox::Timer> t_restore_location_pointers;
-    static tbox::Pointer<tbox::Timer> t_invalidate_location_pointers;
-    static tbox::Pointer<tbox::Timer> t_initialize_level_data;
-    static tbox::Pointer<tbox::Timer> t_reset_hierarchy_configuration;
-    static tbox::Pointer<tbox::Timer> t_apply_gradient_detector;
-    static tbox::Pointer<tbox::Timer> t_put_to_database;
-    static tbox::Pointer<tbox::Timer> t_begin_nonlocal_data_fill;
-    static tbox::Pointer<tbox::Timer> t_end_nonlocal_data_fill;
-    static tbox::Pointer<tbox::Timer> t_compute_node_distribution;
-    static tbox::Pointer<tbox::Timer> t_compute_node_offsets;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_map_lagrangian_to_petsc;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_map_petsc_to_lagrangian;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_update_workload_and_node_count;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_restore_location_pointers;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_invalidate_location_pointers;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuration;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_nonlocal_data_fill;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_nonlocal_data_fill;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_node_distribution;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_node_offsets;
 
     // Assume max(U)dt/dx <= 1.
     static const int CFL_WIDTH = 1;
-    
+
     // Version of LDataManager restart file data.
     static const int LDATA_MANAGER_VERSION = 1;
 }
@@ -92,7 +90,8 @@ bool LDataManager::s_registered_callback;
 unsigned char LDataManager::s_shutdown_priority = 200;
 vector<int> LDataManager::s_ao_dummy(1,-1);
 
-LDataManager* LDataManager::getManager(
+LDataManager*
+LDataManager::getManager(
     const string& name)
 {
     if (s_data_manager_instances.find(name) ==
@@ -102,20 +101,21 @@ LDataManager* LDataManager::getManager(
     }
     if (!s_registered_callback)
     {
-        tbox::ShutdownRegistry::registerShutdownRoutine(
+        SAMRAI::tbox::ShutdownRegistry::registerShutdownRoutine(
             freeAllManagers,s_shutdown_priority);
         s_registered_callback = true;
     }
-    return(s_data_manager_instances[name]);
+    return s_data_manager_instances[name];
 }// getManager
 
-void LDataManager::freeAllManagers()
+void
+LDataManager::freeAllManagers()
 {
     for (map<string,LDataManager*>::iterator it =
              s_data_manager_instances.begin();
          it != s_data_manager_instances.end();
          ++it)
-    {              
+    {
         if ((*it).second)
         {
             delete (*it).second;
@@ -127,21 +127,23 @@ void LDataManager::freeAllManagers()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void LDataManager::setPatchHierarchy(
-    tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy)
+void
+LDataManager::setPatchHierarchy(
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!hierarchy.isNull());
 #endif
-    
+
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
     d_grid_geom = hierarchy->getGridGeometry();
-    
+
     return;
 }// setPatchHierarchy
 
-void LDataManager::resetLevels(
+void
+LDataManager::resetLevels(
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -153,7 +155,7 @@ void LDataManager::resetLevels(
 #endif
     // Destroy any un-needed AO objects.
     int ierr;
-    for (int ln = tbox::Utilities::imax(d_coarsest_ln,0);
+    for (int ln = SAMRAI::tbox::Utilities::imax(d_coarsest_ln,0);
          (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
     {
         if (d_ao[ln])
@@ -170,7 +172,7 @@ void LDataManager::resetLevels(
             PETSC_SAMRAI_ERROR(ierr);
         }
     }
-    
+
     // Reset the level numbers.
     d_coarsest_ln = coarsest_ln;
     d_finest_ln   = finest_ln;
@@ -190,8 +192,9 @@ void LDataManager::resetLevels(
     return;
 }// resetLevels
 
-void LDataManager::registerLNodeJacobianStrategy(
-    tbox::Pointer<LNodeJacobianStrategy> lag_jac_spec)
+void
+LDataManager::registerLNodeJacobianInitStrategy(
+    SAMRAI::tbox::Pointer<LNodeJacobianInitStrategy> lag_jac_spec)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!lag_jac_spec.isNull());
@@ -200,14 +203,16 @@ void LDataManager::registerLNodeJacobianStrategy(
     return;
 }// registerSpecAndInitStrategy
 
-void LDataManager::freeLNodeJacobianStrategy()
+void
+LDataManager::freeLNodeJacobianInitStrategy()
 {
     d_lag_jac_spec.setNull();
     return;
-}// freeLNodeJacobianStrategy
+}// freeLNodeJacobianInitStrategy
 
-void LDataManager::registerLNodePosnInitStrategy(
-    tbox::Pointer<LNodePosnInitStrategy> lag_posn_init)
+void
+LDataManager::registerLNodePosnInitStrategy(
+    SAMRAI::tbox::Pointer<LNodePosnInitStrategy> lag_posn_init)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!lag_posn_init.isNull());
@@ -216,14 +221,16 @@ void LDataManager::registerLNodePosnInitStrategy(
     return;
 }// registerSpecAndInitStrategy
 
-void LDataManager::freeLNodePosnInitStrategy()
+void
+LDataManager::freeLNodePosnInitStrategy()
 {
     d_lag_posn_init.setNull();
     return;
 }// freeLNodePosnInitStrategy
 
-void LDataManager::registerVisItDataWriter(
-    tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_writer)
+void
+LDataManager::registerVisItDataWriter(
+    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!visit_writer.isNull());
@@ -242,8 +249,9 @@ void LDataManager::registerVisItDataWriter(
     return;
 }// registerVisItDataWriter
 
-void LDataManager::registerLagSiloDataWriter(
-    tbox::Pointer<LagSiloDataWriter> silo_writer)
+void
+LDataManager::registerLagSiloDataWriter(
+    SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!silo_writer.isNull());
@@ -252,8 +260,9 @@ void LDataManager::registerLagSiloDataWriter(
     return;
 }// registerLagSiloDataWriter
 
-void LDataManager::registerLoadBalancer(
-    tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer)
+void
+LDataManager::registerLoadBalancer(
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!load_balancer.isNull());
@@ -262,7 +271,8 @@ void LDataManager::registerLoadBalancer(
     return;
 }// return
 
-bool LDataManager::levelContainsLagrangianData(
+bool
+LDataManager::levelContainsLagrangianData(
     const int level_number) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -271,15 +281,16 @@ bool LDataManager::levelContainsLagrangianData(
     if (!(d_coarsest_ln <= level_number &&
           d_finest_ln   >= level_number))
     {
-        return(false);
+        return false;
     }
     else
     {
-        return(d_level_contains_lag_data[level_number]);
+        return d_level_contains_lag_data[level_number];
     }
 }// levelContainsLagrangianData
 
-int LDataManager::getNumberOfNodes(
+int
+LDataManager::getNumberOfNodes(
     const int level_number) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -287,10 +298,11 @@ int LDataManager::getNumberOfNodes(
     assert(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
-    return(d_num_nodes[level_number]);
+    return d_num_nodes[level_number];
 }// getNumberOfNodes
 
-int LDataManager::getNumberOfLocalNodes(
+int
+LDataManager::getNumberOfLocalNodes(
     const int level_number) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -298,10 +310,11 @@ int LDataManager::getNumberOfLocalNodes(
     assert(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
-    return(d_local_lag_indices[level_number].size());
+    return d_local_lag_indices[level_number].size();
 }// getNumberOfLocalNodes
 
-int LDataManager::getGlobalNodeOffset(
+int
+LDataManager::getGlobalNodeOffset(
     const int level_number) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -309,10 +322,11 @@ int LDataManager::getGlobalNodeOffset(
     assert(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
-    return(d_node_offset[level_number]);
+    return d_node_offset[level_number];
 }// getGlobalNodeOffset
 
-tbox::Pointer<LNodeLevelData> LDataManager::getLNodeLevelData(
+SAMRAI::tbox::Pointer<LNodeLevelData>
+LDataManager::getLNodeLevelData(
     const string& quantity_name,
     const int level_number)
 {
@@ -323,10 +337,11 @@ tbox::Pointer<LNodeLevelData> LDataManager::getLNodeLevelData(
     assert(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
-    return(d_lag_quantity_data[level_number][quantity_name]);
+    return d_lag_quantity_data[level_number][quantity_name];
 }// getLNodeLevelData
 
-tbox::Pointer<LNodeLevelData> LDataManager::createLNodeLevelData(
+SAMRAI::tbox::Pointer<LNodeLevelData>
+LDataManager::createLNodeLevelData(
     const string& quantity_name,
     const int level_number,
     const int depth,
@@ -343,7 +358,7 @@ tbox::Pointer<LNodeLevelData> LDataManager::createLNodeLevelData(
 #endif
 
     bool created_nonlocal_petsc_indices = false;
-    
+
     if (d_nonlocal_petsc_indices[level_number].find(depth) ==
         d_nonlocal_petsc_indices[level_number].end())
     {
@@ -352,19 +367,19 @@ tbox::Pointer<LNodeLevelData> LDataManager::createLNodeLevelData(
 #endif
         d_nonlocal_petsc_indices[level_number][depth].resize(
             d_nonlocal_petsc_indices[level_number][1].size());
-        
+
         transform(d_nonlocal_petsc_indices[level_number][    1].begin(),
                   d_nonlocal_petsc_indices[level_number][    1].end(),
                   d_nonlocal_petsc_indices[level_number][depth].begin(),
                   bind2nd(multiplies<int>(),depth));
-        
+
         created_nonlocal_petsc_indices = true;
     }
-    
-    tbox::Pointer<LNodeLevelData> ret_val = new LNodeLevelData(
+
+    SAMRAI::tbox::Pointer<LNodeLevelData> ret_val = new LNodeLevelData(
         quantity_name,getNumberOfLocalNodes(level_number),depth,
         d_nonlocal_petsc_indices[level_number][depth]);
-    
+
     if (maintain_data)
     {
         d_lag_quantity_data[level_number][quantity_name] = ret_val;
@@ -374,31 +389,36 @@ tbox::Pointer<LNodeLevelData> LDataManager::createLNodeLevelData(
     {
         d_nonlocal_petsc_indices[level_number].erase(depth);
     }
-    
-    return(ret_val);
+
+    return ret_val;
 }// createLNodeLevelData
 
-int LDataManager::getLNodeIndexPatchDescriptorIndex() const
+int
+LDataManager::getLNodeIndexPatchDescriptorIndex() const
 {
-    return(d_lag_node_index_current_idx);
+    return d_lag_node_index_current_idx;
 }// getLNodeIndexPatchDescriptorIndex
 
-int LDataManager::getWorkloadPatchDescriptorIndex() const
+int
+LDataManager::getWorkloadPatchDescriptorIndex() const
 {
-    return(d_workload_idx);
+    return d_workload_idx;
 }// getWorkloadPatchDescriptorIndex
 
-int LDataManager::getNodeCountPatchDescriptorIndex() const
+int
+LDataManager::getNodeCountPatchDescriptorIndex() const
 {
-    return(d_node_count_idx);
+    return d_node_count_idx;
 }// getNodeCountPatchDescriptorIndex
 
-int LDataManager::getProcMappingPatchDescriptorIndex() const
+int
+LDataManager::getProcMappingPatchDescriptorIndex() const
 {
-    return(d_mpi_proc_idx);
+    return d_mpi_proc_idx;
 }// getProcMappingPatchDescriptorIndex
 
-void LDataManager::mapLagrangianToPETSc(
+void
+LDataManager::mapLagrangianToPETSc(
     vector<int>& inds,
     const int level_number) const
 {
@@ -419,17 +439,18 @@ void LDataManager::mapLagrangianToPETSc(
     return;
 }// mapLagrangianToPETSc
 
-void LDataManager::mapPETScToLagrangian(
+void
+LDataManager::mapPETScToLagrangian(
     vector<int>& inds,
     const int level_number) const
 {
     t_map_petsc_to_lagrangian->start();
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
-    
+
     const int ierr = AOPetscToApplication(
         d_ao[level_number],
         (!inds.empty() ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
@@ -443,25 +464,26 @@ void LDataManager::mapPETScToLagrangian(
 namespace
 {
     struct CellIndexFortranOrder
-        : binary_function<pdat::CellIndex<NDIM>,pdat::CellIndex<NDIM>,bool>
+        : binary_function<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::pdat::CellIndex<NDIM>,bool>
     {
         bool operator()(
-            const pdat::CellIndex<NDIM>& lhs,
-            const pdat::CellIndex<NDIM>& rhs) const
+            const SAMRAI::pdat::CellIndex<NDIM>& lhs,
+            const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
             {
-                return(lhs(0) < rhs(0)
+                return (lhs(0) < rhs(0)
 #if (NDIM>1)
-                       || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                        || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM>2)
-                       || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                        || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                       );
+                        );
             }
     };
 }
 
-void LDataManager::beginDataRedistribution(
+void
+LDataManager::beginDataRedistribution(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
@@ -475,7 +497,7 @@ void LDataManager::beginDataRedistribution(
         (finest_ln_in == -1)
         ? d_finest_ln
         : finest_ln_in;
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
@@ -503,7 +525,7 @@ void LDataManager::beginDataRedistribution(
                              "\tLNodeLevelData is not synchronized with LNodeIndexData.\n" <<
                              "\tLagrangian node position data is probably invalid!\n");
             }
-            
+
             // Update the ghost values of the Lagrangian nodal
             // positions.
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->beginGhostUpdate();
@@ -511,39 +533,40 @@ void LDataManager::beginDataRedistribution(
             {
                 d_lag_quantity_data[ln][JACOBIAN_DATA_NAME]->beginGhostUpdate();
             }
-            
+
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->endGhostUpdate();
             if (!d_lag_jac_spec.isNull())
             {
                 d_lag_quantity_data[ln][JACOBIAN_DATA_NAME]->endGhostUpdate();
             }
-            
+
             // Make sure that the location pointers are properly set
             // for each LNodeIndex.  They are directly used below to
             // locate the Lagrangian nodes.  They are also used to
             // re-sort the node index sets in an attempt to maximize
             // data locality.
             restoreLocationPointers(ln,ln);
-            
+
             // Update the index patch data on the level.
-            tbox::Pointer<hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            
-            for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-                const hier::Box<NDIM>& patch_box = patch->getBox();
-                const tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > patch_geom =
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
                     patch->getPatchGeometry();
-                const pdat::CellIndex<NDIM>& patch_lower = patch_box.lower();
+                const SAMRAI::pdat::CellIndex<NDIM>& patch_lower = patch_box.lower();
+                const SAMRAI::pdat::CellIndex<NDIM>& patch_upper = patch_box.upper();
                 const double* const patchXLower = patch_geom->getXLower();
                 const double* const patchXUpper = patch_geom->getXUpper();
                 const double* const patchDx = patch_geom->getDx();
                 const bool touches_periodic_bdry =
                     patch_geom->getTouchesPeriodicBoundary();
-                
-                tbox::Pointer<LNodeIndexData> idx_data =
+
+                SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
                     patch->getPatchData(d_lag_node_index_current_idx);
-                
+
                 // We're about to move the node indices.
                 //
                 // Before doing so, we dispose of most of the indices
@@ -566,9 +589,9 @@ void LDataManager::beginDataRedistribution(
                 // the patch after redistribution if the motion
                 // satisfies the CFL condition.
                 idx_data->removeOutsideBox(
-                    hier::Box<NDIM>::grow(
-                        patch_box, hier::IntVector<NDIM>(CFL_WIDTH)));
-                
+                    SAMRAI::hier::Box<NDIM>::grow(
+                        patch_box, SAMRAI::hier::IntVector<NDIM>(CFL_WIDTH)));
+
                 // Create LNodeIndexSet objects for each cell index in
                 // the patch interior which will contain LNodeIndex
                 // objects AFTER redistribution.
@@ -577,15 +600,15 @@ void LDataManager::beginDataRedistribution(
                 // patch interior.  That is to say, we only keep the
                 // nodes which the patch will own after
                 // redistribution.
-                typedef map<pdat::CellIndex<NDIM>,tbox::Pointer<LNodeIndexSet>,CellIndexFortranOrder> CellIndexMap;
+                typedef map<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::tbox::Pointer<LNodeIndexSet>,CellIndexFortranOrder> CellIndexMap;
                 CellIndexMap new_node_sets;
-                
+
                 for (LNodeIndexData::Iterator it(*idx_data); it; it++)
                 {
                     LNodeIndexSet& old_node_set = *it;
                     const bool patch_owns_node_at_old_loc =
                         patch_box.contains(it.getIndex());
-                    const hier::IntVector<NDIM>& offset =
+                    const SAMRAI::hier::IntVector<NDIM>& offset =
                         old_node_set.getPeriodicOffset();
                     double shifted_X[NDIM];
 
@@ -598,7 +621,7 @@ void LDataManager::beginDataRedistribution(
                         {
                             shifted_X[d] = X[d] + static_cast<double>(offset(d))*patchDx[d];
                         }
-                        
+
                         const bool patch_owns_node_at_new_loc =
                             ((  patchXLower[0] <= shifted_X[0])&&(shifted_X[0] < patchXUpper[0]))
 #if (NDIM > 1)
@@ -611,10 +634,10 @@ void LDataManager::beginDataRedistribution(
 
                         if (patch_owns_node_at_new_loc)
                         {
-                            const pdat::CellIndex<NDIM> new_cell_idx =
-                                SAMRAI_tools_Utilities::getCellIndex(
-                                    shifted_X,patchXLower,patchDx,patch_lower);
-                            
+                            const SAMRAI::pdat::CellIndex<NDIM> new_cell_idx =
+                                STOOLS::STOOLS_Utilities::getCellIndex(
+                                    shifted_X,patchXLower,patchXUpper,patchDx,patch_lower,patch_upper);
+
                             // If new_cell_idx already belongs to the
                             // map, update the Lagrangian index set
                             // anchored at new_cell_idx.
@@ -625,7 +648,7 @@ void LDataManager::beginDataRedistribution(
                             // new set.
                             CellIndexMap::iterator lb =
                                 new_node_sets.lower_bound(new_cell_idx);
-                            
+
                             if (lb != new_node_sets.end() &&
                                 !new_node_sets.key_comp()(new_cell_idx, lb->first))
                             {
@@ -683,22 +706,22 @@ void LDataManager::beginDataRedistribution(
                 // patch interior in the new distribution, so we don't
                 // lose any needed information by removing the items.
                 idx_data->removeAllItems();
-                
+
                 // Reorder all of the new LNodeIndexSet objects (based
                 // on the locations of their nodes) and place them
                 // into the index patch data.
                 for (CellIndexMap::const_iterator it = new_node_sets.begin();
                      it != new_node_sets.end(); ++it)
                 {
-                    const pdat::CellIndex<NDIM>& idx = (*it).first;
+                    const SAMRAI::pdat::CellIndex<NDIM>& idx = (*it).first;
                     LNodeIndexSet* node_set = (*it).second;
                     node_set->reorderCollection();
                     node_set->trimToFit();
                     idx_data->appendItem(idx,*node_set);
                 }
                 new_node_sets.clear();
-            }// for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            
+            }// for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+
             // Indicate that the LNodeLevelData on level number ln is
             // not currently distributed according to the distribution
             // specified by the LNodeIndexData.  I hope this isn't too
@@ -711,7 +734,8 @@ void LDataManager::beginDataRedistribution(
     return;
 }// beginDataRedistribution
 
-void LDataManager::endDataRedistribution(
+void
+LDataManager::endDataRedistribution(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
@@ -725,14 +749,14 @@ void LDataManager::endDataRedistribution(
         (finest_ln_in == -1)
         ? d_finest_ln
         : finest_ln_in;
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
     assert(finest_ln   >= d_coarsest_ln &&
            finest_ln   <= d_finest_ln);
 #endif
-    
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_level_contains_lag_data[ln] && (!d_needs_synch[ln]))
@@ -747,14 +771,14 @@ void LDataManager::endDataRedistribution(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         const double current_time = 0.0;  // time has no meaning (!)
-        
-        tbox::Pointer<hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        
+
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
         level->allocatePatchData(d_scratch_data);
 
         level->setTime(current_time, d_current_data);
         level->setTime(current_time, d_scratch_data);
-        
+
         d_lag_node_index_bdry_fill_scheds[ln]->fillData(current_time);
 
         level->deallocatePatchData(d_scratch_data);
@@ -763,16 +787,16 @@ void LDataManager::endDataRedistribution(
     // Define the PETSc data needed to communicate the LNodeLevelData
     // from its old configuration to its new configuration.
     int ierr;
-    
+
     vector<AO> new_ao(finest_ln+1);
-    
+
     vector<vector<Vec> > src(finest_ln+1);
     vector<vector<Vec> > dst(finest_ln+1);
     vector<vector<VecScatter> > scatter(finest_ln+1);
     vector<map<int,IS> > src_IS(finest_ln+1);
     vector<map<int,IS> > dst_IS(finest_ln+1);
     vector<map<int,VecScatter> > scatter_template(finest_ln+1);
-    
+
     // The number of all local (e.g., on processor) and ghost (e.g.,
     // off processor) nodes.
     //
@@ -780,7 +804,7 @@ void LDataManager::endDataRedistribution(
     //        num_nonlocal_nodes[ln] == d_nonlocal_lag_indices[ln].size()
     vector<int> num_local_nodes   (finest_ln+1);
     vector<int> num_nonlocal_nodes(finest_ln+1);
-    
+
     // Setup maps from patch numbers to the nodes indexed in the patch
     // interior and the patch ghost cell region.
     //
@@ -799,7 +823,7 @@ void LDataManager::endDataRedistribution(
     // attempt is made to do so.
     vector<map<int,vector<int>*> > patch_interior_local_indices(finest_ln+1);
     vector<map<int,vector<int>*> > patch_ghost_local_indices   (finest_ln+1);
-    
+
     // In the following loop over patch levels, we first compute the
     // new distribution data (e.g., all of these indices).
     //
@@ -819,35 +843,35 @@ void LDataManager::endDataRedistribution(
         // The destination indices.
         vector<int> dst_inds;
         bool dst_inds_set = false;
-        
+
         // Compute the new data distribution and start scattering.
         if (d_level_contains_lag_data[ln])
         {
-            map<string,tbox::Pointer<LNodeLevelData> >& level_data =
+            map<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& level_data =
                 d_lag_quantity_data[ln];
             const vector<int>::size_type num_data = level_data.size();
-            
+
             src[    ln].resize(num_data);
             dst[    ln].resize(num_data);
             scatter[ln].resize(num_data);
 
             // Obtain pointers to the patch local and ghost index
             // sets.
-            tbox::Pointer<hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            
-            for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const int patch_num = patch->getPatchNumber();
-                tbox::Pointer<LNodeIndexData> lag_node_idx_data =
+                SAMRAI::tbox::Pointer<LNodeIndexData> lag_node_idx_data =
                     patch->getPatchData(d_lag_node_index_current_idx);
-                
+
                 patch_interior_local_indices[ln][patch_num] =
                     &(lag_node_idx_data->d_interior_local_indices);
                 patch_ghost_local_indices[ln][patch_num] =
                     &(lag_node_idx_data->d_ghost_local_indices);
             }
-            
+
             // Get the new distribution of nodes for the level.
             //
             // NOTE: This process updates the local PETSc indices of
@@ -864,18 +888,18 @@ void LDataManager::endDataRedistribution(
                                            patch_ghost_local_indices   [ln],
                                            ln);
             PETSC_SAMRAI_ERROR(ierr);
-            
+
             num_local_nodes   [ln] = static_cast<int>(
                 d_local_lag_indices   [ln].size());
             num_nonlocal_nodes[ln] = static_cast<int>(
                 d_nonlocal_lag_indices[ln].size());
-            
-            map<string, tbox::Pointer<LNodeLevelData> >::iterator it;
+
+            map<string, SAMRAI::tbox::Pointer<LNodeLevelData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end();
                  ++it, ++i)
             {
-                tbox::Pointer<LNodeLevelData> data = (*it).second;
+                SAMRAI::tbox::Pointer<LNodeLevelData> data = (*it).second;
 #ifdef DEBUG_CHECK_ASSERTIONS
                 assert(!data.isNull());
 #endif
@@ -894,13 +918,13 @@ void LDataManager::endDataRedistribution(
 #endif
                     d_nonlocal_petsc_indices[ln][depth].
                         resize(num_nonlocal_nodes[ln]);
-                    
+
                     transform(d_nonlocal_petsc_indices[ln][    1].begin(),
                               d_nonlocal_petsc_indices[ln][    1].end(),
                               d_nonlocal_petsc_indices[ln][depth].begin(),
                               bind2nd(multiplies<int>(),depth));
                 }
-                
+
                 // Determine the PETSc indices of the source nodes for
                 // use when scattering values from the old
                 // configuration to the new configuration.
@@ -915,7 +939,7 @@ void LDataManager::endDataRedistribution(
                                           1, &src_IS[ln][depth]);
                     PETSC_SAMRAI_ERROR(ierr);
                 }
-                
+
                 // Determine the PETSc indices of the destination
                 // nodes for use when scattering values from the old
                 // configuration to the new configuration.
@@ -939,7 +963,7 @@ void LDataManager::endDataRedistribution(
 
                     dst_inds_set = true;
                 }
-                    
+
                 if (dst_IS[ln].find(depth) == dst_IS[ln].end())
                 {
                     if (depth == 1)
@@ -956,7 +980,7 @@ void LDataManager::endDataRedistribution(
                         transform(dst_inds.begin(), dst_inds.end(),
                                   scaled_dst_inds.begin(),
                                   bind2nd(multiplies<int>(),depth));
-                        
+
                         ierr = ISCreateBlock(PETSC_COMM_WORLD,
                                              depth, num_local_nodes[ln],
                                              &scaled_dst_inds[0],
@@ -964,12 +988,12 @@ void LDataManager::endDataRedistribution(
                         PETSC_SAMRAI_ERROR(ierr);
                     }
                 }
-                
+
                 // Create the destination Vec and start scattering
                 // data from the old configuration to the new
                 // configuration.
                 src[ln][i] = data->getGlobalVec();
-                
+
                 if (depth == 1)
                 {
                     ierr = VecCreateGhost(PETSC_COMM_WORLD,
@@ -1013,7 +1037,7 @@ void LDataManager::endDataRedistribution(
                                             &scatter[ln][i]);
                     PETSC_SAMRAI_ERROR(ierr);
                 }
-                
+
                 ierr = VecScatterBegin(src[ln][i], dst[ln][i],
                                        INSERT_VALUES, SCATTER_FORWARD,
                                        scatter[ln][i]);
@@ -1021,30 +1045,30 @@ void LDataManager::endDataRedistribution(
             }
         }// if (d_level_contains_lag_data[ln])
     }// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    
+
     // Complete the data scattering process, destroy the source Vec
     // objects, and distribute nonlocal data to the new configuration.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_level_contains_lag_data[ln])
         {
-            map<string,tbox::Pointer<LNodeLevelData> >& level_data =
+            map<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& level_data =
                 d_lag_quantity_data[ln];
-            
-            map<string,tbox::Pointer<LNodeLevelData> >::iterator it;
+
+            map<string,SAMRAI::tbox::Pointer<LNodeLevelData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end();
                  ++it, ++i)
             {
-                tbox::Pointer<LNodeLevelData> data = (*it).second;
-                
+                SAMRAI::tbox::Pointer<LNodeLevelData> data = (*it).second;
+
                 ierr = VecScatterEnd(src[ln][i], dst[ln][i],
                                      INSERT_VALUES, SCATTER_FORWARD,
                                      scatter[ln][i]);
                 PETSC_SAMRAI_ERROR(ierr);
                 ierr = VecScatterDestroy(scatter[ln][i]);
                 PETSC_SAMRAI_ERROR(ierr);
-                
+
                 ierr = VecDestroy(src[ln][i]);
                 PETSC_SAMRAI_ERROR(ierr);
 
@@ -1055,7 +1079,7 @@ void LDataManager::endDataRedistribution(
             beginNonlocalDataFill(ln,ln);
         }// if (d_level_contains_lag_data[ln])
     }// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    
+
     // Finish distributing nonlocal data to the new configuration.
     endNonlocalDataFill(coarsest_ln,finest_ln);
 
@@ -1064,21 +1088,21 @@ void LDataManager::endDataRedistribution(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         d_needs_synch[ln] = false;
-        
+
         if (d_ao[ln])
         {
             ierr = AODestroy(d_ao[ln]);
             PETSC_SAMRAI_ERROR(ierr);
         }
         d_ao[ln] = new_ao[ln];
-        
+
         for (map<int,IS>::iterator it = src_IS[ln].begin();
              it != src_IS[ln].end(); ++it)
         {
             ierr = ISDestroy((*it).second);
             PETSC_SAMRAI_ERROR(ierr);
         }
-        
+
         for (map<int,IS>::iterator it = dst_IS[ln].begin();
              it != dst_IS[ln].end(); ++it)
         {
@@ -1086,7 +1110,7 @@ void LDataManager::endDataRedistribution(
             PETSC_SAMRAI_ERROR(ierr);
         }
     }
-    
+
     // Restore the position data pointers for the LNodeIndex objects.
     restoreLocationPointers(coarsest_ln, finest_ln);
 
@@ -1096,7 +1120,7 @@ void LDataManager::endDataRedistribution(
     {
         d_silo_writer->setLagrangianAO(d_ao, coarsest_ln, finest_ln);
     }
-    
+
     t_end_data_redistribution->stop();
     return;
 }// endDataRedistribution
@@ -1104,18 +1128,19 @@ void LDataManager::endDataRedistribution(
 namespace
 {
     struct BeginLNodeLevelDataNonlocalFill
-        : unary_function<pair<string,tbox::Pointer<LNodeLevelData> >,void>
+        : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
     {
         void operator()(
-            const pair<string,tbox::Pointer<LNodeLevelData> >& data) const
+            const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
             {
                 data.second->beginGhostUpdate();
                 return;
             }
-    };        
+    };
 }
 
-void LDataManager::updateWorkloadAndNodeCount(
+void
+LDataManager::updateWorkloadAndNodeCount(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
@@ -1129,28 +1154,28 @@ void LDataManager::updateWorkloadAndNodeCount(
         (finest_ln_in == -1)
         ? d_finest_ln
         : finest_ln_in;
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
     assert(finest_ln   >= d_coarsest_ln &&
            finest_ln   <= d_finest_ln);
 #endif
-    
+
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
-        tbox::Pointer<hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        
-        for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-            const hier::Box<NDIM>& patch_box = patch->getBox();
-            
-            const tbox::Pointer<LNodeIndexData> idx_data =
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+
+            const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
                 patch->getPatchData(d_lag_node_index_current_idx);
-            tbox::Pointer<pdat::CellData<NDIM,double> > workload_data =
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > workload_data =
                 patch->getPatchData(d_workload_idx);
-            tbox::Pointer<pdat::CellData<NDIM,double> > node_count_data =
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > node_count_data =
                 patch->getPatchData(d_node_count_idx);
 
             workload_data->fillAll(d_alpha_work);
@@ -1158,7 +1183,7 @@ void LDataManager::updateWorkloadAndNodeCount(
 
             for (LNodeIndexData::Iterator it(*idx_data); it; it++)
             {
-                const hier::Index<NDIM>& i = it.getIndex();
+                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
                 if (patch_box.contains(i))
                 {
                     const LNodeIndexSet& node_set = *it;
@@ -1181,7 +1206,7 @@ void LDataManager::updateWorkloadAndNodeCount(
 namespace
 {
     class RestoreLNodeIndexLocationPointers
-        : unary_function<tbox::Pointer<LNodeIndex>,void>
+        : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
     {
     public:
         RestoreLNodeIndexLocationPointers(
@@ -1190,9 +1215,9 @@ namespace
             {
                 return;
             }
-        
+
         void operator()(
-            const tbox::Pointer<LNodeIndex>& data) const
+            const SAMRAI::tbox::Pointer<LNodeIndex>& data) const
             {
                 data->setNodeLocation(
                     &(d_X_arr[NDIM*data->getLocalPETScIndex()]));
@@ -1201,10 +1226,11 @@ namespace
 
     private:
         double* const d_X_arr;
-    };        
+    };
 }
 
-void LDataManager::restoreLocationPointers(
+void
+LDataManager::restoreLocationPointers(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
@@ -1218,7 +1244,7 @@ void LDataManager::restoreLocationPointers(
         (finest_ln_in == -1)
         ? d_finest_ln
         : finest_ln_in;
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
@@ -1228,16 +1254,16 @@ void LDataManager::restoreLocationPointers(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        tbox::Pointer<hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-            tbox::Pointer<LNodeIndexData> idx_data =
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
                 patch->getPatchData(d_lag_node_index_current_idx);
-            
+
             for (LNodeIndexData::Iterator it(*idx_data); it; it++)
             {
-                LNodeIndexSet& node_set = *it;                
+                LNodeIndexSet& node_set = *it;
                 for_each(node_set.begin(), node_set.end(),
                          RestoreLNodeIndexLocationPointers(
                              d_lag_quantity_data[ln][COORDS_DATA_NAME]->
@@ -1253,18 +1279,19 @@ void LDataManager::restoreLocationPointers(
 namespace
 {
     struct InvalidateLNodeIndexLocationPointers
-        : unary_function<tbox::Pointer<LNodeIndex>,void>
+        : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
     {
         void operator()(
-            const tbox::Pointer<LNodeIndex>& data) const
+            const SAMRAI::tbox::Pointer<LNodeIndex>& data) const
             {
                 data->setNodeLocation(NULL);
                 return;
             }
-    };        
+    };
 }
 
-void LDataManager::invalidateLocationPointers(
+void
+LDataManager::invalidateLocationPointers(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
@@ -1278,7 +1305,7 @@ void LDataManager::invalidateLocationPointers(
         (finest_ln_in == -1)
         ? d_finest_ln
         : finest_ln_in;
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
@@ -1288,16 +1315,16 @@ void LDataManager::invalidateLocationPointers(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        tbox::Pointer<hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-            tbox::Pointer<LNodeIndexData> idx_data =
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
                 patch->getPatchData(d_lag_node_index_current_idx);
-            
+
             for (LNodeIndexData::Iterator it(*idx_data); it; it++)
             {
-                LNodeIndexSet& node_set = *it;                
+                LNodeIndexSet& node_set = *it;
                 for_each(node_set.begin(), node_set.end(),
                          InvalidateLNodeIndexLocationPointers());
             }
@@ -1316,42 +1343,43 @@ void LDataManager::invalidateLocationPointers(
 ///      applyGradientDetector()
 ///
 ///  are concrete implementations of functions declared in the
-///  mesh::StandardTagAndInitStrategy<NDIM> abstract base class.
+///  SAMRAI::mesh::StandardTagAndInitStrategy<NDIM> abstract base class.
 ///
 
-void LDataManager::initializeLevelData(
-    const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
+void
+LDataManager::initializeLevelData(
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    const tbox::Pointer<hier::BasePatchLevel<NDIM> > old_level,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
     const bool allocate_data)
 {
     t_initialize_level_data->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!hierarchy.isNull());
-    assert((level_number >= 0) 
+    assert((level_number >= 0)
            && (level_number <= hierarchy->getFinestLevelNumber()));
     if (!(old_level.isNull())) {
         assert(level_number == old_level->getLevelNumber());
     }
     assert(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
-    
-    tbox::Pointer<hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    
+
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     // Check for overlapping boxes on this level.
     //
     // (This is potentially fairly expensive and hence is only done
     // when assertion checking is active.)
-    hier::BoxList<NDIM> boxes(level->getBoxes());
-    
+    SAMRAI::hier::BoxList<NDIM> boxes(level->getBoxes());
+
     vector<bool> patch_overlaps(boxes.getNumberItems());
     vector<bool>::size_type j, k;
-    
+
     for (k = 0; k < patch_overlaps.size(); ++k)
     {
         patch_overlaps[k] = false;
@@ -1360,10 +1388,10 @@ void LDataManager::initializeLevelData(
     while (!boxes.isEmpty())
     {
         j = k+1;
-        hier::Box<NDIM> tryme = boxes.getFirstItem();
+        SAMRAI::hier::Box<NDIM> tryme = boxes.getFirstItem();
         boxes.removeFirstItem();
-        
-        for (hier::BoxList<NDIM>::Iterator ib(boxes); ib; ib++)
+
+        for (SAMRAI::hier::BoxList<NDIM>::Iterator ib(boxes); ib; ib++)
         {
             if (tryme.intersects(ib()))
             {
@@ -1374,7 +1402,7 @@ void LDataManager::initializeLevelData(
         }
         ++k;
     }
-    
+
     for (k = 0; k < patch_overlaps.size(); ++k)
     {
         if (patch_overlaps[k])
@@ -1409,13 +1437,13 @@ void LDataManager::initializeLevelData(
         assert(old_level->getLevelNumber() == level_number);
 #endif
         level->allocatePatchData(d_scratch_data, init_data_time);
-        
+
         d_lag_node_index_bdry_fill_alg->
             createSchedule(level, old_level)->fillData(init_data_time);
-        
+
         level->deallocatePatchData(d_scratch_data);
     }
-    
+
     // Initialize the data on the level and, when appropriate, move
     // data from coarser levels to finer levels.
     if (initial_time)
@@ -1428,32 +1456,32 @@ void LDataManager::initializeLevelData(
         d_node_offset            .resize(level_number+1);
         d_local_lag_indices      .resize(level_number+1);
         d_nonlocal_lag_indices   .resize(level_number+1);
-        
+
 #ifdef DEBUG_CHECK_ASSERTIONS
         assert(!d_lag_posn_init.isNull());
 #endif
         d_level_contains_lag_data[level_number] = d_lag_posn_init->
             getLevelHasLagrangianData(level_number, can_be_refined);
-        
+
         if (d_level_contains_lag_data[level_number])
         {
             // First, determine the number of local (on processor)
-            // nodes to be allocated on the patch level.           
+            // nodes to be allocated on the patch level.
             const int num_local_nodes = d_lag_posn_init->
                 getLocalNodeCountOnPatchLevel(hierarchy, level_number,
                                               init_data_time,
                                               can_be_refined, initial_time);
-            
+
             // Second, allocate LNodeLevelData corresponding to the
             // curvilinear mesh node positions.
-            d_lag_quantity_data[level_number][COORDS_DATA_NAME] = 
+            d_lag_quantity_data[level_number][COORDS_DATA_NAME] =
                 new LNodeLevelData(COORDS_DATA_NAME, num_local_nodes, NDIM);
 
             // Third, initialize the Lagrangian data.
             computeNodeOffsets(d_num_nodes[level_number],
                                d_node_offset[level_number],
                                num_local_nodes);
-            
+
             d_lag_posn_init->initializeDataOnPatchLevel(
                 d_lag_node_index_current_idx,
                 d_lag_quantity_data[level_number][COORDS_DATA_NAME],
@@ -1467,7 +1495,7 @@ void LDataManager::initializeLevelData(
             // strategies as soon as this is made MORE SENSIBLE!!!
             if (!d_lag_jac_spec.isNull())
             {
-                d_lag_quantity_data[level_number][JACOBIAN_DATA_NAME] = 
+                d_lag_quantity_data[level_number][JACOBIAN_DATA_NAME] =
                     new LNodeLevelData(JACOBIAN_DATA_NAME, num_local_nodes, 1);
                 d_lag_jac_spec->initializeJacobianDet(
                     d_lag_node_index_current_idx,
@@ -1476,7 +1504,7 @@ void LDataManager::initializeLevelData(
                     hierarchy, level_number,
                     init_data_time, can_be_refined, initial_time);
             }
-            
+
             // Obtain the distribution (indexing) data for the data.
             //
             // Collect the local Lagrangian indices.  These values
@@ -1484,30 +1512,30 @@ void LDataManager::initializeLevelData(
             d_local_lag_indices  [level_number].resize(num_local_nodes);
             d_local_petsc_indices[level_number].resize(num_local_nodes);
 
-            for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-                const hier::Box<NDIM>& patch_box = patch->getBox();
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
 
-                tbox::Pointer<LNodeIndexData> idx_data =
+                SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
                     patch->getPatchData(d_lag_node_index_current_idx);
-                tbox::Pointer<pdat::CellData<NDIM,double> > workload_data =
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > workload_data =
                     patch->getPatchData(d_workload_idx);
-                tbox::Pointer<pdat::CellData<NDIM,double> > node_count_data =
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > node_count_data =
                     patch->getPatchData(d_node_count_idx);
-                
+
                 idx_data->d_interior_local_indices.clear();
                 idx_data->d_ghost_local_indices.clear();
-                
+
                 node_count_data->fillAll(0.0);
-                
+
                 for (LNodeIndexData::Iterator it(*idx_data); it; it++)
                 {
-                    const hier::Index<NDIM>& i = it.getIndex();
+                    const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
                     LNodeIndexSet& node_set = *it;
-                    
+
                     const bool patch_owns_idx = patch_box.contains(i);
-                    
+
                     if (patch_owns_idx)
                     {
                         const LNodeIndexSet& node_set = *it;
@@ -1529,7 +1557,7 @@ void LDataManager::initializeLevelData(
 #endif
                         d_local_lag_indices  [level_number][local_idx] = lag_idx;
                         d_local_petsc_indices[level_number][local_idx] = local_idx + d_node_offset[level_number];
-                        
+
                         if (patch_owns_idx)
                         {
                             idx_data->d_interior_local_indices.push_back(local_idx);
@@ -1541,27 +1569,27 @@ void LDataManager::initializeLevelData(
                     }
                 }
             }
-            
+
             // There are currently no nonlocal Lagrangian indices.
             d_nonlocal_lag_indices  [level_number]   .clear();
             d_nonlocal_petsc_indices[level_number][1].clear();
-            
+
             // The AO (application order) is determined by the initial
             // values of the local Lagrangian indices.
             int ierr;
-            
+
             if (d_ao[level_number])
             {
                 ierr = AODestroy(d_ao[level_number]);
                 PETSC_SAMRAI_ERROR(ierr);
             }
-            
+
             ierr = AOCreateBasic(PETSC_COMM_WORLD, num_local_nodes,
                                  &d_local_lag_indices  [level_number][0],
                                  &d_local_petsc_indices[level_number][0],
                                  &d_ao[level_number]);
             PETSC_SAMRAI_ERROR(ierr);
-            
+
             // Restore the position data pointers for the LNodeIndex
             // objects.
             restoreLocationPointers(level_number, level_number);
@@ -1586,21 +1614,22 @@ void LDataManager::initializeLevelData(
     }
 
     // Update the MPI process mapping data.
-    const int mpi_process = tbox::MPI::getRank();
-    for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    const int mpi_process = SAMRAI::tbox::MPI::getRank();
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-        tbox::Pointer<pdat::CellData<NDIM,int> > mpi_proc_data =
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > mpi_proc_data =
             patch->getPatchData(d_mpi_proc_idx);
         mpi_proc_data->fillAll(mpi_process);
     }
-    
+
     t_initialize_level_data->stop();
     return;
 }// initializeLevelData
 
-void LDataManager::resetHierarchyConfiguration(
-    const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
+void
+LDataManager::resetHierarchyConfiguration(
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
@@ -1609,7 +1638,7 @@ void LDataManager::resetHierarchyConfiguration(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!hierarchy.isNull());
     assert((coarsest_level >= 0)
-           && (coarsest_level <= finest_level) 
+           && (coarsest_level <= finest_level)
            && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln0 = 0; ln0 <= finest_level; ++ln0)
     {
@@ -1635,12 +1664,12 @@ void LDataManager::resetHierarchyConfiguration(
             }
         }
     }
-    
+
     // If we have added or removed a level, resize the schedule
     // vectors.
     d_lag_node_index_bdry_fill_scheds.resize(finest_hier_level+1);
     d_node_count_coarsen_scheds      .resize(finest_hier_level+1);
-    
+
     // (Re)build refine communication schedules.  These are created
     // for only the specified levels in the hierarchy.
     //
@@ -1648,20 +1677,20 @@ void LDataManager::resetHierarchyConfiguration(
     // hierarchy.
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
     {
-        tbox::Pointer<hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
         d_lag_node_index_bdry_fill_scheds[ln] =
             d_lag_node_index_bdry_fill_alg->createSchedule(level);
     }
-    
+
     // (Re)build coarsen communication schedules.  These are set only
     // for levels >= 1.
-    for (int ln = tbox::Utilities::imax(coarsest_level,1);
+    for (int ln = SAMRAI::tbox::Utilities::imax(coarsest_level,1);
          ln <= finest_hier_level; ++ln)
     {
-        tbox::Pointer<hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        tbox::Pointer<hier::PatchLevel<NDIM> > coarser_level =
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level =
             hierarchy->getPatchLevel(ln-1);
-        
+
         d_node_count_coarsen_scheds[ln] = d_node_count_coarsen_alg->
             createSchedule(coarser_level, level);
     }
@@ -1670,8 +1699,9 @@ void LDataManager::resetHierarchyConfiguration(
     return;
 }// resetHierarchyConfiguration
 
-void LDataManager::applyGradientDetector(
-    const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy, 
+void
+LDataManager::applyGradientDetector(
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double error_data_time,
     const int tag_index,
@@ -1686,9 +1716,9 @@ void LDataManager::applyGradientDetector(
            && (level_number <= hierarchy->getFinestLevelNumber()));
     assert(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
-    
-    tbox::Pointer<hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    
+
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+
     if (initial_time)
     {
         // Tag cells for refinement based on the initial
@@ -1702,21 +1732,21 @@ void LDataManager::applyGradientDetector(
         // hierarchy.
         updateWorkloadAndNodeCount(level_number+1,level_number+1);
         d_node_count_coarsen_scheds[level_number+1]->coarsenData();
-        
-        for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            const tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-            const hier::Box<NDIM>& patch_box = patch->getBox();
-            
-            tbox::Pointer<pdat::CellData<NDIM,int> > tag_data =
+            const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tag_data =
                 patch->getPatchData(tag_index);
-            const tbox::Pointer<pdat::CellData<NDIM,double> > node_count_data =
+            const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > node_count_data =
                 patch->getPatchData(d_node_count_idx);
-            
-            for (pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
+
+            for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
             {
-                const hier::Index<NDIM>& i = ic();
-                
+                const SAMRAI::hier::Index<NDIM>& i = ic();
+
                 if ((*node_count_data)(i) > 0.0)
                 {
                     (*tag_data)(i) = 1;
@@ -1729,8 +1759,9 @@ void LDataManager::applyGradientDetector(
     return;
 }// applyGradientDetector
 
-void LDataManager::putToDatabase(
-    tbox::Pointer<tbox::Database> db)
+void
+LDataManager::putToDatabase(
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
     t_put_to_database->start();
 
@@ -1743,21 +1774,21 @@ void LDataManager::putToDatabase(
     db->putInteger("d_finest_ln"  , d_finest_ln  );
     db->putDouble ("d_alpha_work" , d_alpha_work );
     db->putDouble ("d_beta_work"  , d_beta_work  );
-    
+
     // Write out data that is stored on a level-by-level basis.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         ostringstream stream;
         stream << "level_" << ln;
         const string level_db_name = stream.str();
-        tbox::Pointer<tbox::Database> level_db = db->putDatabase(level_db_name);
-        
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> level_db = db->putDatabase(level_db_name);
+
         level_db->putBool("d_level_contains_lag_data", d_level_contains_lag_data[ln]);
 
         if (d_level_contains_lag_data[ln])
         {
             vector<string> ldata_names;
-            for (map<string,tbox::Pointer<LNodeLevelData> >::iterator it =
+            for (map<string,SAMRAI::tbox::Pointer<LNodeLevelData> >::iterator it =
                      d_lag_quantity_data[ln].begin();
                  it != d_lag_quantity_data[ln].end(); ++it)
             {
@@ -1767,10 +1798,10 @@ void LDataManager::putToDatabase(
             level_db->putInteger("n_ldata_names", ldata_names.size());
             level_db->putStringArray("ldata_names",
                                      &ldata_names[0], ldata_names.size());
-            
+
             level_db->putInteger("d_num_nodes"  , d_num_nodes  [ln]);
             level_db->putInteger("d_node_offset", d_node_offset[ln]);
-            
+
             level_db->putInteger("n_local_lag_indices",
                                  d_local_lag_indices[ln].size());
             if (!d_local_lag_indices[ln].empty())
@@ -1809,7 +1840,7 @@ void LDataManager::putToDatabase(
             }
         }
     }
-    
+
     t_put_to_database->stop();
     return;
 }// putToDatabase
@@ -1818,7 +1849,7 @@ void LDataManager::putToDatabase(
 
 LDataManager::LDataManager(
     const string& object_name,
-    const hier::IntVector<NDIM>& ghosts,
+    const SAMRAI::hier::IntVector<NDIM>& ghosts,
     bool register_for_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1828,17 +1859,17 @@ LDataManager::LDataManager(
     d_object_name = object_name;
     d_registered_for_restart = register_for_restart;
 
-    tbox::pout << "fix ghost cell width spec; this won't work for 6-point delta function!!!\n";
-    
+    SAMRAI::tbox::pout << "fix ghost cell width spec; this won't work for 6-point delta function!!!\n";
+
     d_ghosts = ghosts;
-    
+
     if (d_registered_for_restart)
     {
-        tbox::RestartManager::getManager()->
+        SAMRAI::tbox::RestartManager::getManager()->
             registerRestartItem(d_object_name, this);
     }
-    
-    bool from_restart = tbox::RestartManager::getManager()->isFromRestart();
+
+    bool from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
     if (from_restart)
     {
         getFromRestart();
@@ -1848,14 +1879,14 @@ LDataManager::LDataManager(
     // error if they are not properly set.
     d_coarsest_ln = -1;
     d_finest_ln = -1;
-    
+
     // Create/lookup the variable contexts.
-    hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-    
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+
     d_current_context = var_db->getContext(d_object_name+"::CURRENT");
     d_scratch_context = var_db->getContext(d_object_name+"::SCRATCH");
-    
-    // Register the SAMRAI variables with the hier::VariableDatabase<NDIM>.
+
+    // Register the SAMRAI variables with the SAMRAI::hier::VariableDatabase<NDIM>.
     d_lag_node_index_var = new LNodeIndexVariable(
         d_object_name+"::LNodeIndex");
 
@@ -1863,33 +1894,33 @@ LDataManager::LDataManager(
     d_lag_node_index_current_idx = var_db->registerVariableAndContext(
         d_lag_node_index_var, d_current_context, d_ghosts);
     d_current_data.setFlag(d_lag_node_index_current_idx);
-    
+
     if (d_registered_for_restart)
     {
         var_db->registerPatchDataForRestart(d_lag_node_index_current_idx);
     }
-    
+
     // Setup the scratch context.
     d_lag_node_index_scratch_idx = var_db->registerVariableAndContext(
         d_lag_node_index_var, d_scratch_context, d_ghosts);
     d_scratch_data.setFlag(d_lag_node_index_scratch_idx);
-    
+
     // Setup a refine algorithm, used to fill LNodeIndex boundary
     // data.
-    d_lag_node_index_bdry_fill_alg = new xfer::RefineAlgorithm<NDIM>();
+    d_lag_node_index_bdry_fill_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     d_lag_node_index_bdry_fill_alg->registerRefine(
         d_lag_node_index_current_idx, // destination
         d_lag_node_index_current_idx, // source
         d_lag_node_index_scratch_idx, // temporary work space
-        tbox::Pointer<xfer::RefineOperator<NDIM> >(NULL));
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> >(NULL));
 
-    // Register the node count variable with the hier::VariableDatabase<NDIM>.
+    // Register the node count variable with the SAMRAI::hier::VariableDatabase<NDIM>.
     d_alpha_work = 1.0;
     d_beta_work = 1.0;
 
-    d_workload_var = new pdat::CellVariable<NDIM,double>(
+    d_workload_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
         d_object_name+"::Workload");
-    
+
     d_workload_idx = var_db->registerVariableAndContext(
         d_workload_var, d_current_context, 0);
     d_current_data.setFlag(d_workload_idx);
@@ -1898,12 +1929,12 @@ LDataManager::LDataManager(
     {
         var_db->registerPatchDataForRestart(d_workload_idx);
     }
-    
+
     // Register the node count variable with the VariableDatabase.
     d_output_node_count = false;
-    d_node_count_var = new pdat::CellVariable<NDIM,double>(
+    d_node_count_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
         d_object_name+"::Node Count");
-    
+
     d_node_count_idx = var_db->registerVariableAndContext(
         d_node_count_var, d_current_context, 0);
     d_current_data.setFlag(d_node_count_idx);
@@ -1913,21 +1944,21 @@ LDataManager::LDataManager(
         var_db->registerPatchDataForRestart(d_node_count_idx);
     }
 
-    tbox::Pointer<xfer::CoarsenOperator<NDIM> > coarsen_op =
-        new geom::CartesianCellDoubleWeightedAverage<NDIM>();
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_op =
+        new SAMRAI::geom::CartesianCellDoubleWeightedAverage<NDIM>();
 
-    d_node_count_coarsen_alg = new xfer::CoarsenAlgorithm<NDIM>();
+    d_node_count_coarsen_alg = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
     d_node_count_coarsen_alg->
         registerCoarsen(d_node_count_idx, // destination
                         d_node_count_idx, // source
                         coarsen_op);
-    
+
     // Register the MPI process mapping variable with the
     // VariableDatabase.
     d_output_mpi_proc = false;
-    d_mpi_proc_var = new pdat::CellVariable<NDIM,int>(
+    d_mpi_proc_var = new SAMRAI::pdat::CellVariable<NDIM,int>(
         d_object_name+"::MPI process mapping");
-    
+
     d_mpi_proc_idx = var_db->registerVariableAndContext(
         d_mpi_proc_var, d_current_context, 0);
     d_current_data.setFlag(d_mpi_proc_idx);
@@ -1936,40 +1967,40 @@ LDataManager::LDataManager(
     {
         var_db->registerPatchDataForRestart(d_mpi_proc_idx);
     }
-    
+
     // Setup Timers.
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_map_lagrangian_to_petsc = tbox::TimerManager::getManager()->
+        t_map_lagrangian_to_petsc = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::mapLagrangianToPETSc()");
-        t_map_petsc_to_lagrangian = tbox::TimerManager::getManager()->
+        t_map_petsc_to_lagrangian = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::mapPETScToLagrangian()");
-        t_begin_data_redistribution = tbox::TimerManager::getManager()->
+        t_begin_data_redistribution = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::beginDataRedistribution()");
-        t_end_data_redistribution = tbox::TimerManager::getManager()->
+        t_end_data_redistribution = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::endDataRedistribution()");
-        t_update_workload_and_node_count = tbox::TimerManager::getManager()->
+        t_update_workload_and_node_count = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::updateWorkloadAndNodeCount()");
-        t_restore_location_pointers = tbox::TimerManager::getManager()->
+        t_restore_location_pointers = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::restoreLocationPointers()");
-        t_invalidate_location_pointers = tbox::TimerManager::getManager()->
+        t_invalidate_location_pointers = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::invalidateLocationPointers()");
-        t_initialize_level_data = tbox::TimerManager::getManager()->
+        t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::initializeLevelData()");
-        t_reset_hierarchy_configuration = tbox::TimerManager::getManager()->
+        t_reset_hierarchy_configuration = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::resetHierarchyConfiguration()");
-        t_apply_gradient_detector = tbox::TimerManager::getManager()->
+        t_apply_gradient_detector = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::applyGradientDetector()");
-        t_put_to_database = tbox::TimerManager::getManager()->
+        t_put_to_database = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::putToDatabase()");
-        t_begin_nonlocal_data_fill = tbox::TimerManager::getManager()->
+        t_begin_nonlocal_data_fill = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::beginNonlocalDataFill()");
-        t_end_nonlocal_data_fill = tbox::TimerManager::getManager()->
+        t_end_nonlocal_data_fill = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::endNonlocalDataFill()");
-        t_compute_node_distribution = tbox::TimerManager::getManager()->
+        t_compute_node_distribution = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::computeNodeDistribution()");
-        t_compute_node_offsets = tbox::TimerManager::getManager()->
+        t_compute_node_offsets = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::LDataManager::computeNodeOffsets()");
         LEInteractor::initializeTimers();
         timers_need_init = false;
@@ -1994,7 +2025,8 @@ LDataManager::~LDataManager()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void LDataManager::beginNonlocalDataFill(
+void
+LDataManager::beginNonlocalDataFill(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
@@ -2008,17 +2040,17 @@ void LDataManager::beginNonlocalDataFill(
         (finest_ln_in == -1)
         ? d_finest_ln
         : finest_ln_in;
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
     assert(finest_ln   >= d_coarsest_ln &&
            finest_ln   <= d_finest_ln);
 #endif
-    
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        map<string,tbox::Pointer<LNodeLevelData> >& level_data =
+        map<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& level_data =
             d_lag_quantity_data[ln];
         for_each(level_data.begin(), level_data.end(),
                  BeginLNodeLevelDataNonlocalFill());
@@ -2031,18 +2063,19 @@ void LDataManager::beginNonlocalDataFill(
 namespace
 {
     struct EndLNodeLevelDataNonlocalFill
-        : unary_function<pair<string,tbox::Pointer<LNodeLevelData> >,void>
+        : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
     {
         void operator()(
-            const pair<string,tbox::Pointer<LNodeLevelData> >& data) const
+            const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
             {
                 data.second->endGhostUpdate();
                 return;
             }
-    };        
+    };
 }
 
-void LDataManager::endNonlocalDataFill(
+void
+LDataManager::endNonlocalDataFill(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
@@ -2056,17 +2089,17 @@ void LDataManager::endNonlocalDataFill(
         (finest_ln_in == -1)
         ? d_finest_ln
         : finest_ln_in;
-    
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
     assert(finest_ln   >= d_coarsest_ln &&
            finest_ln   <= d_finest_ln);
 #endif
-    
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        map<string,tbox::Pointer<LNodeLevelData> >& level_data =
+        map<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& level_data =
             d_lag_quantity_data[ln];
         for_each(level_data.begin(), level_data.end(),
                  EndLNodeLevelDataNonlocalFill());
@@ -2079,17 +2112,17 @@ void LDataManager::endNonlocalDataFill(
 namespace
 {
     struct GetLagrangianIndex
-        : unary_function<tbox::Pointer<LNodeIndex>,int>
+        : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
     {
         int operator()(
-            const tbox::Pointer<LNodeIndex>& index) const
+            const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
             {
-                return(index->getLagrangianIndex());
+                return index->getLagrangianIndex();
             }
-    };        
-    
+    };
+
     class SetLocalPETScIndex
-        : public unary_function<tbox::Pointer<LNodeIndex>,void>,
+        : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
           public unary_function<void,int>
     {
     public:
@@ -2099,25 +2132,25 @@ namespace
             {
                 return;
             }
-        
+
         void operator()(
-            const tbox::Pointer<LNodeIndex>& index)
+            const SAMRAI::tbox::Pointer<LNodeIndex>& index)
             {
                 index->setLocalPETScIndex(d_current_index++);
                 return;
             }
-        
+
         int operator()()
             {
-                return(d_current_index++);
+                return d_current_index++;
             }
-        
+
     private:
         int d_current_index;
     };
-    
+
     class GetLocalPETScIndexFromIDSet
-        : public unary_function<tbox::Pointer<LNodeIndex>,void>,
+        : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
           public unary_function<void,int>
     {
     public:
@@ -2127,25 +2160,26 @@ namespace
             {
                 return;
             }
-        
+
         void operator()(
-            const tbox::Pointer<LNodeIndex>& index)
+            const SAMRAI::tbox::Pointer<LNodeIndex>& index)
             {
                 index->setLocalPETScIndex((*(d_index++))->getLocalPETScIndex());
                 return;
             }
-        
+
         int operator()()
             {
-                return((*(d_index++))->getLocalPETScIndex());
+                return (*(d_index++))->getLocalPETScIndex();
             }
-        
+
     private:
         LNodeIndexSet::const_iterator d_index;
     };
 }
 
-int LDataManager::computeNodeDistribution(
+int
+LDataManager::computeNodeDistribution(
     vector<int>& local_lag_indices,
     vector<int>& nonlocal_lag_indices,
     AO& ao,
@@ -2178,16 +2212,16 @@ int LDataManager::computeNodeDistribution(
     //
     // Non-local nodes ONLY appear in ghost cells for on processor
     // patches.
-    tbox::Pointer<hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
-    const hier::ProcessorMapping& proc_mapping = level->getProcessorMapping();
-    const hier::BoxArray<NDIM>& global_boxes = level->getBoxes();
-    
+    const SAMRAI::hier::ProcessorMapping& proc_mapping = level->getProcessorMapping();
+    const SAMRAI::hier::BoxArray<NDIM>& global_boxes = level->getBoxes();
+
     const int num_local_boxes = proc_mapping.getNumberOfLocalIndices();
-    const tbox::Array<int>& local_box_indices = proc_mapping.getLocalIndices();
-    
-    hier::BoxArray<NDIM> local_boxes(num_local_boxes);
-    
+    const SAMRAI::tbox::Array<int>& local_box_indices = proc_mapping.getLocalIndices();
+
+    SAMRAI::hier::BoxArray<NDIM> local_boxes(num_local_boxes);
+
     for (int i = 0; i < num_local_boxes; ++i)
     {
         local_boxes(i) = global_boxes(local_box_indices[i]);
@@ -2200,30 +2234,30 @@ int LDataManager::computeNodeDistribution(
     // Set all patch interior local indices on the level.
     int local_offset = 0;
 
-    typedef map<pdat::CellIndex<NDIM>,const LNodeIndexSet* const,CellIndexFortranOrder> IndexSetMap;
+    typedef map<SAMRAI::pdat::CellIndex<NDIM>,const LNodeIndexSet* const,CellIndexFortranOrder> IndexSetMap;
     IndexSetMap ghost_cell_local_map;
-                
-    for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        const tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-        const tbox::Pointer<LNodeIndexData> lag_node_index_data =
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+        const SAMRAI::tbox::Pointer<LNodeIndexData> lag_node_index_data =
             patch->getPatchData(d_lag_node_index_current_idx);
-        const hier::Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
         const int& patch_num = patch->getPatchNumber();
 
         vector<int>& patch_interior_indices =
             *patch_interior_local_indices[patch_num];
         patch_interior_indices.clear();
-        
-        hier::Box<NDIM> interior_box = patch_box;
+
+        SAMRAI::hier::Box<NDIM> interior_box = patch_box;
         interior_box.grow(-(lag_node_index_data->getGhostCellWidth()));
-        
+
         for (LNodeIndexData::Iterator it(*lag_node_index_data); it; it++)
         {
             const LNodeIndexSet& id_set = it.getItem();
-            const pdat::CellIndex<NDIM>& cell_idx = it.getIndex();
+            const SAMRAI::pdat::CellIndex<NDIM>& cell_idx = it.getIndex();
             const LNodeIndexSet::size_type& num_ids = id_set.size();
-            
+
             if (patch_box.contains(cell_idx))
             {
                 // All nodes located in this cell are owned by the
@@ -2234,7 +2268,7 @@ int LDataManager::computeNodeDistribution(
                 vector<int> cell_lag_ids(num_ids);
                 transform(id_set.begin(), id_set.end(), cell_lag_ids.begin(),
                           GetLagrangianIndex());
-                
+
                 local_lag_indices.reserve(local_lag_indices.size()+num_ids);
                 local_lag_indices.insert(
                     local_lag_indices.end(),
@@ -2248,7 +2282,7 @@ int LDataManager::computeNodeDistribution(
                 generate(patch_interior_indices.end()-num_ids,
                          patch_interior_indices.end(),
                          SetLocalPETScIndex(local_offset));
-                
+
                 local_offset += static_cast<int>(num_ids);
 
                 // We (may) need to be able to lookup the local
@@ -2268,29 +2302,29 @@ int LDataManager::computeNodeDistribution(
     // VERY IMPORTANT NOTE: Changes to the following loop may break
     // code in class LEInteractor!
     IndexSetMap ghost_cell_nonlocal_map;
-    for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        const tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-        const tbox::Pointer<LNodeIndexData> lag_node_index_data =
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+        const SAMRAI::tbox::Pointer<LNodeIndexData> lag_node_index_data =
             patch->getPatchData(d_lag_node_index_current_idx);
-        const hier::Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
         const int& patch_num = patch->getPatchNumber();
-        const tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom =
+        const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom =
             patch->getPatchGeometry();
         const bool patch_touches_periodic_boundary = pgeom->
             getTouchesPeriodicBoundary();
-        
+
         vector<int>& patch_ghost_indices = *patch_ghost_local_indices[patch_num];
         patch_ghost_indices.clear();
 
         for (LNodeIndexData::Iterator it(*lag_node_index_data); it; it++)
         {
             const LNodeIndexSet& id_set = it.getItem();
-            const pdat::CellIndex<NDIM>& cell_idx = it.getIndex();
-            const pdat::CellIndex<NDIM>& shifted_cell_idx =
+            const SAMRAI::pdat::CellIndex<NDIM>& cell_idx = it.getIndex();
+            const SAMRAI::pdat::CellIndex<NDIM>& shifted_cell_idx =
                 cell_idx - id_set.getPeriodicOffset();
             const LNodeIndexSet::size_type& num_ids = id_set.size();
-            
+
             if (!patch_box.contains(cell_idx))
             {
                 if (local_boxes.contains(cell_idx))
@@ -2316,7 +2350,7 @@ int LDataManager::computeNodeDistribution(
                     for_each(id_set.begin(), id_set.end(),
                              GetLocalPETScIndexFromIDSet(
                                  (ghost_cell_local_map[shifted_cell_idx])->begin()));
-                    
+
                     patch_ghost_indices.
                         resize(patch_ghost_indices.size()+num_ids);
                     generate(patch_ghost_indices.end()-num_ids,
@@ -2340,23 +2374,23 @@ int LDataManager::computeNodeDistribution(
                             resize(patch_ghost_indices.size()+num_ids);
                         generate(patch_ghost_indices.end()-num_ids,
                                  patch_ghost_indices.end(),
-                                 GetLocalPETScIndexFromIDSet(((*lb).second)->begin()));                    
+                                 GetLocalPETScIndexFromIDSet(((*lb).second)->begin()));
                     }
                     else
                     {
                         vector<int> cell_lag_ids(num_ids);
                         transform(id_set.begin(), id_set.end(), cell_lag_ids.begin(),
                                   GetLagrangianIndex());
-                        
+
                         nonlocal_lag_indices.reserve(
                             nonlocal_lag_indices.size()+num_ids);
                         nonlocal_lag_indices.insert(
                             nonlocal_lag_indices.end(),
                             cell_lag_ids.begin(), cell_lag_ids.end());
-                        
+
                         for_each(id_set.begin(), id_set.end(),
                                  SetLocalPETScIndex(local_offset));
-                        
+
                         local_offset += static_cast<int>(num_ids);
 
                         ghost_cell_nonlocal_map.insert(lb, IndexSetMap::value_type(cell_idx,&id_set));
@@ -2381,11 +2415,11 @@ int LDataManager::computeNodeDistribution(
     {
         vector<int>(nonlocal_lag_indices).swap(nonlocal_lag_indices);
     }
-    
+
     // We now compute the new PETSc global ordering and initialize the
-    // AO object.    
+    // AO object.
     int ierr;
-    
+
     // Determine how many nodes are on each processor in order to
     // calculate the PETSc indexing scheme.
     const int num_local_nodes    = local_lag_indices.size();
@@ -2398,7 +2432,7 @@ int LDataManager::computeNodeDistribution(
                    "  num_local_nodes    = " << num_local_nodes    << "\n" <<
                    "  num_nonlocal_nodes = " << num_nonlocal_nodes << "\n");
     }
-    
+
     computeNodeOffsets(num_nodes, node_offset, num_local_nodes);
 
     // Determine the PETSc ordering and setup the new AO object.
@@ -2409,7 +2443,7 @@ int LDataManager::computeNodeDistribution(
     node_indices.insert(node_indices.end(),
                         local_lag_indices.begin(),
                         local_lag_indices.end());
-    
+
     local_petsc_indices.resize(num_local_nodes);
     generate(local_petsc_indices.begin(),local_petsc_indices.end(),
              SetLocalPETScIndex(node_offset));
@@ -2423,7 +2457,7 @@ int LDataManager::computeNodeDistribution(
     ierr = AOCreateBasic(PETSC_COMM_WORLD, num_local_nodes,
                          &node_indices[0], &local_petsc_indices[0], &ao);
     PETSC_SAMRAI_ERROR(ierr);
-    
+
     // Determine the PETSc local to global mapping (including PETSc
     // Vec ghost indices).
     //
@@ -2438,7 +2472,7 @@ int LDataManager::computeNodeDistribution(
         (num_proc_nodes > 0 ? num_proc_nodes   : static_cast<int>(s_ao_dummy.size())),
         (num_proc_nodes > 0 ? &node_indices[0] : &s_ao_dummy[0]));
     PETSC_SAMRAI_ERROR(ierr);
-    
+
 //  If desired, we can now build an ISLocalToGlobalMapping at this
 //  point.  It is not necessary to do so, since all of the information
 //  this mapping provides is encoded in d_node_offset and the two
@@ -2449,7 +2483,7 @@ int LDataManager::computeNodeDistribution(
 //
 //  // Construct a local to global mapping for the new ordering.
 //  ISLocalToGlobalMapping local_to_global_map;
-//  
+//
 //  if (local_to_global_map)
 //  {
 //      ierr = ISLocalToGlobalMappingDestroy(local_to_global_map);
@@ -2459,33 +2493,34 @@ int LDataManager::computeNodeDistribution(
 //                                      &node_indices[0],
 //                                      &local_to_global_map);
 //  PETSC_SAMRAI_ERROR(ierr);
-    
+
     // Keep track of the global PETSc indices of the ghost nodes.
     nonlocal_petsc_indices.clear();
     nonlocal_petsc_indices.reserve(num_nonlocal_nodes);
-    
+
     nonlocal_petsc_indices.insert(nonlocal_petsc_indices.end(),
                                   node_indices.begin()+num_local_nodes,
                                   node_indices.end());
 
     t_compute_node_distribution->stop();
-    return(0);
+    return 0;
 }// computeNodeDistribution
 
-void LDataManager::computeNodeOffsets(
+void
+LDataManager::computeNodeOffsets(
     int& num_nodes,
     int& node_offset,
     const int& num_local_nodes)
 {
     t_compute_node_offsets->start();
 
-    const int mpi_size = tbox::MPI::getNodes();
-    const int mpi_rank = tbox::MPI::getRank();
-    
+    const int mpi_size = SAMRAI::tbox::MPI::getNodes();
+    const int mpi_rank = SAMRAI::tbox::MPI::getRank();
+
     vector<int> num_nodes_proc(mpi_size,0);
-    
-    tbox::MPI::allGather(num_local_nodes, &num_nodes_proc[0]);
-    
+
+    SAMRAI::tbox::MPI::allGather(num_local_nodes, &num_nodes_proc[0]);
+
     node_offset = accumulate(num_nodes_proc.begin(),
                              num_nodes_proc.begin()+mpi_rank, 0);
 
@@ -2496,11 +2531,12 @@ void LDataManager::computeNodeOffsets(
     return;
 }// computeNodeOffsets
 
-// bool LDataManager::checkAllPeriodicShifts(
-//     pdat::CellIndex<NDIM>& shifted_idx,
-//     const pdat::CellIndex<NDIM>& idx,
-//     const hier::BoxArray<NDIM>& boxes,
-//     const hier::IntVector<NDIM>& periodic_shift)
+// bool
+// LDataManager::checkAllPeriodicShifts(
+//     SAMRAI::pdat::CellIndex<NDIM>& shifted_idx,
+//     const SAMRAI::pdat::CellIndex<NDIM>& idx,
+//     const SAMRAI::hier::BoxArray<NDIM>& boxes,
+//     const SAMRAI::hier::IntVector<NDIM>& periodic_shift)
 // {
 // #if (NDIM > 3)
 //     TBOX_ERROR("NDIM > 3 NOT SUPPORTED!\n");
@@ -2510,7 +2546,7 @@ void LDataManager::computeNodeOffsets(
 //     // NOTE: This could be made more efficient, but hopefully this
 //     // check will occur infrequently.
 //     bool boxes_contains_shifted_idx = false;
-//    
+//
 //     for (int d = 0; d < NDIM && !boxes_contains_shifted_idx; ++d)
 //     {
 //         if (!boxes_contains_shifted_idx)
@@ -2549,7 +2585,7 @@ void LDataManager::computeNodeOffsets(
 //                 {
 //                     boxes_contains_shifted_idx = true;
 //                 }
-//             }        
+//             }
 //
 //             if (!boxes_contains_shifted_idx)
 //             {
@@ -2560,8 +2596,8 @@ void LDataManager::computeNodeOffsets(
 //                 {
 //                     boxes_contains_shifted_idx = true;
 //                 }
-//             }        
-//            
+//             }
+//
 //             if (!boxes_contains_shifted_idx)
 //             {
 //                 shifted_idx = idx;
@@ -2571,8 +2607,8 @@ void LDataManager::computeNodeOffsets(
 //                 {
 //                     boxes_contains_shifted_idx = true;
 //                 }
-//             }        
-//                
+//             }
+//
 //             if (!boxes_contains_shifted_idx)
 //             {
 //                 shifted_idx = idx;
@@ -2585,7 +2621,7 @@ void LDataManager::computeNodeOffsets(
 //             }
 //         }
 //     }
-//    
+//
 //     for (int d0 = 0; d0 < NDIM && !boxes_contains_shifted_idx; ++d0)
 //     {
 //         for (int d1 = 0; d1 < NDIM && !boxes_contains_shifted_idx; ++d1)
@@ -2595,7 +2631,7 @@ void LDataManager::computeNodeOffsets(
 //             {
 //                 if (d2 == d0) break;
 //                 if (d2 == d1) break;
-//                
+//
 //                 if (!boxes_contains_shifted_idx)
 //                 {
 //                     shifted_idx = idx;
@@ -2607,7 +2643,7 @@ void LDataManager::computeNodeOffsets(
 //                         boxes_contains_shifted_idx = true;
 //                     }
 //                 }
-//                
+//
 //                 if (!boxes_contains_shifted_idx)
 //                 {
 //                     shifted_idx = idx;
@@ -2619,7 +2655,7 @@ void LDataManager::computeNodeOffsets(
 //                         boxes_contains_shifted_idx = true;
 //                     }
 //                 }
-//                
+//
 //                 if (!boxes_contains_shifted_idx)
 //                 {
 //                     shifted_idx = idx;
@@ -2631,7 +2667,7 @@ void LDataManager::computeNodeOffsets(
 //                         boxes_contains_shifted_idx = true;
 //                     }
 //                 }
-//                
+//
 //                 if (!boxes_contains_shifted_idx)
 //                 {
 //                     shifted_idx = idx;
@@ -2643,7 +2679,7 @@ void LDataManager::computeNodeOffsets(
 //                         boxes_contains_shifted_idx = true;
 //                     }
 //                 }
-//                
+//
 //                 if (!boxes_contains_shifted_idx)
 //                 {
 //                     shifted_idx = idx;
@@ -2655,7 +2691,7 @@ void LDataManager::computeNodeOffsets(
 //                         boxes_contains_shifted_idx = true;
 //                     }
 //                 }
-//                
+//
 //                 if (!boxes_contains_shifted_idx)
 //                 {
 //                     shifted_idx = idx;
@@ -2667,7 +2703,7 @@ void LDataManager::computeNodeOffsets(
 //                         boxes_contains_shifted_idx = true;
 //                     }
 //                 }
-//                
+//
 //                 if (!boxes_contains_shifted_idx)
 //                 {
 //                     shifted_idx = idx;
@@ -2679,7 +2715,7 @@ void LDataManager::computeNodeOffsets(
 //                         boxes_contains_shifted_idx = true;
 //                     }
 //                 }
-//                
+//
 //                 if (!boxes_contains_shifted_idx)
 //                 {
 //                     shifted_idx = idx;
@@ -2693,16 +2729,17 @@ void LDataManager::computeNodeOffsets(
 //                 }
 //             }
 //         }
-//     }                
-//     return(boxes_contains_shifted_idx);
+//     }
+//     return boxes_contains_shifted_idx;
 // }// checkAllPeriodicShifts
 
-void LDataManager::getFromRestart()
+void
+LDataManager::getFromRestart()
 {
-    tbox::Pointer<tbox::Database> restart_db =
-        tbox::RestartManager::getManager()->getRootDatabase();
-    
-    tbox::Pointer<tbox::Database> db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> restart_db =
+        SAMRAI::tbox::RestartManager::getManager()->getRootDatabase();
+
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -2712,7 +2749,7 @@ void LDataManager::getFromRestart()
         TBOX_ERROR("Restart database corresponding to "
                    << d_object_name << " not found in restart file.");
     }
-    
+
     int ver = db->getInteger("LDATA_MANAGER_VERSION");
     if (ver != LDATA_MANAGER_VERSION)
     {
@@ -2743,8 +2780,8 @@ void LDataManager::getFromRestart()
         ostringstream stream;
         stream << "level_" << ln;
         const string level_db_name = stream.str();
-        tbox::Pointer<tbox::Database> level_db = db->getDatabase(level_db_name);
-        
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> level_db = db->getDatabase(level_db_name);
+
         d_level_contains_lag_data[ln] = level_db->getBool("d_level_contains_lag_data");
 
         if (d_level_contains_lag_data[ln])
@@ -2763,7 +2800,7 @@ void LDataManager::getFromRestart()
                 data_depths.insert(
                     d_lag_quantity_data[ln][ldata_name]->getDepth());
             }
-            
+
             d_num_nodes  [ln] = level_db->getInteger("d_num_nodes"  );
             d_node_offset[ln] = level_db->getInteger("d_node_offset");
 
@@ -2805,10 +2842,10 @@ void LDataManager::getFromRestart()
                      it != data_depths.end(); ++it)
                 {
                     const int depth = *it;
-                    
+
                     d_nonlocal_petsc_indices[ln][depth].
                         resize(d_nonlocal_petsc_indices[ln][1].size());
-                    
+
                     transform(d_nonlocal_petsc_indices[ln][    1].begin(),
                               d_nonlocal_petsc_indices[ln][    1].end  (),
                               d_nonlocal_petsc_indices[ln][depth].begin(),
@@ -2824,25 +2861,18 @@ void LDataManager::getFromRestart()
             PETSC_SAMRAI_ERROR(ierr);
         }
     }
-        
+
     return;
 }// getFromRestart
 
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+} // namespace IBAMR
+
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-#ifndef LACKS_EXPLICIT_TEMPLATE_INSTANTIATION
-
-#include "IntVector.h"
-#include "tbox/Pointer.C"
-
-//////////////////////////////////////////////////////////////////////
-///
-/// These declarations are required to use the LDataManager class.
-///
-//////////////////////////////////////////////////////////////////////
-
-template class tbox::Pointer<hier::IntVector<NDIM> >;
-
-#endif
+#include <IntVector.h>
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<SAMRAI::hier::IntVector<NDIM> >;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,6 @@
 // Filename: LEInteractor.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <02.Oct.2006 15:29:16 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <02.Oct.2006 15:36:33 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -241,7 +241,7 @@ namespace
         int operator()(
             const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
             {
-                return(index->getLocalPETScIndex());
+                return index->getLocalPETScIndex();
             }
     };
 }
@@ -250,16 +250,16 @@ int
 LEInteractor::getStencilSize(
     const string& weighting_fcn)
 {
-    if (weighting_fcn == "PIECEWISE_CUBIC") return(4);
-    if (weighting_fcn == "IB_4") return(4);
-    if (weighting_fcn == "IB_6") return(6);
-    if (weighting_fcn == "WIDE_IB_4") return(8);
+    if (weighting_fcn == "PIECEWISE_CUBIC") return 4;
+    if (weighting_fcn == "IB_4") return 4;
+    if (weighting_fcn == "IB_6") return 6;
+    if (weighting_fcn == "WIDE_IB_4") return 8;
 
     TBOX_ERROR("LEInteractor::getStencilSize()\n"
                << "  Unknown weighting function "
                << weighting_fcn << endl);
 
-    return(-1);
+    return -1;
 }// getStencilSize
 
 void
