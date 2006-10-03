@@ -354,6 +354,7 @@ AC_CONFIG_FILES([
   Makefile
   doc/Doxyfile
   src/Makefile src/fortran/Makefile
+  src/IB/Makefile
   src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/adv_diff/tests/Makefile
   src/advect/Makefile src/advect/fortran/Makefile src/advect/tests/Makefile
   src/lagrangian/Makefile src/lagrangian/fortran/Makefile

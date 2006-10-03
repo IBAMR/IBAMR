@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = fortran adv_diff advect lagrangian navier_stokes utilities .
+SUBDIRS = fortran IB adv_diff advect lagrangian navier_stokes utilities .
 
 ## Dimension-independent library
 lib_LTLIBRARIES = libIBAMR.la
@@ -15,6 +15,7 @@ libIBAMR_la_SOURCES = # intentionally blank
 lib_LTLIBRARIES += libIBAMR2d.la
 libIBAMR2d_la_LIBADD = $(FLIBS)			\
   $(top_builddir)/stools/src/libSTOOLS2d.la	\
+  IB/libIBAMR_IB2d.la				\
   adv_diff/libIBAMR_adv_diff2d.la		\
   advect/libIBAMR_advect2d.la			\
   lagrangian/libIBAMR_lagrangian2d.la		\
@@ -26,6 +27,7 @@ libIBAMR2d_la_SOURCES =
 lib_LTLIBRARIES += libIBAMR3d.la
 libIBAMR3d_la_LIBADD = $(FLIBS)			\
   $(top_builddir)/stools/src/libSTOOLS3d.la	\
+  IB/libIBAMR_IB3d.la				\
   adv_diff/libIBAMR_adv_diff3d.la		\
   advect/libIBAMR_advect3d.la			\
   lagrangian/libIBAMR_lagrangian3d.la		\
