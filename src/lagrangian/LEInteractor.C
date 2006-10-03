@@ -1,6 +1,6 @@
 // Filename: LEInteractor.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <02.Oct.2006 15:36:33 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <02.Oct.2006 23:40:11 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -69,7 +69,7 @@
 
 extern "C"
 {
-    void LAGRANGIAN_PW_CUBIC_INTERP_F77(
+    void LAGRANGIAN_PWCUBIC_INTERP_F77(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -165,7 +165,7 @@ extern "C"
 
 
 
-    void LAGRANGIAN_WIB4_INTERP(
+    void LAGRANGIAN_WIB4_INTERP_F77(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -427,7 +427,7 @@ LEInteractor::interpolate(
     {
         if (interp_fcn == "PIECEWISE_CUBIC")
         {
-            LAGRANGIAN_PW_CUBIC_INTERP_F77(
+            LAGRANGIAN_PWCUBIC_INTERP_F77(
                 dx,xLower,xUpper,depth,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -475,7 +475,7 @@ LEInteractor::interpolate(
         }
         else if (interp_fcn == "WIDE_IB_4")
         {
-            LAGRANGIAN_WIB4_INTERP(
+            LAGRANGIAN_WIB4_INTERP_F77(
                 dx,xLower,xUpper,depth,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -560,7 +560,7 @@ LEInteractor::interpolate(
     {
         if (interp_fcn == "PIECEWISE_CUBIC")
         {
-            LAGRANGIAN_PW_CUBIC_INTERP_F77(
+            LAGRANGIAN_PWCUBIC_INTERP_F77(
                 dx,xLower,xUpper,depth,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -608,7 +608,7 @@ LEInteractor::interpolate(
         }
         else if (interp_fcn == "WIDE_IB_4")
         {
-            LAGRANGIAN_WIB4_INTERP(
+            LAGRANGIAN_WIB4_INTERP_F77(
                 dx,xLower,xUpper,depth,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -835,7 +835,7 @@ LEInteractor::spread(
             LAGRANGIAN_IB6_SPREAD_F77(
                 dx,xLower,xUpper,depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
-                X_data, Q_data,
+                X_data,Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
                 q_gcw(0),q_gcw(1),

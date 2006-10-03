@@ -56,6 +56,13 @@ fi
 
 # Required external libraries.
 
+# Check for Cygwin/Windows libraries.
+AC_CHECK_HEADER([windows.h],HAVE_WINDOWS=1,)
+if test "$HAVE_WINDOWS" = 1 ; then
+  AC_CHECK_LIB([user32],[GetDC],,)
+  AC_CHECK_LIB([gdi32],[CreateCompatibleDC],,)
+fi
+
 # Check for hypre library and configure hypre options.
 echo
 echo "=================================="
