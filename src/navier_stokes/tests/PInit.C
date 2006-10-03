@@ -1,5 +1,5 @@
 // Filename: PInit.C
-// Last modified: <26.Sep.2006 11:51:49 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <03.Oct.2006 13:53:40 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -93,10 +93,11 @@ PInit::setDataOnPatch(
                 dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
         }
 
-#if (NDIM==2)
+#if (NDIM == 2)
             (*P_data)(i) = -(cos(4.0*M_PI*(X[0]-t)) + cos(4.0*M_PI*(X[1]-t)))*
                 exp(-16.0*M_PI*M_PI*d_nu*t);
-#else
+#endif
+#if (NDIM == 3)
             const double A = 1.0;
             const double B = 1.0;
             const double C = 1.0;

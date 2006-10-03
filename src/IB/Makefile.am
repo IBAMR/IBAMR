@@ -11,8 +11,8 @@ noinst_LTLIBRARIES = #libIBAMR_IB.la
 #libIBAMR_IB_la_SOURCES =
 
 ## Dimension-dependent libraries
-SOURCES =              IBEulerianForceSetter.C IBEulerianSourceSetter.C IBLagrangianForceStrategy.C IBLagrangianSourceStrategy.C IBLogicalCartMeshInitializer.C SpringForceGen.C SpringForceSpec.C SpringForceSpecFactory.C
-pkg_include_HEADERS += IBEulerianForceSetter.h IBEulerianSourceSetter.h IBLagrangianForceStrategy.h IBLagrangianSourceStrategy.h IBLogicalCartMeshInitializer.h SpringForceGen.h SpringForceSpec.h SpringForceSpecFactory.h
+SOURCES =              IBEulerianForceSetter.C IBEulerianSourceSetter.C IBHierarchyIntegrator.C IBLagrangianForceStrategy.C IBLagrangianSourceStrategy.C IBLogicalCartMeshInitializer.C SpringForceGen.C SpringForceSpec.C SpringForceSpecFactory.C
+pkg_include_HEADERS += IBEulerianForceSetter.h IBEulerianSourceSetter.h IBHierarchyIntegrator.h IBLagrangianForceStrategy.h IBLagrangianSourceStrategy.h IBLogicalCartMeshInitializer.h SpringForceGen.h SpringForceSpec.h SpringForceSpecFactory.h
 
 noinst_LTLIBRARIES += libIBAMR_IB2d.la
 libIBAMR_IB2d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

@@ -444,12 +444,15 @@ int main(int argc, char* argv[])
      */
     if (monitor_convergence)
     {
-#if 0
         tbox::Pointer<ConvergenceMonitor> conv_monitor = new ConvergenceMonitor("ConvergenceMonitor");
 
         conv_monitor->registerMonitoredVariableAndContext(
-            Q, time_integrator->getCurrentContext(),
-            tbox::Pointer<SetDataStrategy>(&q_init, false));
+            time_integrator->getVelocityVar(), time_integrator->getCurrentContext(),
+            tbox::Pointer<SetDataStrategy>(&u_init, false));
+
+        conv_monitor->registerMonitoredVariableAndContext(
+            time_integrator->getPressureVar(), time_integrator->getCurrentContext(),
+            tbox::Pointer<SetDataStrategy>(&p_init, false));
 
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -466,7 +469,6 @@ int main(int argc, char* argv[])
             patch_hierarchy, coarsest_ln, finest_ln);
         conv_monitor->monitorConvergence(
             time_integrator->getIntegratorTime());
-#endif
     }
 
     /*

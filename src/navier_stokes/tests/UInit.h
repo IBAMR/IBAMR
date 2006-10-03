@@ -2,7 +2,7 @@
 #define included_UInit
 
 // Filename: UInit.h
-// Last modified: <26.Sep.2006 11:06:15 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <03.Oct.2006 13:53:59 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
