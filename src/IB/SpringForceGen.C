@@ -1,57 +1,56 @@
-//
-// SpringForceGen.C
-//
-// Created on 14 Jul 2004
-//         by Boyce Griffith (boyce@trasnaform.speakeasy.net).
-//
-// Last modified: <24.Jun.2005 16:46:21 boyce@mstu1.cims.nyu.edu>
-//
+// Filename: SpringForceGen.C
+// Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
+// Last modified: <03.Oct.2006 11:15:23 boyce@boyce-griffiths-powerbook-g4-15.local>
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "SpringForceGen.h"
 
-#ifdef DEBUG_CHECK_ASSERTIONS
-#include <assert.h>
+// IBAMR INCLUDES
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
 #endif
 
-// STL INCLUDES
-//
-#include <numeric>
+#include <ibamr/LNodeIndexData.h>
+#include <ibamr/SpringForceSpec.h>
 
-// SAMRAI-tools INCLUDES
-//
-#include "LNodeIndexData.h"
-#include "PETSC_SAMRAI_ERROR.h"
-#include "SpringForceSpec.h"
+// STOOLS INCLUDES
+#include <stools/PETSC_SAMRAI_ERROR.h>
 
 // SAMRAI INCLUDES
-//
-#include "Box.h"
-#include "Patch.h"
-#include "PatchLevel.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
 
-/////////////////////////////// INLINE ///////////////////////////////////////
+#include <Box.h>
+#include <Patch.h>
+#include <PatchLevel.h>
+#include <tbox/Timer.h>
+#include <tbox/TimerManager.h>
 
-//#ifdef DEBUG_NO_INLINE
-//#include "SpringForceGen.I"
-//#endif
+// C++ STDLIB INCLUDES
+#include <cassert>
+#include <numeric>
 
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+namespace IBAMR
+{
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 namespace
 {
     // Timers.
-    static tbox::Pointer<tbox::Timer> t_compute_lagrangian_force;
-    static tbox::Pointer<tbox::Timer> t_initialize_level_data;
-    static tbox::Pointer<tbox::Timer> t_initialize_level_data_0;
-    static tbox::Pointer<tbox::Timer> t_initialize_level_data_1;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data_0;
+    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data_1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SpringForceGen::SpringForceGen(
-    tbox::Pointer<tbox::Database> input_db)
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
 {
     // Set some default values.
     d_use_parametric_resonance = false;
@@ -71,13 +70,13 @@ SpringForceGen::SpringForceGen(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_compute_lagrangian_force = tbox::TimerManager::getManager()->
+        t_compute_lagrangian_force = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::SpringForceGen::computeLagrangianForce()");
-        t_initialize_level_data = tbox::TimerManager::getManager()->
+        t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::SpringForceGen::initializeLevelData()");
-        t_initialize_level_data_0 = tbox::TimerManager::getManager()->
+        t_initialize_level_data_0 = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::SpringForceGen::initializeLevelData()[MatSetValues]");
-        t_initialize_level_data_1 = tbox::TimerManager::getManager()->
+        t_initialize_level_data_1 = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("SAMRAI-tools::SpringForceGen::initializeLevelData()[MatAssembly]");
         timers_need_init = false;
     }
@@ -86,14 +85,15 @@ SpringForceGen::SpringForceGen(
 
 SpringForceGen::~SpringForceGen()
 {
-    for (vector<Mat>::iterator it = d_L_mats.begin(); it != d_L_mats.end(); ++it)
+    for (std::vector<Mat>::iterator it = d_L_mats.begin(); it != d_L_mats.end(); ++it)
     {
         if (*it) MatDestroy(*it);
     }
     return;
 }// ~SpringForceGen
 
-void SpringForceGen::setParametricResonance(
+void
+SpringForceGen::setParametricResonance(
     bool use_parametric_resonance,
     double alpha,
     double omega)
@@ -104,10 +104,11 @@ void SpringForceGen::setParametricResonance(
     return;
 }// setParametricResonance
 
-void SpringForceGen::computeLagrangianForce(
-    tbox::Pointer<LNodeLevelData> F_data,
-    tbox::Pointer<LNodeLevelData> X_data,
-    const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
+void
+SpringForceGen::computeLagrangianForce(
+    SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
+    SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
     const LDataManager* const lag_manager)
@@ -128,26 +129,25 @@ void SpringForceGen::computeLagrangianForce(
     int i_start, i_stop;
     ierr = MatGetOwnershipRange(d_L_mats[level_number], &i_start, &i_stop);
     PETSC_SAMRAI_ERROR(ierr);
-    
+
     Vec D_vec;
     ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &D_vec);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecSetBlockSize(D_vec, NDIM);                                          PETSC_SAMRAI_ERROR(ierr);
-    
+
     // Compute the node displacements.
     ierr = MatMult(d_L_mats[level_number], X_data->getGlobalVec(), D_vec);
     PETSC_SAMRAI_ERROR(ierr);
 
     // Compute the forces acting on each node.
-    static const double zero = 0.0;
     Vec F_vec = F_data->getGlobalVec();
-    ierr = VecSet(&zero,F_vec);  PETSC_SAMRAI_ERROR(ierr);
-    
-    double *F_arr, *D_arr;
+    ierr = VecSet(F_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
+
+    double* F_arr, * D_arr;
     ierr = VecGetArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecGetArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
 
-    const vector<int>& local_src_ids = d_local_src_ids[level_number];
-    const vector<double>& stiffnesses = d_stiffnesses[level_number];
+    const std::vector<int>& local_src_ids = d_local_src_ids[level_number];
+    const std::vector<double>& stiffnesses = d_stiffnesses[level_number];
     for (int k = 0; k < static_cast<int>(local_src_ids.size()); ++k)
     {
         const int& f_idx = local_src_ids[k];
@@ -157,7 +157,7 @@ void SpringForceGen::computeLagrangianForce(
             F_arr[d+f_idx*NDIM] += stf*D_arr[d+k*NDIM];
         }
     }
-    
+
     ierr = VecRestoreArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecRestoreArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecDestroy(D_vec);               PETSC_SAMRAI_ERROR(ierr);
@@ -167,16 +167,17 @@ void SpringForceGen::computeLagrangianForce(
     if (d_use_parametric_resonance)
     {
         const double scale_fac = 1.0+d_alpha*sin(2.0*M_PI*d_omega*data_time);
-        ierr = VecScale(&scale_fac, F_data->getGlobalVec());
+        ierr = VecScale(F_data->getGlobalVec(), scale_fac);
         PETSC_SAMRAI_ERROR(ierr);
     }
-    
+
     t_compute_lagrangian_force->stop();
     return;
 }// computeLagrangianForce
 
-void SpringForceGen::initializeLevelData(
-    const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
+void
+SpringForceGen::initializeLevelData(
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool initial_time,
@@ -189,26 +190,26 @@ void SpringForceGen::initializeLevelData(
 #endif
     (void) init_data_time;
     (void) initial_time;
-    
-    tbox::Pointer<hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    
+
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+
     // Resize the vectors corresponding to data individually
     // maintained for separate levels of the patch hierarchy.
     const int level_num = level->getLevelNumber();
-    const int new_size = tbox::Utilities::imax(
+    const int new_size = SAMRAI::tbox::Utilities::imax(
         level_num+1, d_level_initialized.size());
-    
+
     d_L_mats.resize(new_size);
     d_local_src_ids.resize(new_size);
     d_stiffnesses.resize(new_size);
     d_level_initialized.resize(new_size, false);
 
-    vector<int>& local_src_ids = d_local_src_ids[level_num];
-    vector<double>& stiffnesses = d_stiffnesses[level_num];
+    std::vector<int>& local_src_ids = d_local_src_ids[level_num];
+    std::vector<double>& stiffnesses = d_stiffnesses[level_num];
 
     local_src_ids.clear();
     stiffnesses.clear();
-    
+
     int ierr;
     if (d_L_mats[level_num])
     {
@@ -218,17 +219,17 @@ void SpringForceGen::initializeLevelData(
 
     // The patch data descriptor index for the LNodeIndexData.
     const int lag_node_index_idx = lag_manager->
-        getLNodeIndexPatchDescriptorIndex();    
-    
+        getLNodeIndexPatchDescriptorIndex();
+
     // Determine the "source" and "destination" Lagrangian indices.
-    vector<int> src_ids, dst_ids, num_dst_ids;
-    for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    std::vector<int> src_ids, dst_ids, num_dst_ids;
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-        const hier::Box<NDIM>& patch_box = patch->getBox();
-        const tbox::Pointer<LNodeIndexData> idx_data =
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
             patch->getPatchData(lag_node_index_idx);
-        
+
         for (LNodeIndexData::Iterator it(*idx_data); it; it++)
         {
             if (patch_box.contains(it.getIndex()))
@@ -239,14 +240,14 @@ void SpringForceGen::initializeLevelData(
                 {
                     const LNodeIndexSet::value_type& node_idx = *n;
                     const int& lag_idx = node_idx->getLagrangianIndex();
-                    tbox::Pointer<SpringForceSpec> force_spec =
+                    SAMRAI::tbox::Pointer<SpringForceSpec> force_spec =
                         node_idx->getStashData()[0];
 #ifdef DEBUG_CHECK_ASSERTIONS
                     assert(!force_spec.isNull());
 #endif
-                    const vector<int>& dst_idxs =
+                    const std::vector<int>& dst_idxs =
                         force_spec->getDestinationNodeIndices();
-                    const vector<double>& stiff =
+                    const std::vector<double>& stiff =
                         force_spec->getStiffnesses();
 #ifdef DEBUG_CHECK_ASSERTIONS
                     assert(dst_idxs.size() == stiff.size());
@@ -268,20 +269,20 @@ void SpringForceGen::initializeLevelData(
             }
         }
     }
-    
+
     // Map the Lagrangian source/destination indices to the PETSc
     // indices corresponding to the present data distribution.
     lag_manager->mapLagrangianToPETSc(src_ids, level_num);
     lag_manager->mapLagrangianToPETSc(dst_ids, level_num);
-    
+
     // Determine the global node offset and the number of local nodes.
     const int global_node_offset = lag_manager->getGlobalNodeOffset(level_num);
     const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_num);
-    
+
     // Determine the non-zero structure for the matrix.
     const int local_sz = static_cast<int>(dst_ids.size());
-    vector<int> d_nz(local_sz,1), o_nz(local_sz,0);
-    
+    std::vector<int> d_nz(local_sz,1), o_nz(local_sz,0);
+
     for (int k = 0; k < local_sz; ++k)
     {
         const int& dst_id = dst_ids[k];
@@ -295,7 +296,7 @@ void SpringForceGen::initializeLevelData(
             ++o_nz[k]; // a "nonlocal" destination index
         }
     }
-    
+
     // Create a new MPI block AIJ matrix and set the values of the
     // non-zero entries.
     ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
@@ -305,19 +306,19 @@ void SpringForceGen::initializeLevelData(
                             PETSC_DEFAULT, &o_nz[0],
                             &d_L_mats[level_num]);  PETSC_SAMRAI_ERROR(ierr);
 
-    vector<double> src_vals(NDIM*NDIM,0.0);
-    vector<double> dst_vals(NDIM*NDIM,0.0);
+    std::vector<double> src_vals(NDIM*NDIM,0.0);
+    std::vector<double> dst_vals(NDIM*NDIM,0.0);
     for (int d = 0; d < NDIM; ++d)
     {
         src_vals[d+d*NDIM] = -1.0;
         dst_vals[d+d*NDIM] = +1.0;
     }
-    
-    int i_offset;    
+
+    int i_offset;
     ierr = MatGetOwnershipRange(d_L_mats[level_num], &i_offset, PETSC_NULL);
     PETSC_SAMRAI_ERROR(ierr);
     i_offset /= NDIM;
-    
+
     for (int src = 0, dst = -1; src < static_cast<int>(src_ids.size()); ++src)
     {
         int j_src = src_ids[src];
@@ -325,25 +326,25 @@ void SpringForceGen::initializeLevelData(
         {
             int i = i_offset + ++dst;
             int j_dst = dst_ids[dst];
-            
+
             ierr = MatSetValuesBlocked(d_L_mats[level_num],
                                        1,&i,1,&j_src,&(src_vals[0]),
                                        INSERT_VALUES);
             PETSC_SAMRAI_ERROR(ierr);
-            
+
             ierr = MatSetValuesBlocked(d_L_mats[level_num],
                                        1,&i,1,&j_dst,&(dst_vals[0]),
                                        INSERT_VALUES);
             PETSC_SAMRAI_ERROR(ierr);
         }
     }
-    
+
     // Assemble the matrix.
     ierr = MatAssemblyBegin(d_L_mats[level_num], MAT_FINAL_ASSEMBLY);
     PETSC_SAMRAI_ERROR(ierr);
     ierr = MatAssemblyEnd(d_L_mats[level_num], MAT_FINAL_ASSEMBLY);
     PETSC_SAMRAI_ERROR(ierr);
-    
+
     // Indicate that the level data has been properly initialized.
     d_level_initialized[level_num] = true;
 
@@ -368,16 +369,16 @@ void SpringForceGen::initializeLevelData(
     // NOTE: L is a square matrix.
     const int lag_node_index_idx = lag_manager->
         getLNodeIndexPatchDescriptorIndex();
-    
-    vector<int> src_and_dst_lag_ids;
 
-    for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    std::vector<int> src_and_dst_lag_ids;
+
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-        const hier::Box<NDIM>& patch_box = patch->getBox();
-        const tbox::Pointer<LNodeIndexData> idx_data =
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
             patch->getPatchData(lag_node_index_idx);
-        
+
         for (LNodeIndexData::Iterator it(*idx_data); it; it++)
         {
             if (patch_box.contains(it.getIndex()))
@@ -388,12 +389,12 @@ void SpringForceGen::initializeLevelData(
                 {
                     const LNodeIndexSet::value_type& node_idx = *n;
                     const int& lag_idx = node_idx->getLagrangianIndex();
-                    tbox::Pointer<SpringForceSpec> force_spec =
+                    SAMRAI::tbox::Pointer<SpringForceSpec> force_spec =
                         node_idx->getStashData()[0];
 #ifdef DEBUG_CHECK_ASSERTIONS
                     assert(!force_spec.isNull());
 #endif
-                    const vector<int>& dst_idxs =
+                    const std::vector<int>& dst_idxs =
                         force_spec->getDestinationNodeIndices();
 
                     // The src ids.
@@ -401,7 +402,7 @@ void SpringForceGen::initializeLevelData(
                     {
                         src_and_dst_lag_ids.push_back(lag_idx);
                     }
-                    
+
                     // The dst ids.
                     src_and_dst_lag_ids.insert(
                         src_and_dst_lag_ids.end(),
@@ -413,26 +414,26 @@ void SpringForceGen::initializeLevelData(
 
     // Map the Lagrangian indices into global PETSc indices.
     lag_manager->mapLagrangianToPETSc(src_and_dst_lag_ids, level_num);
-    const vector<int>& src_and_dst_petsc_ids = src_and_dst_lag_ids;
+    const std::vector<int>& src_and_dst_petsc_ids = src_and_dst_lag_ids;
 
     // Determine the global node offset.
     const int global_node_offset = lag_manager->getGlobalNodeOffset(level_num);
-    
+
     // Determine the non-zero structure for the L matrix.
     const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_num);
-    vector<int> diag_L_nnz(num_local_nodes,0);
-    vector<int> off_diag_L_nnz(num_local_nodes,0);
-    
-    vector<int>::const_iterator src_and_dst_petsc_ids_it;
+    std::vector<int> diag_L_nnz(num_local_nodes,0);
+    std::vector<int> off_diag_L_nnz(num_local_nodes,0);
+
+    std::vector<int>::const_iterator src_and_dst_petsc_ids_it;
 
     src_and_dst_petsc_ids_it = src_and_dst_petsc_ids.begin();
-    for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-        const hier::Box<NDIM>& patch_box = patch->getBox();
-        const tbox::Pointer<LNodeIndexData> idx_data =
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
             patch->getPatchData(lag_node_index_idx);
-        
+
         for (LNodeIndexData::Iterator it(*idx_data); it; it++)
         {
             if (patch_box.contains(it.getIndex()))
@@ -452,12 +453,12 @@ void SpringForceGen::initializeLevelData(
                                    "  num_local_nodes = " << num_local_nodes << "\n");
                     }
 #endif
-                    tbox::Pointer<SpringForceSpec> force_spec =
+                    SAMRAI::tbox::Pointer<SpringForceSpec> force_spec =
                         node_idx->getStashData()[0];
 #ifdef DEBUG_CHECK_ASSERTIONS
                     assert(!force_spec.isNull());
 #endif
-                    const vector<int>& dst_idxs =
+                    const std::vector<int>& dst_idxs =
                         force_spec->getDestinationNodeIndices();
 
                     // This accounts for the block diagonal entry in L.
@@ -466,11 +467,11 @@ void SpringForceGen::initializeLevelData(
                         ++diag_L_nnz[local_idx];
                         ++src_and_dst_petsc_ids_it;
                     }
-                    
+
                     for (unsigned k = 0; k < dst_idxs.size(); ++k)
                     {
                         const int& dst_idx = *(src_and_dst_petsc_ids_it++);
-                        
+
                         if (dst_idx >= global_node_offset &&
                             dst_idx <  global_node_offset+num_local_nodes)
                         {
@@ -495,21 +496,21 @@ void SpringForceGen::initializeLevelData(
                             PETSC_DEFAULT, &off_diag_L_nnz[0],
                             &d_L_mats[level_num]);
     PETSC_SAMRAI_ERROR(ierr);
-    
+
     // Set the values of the L matrix.
-    vector<double> L_vals(NDIM*NDIM,0.0);
-                             
+    std::vector<double> L_vals(NDIM*NDIM,0.0);
+
     t_initialize_level_data_0->start();
 
     src_and_dst_petsc_ids_it = src_and_dst_petsc_ids.begin();
-    for (hier::PatchLevel<NDIM>::Iterator p(level);
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level);
          p; p++)
     {
-        tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-        const hier::Box<NDIM>& patch_box = patch->getBox();
-        const tbox::Pointer<LNodeIndexData> idx_data =
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
             patch->getPatchData(lag_node_index_idx);
-        
+
         for (LNodeIndexData::Iterator it(*idx_data); it; it++)
         {
             if (patch_box.contains(it.getIndex()))
@@ -520,21 +521,21 @@ void SpringForceGen::initializeLevelData(
                 {
                     const LNodeIndexSet::value_type& node_idx = *n;
                     const bool& is_anchored = node_idx->getIsAnchored();
-                    tbox::Pointer<SpringForceSpec> force_spec =
+                    SAMRAI::tbox::Pointer<SpringForceSpec> force_spec =
                         node_idx->getStashData()[0];
 #ifdef DEBUG_CHECK_ASSERTIONS
                     assert(!force_spec.isNull());
 #endif
-                    const vector<double>& stiff = force_spec->getStiffnesses();
+                    const std::vector<double>& stiff = force_spec->getStiffnesses();
 
                     double diagonal_sum = 0.0;
-                    
+
                     const int& i =
                         (stiff.size() > 0
                          ? *(src_and_dst_petsc_ids_it++)
                          : -1);
 
-                    for (vector<double>::const_iterator s = stiff.begin();
+                    for (std::vector<double>::const_iterator s = stiff.begin();
                          s != stiff.end(); ++s)
                     {
                         const int& j = *(src_and_dst_petsc_ids_it++);
@@ -552,7 +553,7 @@ void SpringForceGen::initializeLevelData(
                                                    INSERT_VALUES);
                         PETSC_SAMRAI_ERROR(ierr);
                     }
-                    
+
                     // Set the diagonal entries in L.
                     if (stiff.size() > 0)
                     {
@@ -569,9 +570,9 @@ void SpringForceGen::initializeLevelData(
             }
         }
     }
-    
+
     t_initialize_level_data_0->stop();
-    
+
     t_initialize_level_data_1->start();
 
     ierr = MatSetOption(d_L_mats[level_num], MAT_SYMMETRIC);
@@ -583,9 +584,9 @@ void SpringForceGen::initializeLevelData(
     PETSC_SAMRAI_ERROR(ierr);
     ierr = MatAssemblyEnd(d_L_mats[level_num], MAT_FINAL_ASSEMBLY);
     PETSC_SAMRAI_ERROR(ierr);
-    
+
     t_initialize_level_data_1->stop();
-    
+
     d_level_initialized[level_num] = true;
 }
 #endif
@@ -594,20 +595,13 @@ void SpringForceGen::initializeLevelData(
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+} // namespace IBAMR
+
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-#ifndef LACKS_EXPLICIT_TEMPLATE_INSTANTIATION
-
-#include "tbox/Pointer.C"
-
-//////////////////////////////////////////////////////////////////////
-///
-/// These declarations are required to use the SpringForceGen class.
-///
-//////////////////////////////////////////////////////////////////////
-
-template class tbox::Pointer<SpringForceGen>;
-
-#endif
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::SpringForceGen>;
 
 //////////////////////////////////////////////////////////////////////////////

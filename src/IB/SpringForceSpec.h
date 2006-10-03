@@ -1,9 +1,9 @@
 #ifndef included_SpringForceSpec
 #define included_SpringForceSpec
 
-// SpringForceSpec.h
+// Filename: SpringForceSpec.h
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <03.Oct.2006 09:47:42 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <03.Oct.2006 11:00:23 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
