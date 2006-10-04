@@ -24,7 +24,7 @@ AdvDiffHierarchyIntegrator {
 
    regrid_interval = 10000  // no adaptive refinement
 
-   AdvDiffHypPatchStrategy {
+   AdvDiffHypPatchOps {
       compute_init_velocity  = TRUE
       compute_half_velocity  = TRUE
       compute_final_velocity = FALSE

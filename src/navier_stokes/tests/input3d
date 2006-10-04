@@ -65,7 +65,7 @@ AdvDiffHierarchyIntegrator {
 
    tag_buffer = 1
 
-   AdvDiffHypPatchStrategy {
+   AdvDiffHypPatchOps {
       compute_init_velocity  = TRUE
       compute_half_velocity  = FALSE
       compute_final_velocity = FALSE
@@ -97,7 +97,7 @@ AdvDiffHierarchyIntegrator {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 2
       prolongation_method = "LINEAR_REFINE"
-      cf_interface = "LINEAR_REFINE"
+      cf_discretization = "LINEAR_REFINE"
    }
 
    FACPreconditioners {
@@ -130,7 +130,7 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_interface = "LINEAR_REFINE"
+      cf_discretization = "LINEAR_REFINE"
 
       hypre_solver {
          solver_type = "PFMG"

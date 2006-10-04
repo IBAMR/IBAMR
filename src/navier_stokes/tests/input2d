@@ -49,7 +49,7 @@ INSHierarchyIntegrator {
    second_order_pressure_update = TRUE
 
    poisson_abs_residual_tol = 1.0e-30
-   poisson_rel_residual_tol = 1.0e-8
+   poisson_rel_residual_tol = 1.0e-6
 
    num_cycles = 1
    num_init_cycles = 5
@@ -64,15 +64,15 @@ AdvDiffHierarchyIntegrator {
 
    tag_buffer = 1
 
-   AdvDiffHypPatchStrategy {
+   AdvDiffHypPatchOps {
       compute_init_velocity  = TRUE
       compute_half_velocity  = FALSE
       compute_final_velocity = FALSE
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.0975e0    // max cfl factor used in problem
-      cfl_init                 = 0.0975e0    // initial cfl factor
+      cfl                      = 0.975e0    // max cfl factor used in problem
+      cfl_init                 = 0.975e0    // initial cfl factor
       lag_dt_computation       = FALSE
       use_ghosts_to_compute_dt = FALSE
    }
@@ -96,7 +96,7 @@ AdvDiffHierarchyIntegrator {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 2
       prolongation_method = "LINEAR_REFINE"
-      cf_interface = "LINEAR_REFINE"
+      cf_discretization = "LINEAR_REFINE"
    }
 
    FACPreconditioners {
@@ -113,7 +113,7 @@ HierarchyProjector {
    solver_package = "PETSc"
    max_iterations = 25
    abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-8
+   rel_residual_tol = 1.0e-12
 
    FACOp {
       fac_max_cycles = 1
@@ -129,17 +129,17 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_interface = "linear_refine"
+      cf_discretization = "LINEAR_REFINE"
 
       hypre_solver {
          solver_type = "PFMG"
          rap_type = 1
          relax_type = 3
-         num_pre_relax_steps   = 1
-         num_post_relax_steps  = 1
+         num_pre_relax_steps   = 2
+         num_post_relax_steps  = 2
          max_iterations        = 1
-         relative_residual_tol = 1.0e-6
-         enable_logging = TRUE
+         relative_residual_tol = 1.0e-12
+         enable_logging = FALSE
       }
    }
 
@@ -172,7 +172,7 @@ Main {
    timer_dump_interval     = 0        // zero to turn off
 
 // convergence monitoring parameters
-   convergence_monitor_interval = 10000   // zero to turn off
+   monitor_convergence = TRUE
 }
 
 CartesianGeometry {
@@ -183,7 +183,7 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels             = 2    // Maximum number of levels in hierarchy.
+   max_levels             = 3    // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1             = 2,2  // vector ratio to next coarser level
       level_2             = 2,2
@@ -215,8 +215,8 @@ GriddingAlgorithm {
 StandardTagAndInitialize {
 // tagging_method = "RICHARDSON_EXTRAPOLATION","GRADIENT_DETECTOR"
 // tagging_method = "RICHARDSON_EXTRAPOLATION"
-   tagging_method = "GRADIENT_DETECTOR"
-// tagging_method = "REFINE_BOXES"
+// tagging_method = "GRADIENT_DETECTOR"
+   tagging_method = "REFINE_BOXES"
    RefineBoxes {
       level_0 = [( 4*N, 4*N),(12*N - 1,12*N - 1)]
       level_1 = [(12*N,12*N),(20*N - 1,20*N - 1)]
