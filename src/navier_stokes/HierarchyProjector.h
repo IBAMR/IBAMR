@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <25.Sep.2006 22:49:00 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:50:48 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -497,7 +497,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "HierarchyProjector.I"
+//#include <ibamr/HierarchyProjector.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

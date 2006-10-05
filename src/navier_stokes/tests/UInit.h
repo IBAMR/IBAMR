@@ -2,7 +2,7 @@
 #define included_UInit
 
 // Filename: UInit.h
-// Last modified: <03.Oct.2006 13:53:59 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 13:34:56 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -18,9 +18,6 @@
 #include <tbox/Pointer.h>
 #include <Variable.h>
 #include <tbox/Array.h>
-
-// C++ STDLIB INCLUDES
-#include <string>
 
 // NAMESPACE
 using namespace IBAMR;

@@ -2,7 +2,7 @@
 #define included_SetDataStrategy
 
 // Filename: SetDataStrategy.h
-// Last modified: <28.Aug.2006 21:39:20 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Oct.2006 19:49:40 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -45,28 +45,28 @@ public:
      */
     SetDataStrategy(
         const std::string& object_name);
-    
+
     /*!
      * \brief Empty virtual destructor.
      */
     virtual ~SetDataStrategy();
-    
+
     /*!
      * \name Methods to set patch interior data.
      */
     //\{
-    
+
     /*!
      * \brief Indicates whether the concrete SetDataStrategy object is
      * time-dependent.
      */
     virtual bool isTimeDependent() const = 0;
-    
+
     /*!
      * \brief Set data on the patch interiors on the specified levels
      * of the patch hierarchy using the virtual function
      * setDataOnPatch().
-     * 
+     *
      * \see setDataOnPatch
      */
     void setDataOnPatchHierarchy(
@@ -77,7 +77,7 @@ public:
         const bool initial_time=false,
         const int coarsest_ln=-1,
         const int finest_ln=-1);
-    
+
     /*!
      * \brief Set data on the patch interiors on the specified level
      * of the patch hierarchy using the virtual function
@@ -91,7 +91,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
         const double data_time,
         const bool initial_time=false);
-    
+
     /*!
      * \brief Pure virtual function to set data on the patch interior.
      */
@@ -101,7 +101,7 @@ public:
         SAMRAI::hier::Patch<NDIM>& patch,
         const double data_time,
         const bool initial_time=false) = 0;
-    
+
     //\}
 
     /*!
@@ -118,25 +118,25 @@ private:
      * used.
      */
     SetDataStrategy();
-    
+
     /*!
      * \brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
-     * 
+     *
      * \param from The value to copy to this object.
      */
     SetDataStrategy(
         const SetDataStrategy& from);
-    
+
     /*!
      * \brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
-     * 
+     *
      * \param that The value to assign to this object.
-     * 
+     *
      * \return A reference to this object.
      */
     SetDataStrategy& operator=(
@@ -145,13 +145,13 @@ private:
     /*
      * The object name is used for error/warning reporting.
      */
-    std::string d_object_name;    
+    std::string d_object_name;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "SetDataStrategy.I"
+//#include <ibamr/SetDataStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -3,7 +3,7 @@
 
 // Filename: SpringForceSpec.h
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <03.Oct.2006 11:00:23 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:53:25 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -164,7 +164,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "SpringForceSpec.I"
+//#include <ibamr/SpringForceSpec.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

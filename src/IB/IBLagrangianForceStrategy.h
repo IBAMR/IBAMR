@@ -3,7 +3,7 @@
 
 // Filename: IBLagrangianForceStrategy.h
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <03.Oct.2006 10:31:56 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:52:40 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -91,7 +91,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "IBLagrangianForceStrategy.I"
+//#include <ibamr/IBLagrangianForceStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

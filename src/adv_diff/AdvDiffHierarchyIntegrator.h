@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <24.Sep.2006 18:54:14 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:52:13 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1040,7 +1040,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "AdvDiffHierarchyIntegrator.I"
+//#include <ibamr/AdvDiffHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

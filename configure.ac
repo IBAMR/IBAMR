@@ -11,6 +11,7 @@ AC_LANG(C++)		# Set the default language to C++.
 ###########################################################################
 # Checks for programs.
 ###########################################################################
+AC_ARG_VAR(LIBS,[linker commands, e.g. -l<lib> if you require a nonstandard library <lib>])
 AC_PROG_CC		# Check for a C compiler.
 AC_PROG_CXX		# Check for a C++ compiler.
 AC_PROG_F77		# Check for a Fortran compiler.
@@ -354,7 +355,7 @@ AC_CONFIG_FILES([
   Makefile
   doc/Doxyfile
   src/Makefile src/fortran/Makefile
-  src/IB/Makefile
+  src/IB/Makefile src/IB/tests/Makefile
   src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/adv_diff/tests/Makefile
   src/advect/Makefile src/advect/fortran/Makefile src/advect/tests/Makefile
   src/lagrangian/Makefile src/lagrangian/fortran/Makefile

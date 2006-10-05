@@ -28,12 +28,13 @@
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/ConvergenceMonitor.h>
 #include <ibamr/GodunovAdvector.h>
+#include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/INSHierarchyIntegrator.h>
+#include <ibamr/LagSiloDataWriter.h>
+#include <ibamr/SpringForceGen.h>
 
-#include "PInit.h"
-#include "UInit.h"
+#include "XInit.h"
 
 using namespace IBAMR;
 using namespace SAMRAI;
@@ -226,27 +227,6 @@ int main(int argc, char* argv[])
             }
         }
 
-        bool monitor_convergence = false;
-        if (main_db->keyExists("monitor_convergence"))
-        {
-            monitor_convergence = main_db->
-                getBool("monitor_convergence");
-        }
-
-        bool use_refined_timestepping = false;
-        if (main_db->keyExists("timestepping"))
-        {
-            string timestepping_method = main_db->getString("timestepping");
-            if (timestepping_method == "SYNCHRONIZED")
-            {
-                use_refined_timestepping = false;
-            }
-            else
-            {
-                use_refined_timestepping = true;
-            }
-        }
-
         const bool write_restart = (restart_interval > 0)
             && !(restart_write_dirname.empty());
 
@@ -270,11 +250,12 @@ int main(int argc, char* argv[])
          * for this application, see comments at top of file.
          */
         tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
-            new geom::CartesianGridGeometry<NDIM>("CartesianGeometry",
-                                                  input_db->getDatabase("CartesianGeometry"));
+            new geom::CartesianGridGeometry<NDIM>(
+                "CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
 
         tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
-            new hier::PatchHierarchy<NDIM>("PatchHierarchy",grid_geometry);
+            new hier::PatchHierarchy<NDIM>(
+                "PatchHierarchy", grid_geometry);
 
         tbox::Pointer<GodunovAdvector> predictor =
             new GodunovAdvector(
@@ -293,23 +274,26 @@ int main(int argc, char* argv[])
                 input_db->getDatabase("HierarchyProjector"),
                 patch_hierarchy);
 
-        tbox::Pointer<INSHierarchyIntegrator> time_integrator =
+        tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator =
             new INSHierarchyIntegrator(
                 "INSHierarchyIntegrator",
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
 
-        const double nu =
-            input_db->getDatabase("INSHierarchyIntegrator")->getDouble("mu" )/
-            input_db->getDatabase("INSHierarchyIntegrator")->getDouble("rho");
+        tbox::Pointer<IBLagrangianForceStrategy> force_generator =
+            new SpringForceGen(
+                input_db->getDatabase("SpringForceGen"));
 
-        UInit u_init("UInit", grid_geometry, input_db->getDatabase("UInit"), nu);
-        PInit p_init("PInit", grid_geometry, input_db->getDatabase("PInit"), nu);
+        tbox::Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBHierarchyIntegrator(
+                "IBHierarchyIntegrator",
+                input_db->getDatabase("IBHierarchyIntegrator"),
+                patch_hierarchy, navier_stokes_integrator, force_generator);
 
-        time_integrator->registerVelocityInitialConditions(
-            tbox::Pointer<SetDataStrategy>(&u_init,false));
-        time_integrator->registerPressureInitialConditions(
-            tbox::Pointer<SetDataStrategy>(&p_init,false));
+        tbox::Pointer<LNodePosnInitStrategy> X_init =
+            new XInit(
+                "XInit", grid_geometry, input_db->getDatabase("XInit"));
+        time_integrator->registerLNodePosnInitStrategy(X_init);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -320,15 +304,15 @@ int main(int argc, char* argv[])
         tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
 
         tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
-            new mesh::LoadBalancer<NDIM>("LoadBalancer",
-                                         input_db->getDatabase("LoadBalancer"));
+            new mesh::LoadBalancer<NDIM>(
+                "LoadBalancer",
+                input_db->getDatabase("LoadBalancer"));
 
         tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new mesh::GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                              input_db->getDatabase("GriddingAlgorithm"),
-                                              error_detector,
-                                              box_generator,
-                                              load_balancer);
+            new mesh::GriddingAlgorithm<NDIM>(
+                "GriddingAlgorithm",
+                input_db->getDatabase("GriddingAlgorithm"),
+                error_detector, box_generator, load_balancer);
 
         /*
          * Set up visualization plot file writer.
@@ -336,11 +320,14 @@ int main(int argc, char* argv[])
         tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
             new appu::VisItDataWriter<NDIM>(
                 "VisIt Writer", visit_dump_dirname, visit_number_procs_per_file);
+//        tbox::Pointer<LagSiloDataWriter> silo_data_writer =
+//            new LagSiloDataWriter(
+//                "LagSiloDataWriter", visit_dump_dirname);
 
         if (uses_visit)
         {
-            time_integrator->
-                registerVisItDataWriter(visit_data_writer);
+            time_integrator->registerVisItDataWriter(visit_data_writer);
+//            time_integrator->registerLagSiloDataWriter(silo_data_writer);
         }
 
         /*
@@ -350,6 +337,33 @@ int main(int argc, char* argv[])
          */
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
+
+#if 0
+        if (main_db->getBoolWithDefault("output_silo_data",true) &&
+            (tbox::MPI::getRank() == 0))
+        {
+            hier::IntVector<NDIM> periodic = 0;
+            periodic(0) = 1;
+
+#if (NDIM == 2)
+            silo_data_writer->registerLogicallyCartesianBlock(
+                "curv_mesh",
+                hier::IntVector<NDIM>(input_db->getDatabase("XInit")->getInteger("num_nodes"),
+                                      input_db->getDatabase("XInit")->getInteger("num_layers")),
+                periodic, 0, patch_hierarchy->getFinestLevelNumber());
+#endif
+#if (NDIM == 3)
+            silo_data_writer->registerLogicallyCartesianBlock(
+                "curv_mesh",
+                hier::IntVector<NDIM>(input_db->getDatabase("XInit")->getInteger("num_nodes"),
+                                      input_db->getDatabase("XInit")->getInteger("num_layers"),
+                                      input_db->getDatabase("XInit")->getInteger("num_stacks")),
+                periodic, 0, patch_hierarchy->getFinestLevelNumber());
+#endif
+        }
+#endif
+        time_integrator->rebalanceCoarsestLevel();
+
         tbox::RestartManager::getManager()->closeRestartFile();
 
         /*
@@ -369,6 +383,8 @@ int main(int argc, char* argv[])
         tbox::plog << "\nCheck Hierarchy Projector data... " << endl;
         hier_projector->printClassData(tbox::plog);
         tbox::plog << "\nCheck Navier-Stokes Solver data... " << endl;
+        navier_stokes_integrator->printClassData(tbox::plog);
+        tbox::plog << "\nCheck IB Solver data... " << endl;
         time_integrator->printClassData(tbox::plog);
 
         if (viz_dump_data)
@@ -379,6 +395,12 @@ int main(int argc, char* argv[])
                     patch_hierarchy,
                     time_integrator->getIntegratorStep(),
                     time_integrator->getIntegratorTime());
+#if 0
+                silo_data_writer->writePlotData(
+                    patch_hierarchy,
+                    time_integrator->getIntegratorStep(),
+                    time_integrator->getIntegratorTime());
+#endif
             }
         }
 
@@ -427,7 +449,11 @@ int main(int argc, char* argv[])
                 {
                     visit_data_writer->writePlotData(
                         patch_hierarchy, iteration_num, loop_time);
-                }
+#if 0
+                    silo_data_writer->writePlotData(
+                        patch_hierarchy, iteration_num, loop_time);
+#endif
+                 }
             }
         }
 
@@ -440,39 +466,11 @@ int main(int argc, char* argv[])
             {
                 visit_data_writer->writePlotData(
                     patch_hierarchy, iteration_num, loop_time);
+#if 0
+                silo_data_writer->writePlotData(
+                    patch_hierarchy, iteration_num, loop_time);
+#endif
             }
-        }
-
-        /*
-         * Monitor the accuracy of the computed solution.
-         */
-        if (monitor_convergence)
-        {
-            tbox::Pointer<ConvergenceMonitor> conv_monitor = new ConvergenceMonitor("ConvergenceMonitor");
-
-            conv_monitor->registerMonitoredVariableAndContext(
-                time_integrator->getVelocityVar(), time_integrator->getCurrentContext(),
-                tbox::Pointer<SetDataStrategy>(&u_init, false));
-
-            conv_monitor->registerMonitoredVariableAndContext(
-                time_integrator->getPressureVar(), time_integrator->getCurrentContext(),
-                tbox::Pointer<SetDataStrategy>(&p_init, false));
-
-            const int coarsest_ln = 0;
-            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-            const bool initial_time = false;
-
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                conv_monitor->initializeLevelData(
-                    patch_hierarchy, ln, time_integrator->getIntegratorTime(),
-                    (ln < finest_ln), initial_time);
-            }
-
-            conv_monitor->resetHierarchyConfiguration(
-                patch_hierarchy, coarsest_ln, finest_ln);
-            conv_monitor->monitorConvergence(
-                time_integrator->getIntegratorTime());
         }
 
     }// cleanup all smart Pointers prior to shutdown

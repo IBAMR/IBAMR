@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndexDataFactory.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 13:14:32 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:51:25 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -119,7 +119,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "LNodeIndexDataFactory.I"
+//#include <ibamr/LNodeIndexDataFactory.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

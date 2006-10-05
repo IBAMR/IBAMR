@@ -3,18 +3,18 @@
 
 // Filename: IBLagrangianSourceStrategy.h
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <03.Oct.2006 10:42:26 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:53:04 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include "ibamr/LDataManager.h"
-#include "ibamr/LNodeLevelData.h"
+#include <ibamr/LDataManager.h>
+#include <ibamr/LNodeLevelData.h>
 
 // SAMRAI INCLUDES
-#include "PatchHierarchy.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include <PatchHierarchy.h>
+#include <tbox/DescribedClass.h>
+#include <tbox/Pointer.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -99,7 +99,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "IBLagrangianSourceStrategy.I"
+//#include <ibamr/IBLagrangianSourceStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

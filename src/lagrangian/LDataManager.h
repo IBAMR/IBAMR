@@ -3,7 +3,7 @@
 
 // Filename: LDataManager.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 15:58:18 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:51:01 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -94,7 +94,9 @@ public:
      * @return A pointer to the data manager instance.
      */
     static LDataManager* getManager(
-        const string& name);
+        const string& name,
+        const SAMRAI::hier::IntVector<NDIM>& ghosts=3,
+        bool register_for_restart=true);
 
     /*!
      * Deallocate all of the LDataManager instances.
@@ -801,7 +803,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "LDataManager.I"
+//#include <ibamr/LDataManager.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

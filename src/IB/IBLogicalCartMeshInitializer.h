@@ -2,7 +2,7 @@
 #define included_IBLogicalCartMeshInitializer
 
 // Filename: IBLogicalCartMeshInitializer.h
-// Last modified: <03.Oct.2006 13:16:37 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:53:10 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 06 Dec 2005 by Boyce Griffith (boyce@boyce.cims.nyu.edu).
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -181,7 +181,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "IBLogicalCartMeshInitializer.I"
+//#include <ibamr/IBLogicalCartMeshInitializer.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

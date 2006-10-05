@@ -3,7 +3,7 @@
 
 // Filename: LNodePosnInitStrategy.h
 // Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <02.Oct.2006 14:19:52 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:51:50 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -117,7 +117,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "LNodePosnInitStrategy.I"
+//#include <ibamr/LNodePosnInitStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

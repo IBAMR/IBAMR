@@ -3,7 +3,7 @@
 
 // Filename: LNodeJacobianInitStrategy.h
 // Created on 29 May 2006 by Boyce Griffith (boyce@boyce.cims.nyu.edu)
-// Last modified: <02.Oct.2006 14:27:11 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:51:40 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -79,7 +79,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "LNodeJacobianInitStrategy.I"
+//#include <ibamr/LNodeJacobianInitStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -3,7 +3,7 @@
 
 // Filename: StashableStream.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 11:40:11 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:50:02 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -270,7 +270,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "StashableStream.I"
+#include <ibamr/StashableStream.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

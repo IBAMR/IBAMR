@@ -431,9 +431,9 @@ int main(int argc, char *argv[])
      * Set up visualization plot file writer.
      */
     tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
-        new appu::VisItDataWriter<NDIM>("GodunovAdvector VisIt Writer",
-                                        visit_dump_dirname,
-                                        visit_number_procs_per_file);
+        new appu::VisItDataWriter<NDIM>(
+            "VisIt Writer", visit_dump_dirname, visit_number_procs_per_file);
+
     if (uses_visit)
     {
         hyp_patch_ops->

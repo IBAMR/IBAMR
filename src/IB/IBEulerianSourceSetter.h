@@ -3,7 +3,7 @@
 
 // Filename: IBEulerianForceSetter.h
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <03.Oct.2006 10:24:32 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:52:29 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -99,7 +99,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "IBEulerianSourceSetter.I"
+//#include <ibamr/IBEulerianSourceSetter.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -2,13 +2,13 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C PInit.C PInit.h UInit.C UInit.h
+SOURCES = main.C XInit.C XInit.h
 EXTRA_DIST = input2d input3d
 
 check_PROGRAMS = main2d main3d
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(top_srcdir)/src/navier_stokes/tests/input[23]d $(top_builddir)/src/navier_stokes/tests ; \
+	  cp -f $(top_srcdir)/src/IB/tests/input[23]d $(top_builddir)/src/IB/tests ; \
 	fi ;
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

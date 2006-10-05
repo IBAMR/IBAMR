@@ -2,7 +2,7 @@
 #define included_GodunovHypPatchOps
 
 // Filename: GodunovHypPatchOps.h
-// Last modified: <04.Sep.2006 00:47:42 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Oct.2006 19:52:05 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -599,7 +599,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "GodunovHypPatchOps.I"
+//#include <ibamr/GodunovHypPatchOps.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

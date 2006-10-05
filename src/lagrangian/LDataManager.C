@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 16:11:43 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 14:15:02 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -92,12 +92,15 @@ vector<int> LDataManager::s_ao_dummy(1,-1);
 
 LDataManager*
 LDataManager::getManager(
-    const string& name)
+    const string& name,
+    const SAMRAI::hier::IntVector<NDIM>& ghosts,
+    bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) ==
         s_data_manager_instances.end())
     {
-        s_data_manager_instances[name] = new LDataManager(name);
+        s_data_manager_instances[name] = new LDataManager(
+            name, ghosts, register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -1858,8 +1861,6 @@ LDataManager::LDataManager(
 #endif
     d_object_name = object_name;
     d_registered_for_restart = register_for_restart;
-
-    SAMRAI::tbox::pout << "fix ghost cell width spec; this won't work for 6-point delta function!!!\n";
 
     d_ghosts = ghosts;
 

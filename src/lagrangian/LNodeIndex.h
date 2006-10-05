@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndex.h
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 11:56:30 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:51:12 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -189,7 +189,7 @@ bool operator<(
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "LNodeIndex.I"
+#include <ibamr/LNodeIndex.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

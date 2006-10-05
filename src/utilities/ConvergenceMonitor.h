@@ -2,7 +2,7 @@
 #define included_ConvergenceMonitor
 
 // Filename: ConvergenceMonitor.h
-// Last modified: <03.Sep.2006 19:24:51 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Oct.2006 19:49:28 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 19 Jun 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -144,7 +144,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "ConvergenceMonitor.I"
+//#include <ibamr/ConvergenceMonitor.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

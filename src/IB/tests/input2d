@@ -6,20 +6,44 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // constants
-PI = 3.141592653589793e+00
+M = 1
+N = 4
+NFINEST = 1*N
 
-PInit {
+DELTA_FCN = "IB_6"
+MU = 0.005
+
+SpringForceGen {
+  // intentionally blank
 }
 
-UInit {
+IBHierarchyIntegrator {
+   start_time            = 0.e0     // initial simulation time
+   end_time              = 0.4e0    // final simulation time
+   grow_dt               = 2.0e0    // growth factor for timesteps
+   max_integrator_steps  = 10000000 // max number of simulation timesteps
+
+   enable_logging = TRUE
+
+   regrid_interval = 8
+   dt_max = 0.005/NFINEST
+   delta_fcn = DELTA_FCN
+   timestepping_order = 2
+}
+
+XInit {
+   num_nodes = 75*NFINEST
+   num_layers = 6*NFINEST
+
+   tapered = FALSE // TRUE
+   width = 4.0/64.0
+   alpha = 0.2
+   beta  = 0.25
+
+   stiffness = 1.0/num_layers
 }
 
 INSHierarchyIntegrator {
-   start_time            = 0.e0     // initial simulation time
-   end_time              = 1.0e0    // final simulation time
-   grow_dt               = 2.0e0    // growth factor for timesteps
-   max_integrator_steps  = 10000    // max number of simulation timesteps
-
    enable_logging = TRUE
 
    tag_buffer = 1
@@ -42,7 +66,7 @@ INSHierarchyIntegrator {
    output_Div_u_adv = FALSE
 
    rho = 1.0
-   mu = 0.0001
+   mu = MU
 
    project_predicted_flux = TRUE
    reproject_pressure = TRUE
@@ -71,8 +95,8 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.975e0    // max cfl factor used in problem
-      cfl_init                 = 0.975e0    // initial cfl factor
+      cfl                      = 0.0975e0    // max cfl factor used in problem
+      cfl_init                 = 0.0975e0    // initial cfl factor
       lag_dt_computation       = FALSE
       use_ghosts_to_compute_dt = FALSE
    }
@@ -80,7 +104,7 @@ AdvDiffHierarchyIntegrator {
    solver_package = "PETSc"
    max_iterations = 25
    abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-12
+   rel_residual_tol = 1.0e-8
 
    FACOps {
       fac_max_cycles = 1
@@ -113,7 +137,7 @@ HierarchyProjector {
    solver_package = "PETSc"
    max_iterations = 25
    abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-12
+   rel_residual_tol = 1.0e-8
 
    FACOp {
       fac_max_cycles = 1
@@ -151,22 +175,20 @@ HierarchyProjector {
    }
 }
 
-N = 2
-
 Main {
 // log file parameters
-   log_file_name    = "INS2d.log"
+   log_file_name    = "IB2d.log"
    log_all_nodes    = FALSE
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 25         // zero to turn off
-   viz_dump_dirname      = "viz_INS2d"
+   viz_dump_interval     = M*8*NFINEST   // zero to turn off
+   viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval        =  0       // zero to turn off
-   restart_write_dirname   = "restart_INS2d"
+   restart_interval        =  0          // zero to turn off
+   restart_write_dirname   = "restart_IB2d"
 
 // timer dump parameters
    timer_dump_interval     = 0        // zero to turn off
@@ -183,13 +205,9 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels             = 3    // Maximum number of levels in hierarchy.
+   max_levels             = 1    // Maximum number of levels in hierarchy.
    ratio_to_coarser {
-      level_1             = 2,2  // vector ratio to next coarser level
-      level_2             = 2,2
-      level_3             = 2,2
-      level_4             = 2,2
-      level_5             = 2,2
+      level_1             = 4,4  // vector ratio to next coarser level
    }
 
    largest_patch_size {
@@ -198,13 +216,8 @@ GriddingAlgorithm {
    }
 
    smallest_patch_size {
-      level_0 =  8,  8
-      level_1 =  8,  8
-      level_2 = 16, 16
-      level_3 = 16, 16
-      level_4 = 16, 16
-      level_5 = 32, 32 // smallest patch allowed in hierarchy
-                       // all finer levels will use same values as level_5...
+      level_0 =  4,  4 // smallest patch allowed in hierarchy
+                       // all finer levels will use same values as level_0...
    }
 
    efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
@@ -213,14 +226,7 @@ GriddingAlgorithm {
 }
 
 StandardTagAndInitialize {
-// tagging_method = "RICHARDSON_EXTRAPOLATION","GRADIENT_DETECTOR"
-// tagging_method = "RICHARDSON_EXTRAPOLATION"
-// tagging_method = "GRADIENT_DETECTOR"
-   tagging_method = "REFINE_BOXES"
-   RefineBoxes {
-      level_0 = [( 4*N, 4*N),(12*N - 1,12*N - 1)]
-      level_1 = [(12*N,12*N),(20*N - 1,20*N - 1)]
-   }
+   tagging_method = "GRADIENT_DETECTOR"
 }
 
 LoadBalancer {

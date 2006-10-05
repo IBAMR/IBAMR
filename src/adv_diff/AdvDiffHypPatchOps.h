@@ -2,7 +2,7 @@
 #define included_AdvDiffHypPatchOps
 
 // Filename: AdvDiffHypPatchOps.h
-// Last modified: <28.Aug.2006 21:27:57 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Oct.2006 19:52:18 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -53,7 +53,7 @@ public:
         SAMRAI::tbox::Pointer<GodunovAdvector> godunov_advector,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
         bool register_for_restart=true);
-    
+
     /*!
      * The destructor for AdvDiffHypPatchOps unregisters the patch
      * strategy object with the restart manager when so registered.
@@ -69,7 +69,7 @@ public:
     ///
     ///  are redefined from the GodunovHypPatchOps base class.
     ///
-    
+
     /*!
      * Update solution variables by performing a conservative
      * difference using the fluxes calculated in
@@ -80,11 +80,11 @@ public:
         const double time,
         const double dt,
         bool at_synchronization);
-    
+
     /*!
      * Compute the values of any time-dependent source terms for use
      * by the explicit predictor.
-     * 
+     *
      * This routine is called after patch boundary data is filled
      * (i.e., ghosts) and before computeFluxesOnPatch().
      *
@@ -99,14 +99,14 @@ public:
         double dt,
         bool first_step,
         bool last_step,
-        bool regrid_advance);        
-    
+        bool regrid_advance);
+
     /*!
      * Add source terms to the updated solution.
-     * 
+     *
      * This routine is called after conservativeDifferenceOnPatch() is
      * called and before computeStableDtOnPatch().
-     * 
+     *
      * Note that when this routine is called, the scratch data is
      * filled on all patches (i.e., ghost cells) and that data is the
      * same as the new level data on all patch interiors.  That is,
@@ -121,8 +121,8 @@ public:
         bool first_step,
         bool last_step,
         bool regrid_advance);
-    
-    
+
+
 private:
     /*!
      * \brief Default constructor.
@@ -131,25 +131,25 @@ private:
      * used.
      */
     AdvDiffHypPatchOps();
-    
+
     /*!
      * \brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
-     * 
+     *
      * \param from The value to copy to this object.
      */
     AdvDiffHypPatchOps(
         const AdvDiffHypPatchOps& from);
-    
+
     /*!
      * \brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
-     * 
+     *
      * \param that The value to assign to this object.
-     * 
+     *
      * \return A reference to this object.
      */
     AdvDiffHypPatchOps& operator=(
@@ -159,7 +159,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "AdvDiffHypPatchOps.I"
+//#include <ibamr/AdvDiffHypPatchOps.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

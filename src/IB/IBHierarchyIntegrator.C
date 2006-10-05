@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <03.Oct.2006 13:42:03 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 16:10:35 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -115,9 +115,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     d_force_strategy = force_strategy;
     d_source_strategy = source_strategy;
 
-    d_lag_data_manager = LDataManager::getManager(
-        d_object_name+"::LDataManager");
-
     if (d_registered_for_restart)
     {
         SAMRAI::tbox::RestartManager::getManager()->
@@ -160,15 +157,20 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
 
     // Set the ghost cell widths required for spreading and
     // interpolation.
-    TBOX_ERROR("fix this NOW!\n");
     const int stencil_size = LEInteractor::getStencilSize(d_delta_fcn);
-    d_ghosts = static_cast<int>(ceil(0.5*static_cast<double>(stencil_size)));
+    d_ghosts = static_cast<int>(floor(0.5*static_cast<double>(stencil_size))+1);
 
     const int pres_stencil_size = LEInteractor::getStencilSize(PRES_DELTA_FCN);
-    d_pres_ghosts = static_cast<int>(ceil(0.5*static_cast<double>(pres_stencil_size)));
+    d_pres_ghosts = static_cast<int>(floor(0.5*static_cast<double>(pres_stencil_size))+1);
 
     const int source_stencil_size = LEInteractor::getStencilSize(SOURCE_DELTA_FCN);
-    d_source_ghosts = static_cast<int>(ceil(0.5*static_cast<double>(source_stencil_size)));
+    d_source_ghosts = static_cast<int>(floor(0.5*static_cast<double>(source_stencil_size))+1);
+
+    // Get the Lagrangian Data Manager.
+    //
+    // XXXX: Make sure this ghost cell width is correct!!!!
+    d_lag_data_manager = LDataManager::getManager(
+        d_object_name+"::LDataManager", d_ghosts, d_registered_for_restart);
 
     // Setup Timers.
     static bool timers_need_init = true;
@@ -877,7 +879,8 @@ IBHierarchyIntegrator::advanceHierarchy(
             int ierr;
             ierr = VecCopy(X_data[ln]->getGlobalVec(), X_new_data[ln]->getGlobalVec());
             PETSC_SAMRAI_ERROR(ierr);
-            ierr = VecAXPY(U_data[ln]->getGlobalVec(), dt, X_new_data[ln]->getGlobalVec());
+            ierr = VecAXPY(X_new_data[ln]->getGlobalVec(),
+                           dt, U_data[ln]->getGlobalVec());
             PETSC_SAMRAI_ERROR(ierr);
 
             // Compute F~(n+1) = F(X~(n+1),n+1) and spread the force
@@ -1149,12 +1152,12 @@ IBHierarchyIntegrator::advanceHierarchy(
                 {
                     // Set X(n+1) = 0.5[X(n) + X~(n+1)] + dt*U(X~(n+1),n+1)).
                     int ierr;
-                    ierr = VecAXPY(U_data[ln]->getGlobalVec(),
-                                   dt, X_new_data[ln]->getGlobalVec());
+                    ierr = VecAXPY(X_new_data[ln]->getGlobalVec(),
+                                   dt, U_data[ln]->getGlobalVec());
                     PETSC_SAMRAI_ERROR(ierr);
 
-                    ierr = VecAXPBY(X_new_data[ln]->getGlobalVec(),
-                                    0.5, 0.5, X_data[ln]->getGlobalVec());
+                    ierr = VecAXPBY(X_data[ln]->getGlobalVec(),
+                                    0.5, 0.5, X_new_data[ln]->getGlobalVec());
                     PETSC_SAMRAI_ERROR(ierr);
 
                     break;
@@ -1163,12 +1166,12 @@ IBHierarchyIntegrator::advanceHierarchy(
                 {
                     // Set X~(n+1/2) = (3/4)*X(n) + (1/4)*X~(n+2)
                     int ierr;
-                    ierr = VecAXPY(U_data[ln]->getGlobalVec(),
-                                   dt, X_new_data[ln]->getGlobalVec());
+                    ierr = VecAXPY(X_new_data[ln]->getGlobalVec(),
+                                   dt, U_data[ln]->getGlobalVec());
                     PETSC_SAMRAI_ERROR(ierr);
 
-                    ierr = VecAXPBY(X_data[ln]->getGlobalVec(),
-                                    0.75, 0.25, X_new_data[ln]->getGlobalVec());
+                    ierr = VecAXPBY(X_new_data[ln]->getGlobalVec(),
+                                    0.75, 0.25, X_data[ln]->getGlobalVec());
                     PETSC_SAMRAI_ERROR(ierr);
 
                     // Interpolate the Cartesian velocity onto the Lagrangian
@@ -1197,12 +1200,12 @@ IBHierarchyIntegrator::advanceHierarchy(
                     }
 
                     // Set X~(n+1) = (1/3)*X(n) + (2/3)*X~(n+3/2)
-                    ierr = VecAXPY(U_data[ln]->getGlobalVec(),
-                                   dt, X_new_data[ln]->getGlobalVec());
+                    ierr = VecAXPY(X_new_data[ln]->getGlobalVec(),
+                                   dt, U_data[ln]->getGlobalVec());
                     PETSC_SAMRAI_ERROR(ierr);
 
-                    ierr = VecAXPBY(X_new_data[ln]->getGlobalVec(),
-                                    2.0/3.0, 1.0/3.0, X_data[ln]->getGlobalVec());
+                    ierr = VecAXPBY(X_data[ln]->getGlobalVec(),
+                                    2.0/3.0, 1.0/3.0, X_new_data[ln]->getGlobalVec());
                     PETSC_SAMRAI_ERROR(ierr);
                     break;
                 }

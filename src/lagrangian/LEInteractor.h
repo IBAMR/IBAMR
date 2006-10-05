@@ -3,7 +3,7 @@
 
 // Filename: LEInteractor.h
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <02.Oct.2006 15:18:10 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:51:06 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -266,7 +266,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "LEInteractor.I"
+//#include <ibamr/LEInteractor.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

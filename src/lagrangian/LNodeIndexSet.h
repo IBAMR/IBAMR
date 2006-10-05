@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndexSet.h
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 13:15:50 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:51:30 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -255,7 +255,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "LNodeIndexSet.I"
+#include <ibamr/LNodeIndexSet.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

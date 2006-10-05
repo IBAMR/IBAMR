@@ -2,7 +2,7 @@
 #define included_PhysicalBCDataStrategy
 
 // Filename: PhysicalBCDataStrategy.h
-// Last modified: <28.Aug.2006 21:39:07 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Oct.2006 19:49:35 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -27,7 +27,7 @@ namespace IBAMR
 /*!
  * \brief Interface to allow the specification of physical boundary
  * conditions for a single quantity.
- * 
+ *
  * The interface specified by this class is very similar to that of
  * the SetDataStrategy class.  The different interfaces are provided
  * for the sake of code clarity, i.e., to separate classes which set
@@ -47,7 +47,7 @@ public:
      */
     PhysicalBCDataStrategy(
         const std::string& object_name);
-    
+
     /*!
      * \brief Empty virtual destructor.
      */
@@ -57,13 +57,13 @@ public:
      *  \name Methods to set patch boundary data.
      */
     //\{
-    
+
     /*!
      * \brief Set data in ghost cells corresponding to physical
      * boundary conditions on the specified levels of the patch
      * hierarchy using the virtual function
      * setPhysicalBoundaryConditionsOnPatch().
-     * 
+     *
      * \see setPhysicalBoundaryConditionsOnPatch
      */
     void setPhysicalBoundaryConditionsOnPatchHierarchy(
@@ -74,13 +74,13 @@ public:
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
         const int coarsest_ln=-1,
         const int finest_ln=-1);
-    
+
     /*!
      * \brief Set data in ghost cells corresponding to physical
      * boundary conditions on the specified level of the patch
      * hierarchy using the virtual function
      * setPhysicalBoundaryConditionsOnPatch().
-     * 
+     *
      * \see setPhysicalBoundaryConditionsOnPatch
      */
     void setPhysicalBoundaryConditionsOnPatchLevel(
@@ -89,7 +89,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
-    
+
     /*!
      * \brief Pure virtual function to set data in ghost cells
      * corresponding to physical boundary conditions.
@@ -100,8 +100,8 @@ public:
         SAMRAI::hier::Patch<NDIM>& patch,
         const double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) = 0;
-    
-    //\}    
+
+    //\}
 
     /*!
      * \brief Print the name of the boundary conditions strategy.
@@ -117,25 +117,25 @@ private:
      * used.
      */
     PhysicalBCDataStrategy();
-    
+
     /*!
      * \brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
-     * 
+     *
      * \param from The value to copy to this object.
      */
     PhysicalBCDataStrategy(
         const PhysicalBCDataStrategy& from);
-    
+
     /*!
      * \brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
-     * 
+     *
      * \param that The value to assign to this object.
-     * 
+     *
      * \return A reference to this object.
      */
     PhysicalBCDataStrategy& operator=(
@@ -144,13 +144,13 @@ private:
     /*
      * The object name is used for error/warning reporting.
      */
-    std::string d_object_name;    
+    std::string d_object_name;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "PhysicalBCDataStrategy.I"
+//#include <ibamr/PhysicalBCDataStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -3,7 +3,7 @@
 
 // Filename: Stashable.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 10:26:09 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:49:45 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -87,7 +87,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "Stashable.I"
+//#include <ibamr/Stashable.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

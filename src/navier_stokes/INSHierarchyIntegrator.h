@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <25.Sep.2006 23:23:09 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:50:55 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1238,7 +1238,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "INSHierarchyIntegrator.I"
+//#include <ibamr/INSHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

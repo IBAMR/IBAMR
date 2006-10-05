@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndexData.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 13:31:24 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:51:20 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -139,7 +139,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "LNodeIndexData.I"
+#include <ibamr/LNodeIndexData.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

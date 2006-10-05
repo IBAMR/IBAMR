@@ -3,7 +3,7 @@
 
 // Filename: LNodeLevelData.h
 // Created on 08 Mar 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <02.Oct.2006 15:34:57 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <04.Oct.2006 19:51:45 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -221,7 +221,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "LNodeLevelData.I"
+#include <ibamr/LNodeLevelData.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
