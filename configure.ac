@@ -355,11 +355,16 @@ AC_CONFIG_FILES([
   Makefile
   doc/Doxyfile
   src/Makefile src/fortran/Makefile
-  src/IB/Makefile src/IB/tests/Makefile
-  src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/adv_diff/tests/Makefile
-  src/advect/Makefile src/advect/fortran/Makefile src/advect/tests/Makefile
+  src/IB/Makefile
+  src/adv_diff/Makefile src/adv_diff/fortran/Makefile
+  src/advect/Makefile src/advect/fortran/Makefile
   src/lagrangian/Makefile src/lagrangian/fortran/Makefile
-  src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/navier_stokes/tests/Makefile
+  src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile
   src/utilities/Makefile
+  src/tests/Makefile
+  src/tests/IB/Makefile
+  src/tests/adv_diff/Makefile
+  src/tests/advect/Makefile
+  src/tests/navier_stokes/Makefile
 ])
 AC_OUTPUT
