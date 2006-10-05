@@ -1,0 +1,237 @@
+// advective term options
+CTU_ONLY = -1
+SECOND_ORDER = 0
+FOURTH_ORDER = 1
+MC_LIMITED = 2
+MUSCL_LIMITED = 3
+
+// constants
+PI = 3.141592653589793e+00
+
+PInit {
+}
+
+UInit {
+}
+
+INSHierarchyIntegrator {
+   start_time            = 0.e0     // initial simulation time
+   end_time              = 1.0e0    // final simulation time
+   grow_dt               = 2.0e0    // growth factor for timesteps
+   max_integrator_steps  = 10000    // max number of simulation timesteps
+
+   enable_logging = TRUE
+
+   tag_buffer = 1
+
+   cfl = 1.0  // this only affects the "acceleration" timestep restriction
+
+   conservation_form = FALSE
+
+   using_vorticity_tagging = TRUE
+   vorticity_threshold = 0.25
+
+   output_P = TRUE
+   output_F = FALSE
+   output_Q = FALSE
+
+   output_Omega = TRUE
+
+   output_Div_U = FALSE
+   output_Div_u = FALSE
+   output_Div_u_adv = FALSE
+
+   rho = 1.0
+   mu = 0.0001
+
+   project_predicted_flux = TRUE
+   reproject_pressure = TRUE
+   second_order_pressure_update = TRUE
+
+   poisson_abs_residual_tol = 1.0e-30
+   poisson_rel_residual_tol = 1.0e-6
+
+   num_cycles = 1
+   num_init_cycles = 5
+}
+
+GodunovAdvector {
+   limiter_type = FOURTH_ORDER
+}
+
+AdvDiffHierarchyIntegrator {
+   enable_logging = TRUE
+
+   tag_buffer = 1
+
+   AdvDiffHypPatchOps {
+      compute_init_velocity  = TRUE
+      compute_half_velocity  = FALSE
+      compute_final_velocity = FALSE
+   }
+
+   HyperbolicLevelIntegrator {
+      cfl                      = 0.975e0    // max cfl factor used in problem
+      cfl_init                 = 0.975e0    // initial cfl factor
+      lag_dt_computation       = FALSE
+      use_ghosts_to_compute_dt = FALSE
+   }
+
+   solver_package = "PETSc"
+   max_iterations = 25
+   abs_residual_tol = 1.0e-30
+   rel_residual_tol = 1.0e-12
+
+   FACOps {
+      fac_max_cycles = 1
+      fac_uses_presmoothing = FALSE
+      fac_initial_guess_nonzero = FALSE
+
+      skip_restrict_sol = TRUE
+      skip_restrict_residual = FALSE
+
+      ssor_iterations = 1
+
+      coarse_solver_choice = "block_jacobi"
+      coarse_solver_tolerance = 1.0e-6
+      coarse_solver_max_iterations = 2
+      prolongation_method = "LINEAR_REFINE"
+      cf_discretization = "LINEAR_REFINE"
+   }
+
+   FACPreconditioners {
+      max_cycles = 1
+      residual_tol = 1.0e-12
+      num_pre_sweeps  = 0  // this should always be 0
+      num_post_sweeps = 2
+   }
+}
+
+HierarchyProjector {
+   enable_logging = TRUE
+
+   solver_package = "PETSc"
+   max_iterations = 25
+   abs_residual_tol = 1.0e-30
+   rel_residual_tol = 1.0e-12
+
+   FACOp {
+      fac_max_cycles = 1
+      fac_uses_presmoothing = FALSE
+      fac_initial_guess_nonzero = FALSE
+
+      skip_restrict_sol = TRUE
+      skip_restrict_residual = FALSE
+
+      ssor_iterations = 2
+
+      coarse_solver_choice = "hypre"
+      coarse_solver_tolerance = 1.0e-6
+      coarse_solver_max_iterations = 1
+      prolongation_method = "LINEAR_REFINE"
+      cf_discretization = "LINEAR_REFINE"
+
+      hypre_solver {
+         solver_type = "PFMG"
+         rap_type = 1
+         relax_type = 3
+         num_pre_relax_steps   = 2
+         num_post_relax_steps  = 2
+         max_iterations        = 1
+         relative_residual_tol = 1.0e-12
+         enable_logging = FALSE
+      }
+   }
+
+   FACPreconditioner {
+      max_cycles = 1
+      residual_tol = 1.0e-12
+      num_pre_sweeps  = 0  // this should always be 0
+      num_post_sweeps = 2
+   }
+}
+
+N = 2
+
+Main {
+// log file parameters
+   log_file_name    = "INS2d.log"
+   log_all_nodes    = FALSE
+
+// visualization dump parameters
+   viz_writer            = "VisIt"
+   viz_dump_interval     = 25         // zero to turn off
+   viz_dump_dirname      = "viz_INS2d"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
+   restart_interval        =  0       // zero to turn off
+   restart_write_dirname   = "restart_INS2d"
+
+// timer dump parameters
+   timer_dump_interval     = 0        // zero to turn off
+
+// convergence monitoring parameters
+   monitor_convergence = TRUE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0) , (16*N - 1,16*N - 1) ]
+   x_lo         =  0, 0    // lower end of computational domain.
+   x_up         =  1, 1    // upper end of computational domain.
+   periodic_dimension = 1,1
+}
+
+GriddingAlgorithm {
+   max_levels             = 3    // Maximum number of levels in hierarchy.
+   ratio_to_coarser {
+      level_1             = 2,2  // vector ratio to next coarser level
+      level_2             = 2,2
+      level_3             = 2,2
+      level_4             = 2,2
+      level_5             = 2,2
+   }
+
+   largest_patch_size {
+      level_0 =512,512 // largest patch allowed in hierarchy
+                       // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =  8,  8
+      level_1 =  8,  8
+      level_2 = 16, 16
+      level_3 = 16, 16
+      level_4 = 16, 16
+      level_5 = 32, 32 // smallest patch allowed in hierarchy
+                       // all finer levels will use same values as level_5...
+   }
+
+   efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
+                                      // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+// tagging_method = "RICHARDSON_EXTRAPOLATION","GRADIENT_DETECTOR"
+// tagging_method = "RICHARDSON_EXTRAPOLATION"
+// tagging_method = "GRADIENT_DETECTOR"
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [( 4*N, 4*N),(12*N - 1,12*N - 1)]
+      level_1 = [(12*N,12*N),(20*N - 1,20*N - 1)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 0.1
+
+   timer_list = "IBAMR::*::*" , "STOOLS::*::*" , "*::*::*"
+}
