@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = fortran . tests
+SUBDIRS = fortran .
 
 ## Dimension-independent library
 pkg_include_HEADERS = # intentionally blank
