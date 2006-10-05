@@ -115,7 +115,7 @@ FULL_PATH_NAMES        = YES
 # If left blank the directory from which doxygen is run is used as the
 # path to strip.
 
-STRIP_FROM_PATH        = @top_srcdir@ , @top_srcdir@/stools
+STRIP_FROM_PATH        = @top_srcdir@
 
 # The STRIP_FROM_INC_PATH tag can be used to strip a user-defined part of
 # the path mentioned in the documentation of a class, which tells
@@ -124,7 +124,7 @@ STRIP_FROM_PATH        = @top_srcdir@ , @top_srcdir@/stools
 # definition is used. Otherwise one should specify the include paths that
 # are normally passed to the compiler using the -I flag.
 
-STRIP_FROM_INC_PATH    = @top_srcdir@/include , @top_srcdir@/stools/includes
+STRIP_FROM_INC_PATH    = @top_srcdir@/include
 
 # If the SHORT_NAMES tag is set to YES, doxygen will generate much shorter
 # (but less readable) file names. This can be useful is your file systems
@@ -459,8 +459,8 @@ WARN_LOGFILE           = doxygen.warnings
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = @top_srcdir@/include @top_srcdir@/stools/include \
-                         @top_srcdir@/src @top_srcdir@/stools/src
+INPUT                  = @top_srcdir@/include \
+                         @top_srcdir@/src
 
 # If the value of the INPUT tag contains directories, you can use the
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp
@@ -994,7 +994,7 @@ SEARCH_INCLUDES        = YES
 # contain include files that are not input files but should be processed by
 # the preprocessor.
 
-INCLUDE_PATH           = @top_srcdir@/include/@PACKAGE@ , @top_srcdir@/stools/include/stools
+INCLUDE_PATH           = @top_srcdir@/include/@PACKAGE@
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard
 # patterns (like *.h and *.hpp) to filter out the header-files in the
@@ -1048,7 +1048,8 @@ SKIP_FUNCTION_MACROS   = YES
 # is run, you must also specify the path to the tagfile here.
 
 TAGFILES               = "libstdc++.tag = http://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen" \
-                         @SAMRAI_DIR@/../SAMRAI/docs/samrai.tag=@SAMRAI_DIR@/../SAMRAI/docs/samrai-dox/html
+                         @SAMRAI_DIR@/../SAMRAI/docs/samrai.tag = @SAMRAI_DIR@/../SAMRAI/docs/samrai-dox/html \
+                         @top_builddir@/stools/doc/stools.tag = @top_builddir@/stools/doc/stools/html
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create
 # a tag file that is based on the input files it reads.

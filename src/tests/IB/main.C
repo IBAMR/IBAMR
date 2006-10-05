@@ -320,14 +320,14 @@ int main(int argc, char* argv[])
         tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
             new appu::VisItDataWriter<NDIM>(
                 "VisIt Writer", visit_dump_dirname, visit_number_procs_per_file);
-//        tbox::Pointer<LagSiloDataWriter> silo_data_writer =
-//            new LagSiloDataWriter(
-//                "LagSiloDataWriter", visit_dump_dirname);
+        tbox::Pointer<LagSiloDataWriter> silo_data_writer =
+            new LagSiloDataWriter(
+                "LagSiloDataWriter", visit_dump_dirname);
 
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
-//            time_integrator->registerLagSiloDataWriter(silo_data_writer);
+            time_integrator->registerLagSiloDataWriter(silo_data_writer);
         }
 
         /*
@@ -338,7 +338,6 @@ int main(int argc, char* argv[])
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
 
-#if 0
         if (main_db->getBoolWithDefault("output_silo_data",true) &&
             (tbox::MPI::getRank() == 0))
         {
@@ -361,7 +360,7 @@ int main(int argc, char* argv[])
                 periodic, 0, patch_hierarchy->getFinestLevelNumber());
 #endif
         }
-#endif
+
         time_integrator->rebalanceCoarsestLevel();
 
         tbox::RestartManager::getManager()->closeRestartFile();
@@ -395,12 +394,10 @@ int main(int argc, char* argv[])
                     patch_hierarchy,
                     time_integrator->getIntegratorStep(),
                     time_integrator->getIntegratorTime());
-#if 0
                 silo_data_writer->writePlotData(
                     patch_hierarchy,
                     time_integrator->getIntegratorStep(),
                     time_integrator->getIntegratorTime());
-#endif
             }
         }
 
@@ -449,10 +446,8 @@ int main(int argc, char* argv[])
                 {
                     visit_data_writer->writePlotData(
                         patch_hierarchy, iteration_num, loop_time);
-#if 0
                     silo_data_writer->writePlotData(
                         patch_hierarchy, iteration_num, loop_time);
-#endif
                  }
             }
         }
@@ -466,10 +461,8 @@ int main(int argc, char* argv[])
             {
                 visit_data_writer->writePlotData(
                     patch_hierarchy, iteration_num, loop_time);
-#if 0
                 silo_data_writer->writePlotData(
                     patch_hierarchy, iteration_num, loop_time);
-#endif
             }
         }
 

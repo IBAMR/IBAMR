@@ -7,8 +7,8 @@ MUSCL_LIMITED = 3
 
 // constants
 M = 1
-N = 4
-NFINEST = 1*N
+N = 1
+NFINEST = 8*N
 
 DELTA_FCN = "IB_6"
 MU = 0.005
@@ -32,8 +32,8 @@ IBHierarchyIntegrator {
 }
 
 XInit {
-   num_nodes = 75*NFINEST
-   num_layers = 6*NFINEST
+   num_nodes = 50*NFINEST
+   num_layers = 2*NFINEST
 
    tapered = FALSE // TRUE
    width = 4.0/64.0
@@ -205,9 +205,10 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels             = 1    // Maximum number of levels in hierarchy.
+   max_levels             = 3    // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1             = 4,4  // vector ratio to next coarser level
+      level_2             = 2,2
    }
 
    largest_patch_size {

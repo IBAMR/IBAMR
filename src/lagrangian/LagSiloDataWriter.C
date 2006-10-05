@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <02.Oct.2006 14:44:45 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <05.Oct.2006 14:08:17 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -48,7 +48,7 @@ static const int SILO_MPI_TAG  = 0;
 // The name of the Silo dumps and database filenames.
 static const int SILO_NAME_BUFSIZE = 128;
 static const string SILO_DUMPS_FILENAME = "lag_dumps.visit";
-static const string SILO_DB_FILENAME = "lag_data.summary.pdb";
+static const string SILO_DB_FILENAME = "lag_data.summary.silo";
 
 #if HAVE_LIBSILO
 /*!
@@ -232,16 +232,8 @@ void buildLocalCurvBlock(
     DBAddOption(optlist, DBOPT_TIME , &time);
     DBAddOption(optlist, DBOPT_DTIME, &dtime);
 
-    static const int MAX_NDIM = 3;  // We may need to increase this value if
-                                    // string theory really takes off.
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(NDIM <= MAX_NDIM);
-#endif
     const char* meshname = "mesh";
-    char* coordnames[MAX_NDIM] = {
-        const_cast<char*>("xcoords"),
-        const_cast<char*>("ycoords"),
-        const_cast<char*>("zcoords") };
+    const char* coordnames[3]  = { "xcoords" , "ycoords" , "zcoords" };
     vector<float*> coords(NDIM);
     for (int d = 0; d < NDIM; ++d)
     {
@@ -255,7 +247,7 @@ void buildLocalCurvBlock(
         dims[d] = nelem(d) + (periodic(d) ? 1 : 0);
     }
 
-    DBPutQuadmesh(dbfile, meshname, coordnames, &coords[0], &dims[0], ndims,
+    DBPutQuadmesh(dbfile, meshname, const_cast<char**>(coordnames), &coords[0], &dims[0], ndims,
                   DB_FLOAT, DB_NONCOLLINEAR, optlist);
 
     for (int v = 0; v < nvars; ++v)
@@ -840,7 +832,7 @@ LagSiloDataWriter::writePlotData(
     sprintf(temp_buf, "%05d", mpi_rank);
     current_file_name = dump_dirname + "/" + "lag_data.";
     current_file_name += temp_buf;
-    current_file_name += ".pdb";
+    current_file_name += ".silo";
 
     if ((dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB))
         == NULL)
@@ -1058,9 +1050,33 @@ LagSiloDataWriter::writePlotData(
             mb_names_per_proc      [ln].resize(mpi_nodes);
         }
 
+        // Set the values for the root process.
+        if (mpi_rank == SILO_MPI_ROOT)
+        {
+            nclouds_per_proc       [ln][mpi_rank] = d_nclouds    [ln];
+            nblocks_per_proc       [ln][mpi_rank] = d_nblocks    [ln];
+            nmbs_per_proc          [ln][mpi_rank] = d_nmbs       [ln];
+            meshtypes_per_proc     [ln][mpi_rank] = meshtype     [ln];
+            vartypes_per_proc      [ln][mpi_rank] = vartype      [ln];
+            mb_nblocks_per_proc    [ln][mpi_rank] = d_mb_nblocks [ln];
+            multimeshtypes_per_proc[ln][mpi_rank] = multimeshtype[ln];
+            multivartypes_per_proc [ln][mpi_rank] = multivartype [ln];
+            cloud_names_per_proc   [ln][mpi_rank] = d_cloud_names[ln];
+            block_names_per_proc   [ln][mpi_rank] = d_block_names[ln];
+            mb_names_per_proc      [ln][mpi_rank] = d_mb_names   [ln];
+        }
+
+        // Get the values for the non-root processes.
         int one = 1;
         for (int proc = 0; proc < mpi_nodes; ++proc)
         {
+            // Skip the root process; we already have those values.
+            if (proc == SILO_MPI_ROOT)
+            {
+                proc += 1;
+                if (proc >= mpi_nodes) break;
+            }
+
             if (mpi_rank == proc)
             {
                 SAMRAI::tbox::MPI::send(&d_nclouds[ln], one, SILO_MPI_ROOT, false);
@@ -1125,9 +1141,9 @@ LagSiloDataWriter::writePlotData(
                 block_names_per_proc[ln][proc].resize(nblocks_per_proc[ln][proc]);
 
                 SAMRAI::tbox::MPI::recv(&meshtypes_per_proc[ln][proc][0],
-                                nblocks_per_proc   [ln][proc], proc, false);
+                                        nblocks_per_proc   [ln][proc], proc, false);
                 SAMRAI::tbox::MPI::recv(&vartypes_per_proc [ln][proc][0],
-                                nblocks_per_proc   [ln][proc], proc, false);
+                                        nblocks_per_proc   [ln][proc], proc, false);
 
                 int num_bytes;
                 char* name;
@@ -1239,7 +1255,7 @@ LagSiloDataWriter::writePlotData(
                     sprintf(temp_buf, "%05d", proc);
                     current_file_name = "lag_data.";
                     current_file_name += temp_buf;
-                    current_file_name += ".pdb";
+                    current_file_name += ".silo";
 
                     ostringstream stream;
                     stream << current_file_name << ":level_" << ln << "_cloud_" << cloud << "/mesh";
@@ -1264,7 +1280,7 @@ LagSiloDataWriter::writePlotData(
                     sprintf(temp_buf, "%05d", proc);
                     current_file_name = "lag_data.";
                     current_file_name += temp_buf;
-                    current_file_name += ".pdb";
+                    current_file_name += ".silo";
 
                     ostringstream stream;
                     stream << current_file_name << ":level_" << ln << "_block_" << block << "/mesh";
@@ -1289,7 +1305,7 @@ LagSiloDataWriter::writePlotData(
                     sprintf(temp_buf, "%05d", proc);
                     current_file_name = "lag_data.";
                     current_file_name += temp_buf;
-                    current_file_name += ".pdb";
+                    current_file_name += ".silo";
 
                     const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
                     char** meshnames = new char*[nblocks];
@@ -1326,7 +1342,7 @@ LagSiloDataWriter::writePlotData(
                         sprintf(temp_buf, "%05d", proc);
                         current_file_name = "lag_data.";
                         current_file_name += temp_buf;
-                        current_file_name += ".pdb";
+                        current_file_name += ".silo";
 
                         ostringstream varname_stream;
                         varname_stream << current_file_name << ":level_" << ln << "_block_" << block << "/" << d_var_names[ln][v];
@@ -1348,7 +1364,7 @@ LagSiloDataWriter::writePlotData(
                         sprintf(temp_buf, "%05d", proc);
                         current_file_name = "lag_data.";
                         current_file_name += temp_buf;
-                        current_file_name += ".pdb";
+                        current_file_name += ".silo";
 
                         const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
                         char** varnames = new char*[nblocks];

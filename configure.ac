@@ -353,7 +353,7 @@ echo "================"
 AC_CONFIG_SUBDIRS([stools])
 AC_CONFIG_FILES([
   Makefile
-  doc/Doxyfile
+  doc/Makefile doc/Doxyfile
   src/Makefile src/fortran/Makefile
   src/IB/Makefile
   src/adv_diff/Makefile src/adv_diff/fortran/Makefile
