@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <07.Oct.2006 23:09:37 boyce@bigboy.nyconnect.com>
+// Last modified: <08.Oct.2006 10:34:06 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -217,10 +217,6 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_output_P = false;
     d_output_F = false;
     d_output_Q = false;
-
-#if (NDIM == 2)
-    d_output_psi = false;
-#endif
 
     d_output_Omega = false;
 
@@ -3394,10 +3390,6 @@ INSHierarchyIntegrator::getFromInput(
     d_P_scale = db->getDoubleWithDefault("P_scale", d_P_scale);
     d_F_scale = db->getDoubleWithDefault("F_scale", d_F_scale);
     d_Q_scale = db->getDoubleWithDefault("Q_scale", d_Q_scale);
-
-#if (NDIM == 2)
-    d_output_psi = db->getBoolWithDefault("output_psi", d_output_psi);
-#endif
 
     d_output_Omega = db->getBoolWithDefault("output_Omega", d_output_Omega);
 

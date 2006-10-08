@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <27.Sep.2006 09:27:53 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <08.Oct.2006 13:25:11 boyce@bigboy.nyconnect.com>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -234,8 +234,8 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =
         SAMRAI::math::HierarchyDataOpsManager<NDIM>::getManager();
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cc_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
-        "cc_var");
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cc_var =
+        new SAMRAI::pdat::CellVariable<NDIM,double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(
         cc_var, hierarchy);
 
@@ -284,6 +284,9 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     }
 
     // Deallocate all solver components.
+    //
+    // NOTE: The following code ensures that the solver components are
+    // deallocated in the correct order.
     d_helmholtz1_solvers.clear();
     d_helmholtz1_fac_pcs.clear();
     d_helmholtz1_fac_ops.clear();

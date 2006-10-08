@@ -360,7 +360,7 @@ AC_CONFIG_FILES([
   src/advect/Makefile src/advect/fortran/Makefile
   src/lagrangian/Makefile src/lagrangian/fortran/Makefile
   src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile
-  src/utilities/Makefile
+  src/utilities/Makefile src/utilities/get_version.C
   src/tests/Makefile
   src/tests/IB/Makefile
   src/tests/adv_diff/Makefile

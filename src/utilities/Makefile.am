@@ -11,8 +11,8 @@ noinst_LTLIBRARIES = #libIBAMR_utilities.la
 #libIBAMR_utilities_la_SOURCES =
 
 ## Dimension-dependent libraries
-SOURCES              = ConvergenceMonitor.C PhysicalBCDataStrategy.C SetDataStrategy.C Stashable.C StashableFactory.C StashableManager.C StashableStream.C
-pkg_include_HEADERS += ConvergenceMonitor.h PhysicalBCDataStrategy.h SetDataStrategy.h Stashable.h StashableFactory.h StashableManager.h StashableStream.h
+SOURCES              = ConvergenceMonitor.C PhysicalBCDataStrategy.C SetDataStrategy.C Stashable.C StashableFactory.C StashableManager.C StashableStream.C get_version.C
+pkg_include_HEADERS += ConvergenceMonitor.h PhysicalBCDataStrategy.h SetDataStrategy.h Stashable.h StashableFactory.h StashableManager.h StashableStream.h get_version.h
 pkg_include_HEADERS +=                                                                                                StashableManager.I StashableStream.I
 
 noinst_LTLIBRARIES += libIBAMR_utilities2d.la

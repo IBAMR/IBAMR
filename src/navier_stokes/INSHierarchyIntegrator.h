@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <04.Oct.2006 19:50:55 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <08.Oct.2006 10:33:26 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1009,21 +1009,12 @@ private:
     bool d_second_order_pressure_update;
 
     /*
-     * These boolean values indicate whether to output the pressure
-     * and applied force for visualization.
+     * These boolean values indicate whether to output the pressure,
+     * applied force, and source strength for visualization.
      */
     bool d_output_P;
     bool d_output_F;
     bool d_output_Q;
-
-    /*
-     * This boolean value indicates whether to store the node centered
-     * stramfunction for visualization.  Note that this quantity is
-     * only correctly computed for single-patch domains.
-     */
-#if (NDIM == 2)
-    bool d_output_psi;
-#endif
 
     /*
      * This boolean value indicates whether to store the cell centered

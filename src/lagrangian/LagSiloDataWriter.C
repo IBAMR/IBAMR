@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <08.Oct.2006 00:01:54 boyce@bigboy.nyconnect.com>
+// Last modified: <08.Oct.2006 10:23:42 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -1201,8 +1201,8 @@ LagSiloDataWriter::writePlotData(
                     num_bytes = d_mb_names[ln][mb].size()+1;
                     SAMRAI::tbox::MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
 
-                    const void* mb_name = d_mb_names[ln][mb].c_str();
-                    MPI_Send(const_cast<void*>(mb_name), num_bytes, MPI_CHAR,
+                    const void* mb_name_ptr = d_mb_names[ln][mb].c_str();
+                    MPI_Send(const_cast<void*>(mb_name_ptr), num_bytes, MPI_CHAR,
                              SILO_MPI_ROOT, SILO_MPI_TAG, SAMRAI::tbox::MPI::commWorld);
                     const int tree = SAMRAI::tbox::MPI::getTreeDepth();
                     SAMRAI::tbox::MPI::updateOutgoingStatistics(tree, num_bytes*sizeof(char));
