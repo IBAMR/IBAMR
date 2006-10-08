@@ -3,7 +3,7 @@
 
 // Filename: XInit.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <04.Oct.2006 13:42:29 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:24:58 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -141,7 +141,7 @@ private:
 #if (NDIM == 3)
         , const int s
 #endif
-        ) const;
+                     ) const;
 
     /*!
      * Read input values, indicated above, from given database.

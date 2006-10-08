@@ -1,6 +1,6 @@
 // Filename: XInit.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <04.Oct.2006 13:42:37 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:21:08 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -39,28 +39,23 @@ XInit::XInit(
     const string& object_name,
     tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
     tbox::Pointer<tbox::Database> input_db)
+    : d_object_name(object_name),
+      d_grid_geom(grid_geom),
+      d_tapered(true),
+      d_num_nodes(256),
+      d_num_layers(6),
+      d_num_stacks(128),
+      d_width(3.0/64.0),
+      d_alpha(0.25),
+      d_beta(0.25),
+      d_l(0.75),
+      d_stiffness(1.0),
+      d_rest_length(0.0)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
     assert(!grid_geom.isNull());
 #endif
-    d_object_name = object_name;
-    d_grid_geom = grid_geom;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!d_grid_geom.isNull());
-#endif
-
-    // Set some initial values.
-    d_tapered = true;
-    d_num_nodes = 256;
-    d_num_layers = 6;
-    d_num_stacks = 128;
-    d_width = 3.0/64.0;
-    d_alpha = 0.25;
-    d_beta = 0.25;
-    d_l = 0.75;
-    d_stiffness = 1.0;
-    d_rest_length = 0.0;
 
     // Register the SpringForceSpec object with the StashableManager
     // class.
@@ -476,7 +471,7 @@ XInit::getNodePosn(
 #if (NDIM == 3)
     , const int s
 #endif
-    ) const
+                   ) const
 {
     const double theta =
         2.0*M_PI*static_cast<double>(l)/static_cast<double>(d_num_nodes);

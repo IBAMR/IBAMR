@@ -1,6 +1,6 @@
 // Filename: StashableManager.C
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 11:03:43 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:46:24 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -94,17 +94,17 @@ StashableManager::registerFactory(
 
 namespace
 {
-    struct StashableGetDataStreamSizeSum
-        : binary_function<size_t,SAMRAI::tbox::Pointer<Stashable>,size_t>
-    {
-        size_t operator()(
-            size_t size_so_far,
-            const SAMRAI::tbox::Pointer<Stashable>& data) const
-            {
-                return size_so_far+
-                       StashableManager::getManager()->getDataStreamSize(data);
-            }
-    };
+struct StashableGetDataStreamSizeSum
+    : binary_function<size_t,SAMRAI::tbox::Pointer<Stashable>,size_t>
+{
+    size_t operator()(
+        size_t size_so_far,
+        const SAMRAI::tbox::Pointer<Stashable>& data) const
+        {
+            return size_so_far+
+                StashableManager::getManager()->getDataStreamSize(data);
+        }
+};
 }
 
 size_t
@@ -118,26 +118,26 @@ StashableManager::getDataStreamSize(
 
 namespace
 {
-    class StashablePackStream
-        : public unary_function<SAMRAI::tbox::Pointer<Stashable>,void>
-    {
-    public:
-        StashablePackStream(
-            SAMRAI::tbox::AbstractStream* const stream)
-            : d_stream(stream)
-            {
-                return;
-            }
+class StashablePackStream
+    : public unary_function<SAMRAI::tbox::Pointer<Stashable>,void>
+{
+public:
+    StashablePackStream(
+        SAMRAI::tbox::AbstractStream* const stream)
+        : d_stream(stream)
+        {
+            return;
+        }
 
-        void operator()(
-            SAMRAI::tbox::Pointer<Stashable>& data) const
-            {
-                StashableManager::getManager()->packStream(*d_stream,data);
-                return;
-            }
-    private:
-        SAMRAI::tbox::AbstractStream* const d_stream;
-    };
+    void operator()(
+        SAMRAI::tbox::Pointer<Stashable>& data) const
+        {
+            StashableManager::getManager()->packStream(*d_stream,data);
+            return;
+        }
+private:
+    SAMRAI::tbox::AbstractStream* const d_stream;
+};
 }
 
 void
@@ -154,30 +154,30 @@ StashableManager::packStream(
 
 namespace
 {
-    class StashableUnpackStream
-        : public unary_function<void,SAMRAI::tbox::Pointer<Stashable> >
-    {
-    public:
-        StashableUnpackStream(
-            SAMRAI::tbox::AbstractStream* const stream,
-            const SAMRAI::hier::IntVector<NDIM>& offset)
-            : d_stream(stream),
-              d_offset(offset)
-            {
-                return;
-            }
+class StashableUnpackStream
+    : public unary_function<void,SAMRAI::tbox::Pointer<Stashable> >
+{
+public:
+    StashableUnpackStream(
+        SAMRAI::tbox::AbstractStream* const stream,
+        const SAMRAI::hier::IntVector<NDIM>& offset)
+        : d_stream(stream),
+          d_offset(offset)
+        {
+            return;
+        }
 
-        SAMRAI::tbox::Pointer<Stashable> operator()() const
-            {
-                SAMRAI::tbox::Pointer<Stashable> data_out;
-                StashableManager::getManager()->unpackStream(
-                    *d_stream,d_offset,data_out);
-                return data_out;
-            }
-    private:
-        SAMRAI::tbox::AbstractStream* const d_stream;
-        const SAMRAI::hier::IntVector<NDIM>& d_offset;
-    };
+    SAMRAI::tbox::Pointer<Stashable> operator()() const
+        {
+            SAMRAI::tbox::Pointer<Stashable> data_out;
+            StashableManager::getManager()->unpackStream(
+                *d_stream,d_offset,data_out);
+            return data_out;
+        }
+private:
+    SAMRAI::tbox::AbstractStream* const d_stream;
+    const SAMRAI::hier::IntVector<NDIM>& d_offset;
+};
 }
 
 void
@@ -198,6 +198,7 @@ StashableManager::unpackStream(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 StashableManager::StashableManager()
+    : d_factory_map()
 {
     // intentionally blank
     return;

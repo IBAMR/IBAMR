@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <04.Oct.2006 16:10:35 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:17:53 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -53,40 +53,40 @@ namespace IBAMR
 
 namespace
 {
-    // Timers.
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_integrator;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_advance_hierarchy;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_rebalance_coarsest_level;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_regrid_hierarchy;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_integrate_hierarchy;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_hierarchy;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_new_levels;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_time_dependent_data;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_data_to_preadvance_state;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuration;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
+// Timers.
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_integrator;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_advance_hierarchy;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_rebalance_coarsest_level;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_regrid_hierarchy;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_integrate_hierarchy;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_hierarchy;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_new_levels;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_time_dependent_data;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_data_to_preadvance_state;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuration;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 
-    // The delta function to use when interpolating point pressure
-    // values from the grid (these are required to compute source/sink
-    // flow rates).
-    static const std::string PRES_DELTA_FCN = "IB_4";
+// The delta function to use when interpolating point pressure
+// values from the grid (these are required to compute source/sink
+// flow rates).
+static const std::string PRES_DELTA_FCN = "IB_4";
 
-    // The delta function to use when spreading point source/sink flow
-    // rates onto the grid.
-    static const std::string SOURCE_DELTA_FCN = "WIDE_IB_4";
+// The delta function to use when spreading point source/sink flow
+// rates onto the grid.
+static const std::string SOURCE_DELTA_FCN = "WIDE_IB_4";
 
-    // Name of normalization output file.
-    static const std::string NORM_DATA_FILE_NAME = "source_norm_data.txt";
+// Name of normalization output file.
+static const std::string NORM_DATA_FILE_NAME = "source_norm_data.txt";
 
-    // Whether to account for periodic shifts in spreading and
-    // interpolating.
-    static const bool ENFORCE_PERIODIC_BCS = true;
+// Whether to account for periodic shifts in spreading and
+// interpolating.
+static const bool ENFORCE_PERIODIC_BCS = true;
 
-    // Version of IBHierarchyIntegrator restart file data.
-    static const int IB_HIERARCHY_INTEGRATOR_VERSION = 1;
+// Version of IBHierarchyIntegrator restart file data.
+static const int IB_HIERARCHY_INTEGRATOR_VERSION = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -99,6 +99,56 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> force_strategy,
     SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_strategy,
     bool register_for_restart)
+    : d_object_name(object_name),
+      d_registered_for_restart(register_for_restart),
+      d_hierarchy(hierarchy),
+      d_gridding_alg(NULL),
+      d_visit_writer(NULL),
+      d_silo_writer(NULL),
+      d_load_balancer(NULL),
+      d_ins_hier_integrator(ins_hier_integrator),
+      d_lag_data_manager(NULL),
+      d_lag_posn_init(NULL),
+      d_body_force_set(NULL),
+      d_eulerian_force_set(NULL),
+      d_force_strategy(force_strategy),
+      d_force_strategy_needs_init(true),
+      d_eulerian_source_set(NULL),
+      d_source_strategy(source_strategy),
+      d_source_strategy_needs_init(true),
+      d_delta_fcn("IB_4"),
+      d_ghosts(-1),
+      d_pres_ghosts(-1),
+      d_source_ghosts(-1),
+      d_start_time(0.0),
+      d_end_time(numeric_limits<double>::max()),
+      d_grow_dt(2.0),
+      d_max_integrator_steps(numeric_limits<int>::max()),
+      d_num_cycles(1),
+      d_num_init_cycles(5),
+      d_regrid_interval(1),
+      d_timestepping_order(2),
+      d_old_dt(-1.0),
+      d_integrator_time(numeric_limits<double>::quiet_NaN()),
+      d_integrator_step(numeric_limits<int>::max()),
+      d_dt_max(numeric_limits<double>::max()),
+      d_dt_max_time_max(numeric_limits<double>::max()),
+      d_dt_max_time_min(-(d_dt_max_time_max-numeric_limits<double>::epsilon())),
+      d_is_initialized(false),
+      d_do_log(false),
+      d_ralgs(),
+      d_rscheds(),
+      d_V_var(NULL),
+      d_W_var(NULL),
+      d_F_var(NULL),
+      d_P_var(NULL),
+      d_Q_var(NULL),
+      d_context(NULL),
+      d_V_idx(-1),
+      d_W_idx(-1),
+      d_F_idx(-1),
+      d_P_idx(-1),
+      d_Q_idx(-1)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
@@ -107,44 +157,12 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     assert(!ins_hier_integrator.isNull());
     assert(!force_strategy.isNull());
 #endif
-    d_object_name = object_name;
-    d_registered_for_restart = register_for_restart;
-
-    d_hierarchy = hierarchy;
-    d_ins_hier_integrator = ins_hier_integrator;
-    d_force_strategy = force_strategy;
-    d_source_strategy = source_strategy;
 
     if (d_registered_for_restart)
     {
         SAMRAI::tbox::RestartManager::getManager()->
             registerRestartItem(d_object_name, this);
     }
-
-    // Set some default values.
-    d_delta_fcn = "IB_4";
-
-    d_start_time = 0.0;
-    d_end_time = numeric_limits<double>::max();
-    d_grow_dt = 2.0;
-    d_max_integrator_steps = numeric_limits<int>::max();
-
-    d_num_cycles = 1;
-    d_num_init_cycles = 5;
-
-    d_regrid_interval = 1;
-    d_timestepping_order = 2;
-    d_old_dt = -1.0;
-    d_integrator_time = numeric_limits<double>::quiet_NaN();
-    d_integrator_step = numeric_limits<int>::max();
-
-    d_dt_max = numeric_limits<double>::max();
-    d_dt_max_time_max = numeric_limits<double>::max();
-    d_dt_max_time_min = -(d_dt_max_time_max-numeric_limits<double>::epsilon());
-
-    d_is_initialized = false;
-
-    d_do_log = false;
 
     // Initialize object with data read from the input and restart
     // databases.
@@ -357,8 +375,8 @@ IBHierarchyIntegrator::gatherAllData(
     ierr = VecGetArray(    dst_vec, &X_arr);         PETSC_SAMRAI_ERROR(ierr);
     if (mpi_rank == mpi_root)
     {
-        memcpy((void*)&X_structure[0], (const void*)&X_arr[             0], NDIM*struct_sz*sizeof(double));
-        memcpy((void*)&X_marker   [0], (const void*)&X_arr[NDIM*struct_sz], NDIM*marker_sz*sizeof(double));
+        memcpy(static_cast<void*>(&X_structure[0]), static_cast<void*>(&X_arr[             0]), NDIM*struct_sz*sizeof(double));
+        memcpy(static_cast<void*>(&X_marker   [0]), static_cast<void*>(&X_arr[NDIM*struct_sz]), NDIM*marker_sz*sizeof(double));
     }
     ierr = VecRestoreArray(dst_vec, &X_arr);         PETSC_SAMRAI_ERROR(ierr);
 
@@ -1048,7 +1066,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             if (d_do_log) SAMRAI::tbox::plog << "\n\n++++++++++++++++++++++++++++++++++++++++++++++++\n";
             if (d_do_log) SAMRAI::tbox::plog << "+\n";
             if (d_do_log) SAMRAI::tbox::plog << "+ Performing cycle " << cycle+1 << " of "
-                                     << d_num_init_cycles << " to initialize P(n=1/2)\n";
+                                             << d_num_init_cycles << " to initialize P(n=1/2)\n";
             if (d_do_log) SAMRAI::tbox::plog << "+\n";
             if (d_do_log) SAMRAI::tbox::plog << "++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
         }
@@ -1803,7 +1821,7 @@ IBHierarchyIntegrator::printClassData(
 {
     os << "\nIBHierarchyIntegrator::printClassData..." << endl;
     os << "\nIBHierarchyIntegrator: this = "
-       << (IBHierarchyIntegrator*)this << endl;
+       << const_cast<IBHierarchyIntegrator*>(this) << endl;
     os << "d_object_name = " << d_object_name << endl;
     os << "d_integrator_time = " << d_integrator_time << "\n"
        << "d_start_time = " << d_start_time << "\n"

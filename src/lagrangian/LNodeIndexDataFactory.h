@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndexDataFactory.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <04.Oct.2006 19:51:25 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:02:24 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -61,7 +61,7 @@ public:
      */
     virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > allocate(
         const SAMRAI::hier::Box<NDIM>& box,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool=(SAMRAI::tbox::Arena*)NULL) const;
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool=NULL) const;
 
     /*!
      * Calculate the amount of memory needed to store the irregular

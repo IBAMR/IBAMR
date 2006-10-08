@@ -1,6 +1,6 @@
 // Filename: LNodeIndexData.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 13:34:33 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 22:27:02 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -32,7 +32,9 @@ namespace IBAMR
 LNodeIndexData::LNodeIndexData(
     const SAMRAI::hier::Box<NDIM>& box,
     const SAMRAI::hier::IntVector<NDIM>& ghosts)
-    : SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet>(box,ghosts)
+    : SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet>(box,ghosts),
+      d_interior_local_indices(),
+      d_ghost_local_indices()
 {
     // intentionally blank
     return;

@@ -3,7 +3,7 @@
 
 // Filename: SpringForceGen.h
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <04.Oct.2006 19:53:18 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 21:38:46 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -109,12 +109,6 @@ private:
     std::vector<std::vector<int> > d_local_src_ids;
     std::vector<std::vector<double> > d_stiffnesses;
     std::vector<bool> d_level_initialized;
-
-    /*
-     * Parametric resonance parameters.
-     */
-    bool d_use_parametric_resonance;
-    double d_alpha, d_omega;
 };
 }// namespace IBAMR
 

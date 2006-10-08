@@ -3,7 +3,7 @@
 
 // Filename: LDataManager.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <04.Oct.2006 19:51:01 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:41:35 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -133,7 +133,7 @@ public:
      * nodes.
      */
     void registerLNodeJacobianInitStrategy(
-        SAMRAI::tbox::Pointer<LNodeJacobianInitStrategy> lag_jac_spec);
+        SAMRAI::tbox::Pointer<LNodeJacobianInitStrategy> lag_jac_init);
 
     /*!
      * Free the concrete Jacobian strategy object.
@@ -646,7 +646,7 @@ private:
      * Objects used to specify the Jacobian determinant of the
      * curvilinear coordinate system on the patch hierarchy.
      */
-    SAMRAI::tbox::Pointer<LNodeJacobianInitStrategy> d_lag_jac_spec;
+    SAMRAI::tbox::Pointer<LNodeJacobianInitStrategy> d_lag_jac_init;
 
     /*
      * Objects used to specify and initialize the Lagrangian data on

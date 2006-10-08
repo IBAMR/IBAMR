@@ -1,6 +1,6 @@
 // Filename: LNodeIndexSet.I
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 12:19:10 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 21:29:15 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -30,9 +30,10 @@ LNodeIndexSet::LNodeIndexSet()
 inline
 LNodeIndexSet::LNodeIndexSet(
     const LNodeIndexSet& from)
+    : d_set(from.d_set),
+      d_offset(from.d_offset)
 {
-    d_set    = from.d_set   ;
-    d_offset = from.d_offset;
+    // intentionally blank
     return;
 }// LNodeIndexSet
 

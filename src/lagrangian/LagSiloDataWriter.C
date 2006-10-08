@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <05.Oct.2006 14:08:17 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <08.Oct.2006 00:01:54 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -306,13 +306,35 @@ LagSiloDataWriter::LagSiloDataWriter(
     const string& object_name,
     const string& dump_directory_name)
     : d_object_name(object_name),
-      d_dump_directory_name(dump_directory_name)
+      d_dump_directory_name(dump_directory_name),
+      d_time_step_number(-1),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_nclouds(),
+      d_cloud_names(),
+      d_cloud_nmarks(),
+      d_cloud_first_lag_idx(),
+      d_nblocks(),
+      d_block_names(),
+      d_block_nelems(),
+      d_block_periodic(),
+      d_block_first_lag_idx(),
+      d_nmbs(),
+      d_mb_names(),
+      d_mb_nblocks(),
+      d_mb_nelems(),
+      d_mb_periodic(),
+      d_mb_first_lag_idx(),
+      d_coords_data(),
+      d_nvars(),
+      d_var_names(),
+      d_var_depths(),
+      d_var_data(),
+      d_src_vec(),
+      d_dst_vec(),
+      d_vec_scatter()
 {
-    // Initialize some default values.
-    d_time_step_number = -1;
-    d_coarsest_ln = -1;
-    d_finest_ln = -1;
-
+    // intentionally blank
     return;
 }// LagSiloDataWriter
 
@@ -1093,7 +1115,7 @@ LagSiloDataWriter::writePlotData(
                 {
                     num_bytes = (d_cloud_names[ln][cloud].size()+1)*sizeof(char);
                     SAMRAI::tbox::MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
-                    SAMRAI::tbox::MPI::sendBytes((void*)d_cloud_names[ln][cloud].c_str(), num_bytes, SILO_MPI_ROOT);
+                    SAMRAI::tbox::MPI::sendBytes(static_cast<const void*>(d_cloud_names[ln][cloud].c_str()), num_bytes, SILO_MPI_ROOT);
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nclouds_per_proc[ln][proc] > 0)
@@ -1106,7 +1128,7 @@ LagSiloDataWriter::writePlotData(
                 {
                     SAMRAI::tbox::MPI::recv(&num_bytes, one, proc, false);
                     name = new char[num_bytes/sizeof(char)];
-                    SAMRAI::tbox::MPI::recvBytes((void*)name, num_bytes);
+                    SAMRAI::tbox::MPI::recvBytes(static_cast<void*>(name), num_bytes);
                     cloud_names_per_proc[ln][proc][cloud].assign(name);
                     delete[] name;
                 }
@@ -1131,7 +1153,7 @@ LagSiloDataWriter::writePlotData(
                 {
                     num_bytes = (d_block_names[ln][block].size()+1)*sizeof(char);
                     SAMRAI::tbox::MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
-                    SAMRAI::tbox::MPI::sendBytes((void*)d_block_names[ln][block].c_str(), num_bytes, SILO_MPI_ROOT);
+                    SAMRAI::tbox::MPI::sendBytes(static_cast<const void*>(d_block_names[ln][block].c_str()), num_bytes, SILO_MPI_ROOT);
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nblocks_per_proc[ln][proc] > 0)
@@ -1151,7 +1173,7 @@ LagSiloDataWriter::writePlotData(
                 {
                     SAMRAI::tbox::MPI::recv(&num_bytes, one, proc, false);
                     name = new char[num_bytes/sizeof(char)];
-                    SAMRAI::tbox::MPI::recvBytes((void*)name, num_bytes);
+                    SAMRAI::tbox::MPI::recvBytes(static_cast<void*>(name), num_bytes);
                     block_names_per_proc[ln][proc][block].assign(name);
                     delete[] name;
                 }
@@ -1179,8 +1201,9 @@ LagSiloDataWriter::writePlotData(
                     num_bytes = d_mb_names[ln][mb].size()+1;
                     SAMRAI::tbox::MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
 
-                    (void)MPI_Send((void*)d_mb_names[ln][mb].c_str(), num_bytes, MPI_CHAR,
-                                   SILO_MPI_ROOT, SILO_MPI_TAG, SAMRAI::tbox::MPI::commWorld);
+                    const void* mb_name = d_mb_names[ln][mb].c_str();
+                    MPI_Send(const_cast<void*>(mb_name), num_bytes, MPI_CHAR,
+                             SILO_MPI_ROOT, SILO_MPI_TAG, SAMRAI::tbox::MPI::commWorld);
                     const int tree = SAMRAI::tbox::MPI::getTreeDepth();
                     SAMRAI::tbox::MPI::updateOutgoingStatistics(tree, num_bytes*sizeof(char));
                 }
@@ -1193,7 +1216,7 @@ LagSiloDataWriter::writePlotData(
                 mb_names_per_proc      [ln][proc].resize(nmbs_per_proc[ln][proc]);
 
                 SAMRAI::tbox::MPI::recv(&mb_nblocks_per_proc[ln][proc][0],
-                                nmbs_per_proc       [ln][proc], proc, false);
+                                        nmbs_per_proc       [ln][proc], proc, false);
 
                 int num_bytes;
                 char* name;
@@ -1203,16 +1226,16 @@ LagSiloDataWriter::writePlotData(
                     multivartypes_per_proc [ln][proc][mb].resize(mb_nblocks_per_proc[ln][proc][mb]);
 
                     SAMRAI::tbox::MPI::recv(&multimeshtypes_per_proc[ln][proc][mb][0],
-                                    mb_nblocks_per_proc     [ln][proc][mb], proc, false);
+                                            mb_nblocks_per_proc     [ln][proc][mb], proc, false);
                     SAMRAI::tbox::MPI::recv(&multivartypes_per_proc [ln][proc][mb][0],
-                                    mb_nblocks_per_proc     [ln][proc][mb], proc, false);
+                                            mb_nblocks_per_proc     [ln][proc][mb], proc, false);
 
                     SAMRAI::tbox::MPI::recv(&num_bytes, one, proc, false);
                     name = new char[num_bytes];
 
                     MPI_Status status;
-                    (void)MPI_Recv(name, num_bytes, MPI_CHAR,
-                                   proc, SILO_MPI_TAG, SAMRAI::tbox::MPI::commWorld, &status);
+                    MPI_Recv(name, num_bytes, MPI_CHAR,
+                             proc, SILO_MPI_TAG, SAMRAI::tbox::MPI::commWorld, &status);
                     const int tree = SAMRAI::tbox::MPI::getTreeDepth();
                     SAMRAI::tbox::MPI::updateIncomingStatistics(tree, num_bytes*sizeof(char));
 

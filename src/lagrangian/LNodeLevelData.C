@@ -1,6 +1,6 @@
 // Filename: LNodeLevelData.C
 // Created on 17 Apr 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <02.Oct.2006 15:56:29 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 22:50:24 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -89,54 +89,57 @@ LNodeLevelData::LNodeLevelData(
     const int num_local_nodes,
     const int depth,
     const vector<int>& nonlocal_petsc_indices)
+    : d_name(name),
+      d_depth(depth),
+      d_nonlocal_petsc_indices(nonlocal_petsc_indices),
+      d_global_vec(NULL),
+      d_local_vec(NULL),
+      d_in_local_form(false),
+      d_local_vec_array(NULL),
+      d_extracted_local_array(false)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!name.empty());
     assert(num_local_nodes >= 0);
     assert(depth > 0);
 #endif
-    d_name = name;
-    d_depth = depth;
-    d_nonlocal_petsc_indices = nonlocal_petsc_indices;
-
     // Create the PETSc Vec which actually provides the storage for
     // the Lagrangian data.
     int ierr;
-
     if (d_depth == 1)
     {
-        ierr = VecCreateGhost(PETSC_COMM_WORLD,
-                              num_local_nodes, PETSC_DECIDE,
-                              d_nonlocal_petsc_indices.size(),
-                              &d_nonlocal_petsc_indices[0],
-                              &d_global_vec);
-        PETSC_SAMRAI_ERROR(ierr);
+        ierr = VecCreateGhost(
+            PETSC_COMM_WORLD,
+            num_local_nodes, PETSC_DECIDE,
+            d_nonlocal_petsc_indices.size(),
+            &d_nonlocal_petsc_indices[0],
+            &d_global_vec);  PETSC_SAMRAI_ERROR(ierr);
     }
     else
     {
-        ierr = VecCreateGhostBlock(PETSC_COMM_WORLD, d_depth,
-                                   d_depth*num_local_nodes, PETSC_DECIDE,
-                                   d_nonlocal_petsc_indices.size(),
-                                   &d_nonlocal_petsc_indices[0],
-                                   &d_global_vec);
-        PETSC_SAMRAI_ERROR(ierr);
+        ierr = VecCreateGhostBlock(
+            PETSC_COMM_WORLD, d_depth,
+            d_depth*num_local_nodes, PETSC_DECIDE,
+            d_nonlocal_petsc_indices.size(),
+            &d_nonlocal_petsc_indices[0],
+            &d_global_vec);  PETSC_SAMRAI_ERROR(ierr);
     }
-
     ierr = VecSetBlockSize(d_global_vec, d_depth);  PETSC_SAMRAI_ERROR(ierr);
-
-    d_in_local_form = false;
-
-    d_local_vec_array = NULL;
-    d_extracted_local_array = false;
 
     return;
 }// LNodeLevelData
 
 LNodeLevelData::LNodeLevelData(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+    : d_name(db->getString("d_name")),
+      d_depth(db->getInteger("d_depth")),
+      d_nonlocal_petsc_indices(),
+      d_global_vec(NULL),
+      d_local_vec(NULL),
+      d_in_local_form(false),
+      d_local_vec_array(NULL),
+      d_extracted_local_array(false)
 {
-    d_name = db->getString("d_name");
-    d_depth = db->getInteger("d_depth");
     int num_local_nodes = db->getInteger("num_local_nodes");
     int n_nonlocal_indices = db->getInteger("n_nonlocal_indices");
     d_nonlocal_petsc_indices.resize(n_nonlocal_indices);
@@ -171,11 +174,6 @@ LNodeLevelData::LNodeLevelData(
 
     ierr = VecSetBlockSize(d_global_vec, d_depth);  PETSC_SAMRAI_ERROR(ierr);
 
-    d_in_local_form = false;
-
-    d_local_vec_array = NULL;
-    d_extracted_local_array = false;
-
     // Extract the values from the database.
     double* local_form_array = getLocalFormArray();
     if (d_depth*num_local_nodes + n_nonlocal_indices > 0)
@@ -189,6 +187,14 @@ LNodeLevelData::LNodeLevelData(
 
 LNodeLevelData::LNodeLevelData(
     const LNodeLevelData& from)
+    : d_name(from.d_name),
+      d_depth(from.d_depth),
+      d_nonlocal_petsc_indices(from.d_nonlocal_petsc_indices),
+      d_global_vec(NULL),
+      d_local_vec(NULL),
+      d_in_local_form(false),
+      d_local_vec_array(NULL),
+      d_extracted_local_array(false)
 {
     if (from.d_in_local_form)
     {
@@ -196,11 +202,10 @@ LNodeLevelData::LNodeLevelData(
                    "  copy constructor source object must NOT be in local form." << endl);
     }
 
-    d_in_local_form = false;
-    d_local_vec_array = NULL;
-    d_extracted_local_array = false;
+    int ierr;
+    ierr = VecDuplicate(from.d_global_vec, &d_global_vec);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecCopy(from.d_global_vec, d_global_vec);        PETSC_SAMRAI_ERROR(ierr);
 
-    assignThatToThis(from);
     return;
 }// LNodeLevelData
 
@@ -229,12 +234,8 @@ LNodeLevelData::assignThatToThis(
     d_depth = that.d_depth;
 
     int ierr;
-
-    ierr = VecDuplicate(that.d_global_vec, &d_global_vec);
-    PETSC_SAMRAI_ERROR(ierr);
-
-    ierr = VecCopy(that.d_global_vec, d_global_vec);
-    PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecDuplicate(that.d_global_vec, &d_global_vec);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecCopy(that.d_global_vec, d_global_vec);        PETSC_SAMRAI_ERROR(ierr);
 
     d_in_local_form = false;
 

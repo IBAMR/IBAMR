@@ -448,7 +448,7 @@ int main(int argc, char* argv[])
                         patch_hierarchy, iteration_num, loop_time);
                     silo_data_writer->writePlotData(
                         patch_hierarchy, iteration_num, loop_time);
-                 }
+                }
             }
         }
 

@@ -1,6 +1,6 @@
 // Filename: StashableStream.I
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 11:34:48 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 22:03:00 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -30,7 +30,7 @@ inline
 void*
 StashableStream::getBufferStart()
 {
-    return (void*)d_buffer;
+    return static_cast<void*>(d_buffer);
 }// getBufferStart
 
 inline

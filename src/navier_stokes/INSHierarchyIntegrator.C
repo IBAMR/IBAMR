@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <25.Sep.2006 22:52:09 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:09:37 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1130,7 +1130,7 @@ INSHierarchyIntegrator::advanceHierarchy(
             if (d_do_log) SAMRAI::tbox::plog << "\n\n++++++++++++++++++++++++++++++++++++++++++++++++\n";
             if (d_do_log) SAMRAI::tbox::plog << "+\n";
             if (d_do_log) SAMRAI::tbox::plog << "+ Performing cycle " << d_cycle+1 << " of "
-                                     << d_num_init_cycles << " to initialize P(n=1/2)\n";
+                                             << d_num_init_cycles << " to initialize P(n=1/2)\n";
             if (d_do_log) SAMRAI::tbox::plog << "+\n";
             if (d_do_log) SAMRAI::tbox::plog << "++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
         }
@@ -1576,9 +1576,9 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
             u_adv_current_cf_bdry_synch);         // don't re-synch u(n+1/2) coarse-fine bdry
 
         if (d_do_log) SAMRAI::tbox::plog << "||Div u_adv||_oo = "
-                                 << d_hier_cc_data_ops->maxNorm(d_Div_u_adv_new_idx, // data
-                                                                d_wgt_idx)           // vol
-                                 << endl;
+                                         << d_hier_cc_data_ops->maxNorm(d_Div_u_adv_new_idx, // data
+                                                                        d_wgt_idx)           // vol
+                                         << endl;
     }
 
     t_predict_advection_velocity->stop();
@@ -1828,17 +1828,17 @@ INSHierarchyIntegrator::projectVelocity(
     if (!d_Div_U_var.isNull())
     {
         if (d_do_log) SAMRAI::tbox::plog << "||Div U||_1  = "
-                                 << d_hier_cc_data_ops->L1Norm(d_Div_U_new_idx, // data
-                                                               d_wgt_idx)       // vol
-                                 << endl;
+                                         << d_hier_cc_data_ops->L1Norm(d_Div_U_new_idx, // data
+                                                                       d_wgt_idx)       // vol
+                                         << endl;
         if (d_do_log) SAMRAI::tbox::plog << "||Div U||_2  = "
-                                 << d_hier_cc_data_ops->L2Norm(d_Div_U_new_idx, // data
-                                                               d_wgt_idx)       // vol
-                                 << endl;
+                                         << d_hier_cc_data_ops->L2Norm(d_Div_U_new_idx, // data
+                                                                       d_wgt_idx)       // vol
+                                         << endl;
         if (d_do_log) SAMRAI::tbox::plog << "||Div U||_oo = "
-                                 << d_hier_cc_data_ops->maxNorm(d_Div_U_new_idx, // data
-                                                                d_wgt_idx)       // vol
-                                 << endl;
+                                         << d_hier_cc_data_ops->maxNorm(d_Div_U_new_idx, // data
+                                                                        d_wgt_idx)       // vol
+                                         << endl;
     }
     if (!d_Div_u_var.isNull())
     {
@@ -1852,9 +1852,9 @@ INSHierarchyIntegrator::projectVelocity(
             u_new_cf_bdry_synch);         // don't synch src c-f bdry
 
         if (d_do_log) SAMRAI::tbox::plog << "||Div u||_oo = "
-                                 << d_hier_cc_data_ops->maxNorm(d_Div_u_new_idx, // data
-                                                                d_wgt_idx)       // vol
-                                 << endl;
+                                         << d_hier_cc_data_ops->maxNorm(d_Div_u_new_idx, // data
+                                                                        d_wgt_idx)       // vol
+                                         << endl;
     }
 
     t_project_velocity->stop();
@@ -1881,7 +1881,7 @@ INSHierarchyIntegrator::updatePressure(
     // Compute P(n+1/2) from P~(n+1/2) and Phi.
     const double dt = new_time - current_time;
     const std::string& time_disc = "TGA";  // TODO: This should be specified by
-                                      // the advection-diffusion solver!!!
+    // the advection-diffusion solver!!!
     if (time_disc == "TGA")
     {
         // For the TGA discretization, the correct pressure update is

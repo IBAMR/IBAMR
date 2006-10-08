@@ -1,6 +1,6 @@
 // Filename: SpringForceGen.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <03.Oct.2006 11:15:23 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:05:08 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -40,30 +40,26 @@ namespace IBAMR
 
 namespace
 {
-    // Timers.
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data_0;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data_1;
+// Timers.
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data_0;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data_1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SpringForceGen::SpringForceGen(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+    : d_L_mats(),
+      d_local_src_ids(),
+      d_stiffnesses(),
+      d_level_initialized()
 {
-    // Set some default values.
-    d_use_parametric_resonance = false;
-    d_alpha = 0.0;
-    d_omega = 0.0;
-
     // Initialize object with data read from the input database.
     if (!input_db.isNull())
     {
-        d_use_parametric_resonance = input_db->getBoolWithDefault("d_use_parametric_resonance",
-                                                                  d_use_parametric_resonance);
-        d_alpha = input_db->getDoubleWithDefault("alpha", d_alpha);
-        d_omega = input_db->getDoubleWithDefault("omega", d_omega);
+        // intentionally blank
     }
 
     // Setup Timers.
@@ -91,18 +87,6 @@ SpringForceGen::~SpringForceGen()
     }
     return;
 }// ~SpringForceGen
-
-void
-SpringForceGen::setParametricResonance(
-    bool use_parametric_resonance,
-    double alpha,
-    double omega)
-{
-    d_use_parametric_resonance = use_parametric_resonance;
-    d_alpha = alpha;
-    d_omega = omega;
-    return;
-}// setParametricResonance
 
 void
 SpringForceGen::computeLagrangianForce(
@@ -161,15 +145,6 @@ SpringForceGen::computeLagrangianForce(
     ierr = VecRestoreArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecRestoreArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecDestroy(D_vec);               PETSC_SAMRAI_ERROR(ierr);
-
-    // Rescale the forces when performing a parametric resonance
-    // computation.
-    if (d_use_parametric_resonance)
-    {
-        const double scale_fac = 1.0+d_alpha*sin(2.0*M_PI*d_omega*data_time);
-        ierr = VecScale(F_data->getGlobalVec(), scale_fac);
-        PETSC_SAMRAI_ERROR(ierr);
-    }
 
     t_compute_lagrangian_force->stop();
     return;

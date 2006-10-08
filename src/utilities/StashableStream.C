@@ -1,10 +1,23 @@
 // Filename: StashableStream.C
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 11:39:28 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 22:05:20 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "StashableStream.h"
+
+// IBAMR INCLUDES
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#endif
+
+// SAMRAI INCLUDES
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
+
+// C++ STDLIB INCLUDES
+#include <cassert>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -19,18 +32,17 @@ bool StashableStream::s_use_xdr_translation = false;
 StashableStream::StashableStream(
     const int bytes,
     const StreamMode mode)
+    : d_buffer_size(bytes),
+      d_current_size(0),
+      d_buffer_index(0),
+      d_use_xdr(s_use_xdr_translation),
+      d_buffer(new char[d_buffer_size])
 {
-    d_buffer_size  = bytes;
-    d_current_size = 0;
-    d_buffer_index = 0;
-    d_use_xdr      = s_use_xdr_translation;
-    d_buffer       = new char[d_buffer_size];
-
 #ifdef HAVE_XDR
     if (d_use_xdr)
     {
         xdr_op xop = ((mode==StashableStream::Read) ? XDR_DECODE : XDR_ENCODE);
-        xdrmem_create(&d_xdr_stream, (caddr_t) d_buffer, d_buffer_size, xop);
+        xdrmem_create(&d_xdr_stream, static_cast<caddr_t>(d_buffer), d_buffer_size, xop);
         d_xdr_manager.setXDRStream(&d_xdr_stream);
     }
 #endif
@@ -41,18 +53,17 @@ StashableStream::StashableStream(
     const int bytes,
     const StreamMode mode,
     const bool use_xdr)
+    : d_buffer_size(bytes),
+      d_current_size(0),
+      d_buffer_index(0),
+      d_use_xdr(use_xdr),
+      d_buffer(new char[d_buffer_size])
 {
-    d_buffer_size  = bytes;
-    d_current_size = 0;
-    d_buffer_index = 0;
-    d_use_xdr      = use_xdr;
-    d_buffer       = new char[d_buffer_size];
-
 #ifdef HAVE_XDR
     if (d_use_xdr)
     {
         xdr_op xop = ((mode==StashableStream::Read) ? XDR_DECODE : XDR_ENCODE);
-        xdrmem_create(&d_xdr_stream, (caddr_t) d_buffer, d_buffer_size, xop);
+        xdrmem_create(&d_xdr_stream, static_cast<caddr_t>(d_buffer), d_buffer_size, xop);
         d_xdr_manager.setXDRStream(&d_xdr_stream);
     }
 #endif
@@ -63,19 +74,18 @@ StashableStream::StashableStream(
     const void* const buffer,
     const int bytes,
     const StreamMode mode)
+    : d_buffer_size(bytes),
+      d_current_size(0),
+      d_buffer_index(0),
+      d_use_xdr(s_use_xdr_translation),
+      d_buffer(new char[d_buffer_size])
 {
-    d_buffer_size  = bytes;
-    d_current_size = 0;
-    d_buffer_index = 0;
-    d_use_xdr      = s_use_xdr_translation;
-    d_buffer       = new char[d_buffer_size];
-    memcpy((void*)d_buffer, (void*)buffer, bytes);
-
+    memcpy(static_cast<void*>(d_buffer), buffer, bytes);
 #ifdef HAVE_XDR
     if (d_use_xdr)
     {
         xdr_op xop = ((mode==StashableStream::Read) ? XDR_DECODE : XDR_ENCODE);
-        xdrmem_create(&d_xdr_stream, (caddr_t) d_buffer, d_buffer_size, xop);
+        xdrmem_create(&d_xdr_stream, static_cast<caddr_t>(d_buffer), d_buffer_size, xop);
         d_xdr_manager.setXDRStream(&d_xdr_stream);
     }
 #endif
@@ -87,14 +97,13 @@ StashableStream::StashableStream(
     const int bytes,
     const StreamMode mode,
     const bool use_xdr)
+    : d_buffer_size(bytes),
+      d_current_size(0),
+      d_buffer_index(0),
+      d_use_xdr(use_xdr),
+      d_buffer(new char[d_buffer_size])
 {
-    d_buffer_size  = bytes;
-    d_current_size = 0;
-    d_buffer_index = 0;
-    d_use_xdr      = use_xdr;
-    d_buffer       = new char[d_buffer_size];
-    memcpy((void*)d_buffer, (void*)buffer, bytes);
-
+    memcpy(static_cast<void*>(d_buffer), buffer, bytes);
 #ifdef HAVE_XDR
     if (d_use_xdr)
     {
@@ -132,7 +141,7 @@ StashableStream::printClassData(
     os << "Maximum buffer size = " << d_buffer_size << endl;
     os << "Current buffer size = " << d_current_size << endl;
     os << "Current buffer index = " << d_buffer_index << endl;
-    os << "Pointer to buffer data = " << (void *) d_buffer << endl;
+    os << "Pointer to buffer data = " << static_cast<void*>(d_buffer) << endl;
     os << "Using XDR translation = " << (d_use_xdr ? "true" : "false") << endl;
     return;
 }// printClassData
@@ -177,32 +186,32 @@ StashableStream::getPointerAndAdvanceCursor(
 
 #ifdef HAVE_XDR
 
-#define PACK(m_data,m_size,m_bytes)                             \
-    do                                                          \
-    {                                                           \
-        void *ptr = getPointerAndAdvanceCursor(m_bytes);        \
-        if (d_use_xdr)                                          \
-        {                                                       \
-            d_xdr_manager.pack(m_data, m_size);                 \
-        }                                                       \
-        else                                                    \
-        {                                                       \
-            memcpy(ptr, (void *) m_data, m_bytes);              \
-        }                                                       \
-    }                                                           \
+#define PACK(m_data,m_size,m_bytes)                                     \
+    do                                                                  \
+    {                                                                   \
+        void* ptr = getPointerAndAdvanceCursor(m_bytes);                \
+        if (d_use_xdr)                                                  \
+        {                                                               \
+            d_xdr_manager.pack(m_data, m_size);                         \
+        }                                                               \
+        else                                                            \
+        {                                                               \
+            memcpy(ptr, static_cast<const void*>(m_data), m_bytes);     \
+        }                                                               \
+    }                                                                   \
     while (0)
 
 #define UNPACK(m_data,m_size,m_bytes)                           \
     do                                                          \
     {                                                           \
-        void *ptr = getPointerAndAdvanceCursor(m_bytes);        \
+        void* ptr = getPointerAndAdvanceCursor(m_bytes);        \
         if (d_use_xdr)                                          \
         {                                                       \
             d_xdr_manager.unpack(m_data, m_size);               \
         }                                                       \
         else                                                    \
         {                                                       \
-            memcpy((void *) m_data, ptr, m_bytes);              \
+            memcpy(static_cast<void*>(m_data), ptr, m_bytes);   \
         }                                                       \
     }                                                           \
     while (0)
@@ -212,16 +221,16 @@ StashableStream::getPointerAndAdvanceCursor(
 #define PACK(m_data,m_size,m_bytes)                             \
     do                                                          \
     {                                                           \
-        void *ptr = getPointerAndAdvanceCursor(m_bytes);        \
-        memcpy(ptr, (void *) m_data, m_bytes);                  \
+        void* ptr = getPointerAndAdvanceCursor(m_bytes);        \
+        memcpy(ptr, static_cast<const void*>(m_data), m_bytes); \
     }                                                           \
     while (0)
 
 #define UNPACK(m_data,m_size,m_bytes)                           \
     do                                                          \
     {                                                           \
-        void *ptr = getPointerAndAdvanceCursor(m_bytes);        \
-        memcpy((void *) m_data, ptr, m_bytes);                  \
+        void* ptr = getPointerAndAdvanceCursor(m_bytes);        \
+        memcpy(static_cast<void*>(m_data), ptr, m_bytes);       \
     }                                                           \
     while (0)
 
@@ -260,7 +269,7 @@ StashableStream::pack(
     const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofBool(n);
-    void *ptr = getPointerAndAdvanceCursor(bytes);
+    void* ptr = getPointerAndAdvanceCursor(bytes);
     if (d_use_xdr)
     {
 #ifdef HAVE_XDR
@@ -269,7 +278,7 @@ StashableStream::pack(
     }
     else
     {
-        char *c_ptr = (char *) ptr;
+        char* c_ptr = static_cast<char*>(ptr);
         for (int i = 0; i < n; i++)
         {
             c_ptr[i] = (data[i] ? 1 : 0);
@@ -284,7 +293,7 @@ StashableStream::unpack(
     const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofBool(n);
-    void *ptr = getPointerAndAdvanceCursor(bytes);
+    void* ptr = getPointerAndAdvanceCursor(bytes);
     if (d_use_xdr)
     {
 #ifdef HAVE_XDR
@@ -293,7 +302,7 @@ StashableStream::unpack(
     }
     else
     {
-        const char *c_ptr = (const char *) ptr;
+        const char* c_ptr = static_cast<const char*>(ptr);
         for (int i = 0; i < n; i++)
         {
             data[i] = (c_ptr[i] ? true : false);

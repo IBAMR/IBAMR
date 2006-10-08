@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <04.Oct.2006 19:50:48 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:09:11 boyce@bigboy.nyconnect.com>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -78,11 +78,11 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         bool register_for_restart=true);
 
-   /*!
-    * The destructor for HierarchyProjector unregisters the integrator
-    * object with the restart manager when so registered.
-    */
-   virtual ~HierarchyProjector();
+    /*!
+     * The destructor for HierarchyProjector unregisters the integrator
+     * object with the restart manager when so registered.
+     */
+    virtual ~HierarchyProjector();
 
     ///
     ///  The following routines:

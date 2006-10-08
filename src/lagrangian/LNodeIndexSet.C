@@ -1,6 +1,6 @@
 // Filename: LNodeIndexSet.C
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 12:26:04 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:12:44 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -25,16 +25,16 @@ namespace IBAMR
 
 namespace
 {
-    struct LNodeIndexGetDataStreamSizeSum
-        : binary_function<size_t,SAMRAI::tbox::Pointer<LNodeIndex>,size_t>
-    {
-        size_t operator()(
-            size_t size_so_far,
-            const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
-            {
-                return size_so_far+index->getDataStreamSize();
-            }
-    };
+struct LNodeIndexGetDataStreamSizeSum
+    : binary_function<size_t,SAMRAI::tbox::Pointer<LNodeIndex>,size_t>
+{
+    size_t operator()(
+        size_t size_so_far,
+        const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
+        {
+            return size_so_far+index->getDataStreamSize();
+        }
+};
 }
 
 size_t
@@ -47,26 +47,26 @@ LNodeIndexSet::getDataStreamSize() const
 
 namespace
 {
-    class LNodeIndexPackStream
-        : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
-    {
-    public:
-        LNodeIndexPackStream(
-            SAMRAI::tbox::AbstractStream* const stream)
-            : d_stream(stream)
-            {
-                return;
-            }
+class LNodeIndexPackStream
+    : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
+{
+public:
+    LNodeIndexPackStream(
+        SAMRAI::tbox::AbstractStream* const stream)
+        : d_stream(stream)
+        {
+            return;
+        }
 
-        void operator()(
-            const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
-            {
-                index->packStream(*d_stream);
-                return;
-            }
-    private:
-        SAMRAI::tbox::AbstractStream* const d_stream;
-    };
+    void operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
+        {
+            index->packStream(*d_stream);
+            return;
+        }
+private:
+    SAMRAI::tbox::AbstractStream* const d_stream;
+};
 }
 
 void
@@ -81,29 +81,29 @@ LNodeIndexSet::packStream(
 
 namespace
 {
-    class LNodeIndexUnpackStream
-        : public unary_function<void,SAMRAI::tbox::Pointer<LNodeIndex> >
-    {
-    public:
-        LNodeIndexUnpackStream(
-            SAMRAI::tbox::AbstractStream* const stream,
-            const SAMRAI::hier::IntVector<NDIM>& offset)
-            : d_stream(stream),
-              d_offset(offset)
-            {
-                return;
-            }
+class LNodeIndexUnpackStream
+    : public unary_function<void,SAMRAI::tbox::Pointer<LNodeIndex> >
+{
+public:
+    LNodeIndexUnpackStream(
+        SAMRAI::tbox::AbstractStream* const stream,
+        const SAMRAI::hier::IntVector<NDIM>& offset)
+        : d_stream(stream),
+          d_offset(offset)
+        {
+            return;
+        }
 
-        SAMRAI::tbox::Pointer<LNodeIndex> operator()() const
-            {
-                SAMRAI::tbox::Pointer<LNodeIndex> index_out = new LNodeIndex();
-                index_out->unpackStream(*d_stream,d_offset);
-                return index_out;
-            }
-    private:
-        SAMRAI::tbox::AbstractStream* const d_stream;
-        const SAMRAI::hier::IntVector<NDIM>& d_offset;
-    };
+    SAMRAI::tbox::Pointer<LNodeIndex> operator()() const
+        {
+            SAMRAI::tbox::Pointer<LNodeIndex> index_out = new LNodeIndex();
+            index_out->unpackStream(*d_stream,d_offset);
+            return index_out;
+        }
+private:
+    SAMRAI::tbox::AbstractStream* const d_stream;
+    const SAMRAI::hier::IntVector<NDIM>& d_offset;
+};
 }
 
 void
@@ -131,7 +131,7 @@ LNodeIndexSet::putToDatabase(
     StashableStream stream(data_sz, StashableStream::Write, use_xdr);
     packStream(stream);
     database->putInteger("data_sz", data_sz);
-    database->putCharArray("data", (char*)stream.getBufferStart(), data_sz);
+    database->putCharArray("data", static_cast<char*>(stream.getBufferStart()), data_sz);
     database->putIntegerArray("d_offset", d_offset, NDIM);
     return;
 }// putToDatabase
@@ -155,16 +155,16 @@ LNodeIndexSet::getFromDatabase(
 
 namespace
 {
-    struct LNodeIndexLessThan
-        : binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
-    {
-        bool operator()(
-            const SAMRAI::tbox::Pointer<LNodeIndex>& lhs,
-            const SAMRAI::tbox::Pointer<LNodeIndex>& rhs) const
-            {
-                return *lhs < *rhs;
-            }
-    };
+struct LNodeIndexLessThan
+    : binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
+{
+    bool operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& lhs,
+        const SAMRAI::tbox::Pointer<LNodeIndex>& rhs) const
+        {
+            return *lhs < *rhs;
+        }
+};
 }
 
 void

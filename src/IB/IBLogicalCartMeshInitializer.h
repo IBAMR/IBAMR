@@ -2,7 +2,7 @@
 #define included_IBLogicalCartMeshInitializer
 
 // Filename: IBLogicalCartMeshInitializer.h
-// Last modified: <04.Oct.2006 19:53:10 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 21:35:08 boyce@bigboy.nyconnect.com>
 // Created on 06 Dec 2005 by Boyce Griffith (boyce@boyce.cims.nyu.edu).
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -161,11 +161,9 @@ private:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& patch_level);
 
     /*
-     * The object name is used as a handle to databases stored in
-     * restart files and for error reporting purposes.
+     * The object name is used for error reporting purposes.
      */
     std::string d_object_name;
-    bool d_registered_for_restart;
 
     /*
      * Data to define the logically Cartesian components.

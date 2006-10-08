@@ -1,6 +1,6 @@
 // Filename: IBEulerianForceSetter.C
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <03.Oct.2006 10:17:44 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 22:15:19 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -34,7 +34,8 @@ IBEulerianForceSetter::IBEulerianForceSetter(
     const string& object_name,
     const int F_idx)
     : SetDataStrategy(object_name),
-      d_F_idx(F_idx)
+      d_F_idx(F_idx),
+      d_body_force_set(NULL)
 {
     // intentionally blank
     return;

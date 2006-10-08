@@ -1,6 +1,6 @@
 // Filename: LNodeIndex.I
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 11:57:10 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:06:01 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -39,8 +39,12 @@ LNodeIndex::LNodeIndex(
 inline
 LNodeIndex::LNodeIndex(
     const LNodeIndex& from)
+    : d_lagrangian_nidx(from.d_lagrangian_nidx),
+      d_local_petsc_nidx(from.d_local_petsc_nidx),
+      d_X_ptr(from.d_X_ptr),
+      d_stash_data(from.d_stash_data)
 {
-    assignThatToThis(from);
+    // intentionally blank
     return;
 }// LNodeIndex
 
@@ -206,22 +210,22 @@ bool operator<(
 
     return (lhs.d_X_ptr[0]<rhs.d_X_ptr[0]) ||
 #if (NDIM>1)
-           ((lhs.d_X_ptr[0]==rhs.d_X_ptr[0])&&
-            (lhs.d_X_ptr[1]< rhs.d_X_ptr[1])) ||
+        ((lhs.d_X_ptr[0]==rhs.d_X_ptr[0])&&
+         (lhs.d_X_ptr[1]< rhs.d_X_ptr[1])) ||
 #if (NDIM>2)
-           ((lhs.d_X_ptr[0]==rhs.d_X_ptr[0])&&
-            (lhs.d_X_ptr[1]==rhs.d_X_ptr[1])&&
-            (lhs.d_X_ptr[2]< rhs.d_X_ptr[2])) ||
+        ((lhs.d_X_ptr[0]==rhs.d_X_ptr[0])&&
+         (lhs.d_X_ptr[1]==rhs.d_X_ptr[1])&&
+         (lhs.d_X_ptr[2]< rhs.d_X_ptr[2])) ||
 #endif
 #endif
-           ((lhs.d_X_ptr[0]==rhs.d_X_ptr[0])&&
+        ((lhs.d_X_ptr[0]==rhs.d_X_ptr[0])&&
 #if (NDIM>1)
-            (lhs.d_X_ptr[1]==rhs.d_X_ptr[1])&&
+         (lhs.d_X_ptr[1]==rhs.d_X_ptr[1])&&
 #if (NDIM>2)
-            (lhs.d_X_ptr[2]==rhs.d_X_ptr[2])&&
+         (lhs.d_X_ptr[2]==rhs.d_X_ptr[2])&&
 #endif
 #endif
-            (lhs.d_lagrangian_nidx<rhs.d_lagrangian_nidx));
+         (lhs.d_lagrangian_nidx<rhs.d_lagrangian_nidx));
 }// operator<
 
 //////////////////////////////////////////////////////////////////////////////

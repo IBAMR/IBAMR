@@ -1,6 +1,6 @@
 // Filename: LEInteractor.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <02.Oct.2006 23:40:11 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:11:12 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -82,7 +82,7 @@ extern "C"
         const double* ,
         const int* , const double* , const int& ,
         const double* , double*
-        );
+                                       );
 
     void LAGRANGIAN_PWCUBIC_SPREAD_F77(
         const double* , const double* , const double* , const int& ,
@@ -97,7 +97,7 @@ extern "C"
         const int& , const int& , const int& ,
 #endif
         double*
-        );
+                                       );
 
 
 
@@ -114,7 +114,7 @@ extern "C"
         const double* ,
         const int* , const double* , const int& ,
         const double* , double*
-        );
+                                   );
 
     void LAGRANGIAN_IB4_SPREAD_F77(
         const double* , const double* , const double* , const int& ,
@@ -129,7 +129,7 @@ extern "C"
         const int& , const int& , const int& ,
 #endif
         double*
-        );
+                                   );
 
 
 
@@ -146,7 +146,7 @@ extern "C"
         const double* ,
         const int* , const double* , const int& ,
         const double* , double*
-        );
+                                   );
 
     void LAGRANGIAN_IB6_SPREAD_F77(
         const double* , const double* , const double* , const int& ,
@@ -161,7 +161,7 @@ extern "C"
         const int& , const int& , const int& ,
 #endif
         double*
-        );
+                                   );
 
 
 
@@ -178,7 +178,7 @@ extern "C"
         const double* ,
         const int* , const double* , const int& ,
         const double* , double*
-        );
+                                    );
 
     void LAGRANGIAN_WIB4_SPREAD_F77(
         const double* , const double* , const double* , const int& ,
@@ -193,7 +193,7 @@ extern "C"
         const int& , const int& , const int& ,
 #endif
         double*
-        );
+                                    );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -235,15 +235,15 @@ LEInteractor::initializeTimers()
 
 namespace
 {
-    struct GetLocalPETScIndex
-        : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
-    {
-        int operator()(
-            const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
-            {
-                return index->getLocalPETScIndex();
-            }
-    };
+struct GetLocalPETScIndex
+    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
+{
+    int operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
+        {
+            return index->getLocalPETScIndex();
+        }
+};
 }
 
 int

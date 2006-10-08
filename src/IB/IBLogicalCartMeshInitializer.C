@@ -1,5 +1,5 @@
 // Filename: IBLogicalCartMeshInitializer.C
-// Last modified: <03.Oct.2006 10:57:26 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:18:58 boyce@bigboy.nyconnect.com>
 // Created on 06 Dec 2005 by Boyce Griffith (boyce@boyce.cims.nyu.edu).
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -32,6 +32,15 @@ namespace IBAMR
 IBLogicalCartMeshInitializer::IBLogicalCartMeshInitializer(
     const std::string& object_name,
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+    : d_object_name(object_name),
+      d_mesh_name(),
+      d_mesh_file(),
+      d_ncomp(),
+      d_mesh_offset(),
+      d_mesh_rank(),
+      d_mesh_level(),
+      d_mesh_dim(),
+      d_mesh_periodic()
 {
     // XXXX dummy data
     d_mesh_name.insert("dummy");
@@ -51,7 +60,7 @@ IBLogicalCartMeshInitializer::IBLogicalCartMeshInitializer(
         {
             if ((*it) > NDIM || (*it) < 1)
             {
-                TBOX_ERROR("IBLogicalCartMeshInitializer::IBLogicalCartMeshInitializer():\n"
+                TBOX_ERROR(d_object_name << "::IBLogicalCartMeshInitializer():\n"
                            << "  the rank of each component in a logically Cartesian mesh must be\n"
                            << "  between 1 and " << NDIM << "\n");
             }
@@ -80,19 +89,19 @@ IBLogicalCartMeshInitializer::~IBLogicalCartMeshInitializer()
 
 namespace
 {
-    // When the level requested for a particular component is negative
-    // or greater than the finest level number in the hierarchy, that
-    // component is assigned to the finest level of the patch
-    // hierarchy.
-    inline bool is_assigned_level(
-        const int requested_level,
-        const int level_number,
-        const bool can_be_refined)
-    {
-        return (( level_number == requested_level ) ||
-                ( (requested_level < 0 || requested_level > level_number)
-                  && !can_be_refined ));
-    }
+// When the level requested for a particular component is negative
+// or greater than the finest level number in the hierarchy, that
+// component is assigned to the finest level of the patch
+// hierarchy.
+inline bool is_assigned_level(
+    const int requested_level,
+    const int level_number,
+    const bool can_be_refined)
+{
+    return (( level_number == requested_level ) ||
+            ( (requested_level < 0 || requested_level > level_number)
+              && !can_be_refined ));
+}
 }
 
 bool

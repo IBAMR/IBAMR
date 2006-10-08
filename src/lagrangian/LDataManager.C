@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <04.Oct.2006 14:15:02 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <07.Oct.2006 23:50:12 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -59,28 +59,28 @@ namespace IBAMR
 
 namespace
 {
-    // Timers.
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_map_lagrangian_to_petsc;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_map_petsc_to_lagrangian;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_update_workload_and_node_count;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_restore_location_pointers;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_invalidate_location_pointers;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuration;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_nonlocal_data_fill;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_nonlocal_data_fill;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_node_distribution;
-    static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_node_offsets;
+// Timers.
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_map_lagrangian_to_petsc;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_map_petsc_to_lagrangian;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_update_workload_and_node_count;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_restore_location_pointers;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_invalidate_location_pointers;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuration;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_nonlocal_data_fill;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_nonlocal_data_fill;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_node_distribution;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_node_offsets;
 
-    // Assume max(U)dt/dx <= 1.
-    static const int CFL_WIDTH = 1;
+// Assume max(U)dt/dx <= 1.
+static const int CFL_WIDTH = 1;
 
-    // Version of LDataManager restart file data.
-    static const int LDATA_MANAGER_VERSION = 1;
+// Version of LDataManager restart file data.
+static const int LDATA_MANAGER_VERSION = 1;
 }
 
 const string LDataManager::COORDS_DATA_NAME   = "X";
@@ -197,19 +197,19 @@ LDataManager::resetLevels(
 
 void
 LDataManager::registerLNodeJacobianInitStrategy(
-    SAMRAI::tbox::Pointer<LNodeJacobianInitStrategy> lag_jac_spec)
+    SAMRAI::tbox::Pointer<LNodeJacobianInitStrategy> lag_jac_init)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!lag_jac_spec.isNull());
+    assert(!lag_jac_init.isNull());
 #endif
-    d_lag_jac_spec = lag_jac_spec;
+    d_lag_jac_init = lag_jac_init;
     return;
 }// registerSpecAndInitStrategy
 
 void
 LDataManager::freeLNodeJacobianInitStrategy()
 {
-    d_lag_jac_spec.setNull();
+    d_lag_jac_init.setNull();
     return;
 }// freeLNodeJacobianInitStrategy
 
@@ -466,23 +466,23 @@ LDataManager::mapPETScToLagrangian(
 
 namespace
 {
-    struct CellIndexFortranOrder
-        : binary_function<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::pdat::CellIndex<NDIM>,bool>
-    {
-        bool operator()(
-            const SAMRAI::pdat::CellIndex<NDIM>& lhs,
-            const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
-            {
-                return (lhs(0) < rhs(0)
+struct CellIndexFortranOrder
+    : binary_function<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::pdat::CellIndex<NDIM>,bool>
+{
+    bool operator()(
+        const SAMRAI::pdat::CellIndex<NDIM>& lhs,
+        const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
+        {
+            return (lhs(0) < rhs(0)
 #if (NDIM>1)
-                        || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                    || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM>2)
-                        || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                    || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                        );
-            }
-    };
+                    );
+        }
+};
 }
 
 void
@@ -532,13 +532,13 @@ LDataManager::beginDataRedistribution(
             // Update the ghost values of the Lagrangian nodal
             // positions.
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->beginGhostUpdate();
-            if (!d_lag_jac_spec.isNull())
+            if (!d_lag_jac_init.isNull())
             {
                 d_lag_quantity_data[ln][JACOBIAN_DATA_NAME]->beginGhostUpdate();
             }
 
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->endGhostUpdate();
-            if (!d_lag_jac_spec.isNull())
+            if (!d_lag_jac_init.isNull())
             {
                 d_lag_quantity_data[ln][JACOBIAN_DATA_NAME]->endGhostUpdate();
             }
@@ -1130,16 +1130,16 @@ LDataManager::endDataRedistribution(
 
 namespace
 {
-    struct BeginLNodeLevelDataNonlocalFill
-        : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
-    {
-        void operator()(
-            const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
-            {
-                data.second->beginGhostUpdate();
-                return;
-            }
-    };
+struct BeginLNodeLevelDataNonlocalFill
+    : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
+{
+    void operator()(
+        const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
+        {
+            data.second->beginGhostUpdate();
+            return;
+        }
+};
 }
 
 void
@@ -1208,28 +1208,28 @@ LDataManager::updateWorkloadAndNodeCount(
 
 namespace
 {
-    class RestoreLNodeIndexLocationPointers
-        : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
-    {
-    public:
-        RestoreLNodeIndexLocationPointers(
-            double* const X_arr)
-            : d_X_arr(X_arr)
-            {
-                return;
-            }
+class RestoreLNodeIndexLocationPointers
+    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
+{
+public:
+    RestoreLNodeIndexLocationPointers(
+        double* const X_arr)
+        : d_X_arr(X_arr)
+        {
+            return;
+        }
 
-        void operator()(
-            const SAMRAI::tbox::Pointer<LNodeIndex>& data) const
-            {
-                data->setNodeLocation(
-                    &(d_X_arr[NDIM*data->getLocalPETScIndex()]));
-                return;
-            }
+    void operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& data) const
+        {
+            data->setNodeLocation(
+                &(d_X_arr[NDIM*data->getLocalPETScIndex()]));
+            return;
+        }
 
-    private:
-        double* const d_X_arr;
-    };
+private:
+    double* const d_X_arr;
+};
 }
 
 void
@@ -1281,16 +1281,16 @@ LDataManager::restoreLocationPointers(
 
 namespace
 {
-    struct InvalidateLNodeIndexLocationPointers
-        : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
-    {
-        void operator()(
-            const SAMRAI::tbox::Pointer<LNodeIndex>& data) const
-            {
-                data->setNodeLocation(NULL);
-                return;
-            }
-    };
+struct InvalidateLNodeIndexLocationPointers
+    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
+{
+    void operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& data) const
+        {
+            data->setNodeLocation(NULL);
+            return;
+        }
+};
 }
 
 void
@@ -1496,11 +1496,11 @@ LDataManager::initializeLevelData(
             //
             // NOTE: You must FIX the IMPLEMENTATION of these concrete
             // strategies as soon as this is made MORE SENSIBLE!!!
-            if (!d_lag_jac_spec.isNull())
+            if (!d_lag_jac_init.isNull())
             {
                 d_lag_quantity_data[level_number][JACOBIAN_DATA_NAME] =
                     new LNodeLevelData(JACOBIAN_DATA_NAME, num_local_nodes, 1);
-                d_lag_jac_spec->initializeJacobianDet(
+                d_lag_jac_init->initializeJacobianDet(
                     d_lag_node_index_current_idx,
                     d_lag_quantity_data[level_number][JACOBIAN_DATA_NAME],
                     d_lag_quantity_data[level_number][COORDS_DATA_NAME  ],
@@ -1854,15 +1854,54 @@ LDataManager::LDataManager(
     const string& object_name,
     const SAMRAI::hier::IntVector<NDIM>& ghosts,
     bool register_for_restart)
+    : d_object_name(object_name),
+      d_registered_for_restart(register_for_restart),
+      d_hierarchy(NULL),
+      d_grid_geom(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_visit_writer(NULL),
+      d_silo_writer(NULL),
+      d_load_balancer(NULL),
+      d_lag_jac_init(NULL),
+      d_lag_posn_init(NULL),
+      d_level_contains_lag_data(),
+      d_lag_node_index_var(NULL),
+      d_lag_node_index_current_idx(-1),
+      d_lag_node_index_scratch_idx(-1),
+      d_alpha_work(1.0),
+      d_beta_work(1.0),
+      d_workload_var(NULL),
+      d_workload_idx(-1),
+      d_node_count_var(NULL),
+      d_node_count_idx(-1),
+      d_output_node_count(false),
+      d_mpi_proc_var(NULL),
+      d_mpi_proc_idx(-1),
+      d_output_mpi_proc(false),
+      d_ghosts(ghosts),
+      d_lag_node_index_bdry_fill_alg(NULL),
+      d_lag_node_index_bdry_fill_scheds(),
+      d_node_count_coarsen_alg(NULL),
+      d_node_count_coarsen_scheds(),
+      d_current_context(NULL),
+      d_scratch_context(NULL),
+      d_current_data(),
+      d_scratch_data(),
+      d_lag_quantity_data(),
+      d_needs_synch(true),
+      d_ao(),
+      d_num_nodes(),
+      d_node_offset(),
+      d_local_lag_indices(),
+      d_nonlocal_lag_indices(),
+      d_local_petsc_indices(),
+      d_nonlocal_petsc_indices()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
     assert(ghosts.min() >= 0);
 #endif
-    d_object_name = object_name;
-    d_registered_for_restart = register_for_restart;
-
-    d_ghosts = ghosts;
 
     if (d_registered_for_restart)
     {
@@ -1876,18 +1915,13 @@ LDataManager::LDataManager(
         getFromRestart();
     }
 
-    // Initialize the default range of hierarchy levels to cause an
-    // error if they are not properly set.
-    d_coarsest_ln = -1;
-    d_finest_ln = -1;
-
     // Create/lookup the variable contexts.
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
 
     d_current_context = var_db->getContext(d_object_name+"::CURRENT");
     d_scratch_context = var_db->getContext(d_object_name+"::SCRATCH");
 
-    // Register the SAMRAI variables with the SAMRAI::hier::VariableDatabase<NDIM>.
+    // Register the SAMRAI variables with the VariableDatabase.
     d_lag_node_index_var = new LNodeIndexVariable(
         d_object_name+"::LNodeIndex");
 
@@ -1915,10 +1949,7 @@ LDataManager::LDataManager(
         d_lag_node_index_scratch_idx, // temporary work space
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> >(NULL));
 
-    // Register the node count variable with the SAMRAI::hier::VariableDatabase<NDIM>.
-    d_alpha_work = 1.0;
-    d_beta_work = 1.0;
-
+    // Register the node count variable with the VariableDatabase.
     d_workload_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
         d_object_name+"::Workload");
 
@@ -1932,7 +1963,6 @@ LDataManager::LDataManager(
     }
 
     // Register the node count variable with the VariableDatabase.
-    d_output_node_count = false;
     d_node_count_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
         d_object_name+"::Node Count");
 
@@ -1956,7 +1986,6 @@ LDataManager::LDataManager(
 
     // Register the MPI process mapping variable with the
     // VariableDatabase.
-    d_output_mpi_proc = false;
     d_mpi_proc_var = new SAMRAI::pdat::CellVariable<NDIM,int>(
         d_object_name+"::MPI process mapping");
 
@@ -2063,16 +2092,16 @@ LDataManager::beginNonlocalDataFill(
 
 namespace
 {
-    struct EndLNodeLevelDataNonlocalFill
-        : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
-    {
-        void operator()(
-            const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
-            {
-                data.second->endGhostUpdate();
-                return;
-            }
-    };
+struct EndLNodeLevelDataNonlocalFill
+    : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
+{
+    void operator()(
+        const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
+        {
+            data.second->endGhostUpdate();
+            return;
+        }
+};
 }
 
 void
@@ -2112,71 +2141,71 @@ LDataManager::endNonlocalDataFill(
 
 namespace
 {
-    struct GetLagrangianIndex
-        : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
-    {
-        int operator()(
-            const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
-            {
-                return index->getLagrangianIndex();
-            }
-    };
+struct GetLagrangianIndex
+    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
+{
+    int operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
+        {
+            return index->getLagrangianIndex();
+        }
+};
 
-    class SetLocalPETScIndex
-        : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
-          public unary_function<void,int>
-    {
-    public:
-        SetLocalPETScIndex(
-            const int offset)
-            : d_current_index(offset)
-            {
-                return;
-            }
+class SetLocalPETScIndex
+    : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
+      public unary_function<void,int>
+{
+public:
+    SetLocalPETScIndex(
+        const int offset)
+        : d_current_index(offset)
+        {
+            return;
+        }
 
-        void operator()(
-            const SAMRAI::tbox::Pointer<LNodeIndex>& index)
-            {
-                index->setLocalPETScIndex(d_current_index++);
-                return;
-            }
+    void operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& index)
+        {
+            index->setLocalPETScIndex(d_current_index++);
+            return;
+        }
 
-        int operator()()
-            {
-                return d_current_index++;
-            }
+    int operator()()
+        {
+            return d_current_index++;
+        }
 
-    private:
-        int d_current_index;
-    };
+private:
+    int d_current_index;
+};
 
-    class GetLocalPETScIndexFromIDSet
-        : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
-          public unary_function<void,int>
-    {
-    public:
-        GetLocalPETScIndexFromIDSet(
-            const LNodeIndexSet::const_iterator& begin)
-            : d_index(begin)
-            {
-                return;
-            }
+class GetLocalPETScIndexFromIDSet
+    : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
+      public unary_function<void,int>
+{
+public:
+    GetLocalPETScIndexFromIDSet(
+        const LNodeIndexSet::const_iterator& begin)
+        : d_index(begin)
+        {
+            return;
+        }
 
-        void operator()(
-            const SAMRAI::tbox::Pointer<LNodeIndex>& index)
-            {
-                index->setLocalPETScIndex((*(d_index++))->getLocalPETScIndex());
-                return;
-            }
+    void operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& index)
+        {
+            index->setLocalPETScIndex((*(d_index++))->getLocalPETScIndex());
+            return;
+        }
 
-        int operator()()
-            {
-                return (*(d_index++))->getLocalPETScIndex();
-            }
+    int operator()()
+        {
+            return (*(d_index++))->getLocalPETScIndex();
+        }
 
-    private:
-        LNodeIndexSet::const_iterator d_index;
-    };
+private:
+    LNodeIndexSet::const_iterator d_index;
+};
 }
 
 int
