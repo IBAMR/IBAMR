@@ -1,7 +1,7 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_INIT([IBAMR],[0.1],[griffith AT cims DOT nyu DOT edu])
+AC_INIT([IBAMR],[0.1.1],[griffith AT cims DOT nyu DOT edu])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config/IBAMR_config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 foreign])
@@ -57,12 +57,10 @@ fi
 
 # Required external libraries.
 
-# Check for Cygwin/Windows libraries.
-AC_CHECK_HEADER([windows.h],HAVE_WINDOWS=1,)
-if test "$HAVE_WINDOWS" = 1 ; then
-  AC_CHECK_LIB([user32],[GetDC],,)
-  AC_CHECK_LIB([gdi32],[CreateCompatibleDC],,)
-fi
+# Check for BLAS and LAPACK libraries.
+ACX_BLAS(,)
+ACX_LAPACK(,)
+LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
 
 # Check for hypre library and configure hypre options.
 echo
@@ -253,7 +251,10 @@ if test -d "${HDF5_DIR}/include" ; then
 fi
 
 AC_CHECK_HEADER([hdf5.h],,AC_MSG_WARN([could not find header file hdf5.h]))
-AC_CHECK_LIB([hdf5],[H5open],,AC_MSG_WARN([could not find libhdf5]))
+AC_CHECK_LIB([hdf5],[H5open],,
+  echo "checking to see if we need to include zlib to use hdf5"
+  AC_CHECK_LIB([z], [inflateEnd])
+  AC_CHECK_LIB([hdf5],[H5open],,AC_MSG_WARN([could not find libhdf5])))
 
 # Optional libraries.
 
