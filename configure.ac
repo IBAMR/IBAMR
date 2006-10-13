@@ -1,7 +1,7 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_INIT([IBAMR],[0.1.1],[griffith AT cims DOT nyu DOT edu])
+AC_INIT([IBAMR],[0.1.1-061012],[griffith AT cims DOT nyu DOT edu])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config/IBAMR_config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 foreign])
@@ -50,6 +50,40 @@ AC_CHECK_PROGS(M4, $with_M4 gm4 m4,,)
 if test -z "$M4" ; then
   AC_MSG_ERROR([m4 preprocessor not found, specify via --with-M4=ARG])
 fi
+
+AC_ARG_WITH([doxygen-dir],
+  AS_HELP_STRING([--with-doxygen-dir=ARG],[manually set directory where doxygen executable resides to ARG]),
+  DOXYGEN_PATH=$withval
+  AC_CHECK_PROGS(DOXYGEN, "$DOXYGEN_PATH/doxygen" doxygen,,),
+  DOXYGEN_PATH=""
+  AC_CHECK_PROGS(DOXYGEN, doxygen,,))
+if test -z "$DOXYGEN" ; then
+  AC_MSG_WARN([doxygen not found])
+  echo "if doxygen is installed, specify its location via --with-doxygen-dir=ARG"
+  HAVE_DOXYGEN="NO"
+else
+  HAVE_DOXYGEN="YES"
+fi
+AC_SUBST(HAVE_DOXYGEN,$HAVE_DOXYGEN)
+AC_SUBST(DOXYGEN,$DOXYGEN)
+AC_SUBST(DOXYGEN_PATH,$DOXYGEN_PATH)
+
+AC_ARG_WITH([dot-dir],
+  AS_HELP_STRING([--with-dot-dir=ARG],[manually set directory where dot executable resides to ARG]),
+  DOT_PATH=$withval
+  AC_CHECK_PROGS(DOT, "$DOT_PATH/dot" dot,,),
+  DOT_PATH=""
+  AC_CHECK_PROGS(DOT, dot,,))
+if test -z "$DOT" ; then
+  AC_MSG_WARN([dot not found])
+  echo "if dot is installed, specify its location via --with-dot-dir=ARG"
+  HAVE_DOT="NO"
+else
+  HAVE_DOT="YES"
+fi
+AC_SUBST(HAVE_DOT,$HAVE_DOT)
+AC_SUBST(DOT,$DOT)
+AC_SUBST(DOT_PATH,$DOT_PATH)
 
 ###########################################################################
 # Checks for libraries.

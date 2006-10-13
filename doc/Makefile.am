@@ -2,4 +2,4 @@
 include $(top_srcdir)/config/Make-rules
 doc:
 	cd $(top_builddir)/stools/doc && $(MAKE) doc
-	doxygen
+	@DOXYGEN@

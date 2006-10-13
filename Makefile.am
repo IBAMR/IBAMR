@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 SUBDIRS = stools doc src
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = autogen.sh bin/includes doc/Doxyfile include
+EXTRA_DIST = autogen.sh bin/includes doc/Doxyfile doc/libstdc++.tag include
 
 ## Automatically link header files in $(top_srcdir)/include/stools and
 ## refresh emacs TAGS file.
