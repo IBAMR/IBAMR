@@ -159,25 +159,25 @@ AC_SUBST(SAMRAI_DIR,[${SAMRAI_DIR}])
 AC_SUBST(SAMRAI_FORTDIR,[${SAMRAI_DIR}/include])
 
 AC_CHECK_HEADER([SAMRAI_config.h],,AC_MSG_WARN([could not find header file SAMRAI_config.h]))
-AC_CHECK_LIB([SAMRAI],[malloc])
+AC_CHECK_LIB([SAMRAI],[main])
 
 AC_ARG_ENABLE([samrai-1d],
   AS_HELP_STRING(--enable-samrai-1d,enable optional support for one-dimensional SAMRAI objects @<:@default=yes@:>@),
   [SAMRAI1D=$enableval], [SAMRAI1D=yes])
 
 if test "$SAMRAI1D" = yes; then
-  AC_CHECK_LIB([SAMRAI1d_hier],[malloc],,AC_MSG_WARN([could not find libSAMRAI1d_hier]))
-  AC_CHECK_LIB([SAMRAI1d_xfer],[malloc],,AC_MSG_WARN([could not find libSAMRAI1d_xfer]))
-  AC_CHECK_LIB([SAMRAI1d_pdat_special],[malloc],,AC_MSG_WARN([could not find libSAMRAI1d_pdat_special]))
-  AC_CHECK_LIB([SAMRAI1d_pdat_std],[malloc],,AC_MSG_WARN([could not find libSAMRAI1d_pdat_std]))
-  AC_CHECK_LIB([SAMRAI1d_math_special],[malloc],,AC_MSG_WARN([could not find libSAMRAI1d_math_special]))
-  AC_CHECK_LIB([SAMRAI1d_math_std],[malloc],,AC_MSG_WARN([could not find libSAMRAI1d_math_std]))
-  AC_CHECK_LIB([SAMRAI1d_mesh],[malloc],,AC_MSG_WARN([could not find libSAMRAI1d_mesh]))
-  AC_CHECK_LIB([SAMRAI1d_mblk],[malloc],,AC_MSG_WARN([could not find libSAMRAI1d_mblk]))
-  AC_CHECK_LIB([SAMRAI1d_geom],[malloc],,AC_MSG_WARN([could not find libSAMRAI1d_geom]))
-  AC_CHECK_LIB([SAMRAI1d_solv],[malloc],,AC_MSG_WARN([could not find libSAMRAI1d_solv]))
-  AC_CHECK_LIB([SAMRAI1d_algs],[malloc],,AC_MSG_WARN([could not find libSAMRAI1d_algs]))
-  AC_CHECK_LIB([SAMRAI1d_appu],[malloc],,AC_MSG_WARN([could not find libSAMRAI1d_appu]))
+  AC_CHECK_LIB([SAMRAI1d_hier],[main],,AC_MSG_WARN([could not find libSAMRAI1d_hier]))
+  AC_CHECK_LIB([SAMRAI1d_xfer],[main],,AC_MSG_WARN([could not find libSAMRAI1d_xfer]))
+  AC_CHECK_LIB([SAMRAI1d_pdat_special],[main],,AC_MSG_WARN([could not find libSAMRAI1d_pdat_special]))
+  AC_CHECK_LIB([SAMRAI1d_pdat_std],[main],,AC_MSG_WARN([could not find libSAMRAI1d_pdat_std]))
+  AC_CHECK_LIB([SAMRAI1d_math_special],[main],,AC_MSG_WARN([could not find libSAMRAI1d_math_special]))
+  AC_CHECK_LIB([SAMRAI1d_math_std],[main],,AC_MSG_WARN([could not find libSAMRAI1d_math_std]))
+  AC_CHECK_LIB([SAMRAI1d_mesh],[main],,AC_MSG_WARN([could not find libSAMRAI1d_mesh]))
+  AC_CHECK_LIB([SAMRAI1d_mblk],[main],,AC_MSG_WARN([could not find libSAMRAI1d_mblk]))
+  AC_CHECK_LIB([SAMRAI1d_geom],[main],,AC_MSG_WARN([could not find libSAMRAI1d_geom]))
+  AC_CHECK_LIB([SAMRAI1d_solv],[main],,AC_MSG_WARN([could not find libSAMRAI1d_solv]))
+  AC_CHECK_LIB([SAMRAI1d_algs],[main],,AC_MSG_WARN([could not find libSAMRAI1d_algs]))
+  AC_CHECK_LIB([SAMRAI1d_appu],[main],,AC_MSG_WARN([could not find libSAMRAI1d_appu]))
 else
   AC_MSG_WARN([configuring without the one-dimensional SAMRAI library])
 fi
@@ -187,18 +187,18 @@ AC_ARG_ENABLE([samrai-2d],
   [SAMRAI2D=$enablevar], [SAMRAI2D=yes])
 
 if test "$SAMRAI2D" = yes; then
-  AC_CHECK_LIB([SAMRAI2d_hier],[malloc],,AC_MSG_WARN([could not find libSAMRAI2d_hier]))
-  AC_CHECK_LIB([SAMRAI2d_xfer],[malloc],,AC_MSG_WARN([could not find libSAMRAI2d_xfer]))
-  AC_CHECK_LIB([SAMRAI2d_pdat_special],[malloc],,AC_MSG_WARN([could not find libSAMRAI2d_pdat_special]))
-  AC_CHECK_LIB([SAMRAI2d_pdat_std],[malloc],,AC_MSG_WARN([could not find libSAMRAI2d_pdat_std]))
-  AC_CHECK_LIB([SAMRAI2d_math_special],[malloc],,AC_MSG_WARN([could not find libSAMRAI2d_math_special]))
-  AC_CHECK_LIB([SAMRAI2d_math_std],[malloc],,AC_MSG_WARN([could not find libSAMRAI2d_math_std]))
-  AC_CHECK_LIB([SAMRAI2d_mesh],[malloc],,AC_MSG_WARN([could not find libSAMRAI2d_mesh]))
-  AC_CHECK_LIB([SAMRAI2d_mblk],[malloc],,AC_MSG_WARN([could not find libSAMRAI2d_mblk]))
-  AC_CHECK_LIB([SAMRAI2d_geom],[malloc],,AC_MSG_WARN([could not find libSAMRAI2d_geom]))
-  AC_CHECK_LIB([SAMRAI2d_solv],[malloc],,AC_MSG_WARN([could not find libSAMRAI2d_solv]))
-  AC_CHECK_LIB([SAMRAI2d_algs],[malloc],,AC_MSG_WARN([could not find libSAMRAI2d_algs]))
-  AC_CHECK_LIB([SAMRAI2d_appu],[malloc],,AC_MSG_WARN([could not find libSAMRAI2d_appu]))
+  AC_CHECK_LIB([SAMRAI2d_hier],[main],,AC_MSG_WARN([could not find libSAMRAI2d_hier]))
+  AC_CHECK_LIB([SAMRAI2d_xfer],[main],,AC_MSG_WARN([could not find libSAMRAI2d_xfer]))
+  AC_CHECK_LIB([SAMRAI2d_pdat_special],[main],,AC_MSG_WARN([could not find libSAMRAI2d_pdat_special]))
+  AC_CHECK_LIB([SAMRAI2d_pdat_std],[main],,AC_MSG_WARN([could not find libSAMRAI2d_pdat_std]))
+  AC_CHECK_LIB([SAMRAI2d_math_special],[main],,AC_MSG_WARN([could not find libSAMRAI2d_math_special]))
+  AC_CHECK_LIB([SAMRAI2d_math_std],[main],,AC_MSG_WARN([could not find libSAMRAI2d_math_std]))
+  AC_CHECK_LIB([SAMRAI2d_mesh],[main],,AC_MSG_WARN([could not find libSAMRAI2d_mesh]))
+  AC_CHECK_LIB([SAMRAI2d_mblk],[main],,AC_MSG_WARN([could not find libSAMRAI2d_mblk]))
+  AC_CHECK_LIB([SAMRAI2d_geom],[main],,AC_MSG_WARN([could not find libSAMRAI2d_geom]))
+  AC_CHECK_LIB([SAMRAI2d_solv],[main],,AC_MSG_WARN([could not find libSAMRAI2d_solv]))
+  AC_CHECK_LIB([SAMRAI2d_algs],[main],,AC_MSG_WARN([could not find libSAMRAI2d_algs]))
+  AC_CHECK_LIB([SAMRAI2d_appu],[main],,AC_MSG_WARN([could not find libSAMRAI2d_appu]))
 else
   AC_MSG_WARN([configuring without the two-dimensional SAMRAI library])
 fi
@@ -208,18 +208,18 @@ AC_ARG_ENABLE([samrai-3d],
   [SAMRAI3D=$enablevar], [SAMRAI3D=yes])
 
 if test "$SAMRAI3D" = yes; then
-  AC_CHECK_LIB([SAMRAI3d_hier],[malloc],,AC_MSG_WARN([could not find libSAMRAI3d_hier]))
-  AC_CHECK_LIB([SAMRAI3d_xfer],[malloc],,AC_MSG_WARN([could not find libSAMRAI3d_xfer]))
-  AC_CHECK_LIB([SAMRAI3d_pdat_special],[malloc],,AC_MSG_WARN([could not find libSAMRAI3d_pdat_special]))
-  AC_CHECK_LIB([SAMRAI3d_pdat_std],[malloc],,AC_MSG_WARN([could not find libSAMRAI3d_pdat_std]))
-  AC_CHECK_LIB([SAMRAI3d_math_special],[malloc],,AC_MSG_WARN([could not find libSAMRAI3d_math_special]))
-  AC_CHECK_LIB([SAMRAI3d_math_std],[malloc],,AC_MSG_WARN([could not find libSAMRAI3d_math_std]))
-  AC_CHECK_LIB([SAMRAI3d_mesh],[malloc],,AC_MSG_WARN([could not find libSAMRAI3d_mesh]))
-  AC_CHECK_LIB([SAMRAI3d_mblk],[malloc],,AC_MSG_WARN([could not find libSAMRAI3d_mblk]))
-  AC_CHECK_LIB([SAMRAI3d_geom],[malloc],,AC_MSG_WARN([could not find libSAMRAI3d_geom]))
-  AC_CHECK_LIB([SAMRAI3d_solv],[malloc],,AC_MSG_WARN([could not find libSAMRAI3d_solv]))
-  AC_CHECK_LIB([SAMRAI3d_algs],[malloc],,AC_MSG_WARN([could not find libSAMRAI3d_algs]))
-  AC_CHECK_LIB([SAMRAI3d_appu],[malloc],,AC_MSG_WARN([could not find libSAMRAI3d_appu]))
+  AC_CHECK_LIB([SAMRAI3d_hier],[main],,AC_MSG_WARN([could not find libSAMRAI3d_hier]))
+  AC_CHECK_LIB([SAMRAI3d_xfer],[main],,AC_MSG_WARN([could not find libSAMRAI3d_xfer]))
+  AC_CHECK_LIB([SAMRAI3d_pdat_special],[main],,AC_MSG_WARN([could not find libSAMRAI3d_pdat_special]))
+  AC_CHECK_LIB([SAMRAI3d_pdat_std],[main],,AC_MSG_WARN([could not find libSAMRAI3d_pdat_std]))
+  AC_CHECK_LIB([SAMRAI3d_math_special],[main],,AC_MSG_WARN([could not find libSAMRAI3d_math_special]))
+  AC_CHECK_LIB([SAMRAI3d_math_std],[main],,AC_MSG_WARN([could not find libSAMRAI3d_math_std]))
+  AC_CHECK_LIB([SAMRAI3d_mesh],[main],,AC_MSG_WARN([could not find libSAMRAI3d_mesh]))
+  AC_CHECK_LIB([SAMRAI3d_mblk],[main],,AC_MSG_WARN([could not find libSAMRAI3d_mblk]))
+  AC_CHECK_LIB([SAMRAI3d_geom],[main],,AC_MSG_WARN([could not find libSAMRAI3d_geom]))
+  AC_CHECK_LIB([SAMRAI3d_solv],[main],,AC_MSG_WARN([could not find libSAMRAI3d_solv]))
+  AC_CHECK_LIB([SAMRAI3d_algs],[main],,AC_MSG_WARN([could not find libSAMRAI3d_algs]))
+  AC_CHECK_LIB([SAMRAI3d_appu],[main],,AC_MSG_WARN([could not find libSAMRAI3d_appu]))
 else
   AC_MSG_WARN([configuring without the three-dimensional SAMRAI library])
 fi
@@ -327,7 +327,7 @@ if test "$BLITZ_ENABLED" = yes; then
   fi
 
   AC_CHECK_HEADER([blitz/blitz.h],,AC_MSG_WARN([could not find header file blitz/blitz.h]))
-  AC_CHECK_LIB([blitz],[_blitz_id],,AC_MSG_WARN([could not find libblitz]))
+  AC_CHECK_LIB([blitz],[main],,AC_MSG_WARN([could not find libblitz]))
 else
   echo
   echo "===================================="
