@@ -398,6 +398,7 @@ AC_CONFIG_FILES([
   src/utilities/Makefile src/utilities/get_version.C
   src/tests/Makefile
   src/tests/IB/Makefile
+  src/tests/IB_target/Makefile
   src/tests/adv_diff/Makefile
   src/tests/advect/Makefile
   src/tests/navier_stokes/Makefile
