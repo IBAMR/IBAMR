@@ -1,10 +1,10 @@
 // Filename: SpringForceSpec.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <03.Oct.2006 09:47:12 boyce@boyce-griffiths-powerbook-g4-15.local>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <23.Oct.2006 17:14:23 boyce@bigboy.nyconnect.com>
 
 #include "SpringForceSpec.h"
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #ifndef included_IBAMR_config

@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <07.Oct.2006 23:17:53 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Oct.2006 17:35:56 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -843,6 +843,11 @@ IBHierarchyIntegrator::advanceHierarchy(
             // Cartesian grid.
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F(n)\n";
 
+            {// XXXX
+                Vec F_level_vec = F_data[ln]->getGlobalVec();
+                int ierr = VecSet(F_level_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
+            }
+
             d_force_strategy->computeLagrangianForce(
                 F_data[ln], X_data[ln],
                 d_hierarchy, ln, current_time, d_lag_data_manager);
@@ -904,6 +909,11 @@ IBHierarchyIntegrator::advanceHierarchy(
             // Compute F~(n+1) = F(X~(n+1),n+1) and spread the force
             // onto the Cartesian grid.
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F~(n+1)\n";
+
+            {// XXXX
+                Vec F_level_vec = F_data[ln]->getGlobalVec();
+                int ierr = VecSet(F_level_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
+            }
 
             d_force_strategy->computeLagrangianForce(
                 F_data[ln], X_new_data[ln],

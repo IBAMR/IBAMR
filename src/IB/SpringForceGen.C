@@ -1,10 +1,10 @@
 // Filename: SpringForceGen.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <07.Oct.2006 23:05:08 boyce@bigboy.nyconnect.com>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <23.Oct.2006 17:33:48 boyce@bigboy.nyconnect.com>
 
 #include "SpringForceGen.h"
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #ifndef included_IBAMR_config
@@ -87,68 +87,6 @@ SpringForceGen::~SpringForceGen()
     }
     return;
 }// ~SpringForceGen
-
-void
-SpringForceGen::computeLagrangianForce(
-    SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
-    SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-    const int level_number,
-    const double data_time,
-    const LDataManager* const lag_manager)
-{
-    t_compute_lagrangian_force->start();
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(level_number < static_cast<int>(d_level_initialized.size()));
-    assert(d_level_initialized[level_number]);
-#endif
-    (void) hierarchy;
-    (void) lag_manager;
-
-    int ierr;
-
-    // Create an appropriately sized temporary vector to store the
-    // node displacements.
-    int i_start, i_stop;
-    ierr = MatGetOwnershipRange(d_L_mats[level_number], &i_start, &i_stop);
-    PETSC_SAMRAI_ERROR(ierr);
-
-    Vec D_vec;
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &D_vec);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecSetBlockSize(D_vec, NDIM);                                          PETSC_SAMRAI_ERROR(ierr);
-
-    // Compute the node displacements.
-    ierr = MatMult(d_L_mats[level_number], X_data->getGlobalVec(), D_vec);
-    PETSC_SAMRAI_ERROR(ierr);
-
-    // Compute the forces acting on each node.
-    Vec F_vec = F_data->getGlobalVec();
-    ierr = VecSet(F_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
-
-    double* F_arr, * D_arr;
-    ierr = VecGetArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecGetArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
-
-    const std::vector<int>& local_src_ids = d_local_src_ids[level_number];
-    const std::vector<double>& stiffnesses = d_stiffnesses[level_number];
-    for (int k = 0; k < static_cast<int>(local_src_ids.size()); ++k)
-    {
-        const int& f_idx = local_src_ids[k];
-        const double& stf = stiffnesses[k];
-        for (int d = 0; d < NDIM; ++d)
-        {
-            F_arr[d+f_idx*NDIM] += stf*D_arr[d+k*NDIM];
-        }
-    }
-
-    ierr = VecRestoreArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecRestoreArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecDestroy(D_vec);               PETSC_SAMRAI_ERROR(ierr);
-
-    t_compute_lagrangian_force->stop();
-    return;
-}// computeLagrangianForce
 
 void
 SpringForceGen::initializeLevelData(
@@ -565,6 +503,66 @@ SpringForceGen::initializeLevelData(
     d_level_initialized[level_num] = true;
 }
 #endif
+
+void
+SpringForceGen::computeLagrangianForce(
+    SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
+    SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    const LDataManager* const lag_manager)
+{
+    t_compute_lagrangian_force->start();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(level_number < static_cast<int>(d_level_initialized.size()));
+    assert(d_level_initialized[level_number]);
+#endif
+    (void) hierarchy;
+    (void) lag_manager;
+
+    int ierr;
+
+    // Create an appropriately sized temporary vector to store the
+    // node displacements.
+    int i_start, i_stop;
+    ierr = MatGetOwnershipRange(d_L_mats[level_number], &i_start, &i_stop);
+    PETSC_SAMRAI_ERROR(ierr);
+
+    Vec D_vec;
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &D_vec);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecSetBlockSize(D_vec, NDIM);                                          PETSC_SAMRAI_ERROR(ierr);
+
+    // Compute the node displacements.
+    ierr = MatMult(d_L_mats[level_number], X_data->getGlobalVec(), D_vec);
+    PETSC_SAMRAI_ERROR(ierr);
+
+    // Compute the forces acting on each node.
+    Vec F_vec = F_data->getGlobalVec();
+    double* F_arr, * D_arr;
+    ierr = VecGetArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecGetArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
+
+    const std::vector<int>& local_src_ids = d_local_src_ids[level_number];
+    const std::vector<double>& stiffnesses = d_stiffnesses[level_number];
+    for (int k = 0; k < static_cast<int>(local_src_ids.size()); ++k)
+    {
+        const int& f_idx = local_src_ids[k];
+        const double& stf = stiffnesses[k];
+        for (int d = 0; d < NDIM; ++d)
+        {
+            F_arr[d+f_idx*NDIM] += stf*D_arr[d+k*NDIM];
+        }
+    }
+
+    ierr = VecRestoreArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecRestoreArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecDestroy(D_vec);               PETSC_SAMRAI_ERROR(ierr);
+
+    t_compute_lagrangian_force->stop();
+    return;
+}// computeLagrangianForce
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

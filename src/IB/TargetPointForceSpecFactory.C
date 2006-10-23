@@ -1,17 +1,17 @@
-// Filename: SpringForceSpecFactory.C
+// Filename: TargetPointForceSpecFactory.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <23.Oct.2006 17:14:28 boyce@bigboy.nyconnect.com>
-
-#include "SpringForceSpecFactory.h"
+// Last modified: <23.Oct.2006 17:10:43 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include "TargetPointForceSpecFactory.h"
 
 // IBAMR INCLUDES
 #ifndef included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
-#include <ibamr/SpringForceSpec.h>
+#include <ibamr/TargetPointForceSpec.h>
 #include <ibamr/StashableManager.h>
 
 // SAMRAI INCLUDES
@@ -28,30 +28,30 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-int SpringForceSpecFactory::s_stashable_id = -1;
+int TargetPointForceSpecFactory::s_stashable_id = -1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SpringForceSpecFactory::SpringForceSpecFactory()
+TargetPointForceSpecFactory::TargetPointForceSpecFactory()
 {
     setStashableID(StashableManager::getUnregisteredID());
     return;
-}// SpringForceSpecFactory
+}// TargetPointForceSpecFactory
 
-SpringForceSpecFactory::~SpringForceSpecFactory()
+TargetPointForceSpecFactory::~TargetPointForceSpecFactory()
 {
     // intentionally blank
     return;
-}// ~SpringForceSpecFactory
+}// ~TargetPointForceSpecFactory
 
 int
-SpringForceSpecFactory::getStashableID() const
+TargetPointForceSpecFactory::getStashableID() const
 {
     return s_stashable_id;
 }// getStashableID
 
 void
-SpringForceSpecFactory::setStashableID(
+TargetPointForceSpecFactory::setStashableID(
     const int stashable_id)
 {
     s_stashable_id = stashable_id;
@@ -59,19 +59,16 @@ SpringForceSpecFactory::setStashableID(
 }// setStashableID
 
 SAMRAI::tbox::Pointer<Stashable>
-SpringForceSpecFactory::unpackStream(
+TargetPointForceSpecFactory::unpackStream(
     SAMRAI::tbox::AbstractStream& stream,
     const SAMRAI::hier::IntVector<NDIM>& offset)
 {
-    int num_links;
-    stream.unpack(&num_links,1);
-    vector<int> dst_idxs(num_links);
-    vector<double> stiffnesses(num_links), rest_lengths(num_links);
-    stream.unpack(&dst_idxs[0],num_links);
-    stream.unpack(&stiffnesses[0],num_links);
-    stream.unpack(&rest_lengths[0],num_links);
+    std::vector<double> X(NDIM);
+    stream.unpack(&X[0], NDIM);
+    double kappa;
+    stream.unpack(&kappa, 1);
 
-    return new SpringForceSpec(dst_idxs,stiffnesses,rest_lengths);
+    return new TargetPointForceSpec(X, kappa);
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
@@ -85,6 +82,6 @@ SpringForceSpecFactory::unpackStream(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::SpringForceSpecFactory>;
+template class SAMRAI::tbox::Pointer<IBAMR::TargetPointForceSpecFactory>;
 
 //////////////////////////////////////////////////////////////////////////////
