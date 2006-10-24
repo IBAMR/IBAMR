@@ -32,8 +32,9 @@
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/LagSiloDataWriter.h>
-#include <ibamr/SpringForceGen.h>
+#include <ibamr/TargetPointForceGen.h>
 
+#include "UInit.h"
 #include "XInit.h"
 
 using namespace IBAMR;
@@ -280,9 +281,11 @@ int main(int argc, char* argv[])
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
 
+        tbox::Pointer<SetDataStrategy> u_init = new UInit("UInit");
+        navier_stokes_integrator->registerVelocityInitialConditions(u_init);
+
         tbox::Pointer<IBLagrangianForceStrategy> force_generator =
-            new SpringForceGen(
-                input_db->getDatabase("SpringForceGen"));
+            new TargetPointForceGen();
 
         tbox::Pointer<IBHierarchyIntegrator> time_integrator =
             new IBHierarchyIntegrator(
@@ -341,22 +344,13 @@ int main(int argc, char* argv[])
         if (main_db->getBoolWithDefault("output_silo_data",true) &&
             (tbox::MPI::getRank() == 0))
         {
+#if (NDIM == 2)
             hier::IntVector<NDIM> periodic = 0;
             periodic(0) = 1;
-
-#if (NDIM == 2)
             silo_data_writer->registerLogicallyCartesianBlock(
                 "curv_mesh",
-                hier::IntVector<NDIM>(input_db->getDatabase("XInit")->getInteger("num_nodes"),
-                                      input_db->getDatabase("XInit")->getInteger("num_layers")),
-                periodic, 0, patch_hierarchy->getFinestLevelNumber());
-#endif
-#if (NDIM == 3)
-            silo_data_writer->registerLogicallyCartesianBlock(
-                "curv_mesh",
-                hier::IntVector<NDIM>(input_db->getDatabase("XInit")->getInteger("num_nodes"),
-                                      input_db->getDatabase("XInit")->getInteger("num_layers"),
-                                      input_db->getDatabase("XInit")->getInteger("num_stacks")),
+                hier::IntVector<NDIM>(
+                    input_db->getDatabase("XInit")->getInteger("num_nodes"), 1),
                 periodic, 0, patch_hierarchy->getFinestLevelNumber());
 #endif
         }
@@ -403,7 +397,7 @@ int main(int argc, char* argv[])
 
         /*
          * Time step loop.  Note that the step count and integration
-         * time are maintained by algs::TimeRefinementIntegrator<NDIM>.
+         * time are maintained by the time integrator.
          */
         double loop_time = time_integrator->getIntegratorTime();
         double loop_time_end = time_integrator->getEndTime();
@@ -419,6 +413,35 @@ int main(int argc, char* argv[])
             tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
             tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
             tbox::pout << "Simulation time is " << loop_time                 << endl;
+
+            tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var =
+                navier_stokes_integrator->getVelocityVar();
+            tbox::Pointer<hier::VariableContext> current_context =
+                navier_stokes_integrator->getCurrentContext();
+
+            const int coarsest_ln = 0;
+            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                tbox::Pointer<hier::PatchLevel<NDIM> > level =
+                    patch_hierarchy->getPatchLevel(ln);
+
+                const hier::IntVector<NDIM>& ratio = level->getRatio();
+                const hier::Box<NDIM>& domain_box = grid_geometry->getPhysicalDomain()(0);
+                hier::Box<NDIM> upper_box = domain_box;
+                upper_box.upper(0) = domain_box.upper(0) - 3;
+                upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
+
+                for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
+                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                    tbox::Pointer<pdat::CellData<NDIM,double> > U_data =
+                        patch->getPatchData(U_var, current_context);
+                    U_data->fillAll(0.0, patch_box*upper_box);
+                    U_data->fill(1.0,patch_box*upper_box,0);
+                }
+            }
 
             double dt_new = time_integrator->advanceHierarchy(dt_now);
 

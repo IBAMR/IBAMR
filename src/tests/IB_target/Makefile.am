@@ -2,19 +2,20 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C XInit.C XInit.h
-EXTRA_DIST = input2d input3d
+SOURCES = main.C XInit.C XInit.h UInit.C UInit.h
+EXTRA_DIST = input2d ##input3d
 
-check_PROGRAMS = main2d main3d
+check_PROGRAMS = main2d ##main3d
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(top_srcdir)/src/tests/IB/input[23]d $(top_builddir)/src/tests/IB ; \
+##	  cp -f $(top_srcdir)/src/tests/IB_target/input[23]d $(top_builddir)/src/tests/IB_target ; \
+	  cp -f $(top_srcdir)/src/tests/IB_target/input2d $(top_builddir)/src/tests/IB_target ; \
 	fi ;
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = ../../libIBAMR2d.la ../../libIBAMR.la
 main2d_SOURCES = $(SOURCES)
 
-main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-main3d_LDADD = ../../libIBAMR3d.la ../../libIBAMR.la
-main3d_SOURCES = $(SOURCES)
+##main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+##main3d_LDADD = ../../libIBAMR3d.la ../../libIBAMR.la
+##main3d_SOURCES = $(SOURCES)

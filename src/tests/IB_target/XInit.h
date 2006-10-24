@@ -3,7 +3,7 @@
 
 // Filename: XInit.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <07.Oct.2006 23:24:58 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Oct.2006 18:05:34 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -132,16 +132,11 @@ private:
         const XInit& that);
 
     /*!
-     * Get the location of node l in layer r.
+     * Get the location of node l.
      */
     void getNodePosn(
-        double* const X,
-        const int l,
-        const int r
-#if (NDIM == 3)
-        , const int s
-#endif
-                     ) const;
+        std::vector<double>& X,
+        const int l) const;
 
     /*!
      * Read input values, indicated above, from given database.
@@ -161,11 +156,11 @@ private:
     tbox::Pointer<geom::CartesianGridGeometry<NDIM> > d_grid_geom;
 
     /*
-     * The number of nodes and some other params.
+     * The number of nodes and some other parameters.
      */
-    bool d_tapered;
-    int d_num_nodes, d_num_layers, d_num_stacks;
-    double d_width, d_alpha, d_beta, d_l, d_stiffness, d_rest_length;
+    int d_num_nodes;
+    tbox::Array<double> d_X_center;
+    double d_alpha, d_beta, d_stiffness;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////
