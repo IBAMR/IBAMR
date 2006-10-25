@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <08.Oct.2006 10:33:26 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:16:38 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -14,7 +14,7 @@
 #include <ibamr/HierarchyProjector.h>
 #include <ibamr/SetDataStrategy.h>
 
-// SAMRAI-tools INCLUDES
+// STOOLS INCLUDES
 #include <stools/LinearSolver.h>
 #include <stools/HierarchyMathOps.h>
 

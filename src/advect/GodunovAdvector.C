@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <24.Oct.2006 14:39:51 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:18:41 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -306,27 +306,27 @@ GodunovAdvector::GodunovAdvector(
     if (timers_need_init)
     {
         t_compute_stable_dt_on_patch = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovAdvector::computeStableDtOnPatch()");
+            getTimer("IBAMR::GodunovAdvector::computeStableDtOnPatch()");
         t_compute_advective_derivative = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovAdvector::computeAdvectiveDerivative()");
+            getTimer("IBAMR::GodunovAdvector::computeAdvectiveDerivative()");
         t_compute_flux = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovAdvector::computeFlux()");
+            getTimer("IBAMR::GodunovAdvector::computeFlux()");
         t_predict_value = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovAdvector::predictValue()");
+            getTimer("IBAMR::GodunovAdvector::predictValue()");
         t_predict_value_with_source_term = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovAdvector::predictValueWithSourceTerm()");
+            getTimer("IBAMR::GodunovAdvector::predictValueWithSourceTerm()");
         t_predict_normal_velocity = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovAdvector::predictNormalVelocity()");
+            getTimer("IBAMR::GodunovAdvector::predictNormalVelocity()");
         t_predict_normal_velocity_with_source_term = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovAdvector::predictNormalVelocityWithSourceTerm()");
+            getTimer("IBAMR::GodunovAdvector::predictNormalVelocityWithSourceTerm()");
         t_enforce_incompressibility = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovAdvector::enforceIncompressibility()");
+            getTimer("IBAMR::GodunovAdvector::enforceIncompressibility()");
         t_put_to_database = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovAdvector::putToDatabase()");
+            getTimer("IBAMR::GodunovAdvector::putToDatabase()");
         t_predict = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovAdvector::predict()");
+            getTimer("IBAMR::GodunovAdvector::predict()");
         t_predict_with_source_term = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovAdvector::predictWithSourceTerm()");
+            getTimer("IBAMR::GodunovAdvector::predictWithSourceTerm()");
         timers_need_init = false;
     }
     return;

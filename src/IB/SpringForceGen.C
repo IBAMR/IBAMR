@@ -1,6 +1,6 @@
 // Filename: SpringForceGen.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <24.Oct.2006 14:41:48 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:17:52 boyce@bigboy.nyconnect.com>
 
 #include "SpringForceGen.h"
 
@@ -69,13 +69,13 @@ SpringForceGen::SpringForceGen(
     if (timers_need_init)
     {
         t_compute_lagrangian_force = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::SpringForceGen::computeLagrangianForce()");
+            getTimer("IBAMR::SpringForceGen::computeLagrangianForce()");
         t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::SpringForceGen::initializeLevelData()");
+            getTimer("IBAMR::SpringForceGen::initializeLevelData()");
         t_initialize_level_data_0 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::SpringForceGen::initializeLevelData()[MatSetValues]");
+            getTimer("IBAMR::SpringForceGen::initializeLevelData()[MatSetValues]");
         t_initialize_level_data_1 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::SpringForceGen::initializeLevelData()[MatAssembly]");
+            getTimer("IBAMR::SpringForceGen::initializeLevelData()[MatAssembly]");
         timers_need_init = false;
     }
     return;

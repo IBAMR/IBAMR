@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <24.Oct.2006 14:23:11 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:16:54 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -276,45 +276,45 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     if (timers_need_init)
     {
         t_initialize_hierarchy_integrator = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::initializeHierarchyIntegrator()");
+            getTimer("IBAMR::INSHierarchyIntegrator::initializeHierarchyIntegrator()");
         t_initialize_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::initializeHierarchy()");
+            getTimer("IBAMR::INSHierarchyIntegrator::initializeHierarchy()");
         t_advance_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::advanceHierarchy()");
+            getTimer("IBAMR::INSHierarchyIntegrator::advanceHierarchy()");
         t_get_stable_timestep = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::getStableTimestep()");
+            getTimer("IBAMR::INSHierarchyIntegrator::getStableTimestep()");
         t_rebalance_coarsest_level = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::rebalanceCoarsestLevel()");
+            getTimer("IBAMR::INSHierarchyIntegrator::rebalanceCoarsestLevel()");
         t_regrid_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::regridHierarchy()");
+            getTimer("IBAMR::INSHierarchyIntegrator::regridHierarchy()");
         t_predict_advection_velocity = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::predictAdvectionVelocity()");
+            getTimer("IBAMR::INSHierarchyIntegrator::predictAdvectionVelocity()");
         t_integrate_adv_diff = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::integrateAdvDiff()");
+            getTimer("IBAMR::INSHierarchyIntegrator::integrateAdvDiff()");
         t_project_velocity = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::projectVelocity()");
+            getTimer("IBAMR::INSHierarchyIntegrator::projectVelocity()");
         t_update_pressure = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::updatePressure()");
+            getTimer("IBAMR::INSHierarchyIntegrator::updatePressure()");
         t_synchronize_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::synchronizeHierarchy()");
+            getTimer("IBAMR::INSHierarchyIntegrator::synchronizeHierarchy()");
         t_synchronize_new_levels = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::synchronizeNewLevels()");
+            getTimer("IBAMR::INSHierarchyIntegrator::synchronizeNewLevels()");
         t_reset_time_dependent_data = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::resetTimeDependentHierData()");
+            getTimer("IBAMR::INSHierarchyIntegrator::resetTimeDependentHierData()");
         t_reset_data_to_preadvance_state = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::resetHierDataToPreadvanceState()");
+            getTimer("IBAMR::INSHierarchyIntegrator::resetHierDataToPreadvanceState()");
         t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::initializeLevelData()");
+            getTimer("IBAMR::INSHierarchyIntegrator::initializeLevelData()");
         t_reset_hierarchy_configuration = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::resetHierarchyConfiguration()");
+            getTimer("IBAMR::INSHierarchyIntegrator::resetHierarchyConfiguration()");
         t_apply_gradient_detector = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::applyGradientDetector()");
+            getTimer("IBAMR::INSHierarchyIntegrator::applyGradientDetector()");
         t_put_to_database = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::putToDatabase()");
+            getTimer("IBAMR::INSHierarchyIntegrator::putToDatabase()");
         t_compute_div_source_term = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::computeDivSourceTerm()");
+            getTimer("IBAMR::INSHierarchyIntegrator::computeDivSourceTerm()");
         t_compute_stable_dt = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::INSHierarchyIntegrator::computeStableDt()");
+            getTimer("IBAMR::INSHierarchyIntegrator::computeStableDt()");
         timers_need_init = false;
     }
     return;

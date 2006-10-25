@@ -1,6 +1,6 @@
 // Filename: LEInteractor.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <24.Oct.2006 14:15:36 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:17:23 boyce@bigboy.nyconnect.com>
 
 #include "LEInteractor.h"
 
@@ -223,13 +223,13 @@ LEInteractor::initializeTimers()
     if (timers_need_init)
     {
         t_interpolate = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::LEInteractor::interpolate()");
+            getTimer("IBAMR::LEInteractor::interpolate()");
         t_interpolate_f77 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::LEInteractor::interpolate()[fortran]");
+            getTimer("IBAMR::LEInteractor::interpolate()[fortran]");
         t_spread = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::LEInteractor::spread()");
+            getTimer("IBAMR::LEInteractor::spread()");
         t_spread_f77 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::LEInteractor::spread()[fortran]");
+            getTimer("IBAMR::LEInteractor::spread()[fortran]");
         timers_need_init = false;
     }
     return;

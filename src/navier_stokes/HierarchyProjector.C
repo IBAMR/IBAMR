@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <24.Oct.2006 14:22:57 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:17:13 boyce@bigboy.nyconnect.com>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -236,15 +236,15 @@ HierarchyProjector::HierarchyProjector(
     if (timers_need_init)
     {
         t_project_hierarchy_face = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::HierarchyProjector::projectHierarchy[Face->Face]");
+            getTimer("IBAMR::HierarchyProjector::projectHierarchy[Face->Face]");
         t_project_hierarchy_side = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::HierarchyProjector::projectHierarchy[Side->Side]");
+            getTimer("IBAMR::HierarchyProjector::projectHierarchy[Side->Side]");
         t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::HierarchyProjector::initializeLevelData()");
+            getTimer("IBAMR::HierarchyProjector::initializeLevelData()");
         t_reset_hierarchy_configuration = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::HierarchyProjector::resetHierarchyConfiguration()");
+            getTimer("IBAMR::HierarchyProjector::resetHierarchyConfiguration()");
         t_put_to_database = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::HierarchyProjector::putToDatabase()");
+            getTimer("IBAMR::HierarchyProjector::putToDatabase()");
         timers_need_init = false;
     }
     return;

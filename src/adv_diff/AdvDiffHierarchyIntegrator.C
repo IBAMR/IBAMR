@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <24.Oct.2006 14:40:14 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:19:12 boyce@bigboy.nyconnect.com>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -245,33 +245,33 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     if (timers_need_init)
     {
         t_initialize_hierarchy_integrator = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator()");
         t_initialize_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::initializeHierarchy()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchy()");
         t_advance_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::advanceHierarchy()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::advanceHierarchy()");
         t_rebalance_coarsest_level = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::rebalanceCoarsestLevel()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::rebalanceCoarsestLevel()");
         t_regrid_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::regridHierarchy()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::regridHierarchy()");
         t_integrate_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::integrateHierarchy()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::integrateHierarchy()");
         t_synchronize_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::synchronizeHierarchy()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::synchronizeHierarchy()");
         t_synchronize_new_levels = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::synchronizeNewLevels()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::synchronizeNewLevels()");
         t_reset_time_dependent_hier_data = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::resetTimeDependentHierData()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetTimeDependentHierData()");
         t_reset_hier_data_to_preadvance_state = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::resetHierDataToPreadvanceState()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetHierDataToPreadvanceState()");
         t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::initializeLevelData()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeLevelData()");
         t_reset_hierarchy_configuration = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::resetHierarchyConfiguration()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetHierarchyConfiguration()");
         t_apply_gradient_detector = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::applyGradientDetector()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::applyGradientDetector()");
         t_put_to_database = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHierarchyIntegrator::putToDatabase()");
+            getTimer("IBAMR::AdvDiffHierarchyIntegrator::putToDatabase()");
         timers_need_init = false;
     }
     return;

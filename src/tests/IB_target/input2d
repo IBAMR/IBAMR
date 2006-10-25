@@ -6,14 +6,13 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // constants
-M = 1               // timetep refinement factor
 N = 32              // coarsest grid spacing
-NFINEST = 16*N      // finest grid spacing
+NFINEST = 32*N      // finest grid spacing
 
 DELTA_FCN = "IB_4"  // the choice of delta function
 
 R = 0.15            // the cylinder radius
-Re = 100.0          // the desired Reynolds number (Re)
+Re = 2000.0         // the desired Reynolds number (Re)
 MU = 2*R/Re         // the viscosity required to attain the desired Re
 
 IBHierarchyIntegrator {
@@ -50,7 +49,7 @@ INSHierarchyIntegrator {
    vorticity_threshold = 0.1
 
    output_P = TRUE
-   output_F = FALSE
+   output_F = TRUE
    output_Q = FALSE
 
    output_Omega = TRUE

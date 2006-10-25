@@ -226,5 +226,5 @@ TimerManager{
    print_total = TRUE
    print_threshold = 0.1
 
-   timer_list = "SAMRAI-tools::*::*" , "*::*::*"
+   timer_list = "IBAMR::*::*" , "STOOLS::*::*" , "*::*::*"
 }

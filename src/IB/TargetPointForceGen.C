@@ -1,6 +1,6 @@
 // Filename: TargetPointForceGen.C
 // Created on 23 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
-// Last modified: <24.Oct.2006 14:42:19 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:18:13 boyce@bigboy.nyconnect.com>
 
 #include "TargetPointForceGen.h"
 
@@ -56,9 +56,9 @@ TargetPointForceGen::TargetPointForceGen()
     if (timers_need_init)
     {
         t_compute_lagrangian_force = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::TargetPointForceGen::computeLagrangianForce()");
+            getTimer("IBAMR::TargetPointForceGen::computeLagrangianForce()");
         t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::TargetPointForceGen::initializeLevelData()");
+            getTimer("IBAMR::TargetPointForceGen::initializeLevelData()");
         timers_need_init = false;
     }
     return;

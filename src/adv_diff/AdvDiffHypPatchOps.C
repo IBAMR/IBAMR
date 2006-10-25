@@ -1,5 +1,5 @@
 // Filename: AdvDiffHypPatchOps.C
-// Last modified: <24.Oct.2006 14:40:23 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:18:55 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHypPatchOps.h"
@@ -137,11 +137,11 @@ AdvDiffHypPatchOps::AdvDiffHypPatchOps(
     if (timers_need_init)
     {
         t_conservative_difference_on_patch = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHypPatchOps::conservativeDifferenceOnPatch()");
+            getTimer("IBAMR::AdvDiffHypPatchOps::conservativeDifferenceOnPatch()");
         t_preprocess_advance_level_state = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHypPatchOps::preprocessAdvanceLevelState()");
+            getTimer("IBAMR::AdvDiffHypPatchOps::preprocessAdvanceLevelState()");
         t_postprocess_advance_level_state = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::AdvDiffHypPatchOps::postprocessAdvanceLevelState()");
+            getTimer("IBAMR::AdvDiffHypPatchOps::postprocessAdvanceLevelState()");
         timers_need_init = false;
     }
     return;

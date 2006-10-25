@@ -1,5 +1,5 @@
 // Filename: GodunovHypPatchOps.C
-// Last modified: <24.Oct.2006 14:40:03 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:18:29 boyce@bigboy.nyconnect.com>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovHypPatchOps.h"
@@ -250,27 +250,27 @@ GodunovHypPatchOps::GodunovHypPatchOps(
     if (timers_need_init)
     {
         t_register_model_vars = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovHypPatchOps::registerModelVariables()");
+            getTimer("IBAMR::GodunovHypPatchOps::registerModelVariables()");
         t_initialize_data_on_patch = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovHypPatchOps::initializeDataOnPatch()");
+            getTimer("IBAMR::GodunovHypPatchOps::initializeDataOnPatch()");
         t_compute_stable_dt_on_patch = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovHypPatchOps::computeStableDtOnPatch()");
+            getTimer("IBAMR::GodunovHypPatchOps::computeStableDtOnPatch()");
         t_compute_fluxes_on_patch = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovHypPatchOps::computeFluxesOnPatch()");
+            getTimer("IBAMR::GodunovHypPatchOps::computeFluxesOnPatch()");
         t_conservative_difference_on_patch = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovHypPatchOps::conservativeDifferenceOnPatch()");
+            getTimer("IBAMR::GodunovHypPatchOps::conservativeDifferenceOnPatch()");
         t_preprocess_advance_level_state = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovHypPatchOps::preprocessAdvanceLevelState()");
+            getTimer("IBAMR::GodunovHypPatchOps::preprocessAdvanceLevelState()");
         t_postprocess_advance_level_state = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovHypPatchOps::postprocessAdvanceLevelState()");
+            getTimer("IBAMR::GodunovHypPatchOps::postprocessAdvanceLevelState()");
         t_tag_richardson_extrapolation_cells = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovHypPatchOps::tagRichardsonExtrapolationCells()");
+            getTimer("IBAMR::GodunovHypPatchOps::tagRichardsonExtrapolationCells()");
         t_tag_gradient_detector_cells = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovHypPatchOps::tagGradientDetectorCells()");
+            getTimer("IBAMR::GodunovHypPatchOps::tagGradientDetectorCells()");
         t_set_physical_boundary_conditions = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovHypPatchOps::setPhysicalBoundaryConditions()");
+            getTimer("IBAMR::GodunovHypPatchOps::setPhysicalBoundaryConditions()");
         t_put_to_database = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("SAMRAI-tools::GodunovHypPatchOps::putToDatabase()");
+            getTimer("IBAMR::GodunovHypPatchOps::putToDatabase()");
         timers_need_init = false;
     }
     return;
