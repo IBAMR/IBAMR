@@ -1,10 +1,20 @@
 // Filename: get_version.C
-// Last modified: <23.Sep.2006 18:26:20 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <24.Oct.2006 14:37:31 boyce@bigboy.nyconnect.com>
 // Created on 23 Sep 2006 by Boyce Griffith (boyce@boyce-griffiths-powerbook-g4-15.local)
+
+#include "get_version.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "get_version.h"
+#ifndef included_IBAMR_config
+#define included_IBAMR_config
+#include <IBAMR_config.h>
+#endif
+
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

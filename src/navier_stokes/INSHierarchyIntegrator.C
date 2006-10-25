@@ -1,24 +1,25 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <08.Oct.2006 10:34:06 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Oct.2006 14:23:11 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
+#endif
+
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
 #endif
 
 // STOOLS INCLUDES
 #include <stools/PatchMathOps.h>
 
 // SAMRAI INCLUDES
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#endif
-
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <CellIterator.h>

@@ -281,8 +281,8 @@ int main(int argc, char* argv[])
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
 
-        tbox::Pointer<SetDataStrategy> u_init = new UInit("UInit");
-        navier_stokes_integrator->registerVelocityInitialConditions(u_init);
+        //tbox::Pointer<SetDataStrategy> u_init = new UInit("UInit");
+        //navier_stokes_integrator->registerVelocityInitialConditions(u_init);
 
         tbox::Pointer<IBLagrangianForceStrategy> force_generator =
             new TargetPointForceGen();
@@ -419,6 +419,10 @@ int main(int argc, char* argv[])
             tbox::Pointer<hier::VariableContext> current_context =
                 navier_stokes_integrator->getCurrentContext();
 
+            /*
+             * Manually force the fluid velocity to be U = (1,0) at
+             * the right periodic boundary.
+             */
             const int coarsest_ln = 0;
             const int finest_ln = patch_hierarchy->getFinestLevelNumber();
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -429,7 +433,7 @@ int main(int argc, char* argv[])
                 const hier::IntVector<NDIM>& ratio = level->getRatio();
                 const hier::Box<NDIM>& domain_box = grid_geometry->getPhysicalDomain()(0);
                 hier::Box<NDIM> upper_box = domain_box;
-                upper_box.upper(0) = domain_box.upper(0) - 3;
+                upper_box.upper(0) = domain_box.upper(0) - 1;
                 upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
 
                 for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)

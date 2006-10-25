@@ -6,49 +6,48 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // constants
-M = 1
-N = 1
-NFINEST = 32*N
+M = 1               // timetep refinement factor
+N = 32              // coarsest grid spacing
+NFINEST = 16*N      // finest grid spacing
 
-DELTA_FCN = "IB_6"
-MU = 1.5e-3 // this corresponds to Re = 200 from Lai and Peskin
+DELTA_FCN = "IB_4"  // the choice of delta function
+
+R = 0.15            // the cylinder radius
+Re = 100.0          // the desired Reynolds number (Re)
+MU = 2*R/Re         // the viscosity required to attain the desired Re
 
 IBHierarchyIntegrator {
    start_time            = 0.e0     // initial simulation time
-   end_time              = 100.0e0  // final simulation time
+   end_time              = 200.0e0  // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
 
    enable_logging = TRUE
 
    regrid_interval = 8
-   dt_max = 0.025/NFINEST
+   dt_max = 0.92160/NFINEST
    delta_fcn = DELTA_FCN
    timestepping_order = 2
 }
 
 XInit {
-   num_nodes = 4*NFINEST
-
-   X_center = 1.5 , 4.0
-
-   alpha = 0.15
-   beta  = 0.15
-
-   stiffness = 6000.0*NFINEST
+   num_nodes = NFINEST/4
+   center = 1.85 , 4.0
+   radius = R
+   stiffness = 93.750*NFINEST
 }
 
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 1
+   tag_buffer = 1 , 4
 
    cfl = 1.0  // this only affects the "acceleration" timestep restriction
 
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.0625
+   vorticity_threshold = 0.1
 
    output_P = TRUE
    output_F = FALSE
@@ -75,7 +74,7 @@ INSHierarchyIntegrator {
 }
 
 GodunovAdvector {
-   limiter_type = FOURTH_ORDER
+   limiter_type = MUSCL_LIMITED
 }
 
 AdvDiffHierarchyIntegrator {
@@ -90,8 +89,8 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.0975e0    // max cfl factor used in problem
-      cfl_init                 = 0.0975e0    // initial cfl factor
+      cfl                      = 0.5e0    // max cfl factor used in problem
+      cfl_init                 = 0.5e0    // initial cfl factor
       lag_dt_computation       = FALSE
       use_ghosts_to_compute_dt = FALSE
    }
@@ -177,7 +176,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = M*8*NFINEST   // zero to turn off
+   viz_dump_interval     = NFINEST/2     // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -193,16 +192,16 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (16*N - 1,16*N - 1) ]
+   domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         =  0, 0    // lower end of computational domain.
    x_up         =  8, 8    // upper end of computational domain.
    periodic_dimension = 1,1
 }
 
 GriddingAlgorithm {
-   max_levels             = 4    // Maximum number of levels in hierarchy.
+   max_levels             = 3    // Maximum number of levels in hierarchy.
    ratio_to_coarser {
-      level_1             = 2,2  // vector ratio to next coarser level
+      level_1             = 4,4  // vector ratio to next coarser level
       level_2             = 4,4
       level_3             = 4,4
    }

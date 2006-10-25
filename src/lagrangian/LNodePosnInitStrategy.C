@@ -1,10 +1,20 @@
 // Filename: LNodePosnInitStrategy.C
 // Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <02.Oct.2006 14:21:38 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <24.Oct.2006 14:19:17 boyce@bigboy.nyconnect.com>
+
+#include "LNodePosnInitStrategy.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "LNodePosnInitStrategy.h"
+#ifndef included_IBAMR_config
+#define included_IBAMR_config
+#include <IBAMR_config.h>
+#endif
+
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

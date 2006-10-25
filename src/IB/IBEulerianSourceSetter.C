@@ -1,21 +1,22 @@
 // Filename: IBEulerianSourceSetter.C
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <03.Oct.2006 10:28:19 boyce@boyce-griffiths-powerbook-g4-15.local>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <24.Oct.2006 14:40:46 boyce@bigboy.nyconnect.com>
 
 #include "IBEulerianSourceSetter.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
-// SAMRAI INCLUDES
 #ifndef included_SAMRAI_config
+#define included_SAMRAI_config
 #include <SAMRAI_config.h>
 #endif
 
+// SAMRAI INCLUDES
 #include <CellData.h>
 
 // C++ STDLIB INCLUDES

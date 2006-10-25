@@ -1,10 +1,20 @@
 // Filename: IBLagrangianSourceStrategy.C
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <03.Oct.2006 10:41:16 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <24.Oct.2006 14:41:21 boyce@bigboy.nyconnect.com>
+
+#include "IBLagrangianSourceStrategy.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBLagrangianSourceStrategy.h"
+#ifndef included_IBAMR_config
+#define included_IBAMR_config
+#include <IBAMR_config.h>
+#endif
+
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

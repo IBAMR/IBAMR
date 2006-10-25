@@ -2,18 +2,13 @@
 #define included_UInit
 
 // Filename: UInit.h
-// Last modified: <24.Oct.2006 02:30:41 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Oct.2006 21:37:34 boyce@bigboy.nyconnect.com>
 // Created on 24 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/SetDataStrategy.h>
-
-// SAMRAI INCLUDES
-#include <Patch.h>
-#include <Variable.h>
-#include <tbox/Pointer.h>
 
 // NAMESPACE
 using namespace IBAMR;
@@ -23,8 +18,7 @@ using namespace std;
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 /*!
- * \brief Method to initialize the value of the fluid velocity U to a
- * random value with each component uniformly distributed in [-1,1].
+ * \brief Method to initialize the value of the fluid velocity U.
  */
 class UInit
     : public SetDataStrategy
@@ -45,7 +39,7 @@ public:
      * Indicates whether the concrete SetDataStrategy object is time
      * dependent.
      */
-    bool isTimeDependent() const { return true; }
+    bool isTimeDependent() const { return false; }
 
     /*!
      * Set the data on the patch interior to the exact answer.
@@ -60,6 +54,14 @@ public:
 protected:
 
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * NOTE: This constructor is not implemented and should not be
+     * used.
+     */
+    UInit();
+
     /*!
      * \brief Copy constructor.
      *

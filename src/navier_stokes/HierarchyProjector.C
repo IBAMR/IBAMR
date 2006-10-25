@@ -1,14 +1,19 @@
 // Filename: HierarchyProjector.C
-// Last modified: <26.Sep.2006 16:29:08 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <24.Oct.2006 14:22:57 boyce@bigboy.nyconnect.com>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
+#endif
+
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
 #endif
 
 // STOOLS INCLUDES
@@ -17,10 +22,6 @@
 #include <stools/PETScKrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#endif
-
 #include <HierarchyDataOpsManager.h>
 #include <IntVector.h>
 #include <Patch.h>

@@ -1,22 +1,23 @@
 // Filename: LNodeIndexVariable.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 13:16:26 boyce@boyce-griffiths-powerbook-g4-15.local>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <24.Oct.2006 14:18:20 boyce@bigboy.nyconnect.com>
 
 #include "LNodeIndexVariable.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
-#include <ibamr/LNodeIndexDataFactory.h>
-
-// SAMRAI INCLUDES
 #ifndef included_SAMRAI_config
+#define included_SAMRAI_config
 #include <SAMRAI_config.h>
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/LNodeIndexDataFactory.h>
 
 // C++ STDLIB INCLUDES
 #include <cassert>

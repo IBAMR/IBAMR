@@ -1,21 +1,22 @@
 // Filename: GodunovHypPatchOps.C
-// Last modified: <03.Sep.2006 19:49:52 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Oct.2006 14:40:03 boyce@bigboy.nyconnect.com>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "GodunovHypPatchOps.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
-// SAMRAI INCLUDES
 #ifndef included_SAMRAI_config
+#define included_SAMRAI_config
 #include <SAMRAI_config.h>
 #endif
 
+// SAMRAI INCLUDES
 #include <BoundaryBox.h>
 #include <BoxArray.h>
 #include <CartesianPatchGeometry.h>

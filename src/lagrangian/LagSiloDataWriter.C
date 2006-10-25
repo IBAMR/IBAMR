@@ -1,24 +1,25 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <08.Oct.2006 10:23:42 boyce@bigboy.nyconnect.com>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <24.Oct.2006 14:19:36 boyce@bigboy.nyconnect.com>
 
 #include "LagSiloDataWriter.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
+#endif
+
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
 #endif
 
 // STOOLS INCLUDES
 #include <stools/PETSC_SAMRAI_ERROR.h>
 
 // SAMRAI INCLUDES
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#endif
-
 #include <tbox/MPI.h>
 #include <tbox/Utilities.h>
 

@@ -1,14 +1,19 @@
 // Filename: Stashable.C
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 10:40:03 boyce@boyce-griffiths-powerbook-g4-15.local>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <24.Oct.2006 14:24:30 boyce@bigboy.nyconnect.com>
 
 #include "Stashable.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
+#endif
+
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
 #endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

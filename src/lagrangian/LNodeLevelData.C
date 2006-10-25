@@ -1,16 +1,22 @@
 // Filename: LNodeLevelData.C
 // Created on 17 Apr 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <07.Oct.2006 22:50:24 boyce@bigboy.nyconnect.com>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <24.Oct.2006 14:18:49 boyce@bigboy.nyconnect.com>
 
 #include "LNodeLevelData.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
+
+// IBAMR INCLUDES
 #include <ibamr/LDataManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

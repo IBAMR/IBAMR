@@ -1,21 +1,22 @@
 // Filename: USet.C
-// Last modified: <03.Sep.2006 22:51:40 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Oct.2006 14:44:16 boyce@bigboy.nyconnect.com>
 // Created on 23 June 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "USet.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
-// SAMRAI INCLUDES
 #ifndef included_SAMRAI_config
+#define included_SAMRAI_config
 #include <SAMRAI_config.h>
 #endif
 
+// SAMRAI INCLUDES
 #include <ArrayData.h>
 #include <Box.h>
 #include <CartesianPatchGeometry.h>

@@ -1,21 +1,22 @@
 // Filename: IBEulerianForceSetter.C
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <07.Oct.2006 22:15:19 boyce@bigboy.nyconnect.com>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <24.Oct.2006 14:40:34 boyce@bigboy.nyconnect.com>
 
 #include "IBEulerianForceSetter.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
-// SAMRAI INCLUDES
 #ifndef included_SAMRAI_config
+#define included_SAMRAI_config
 #include <SAMRAI_config.h>
 #endif
 
+// SAMRAI INCLUDES
 #include <CellData.h>
 #include <PatchCellDataOpsReal.h>
 

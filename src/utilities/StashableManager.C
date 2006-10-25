@@ -1,26 +1,32 @@
 // Filename: StashableManager.C
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <07.Oct.2006 23:46:24 boyce@bigboy.nyconnect.com>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <24.Oct.2006 16:01:44 boyce@bigboy.nyconnect.com>
 
 #include "StashableManager.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
+#endif
+
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
 #endif
 
 // STOOLS INCLUDES
 #include <stools/STOOLS_Utilities.h>
 
 // SAMRAI INCLUDES
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#endif
-
 #include <tbox/MPI.h>
 #include <tbox/ShutdownRegistry.h>
+
+// C++ STDLIB INCLUDES
+#include <algorithm>
+#include <functional>
+#include <numeric>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

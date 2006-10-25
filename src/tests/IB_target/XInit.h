@@ -3,7 +3,7 @@
 
 // Filename: XInit.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <23.Oct.2006 18:05:34 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 12:32:56 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -159,8 +159,8 @@ private:
      * The number of nodes and some other parameters.
      */
     int d_num_nodes;
-    tbox::Array<double> d_X_center;
-    double d_alpha, d_beta, d_stiffness;
+    tbox::Array<double> d_center;
+    double d_radius, d_stiffness;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////

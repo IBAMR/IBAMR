@@ -1,22 +1,23 @@
 // Filename: IBLogicalCartMeshInitializer.C
-// Last modified: <07.Oct.2006 23:18:58 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Oct.2006 14:41:36 boyce@bigboy.nyconnect.com>
 // Created on 06 Dec 2005 by Boyce Griffith (boyce@boyce.cims.nyu.edu).
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "IBLogicalCartMeshInitializer.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
-#include <ibamr/LNodeIndexData.h>
-
-// SAMRAI INCLUDES
 #ifndef included_SAMRAI_config
+#define included_SAMRAI_config
 #include <SAMRAI_config.h>
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/LNodeIndexData.h>
 
 // C++ STDLIB INCLUDES
 #include <numeric>

@@ -1,21 +1,22 @@
 // Filename: GodunovAdvector.C
-// Last modified: <03.Sep.2006 22:09:37 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Oct.2006 14:39:51 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "GodunovAdvector.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
-// SAMRAI INCLUDES
 #ifndef included_SAMRAI_config
+#define included_SAMRAI_config
 #include <SAMRAI_config.h>
 #endif
 
+// SAMRAI INCLUDES
 #include <ArrayData.h>
 #include <Box.h>
 #include <CartesianPatchGeometry.h>

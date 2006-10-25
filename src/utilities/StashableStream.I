@@ -1,6 +1,6 @@
 // Filename: StashableStream.I
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <07.Oct.2006 22:03:00 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Oct.2006 14:35:11 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -22,7 +22,9 @@ StashableStream::useXDR(
     s_use_xdr_translation = flag;
 #else
     if (flag == true)
+    {
         TBOX_ERROR("StashableStream: Error in XDR was not used in this compile...\n");
+    }
 #endif
 }// useXDF
 
@@ -49,11 +51,12 @@ StashableStream::getCurrentIndex() const
 
 inline
 void
-StashableStream::setCurrentIndex(const int index)
+StashableStream::setCurrentIndex(
+    const int index)
 {
     d_buffer_index = index;
 
-    // Is this broken?
+    // XXXX: Is this broken?
     // If xdr is not used how is d_buffer_index moved?
 
 #ifdef HAVE_XDR

@@ -1,14 +1,19 @@
 // Filename: LNodeIndex.C
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Oct.2006 11:47:35 boyce@boyce-griffiths-powerbook-g4-15.local>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <24.Oct.2006 14:15:52 boyce@bigboy.nyconnect.com>
 
 #include "LNodeIndex.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
+#endif
+
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
 #endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

@@ -1,22 +1,23 @@
 // Filename: UInit.C
-// Last modified: <24.Oct.2006 02:37:44 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Oct.2006 21:38:24 boyce@bigboy.nyconnect.com>
 // Created on 24 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "UInit.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
-// SAMRAI INCLUDES
 #ifndef included_SAMRAI_config
+#define included_SAMRAI_config
 #include <SAMRAI_config.h>
 #endif
 
-#include <PatchCellDataOpsReal.h>
+// SAMRAI INCLUDES
+#include <CellData.h>
 
 // C++ STDLIB INCLUDES
 #include <cassert>
@@ -27,13 +28,13 @@
 
 UInit::UInit(
     const string& object_name)
-    : SetDataStrategy(object_name)
+    : SetDataStrategy(object_name),
+      d_object_name(object_name)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
 #endif
-    d_object_name = object_name;
-
+    // intentionally blank
     return;
 }// UInit
 
@@ -55,12 +56,10 @@ UInit::setDataOnPatch(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!U_data.isNull());
 #endif
-    math::PatchCellDataOpsReal<NDIM,double> patch_ops;
-    patch_ops.setRandomValues(U_data, 2.0, -1.0, patch.getBox());
+    U_data->fillAll(0.0, patch.getBox());
+    U_data->fill(1.0, patch.getBox(), 0);
     return;
 }// setDataOnPatch
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

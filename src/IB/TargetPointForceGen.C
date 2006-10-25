@@ -1,16 +1,22 @@
 // Filename: TargetPointForceGen.C
 // Created on 23 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
-// Last modified: <23.Oct.2006 17:43:53 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Oct.2006 14:42:19 boyce@bigboy.nyconnect.com>
 
 #include "TargetPointForceGen.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
+
+// IBAMR INCLUDES
 #include <ibamr/LNodeIndexData.h>
 #include <ibamr/TargetPointForceSpec.h>
 
@@ -18,10 +24,6 @@
 #include <stools/PETSC_SAMRAI_ERROR.h>
 
 // SAMRAI INCLUDES
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#endif
-
 #include <Box.h>
 #include <Patch.h>
 #include <PatchLevel.h>

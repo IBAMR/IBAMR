@@ -1,23 +1,24 @@
 // Filename: TargetPointForceSpecFactory.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <23.Oct.2006 17:10:43 boyce@bigboy.nyconnect.com>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <24.Oct.2006 14:42:41 boyce@bigboy.nyconnect.com>
 
 #include "TargetPointForceSpecFactory.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
-#include <ibamr/TargetPointForceSpec.h>
-#include <ibamr/StashableManager.h>
-
-// SAMRAI INCLUDES
 #ifndef included_SAMRAI_config
+#define included_SAMRAI_config
 #include <SAMRAI_config.h>
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/TargetPointForceSpec.h>
+#include <ibamr/StashableManager.h>
 
 // C++ STDLIB INCLUDES
 #include <cassert>

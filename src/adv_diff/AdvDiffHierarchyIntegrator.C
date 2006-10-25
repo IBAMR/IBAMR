@@ -1,14 +1,19 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <08.Oct.2006 13:25:11 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Oct.2006 14:40:14 boyce@bigboy.nyconnect.com>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
+#endif
+
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
 #endif
 
 // STOOLS INCLUDES
@@ -17,10 +22,6 @@
 #include <stools/PETScKrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#endif
-
 #include <CartesianGridGeometry.h>
 #include <CellDataFactory.h>
 #include <CoarsenOperator.h>

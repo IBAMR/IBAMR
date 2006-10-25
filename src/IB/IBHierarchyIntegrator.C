@@ -1,16 +1,22 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <23.Oct.2006 17:35:56 boyce@bigboy.nyconnect.com>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <24.Oct.2006 14:40:57 boyce@bigboy.nyconnect.com>
 
 #include "IBHierarchyIntegrator.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
+
+// IBAMR INCLUDES
 #include <ibamr/LEInteractor.h>
 #include <ibamr/LNodeIndexData.h>
 
@@ -19,10 +25,6 @@
 #include <stools/STOOLS_Utilities.h>
 
 // SAMRAI INCLUDES
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#endif
-
 #include <Box.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>

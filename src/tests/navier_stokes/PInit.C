@@ -1,21 +1,22 @@
 // Filename: PInit.C
-// Last modified: <07.Oct.2006 23:22:45 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Oct.2006 14:43:13 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "PInit.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
-// SAMRAI INCLUDES
 #ifndef included_SAMRAI_config
+#define included_SAMRAI_config
 #include <SAMRAI_config.h>
 #endif
 
+// SAMRAI INCLUDES
 #include <Box.h>
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>

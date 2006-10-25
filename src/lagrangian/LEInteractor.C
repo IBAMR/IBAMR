@@ -1,16 +1,22 @@
 // Filename: LEInteractor.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <07.Oct.2006 23:11:12 boyce@bigboy.nyconnect.com>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <24.Oct.2006 14:15:36 boyce@bigboy.nyconnect.com>
 
 #include "LEInteractor.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
+
+// IBAMR INCLUDES
 #include <ibamr/LNodeIndex.h>
 #include <ibamr/LNodeIndexSet.h>
 
@@ -18,10 +24,6 @@
 #include <stools/STOOLS_Utilities.h>
 
 // SAMRAI INCLUDES
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#endif
-
 #include <CellIndex.h>
 #include <CartesianPatchGeometry.h>
 #include <Index.h>

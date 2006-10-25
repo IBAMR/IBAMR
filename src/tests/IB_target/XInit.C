@@ -1,16 +1,22 @@
 // Filename: XInit.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <23.Oct.2006 18:08:42 boyce@bigboy.nyconnect.com>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <25.Oct.2006 12:35:16 boyce@bigboy.nyconnect.com>
 
 #include "XInit.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
+
+// IBAMR INCLUDES
 #include <ibamr/TargetPointForceSpec.h>
 #include <ibamr/LNodeIndexData.h>
 
@@ -18,10 +24,6 @@
 #include <stools/STOOLS_Utilities.h>
 
 // SAMRAI INCLUDES
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#endif
-
 #include <Box.h>
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
@@ -42,9 +44,8 @@ XInit::XInit(
     : d_object_name(object_name),
       d_grid_geom(grid_geom),
       d_num_nodes(256),
-      d_X_center(NDIM),
-      d_alpha(0.25),
-      d_beta(0.25),
+      d_center(NDIM),
+      d_radius(0.25),
       d_stiffness(1000.0)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -178,9 +179,10 @@ XInit::initializeDataOnPatchLevel(
                 const int current_lag_idx = l;
                 const int current_local_idx = ++local_idx;
 
+                const double ds = 2.0*M_PI*d_radius/static_cast<double>(d_num_nodes);
                 vector< tbox::Pointer<Stashable> > force_spec;
                 force_spec.push_back(
-                    new TargetPointForceSpec(X, d_stiffness));
+                    new TargetPointForceSpec(X, ds*d_stiffness));
 
                 if (!index_data->isElement(idx))
                 {
@@ -255,8 +257,8 @@ XInit::getNodePosn(
     const double theta =
         2.0*M_PI*static_cast<double>(l)/static_cast<double>(d_num_nodes);
 
-    X[0] = d_X_center[0] + d_alpha*cos(theta);
-    X[1] = d_X_center[1] + d_beta*sin(theta);
+    X[0] = d_center[0] + d_radius*cos(theta);
+    X[1] = d_center[1] + d_radius*sin(theta);
 
     return;
 }// getNodePosn
@@ -267,18 +269,18 @@ XInit::getFromInput(
 {
     if (!db.isNull())
     {
-        if (db->keyExists("X_center"))
+        if (db->keyExists("center"))
         {
-            d_X_center = db->getDoubleArray("X_center");
+            d_center = db->getDoubleArray("center");
         }
         else
         {
-            TBOX_ERROR("key `X_center' not specifed in input file");
+            TBOX_ERROR("key `center' not specifed in input file");
         }
 
         d_num_nodes = db->getIntegerWithDefault("num_nodes", d_num_nodes);
-        d_alpha = db->getDoubleWithDefault("alpha", d_alpha);
-        d_beta = db->getDoubleWithDefault("beta", d_beta);
+        d_radius = db->getDoubleWithDefault("radius", d_radius);
+        d_stiffness = db->getDoubleWithDefault("stiffness", d_stiffness);
     }
     return;
 }// getFromInput

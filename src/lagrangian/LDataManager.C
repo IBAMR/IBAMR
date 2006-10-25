@@ -1,16 +1,22 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <07.Oct.2006 23:50:12 boyce@bigboy.nyconnect.com>
-
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// Last modified: <24.Oct.2006 14:15:05 boyce@bigboy.nyconnect.com>
 
 #include "LDataManager.h"
 
-// IBAMR INCLUDES
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
 #ifndef included_IBAMR_config
+#define included_IBAMR_config
 #include <IBAMR_config.h>
 #endif
 
+#ifndef included_SAMRAI_config
+#define included_SAMRAI_config
+#include <SAMRAI_config.h>
+#endif
+
+// IBAMR INCLUDES
 #include <ibamr/LEInteractor.h>
 #include <ibamr/LNodeIndexSet.h>
 #include <ibamr/LNodeIndexData.h>
@@ -22,10 +28,6 @@
 #include <stools/STOOLS_Utilities.h>
 
 // SAMRAI INCLUDES
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#endif
-
 #include <Box.h>
 #include <BoxList.h>
 #include <CartesianCellDoubleWeightedAverage.h>
