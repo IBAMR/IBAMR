@@ -1,5 +1,5 @@
 // Filename: PInit.C
-// Last modified: <24.Oct.2006 14:43:13 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:31:15 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "PInit.h"
@@ -7,13 +7,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // SAMRAI INCLUDES
@@ -32,27 +32,11 @@
 
 PInit::PInit(
     const string& object_name,
-    tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
-    tbox::Pointer<tbox::Database> input_db,
     const double nu)
     : SetDataStrategy(object_name),
-      d_object_name(object_name),
-      d_grid_geom(grid_geom),
       d_nu(nu)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!grid_geom.isNull());
-#endif
-    d_object_name = object_name;
-    d_grid_geom = grid_geom;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!d_grid_geom.isNull());
-#endif
-
-    // Initialize object with data read from the input database.
-    getFromInput(input_db);
-
+    // intentionally blank
     return;
 }// PInit
 
@@ -93,7 +77,6 @@ PInit::setDataOnPatch(
             X[d] = XLower[d] +
                 dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
         }
-
 #if (NDIM == 2)
         (*P_data)(i) = -(cos(4.0*M_PI*(X[0]-t)) + cos(4.0*M_PI*(X[1]-t)))*
             exp(-16.0*M_PI*M_PI*d_nu*t);
@@ -112,17 +95,8 @@ PInit::setDataOnPatch(
     return;
 }// setDataOnPatch
 
-/////////////////////////////// PRIVATE //////////////////////////////////////
+/////////////////////////////// PROTECTED ////////////////////////////////////
 
-void
-PInit::getFromInput(
-    tbox::Pointer<tbox::Database> db)
-{
-    if (!db.isNull())
-    {
-        // intentionally blank
-    }
-    return;
-}// getFromInput
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

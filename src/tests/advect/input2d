@@ -83,8 +83,8 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         =  0   , 0       // lower end of computational domain.
-   x_up         =  1   , 1       // upper end of computational domain.
+   x_lo         =  0 , 0         // lower end of computational domain.
+   x_up         =  1 , 1         // upper end of computational domain.
    periodic_dimension = 1,1
 }
 

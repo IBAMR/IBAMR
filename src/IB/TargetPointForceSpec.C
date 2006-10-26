@@ -1,19 +1,19 @@
 // Filename: TargetPointForceSpec.C
 // Created on 23 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
-// Last modified: <24.Oct.2006 14:42:30 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:30:43 boyce@bigboy.nyconnect.com>
 
 #include "TargetPointForceSpec.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // IBAMR INCLUDES

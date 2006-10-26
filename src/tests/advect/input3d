@@ -22,23 +22,39 @@ GodunovHypPatchOps {
       }
 
       QVAL_GRADIENT {
-         grad_tol = 0.25, 0.25, 0.25
+         grad_tol = 0.05, 0.05, 0.05
       }
    }
 }
 
 QInit {
-  init_type = "GAUSSIAN"
-  kappa = 0.001
+   init_type = "GAUSSIAN"
+   kappa = 0.001
+
+// init_type = "ZALESAK"
+// zalesak_r = 0.15
+// zalesak_slot_w = 0.025
+// zalesak_slot_l = 0.1
+// X = 0.5, 0.5
+
+// init_type = "SINUSOIDAL"
 }
 
 USet {
-  init_type = "UNIFORM"
-  uniform_u = 1.0, 1.0, 1.0
+// kappa = 0.0 , 0.0
+   kappa = 2.0 , 2.0
+   omega = 0.0 , 0.0
+// omega = 1.0 , 1.0
+// omega = 10.0*PI , 10.0*PI
+
+// init_type = "VORTEX"
+
+   init_type = "UNIFORM"
+   uniform_u = 1.0, 1.0
 }
 
 N = 8
-LEVS = 5
+LEVS = 4
 NMAX = 8*(2^(LEVS - 1))
 
 Main {
@@ -48,7 +64,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 1 // NMAX/N     // zero to turn off
+   viz_dump_interval     = NMAX/N     // zero to turn off
    viz_dump_dirname      = "viz_advect3d"
    visit_number_procs_per_file = 1
 
@@ -60,15 +76,15 @@ Main {
    monitor_convergence = TRUE
 
 // application parameters
-// timestepping = "SYNCHRONIZED"
+   timestepping = "SYNCHRONIZED"
    u_is_div_free = TRUE
    consv_form = TRUE
 }
 
 CartesianGeometry {
    domain_boxes = [ (0,0,0) , (N - 1,N - 1,N - 1) ]
-   x_lo         =  0, 0, 0    // lower end of computational domain.
-   x_up         =  1, 1, 1    // upper end of computational domain.
+   x_lo         =  0 , 0 , 0       // lower end of computational domain.
+   x_up         =  1 , 1 , 1       // upper end of computational domain.
    periodic_dimension = 1,1,1
 }
 
@@ -78,20 +94,16 @@ GriddingAlgorithm {
       level_1             = 2,2,2  // vector ratio to next coarser level
       level_2             = 2,2,2
       level_3             = 2,2,2
-      level_4             = 2,2,2
-      level_5             = 2,2,2
-      level_6             = 2,2,2
-      level_7             = 2,2,2
    }
 
    largest_patch_size {
-      level_0 = 512,512,512 // largest patch allowed in hierarchy
-                            // all finer levels will use same values as level_0...
+      level_0=4096,4096,4096 // largest patch allowed in hierarchy
+                             // all finer levels will use same values as level_0...
    }
 
    smallest_patch_size {
-      level_0 =  4, 4, 4 // smallest patch allowed in hierarchy
-                         // all finer levels will use same values as level_0...
+      level_0 =  8,   8,   8 // smallest patch allowed in hierarchy
+                             // all finer levels will use same values as level_0...
    }
 
    efficiency_tolerance   = 0.95e0    // min % of tag cells in new patch level
@@ -108,15 +120,15 @@ StandardTagAndInitialize {
 }
 
 HyperbolicLevelIntegrator {
-   cfl                      = 0.975e0 // max cfl factor used in problem
-   cfl_init                 = 0.975e0 // initial cfl factor
+   cfl                      = 0.975 // max cfl factor used in problem
+   cfl_init                 = 0.975 // initial cfl factor
    lag_dt_computation       = FALSE
    use_ghosts_to_compute_dt = FALSE
 }
 
 TimeRefinementIntegrator {
    start_time            = 0.e0     // initial simulation time
-   end_time              = 1.0e0    // final simulation time
+   end_time              = 1.e0     // final simulation time
    grow_dt               = 1.1e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
 // tag_buffer            = 1,1,1,1  // a max of 4 finer levels in hierarchy

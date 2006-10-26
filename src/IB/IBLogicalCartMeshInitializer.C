@@ -1,5 +1,5 @@
 // Filename: IBLogicalCartMeshInitializer.C
-// Last modified: <24.Oct.2006 14:41:36 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:30:07 boyce@bigboy.nyconnect.com>
 // Created on 06 Dec 2005 by Boyce Griffith (boyce@boyce.cims.nyu.edu).
 
 #include "IBLogicalCartMeshInitializer.h"
@@ -7,13 +7,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // IBAMR INCLUDES

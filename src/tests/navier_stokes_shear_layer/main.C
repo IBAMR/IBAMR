@@ -29,13 +29,9 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/GodunovAdvector.h>
-#include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <ibamr/LagSiloDataWriter.h>
-#include <ibamr/TargetPointForceGen.h>
 
 #include "UInit.h"
-#include "XInit.h"
 
 using namespace IBAMR;
 using namespace SAMRAI;
@@ -128,7 +124,7 @@ int main(int argc, char* argv[])
          */
         tbox::Pointer<tbox::Database> main_db = input_db->getDatabase("Main");
 
-        string log_file_name = "IB.log";
+        string log_file_name = "navier_stokes.log";
         if (main_db->keyExists("log_file_name"))
         {
             log_file_name = main_db->getString("log_file_name");
@@ -251,12 +247,11 @@ int main(int argc, char* argv[])
          * for this application, see comments at top of file.
          */
         tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
-            new geom::CartesianGridGeometry<NDIM>(
-                "CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+            new geom::CartesianGridGeometry<NDIM>("CartesianGeometry",
+                                                  input_db->getDatabase("CartesianGeometry"));
 
         tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
-            new hier::PatchHierarchy<NDIM>(
-                "PatchHierarchy", grid_geometry);
+            new hier::PatchHierarchy<NDIM>("PatchHierarchy",grid_geometry);
 
         tbox::Pointer<GodunovAdvector> predictor =
             new GodunovAdvector(
@@ -275,28 +270,15 @@ int main(int argc, char* argv[])
                 input_db->getDatabase("HierarchyProjector"),
                 patch_hierarchy);
 
-        tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator =
+        tbox::Pointer<INSHierarchyIntegrator> time_integrator =
             new INSHierarchyIntegrator(
                 "INSHierarchyIntegrator",
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
 
-        tbox::Pointer<SetDataStrategy> u_init = new UInit("UInit");
-        navier_stokes_integrator->registerVelocityInitialConditions(u_init);
-
-        tbox::Pointer<IBLagrangianForceStrategy> force_generator =
-            new TargetPointForceGen();
-
-        tbox::Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBHierarchyIntegrator(
-                "IBHierarchyIntegrator",
-                input_db->getDatabase("IBHierarchyIntegrator"),
-                patch_hierarchy, navier_stokes_integrator, force_generator);
-
-        tbox::Pointer<LNodePosnInitStrategy> X_init =
-            new XInit(
-                "XInit", grid_geometry, input_db->getDatabase("XInit"));
-        time_integrator->registerLNodePosnInitStrategy(X_init);
+        UInit u_init("UInit", input_db->getDatabase("UInit"));
+        time_integrator->registerVelocityInitialConditions(
+            tbox::Pointer<SetDataStrategy>(&u_init,false));
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -307,15 +289,15 @@ int main(int argc, char* argv[])
         tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
 
         tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
-            new mesh::LoadBalancer<NDIM>(
-                "LoadBalancer",
-                input_db->getDatabase("LoadBalancer"));
+            new mesh::LoadBalancer<NDIM>("LoadBalancer",
+                                         input_db->getDatabase("LoadBalancer"));
 
         tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new mesh::GriddingAlgorithm<NDIM>(
-                "GriddingAlgorithm",
-                input_db->getDatabase("GriddingAlgorithm"),
-                error_detector, box_generator, load_balancer);
+            new mesh::GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                              input_db->getDatabase("GriddingAlgorithm"),
+                                              error_detector,
+                                              box_generator,
+                                              load_balancer);
 
         /*
          * Set up visualization plot file writer.
@@ -323,14 +305,11 @@ int main(int argc, char* argv[])
         tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
             new appu::VisItDataWriter<NDIM>(
                 "VisIt Writer", visit_dump_dirname, visit_number_procs_per_file);
-        tbox::Pointer<LagSiloDataWriter> silo_data_writer =
-            new LagSiloDataWriter(
-                "LagSiloDataWriter", visit_dump_dirname);
 
         if (uses_visit)
         {
-            time_integrator->registerVisItDataWriter(visit_data_writer);
-            time_integrator->registerLagSiloDataWriter(silo_data_writer);
+            time_integrator->
+                registerVisItDataWriter(visit_data_writer);
         }
 
         /*
@@ -340,23 +319,6 @@ int main(int argc, char* argv[])
          */
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
-
-        if (main_db->getBoolWithDefault("output_silo_data",true) &&
-            (tbox::MPI::getRank() == 0))
-        {
-#if (NDIM == 2)
-            hier::IntVector<NDIM> periodic = 0;
-            periodic(0) = 1;
-            silo_data_writer->registerLogicallyCartesianBlock(
-                "curv_mesh",
-                hier::IntVector<NDIM>(
-                    input_db->getDatabase("XInit")->getInteger("num_nodes"), 1),
-                periodic, 0, patch_hierarchy->getFinestLevelNumber());
-#endif
-        }
-
-        time_integrator->rebalanceCoarsestLevel();
-
         tbox::RestartManager::getManager()->closeRestartFile();
 
         /*
@@ -376,8 +338,6 @@ int main(int argc, char* argv[])
         tbox::plog << "\nCheck Hierarchy Projector data... " << endl;
         hier_projector->printClassData(tbox::plog);
         tbox::plog << "\nCheck Navier-Stokes Solver data... " << endl;
-        navier_stokes_integrator->printClassData(tbox::plog);
-        tbox::plog << "\nCheck IB Solver data... " << endl;
         time_integrator->printClassData(tbox::plog);
 
         if (viz_dump_data)
@@ -385,10 +345,6 @@ int main(int argc, char* argv[])
             if (uses_visit)
             {
                 visit_data_writer->writePlotData(
-                    patch_hierarchy,
-                    time_integrator->getIntegratorStep(),
-                    time_integrator->getIntegratorTime());
-                silo_data_writer->writePlotData(
                     patch_hierarchy,
                     time_integrator->getIntegratorStep(),
                     time_integrator->getIntegratorTime());
@@ -413,39 +369,6 @@ int main(int argc, char* argv[])
             tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
             tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
             tbox::pout << "Simulation time is " << loop_time                 << endl;
-
-            tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var =
-                navier_stokes_integrator->getVelocityVar();
-            tbox::Pointer<hier::VariableContext> current_context =
-                navier_stokes_integrator->getCurrentContext();
-
-            /*
-             * Manually force the fluid velocity to be U = (1,0) at
-             * the right periodic boundary.
-             */
-            const int coarsest_ln = 0;
-            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                tbox::Pointer<hier::PatchLevel<NDIM> > level =
-                    patch_hierarchy->getPatchLevel(ln);
-
-                const hier::IntVector<NDIM>& ratio = level->getRatio();
-                const hier::Box<NDIM>& domain_box = grid_geometry->getPhysicalDomain()(0);
-                hier::Box<NDIM> upper_box = domain_box;
-                upper_box.lower(0) = domain_box.upper(0)-1;
-                upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
-
-                for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                    tbox::Pointer<pdat::CellData<NDIM,double> > U_data =
-                        patch->getPatchData(U_var, current_context);
-                    U_data->fillAll(0.0, patch_box*upper_box);
-                    U_data->fill(1.0,patch_box*upper_box,0);
-                }
-            }
 
             double dt_new = time_integrator->advanceHierarchy(dt_now);
 
@@ -473,8 +396,6 @@ int main(int argc, char* argv[])
                 {
                     visit_data_writer->writePlotData(
                         patch_hierarchy, iteration_num, loop_time);
-                    silo_data_writer->writePlotData(
-                        patch_hierarchy, iteration_num, loop_time);
                 }
             }
         }
@@ -488,11 +409,8 @@ int main(int argc, char* argv[])
             {
                 visit_data_writer->writePlotData(
                     patch_hierarchy, iteration_num, loop_time);
-                silo_data_writer->writePlotData(
-                    patch_hierarchy, iteration_num, loop_time);
             }
         }
-
     }// cleanup all smart Pointers prior to shutdown
 
     tbox::SAMRAIManager::shutdown();

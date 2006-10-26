@@ -2,25 +2,13 @@
 #define included_PInit
 
 // Filename: PInit.h
-// Last modified: <26.Sep.2006 11:04:52 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <25.Oct.2006 17:48:53 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/SetDataStrategy.h>
-
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <tbox/Database.h>
-#include <GridGeometry.h>
-#include <Patch.h>
-#include <tbox/Pointer.h>
-#include <Variable.h>
-#include <tbox/Array.h>
-
-// C++ STDLIB INCLUDES
-#include <string>
 
 // NAMESPACE
 using namespace IBAMR;
@@ -38,29 +26,30 @@ class PInit
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
+     *
+     * \param object_name the object name
+     * \param nu the kinematic viscosity (\f$\frac{\mu}{\rho}\f$)
      */
     PInit(
         const string& object_name,
-        tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
-        tbox::Pointer<tbox::Database> input_db,
         const double nu);
 
     /*!
      * \brief Destructor.
      */
-    ~PInit();
+    virtual ~PInit();
 
     /*!
      * Indicates whether the concrete SetDataStrategy object is time
      * dependent.
      */
-    bool isTimeDependent() const { return true; }
+    virtual bool isTimeDependent() const { return true; }
 
     /*!
      * Set the data on the patch interior to the exact answer.
      */
-    void setDataOnPatch(
+    virtual void setDataOnPatch(
         const int data_idx,
         tbox::Pointer<hier::Variable<NDIM> > var,
         hier::Patch<NDIM>& patch,
@@ -70,6 +59,14 @@ public:
 protected:
 
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * NOTE: This constructor is not implemented and should not be
+     * used.
+     */
+    PInit();
+
     /*!
      * \brief Copy constructor.
      *
@@ -93,25 +90,8 @@ private:
     PInit& operator=(
         const PInit& that);
 
-    /*!
-     * Read input values, indicated above, from given database.
-     */
-    void getFromInput(
-        tbox::Pointer<tbox::Database> db);
-
     /*
-     * The object name is used as a handle to databases stored in
-     * restart files and for error reporting purposes.
-     */
-    string d_object_name;
-
-    /*
-     * The grid geometry.
-     */
-    tbox::Pointer<geom::CartesianGridGeometry<NDIM> > d_grid_geom;
-
-    /*
-     * The viscosity.
+     * The kinematic viscosity.
      */
     double d_nu;
 };

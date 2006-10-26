@@ -1,5 +1,5 @@
 // Filename: PhysicalBCDataStrategy.C
-// Last modified: <24.Oct.2006 14:23:59 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:26:01 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "PhysicalBCDataStrategy.h"
@@ -7,13 +7,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // C++ STDLIB INCLUDES

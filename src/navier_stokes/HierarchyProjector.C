@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <25.Oct.2006 17:17:13 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:26:52 boyce@bigboy.nyconnect.com>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -7,13 +7,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // STOOLS INCLUDES

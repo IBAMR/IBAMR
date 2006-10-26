@@ -2,13 +2,16 @@
 #define included_UInit
 
 // Filename: UInit.h
-// Last modified: <25.Oct.2006 17:49:00 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 19:28:19 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/SetDataStrategy.h>
+
+// SAMRAI INCLUDES
+#include <tbox/Database.h>
 
 // NAMESPACE
 using namespace IBAMR;
@@ -26,13 +29,10 @@ class UInit
 public:
     /*!
      * \brief Constructor.
-     *
-     * \param object_name the object name
-     * \param nu the kinematic viscosity (\f$\frac{\mu}{\rho}\f$)
      */
     UInit(
         const string& object_name,
-        const double nu);
+        tbox::Pointer<tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -90,9 +90,15 @@ private:
         const UInit& that);
 
     /*
-     * The kinematic viscosity.
+     * The object name is used as a handle to databases stored in
+     * restart files and for error reporting purposes.
      */
-    double d_nu;
+    string d_object_name;
+
+    /*
+     * Shear layer paramters.
+     */
+    double d_rho, d_delta;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////

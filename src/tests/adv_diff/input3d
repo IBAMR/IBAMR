@@ -81,29 +81,29 @@ QInit {
 
 USet {
   init_type = "UNIFORM"
-  uniform_u = 10.0,-10.0,5.0
+  uniform_u = 10.0,-5.0
 }
 
 Main {
 // log file parameters
-   log_file_name    = "adv-diff3d.log"
+   log_file_name    = "adv_diff3d.log"
    log_all_nodes    = FALSE
 
 // visualization dump parameters
-     viz_writer            = "VisIt"
-     viz_dump_interval     = 10         // zero to turn off
-     viz_dump_dirname      = "viz_adv-diff3d"
-     visit_number_procs_per_file = 1
+   viz_writer            = "VisIt"
+   viz_dump_interval     = 10         // zero to turn off
+   viz_dump_dirname      = "viz_adv_diff3d"
+   visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval        = 0          // zero to turn off
-   restart_write_dirname   = "restart_adv-diff3d"
+   restart_interval        = 0        // zero to turn off
+   restart_write_dirname   = "restart_adv_diff3d"
 
 // convergence monitoring parameters
    monitor_convergence = TRUE
 }
 
-N = 2
+N = 1
 
 CartesianGeometry {
    domain_boxes = [ (0,0,0) , (16*N - 1,16*N - 1,16*N - 1) ]
@@ -113,7 +113,7 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels             = 2      // Maximum number of levels in hierarchy.
+   max_levels             = 2    // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1             = 2,2,2  // vector ratio to next coarser level
       level_2             = 2,2,2
@@ -121,13 +121,13 @@ GriddingAlgorithm {
    }
 
    largest_patch_size {
-      level_0 = 512,512,512 // largest patch allowed in hierarchy
-                            // all finer levels will use same values as level_0...
+      level_0 =256,256,256 // largest patch allowed in hierarchy
+                           // all finer levels will use same values as level_0...
    }
 
    smallest_patch_size {
-      level_0 =   4,  4,  4 // smallest patch allowed in hierarchy
-                            // all finer levels will use same values as level_0...
+      level_0 =  8,  8,  8 // smallest patch allowed in hierarchy
+                           // all finer levels will use same values as level_0...
    }
 
    efficiency_tolerance   = 0.95e0    // min % of tag cells in new patch level

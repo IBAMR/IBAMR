@@ -1,6 +1,6 @@
 // Filename: UInit.C
-// Last modified: <25.Oct.2006 18:32:04 boyce@bigboy.nyconnect.com>
-// Created on 24 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
+// Last modified: <25.Oct.2006 19:28:13 boyce@bigboy.nyconnect.com>
+// Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "UInit.h"
 
@@ -17,7 +17,11 @@
 #endif
 
 // SAMRAI INCLUDES
+#include <Box.h>
+#include <CartesianPatchGeometry.h>
 #include <CellData.h>
+#include <CellIterator.h>
+#include <Index.h>
 
 // C++ STDLIB INCLUDES
 #include <cassert>
@@ -27,14 +31,19 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 UInit::UInit(
-    const string& object_name)
+    const string& object_name,
+    tbox::Pointer<tbox::Database> input_db)
     : SetDataStrategy(object_name),
-      d_object_name(object_name)
+      d_object_name(object_name),
+      d_rho(80.0),
+      d_delta(0.05)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
 #endif
-    // intentionally blank
+
+    if (NDIM != 2) TBOX_ERROR("only NDIM=2 is presently implemented!\n");
+
     return;
 }// UInit
 
@@ -56,8 +65,34 @@ UInit::setDataOnPatch(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!U_data.isNull());
 #endif
-    U_data->fillAll(0.0, patch.getBox());
-    U_data->fill(1.0, patch.getBox(), 0);
+    const hier::Box<NDIM>& patch_box = patch.getBox();
+    const hier::Index<NDIM>& patch_lower = patch_box.lower();
+    tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+
+    const double* const XLower = pgeom->getXLower();
+    const double* const dx = pgeom->getDx();
+
+    double X[NDIM];
+    for (pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
+    {
+        const hier::Index<NDIM>& i = ic();
+        for (int d = 0; d < NDIM; ++d)
+        {
+            X[d] = XLower[d] +
+                dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+        }
+
+        if (X[1] < 0.5)
+        {
+            (*U_data)(i,0) = tanh(d_rho*(X[1]-0.25));
+        }
+        else
+        {
+            (*U_data)(i,0) = tanh(d_rho*(0.75-X[1]));
+        }
+
+        (*U_data)(i,1) = d_delta*sin(2.0*M_PI*(X[0]+0.25));
+    }
     return;
 }// setDataOnPatch
 

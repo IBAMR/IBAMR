@@ -2,7 +2,7 @@
 #define included_UInit
 
 // Filename: UInit.h
-// Last modified: <24.Oct.2006 21:37:34 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:46:58 boyce@bigboy.nyconnect.com>
 // Created on 24 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -33,18 +33,18 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~UInit();
+    virtual ~UInit();
 
     /*!
      * Indicates whether the concrete SetDataStrategy object is time
      * dependent.
      */
-    bool isTimeDependent() const { return false; }
+    virtual bool isTimeDependent() const { return false; }
 
     /*!
      * Set the data on the patch interior to the exact answer.
      */
-    void setDataOnPatch(
+    virtual void setDataOnPatch(
         const int data_idx,
         tbox::Pointer<hier::Variable<NDIM> > var,
         hier::Patch<NDIM>& patch,

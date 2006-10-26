@@ -2,7 +2,7 @@
 #define included_USet
 
 // Filename: USet.h
-// Last modified: <06.Sep.2006 01:02:00 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:53:48 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -13,15 +13,8 @@
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 #include <GridGeometry.h>
-#include <Patch.h>
-#include <Variable.h>
-#include <VariableContext.h>
 #include <tbox/Array.h>
 #include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <string>
 
 // NAMESPACE
 using namespace IBAMR;
@@ -38,7 +31,7 @@ class USet
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
      */
     USet(
         const string& object_name,
@@ -48,18 +41,18 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~USet();
+    virtual ~USet();
 
     /*!
      * Indicates whether the concrete SetDataStrategy object is time
      * dependent.
      */
-    bool isTimeDependent() const { return false; }
+    virtual bool isTimeDependent() const { return false; }
 
     /*!
      * Set the data on the patch interior to some initial values.
      */
-    void setDataOnPatch(
+    virtual void setDataOnPatch(
         const int data_idx,
         tbox::Pointer<hier::Variable<NDIM> > var,
         hier::Patch<NDIM>& patch,
@@ -69,6 +62,14 @@ public:
 protected:
 
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * NOTE: This constructor is not implemented and should not be
+     * used.
+     */
+    USet();
+
     /*!
      * \brief Copy constructor.
      *

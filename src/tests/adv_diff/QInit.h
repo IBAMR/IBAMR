@@ -2,7 +2,7 @@
 #define included_QInit
 
 // Filename: QInit.h
-// Last modified: <06.Sep.2006 01:01:52 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:52:52 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -12,15 +12,9 @@
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
-#include <tbox/Database.h>
 #include <GridGeometry.h>
-#include <Patch.h>
-#include <tbox/Pointer.h>
-#include <Variable.h>
 #include <tbox/Array.h>
-
-// C++ STDLIB INCLUDES
-#include <string>
+#include <tbox/Database.h>
 
 // NAMESPACE
 using namespace IBAMR;
@@ -37,7 +31,7 @@ class QInit
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
      */
     QInit(
         const string& object_name,
@@ -47,18 +41,18 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~QInit();
+    virtual ~QInit();
 
     /*!
      * Indicates whether the concrete SetDataStrategy object is time
      * dependent.
      */
-    bool isTimeDependent() const { return true; }
+    virtual bool isTimeDependent() const { return true; }
 
     /*!
      * Set the data on the patch interior to the exact answer.
      */
-    void setDataOnPatch(
+    virtual void setDataOnPatch(
         const int data_idx,
         tbox::Pointer<hier::Variable<NDIM> > var,
         hier::Patch<NDIM>& patch,
@@ -68,6 +62,14 @@ public:
 protected:
 
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * NOTE: This constructor is not implemented and should not be
+     * used.
+     */
+    QInit();
+
     /*!
      * \brief Copy constructor.
      *

@@ -1,19 +1,19 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <24.Oct.2006 14:19:36 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:28:57 boyce@bigboy.nyconnect.com>
 
 #include "LagSiloDataWriter.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // STOOLS INCLUDES

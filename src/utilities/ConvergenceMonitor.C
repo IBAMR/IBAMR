@@ -1,5 +1,5 @@
 // Filename: ConvergenceMonitor.C
-// Last modified: <24.Oct.2006 14:23:39 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:25:53 boyce@bigboy.nyconnect.com>
 // Created on 19 Jun 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "ConvergenceMonitor.h"
@@ -7,13 +7,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // SAMRAI INCLUDES

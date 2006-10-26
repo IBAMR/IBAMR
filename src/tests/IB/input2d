@@ -6,8 +6,7 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // constants
-M = 1
-N = 4
+N = 1
 NFINEST = 4*N
 
 DELTA_FCN = "IB_6"
@@ -182,7 +181,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = M*8*NFINEST   // zero to turn off
+   viz_dump_interval     = 8*NFINEST     // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -191,7 +190,7 @@ Main {
    restart_write_dirname   = "restart_IB2d"
 
 // timer dump parameters
-   timer_dump_interval     = 0        // zero to turn off
+   timer_dump_interval     = 0           // zero to turn off
 
 // convergence monitoring parameters
    monitor_convergence = TRUE
@@ -199,8 +198,8 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (16*N - 1,16*N - 1) ]
-   x_lo         =  0, 0    // lower end of computational domain.
-   x_up         =  1, 1    // upper end of computational domain.
+   x_lo         =  0, 0          // lower end of computational domain.
+   x_up         =  1, 1          // upper end of computational domain.
    periodic_dimension = 1,1
 }
 

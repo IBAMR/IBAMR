@@ -1,12 +1,12 @@
 // Filename: LNodeLevelData.I
 // Created on 17 Apr 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <24.Oct.2006 14:19:01 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:28:25 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // STOOLS INCLUDES

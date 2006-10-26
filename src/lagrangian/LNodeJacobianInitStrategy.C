@@ -1,19 +1,19 @@
 // Filename: LNodeJacobianInitStrategy.C
 // Created on 29 May 2006 by Boyce Griffith (boyce@boyce.cims.nyu.edu)
-// Last modified: <24.Oct.2006 14:18:30 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:28:12 boyce@bigboy.nyconnect.com>
 
 #include "LNodeJacobianInitStrategy.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

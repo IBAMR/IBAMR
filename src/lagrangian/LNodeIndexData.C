@@ -1,19 +1,19 @@
 // Filename: LNodeIndexData.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <24.Oct.2006 14:16:56 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:27:35 boyce@bigboy.nyconnect.com>
 
 #include "LNodeIndexData.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // IBAMR INCLUDES

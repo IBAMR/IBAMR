@@ -3,7 +3,7 @@
 
 // Filename: XInit.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <07.Oct.2006 23:24:58 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 17:54:30 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -12,12 +12,8 @@
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
-#include <tbox/Database.h>
-#include <tbox/DescribedClass.h>
 #include <GridGeometry.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <tbox/Pointer.h>
+#include <tbox/Database.h>
 
 // NAMESPACE
 using namespace IBAMR;
@@ -35,7 +31,7 @@ class XInit
 {
 public:
     /*!
-     * @brief Default constructor.
+     * @brief Constructor.
      */
     XInit(
         const string& object_name,
@@ -45,20 +41,20 @@ public:
     /*!
      * @brief Destructor.
      */
-    ~XInit();
+    virtual ~XInit();
 
     /*!
      * @return A boolean value indicating whether Lagrangian data is
      * associated with the given level in the patch hierarchy.
      */
-    bool getLevelHasLagrangianData(
+    virtual bool getLevelHasLagrangianData(
         const int level_number,
         const bool can_be_refined) const;
 
     /*!
      * @return The number of local nodes on the patch level.
      */
-    int getLocalNodeCountOnPatchLevel(
+    virtual int getLocalNodeCountOnPatchLevel(
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -69,7 +65,7 @@ public:
      * @brief Initialize the LNodeIndex and LNodeLevel data on the
      * patch level.
      */
-    void initializeDataOnPatchLevel(
+    virtual void initializeDataOnPatchLevel(
         const int lag_node_index_idx,
         tbox::Pointer<LNodeLevelData>& X_data,
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
@@ -91,7 +87,7 @@ public:
      * NOTE: A default empty implementation is provided when support
      * for local mesh refinement is not required.
      */
-    void tagCellsForInitialRefinement(
+    virtual void tagCellsForInitialRefinement(
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double error_data_time,

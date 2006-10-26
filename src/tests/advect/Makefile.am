@@ -8,7 +8,7 @@ EXTRA_DIST = input2d input3d
 check_PROGRAMS = main2d main3d
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(top_srcdir)/src/tests/advect/input[23]d $(top_builddir)/src/tests/advect ; \
+	  cp -f $(srcdir)/input[23]d $(PWD) ; \
 	fi ;
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

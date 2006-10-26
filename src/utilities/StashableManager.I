@@ -1,12 +1,12 @@
 // Filename: StashableManager.I
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <24.Oct.2006 14:25:36 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:26:36 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // C++ STDLIB INCLUDES

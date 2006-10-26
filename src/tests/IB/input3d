@@ -6,20 +6,44 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // constants
-PI = 3.141592653589793e+00
+N = 1
+NFINEST = 4*N
 
-UInit {
+DELTA_FCN = "IB_6"
+MU = 0.005
+
+SpringForceGen {
+  // intentionally blank
 }
 
-PInit {
+IBHierarchyIntegrator {
+   start_time            = 0.e0     // initial simulation time
+   end_time              = 0.4e0    // final simulation time
+   grow_dt               = 2.0e0    // growth factor for timesteps
+   max_integrator_steps  = 10000000 // max number of simulation timesteps
+
+   enable_logging = TRUE
+
+   regrid_interval = 8
+   dt_max = 0.005/NFINEST
+   delta_fcn = DELTA_FCN
+   timestepping_order = 2
+}
+
+XInit {
+   num_nodes  = 50*NFINEST
+   num_layers =  2*NFINEST
+   num_stacks = 25*NFINEST
+
+   tapered = FALSE // TRUE
+   width = 4.0/64.0
+   alpha = 0.2
+   beta  = 0.25
+
+   stiffness = 1.0/num_layers
 }
 
 INSHierarchyIntegrator {
-   start_time            = 0.e0     // initial simulation time
-   end_time              = 1.0e0    // final simulation time
-   grow_dt               = 2.0e0    // growth factor for timesteps
-   max_integrator_steps  = 10000    // max number of simulation timesteps
-
    enable_logging = TRUE
 
    tag_buffer = 1
@@ -37,19 +61,19 @@ INSHierarchyIntegrator {
 
    output_Omega = TRUE
 
-   output_Div_U = TRUE
-   output_Div_u = TRUE
-   output_Div_u_adv = TRUE
+   output_Div_U = FALSE
+   output_Div_u = FALSE
+   output_Div_u_adv = FALSE
 
    rho = 1.0
-   mu = 0.001
+   mu = MU
 
    project_predicted_flux = TRUE
    reproject_pressure = TRUE
    second_order_pressure_update = TRUE
 
    poisson_abs_residual_tol = 1.0e-30
-   poisson_rel_residual_tol = 1.0e-8
+   poisson_rel_residual_tol = 1.0e-6
 
    num_cycles = 1
    num_init_cycles = 5
@@ -57,7 +81,6 @@ INSHierarchyIntegrator {
 
 GodunovAdvector {
    limiter_type = FOURTH_ORDER
-   use_full_ctu = TRUE
 }
 
 AdvDiffHierarchyIntegrator {
@@ -72,8 +95,8 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.975e0   // max cfl factor used in problem
-      cfl_init                 = 0.975e0   // initial cfl factor
+      cfl                      = 0.0975e0    // max cfl factor used in problem
+      cfl_init                 = 0.0975e0    // initial cfl factor
       lag_dt_computation       = FALSE
       use_ghosts_to_compute_dt = FALSE
    }
@@ -119,7 +142,7 @@ HierarchyProjector {
    FACOp {
       fac_max_cycles = 1
       fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = TRUE
+      fac_initial_guess_nonzero = FALSE
 
       skip_restrict_sol = TRUE
       skip_restrict_residual = FALSE
@@ -136,10 +159,11 @@ HierarchyProjector {
          solver_type = "PFMG"
          rap_type = 1
          relax_type = 3
-         num_pre_relax_steps   = 1
-         num_post_relax_steps  = 1
-         max_iterations        = 25
-         relative_residual_tol = 1.0e-10
+         num_pre_relax_steps   = 2
+         num_post_relax_steps  = 2
+         max_iterations        = 1
+         relative_residual_tol = 1.0e-12
+         enable_logging = FALSE
       }
    }
 
@@ -153,51 +177,48 @@ HierarchyProjector {
 
 Main {
 // log file parameters
-   log_file_name    = "INS3d.log"
+   log_file_name    = "IB3d.log"
    log_all_nodes    = FALSE
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 10         // zero to turn off
-   viz_dump_dirname      = "viz_INS3d"
+   viz_dump_interval     = 8*NFINEST     // zero to turn off
+   viz_dump_dirname      = "viz_IB3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval        = 50       // zero to turn off
-   restart_write_dirname   = "restart_INS3d"
+   restart_interval        =  0          // zero to turn off
+   restart_write_dirname   = "restart_IB3d"
 
 // timer dump parameters
-   timer_dump_interval     = 0        // zero to turn off
+   timer_dump_interval     = 0          // zero to turn off
 
 // convergence monitoring parameters
-   convergence_monitor_interval = 10  // zero to turn off
+   monitor_convergence = TRUE
 }
 
-N = 1
-
 CartesianGeometry {
-   domain_boxes = [ (0,0,0) , (16*N - 1, 16*N - 1,16*N - 1) ]
-   x_lo         =  0, 0, 0    // lower end of computational domain.
-   x_up         =  1, 1, 1    // upper end of computational domain.
+   domain_boxes = [ (0,0,0) , (16*N - 1,16*N - 1,16*N - 1) ]
+   x_lo         =  0, 0, 0         // lower end of computational domain.
+   x_up         =  1, 1, 1         // upper end of computational domain.
    periodic_dimension = 1,1,1
 }
 
 GriddingAlgorithm {
-   max_levels             = 1      // Maximum number of levels in hierarchy.
+   max_levels             = 2      // Maximum number of levels in hierarchy.
    ratio_to_coarser {
-      level_1             = 2,2,2  // vector ratio to next coarser level
+      level_1             = 4,4,4  // vector ratio to next coarser level
       level_2             = 2,2,2
-      level_3             = 2,2,2
    }
 
    largest_patch_size {
-      level_0 = 512,512,512 // largest patch allowed in hierarchy
-                         // all finer levels will use same values as level_0...
+      level_0 =512,512,512 // largest patch allowed in hierarchy
+                           // all finer levels will use same values as level_0...
    }
 
    smallest_patch_size {
-      level_0 =  4, 4, 4 // smallest patch allowed in hierarchy
-                         // all finer levels will use same values as level_0...
+      level_0 =  4,  4,  4 // smallest patch allowed in hierarchy
+                           // all finer levels will use same values as level_0...
    }
 
    efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
@@ -206,14 +227,7 @@ GriddingAlgorithm {
 }
 
 StandardTagAndInitialize {
-// tagging_method = "RICHARDSON_EXTRAPOLATION","GRADIENT_DETECTOR"
-// tagging_method = "RICHARDSON_EXTRAPOLATION"
-// tagging_method = "GRADIENT_DETECTOR"
-   tagging_method = "REFINE_BOXES"
-   RefineBoxes {
-      level_0 = [(4*N,4*N,4*N),(12*N - 1,12*N - 1,12*N - 1)]
-      level_1 = [(12*N,12*N,12*N),(20*N - 1,20*N - 1,20*N - 1)]
-   }
+   tagging_method = "GRADIENT_DETECTOR"
 }
 
 LoadBalancer {

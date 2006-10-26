@@ -86,24 +86,24 @@ USet {
 
 Main {
 // log file parameters
-   log_file_name    = "adv-diff2d.log"
+   log_file_name    = "adv_diff2d.log"
    log_all_nodes    = FALSE
 
 // visualization dump parameters
    viz_writer            = "VisIt"
    viz_dump_interval     = 10         // zero to turn off
-   viz_dump_dirname      = "viz_adv-diff2d"
+   viz_dump_dirname      = "viz_adv_diff2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_interval        = 0        // zero to turn off
-   restart_write_dirname   = "restart_adv-diff2d"
+   restart_write_dirname   = "restart_adv_diff2d"
 
 // convergence monitoring parameters
    monitor_convergence = TRUE
 }
 
-N = 4
+N = 1
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (16*N - 1,16*N - 1) ]

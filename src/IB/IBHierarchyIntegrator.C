@@ -1,19 +1,19 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <25.Oct.2006 17:18:01 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:29:46 boyce@bigboy.nyconnect.com>
 
 #include "IBHierarchyIntegrator.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // IBAMR INCLUDES

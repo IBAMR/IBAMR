@@ -1,5 +1,5 @@
 // Filename: QInitAndSoln.C
-// Last modified: <24.Oct.2006 14:43:59 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:31:31 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "QInit.h"
@@ -7,13 +7,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // SAMRAI INCLUDES
@@ -179,6 +179,8 @@ QInit::setDataOnPatch(
     return;
 }// setDataOnPatch
 
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -220,10 +222,5 @@ QInit::getFromInput(
     }
     return;
 }// getFromInput
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<QInit>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
          */
         tbox::Pointer<tbox::Database> main_db = input_db->getDatabase("Main");
 
-        string log_file_name = "linadv.log";
+        string log_file_name = "navier_stokes.log";
         if (main_db->keyExists("log_file_name"))
         {
             log_file_name = main_db->getString("log_file_name");
@@ -233,20 +233,6 @@ int main(int argc, char* argv[])
                 getBool("monitor_convergence");
         }
 
-        bool use_refined_timestepping = false;
-        if (main_db->keyExists("timestepping"))
-        {
-            string timestepping_method = main_db->getString("timestepping");
-            if (timestepping_method == "SYNCHRONIZED")
-            {
-                use_refined_timestepping = false;
-            }
-            else
-            {
-                use_refined_timestepping = true;
-            }
-        }
-
         const bool write_restart = (restart_interval > 0)
             && !(restart_write_dirname.empty());
 
@@ -303,8 +289,8 @@ int main(int argc, char* argv[])
             input_db->getDatabase("INSHierarchyIntegrator")->getDouble("mu" )/
             input_db->getDatabase("INSHierarchyIntegrator")->getDouble("rho");
 
-        UInit u_init("UInit", grid_geometry, input_db->getDatabase("UInit"), nu);
-        PInit p_init("PInit", grid_geometry, input_db->getDatabase("PInit"), nu);
+        UInit u_init("UInit", nu);
+        PInit p_init("PInit", nu);
 
         time_integrator->registerVelocityInitialConditions(
             tbox::Pointer<SetDataStrategy>(&u_init,false));
@@ -384,7 +370,7 @@ int main(int argc, char* argv[])
 
         /*
          * Time step loop.  Note that the step count and integration
-         * time are maintained by algs::TimeRefinementIntegrator<NDIM>.
+         * time are maintained by the time integrator object.
          */
         double loop_time = time_integrator->getIntegratorTime();
         double loop_time_end = time_integrator->getEndTime();

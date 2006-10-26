@@ -3,13 +3,13 @@
 
 // Filename: StashableStream.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <24.Oct.2006 14:35:01 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:47:25 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // SAMRAI INCLUDES

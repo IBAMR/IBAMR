@@ -1,5 +1,5 @@
 // Filename: UInit.C
-// Last modified: <24.Oct.2006 14:43:37 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 19:14:01 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "UInit.h"
@@ -7,13 +7,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // SAMRAI INCLUDES
@@ -32,27 +32,11 @@
 
 UInit::UInit(
     const string& object_name,
-    tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
-    tbox::Pointer<tbox::Database> input_db,
     const double nu)
     : SetDataStrategy(object_name),
-      d_object_name(object_name),
-      d_grid_geom(grid_geom),
       d_nu(nu)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!grid_geom.isNull());
-#endif
-    d_object_name = object_name;
-    d_grid_geom = grid_geom;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!d_grid_geom.isNull());
-#endif
-
-    // Initialize object with data read from the input database.
-    getFromInput(input_db);
-
+    // intentionally blank
     return;
 }// UInit
 
@@ -93,26 +77,6 @@ UInit::setDataOnPatch(
             X[d] = XLower[d] +
                 dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
         }
-
-///////////////////////////////////////////////////////////////////////////
-#if 0
-        (void) t;
-
-        const double rho = 80.0;
-        const double delta = 0.05;
-
-        if (X[1] < 0.5)
-        {
-            (*U_data)(i,0) = tanh(rho*(X[1]-0.25));
-        }
-        else
-        {
-            (*U_data)(i,0) = tanh(rho*(0.75-X[1]));
-        }
-
-        (*U_data)(i,1) = delta*sin(2.0*M_PI*(X[0]+0.25));
-#endif
-///////////////////////////////////////////////////////////////////////////
 #if (NDIM == 2)
         (*U_data)(i,0) = 1.0 -
             2.0*(cos(2.0*M_PI*(X[0]-t))*sin(2.0*M_PI*(X[1]-t)))*
@@ -138,17 +102,8 @@ UInit::setDataOnPatch(
     return;
 }// setDataOnPatch
 
-/////////////////////////////// PRIVATE //////////////////////////////////////
+/////////////////////////////// PROTECTED ////////////////////////////////////
 
-void
-UInit::getFromInput(
-    tbox::Pointer<tbox::Database> db)
-{
-    if (!db.isNull())
-    {
-        // intentionally blank
-    }
-    return;
-}// getFromInput
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

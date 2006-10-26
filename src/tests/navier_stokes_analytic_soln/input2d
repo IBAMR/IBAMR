@@ -8,12 +8,6 @@ MUSCL_LIMITED = 3
 // constants
 PI = 3.141592653589793e+00
 
-PInit {
-}
-
-UInit {
-}
-
 INSHierarchyIntegrator {
    start_time            = 0.e0     // initial simulation time
    end_time              = 1.0e0    // final simulation time

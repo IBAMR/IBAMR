@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
          */
         tbox::Pointer<tbox::Database> main_db = input_db->getDatabase("Main");
 
-        string log_file_name = "linadv.log";
+        string log_file_name = "IB.log";
         if (main_db->keyExists("log_file_name"))
         {
             log_file_name = main_db->getString("log_file_name");
@@ -403,7 +403,7 @@ int main(int argc, char* argv[])
 
         /*
          * Time step loop.  Note that the step count and integration
-         * time are maintained by algs::TimeRefinementIntegrator<NDIM>.
+         * time are maintained by the time integrator object.
          */
         double loop_time = time_integrator->getIntegratorTime();
         double loop_time_end = time_integrator->getEndTime();

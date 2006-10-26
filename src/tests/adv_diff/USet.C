@@ -1,5 +1,5 @@
 // Filename: USet.C
-// Last modified: <24.Oct.2006 14:44:50 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Oct.2006 18:31:55 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "USet.h"
@@ -7,13 +7,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #ifndef included_IBAMR_config
-#define included_IBAMR_config
 #include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
-#define included_SAMRAI_config
 #include <SAMRAI_config.h>
+#define included_SAMRAI_config
 #endif
 
 // SAMRAI INCLUDES
@@ -150,6 +150,8 @@ USet::setDataOnPatch(
     }
     return;
 }// setDataOnPatch
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
