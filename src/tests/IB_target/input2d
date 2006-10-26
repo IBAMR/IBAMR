@@ -7,7 +7,7 @@ MUSCL_LIMITED = 3
 
 // constants
 N = 16              // coarsest grid spacing
-NFINEST = 64*N      // finest grid spacing
+NFINEST = 32*N      // finest grid spacing
 
 DELTA_FCN = "IB_6"  // the choice of delta function
 
@@ -23,7 +23,7 @@ IBHierarchyIntegrator {
 
    enable_logging = TRUE
 
-   regrid_interval = 4
+   regrid_interval = 8
    dt_max = 0.8/NFINEST
    delta_fcn = DELTA_FCN
    timestepping_order = 2
@@ -39,7 +39,7 @@ XInit {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 1
+   tag_buffer = 1 , 1 , 2
 
    cfl = 1.0  // this only affects the "acceleration" timestep restriction
 
@@ -202,7 +202,7 @@ GriddingAlgorithm {
    ratio_to_coarser {
       level_1             = 4,4  // vector ratio to next coarser level
       level_2             = 4,4
-      level_3             = 4,4
+      level_3             = 2,2
    }
 
    largest_patch_size {
