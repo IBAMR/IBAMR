@@ -3,7 +3,7 @@
 
 // Filename: TargetPointForceSpec.h
 // Created on 23 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
-// Last modified: <23.Oct.2006 17:09:08 boyce@bigboy.nyconnect.com>
+// Last modified: <27.Oct.2006 00:22:57 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -50,6 +50,13 @@ public:
      */
     TargetPointForceSpec(
         const std::vector<double>& X,
+        const double kappa);
+
+    /*!
+     * \brief Constructor.
+     */
+    TargetPointForceSpec(
+        const double* const X,
         const double kappa);
 
     /*!

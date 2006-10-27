@@ -1,6 +1,6 @@
 // Filename: TargetPointForceSpec.C
 // Created on 23 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
-// Last modified: <25.Oct.2006 18:30:43 boyce@bigboy.nyconnect.com>
+// Last modified: <27.Oct.2006 00:25:31 boyce@bigboy.nyconnect.com>
 
 #include "TargetPointForceSpec.h"
 
@@ -68,6 +68,24 @@ TargetPointForceSpec::TargetPointForceSpec(
     const std::vector<double>& X,
     const double kappa)
     : d_X(X),
+      d_kappa(kappa)
+{
+#ifdef DEBUG_CHECK_ASSERTSIONS
+    assert(d_X.size() == NDIM);
+#endif
+    if (!s_registered_factory)
+    {
+        TBOX_ERROR("TargetPointForceSpec::TargetPointForceSpec():\n"
+                   << "  must call TargetPointForceSpec::registerWithStashableManager() before\n"
+                   << "  creating any TargetPointForceSpec objects.\n");
+    }
+    return;
+}// TargetPointForceSpec
+
+TargetPointForceSpec::TargetPointForceSpec(
+    const double* const X,
+    const double kappa)
+    : d_X(X,X+NDIM),
       d_kappa(kappa)
 {
 #ifdef DEBUG_CHECK_ASSERTSIONS
