@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <25.Oct.2006 18:26:59 boyce@bigboy.nyconnect.com>
+// Last modified: <28.Oct.2006 20:01:58 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -206,6 +206,9 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 
     d_num_cycles = 1;
     d_num_init_cycles = 5;
+
+    d_cycle = 0;
+    d_performing_init_cycles = false;
 
     d_regrid_interval = 1;
     d_old_dt = -1.0;
