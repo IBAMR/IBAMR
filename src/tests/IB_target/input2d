@@ -17,7 +17,7 @@ MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 
 IBHierarchyIntegrator {
    start_time            = 0.e0     // initial simulation time
-   end_time              = 200.0e0  // final simulation time
+   end_time              = 500.0e0  // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
 
