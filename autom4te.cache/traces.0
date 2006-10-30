@@ -1,0 +1,1039 @@
+m4trace:aclocal.m4:7245: -1- m4_include([m4/acx_blas.m4])
+m4trace:aclocal.m4:7246: -1- m4_include([m4/acx_lapack.m4])
+m4trace:aclocal.m4:7247: -1- m4_include([m4/acx_mpi.m4])
+m4trace:configure.ac:4: -1- AC_INIT([IBAMR], [0.1.1-061025], [griffith AT cims DOT nyu DOT edu])
+m4trace:configure.ac:4: -1- m4_pattern_forbid([^_?A[CHUM]_])
+m4trace:configure.ac:4: -1- m4_pattern_forbid([_AC_])
+m4trace:configure.ac:4: -1- m4_pattern_forbid([^LIBOBJS$], [do not use LIBOBJS directly, use AC_LIBOBJ (see section `AC_LIBOBJ vs LIBOBJS'])
+m4trace:configure.ac:4: -1- m4_pattern_allow([^AS_FLAGS$])
+m4trace:configure.ac:4: -1- m4_pattern_forbid([^_?m4_])
+m4trace:configure.ac:4: -1- m4_pattern_forbid([^dnl$])
+m4trace:configure.ac:4: -1- m4_pattern_forbid([^_?AS_])
+m4trace:configure.ac:4: -1- AC_SUBST([SHELL], [${CONFIG_SHELL-/bin/sh}])
+m4trace:configure.ac:4: -1- AC_SUBST([PATH_SEPARATOR])
+m4trace:configure.ac:4: -1- AC_SUBST([PACKAGE_NAME], [m4_ifdef([AC_PACKAGE_NAME],      ['AC_PACKAGE_NAME'])])
+m4trace:configure.ac:4: -1- AC_SUBST([PACKAGE_TARNAME], [m4_ifdef([AC_PACKAGE_TARNAME],   ['AC_PACKAGE_TARNAME'])])
+m4trace:configure.ac:4: -1- AC_SUBST([PACKAGE_VERSION], [m4_ifdef([AC_PACKAGE_VERSION],   ['AC_PACKAGE_VERSION'])])
+m4trace:configure.ac:4: -1- AC_SUBST([PACKAGE_STRING], [m4_ifdef([AC_PACKAGE_STRING],    ['AC_PACKAGE_STRING'])])
+m4trace:configure.ac:4: -1- AC_SUBST([PACKAGE_BUGREPORT], [m4_ifdef([AC_PACKAGE_BUGREPORT], ['AC_PACKAGE_BUGREPORT'])])
+m4trace:configure.ac:4: -1- AC_SUBST([exec_prefix], [NONE])
+m4trace:configure.ac:4: -1- AC_SUBST([prefix], [NONE])
+m4trace:configure.ac:4: -1- AC_SUBST([program_transform_name], [s,x,x,])
+m4trace:configure.ac:4: -1- AC_SUBST([bindir], ['${exec_prefix}/bin'])
+m4trace:configure.ac:4: -1- AC_SUBST([sbindir], ['${exec_prefix}/sbin'])
+m4trace:configure.ac:4: -1- AC_SUBST([libexecdir], ['${exec_prefix}/libexec'])
+m4trace:configure.ac:4: -1- AC_SUBST([datadir], ['${prefix}/share'])
+m4trace:configure.ac:4: -1- AC_SUBST([sysconfdir], ['${prefix}/etc'])
+m4trace:configure.ac:4: -1- AC_SUBST([sharedstatedir], ['${prefix}/com'])
+m4trace:configure.ac:4: -1- AC_SUBST([localstatedir], ['${prefix}/var'])
+m4trace:configure.ac:4: -1- AC_SUBST([libdir], ['${exec_prefix}/lib'])
+m4trace:configure.ac:4: -1- AC_SUBST([includedir], ['${prefix}/include'])
+m4trace:configure.ac:4: -1- AC_SUBST([oldincludedir], ['/usr/include'])
+m4trace:configure.ac:4: -1- AC_SUBST([infodir], ['${prefix}/info'])
+m4trace:configure.ac:4: -1- AC_SUBST([mandir], ['${prefix}/man'])
+m4trace:configure.ac:4: -1- AC_DEFINE_TRACE_LITERAL([PACKAGE_NAME])
+m4trace:configure.ac:4: -1- AH_OUTPUT([PACKAGE_NAME], [/* Define to the full name of this package. */
+#undef PACKAGE_NAME])
+m4trace:configure.ac:4: -1- AC_DEFINE_TRACE_LITERAL([PACKAGE_TARNAME])
+m4trace:configure.ac:4: -1- AH_OUTPUT([PACKAGE_TARNAME], [/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME])
+m4trace:configure.ac:4: -1- AC_DEFINE_TRACE_LITERAL([PACKAGE_VERSION])
+m4trace:configure.ac:4: -1- AH_OUTPUT([PACKAGE_VERSION], [/* Define to the version of this package. */
+#undef PACKAGE_VERSION])
+m4trace:configure.ac:4: -1- AC_DEFINE_TRACE_LITERAL([PACKAGE_STRING])
+m4trace:configure.ac:4: -1- AH_OUTPUT([PACKAGE_STRING], [/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING])
+m4trace:configure.ac:4: -1- AC_DEFINE_TRACE_LITERAL([PACKAGE_BUGREPORT])
+m4trace:configure.ac:4: -1- AH_OUTPUT([PACKAGE_BUGREPORT], [/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT])
+m4trace:configure.ac:4: -1- AC_SUBST([build_alias])
+m4trace:configure.ac:4: -1- AC_SUBST([host_alias])
+m4trace:configure.ac:4: -1- AC_SUBST([target_alias])
+m4trace:configure.ac:4: -1- AC_SUBST([DEFS])
+m4trace:configure.ac:4: -1- AC_SUBST([ECHO_C])
+m4trace:configure.ac:4: -1- AC_SUBST([ECHO_N])
+m4trace:configure.ac:4: -1- AC_SUBST([ECHO_T])
+m4trace:configure.ac:4: -1- AC_SUBST([LIBS])
+m4trace:configure.ac:5: -1- AC_CONFIG_AUX_DIR([config])
+m4trace:configure.ac:6: -1- AC_CONFIG_HEADERS([config/IBAMR_config.h])
+m4trace:configure.ac:7: -1- AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 foreign])
+m4trace:configure.ac:7: -1- m4_pattern_allow([^AM_[A-Z]+FLAGS$])
+m4trace:configure.ac:7: -1- AM_AUTOMAKE_VERSION([1.9.6])
+m4trace:configure.ac:7: -1- AC_PROG_INSTALL
+m4trace:configure.ac:7: -1- AC_SUBST([INSTALL_PROGRAM])
+m4trace:configure.ac:7: -1- AC_SUBST([INSTALL_SCRIPT])
+m4trace:configure.ac:7: -1- AC_SUBST([INSTALL_DATA])
+m4trace:configure.ac:7: -1- AC_SUBST([CYGPATH_W])
+m4trace:configure.ac:7: -1- AC_SUBST([PACKAGE], ['AC_PACKAGE_TARNAME'])
+m4trace:configure.ac:7: -1- AC_SUBST([VERSION], ['AC_PACKAGE_VERSION'])
+m4trace:configure.ac:7: -1- AC_DEFINE_TRACE_LITERAL([PACKAGE])
+m4trace:configure.ac:7: -1- AH_OUTPUT([PACKAGE], [/* Name of package */
+#undef PACKAGE])
+m4trace:configure.ac:7: -1- AC_DEFINE_TRACE_LITERAL([VERSION])
+m4trace:configure.ac:7: -1- AH_OUTPUT([VERSION], [/* Version number of package */
+#undef VERSION])
+m4trace:configure.ac:7: -1- AC_SUBST([ACLOCAL])
+m4trace:configure.ac:7: -1- AC_SUBST([AUTOCONF])
+m4trace:configure.ac:7: -1- AC_SUBST([AUTOMAKE])
+m4trace:configure.ac:7: -1- AC_SUBST([AUTOHEADER])
+m4trace:configure.ac:7: -1- AC_SUBST([MAKEINFO])
+m4trace:configure.ac:7: -1- AC_SUBST([install_sh])
+m4trace:configure.ac:7: -1- AC_SUBST([STRIP])
+m4trace:configure.ac:7: -1- AC_SUBST([ac_ct_STRIP])
+m4trace:configure.ac:7: -1- AC_SUBST([INSTALL_STRIP_PROGRAM])
+m4trace:configure.ac:7: -1- AC_SUBST([mkdir_p])
+m4trace:configure.ac:7: -1- AC_PROG_AWK
+m4trace:configure.ac:7: -1- AC_SUBST([AWK])
+m4trace:configure.ac:7: -1- AC_PROG_MAKE_SET
+m4trace:configure.ac:7: -1- AC_SUBST([SET_MAKE])
+m4trace:configure.ac:7: -1- AC_SUBST([am__leading_dot])
+m4trace:configure.ac:7: -1- AC_SUBST([AMTAR])
+m4trace:configure.ac:7: -1- AC_SUBST([am__tar])
+m4trace:configure.ac:7: -1- AC_SUBST([am__untar])
+m4trace:configure.ac:14: -1- AC_SUBST([LIBS])
+m4trace:configure.ac:15: -1- AC_PROG_CC
+m4trace:configure.ac:15: -1- AC_SUBST([CC])
+m4trace:configure.ac:15: -1- AC_SUBST([CFLAGS])
+m4trace:configure.ac:15: -1- AC_SUBST([LDFLAGS])
+m4trace:configure.ac:15: -1- AC_SUBST([CPPFLAGS])
+m4trace:configure.ac:15: -1- AC_SUBST([CC])
+m4trace:configure.ac:15: -1- AC_SUBST([ac_ct_CC])
+m4trace:configure.ac:15: -1- AC_SUBST([CC])
+m4trace:configure.ac:15: -1- AC_SUBST([ac_ct_CC])
+m4trace:configure.ac:15: -1- AC_SUBST([CC])
+m4trace:configure.ac:15: -1- AC_SUBST([CC])
+m4trace:configure.ac:15: -1- AC_SUBST([ac_ct_CC])
+m4trace:configure.ac:15: -1- AC_SUBST([EXEEXT], [$ac_cv_exeext])
+m4trace:configure.ac:15: -1- AC_SUBST([OBJEXT], [$ac_cv_objext])
+m4trace:configure.ac:15: -1- AC_SUBST([DEPDIR], ["${am__leading_dot}deps"])
+m4trace:configure.ac:15: -1- AC_SUBST([am__include])
+m4trace:configure.ac:15: -1- AC_SUBST([am__quote])
+m4trace:configure.ac:15: -1- AM_CONDITIONAL([AMDEP], [test "x$enable_dependency_tracking" != xno])
+m4trace:configure.ac:15: -1- AC_SUBST([AMDEP_TRUE])
+m4trace:configure.ac:15: -1- AC_SUBST([AMDEP_FALSE])
+m4trace:configure.ac:15: -1- AC_SUBST([AMDEPBACKSLASH])
+m4trace:configure.ac:15: -1- AC_SUBST([CCDEPMODE], [depmode=$am_cv_CC_dependencies_compiler_type])
+m4trace:configure.ac:15: -1- AM_CONDITIONAL([am__fastdepCC], [
+  test "x$enable_dependency_tracking" != xno \
+  && test "$am_cv_CC_dependencies_compiler_type" = gcc3])
+m4trace:configure.ac:15: -1- AC_SUBST([am__fastdepCC_TRUE])
+m4trace:configure.ac:15: -1- AC_SUBST([am__fastdepCC_FALSE])
+m4trace:configure.ac:16: -1- AC_PROG_CXX
+m4trace:configure.ac:16: -1- AC_SUBST([CXX])
+m4trace:configure.ac:16: -1- AC_SUBST([CXXFLAGS])
+m4trace:configure.ac:16: -1- AC_SUBST([LDFLAGS])
+m4trace:configure.ac:16: -1- AC_SUBST([CPPFLAGS])
+m4trace:configure.ac:16: -1- AC_SUBST([CXX])
+m4trace:configure.ac:16: -1- AC_SUBST([ac_ct_CXX])
+m4trace:configure.ac:16: -1- AC_SUBST([CXXDEPMODE], [depmode=$am_cv_CXX_dependencies_compiler_type])
+m4trace:configure.ac:16: -1- AM_CONDITIONAL([am__fastdepCXX], [
+  test "x$enable_dependency_tracking" != xno \
+  && test "$am_cv_CXX_dependencies_compiler_type" = gcc3])
+m4trace:configure.ac:16: -1- AC_SUBST([am__fastdepCXX_TRUE])
+m4trace:configure.ac:16: -1- AC_SUBST([am__fastdepCXX_FALSE])
+m4trace:configure.ac:17: -1- AC_SUBST([F77])
+m4trace:configure.ac:17: -1- AC_SUBST([FFLAGS])
+m4trace:configure.ac:17: -1- AC_SUBST([LDFLAGS])
+m4trace:configure.ac:17: -1- AC_SUBST([F77])
+m4trace:configure.ac:17: -1- AC_SUBST([ac_ct_F77])
+m4trace:configure.ac:18: -1- AC_SUBST([FLIBS])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_DUMMY_MAIN])
+m4trace:configure.ac:19: -1- AH_OUTPUT([F77_DUMMY_MAIN], [/* Define to dummy `main\' function (if any) required to link to the Fortran
+   libraries. */
+#undef F77_DUMMY_MAIN])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([FC_DUMMY_MAIN_EQ_F77])
+m4trace:configure.ac:19: -1- AH_OUTPUT([FC_DUMMY_MAIN_EQ_F77], [/* Define if F77 and FC dummy `main\' functions are identical. */
+#undef FC_DUMMY_MAIN_EQ_F77])
+m4trace:configure.ac:19: -1- AH_OUTPUT([F77_FUNC], [/* Define to a macro mangling the given C identifier (in lower and upper
+   case), which must not contain underscores, for linking with Fortran. */
+#undef F77_FUNC])
+m4trace:configure.ac:19: -1- AH_OUTPUT([F77_FUNC_], [/* As F77_FUNC, but for C identifiers containing underscores. */
+#undef F77_FUNC_])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC_(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC_(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC_(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC_(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC_(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC_(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC_(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC(name,NAME)])
+m4trace:configure.ac:19: -1- AC_DEFINE_TRACE_LITERAL([F77_FUNC_(name,NAME)])
+m4trace:configure.ac:37: -1- AC_SUBST([MPICXX])
+m4trace:configure.ac:37: -1- AC_SUBST([MPICXX])
+m4trace:configure.ac:37: -1- AC_SUBST([MPICXX])
+m4trace:configure.ac:37: -1- AC_CHECK_LIB([mpi], [MPI_Init], [MPILIBS="-lmpi"])
+m4trace:configure.ac:37: -1- AC_CHECK_LIB([mpich], [MPI_Init], [MPILIBS="-lmpich"])
+m4trace:configure.ac:37: -1- _m4_warn([obsolete], [The macro `AC_TRY_COMPILE' is obsolete.
+You should run autoupdate.], [autoconf/general.m4:2180: AC_TRY_COMPILE is expanded from...
+m4/acx_mpi.m4:107: ACX_MPI is expanded from...
+configure.ac:37: the top level])
+m4trace:configure.ac:37: -1- AC_SUBST([MPILIBS])
+m4trace:configure.ac:37: -1- AC_DEFINE_TRACE_LITERAL([HAVE_MPI])
+m4trace:configure.ac:37: -1- AH_OUTPUT([HAVE_MPI], [/* Define if you have the MPI library. */
+#undef HAVE_MPI])
+m4trace:configure.ac:44: -1- _m4_warn([obsolete], [The macro `AC_HELP_STRING' is obsolete.
+You should run autoupdate.], [autoconf/general.m4:219: AC_HELP_STRING is expanded from...
+autoconf/general.m4:1303: AC_ARG_ENABLE is expanded from...
+aclocal.m4:1955: AC_ENABLE_SHARED is expanded from...
+aclocal.m4:1964: AC_DISABLE_SHARED is expanded from...
+configure.ac:44: the top level])
+m4trace:configure.ac:45: -1- AC_PROG_LIBTOOL
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [The macro `AC_HELP_STRING' is obsolete.
+You should run autoupdate.], [autoconf/general.m4:219: AC_HELP_STRING is expanded from...
+autoconf/general.m4:1303: AC_ARG_ENABLE is expanded from...
+aclocal.m4:1994: AC_ENABLE_STATIC is expanded from...
+configure.ac:45: AC_ENABLE_STATIC is required by...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [The macro `AC_HELP_STRING' is obsolete.
+You should run autoupdate.], [autoconf/general.m4:219: AC_HELP_STRING is expanded from...
+autoconf/general.m4:1303: AC_ARG_ENABLE is expanded from...
+aclocal.m4:2033: AC_ENABLE_FAST_INSTALL is expanded from...
+configure.ac:45: AC_ENABLE_FAST_INSTALL is required by...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- AC_CANONICAL_HOST
+m4trace:configure.ac:45: -1- AC_CANONICAL_BUILD
+m4trace:configure.ac:45: -1- AC_SUBST([build], [$ac_cv_build])
+m4trace:configure.ac:45: -1- AC_SUBST([build_cpu], [`echo $ac_cv_build | sed 's/^\([[^-]]*\)-\([[^-]]*\)-\(.*\)$/\1/'`])
+m4trace:configure.ac:45: -1- AC_SUBST([build_vendor], [`echo $ac_cv_build | sed 's/^\([[^-]]*\)-\([[^-]]*\)-\(.*\)$/\2/'`])
+m4trace:configure.ac:45: -1- AC_SUBST([build_os], [`echo $ac_cv_build | sed 's/^\([[^-]]*\)-\([[^-]]*\)-\(.*\)$/\3/'`])
+m4trace:configure.ac:45: -1- AC_SUBST([host], [$ac_cv_host])
+m4trace:configure.ac:45: -1- AC_SUBST([host_cpu], [`echo $ac_cv_host | sed 's/^\([[^-]]*\)-\([[^-]]*\)-\(.*\)$/\1/'`])
+m4trace:configure.ac:45: -1- AC_SUBST([host_vendor], [`echo $ac_cv_host | sed 's/^\([[^-]]*\)-\([[^-]]*\)-\(.*\)$/\2/'`])
+m4trace:configure.ac:45: -1- AC_SUBST([host_os], [`echo $ac_cv_host | sed 's/^\([[^-]]*\)-\([[^-]]*\)-\(.*\)$/\3/'`])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [The macro `AC_HELP_STRING' is obsolete.
+You should run autoupdate.], [autoconf/general.m4:219: AC_HELP_STRING is expanded from...
+autoconf/general.m4:1331: AC_ARG_WITH is expanded from...
+aclocal.m4:2230: AC_PROG_LD is expanded from...
+configure.ac:45: AC_PROG_LD is required by...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- AC_SUBST([EGREP])
+m4trace:configure.ac:45: -1- AC_PROG_LN_S
+m4trace:configure.ac:45: -1- AC_SUBST([LN_S], [$as_ln_s])
+m4trace:configure.ac:45: -1- AC_SUBST([ECHO])
+m4trace:configure.ac:45: -1- AC_SUBST([AR])
+m4trace:configure.ac:45: -1- AC_SUBST([ac_ct_AR])
+m4trace:configure.ac:45: -1- AC_SUBST([RANLIB])
+m4trace:configure.ac:45: -1- AC_SUBST([ac_ct_RANLIB])
+m4trace:configure.ac:45: -1- AC_SUBST([STRIP])
+m4trace:configure.ac:45: -1- AC_SUBST([ac_ct_STRIP])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [The macro `AC_HELP_STRING' is obsolete.
+You should run autoupdate.], [autoconf/general.m4:219: AC_HELP_STRING is expanded from...
+autoconf/general.m4:1303: AC_ARG_ENABLE is expanded from...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [The macro `AC_HELP_STRING' is obsolete.
+You should run autoupdate.], [autoconf/general.m4:219: AC_HELP_STRING is expanded from...
+autoconf/general.m4:1331: AC_ARG_WITH is expanded from...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [The macro `AC_TRY_LINK' is obsolete.
+You should run autoupdate.], [autoconf/general.m4:2223: AC_TRY_LINK is expanded from...
+autoconf/general.m4:1799: AC_CACHE_VAL is expanded from...
+autoconf/general.m4:1808: AC_CACHE_CHECK is expanded from...
+aclocal.m4:614: _LT_AC_LOCK is expanded from...
+configure.ac:45: _LT_AC_LOCK is required by...
+aclocal.m4:1100: AC_LIBTOOL_SYS_HARD_LINK_LOCKS is expanded from...
+aclocal.m4:2742: _LT_AC_LANG_C_CONFIG is expanded from...
+aclocal.m4:2673: AC_LIBTOOL_LANG_C_CONFIG is expanded from...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- AC_CHECK_HEADERS([dlfcn.h])
+m4trace:configure.ac:45: -1- AH_OUTPUT([HAVE_DLFCN_H], [/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H])
+m4trace:configure.ac:45: -1- AC_HEADER_STDC
+m4trace:configure.ac:45: -1- AC_PROG_CPP
+m4trace:configure.ac:45: -1- AC_SUBST([CPP])
+m4trace:configure.ac:45: -1- AC_SUBST([CPPFLAGS])
+m4trace:configure.ac:45: -1- AC_SUBST([CPP])
+m4trace:configure.ac:45: -1- AC_DEFINE_TRACE_LITERAL([STDC_HEADERS])
+m4trace:configure.ac:45: -1- AH_OUTPUT([STDC_HEADERS], [/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS])
+m4trace:configure.ac:45: -1- AC_CHECK_HEADERS([sys/types.h sys/stat.h stdlib.h string.h memory.h strings.h \
+		  inttypes.h stdint.h unistd.h], [], [], [$ac_includes_default])
+m4trace:configure.ac:45: -1- AH_OUTPUT([HAVE_SYS_TYPES_H], [/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H])
+m4trace:configure.ac:45: -1- AH_OUTPUT([HAVE_SYS_STAT_H], [/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H])
+m4trace:configure.ac:45: -1- AH_OUTPUT([HAVE_STDLIB_H], [/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H])
+m4trace:configure.ac:45: -1- AH_OUTPUT([HAVE_STRING_H], [/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H])
+m4trace:configure.ac:45: -1- AH_OUTPUT([HAVE_MEMORY_H], [/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H])
+m4trace:configure.ac:45: -1- AH_OUTPUT([HAVE_STRINGS_H], [/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H])
+m4trace:configure.ac:45: -1- AH_OUTPUT([HAVE_INTTYPES_H], [/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H])
+m4trace:configure.ac:45: -1- AH_OUTPUT([HAVE_STDINT_H], [/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H])
+m4trace:configure.ac:45: -1- AH_OUTPUT([HAVE_UNISTD_H], [/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H])
+m4trace:configure.ac:45: -1- AC_CHECK_LIB([dl], [dlopen], [lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-ldl"], [
+    lt_cv_dlopen="dyld"
+    lt_cv_dlopen_libs=
+    lt_cv_dlopen_self=yes
+    ])
+m4trace:configure.ac:45: -1- AC_CHECK_LIB([dld], [shl_load], [lt_cv_dlopen="shl_load" lt_cv_dlopen_libs="-dld"], [AC_CHECK_FUNC([dlopen],
+	      [lt_cv_dlopen="dlopen"],
+	  [AC_CHECK_LIB([dl], [dlopen],
+		[lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-ldl"],
+	    [AC_CHECK_LIB([svld], [dlopen],
+		  [lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-lsvld"],
+	      [AC_CHECK_LIB([dld], [dld_link],
+		    [lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-dld"])
+	      ])
+	    ])
+	  ])
+	])
+m4trace:configure.ac:45: -1- AC_CHECK_LIB([dl], [dlopen], [lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-ldl"], [AC_CHECK_LIB([svld], [dlopen],
+		  [lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-lsvld"],
+	      [AC_CHECK_LIB([dld], [dld_link],
+		    [lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-dld"])
+	      ])
+	    ])
+m4trace:configure.ac:45: -1- AC_CHECK_LIB([svld], [dlopen], [lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-lsvld"], [AC_CHECK_LIB([dld], [dld_link],
+		    [lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-dld"])
+	      ])
+m4trace:configure.ac:45: -1- AC_CHECK_LIB([dld], [dld_link], [lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-dld"])
+m4trace:configure.ac:45: -1- _LT_AC_TAGCONFIG
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [The macro `AC_HELP_STRING' is obsolete.
+You should run autoupdate.], [autoconf/general.m4:219: AC_HELP_STRING is expanded from...
+autoconf/general.m4:1331: AC_ARG_WITH is expanded from...
+aclocal.m4:1909: _LT_AC_TAGCONFIG is expanded from...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [back quotes and double quotes must not be escaped in: $as_me:$LINENO: error: tag name \"$tagname\" already exists], [aclocal.m4:1909: _LT_AC_TAGCONFIG is expanded from...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [back quotes and double quotes must not be escaped in: $as_me: error: tag name \"$tagname\" already exists], [aclocal.m4:1909: _LT_AC_TAGCONFIG is expanded from...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- AC_SUBST([CXXCPP])
+m4trace:configure.ac:45: -1- AC_SUBST([CPPFLAGS])
+m4trace:configure.ac:45: -1- AC_SUBST([CXXCPP])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [The macro `AC_LANG_SAVE' is obsolete.
+You should run autoupdate.], [autoconf/lang.m4:166: AC_LANG_SAVE is expanded from...
+aclocal.m4:4063: _LT_AC_LANG_GCJ_CONFIG is expanded from...
+aclocal.m4:4015: AC_LIBTOOL_LANG_GCJ_CONFIG is expanded from...
+aclocal.m4:1909: _LT_AC_TAGCONFIG is expanded from...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [instead of using `AC_LANG', `AC_LANG_SAVE',
+and `AC_LANG_RESTORE', you should use `AC_LANG_PUSH' and `AC_LANG_POP'.], [autoconf/lang.m4:166: AC_LANG_SAVE is expanded from...
+aclocal.m4:4063: _LT_AC_LANG_GCJ_CONFIG is expanded from...
+aclocal.m4:4015: AC_LIBTOOL_LANG_GCJ_CONFIG is expanded from...
+aclocal.m4:1909: _LT_AC_TAGCONFIG is expanded from...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [The macro `AC_LANG_RESTORE' is obsolete.
+You should run autoupdate.], [autoconf/lang.m4:172: AC_LANG_RESTORE is expanded from...
+aclocal.m4:4063: _LT_AC_LANG_GCJ_CONFIG is expanded from...
+aclocal.m4:4015: AC_LIBTOOL_LANG_GCJ_CONFIG is expanded from...
+aclocal.m4:1909: _LT_AC_TAGCONFIG is expanded from...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [The macro `AC_LANG_SAVE' is obsolete.
+You should run autoupdate.], [autoconf/lang.m4:166: AC_LANG_SAVE is expanded from...
+aclocal.m4:4107: _LT_AC_LANG_RC_CONFIG is expanded from...
+aclocal.m4:4071: AC_LIBTOOL_LANG_RC_CONFIG is expanded from...
+aclocal.m4:1909: _LT_AC_TAGCONFIG is expanded from...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [instead of using `AC_LANG', `AC_LANG_SAVE',
+and `AC_LANG_RESTORE', you should use `AC_LANG_PUSH' and `AC_LANG_POP'.], [autoconf/lang.m4:166: AC_LANG_SAVE is expanded from...
+aclocal.m4:4107: _LT_AC_LANG_RC_CONFIG is expanded from...
+aclocal.m4:4071: AC_LIBTOOL_LANG_RC_CONFIG is expanded from...
+aclocal.m4:1909: _LT_AC_TAGCONFIG is expanded from...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- _m4_warn([obsolete], [The macro `AC_LANG_RESTORE' is obsolete.
+You should run autoupdate.], [autoconf/lang.m4:172: AC_LANG_RESTORE is expanded from...
+aclocal.m4:4107: _LT_AC_LANG_RC_CONFIG is expanded from...
+aclocal.m4:4071: AC_LIBTOOL_LANG_RC_CONFIG is expanded from...
+aclocal.m4:1909: _LT_AC_TAGCONFIG is expanded from...
+aclocal.m4:226: AC_LIBTOOL_SETUP is expanded from...
+configure.ac:45: AC_LIBTOOL_SETUP is required by...
+aclocal.m4:81: _AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: _AC_PROG_LIBTOOL is required by...
+aclocal.m4:61: AC_PROG_LIBTOOL is expanded from...
+configure.ac:45: the top level])
+m4trace:configure.ac:45: -1- AC_SUBST([LIBTOOL])
+m4trace:configure.ac:49: -1- AC_SUBST([M4])
+m4trace:configure.ac:57: -2- AC_SUBST([DOXYGEN])
+m4trace:configure.ac:59: -2- AC_SUBST([DOXYGEN])
+m4trace:configure.ac:67: -1- AC_SUBST([HAVE_DOXYGEN], [$HAVE_DOXYGEN])
+m4trace:configure.ac:68: -1- AC_SUBST([DOXYGEN], [$DOXYGEN])
+m4trace:configure.ac:69: -1- AC_SUBST([DOXYGEN_PATH], [$DOXYGEN_PATH])
+m4trace:configure.ac:74: -2- AC_SUBST([DOT])
+m4trace:configure.ac:76: -2- AC_SUBST([DOT])
+m4trace:configure.ac:84: -1- AC_SUBST([HAVE_DOT], [$HAVE_DOT])
+m4trace:configure.ac:85: -1- AC_SUBST([DOT], [$DOT])
+m4trace:configure.ac:86: -1- AC_SUBST([DOT_PATH], [$DOT_PATH])
+m4trace:configure.ac:95: -1- _m4_warn([obsolete], [The macro `AC_HELP_STRING' is obsolete.
+You should run autoupdate.], [autoconf/general.m4:219: AC_HELP_STRING is expanded from...
+autoconf/general.m4:1331: AC_ARG_WITH is expanded from...
+m4/acx_blas.m4:153: ACX_BLAS is expanded from...
+configure.ac:95: the top level])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([atlas], [ATL_xerbla], [AC_CHECK_LIB(f77blas, $sgemm,
+		[AC_CHECK_LIB(cblas, cblas_dgemm,
+			[acx_blas_ok=yes
+			 BLAS_LIBS="-lcblas -lf77blas -latlas"],
+			[], [-lf77blas -latlas])],
+			[], [-latlas])])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([f77blas], [$sgemm], [AC_CHECK_LIB(cblas, cblas_dgemm,
+			[acx_blas_ok=yes
+			 BLAS_LIBS="-lcblas -lf77blas -latlas"],
+			[], [-lf77blas -latlas])], [], [-latlas])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([cblas], [cblas_dgemm], [acx_blas_ok=yes
+			 BLAS_LIBS="-lcblas -lf77blas -latlas"], [], [-lf77blas -latlas])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([blas], [$sgemm], [AC_CHECK_LIB(dgemm, $dgemm,
+		[AC_CHECK_LIB(sgemm, $sgemm,
+			[acx_blas_ok=yes; BLAS_LIBS="-lsgemm -ldgemm -lblas"],
+			[], [-lblas])],
+			[], [-lblas])])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([dgemm], [$dgemm], [AC_CHECK_LIB(sgemm, $sgemm,
+			[acx_blas_ok=yes; BLAS_LIBS="-lsgemm -ldgemm -lblas"],
+			[], [-lblas])], [], [-lblas])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([sgemm], [$sgemm], [acx_blas_ok=yes; BLAS_LIBS="-lsgemm -ldgemm -lblas"], [], [-lblas])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([cxml], [$sgemm], [acx_blas_ok=yes;BLAS_LIBS="-lcxml"])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([dxml], [$sgemm], [acx_blas_ok=yes;BLAS_LIBS="-ldxml"])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([sunmath], [acosp], [AC_CHECK_LIB(sunperf, $sgemm,
+        			[BLAS_LIBS="-xlic_lib=sunperf -lsunmath"
+                                 acx_blas_ok=yes],[],[-lsunmath])])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([sunperf], [$sgemm], [BLAS_LIBS="-xlic_lib=sunperf -lsunmath"
+                                 acx_blas_ok=yes], [], [-lsunmath])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([scs], [$sgemm], [acx_blas_ok=yes; BLAS_LIBS="-lscs"])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([complib.sgimath], [$sgemm], [acx_blas_ok=yes; BLAS_LIBS="-lcomplib.sgimath"])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([blas], [$sgemm], [AC_CHECK_LIB(essl, $sgemm,
+			[acx_blas_ok=yes; BLAS_LIBS="-lessl -lblas"],
+			[], [-lblas $FLIBS])])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([essl], [$sgemm], [acx_blas_ok=yes; BLAS_LIBS="-lessl -lblas"], [], [-lblas $FLIBS])
+m4trace:configure.ac:95: -1- AC_CHECK_LIB([blas], [$sgemm], [acx_blas_ok=yes; BLAS_LIBS="-lblas"])
+m4trace:configure.ac:95: -1- AC_SUBST([BLAS_LIBS])
+m4trace:configure.ac:95: -2- AC_DEFINE_TRACE_LITERAL([HAVE_BLAS])
+m4trace:configure.ac:95: -2- AH_OUTPUT([HAVE_BLAS], [/* Define if you have a BLAS library. */
+#undef HAVE_BLAS])
+m4trace:configure.ac:96: -1- _m4_warn([obsolete], [The macro `AC_HELP_STRING' is obsolete.
+You should run autoupdate.], [autoconf/general.m4:219: AC_HELP_STRING is expanded from...
+autoconf/general.m4:1331: AC_ARG_WITH is expanded from...
+m4/acx_lapack.m4:95: ACX_LAPACK is expanded from...
+configure.ac:96: the top level])
+m4trace:configure.ac:96: -1- AC_CHECK_LIB([$lapack], [$cheev], [acx_lapack_ok=yes; LAPACK_LIBS="-l$lapack"], [], [$FLIBS])
+m4trace:configure.ac:96: -1- AC_SUBST([LAPACK_LIBS])
+m4trace:configure.ac:96: -2- AC_DEFINE_TRACE_LITERAL([HAVE_LAPACK])
+m4trace:configure.ac:96: -2- AH_OUTPUT([HAVE_LAPACK], [/* Define if you have LAPACK library. */
+#undef HAVE_LAPACK])
+m4trace:configure.ac:120: -1- AC_CHECK_LIB([HYPRE_utilities], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_utilities" >&5
+echo "$as_me: WARNING: could not find libHYPRE_utilities" >&2;}])
+m4trace:configure.ac:120: -1- AH_OUTPUT([HAVE_LIBHYPRE_UTILITIES], [/* Define to 1 if you have the `HYPRE_utilities\' library (-lHYPRE_utilities).
+   */
+#undef HAVE_LIBHYPRE_UTILITIES])
+m4trace:configure.ac:120: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_UTILITIES])
+m4trace:configure.ac:121: -1- AC_CHECK_LIB([HYPRE_multivector], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_multivector" >&5
+echo "$as_me: WARNING: could not find libHYPRE_multivector" >&2;}])
+m4trace:configure.ac:121: -1- AH_OUTPUT([HAVE_LIBHYPRE_MULTIVECTOR], [/* Define to 1 if you have the `HYPRE_multivector\' library
+   (-lHYPRE_multivector). */
+#undef HAVE_LIBHYPRE_MULTIVECTOR])
+m4trace:configure.ac:121: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_MULTIVECTOR])
+m4trace:configure.ac:122: -1- AC_CHECK_LIB([HYPRE_krylov], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_krylov" >&5
+echo "$as_me: WARNING: could not find libHYPRE_krylov" >&2;}])
+m4trace:configure.ac:122: -1- AH_OUTPUT([HAVE_LIBHYPRE_KRYLOV], [/* Define to 1 if you have the `HYPRE_krylov\' library (-lHYPRE_krylov). */
+#undef HAVE_LIBHYPRE_KRYLOV])
+m4trace:configure.ac:122: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_KRYLOV])
+m4trace:configure.ac:123: -1- AC_CHECK_LIB([HYPRE_seq_mv], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_seq_mv" >&5
+echo "$as_me: WARNING: could not find libHYPRE_seq_mv" >&2;}])
+m4trace:configure.ac:123: -1- AH_OUTPUT([HAVE_LIBHYPRE_SEQ_MV], [/* Define to 1 if you have the `HYPRE_seq_mv\' library (-lHYPRE_seq_mv). */
+#undef HAVE_LIBHYPRE_SEQ_MV])
+m4trace:configure.ac:123: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_SEQ_MV])
+m4trace:configure.ac:124: -1- AC_CHECK_LIB([HYPRE_parcsr_mv], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_parcsr_mv" >&5
+echo "$as_me: WARNING: could not find libHYPRE_parcsr_mv" >&2;}])
+m4trace:configure.ac:124: -1- AH_OUTPUT([HAVE_LIBHYPRE_PARCSR_MV], [/* Define to 1 if you have the `HYPRE_parcsr_mv\' library (-lHYPRE_parcsr_mv).
+   */
+#undef HAVE_LIBHYPRE_PARCSR_MV])
+m4trace:configure.ac:124: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_PARCSR_MV])
+m4trace:configure.ac:125: -1- AC_CHECK_LIB([HYPRE_IJ_mv], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_IJ_mv" >&5
+echo "$as_me: WARNING: could not find libHYPRE_IJ_mv" >&2;}])
+m4trace:configure.ac:125: -1- AH_OUTPUT([HAVE_LIBHYPRE_IJ_MV], [/* Define to 1 if you have the `HYPRE_IJ_mv\' library (-lHYPRE_IJ_mv). */
+#undef HAVE_LIBHYPRE_IJ_MV])
+m4trace:configure.ac:125: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_IJ_MV])
+m4trace:configure.ac:126: -1- AC_CHECK_LIB([HYPRE_DistributedMatrix], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_DistributedMatrix" >&5
+echo "$as_me: WARNING: could not find libHYPRE_DistributedMatrix" >&2;}])
+m4trace:configure.ac:126: -1- AH_OUTPUT([HAVE_LIBHYPRE_DISTRIBUTEDMATRIX], [/* Define to 1 if you have the `HYPRE_DistributedMatrix\' library
+   (-lHYPRE_DistributedMatrix). */
+#undef HAVE_LIBHYPRE_DISTRIBUTEDMATRIX])
+m4trace:configure.ac:126: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_DISTRIBUTEDMATRIX])
+m4trace:configure.ac:127: -1- AC_CHECK_LIB([HYPRE_MatrixMatrix], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_MatrixMatrix" >&5
+echo "$as_me: WARNING: could not find libHYPRE_MatrixMatrix" >&2;}])
+m4trace:configure.ac:127: -1- AH_OUTPUT([HAVE_LIBHYPRE_MATRIXMATRIX], [/* Define to 1 if you have the `HYPRE_MatrixMatrix\' library
+   (-lHYPRE_MatrixMatrix). */
+#undef HAVE_LIBHYPRE_MATRIXMATRIX])
+m4trace:configure.ac:127: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_MATRIXMATRIX])
+m4trace:configure.ac:128: -1- AC_CHECK_LIB([HYPRE_Euclid], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_Euclid" >&5
+echo "$as_me: WARNING: could not find libHYPRE_Euclid" >&2;}])
+m4trace:configure.ac:128: -1- AH_OUTPUT([HAVE_LIBHYPRE_EUCLID], [/* Define to 1 if you have the `HYPRE_Euclid\' library (-lHYPRE_Euclid). */
+#undef HAVE_LIBHYPRE_EUCLID])
+m4trace:configure.ac:128: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_EUCLID])
+m4trace:configure.ac:129: -1- AC_CHECK_LIB([HYPRE_ParaSails], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_ParaSails" >&5
+echo "$as_me: WARNING: could not find libHYPRE_ParaSails" >&2;}])
+m4trace:configure.ac:129: -1- AH_OUTPUT([HAVE_LIBHYPRE_PARASAILS], [/* Define to 1 if you have the `HYPRE_ParaSails\' library (-lHYPRE_ParaSails).
+   */
+#undef HAVE_LIBHYPRE_PARASAILS])
+m4trace:configure.ac:129: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_PARASAILS])
+m4trace:configure.ac:130: -1- AC_CHECK_LIB([HYPRE_DistributedMatrixPilutSolver], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_DistributedMatrixPilutSolver" >&5
+echo "$as_me: WARNING: could not find libHYPRE_DistributedMatrixPilutSolver" >&2;}])
+m4trace:configure.ac:130: -1- AH_OUTPUT([HAVE_LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER], [/* Define to 1 if you have the `HYPRE_DistributedMatrixPilutSolver\' library
+   (-lHYPRE_DistributedMatrixPilutSolver). */
+#undef HAVE_LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER])
+m4trace:configure.ac:130: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER])
+m4trace:configure.ac:131: -1- AC_CHECK_LIB([HYPRE_parcsr_block_mv], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_parcsr_block_mv" >&5
+echo "$as_me: WARNING: could not find libHYPRE_parcsr_block_mv" >&2;}])
+m4trace:configure.ac:131: -1- AH_OUTPUT([HAVE_LIBHYPRE_PARCSR_BLOCK_MV], [/* Define to 1 if you have the `HYPRE_parcsr_block_mv\' library
+   (-lHYPRE_parcsr_block_mv). */
+#undef HAVE_LIBHYPRE_PARCSR_BLOCK_MV])
+m4trace:configure.ac:131: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_PARCSR_BLOCK_MV])
+m4trace:configure.ac:132: -1- AC_CHECK_LIB([HYPRE_parcsr_ls], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_parcsr_ls" >&5
+echo "$as_me: WARNING: could not find libHYPRE_parcsr_ls" >&2;}])
+m4trace:configure.ac:132: -1- AH_OUTPUT([HAVE_LIBHYPRE_PARCSR_LS], [/* Define to 1 if you have the `HYPRE_parcsr_ls\' library (-lHYPRE_parcsr_ls).
+   */
+#undef HAVE_LIBHYPRE_PARCSR_LS])
+m4trace:configure.ac:132: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_PARCSR_LS])
+m4trace:configure.ac:133: -1- AC_CHECK_LIB([HYPRE_struct_mv], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_struct_mv" >&5
+echo "$as_me: WARNING: could not find libHYPRE_struct_mv" >&2;}])
+m4trace:configure.ac:133: -1- AH_OUTPUT([HAVE_LIBHYPRE_STRUCT_MV], [/* Define to 1 if you have the `HYPRE_struct_mv\' library (-lHYPRE_struct_mv).
+   */
+#undef HAVE_LIBHYPRE_STRUCT_MV])
+m4trace:configure.ac:133: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_STRUCT_MV])
+m4trace:configure.ac:134: -1- AC_CHECK_LIB([HYPRE_struct_ls], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_struct_ls" >&5
+echo "$as_me: WARNING: could not find libHYPRE_struct_ls" >&2;}])
+m4trace:configure.ac:134: -1- AH_OUTPUT([HAVE_LIBHYPRE_STRUCT_LS], [/* Define to 1 if you have the `HYPRE_struct_ls\' library (-lHYPRE_struct_ls).
+   */
+#undef HAVE_LIBHYPRE_STRUCT_LS])
+m4trace:configure.ac:134: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_STRUCT_LS])
+m4trace:configure.ac:135: -1- AC_CHECK_LIB([HYPRE_sstruct_mv], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_sstruct_mv" >&5
+echo "$as_me: WARNING: could not find libHYPRE_sstruct_mv" >&2;}])
+m4trace:configure.ac:135: -1- AH_OUTPUT([HAVE_LIBHYPRE_SSTRUCT_MV], [/* Define to 1 if you have the `HYPRE_sstruct_mv\' library
+   (-lHYPRE_sstruct_mv). */
+#undef HAVE_LIBHYPRE_SSTRUCT_MV])
+m4trace:configure.ac:135: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_SSTRUCT_MV])
+m4trace:configure.ac:136: -1- AC_CHECK_LIB([HYPRE_sstruct_ls], [hypre_CAlloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libHYPRE_sstruct_ls" >&5
+echo "$as_me: WARNING: could not find libHYPRE_sstruct_ls" >&2;}])
+m4trace:configure.ac:136: -1- AH_OUTPUT([HAVE_LIBHYPRE_SSTRUCT_LS], [/* Define to 1 if you have the `HYPRE_sstruct_ls\' library
+   (-lHYPRE_sstruct_ls). */
+#undef HAVE_LIBHYPRE_SSTRUCT_LS])
+m4trace:configure.ac:136: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHYPRE_SSTRUCT_LS])
+m4trace:configure.ac:158: -1- AC_SUBST([SAMRAI_DIR], [${SAMRAI_DIR}])
+m4trace:configure.ac:159: -1- AC_SUBST([SAMRAI_FORTDIR], [${SAMRAI_DIR}/include])
+m4trace:configure.ac:162: -1- AC_CHECK_LIB([SAMRAI], [main])
+m4trace:configure.ac:162: -1- AH_OUTPUT([HAVE_LIBSAMRAI], [/* Define to 1 if you have the `SAMRAI\' library (-lSAMRAI). */
+#undef HAVE_LIBSAMRAI])
+m4trace:configure.ac:162: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI])
+m4trace:configure.ac:169: -1- AC_CHECK_LIB([SAMRAI1d_hier], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI1d_hier" >&5
+echo "$as_me: WARNING: could not find libSAMRAI1d_hier" >&2;}])
+m4trace:configure.ac:169: -1- AH_OUTPUT([HAVE_LIBSAMRAI1D_HIER], [/* Define to 1 if you have the `SAMRAI1d_hier\' library (-lSAMRAI1d_hier). */
+#undef HAVE_LIBSAMRAI1D_HIER])
+m4trace:configure.ac:169: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI1D_HIER])
+m4trace:configure.ac:170: -1- AC_CHECK_LIB([SAMRAI1d_xfer], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI1d_xfer" >&5
+echo "$as_me: WARNING: could not find libSAMRAI1d_xfer" >&2;}])
+m4trace:configure.ac:170: -1- AH_OUTPUT([HAVE_LIBSAMRAI1D_XFER], [/* Define to 1 if you have the `SAMRAI1d_xfer\' library (-lSAMRAI1d_xfer). */
+#undef HAVE_LIBSAMRAI1D_XFER])
+m4trace:configure.ac:170: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI1D_XFER])
+m4trace:configure.ac:171: -1- AC_CHECK_LIB([SAMRAI1d_pdat_special], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI1d_pdat_special" >&5
+echo "$as_me: WARNING: could not find libSAMRAI1d_pdat_special" >&2;}])
+m4trace:configure.ac:171: -1- AH_OUTPUT([HAVE_LIBSAMRAI1D_PDAT_SPECIAL], [/* Define to 1 if you have the `SAMRAI1d_pdat_special\' library
+   (-lSAMRAI1d_pdat_special). */
+#undef HAVE_LIBSAMRAI1D_PDAT_SPECIAL])
+m4trace:configure.ac:171: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI1D_PDAT_SPECIAL])
+m4trace:configure.ac:172: -1- AC_CHECK_LIB([SAMRAI1d_pdat_std], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI1d_pdat_std" >&5
+echo "$as_me: WARNING: could not find libSAMRAI1d_pdat_std" >&2;}])
+m4trace:configure.ac:172: -1- AH_OUTPUT([HAVE_LIBSAMRAI1D_PDAT_STD], [/* Define to 1 if you have the `SAMRAI1d_pdat_std\' library
+   (-lSAMRAI1d_pdat_std). */
+#undef HAVE_LIBSAMRAI1D_PDAT_STD])
+m4trace:configure.ac:172: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI1D_PDAT_STD])
+m4trace:configure.ac:173: -1- AC_CHECK_LIB([SAMRAI1d_math_special], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI1d_math_special" >&5
+echo "$as_me: WARNING: could not find libSAMRAI1d_math_special" >&2;}])
+m4trace:configure.ac:173: -1- AH_OUTPUT([HAVE_LIBSAMRAI1D_MATH_SPECIAL], [/* Define to 1 if you have the `SAMRAI1d_math_special\' library
+   (-lSAMRAI1d_math_special). */
+#undef HAVE_LIBSAMRAI1D_MATH_SPECIAL])
+m4trace:configure.ac:173: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI1D_MATH_SPECIAL])
+m4trace:configure.ac:174: -1- AC_CHECK_LIB([SAMRAI1d_math_std], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI1d_math_std" >&5
+echo "$as_me: WARNING: could not find libSAMRAI1d_math_std" >&2;}])
+m4trace:configure.ac:174: -1- AH_OUTPUT([HAVE_LIBSAMRAI1D_MATH_STD], [/* Define to 1 if you have the `SAMRAI1d_math_std\' library
+   (-lSAMRAI1d_math_std). */
+#undef HAVE_LIBSAMRAI1D_MATH_STD])
+m4trace:configure.ac:174: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI1D_MATH_STD])
+m4trace:configure.ac:175: -1- AC_CHECK_LIB([SAMRAI1d_mesh], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI1d_mesh" >&5
+echo "$as_me: WARNING: could not find libSAMRAI1d_mesh" >&2;}])
+m4trace:configure.ac:175: -1- AH_OUTPUT([HAVE_LIBSAMRAI1D_MESH], [/* Define to 1 if you have the `SAMRAI1d_mesh\' library (-lSAMRAI1d_mesh). */
+#undef HAVE_LIBSAMRAI1D_MESH])
+m4trace:configure.ac:175: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI1D_MESH])
+m4trace:configure.ac:176: -1- AC_CHECK_LIB([SAMRAI1d_mblk], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI1d_mblk" >&5
+echo "$as_me: WARNING: could not find libSAMRAI1d_mblk" >&2;}])
+m4trace:configure.ac:176: -1- AH_OUTPUT([HAVE_LIBSAMRAI1D_MBLK], [/* Define to 1 if you have the `SAMRAI1d_mblk\' library (-lSAMRAI1d_mblk). */
+#undef HAVE_LIBSAMRAI1D_MBLK])
+m4trace:configure.ac:176: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI1D_MBLK])
+m4trace:configure.ac:177: -1- AC_CHECK_LIB([SAMRAI1d_geom], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI1d_geom" >&5
+echo "$as_me: WARNING: could not find libSAMRAI1d_geom" >&2;}])
+m4trace:configure.ac:177: -1- AH_OUTPUT([HAVE_LIBSAMRAI1D_GEOM], [/* Define to 1 if you have the `SAMRAI1d_geom\' library (-lSAMRAI1d_geom). */
+#undef HAVE_LIBSAMRAI1D_GEOM])
+m4trace:configure.ac:177: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI1D_GEOM])
+m4trace:configure.ac:178: -1- AC_CHECK_LIB([SAMRAI1d_solv], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI1d_solv" >&5
+echo "$as_me: WARNING: could not find libSAMRAI1d_solv" >&2;}])
+m4trace:configure.ac:178: -1- AH_OUTPUT([HAVE_LIBSAMRAI1D_SOLV], [/* Define to 1 if you have the `SAMRAI1d_solv\' library (-lSAMRAI1d_solv). */
+#undef HAVE_LIBSAMRAI1D_SOLV])
+m4trace:configure.ac:178: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI1D_SOLV])
+m4trace:configure.ac:179: -1- AC_CHECK_LIB([SAMRAI1d_algs], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI1d_algs" >&5
+echo "$as_me: WARNING: could not find libSAMRAI1d_algs" >&2;}])
+m4trace:configure.ac:179: -1- AH_OUTPUT([HAVE_LIBSAMRAI1D_ALGS], [/* Define to 1 if you have the `SAMRAI1d_algs\' library (-lSAMRAI1d_algs). */
+#undef HAVE_LIBSAMRAI1D_ALGS])
+m4trace:configure.ac:179: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI1D_ALGS])
+m4trace:configure.ac:180: -1- AC_CHECK_LIB([SAMRAI1d_appu], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI1d_appu" >&5
+echo "$as_me: WARNING: could not find libSAMRAI1d_appu" >&2;}])
+m4trace:configure.ac:180: -1- AH_OUTPUT([HAVE_LIBSAMRAI1D_APPU], [/* Define to 1 if you have the `SAMRAI1d_appu\' library (-lSAMRAI1d_appu). */
+#undef HAVE_LIBSAMRAI1D_APPU])
+m4trace:configure.ac:180: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI1D_APPU])
+m4trace:configure.ac:190: -1- AC_CHECK_LIB([SAMRAI2d_hier], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI2d_hier" >&5
+echo "$as_me: WARNING: could not find libSAMRAI2d_hier" >&2;}])
+m4trace:configure.ac:190: -1- AH_OUTPUT([HAVE_LIBSAMRAI2D_HIER], [/* Define to 1 if you have the `SAMRAI2d_hier\' library (-lSAMRAI2d_hier). */
+#undef HAVE_LIBSAMRAI2D_HIER])
+m4trace:configure.ac:190: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI2D_HIER])
+m4trace:configure.ac:191: -1- AC_CHECK_LIB([SAMRAI2d_xfer], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI2d_xfer" >&5
+echo "$as_me: WARNING: could not find libSAMRAI2d_xfer" >&2;}])
+m4trace:configure.ac:191: -1- AH_OUTPUT([HAVE_LIBSAMRAI2D_XFER], [/* Define to 1 if you have the `SAMRAI2d_xfer\' library (-lSAMRAI2d_xfer). */
+#undef HAVE_LIBSAMRAI2D_XFER])
+m4trace:configure.ac:191: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI2D_XFER])
+m4trace:configure.ac:192: -1- AC_CHECK_LIB([SAMRAI2d_pdat_special], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI2d_pdat_special" >&5
+echo "$as_me: WARNING: could not find libSAMRAI2d_pdat_special" >&2;}])
+m4trace:configure.ac:192: -1- AH_OUTPUT([HAVE_LIBSAMRAI2D_PDAT_SPECIAL], [/* Define to 1 if you have the `SAMRAI2d_pdat_special\' library
+   (-lSAMRAI2d_pdat_special). */
+#undef HAVE_LIBSAMRAI2D_PDAT_SPECIAL])
+m4trace:configure.ac:192: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI2D_PDAT_SPECIAL])
+m4trace:configure.ac:193: -1- AC_CHECK_LIB([SAMRAI2d_pdat_std], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI2d_pdat_std" >&5
+echo "$as_me: WARNING: could not find libSAMRAI2d_pdat_std" >&2;}])
+m4trace:configure.ac:193: -1- AH_OUTPUT([HAVE_LIBSAMRAI2D_PDAT_STD], [/* Define to 1 if you have the `SAMRAI2d_pdat_std\' library
+   (-lSAMRAI2d_pdat_std). */
+#undef HAVE_LIBSAMRAI2D_PDAT_STD])
+m4trace:configure.ac:193: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI2D_PDAT_STD])
+m4trace:configure.ac:194: -1- AC_CHECK_LIB([SAMRAI2d_math_special], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI2d_math_special" >&5
+echo "$as_me: WARNING: could not find libSAMRAI2d_math_special" >&2;}])
+m4trace:configure.ac:194: -1- AH_OUTPUT([HAVE_LIBSAMRAI2D_MATH_SPECIAL], [/* Define to 1 if you have the `SAMRAI2d_math_special\' library
+   (-lSAMRAI2d_math_special). */
+#undef HAVE_LIBSAMRAI2D_MATH_SPECIAL])
+m4trace:configure.ac:194: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI2D_MATH_SPECIAL])
+m4trace:configure.ac:195: -1- AC_CHECK_LIB([SAMRAI2d_math_std], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI2d_math_std" >&5
+echo "$as_me: WARNING: could not find libSAMRAI2d_math_std" >&2;}])
+m4trace:configure.ac:195: -1- AH_OUTPUT([HAVE_LIBSAMRAI2D_MATH_STD], [/* Define to 1 if you have the `SAMRAI2d_math_std\' library
+   (-lSAMRAI2d_math_std). */
+#undef HAVE_LIBSAMRAI2D_MATH_STD])
+m4trace:configure.ac:195: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI2D_MATH_STD])
+m4trace:configure.ac:196: -1- AC_CHECK_LIB([SAMRAI2d_mesh], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI2d_mesh" >&5
+echo "$as_me: WARNING: could not find libSAMRAI2d_mesh" >&2;}])
+m4trace:configure.ac:196: -1- AH_OUTPUT([HAVE_LIBSAMRAI2D_MESH], [/* Define to 1 if you have the `SAMRAI2d_mesh\' library (-lSAMRAI2d_mesh). */
+#undef HAVE_LIBSAMRAI2D_MESH])
+m4trace:configure.ac:196: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI2D_MESH])
+m4trace:configure.ac:197: -1- AC_CHECK_LIB([SAMRAI2d_mblk], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI2d_mblk" >&5
+echo "$as_me: WARNING: could not find libSAMRAI2d_mblk" >&2;}])
+m4trace:configure.ac:197: -1- AH_OUTPUT([HAVE_LIBSAMRAI2D_MBLK], [/* Define to 1 if you have the `SAMRAI2d_mblk\' library (-lSAMRAI2d_mblk). */
+#undef HAVE_LIBSAMRAI2D_MBLK])
+m4trace:configure.ac:197: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI2D_MBLK])
+m4trace:configure.ac:198: -1- AC_CHECK_LIB([SAMRAI2d_geom], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI2d_geom" >&5
+echo "$as_me: WARNING: could not find libSAMRAI2d_geom" >&2;}])
+m4trace:configure.ac:198: -1- AH_OUTPUT([HAVE_LIBSAMRAI2D_GEOM], [/* Define to 1 if you have the `SAMRAI2d_geom\' library (-lSAMRAI2d_geom). */
+#undef HAVE_LIBSAMRAI2D_GEOM])
+m4trace:configure.ac:198: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI2D_GEOM])
+m4trace:configure.ac:199: -1- AC_CHECK_LIB([SAMRAI2d_solv], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI2d_solv" >&5
+echo "$as_me: WARNING: could not find libSAMRAI2d_solv" >&2;}])
+m4trace:configure.ac:199: -1- AH_OUTPUT([HAVE_LIBSAMRAI2D_SOLV], [/* Define to 1 if you have the `SAMRAI2d_solv\' library (-lSAMRAI2d_solv). */
+#undef HAVE_LIBSAMRAI2D_SOLV])
+m4trace:configure.ac:199: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI2D_SOLV])
+m4trace:configure.ac:200: -1- AC_CHECK_LIB([SAMRAI2d_algs], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI2d_algs" >&5
+echo "$as_me: WARNING: could not find libSAMRAI2d_algs" >&2;}])
+m4trace:configure.ac:200: -1- AH_OUTPUT([HAVE_LIBSAMRAI2D_ALGS], [/* Define to 1 if you have the `SAMRAI2d_algs\' library (-lSAMRAI2d_algs). */
+#undef HAVE_LIBSAMRAI2D_ALGS])
+m4trace:configure.ac:200: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI2D_ALGS])
+m4trace:configure.ac:201: -1- AC_CHECK_LIB([SAMRAI2d_appu], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI2d_appu" >&5
+echo "$as_me: WARNING: could not find libSAMRAI2d_appu" >&2;}])
+m4trace:configure.ac:201: -1- AH_OUTPUT([HAVE_LIBSAMRAI2D_APPU], [/* Define to 1 if you have the `SAMRAI2d_appu\' library (-lSAMRAI2d_appu). */
+#undef HAVE_LIBSAMRAI2D_APPU])
+m4trace:configure.ac:201: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI2D_APPU])
+m4trace:configure.ac:211: -1- AC_CHECK_LIB([SAMRAI3d_hier], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI3d_hier" >&5
+echo "$as_me: WARNING: could not find libSAMRAI3d_hier" >&2;}])
+m4trace:configure.ac:211: -1- AH_OUTPUT([HAVE_LIBSAMRAI3D_HIER], [/* Define to 1 if you have the `SAMRAI3d_hier\' library (-lSAMRAI3d_hier). */
+#undef HAVE_LIBSAMRAI3D_HIER])
+m4trace:configure.ac:211: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI3D_HIER])
+m4trace:configure.ac:212: -1- AC_CHECK_LIB([SAMRAI3d_xfer], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI3d_xfer" >&5
+echo "$as_me: WARNING: could not find libSAMRAI3d_xfer" >&2;}])
+m4trace:configure.ac:212: -1- AH_OUTPUT([HAVE_LIBSAMRAI3D_XFER], [/* Define to 1 if you have the `SAMRAI3d_xfer\' library (-lSAMRAI3d_xfer). */
+#undef HAVE_LIBSAMRAI3D_XFER])
+m4trace:configure.ac:212: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI3D_XFER])
+m4trace:configure.ac:213: -1- AC_CHECK_LIB([SAMRAI3d_pdat_special], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI3d_pdat_special" >&5
+echo "$as_me: WARNING: could not find libSAMRAI3d_pdat_special" >&2;}])
+m4trace:configure.ac:213: -1- AH_OUTPUT([HAVE_LIBSAMRAI3D_PDAT_SPECIAL], [/* Define to 1 if you have the `SAMRAI3d_pdat_special\' library
+   (-lSAMRAI3d_pdat_special). */
+#undef HAVE_LIBSAMRAI3D_PDAT_SPECIAL])
+m4trace:configure.ac:213: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI3D_PDAT_SPECIAL])
+m4trace:configure.ac:214: -1- AC_CHECK_LIB([SAMRAI3d_pdat_std], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI3d_pdat_std" >&5
+echo "$as_me: WARNING: could not find libSAMRAI3d_pdat_std" >&2;}])
+m4trace:configure.ac:214: -1- AH_OUTPUT([HAVE_LIBSAMRAI3D_PDAT_STD], [/* Define to 1 if you have the `SAMRAI3d_pdat_std\' library
+   (-lSAMRAI3d_pdat_std). */
+#undef HAVE_LIBSAMRAI3D_PDAT_STD])
+m4trace:configure.ac:214: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI3D_PDAT_STD])
+m4trace:configure.ac:215: -1- AC_CHECK_LIB([SAMRAI3d_math_special], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI3d_math_special" >&5
+echo "$as_me: WARNING: could not find libSAMRAI3d_math_special" >&2;}])
+m4trace:configure.ac:215: -1- AH_OUTPUT([HAVE_LIBSAMRAI3D_MATH_SPECIAL], [/* Define to 1 if you have the `SAMRAI3d_math_special\' library
+   (-lSAMRAI3d_math_special). */
+#undef HAVE_LIBSAMRAI3D_MATH_SPECIAL])
+m4trace:configure.ac:215: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI3D_MATH_SPECIAL])
+m4trace:configure.ac:216: -1- AC_CHECK_LIB([SAMRAI3d_math_std], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI3d_math_std" >&5
+echo "$as_me: WARNING: could not find libSAMRAI3d_math_std" >&2;}])
+m4trace:configure.ac:216: -1- AH_OUTPUT([HAVE_LIBSAMRAI3D_MATH_STD], [/* Define to 1 if you have the `SAMRAI3d_math_std\' library
+   (-lSAMRAI3d_math_std). */
+#undef HAVE_LIBSAMRAI3D_MATH_STD])
+m4trace:configure.ac:216: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI3D_MATH_STD])
+m4trace:configure.ac:217: -1- AC_CHECK_LIB([SAMRAI3d_mesh], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI3d_mesh" >&5
+echo "$as_me: WARNING: could not find libSAMRAI3d_mesh" >&2;}])
+m4trace:configure.ac:217: -1- AH_OUTPUT([HAVE_LIBSAMRAI3D_MESH], [/* Define to 1 if you have the `SAMRAI3d_mesh\' library (-lSAMRAI3d_mesh). */
+#undef HAVE_LIBSAMRAI3D_MESH])
+m4trace:configure.ac:217: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI3D_MESH])
+m4trace:configure.ac:218: -1- AC_CHECK_LIB([SAMRAI3d_mblk], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI3d_mblk" >&5
+echo "$as_me: WARNING: could not find libSAMRAI3d_mblk" >&2;}])
+m4trace:configure.ac:218: -1- AH_OUTPUT([HAVE_LIBSAMRAI3D_MBLK], [/* Define to 1 if you have the `SAMRAI3d_mblk\' library (-lSAMRAI3d_mblk). */
+#undef HAVE_LIBSAMRAI3D_MBLK])
+m4trace:configure.ac:218: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI3D_MBLK])
+m4trace:configure.ac:219: -1- AC_CHECK_LIB([SAMRAI3d_geom], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI3d_geom" >&5
+echo "$as_me: WARNING: could not find libSAMRAI3d_geom" >&2;}])
+m4trace:configure.ac:219: -1- AH_OUTPUT([HAVE_LIBSAMRAI3D_GEOM], [/* Define to 1 if you have the `SAMRAI3d_geom\' library (-lSAMRAI3d_geom). */
+#undef HAVE_LIBSAMRAI3D_GEOM])
+m4trace:configure.ac:219: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI3D_GEOM])
+m4trace:configure.ac:220: -1- AC_CHECK_LIB([SAMRAI3d_solv], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI3d_solv" >&5
+echo "$as_me: WARNING: could not find libSAMRAI3d_solv" >&2;}])
+m4trace:configure.ac:220: -1- AH_OUTPUT([HAVE_LIBSAMRAI3D_SOLV], [/* Define to 1 if you have the `SAMRAI3d_solv\' library (-lSAMRAI3d_solv). */
+#undef HAVE_LIBSAMRAI3D_SOLV])
+m4trace:configure.ac:220: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI3D_SOLV])
+m4trace:configure.ac:221: -1- AC_CHECK_LIB([SAMRAI3d_algs], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI3d_algs" >&5
+echo "$as_me: WARNING: could not find libSAMRAI3d_algs" >&2;}])
+m4trace:configure.ac:221: -1- AH_OUTPUT([HAVE_LIBSAMRAI3D_ALGS], [/* Define to 1 if you have the `SAMRAI3d_algs\' library (-lSAMRAI3d_algs). */
+#undef HAVE_LIBSAMRAI3D_ALGS])
+m4trace:configure.ac:221: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI3D_ALGS])
+m4trace:configure.ac:222: -1- AC_CHECK_LIB([SAMRAI3d_appu], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libSAMRAI3d_appu" >&5
+echo "$as_me: WARNING: could not find libSAMRAI3d_appu" >&2;}])
+m4trace:configure.ac:222: -1- AH_OUTPUT([HAVE_LIBSAMRAI3D_APPU], [/* Define to 1 if you have the `SAMRAI3d_appu\' library (-lSAMRAI3d_appu). */
+#undef HAVE_LIBSAMRAI3D_APPU])
+m4trace:configure.ac:222: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSAMRAI3D_APPU])
+m4trace:configure.ac:232: -1- AC_SUBST([PETSC_DIR])
+m4trace:configure.ac:233: -1- AC_SUBST([PETSC_ARCH])
+m4trace:configure.ac:243: -1- AC_SUBST([PETSC_DIR], [$PETSC_DIR])
+m4trace:configure.ac:244: -1- AC_SUBST([PETSC_ARCH], [$PETSC_ARCH])
+m4trace:configure.ac:259: -1- AC_CHECK_LIB([petsc], [PetscTrMalloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libpetsc" >&5
+echo "$as_me: WARNING: could not find libpetsc" >&2;}])
+m4trace:configure.ac:259: -1- AH_OUTPUT([HAVE_LIBPETSC], [/* Define to 1 if you have the `petsc\' library (-lpetsc). */
+#undef HAVE_LIBPETSC])
+m4trace:configure.ac:259: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBPETSC])
+m4trace:configure.ac:260: -1- AC_CHECK_LIB([petscvec], [PetscTrMalloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libpetscvec" >&5
+echo "$as_me: WARNING: could not find libpetscvec" >&2;}])
+m4trace:configure.ac:260: -1- AH_OUTPUT([HAVE_LIBPETSCVEC], [/* Define to 1 if you have the `petscvec\' library (-lpetscvec). */
+#undef HAVE_LIBPETSCVEC])
+m4trace:configure.ac:260: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBPETSCVEC])
+m4trace:configure.ac:261: -1- AC_CHECK_LIB([petscmat], [PetscTrMalloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libpetscmat" >&5
+echo "$as_me: WARNING: could not find libpetscmat" >&2;}])
+m4trace:configure.ac:261: -1- AH_OUTPUT([HAVE_LIBPETSCMAT], [/* Define to 1 if you have the `petscmat\' library (-lpetscmat). */
+#undef HAVE_LIBPETSCMAT])
+m4trace:configure.ac:261: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBPETSCMAT])
+m4trace:configure.ac:262: -1- AC_CHECK_LIB([petscdm], [PetscTrMalloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libpetscdm" >&5
+echo "$as_me: WARNING: could not find libpetscdm" >&2;}])
+m4trace:configure.ac:262: -1- AH_OUTPUT([HAVE_LIBPETSCDM], [/* Define to 1 if you have the `petscdm\' library (-lpetscdm). */
+#undef HAVE_LIBPETSCDM])
+m4trace:configure.ac:262: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBPETSCDM])
+m4trace:configure.ac:263: -1- AC_CHECK_LIB([petscksp], [PetscTrMalloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libpetscksp" >&5
+echo "$as_me: WARNING: could not find libpetscksp" >&2;}])
+m4trace:configure.ac:263: -1- AH_OUTPUT([HAVE_LIBPETSCKSP], [/* Define to 1 if you have the `petscksp\' library (-lpetscksp). */
+#undef HAVE_LIBPETSCKSP])
+m4trace:configure.ac:263: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBPETSCKSP])
+m4trace:configure.ac:264: -1- AC_CHECK_LIB([petscsnes], [PetscTrMalloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libpetscsnes" >&5
+echo "$as_me: WARNING: could not find libpetscsnes" >&2;}])
+m4trace:configure.ac:264: -1- AH_OUTPUT([HAVE_LIBPETSCSNES], [/* Define to 1 if you have the `petscsnes\' library (-lpetscsnes). */
+#undef HAVE_LIBPETSCSNES])
+m4trace:configure.ac:264: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBPETSCSNES])
+m4trace:configure.ac:265: -1- AC_CHECK_LIB([petscts], [PetscTrMalloc], [], [{ echo "$as_me:$LINENO: WARNING: could not find libpetscts" >&5
+echo "$as_me: WARNING: could not find libpetscts" >&2;}])
+m4trace:configure.ac:265: -1- AH_OUTPUT([HAVE_LIBPETSCTS], [/* Define to 1 if you have the `petscts\' library (-lpetscts). */
+#undef HAVE_LIBPETSCTS])
+m4trace:configure.ac:265: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBPETSCTS])
+m4trace:configure.ac:290: -2- AC_CHECK_LIB([z], [inflateEnd])
+m4trace:configure.ac:290: -2- AH_OUTPUT([HAVE_LIBZ], [/* Define to 1 if you have the `z\' library (-lz). */
+#undef HAVE_LIBZ])
+m4trace:configure.ac:290: -2- AC_DEFINE_TRACE_LITERAL([HAVE_LIBZ])
+m4trace:configure.ac:291: -2- AC_CHECK_LIB([hdf5], [H5open], [], [{ echo "$as_me:$LINENO: WARNING: could not find libhdf5" >&5
+echo "$as_me: WARNING: could not find libhdf5" >&2;}])
+m4trace:configure.ac:291: -2- AH_OUTPUT([HAVE_LIBHDF5], [/* Define to 1 if you have the `hdf5\' library (-lhdf5). */
+#undef HAVE_LIBHDF5])
+m4trace:configure.ac:291: -2- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHDF5])
+m4trace:configure.ac:291: -1- AC_CHECK_LIB([hdf5], [H5open], [], [echo "checking to see if we need to include zlib to use hdf5"
+  
+echo "$as_me:$LINENO: checking for inflateEnd in -lz" >&5
+echo $ECHO_N "checking for inflateEnd in -lz... $ECHO_C" >&6
+if test "${ac_cv_lib_z_inflateEnd+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lz  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char inflateEnd ();
+#ifdef F77_DUMMY_MAIN
+
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+
+#endif
+int
+main ()
+{
+inflateEnd ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_z_inflateEnd=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_z_inflateEnd=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_z_inflateEnd" >&5
+echo "${ECHO_T}$ac_cv_lib_z_inflateEnd" >&6
+if test $ac_cv_lib_z_inflateEnd = yes; then
+  cat >>confdefs.h <<_ACEOF
+@%:@define HAVE_LIBZ 1
+_ACEOF
+
+  LIBS="-lz $LIBS"
+
+fi
+
+  
+echo "$as_me:$LINENO: checking for H5open in -lhdf5" >&5
+echo $ECHO_N "checking for H5open in -lhdf5... $ECHO_C" >&6
+if test "${ac_cv_lib_hdf5_H5open+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lhdf5  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char H5open ();
+#ifdef F77_DUMMY_MAIN
+
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+
+#endif
+int
+main ()
+{
+H5open ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_hdf5_H5open=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_hdf5_H5open=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_hdf5_H5open" >&5
+echo "${ECHO_T}$ac_cv_lib_hdf5_H5open" >&6
+if test $ac_cv_lib_hdf5_H5open = yes; then
+  cat >>confdefs.h <<_ACEOF
+@%:@define HAVE_LIBHDF5 1
+_ACEOF
+
+  LIBS="-lhdf5 $LIBS"
+
+else
+  { echo "$as_me:$LINENO: WARNING: could not find libhdf5" >&5
+echo "$as_me: WARNING: could not find libhdf5" >&2;}
+fi
+])
+m4trace:configure.ac:291: -1- AH_OUTPUT([HAVE_LIBHDF5], [/* Define to 1 if you have the `hdf5\' library (-lhdf5). */
+#undef HAVE_LIBHDF5])
+m4trace:configure.ac:291: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBHDF5])
+m4trace:configure.ac:330: -1- AC_CHECK_LIB([blitz], [main], [], [{ echo "$as_me:$LINENO: WARNING: could not find libblitz" >&5
+echo "$as_me: WARNING: could not find libblitz" >&2;}])
+m4trace:configure.ac:330: -1- AH_OUTPUT([HAVE_LIBBLITZ], [/* Define to 1 if you have the `blitz\' library (-lblitz). */
+#undef HAVE_LIBBLITZ])
+m4trace:configure.ac:330: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBBLITZ])
+m4trace:configure.ac:373: -1- AC_CHECK_LIB([silo], [DBVersion], [], [{ echo "$as_me:$LINENO: WARNING: could not find libsilo" >&5
+echo "$as_me: WARNING: could not find libsilo" >&2;}])
+m4trace:configure.ac:373: -1- AH_OUTPUT([HAVE_LIBSILO], [/* Define to 1 if you have the `silo\' library (-lsilo). */
+#undef HAVE_LIBSILO])
+m4trace:configure.ac:373: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBSILO])
+m4trace:configure.ac:388: -1- AC_CONFIG_SUBDIRS([stools])
+m4trace:configure.ac:388: -1- AC_SUBST([subdirs], ["$subdirs stools"])
+m4trace:configure.ac:407: -1- AC_CONFIG_FILES([
+  Makefile
+  doc/Makefile doc/Doxyfile
+  src/Makefile src/fortran/Makefile
+  src/IB/Makefile
+  src/adv_diff/Makefile src/adv_diff/fortran/Makefile
+  src/advect/Makefile src/advect/fortran/Makefile
+  src/lagrangian/Makefile src/lagrangian/fortran/Makefile
+  src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile
+  src/utilities/Makefile src/utilities/get_version.C
+  src/tests/Makefile
+  src/tests/IB/Makefile
+  src/tests/IB_cylinder2d/Makefile
+  src/tests/IB_target/Makefile
+  src/tests/adv_diff/Makefile
+  src/tests/advect/Makefile
+  src/tests/navier_stokes_analytic_soln/Makefile
+  src/tests/navier_stokes_shear_layer/Makefile
+])
+m4trace:configure.ac:408: -1- AC_SUBST([LIB@&t@OBJS], [$ac_libobjs])
+m4trace:configure.ac:408: -1- AC_SUBST([LTLIBOBJS], [$ac_ltlibobjs])

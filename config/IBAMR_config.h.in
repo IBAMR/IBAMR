@@ -1,0 +1,298 @@
+/* config/IBAMR_config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to dummy `main' function (if any) required to link to the Fortran
+   libraries. */
+#undef F77_DUMMY_MAIN
+
+/* Define to a macro mangling the given C identifier (in lower and upper
+   case), which must not contain underscores, for linking with Fortran. */
+#undef F77_FUNC
+
+/* As F77_FUNC, but for C identifiers containing underscores. */
+#undef F77_FUNC_
+
+/* Define if F77 and FC dummy `main' functions are identical. */
+#undef FC_DUMMY_MAIN_EQ_F77
+
+/* Define if you have a BLAS library. */
+#undef HAVE_BLAS
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define if you have LAPACK library. */
+#undef HAVE_LAPACK
+
+/* Define to 1 if you have the `blitz' library (-lblitz). */
+#undef HAVE_LIBBLITZ
+
+/* Define to 1 if you have the `hdf5' library (-lhdf5). */
+#undef HAVE_LIBHDF5
+
+/* Define to 1 if you have the `HYPRE_DistributedMatrix' library
+   (-lHYPRE_DistributedMatrix). */
+#undef HAVE_LIBHYPRE_DISTRIBUTEDMATRIX
+
+/* Define to 1 if you have the `HYPRE_DistributedMatrixPilutSolver' library
+   (-lHYPRE_DistributedMatrixPilutSolver). */
+#undef HAVE_LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER
+
+/* Define to 1 if you have the `HYPRE_Euclid' library (-lHYPRE_Euclid). */
+#undef HAVE_LIBHYPRE_EUCLID
+
+/* Define to 1 if you have the `HYPRE_IJ_mv' library (-lHYPRE_IJ_mv). */
+#undef HAVE_LIBHYPRE_IJ_MV
+
+/* Define to 1 if you have the `HYPRE_krylov' library (-lHYPRE_krylov). */
+#undef HAVE_LIBHYPRE_KRYLOV
+
+/* Define to 1 if you have the `HYPRE_MatrixMatrix' library
+   (-lHYPRE_MatrixMatrix). */
+#undef HAVE_LIBHYPRE_MATRIXMATRIX
+
+/* Define to 1 if you have the `HYPRE_multivector' library
+   (-lHYPRE_multivector). */
+#undef HAVE_LIBHYPRE_MULTIVECTOR
+
+/* Define to 1 if you have the `HYPRE_ParaSails' library (-lHYPRE_ParaSails).
+   */
+#undef HAVE_LIBHYPRE_PARASAILS
+
+/* Define to 1 if you have the `HYPRE_parcsr_block_mv' library
+   (-lHYPRE_parcsr_block_mv). */
+#undef HAVE_LIBHYPRE_PARCSR_BLOCK_MV
+
+/* Define to 1 if you have the `HYPRE_parcsr_ls' library (-lHYPRE_parcsr_ls).
+   */
+#undef HAVE_LIBHYPRE_PARCSR_LS
+
+/* Define to 1 if you have the `HYPRE_parcsr_mv' library (-lHYPRE_parcsr_mv).
+   */
+#undef HAVE_LIBHYPRE_PARCSR_MV
+
+/* Define to 1 if you have the `HYPRE_seq_mv' library (-lHYPRE_seq_mv). */
+#undef HAVE_LIBHYPRE_SEQ_MV
+
+/* Define to 1 if you have the `HYPRE_sstruct_ls' library
+   (-lHYPRE_sstruct_ls). */
+#undef HAVE_LIBHYPRE_SSTRUCT_LS
+
+/* Define to 1 if you have the `HYPRE_sstruct_mv' library
+   (-lHYPRE_sstruct_mv). */
+#undef HAVE_LIBHYPRE_SSTRUCT_MV
+
+/* Define to 1 if you have the `HYPRE_struct_ls' library (-lHYPRE_struct_ls).
+   */
+#undef HAVE_LIBHYPRE_STRUCT_LS
+
+/* Define to 1 if you have the `HYPRE_struct_mv' library (-lHYPRE_struct_mv).
+   */
+#undef HAVE_LIBHYPRE_STRUCT_MV
+
+/* Define to 1 if you have the `HYPRE_utilities' library (-lHYPRE_utilities).
+   */
+#undef HAVE_LIBHYPRE_UTILITIES
+
+/* Define to 1 if you have the `petsc' library (-lpetsc). */
+#undef HAVE_LIBPETSC
+
+/* Define to 1 if you have the `petscdm' library (-lpetscdm). */
+#undef HAVE_LIBPETSCDM
+
+/* Define to 1 if you have the `petscksp' library (-lpetscksp). */
+#undef HAVE_LIBPETSCKSP
+
+/* Define to 1 if you have the `petscmat' library (-lpetscmat). */
+#undef HAVE_LIBPETSCMAT
+
+/* Define to 1 if you have the `petscsnes' library (-lpetscsnes). */
+#undef HAVE_LIBPETSCSNES
+
+/* Define to 1 if you have the `petscts' library (-lpetscts). */
+#undef HAVE_LIBPETSCTS
+
+/* Define to 1 if you have the `petscvec' library (-lpetscvec). */
+#undef HAVE_LIBPETSCVEC
+
+/* Define to 1 if you have the `SAMRAI' library (-lSAMRAI). */
+#undef HAVE_LIBSAMRAI
+
+/* Define to 1 if you have the `SAMRAI1d_algs' library (-lSAMRAI1d_algs). */
+#undef HAVE_LIBSAMRAI1D_ALGS
+
+/* Define to 1 if you have the `SAMRAI1d_appu' library (-lSAMRAI1d_appu). */
+#undef HAVE_LIBSAMRAI1D_APPU
+
+/* Define to 1 if you have the `SAMRAI1d_geom' library (-lSAMRAI1d_geom). */
+#undef HAVE_LIBSAMRAI1D_GEOM
+
+/* Define to 1 if you have the `SAMRAI1d_hier' library (-lSAMRAI1d_hier). */
+#undef HAVE_LIBSAMRAI1D_HIER
+
+/* Define to 1 if you have the `SAMRAI1d_math_special' library
+   (-lSAMRAI1d_math_special). */
+#undef HAVE_LIBSAMRAI1D_MATH_SPECIAL
+
+/* Define to 1 if you have the `SAMRAI1d_math_std' library
+   (-lSAMRAI1d_math_std). */
+#undef HAVE_LIBSAMRAI1D_MATH_STD
+
+/* Define to 1 if you have the `SAMRAI1d_mblk' library (-lSAMRAI1d_mblk). */
+#undef HAVE_LIBSAMRAI1D_MBLK
+
+/* Define to 1 if you have the `SAMRAI1d_mesh' library (-lSAMRAI1d_mesh). */
+#undef HAVE_LIBSAMRAI1D_MESH
+
+/* Define to 1 if you have the `SAMRAI1d_pdat_special' library
+   (-lSAMRAI1d_pdat_special). */
+#undef HAVE_LIBSAMRAI1D_PDAT_SPECIAL
+
+/* Define to 1 if you have the `SAMRAI1d_pdat_std' library
+   (-lSAMRAI1d_pdat_std). */
+#undef HAVE_LIBSAMRAI1D_PDAT_STD
+
+/* Define to 1 if you have the `SAMRAI1d_solv' library (-lSAMRAI1d_solv). */
+#undef HAVE_LIBSAMRAI1D_SOLV
+
+/* Define to 1 if you have the `SAMRAI1d_xfer' library (-lSAMRAI1d_xfer). */
+#undef HAVE_LIBSAMRAI1D_XFER
+
+/* Define to 1 if you have the `SAMRAI2d_algs' library (-lSAMRAI2d_algs). */
+#undef HAVE_LIBSAMRAI2D_ALGS
+
+/* Define to 1 if you have the `SAMRAI2d_appu' library (-lSAMRAI2d_appu). */
+#undef HAVE_LIBSAMRAI2D_APPU
+
+/* Define to 1 if you have the `SAMRAI2d_geom' library (-lSAMRAI2d_geom). */
+#undef HAVE_LIBSAMRAI2D_GEOM
+
+/* Define to 1 if you have the `SAMRAI2d_hier' library (-lSAMRAI2d_hier). */
+#undef HAVE_LIBSAMRAI2D_HIER
+
+/* Define to 1 if you have the `SAMRAI2d_math_special' library
+   (-lSAMRAI2d_math_special). */
+#undef HAVE_LIBSAMRAI2D_MATH_SPECIAL
+
+/* Define to 1 if you have the `SAMRAI2d_math_std' library
+   (-lSAMRAI2d_math_std). */
+#undef HAVE_LIBSAMRAI2D_MATH_STD
+
+/* Define to 1 if you have the `SAMRAI2d_mblk' library (-lSAMRAI2d_mblk). */
+#undef HAVE_LIBSAMRAI2D_MBLK
+
+/* Define to 1 if you have the `SAMRAI2d_mesh' library (-lSAMRAI2d_mesh). */
+#undef HAVE_LIBSAMRAI2D_MESH
+
+/* Define to 1 if you have the `SAMRAI2d_pdat_special' library
+   (-lSAMRAI2d_pdat_special). */
+#undef HAVE_LIBSAMRAI2D_PDAT_SPECIAL
+
+/* Define to 1 if you have the `SAMRAI2d_pdat_std' library
+   (-lSAMRAI2d_pdat_std). */
+#undef HAVE_LIBSAMRAI2D_PDAT_STD
+
+/* Define to 1 if you have the `SAMRAI2d_solv' library (-lSAMRAI2d_solv). */
+#undef HAVE_LIBSAMRAI2D_SOLV
+
+/* Define to 1 if you have the `SAMRAI2d_xfer' library (-lSAMRAI2d_xfer). */
+#undef HAVE_LIBSAMRAI2D_XFER
+
+/* Define to 1 if you have the `SAMRAI3d_algs' library (-lSAMRAI3d_algs). */
+#undef HAVE_LIBSAMRAI3D_ALGS
+
+/* Define to 1 if you have the `SAMRAI3d_appu' library (-lSAMRAI3d_appu). */
+#undef HAVE_LIBSAMRAI3D_APPU
+
+/* Define to 1 if you have the `SAMRAI3d_geom' library (-lSAMRAI3d_geom). */
+#undef HAVE_LIBSAMRAI3D_GEOM
+
+/* Define to 1 if you have the `SAMRAI3d_hier' library (-lSAMRAI3d_hier). */
+#undef HAVE_LIBSAMRAI3D_HIER
+
+/* Define to 1 if you have the `SAMRAI3d_math_special' library
+   (-lSAMRAI3d_math_special). */
+#undef HAVE_LIBSAMRAI3D_MATH_SPECIAL
+
+/* Define to 1 if you have the `SAMRAI3d_math_std' library
+   (-lSAMRAI3d_math_std). */
+#undef HAVE_LIBSAMRAI3D_MATH_STD
+
+/* Define to 1 if you have the `SAMRAI3d_mblk' library (-lSAMRAI3d_mblk). */
+#undef HAVE_LIBSAMRAI3D_MBLK
+
+/* Define to 1 if you have the `SAMRAI3d_mesh' library (-lSAMRAI3d_mesh). */
+#undef HAVE_LIBSAMRAI3D_MESH
+
+/* Define to 1 if you have the `SAMRAI3d_pdat_special' library
+   (-lSAMRAI3d_pdat_special). */
+#undef HAVE_LIBSAMRAI3D_PDAT_SPECIAL
+
+/* Define to 1 if you have the `SAMRAI3d_pdat_std' library
+   (-lSAMRAI3d_pdat_std). */
+#undef HAVE_LIBSAMRAI3D_PDAT_STD
+
+/* Define to 1 if you have the `SAMRAI3d_solv' library (-lSAMRAI3d_solv). */
+#undef HAVE_LIBSAMRAI3D_SOLV
+
+/* Define to 1 if you have the `SAMRAI3d_xfer' library (-lSAMRAI3d_xfer). */
+#undef HAVE_LIBSAMRAI3D_XFER
+
+/* Define to 1 if you have the `silo' library (-lsilo). */
+#undef HAVE_LIBSILO
+
+/* Define to 1 if you have the `z' library (-lz). */
+#undef HAVE_LIBZ
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define if you have the MPI library. */
+#undef HAVE_MPI
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Version number of package */
+#undef VERSION
