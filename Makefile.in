@@ -634,10 +634,13 @@ uninstall-info: uninstall-info-recursive
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
 copy_headers:
+	cd stools && $(MAKE) relink_headers
 	cd $(top_srcdir) && bin/includes
 relink_headers:
+	cd stools && $(MAKE) relink_headers
 	cd $(top_srcdir) && bin/includes --link
 refresh_tags:
+	cd stools && $(MAKE) refresh_tags
 	cd $(top_srcdir) && find . -name "*.[ChIf]" -print | etags -
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
