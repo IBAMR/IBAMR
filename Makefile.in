@@ -193,7 +193,43 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = stools doc src
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = autogen.sh bin/includes doc/Doxyfile doc/libstdc++.tag include
+EXTRA_DIST = autogen.sh bin/includes doc/Doxyfile doc/libstdc++.tag \
+	include/ibamr/AdvDiffHierarchyIntegrator.h \
+	include/ibamr/AdvDiffHypPatchOps.h \
+	include/ibamr/ConvergenceMonitor.h include/ibamr/get_version.h \
+	include/ibamr/GodunovAdvector.h \
+	include/ibamr/GodunovHypPatchOps.h \
+	include/ibamr/HierarchyProjector.h \
+	include/ibamr/IBEulerianForceSetter.h \
+	include/ibamr/IBEulerianSourceSetter.h \
+	include/ibamr/IBHierarchyIntegrator.h \
+	include/ibamr/IBLagrangianForceStrategy.h \
+	include/ibamr/IBLagrangianSourceStrategy.h \
+	include/ibamr/IBLogicalCartMeshInitializer.h \
+	include/ibamr/INSHierarchyIntegrator.h \
+	include/ibamr/LagSiloDataWriter.h include/ibamr/LDataManager.h \
+	include/ibamr/LEInteractor.h \
+	include/ibamr/LNodeIndexDataFactory.h \
+	include/ibamr/LNodeIndexData.h include/ibamr/LNodeIndexData.I \
+	include/ibamr/LNodeIndex.h include/ibamr/LNodeIndex.I \
+	include/ibamr/LNodeIndexSet.h include/ibamr/LNodeIndexSet.I \
+	include/ibamr/LNodeIndexVariable.h \
+	include/ibamr/LNodeJacobianInitStrategy.h \
+	include/ibamr/LNodeLevelData.h include/ibamr/LNodeLevelData.I \
+	include/ibamr/LNodePosnInitStrategy.h \
+	include/ibamr/PhysicalBCDataStrategy.h \
+	include/ibamr/SetDataStrategy.h include/ibamr/SpringForceGen.h \
+	include/ibamr/SpringForceSpecFactory.h \
+	include/ibamr/SpringForceSpec.h \
+	include/ibamr/StashableFactory.h include/ibamr/Stashable.h \
+	include/ibamr/StashableManager.h \
+	include/ibamr/StashableManager.I \
+	include/ibamr/StashableStream.h \
+	include/ibamr/StashableStream.I \
+	include/ibamr/TargetPointForceGen.h \
+	include/ibamr/TargetPointForceSpecFactory.h \
+	include/ibamr/TargetPointForceSpec.h \
+	include/ibamr/TargetPointInitializer.h
 all: all-recursive
 
 .SUFFIXES:
@@ -394,7 +430,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/bin $(distdir)/config $(distdir)/doc $(distdir)/m4 $(distdir)/src/utilities
+	$(mkdir_p) $(distdir)/bin $(distdir)/config $(distdir)/doc $(distdir)/include/ibamr $(distdir)/m4 $(distdir)/src/utilities
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

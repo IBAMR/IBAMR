@@ -2,7 +2,51 @@
 include $(top_srcdir)/config/Make-rules
 SUBDIRS = stools doc src
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = autogen.sh bin/includes doc/Doxyfile doc/libstdc++.tag include
+EXTRA_DIST = autogen.sh bin/includes doc/Doxyfile doc/libstdc++.tag
+EXTRA_DIST += include/ibamr/AdvDiffHierarchyIntegrator.h
+EXTRA_DIST += include/ibamr/AdvDiffHypPatchOps.h
+EXTRA_DIST += include/ibamr/ConvergenceMonitor.h
+EXTRA_DIST += include/ibamr/get_version.h
+EXTRA_DIST += include/ibamr/GodunovAdvector.h
+EXTRA_DIST += include/ibamr/GodunovHypPatchOps.h
+EXTRA_DIST += include/ibamr/HierarchyProjector.h
+EXTRA_DIST += include/ibamr/IBEulerianForceSetter.h
+EXTRA_DIST += include/ibamr/IBEulerianSourceSetter.h
+EXTRA_DIST += include/ibamr/IBHierarchyIntegrator.h
+EXTRA_DIST += include/ibamr/IBLagrangianForceStrategy.h
+EXTRA_DIST += include/ibamr/IBLagrangianSourceStrategy.h
+EXTRA_DIST += include/ibamr/IBLogicalCartMeshInitializer.h
+EXTRA_DIST += include/ibamr/INSHierarchyIntegrator.h
+EXTRA_DIST += include/ibamr/LagSiloDataWriter.h
+EXTRA_DIST += include/ibamr/LDataManager.h
+EXTRA_DIST += include/ibamr/LEInteractor.h
+EXTRA_DIST += include/ibamr/LNodeIndexDataFactory.h
+EXTRA_DIST += include/ibamr/LNodeIndexData.h
+EXTRA_DIST += include/ibamr/LNodeIndexData.I
+EXTRA_DIST += include/ibamr/LNodeIndex.h
+EXTRA_DIST += include/ibamr/LNodeIndex.I
+EXTRA_DIST += include/ibamr/LNodeIndexSet.h
+EXTRA_DIST += include/ibamr/LNodeIndexSet.I
+EXTRA_DIST += include/ibamr/LNodeIndexVariable.h
+EXTRA_DIST += include/ibamr/LNodeJacobianInitStrategy.h
+EXTRA_DIST += include/ibamr/LNodeLevelData.h
+EXTRA_DIST += include/ibamr/LNodeLevelData.I
+EXTRA_DIST += include/ibamr/LNodePosnInitStrategy.h
+EXTRA_DIST += include/ibamr/PhysicalBCDataStrategy.h
+EXTRA_DIST += include/ibamr/SetDataStrategy.h
+EXTRA_DIST += include/ibamr/SpringForceGen.h
+EXTRA_DIST += include/ibamr/SpringForceSpecFactory.h
+EXTRA_DIST += include/ibamr/SpringForceSpec.h
+EXTRA_DIST += include/ibamr/StashableFactory.h
+EXTRA_DIST += include/ibamr/Stashable.h
+EXTRA_DIST += include/ibamr/StashableManager.h
+EXTRA_DIST += include/ibamr/StashableManager.I
+EXTRA_DIST += include/ibamr/StashableStream.h
+EXTRA_DIST += include/ibamr/StashableStream.I
+EXTRA_DIST += include/ibamr/TargetPointForceGen.h
+EXTRA_DIST += include/ibamr/TargetPointForceSpecFactory.h
+EXTRA_DIST += include/ibamr/TargetPointForceSpec.h
+EXTRA_DIST += include/ibamr/TargetPointInitializer.h
 
 ## Automatically link header files in $(top_srcdir)/include and
 ## refresh emacs TAGS file.
