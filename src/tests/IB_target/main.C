@@ -279,7 +279,6 @@ int main(int argc, char* argv[])
                 "INSHierarchyIntegrator",
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
-
         tbox::Pointer<SetDataStrategy> u_init = new UInit("UInit");
         navier_stokes_integrator->registerVelocityInitialConditions(u_init);
 

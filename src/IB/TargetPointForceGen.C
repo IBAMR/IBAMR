@@ -1,6 +1,6 @@
 // Filename: TargetPointForceGen.C
 // Created on 23 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
-// Last modified: <25.Oct.2006 18:30:34 boyce@bigboy.nyconnect.com>
+// Last modified: <03.Nov.2006 12:40:06 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 #include "TargetPointForceGen.h"
 
@@ -27,6 +27,7 @@
 #include <Box.h>
 #include <Patch.h>
 #include <PatchLevel.h>
+#include <tbox/MPI.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
 
@@ -124,6 +125,8 @@ TargetPointForceGen::computeLagrangianForce(
 
     // Compute the penalty force associated with the Lagrangian target
     // points.
+    static double max_displacement = 0.0;
+    double max_config_displacement = 0.0;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -151,6 +154,7 @@ TargetPointForceGen::computeLagrangianForce(
                         const double& kappa = force_spec->getStiffness();
 
                         double* const F = &F_arr[NDIM*petsc_idx];
+                        double displacement = 0.0;
                         for (int d = 0; d < NDIM; ++d)
                         {
                             const double shift =
@@ -164,6 +168,12 @@ TargetPointForceGen::computeLagrangianForce(
                             assert(X[d]+shift <= XUpper[d]);
 #endif
                             F[d] = kappa*(X_target[d] - (X[d]+shift));
+                            displacement += pow(X_target[d] - (X[d]+shift),2.0);
+                        }
+                        displacement = sqrt(displacement);
+                        if (displacement > max_config_displacement)
+                        {
+                            max_config_displacement = displacement;
                         }
                     }
                 }
@@ -173,6 +183,15 @@ TargetPointForceGen::computeLagrangianForce(
 
     ierr = VecRestoreArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecRestoreArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
+
+    max_config_displacement = SAMRAI::tbox::MPI::maxReduction(max_config_displacement);
+    if (max_config_displacement > max_displacement)
+    {
+        max_displacement = max_config_displacement;
+    }
+    SAMRAI::tbox::plog << "TargetPointForceGen::computeLagrangianForce():" << endl;
+    SAMRAI::tbox::plog << "  maximum target point displacement [present configuration] = " << max_config_displacement << endl;
+    SAMRAI::tbox::plog << "  maximum target point displacement [entire simulation] = " << max_displacement << endl;
 
     t_compute_lagrangian_force->stop();
     return;

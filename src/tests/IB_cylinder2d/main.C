@@ -280,7 +280,6 @@ int main(int argc, char* argv[])
                 "INSHierarchyIntegrator",
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
-
         tbox::Pointer<SetDataStrategy> u_init = new UInit("UInit");
         navier_stokes_integrator->registerVelocityInitialConditions(u_init);
 
@@ -396,6 +395,20 @@ int main(int argc, char* argv[])
         }
 
         /*
+         * Open files to output the lift and drag coefficients.
+         */
+        ofstream drag_stream("C_D.curve", ios::out);
+        ofstream lift_stream("C_L.curve", ios::out);
+
+        drag_stream << "#C_D" << endl;
+        drag_stream << 0.0 << " " << 0.0 << endl;
+
+        lift_stream << "#C_L" << endl;
+        lift_stream << 0.0 << " " << 0.0 << endl;
+
+        const double radius = input_db->getDouble("R");
+
+        /*
          * Time step loop.  Note that the step count and integration
          * time are maintained by the time integrator object.
          */
@@ -407,24 +420,17 @@ int main(int argc, char* argv[])
         while (!tbox::Utilities::deq(loop_time,loop_time_end) &&
                time_integrator->stepsRemaining())
         {
-            iteration_num = time_integrator->getIntegratorStep() + 1;
-
-            tbox::pout <<                                                       endl;
-            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
-            tbox::pout << "Simulation time is " << loop_time                 << endl;
-
-            tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var =
-                navier_stokes_integrator->getVelocityVar();
             tbox::Pointer<hier::VariableContext> current_context =
                 navier_stokes_integrator->getCurrentContext();
+
+            const int coarsest_ln = 0;
+            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
             /*
              * Manually force the fluid velocity to be U = (1,0) at
              * the right periodic boundary.
              */
-            const int coarsest_ln = 0;
-            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+            tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var = navier_stokes_integrator->getVelocityVar();
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 tbox::Pointer<hier::PatchLevel<NDIM> > level =
@@ -447,6 +453,16 @@ int main(int argc, char* argv[])
                 }
             }
 
+            /*
+             * Advance the solution forward in time.
+             */
+            iteration_num = time_integrator->getIntegratorStep() + 1;
+
+            tbox::pout <<                                                       endl;
+            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+            tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
+            tbox::pout << "Simulation time is " << loop_time                 << endl;
+
             double dt_new = time_integrator->advanceHierarchy(dt_now);
 
             loop_time += dt_now;
@@ -457,6 +473,46 @@ int main(int argc, char* argv[])
             tbox::pout << "Simulation time is " << loop_time                 << endl;
             tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
             tbox::pout <<                                                       endl;
+
+            /*
+             * Compute the drag and lift coefficients by integrating
+             * the components of the Eulerian force field over the
+             * computational domain.
+             */
+            tbox::Pointer<pdat::CellVariable<NDIM,double> > F_var = navier_stokes_integrator->getForceVar();
+            const int wgt_idx = navier_stokes_integrator->getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
+            double F_D = 0.0;
+            double F_L = 0.0;
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                tbox::Pointer<hier::PatchLevel<NDIM> > level =
+                    patch_hierarchy->getPatchLevel(ln);
+                for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
+                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                    tbox::Pointer<pdat::CellData<NDIM,double> > F_data =
+                        patch->getPatchData(F_var, current_context);
+                    tbox::Pointer<pdat::CellData<NDIM,double> > wgt_data =
+                        patch->getPatchData(wgt_idx);
+                    for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
+                    {
+                        const SAMRAI::hier::Index<NDIM>& i = ic();
+                        F_D -= (*F_data)(i,0)*(*wgt_data)(i);
+                        F_L -= (*F_data)(i,1)*(*wgt_data)(i);
+                    }
+                }
+            }
+
+            /*
+             * Output the normalized drag and lift coefficients.
+             *
+             * NOTE: We assume that rho = 1.0, u_oo = 1.0, so:
+             *      C_D = F_D/(rho u_oo^2 R) = F_D/R
+             *      C_L = F_L/(rho u_oo^2 R) = F_L/R
+             */
+            drag_stream << loop_time << " " << F_D/radius << endl;
+            lift_stream << loop_time << " " << F_L/radius << endl;
 
             /*
              * At specified intervals, write restart and visualization files.
@@ -478,6 +534,9 @@ int main(int argc, char* argv[])
                 }
             }
         }
+
+        drag_stream.close();
+        lift_stream.close();
 
         /*
          * Ensure the last state is written out.
