@@ -229,8 +229,8 @@ echo
 echo "=================================="
 echo "Configuring required package PETSc"
 echo "=================================="
-AC_ARG_VAR(PETSC_DIR,[location of the PETSc installation to be used])
-AC_ARG_VAR(PETSC_ARCH,[name of the PETSc configuration to be used])
+AC_ARG_VAR(PETSC_DIR,[the location of the PETSc installation that is to be used.  Note that multiple versions of PETSc may be installed within the same filesystem, with each version corresponding to a different value of PETSC_DIR.])
+AC_ARG_VAR(PETSC_ARCH,[the PETSc configuration that is to be used, corresponding to the configuration files located in ${PETSC_DIR}/bmake/${PETSC_ARCH}.  Note that multiple configurations of PETSc can be installed for a particular version of the PETSc library.  Each configuration will correspond to a different value of PETSC_ARCH.])
 AC_ARG_WITH([petsc],
   AS_HELP_STRING(--with-petsc=PATH,location of required PETSc installation @<:@default=PETSC_DIR@:>@),
   [if test ! -d "$withval" ; then
