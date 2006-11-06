@@ -409,7 +409,7 @@ int main(int argc, char* argv[])
                 const hier::IntVector<NDIM>& ratio = level->getRatio();
                 const hier::Box<NDIM>& domain_box = grid_geometry->getPhysicalDomain()(0);
                 hier::Box<NDIM> upper_box = domain_box;
-                upper_box.lower(0) = domain_box.upper(0)-1;
+                upper_box.lower(0) = domain_box.upper(0);
                 upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
 
                 for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
