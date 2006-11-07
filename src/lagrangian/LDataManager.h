@@ -3,7 +3,7 @@
 
 // Filename: LDataManager.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <07.Oct.2006 23:41:35 boyce@bigboy.nyconnect.com>
+// Last modified: <07.Nov.2006 00:58:00 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -92,6 +92,8 @@ public:
      * instances.
      *
      * @return A pointer to the data manager instance.
+     *
+     * @todo fix this interface
      */
     static LDataManager* getManager(
         const string& name,

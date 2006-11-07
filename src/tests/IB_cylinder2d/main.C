@@ -31,6 +31,7 @@
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/INSHierarchyIntegrator.h>
+#include <ibamr/LDataManager.h>
 #include <ibamr/LagSiloDataWriter.h>
 #include <ibamr/TargetPointForceGen.h>
 
@@ -430,6 +431,46 @@ int main(int argc, char* argv[])
              * Manually force the fluid velocity to be U = (1,0) at
              * the right periodic boundary.
              */
+#if 1
+            /*
+             * NOTE: The following code assumes the right periodic
+             * boundary is uniformly refined.
+             */
+            (void) coarsest_ln;
+            tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var = navier_stokes_integrator->getVelocityVar();
+            {
+                int ln = finest_ln;
+                tbox::Pointer<hier::PatchLevel<NDIM> > level =
+                    patch_hierarchy->getPatchLevel(ln);
+
+                const hier::IntVector<NDIM>& ratio = level->getRatio();
+                const hier::Box<NDIM>& domain_box = grid_geometry->getPhysicalDomain()(0);
+
+                hier::Box<NDIM> lower_box = domain_box;
+                lower_box = hier::Box<NDIM>::refine(lower_box,ratio);
+                lower_box.upper(0) = lower_box.lower(0);
+
+                hier::Box<NDIM> upper_box = domain_box;
+                upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
+                upper_box.lower(0) = upper_box.upper(0);
+
+                for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
+                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                    tbox::Pointer<pdat::CellData<NDIM,double> > U_data =
+                        patch->getPatchData(U_var, current_context);
+                    U_data->fillAll(0.0, patch_box*lower_box);
+                    U_data->fillAll(0.0, patch_box*upper_box);
+                    U_data->fill(1.0,patch_box*lower_box,0);
+                    U_data->fill(1.0,patch_box*upper_box,0);
+                }
+            }
+#else
+            /*
+             * NOTE: The following code DOES NOT assume the right
+             * periodic boundary is uniformly refined.
+             */
             tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var = navier_stokes_integrator->getVelocityVar();
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
@@ -439,7 +480,7 @@ int main(int argc, char* argv[])
                 const hier::IntVector<NDIM>& ratio = level->getRatio();
                 const hier::Box<NDIM>& domain_box = grid_geometry->getPhysicalDomain()(0);
                 hier::Box<NDIM> upper_box = domain_box;
-                upper_box.lower(0) = domain_box.upper(0);
+                upper_box.lower(0) = upper_box.upper(0)-1;
                 upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
 
                 for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -452,6 +493,7 @@ int main(int argc, char* argv[])
                     U_data->fill(1.0,patch_box*upper_box,0);
                 }
             }
+#endif
 
             /*
              * Advance the solution forward in time.
@@ -476,33 +518,28 @@ int main(int argc, char* argv[])
 
             /*
              * Compute the drag and lift coefficients by integrating
-             * the components of the Eulerian force field over the
+             * the components of the Lagrangian force field over the
              * computational domain.
              */
-            tbox::Pointer<pdat::CellVariable<NDIM,double> > F_var = navier_stokes_integrator->getForceVar();
-            const int wgt_idx = navier_stokes_integrator->getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
+            const int ln = finest_ln;
+            LDataManager* lag_data_manager = LDataManager::getManager(
+                "IBHierarchyIntegrator::LDataManager");
+            tbox::Pointer<LNodeLevelData> X_data = lag_data_manager->getLNodeLevelData("X",ln);
+            tbox::Pointer<LNodeLevelData> F_data = lag_data_manager->createLNodeLevelData("F",ln,NDIM);
+            force_generator->computeLagrangianForce(
+                F_data, X_data,
+                patch_hierarchy, ln, loop_time, lag_data_manager);
+
             double F_D = 0.0;
             double F_L = 0.0;
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            for (int i = 0; i < F_data->getLocalNodeCount(); ++i)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > level =
-                    patch_hierarchy->getPatchLevel(ln);
-                for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                    tbox::Pointer<pdat::CellData<NDIM,double> > F_data =
-                        patch->getPatchData(F_var, current_context);
-                    tbox::Pointer<pdat::CellData<NDIM,double> > wgt_data =
-                        patch->getPatchData(wgt_idx);
-                    for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
-                    {
-                        const SAMRAI::hier::Index<NDIM>& i = ic();
-                        F_D -= (*F_data)(i,0)*(*wgt_data)(i);
-                        F_L -= (*F_data)(i,1)*(*wgt_data)(i);
-                    }
-                }
+                F_D -= (*F_data)(i,0);
+                F_L -= (*F_data)(i,1);
             }
+
+            F_D = tbox::MPI::sumReduction(F_D);
+            F_L = tbox::MPI::sumReduction(F_L);
 
             /*
              * Output the normalized drag and lift coefficients.

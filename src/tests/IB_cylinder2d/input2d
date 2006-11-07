@@ -9,7 +9,7 @@ MUSCL_LIMITED = 3
 N = 16              // coarsest grid spacing
 NFINEST = 16*N      // finest grid spacing
 
-DELTA_FCN = "IB_6"  // the choice of delta function
+DELTA_FCN = "IB_4"  // the choice of delta function
 
 R = 0.15            // the cylinder radius
 Re = 100.0          // the desired Reynolds number (Re)
@@ -23,17 +23,17 @@ IBHierarchyIntegrator {
 
    enable_logging = TRUE
 
-   regrid_interval = 8
-   dt_max = 0.8/NFINEST
+   regrid_interval = 2
+   dt_max = 0.8/NFINEST // 0.92160/NFINEST
    delta_fcn = DELTA_FCN
    timestepping_order = 2
 }
 
 XInit {
-   num_nodes = 25*NFINEST/128
-   center = 1.85 , 5.0
+   num_nodes = 61*NFINEST/256
+   center = 1.85 , 4.0
    radius = R
-   stiffness = 92.5*NFINEST
+   stiffness = 85.0*NFINEST // 93.75*NFINEST
 }
 
 INSHierarchyIntegrator {
@@ -88,8 +88,8 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.2475e0 // max cfl factor used in problem
-      cfl_init                 = 0.2475e0 // initial cfl factor
+      cfl                      = 0.4875e0 // max cfl factor used in problem
+      cfl_init                 = 0.4875e0 // initial cfl factor
       lag_dt_computation       = FALSE
       use_ghosts_to_compute_dt = FALSE
    }
@@ -192,8 +192,8 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         =   0,  0        // lower end of computational domain.
-   x_up         =  10, 10        // upper end of computational domain.
+   x_lo         =  0, 0        // lower end of computational domain.
+   x_up         =  8, 8        // upper end of computational domain.
    periodic_dimension = 1,1
 }
 
@@ -221,7 +221,12 @@ GriddingAlgorithm {
 }
 
 StandardTagAndInitialize {
-   tagging_method = "GRADIENT_DETECTOR"
+   tagging_method = "GRADIENT_DETECTOR" , "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0,0),(0,   N - 1)] , [(   N - 1,0),(   N - 1,   N - 1)]
+      level_1 = [(0,0),(0, 4*N - 1)] , [( 4*N - 1,0),( 4*N - 1, 4*N - 1)]
+      level_2 = [(0,0),(0,16*N - 1)] , [(16*N - 1,0),(16*N - 1,16*N - 1)]
+   }
 }
 
 LoadBalancer {

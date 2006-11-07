@@ -383,24 +383,57 @@ int main(int argc, char* argv[])
         while (!tbox::Utilities::deq(loop_time,loop_time_end) &&
                time_integrator->stepsRemaining())
         {
-            iteration_num = time_integrator->getIntegratorStep() + 1;
-
-            tbox::pout <<                                                       endl;
-            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
-            tbox::pout << "Simulation time is " << loop_time                 << endl;
-
-            tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var =
-                navier_stokes_integrator->getVelocityVar();
             tbox::Pointer<hier::VariableContext> current_context =
                 navier_stokes_integrator->getCurrentContext();
+
+            const int coarsest_ln = 0;
+            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
             /*
              * Manually force the fluid velocity to be U = (1,0) at
              * the right periodic boundary.
              */
-            const int coarsest_ln = 0;
-            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+#if 0
+            /*
+             * NOTE: The following code assumes the right periodic
+             * boundary is uniformly refined.
+             */
+            (void) coarsest_ln;
+            tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var = navier_stokes_integrator->getVelocityVar();
+            {
+                int ln = finest_ln;
+                tbox::Pointer<hier::PatchLevel<NDIM> > level =
+                    patch_hierarchy->getPatchLevel(ln);
+
+                const hier::IntVector<NDIM>& ratio = level->getRatio();
+                const hier::Box<NDIM>& domain_box = grid_geometry->getPhysicalDomain()(0);
+
+                hier::Box<NDIM> lower_box = domain_box;
+                lower_box = hier::Box<NDIM>::refine(lower_box,ratio);
+                lower_box.upper(0) = lower_box.lower(0);
+
+                hier::Box<NDIM> upper_box = domain_box;
+                upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
+                upper_box.lower(0) = upper_box.upper(0);
+
+                for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
+                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                    tbox::Pointer<pdat::CellData<NDIM,double> > U_data =
+                        patch->getPatchData(U_var, current_context);
+                    U_data->fillAll(0.0, patch_box*lower_box);
+                    U_data->fillAll(0.0, patch_box*upper_box);
+                    U_data->fill(1.0,patch_box*lower_box,0);
+                    U_data->fill(1.0,patch_box*upper_box,0);
+                }
+            }
+#else
+            /*
+             * NOTE: The following code DOES NOT assume the right
+             * periodic boundary is uniformly refined.
+             */
+            tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var = navier_stokes_integrator->getVelocityVar();
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 tbox::Pointer<hier::PatchLevel<NDIM> > level =
@@ -409,7 +442,7 @@ int main(int argc, char* argv[])
                 const hier::IntVector<NDIM>& ratio = level->getRatio();
                 const hier::Box<NDIM>& domain_box = grid_geometry->getPhysicalDomain()(0);
                 hier::Box<NDIM> upper_box = domain_box;
-                upper_box.lower(0) = domain_box.upper(0);
+                upper_box.lower(0) = upper_box.upper(0)-1;
                 upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
 
                 for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -422,6 +455,17 @@ int main(int argc, char* argv[])
                     U_data->fill(1.0,patch_box*upper_box,0);
                 }
             }
+#endif
+
+            /*
+             * Advance the solution forward in time.
+             */
+            iteration_num = time_integrator->getIntegratorStep() + 1;
+
+            tbox::pout <<                                                       endl;
+            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+            tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
+            tbox::pout << "Simulation time is " << loop_time                 << endl;
 
             double dt_new = time_integrator->advanceHierarchy(dt_now);
 
