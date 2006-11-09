@@ -1,5 +1,5 @@
 // Filename: TargetPointInitializer.C
-// Last modified: <09.Nov.2006 01:25:06 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Nov.2006 03:32:49 boyce@bigboy.nyconnect.com>
 // Created on 26 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "TargetPointInitializer.h"
@@ -47,10 +47,23 @@ namespace
 static const int INPUT_MPI_ROOT = 0;
 static const char DELIM = '\n';
 static const int NBUF = 256;
+static char buf[NBUF];
+
+void
+ignore_rest_of_line(
+    std::ifstream& is)
+{
+    for (char c = is.peek(); c != DELIM && !is.eof(); )
+    {
+        is.get(buf, NBUF, DELIM);
+        c = is.peek();
+    }
+    return;
+}// ignore_rest_of_line
+
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-
 TargetPointInitializer::TargetPointInitializer(
     const std::string& object_name,
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
@@ -80,25 +93,21 @@ TargetPointInitializer::TargetPointInitializer(
                    << "Key data `input_filename' not found in input.");
     }
 
-    // Process the input file.
-    //
-    // The following code is not very flexible or fault tolerant; it
-    // could be improved dramatically.
+    SAMRAI::tbox::pout << d_object_name << ":  Reading from input file " << input_filename << endl;
+
+    // Process the input file on the root MPI process.
     if (SAMRAI::tbox::MPI::getRank() == INPUT_MPI_ROOT)
     {
-        char buf[NBUF];
         std::ifstream is;
         is.open(input_filename.c_str(), ios::in);
+        if (!is.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << input_filename << endl);
+        is.peek();  // catch premature end-of-file for empty files
 
         // The first entry in the file must be the number of target
         // points.
+        if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << input_filename <<endl);
         is >> d_num_points;
-
-        for (char c = is.peek(); c != DELIM; )
-        {
-            is.get(buf, NBUF, DELIM);
-            c = is.peek();
-        }
+        ignore_rest_of_line(is);
 
         // Read in each target point location followed by the
         // associated stiffness.
@@ -109,16 +118,16 @@ TargetPointInitializer::TargetPointInitializer(
         {
             for (int d = 0; d < NDIM; ++d)
             {
+                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << input_filename <<endl);
                 is >> d_initial_posns[k*NDIM+d];
             }
+            if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << input_filename <<endl);
             is >> d_stiffnesses[k];
-
-            for (char c = is.peek(); c != DELIM; )
-            {
-                is.get(buf, NBUF, DELIM);
-                c = is.peek();
-            }
+            ignore_rest_of_line(is);
         }
+
+        // Close the input file.
+        is.close();
     }
 
     // Broadcast the input file to the remaining processors.
@@ -150,6 +159,8 @@ TargetPointInitializer::TargetPointInitializer(
                 2, (NDIM+1)*d_num_points);
         }
     }
+
+    SAMRAI::tbox::pout << d_object_name << ":  Read " << d_num_points << " target points from input file " << input_filename << endl;
 
     return;
 }// TargetPointInitializer
