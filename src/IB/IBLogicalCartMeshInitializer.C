@@ -1,5 +1,5 @@
 // Filename: IBLogicalCartMeshInitializer.C
-// Last modified: <25.Oct.2006 18:30:07 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Nov.2006 00:15:55 boyce@bigboy.nyconnect.com>
 // Created on 06 Dec 2005 by Boyce Griffith (boyce@boyce.cims.nyu.edu).
 
 #include "IBLogicalCartMeshInitializer.h"
@@ -17,10 +17,21 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/SpringForceSpec.h>
 #include <ibamr/LNodeIndexData.h>
 
+// SAMRAI INCLUDES
+#include <Box.h>
+#include <CartesianPatchGeometry.h>
+#include <CellData.h>
+#include <CellIterator.h>
+#include <Index.h>
+#include <tbox/MPI.h>
+
 // C++ STDLIB INCLUDES
-#include <numeric>
+#include <cassert>
+#include <fstream>
+#include <iostream>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -43,6 +54,27 @@ IBLogicalCartMeshInitializer::IBLogicalCartMeshInitializer(
       d_mesh_dim(),
       d_mesh_periodic()
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(!object_name.empty());
+    assert(!input_db.isNull());
+#endif
+
+    // Register the SpringForceSpec object with the StashableManager
+    // class.
+    SpringForceSpec::registerWithStashableManager();
+
+    // Get the input filename.
+    string input_filename;
+    if (input_db->keyExists("input_filename"))
+    {
+        input_filename = input_db->getString("input_filename");
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  "
+                   << "Key data `input_filename' not found in input.");
+    }
+
     // XXXX dummy data
     d_mesh_name.insert("dummy");
     d_mesh_file["dummy"] = "dummy";

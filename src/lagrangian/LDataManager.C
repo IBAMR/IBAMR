@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <25.Oct.2006 18:27:06 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Nov.2006 01:30:57 boyce@bigboy.nyconnect.com>
 
 #include "LDataManager.h"
 
@@ -1487,8 +1487,11 @@ LDataManager::initializeLevelData(
                                d_node_offset[level_number],
                                num_local_nodes);
 
+            static const int global_index_offset = 0;
+            static const int local_index_offset = 0;
             d_lag_posn_init->initializeDataOnPatchLevel(
                 d_lag_node_index_current_idx,
+                global_index_offset, local_index_offset,
                 d_lag_quantity_data[level_number][COORDS_DATA_NAME],
                 hierarchy, level_number,
                 init_data_time, can_be_refined, initial_time);

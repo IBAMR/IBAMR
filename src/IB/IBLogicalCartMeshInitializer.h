@@ -2,7 +2,7 @@
 #define included_IBLogicalCartMeshInitializer
 
 // Filename: IBLogicalCartMeshInitializer.h
-// Last modified: <07.Oct.2006 21:35:08 boyce@bigboy.nyconnect.com>
+// Last modified: <08.Nov.2006 23:59:44 boyce@bigboy.nyconnect.com>
 // Created on 06 Dec 2005 by Boyce Griffith (boyce@boyce.cims.nyu.edu).
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -10,15 +10,7 @@
 // IBAMR INCLUDES
 #include <ibamr/LNodePosnInitStrategy.h>
 
-// SAMRAI INCLUDES
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
 // C++ STDLIB INCLUDES
-#include <map>
-#include <set>
 #include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -44,20 +36,26 @@ public:
     /*!
      * @brief Destructor.
      */
-    ~IBLogicalCartMeshInitializer();
+    virtual ~IBLogicalCartMeshInitializer();
 
     /*!
-     * @return A boolean value indicating whether Lagrangian data is
+     * \brief Determine whether there are any Lagrangian nodes on the
+     * specified patch level.
+     *
+     * \return A boolean value indicating whether Lagrangian data is
      * associated with the given level in the patch hierarchy.
      */
-    bool getLevelHasLagrangianData(
+    virtual bool getLevelHasLagrangianData(
         const int level_number,
         const bool can_be_refined) const;
 
     /*!
-     * @return The number of local nodes on the patch level.
+     * \brief Determine the number of local nodes on the specified
+     * patch level.
+     *
+     * \return The number of local nodes on the specified level.
      */
-    int getLocalNodeCountOnPatchLevel(
+    virtual int getLocalNodeCountOnPatchLevel(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -65,10 +63,11 @@ public:
         const bool initial_time);
 
     /*!
-     * @brief Initialize the LNodeIndex and LNodeLevel data on the
-     * patch level.
+     * \brief Initialize the LNodeIndex and LNodeLevel data needed to
+     * specify the configuration of the curvilinear mesh on the patch
+     * level.
      */
-    void initializeDataOnPatchLevel(
+    virtual void initializeDataOnPatchLevel(
         const int lag_node_index_idx,
         SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -78,16 +77,15 @@ public:
         const bool initial_time);
 
     /*!
-     * @brief Provide cell tagging for the initial configuration of
-     * the Lagrangian mesh.
+     * \brief Tag cells for initial refinement.
      *
      * When the patch hierarchy is being constructed at the initial
-     * simulation time, it is necessary that the gridding algorithm be
-     * instructed where to place local refinement in order to
+     * simulation time, it is necessary to instruct the gridding
+     * algorithm where to place local refinement in order to
      * accomodate portions of the curvilinear mesh that will reside in
-     * the yet-to-be-constructed level(s) of the patch hierarchy.
+     * any yet-to-be-constructed level(s) of the patch hierarchy.
      */
-    void tagCellsForInitialRefinement(
+    virtual void tagCellsForInitialRefinement(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double error_data_time,

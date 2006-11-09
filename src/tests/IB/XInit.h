@@ -3,7 +3,7 @@
 
 // Filename: XInit.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <25.Oct.2006 17:54:30 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Nov.2006 01:37:21 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -67,6 +67,8 @@ public:
      */
     virtual void initializeDataOnPatchLevel(
         const int lag_node_index_idx,
+        const int global_index_offset,
+        const int local_index_offset,
         tbox::Pointer<LNodeLevelData>& X_data,
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

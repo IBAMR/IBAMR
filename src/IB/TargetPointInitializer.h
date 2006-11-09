@@ -2,7 +2,7 @@
 #define included_TargetPointInitializer
 
 // Filename: TargetPointInitializer.h
-// Last modified: <27.Oct.2006 00:58:16 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Nov.2006 01:23:51 boyce@bigboy.nyconnect.com>
 // Created on 26 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -70,6 +70,8 @@ public:
      */
     virtual void initializeDataOnPatchLevel(
         const int lag_node_index_idx,
+        const int global_index_offset,
+        const int local_index_offset,
         SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -126,6 +128,29 @@ private:
      */
     TargetPointInitializer& operator=(
         const TargetPointInitializer& that);
+
+    /*!
+     * \brief Determine the indices of the target points initially
+     * located within the specified patch.
+     */
+    void getPatchTargetPointIndices(
+        std::vector<int>& point_indices,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const int level_number,
+        const bool can_be_refined) const;
+
+    /*!
+     * \return The initial position of the specified target point.
+     */
+    std::vector<double> getTargetPointPosn(
+        const int point_index) const;
+
+    /*!
+     * \return The spring stiffness associated with the specified
+     * target point.
+     */
+    double getTargetPointStiffness(
+        const int point_index) const;
 
     /*
      * The object name is used as a handle to databases stored in

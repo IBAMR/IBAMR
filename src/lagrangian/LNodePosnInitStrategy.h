@@ -3,7 +3,7 @@
 
 // Filename: LNodePosnInitStrategy.h
 // Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <04.Oct.2006 19:51:50 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <09.Nov.2006 00:43:37 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -63,6 +63,8 @@ public:
      */
     virtual void initializeDataOnPatchLevel(
         const int lag_node_index_idx,
+        const int global_index_offset,
+        const int local_index_offset,
         SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

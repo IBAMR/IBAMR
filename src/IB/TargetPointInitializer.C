@@ -1,5 +1,5 @@
 // Filename: TargetPointInitializer.C
-// Last modified: <27.Oct.2006 01:16:30 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Nov.2006 01:25:06 boyce@bigboy.nyconnect.com>
 // Created on 26 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "TargetPointInitializer.h"
@@ -33,8 +33,6 @@
 
 // C++ STDLIB INCLUDES
 #include <cassert>
-
-// C++ STDLIB INCLUDES
 #include <fstream>
 #include <iostream>
 
@@ -180,11 +178,6 @@ TargetPointInitializer::getLocalNodeCountOnPatchLevel(
     const bool can_be_refined,
     const bool initial_time)
 {
-    // All target points must reside on the finest level of the AMR
-    // grid.  Consequently, if can_be_refied == true, then the local
-    // node count is 0.
-    if (can_be_refined) return 0;
-
     // Loop over all patches in the specified level of the patch level
     // and count the number of local target points.
     int node_count = 0;
@@ -192,32 +185,13 @@ TargetPointInitializer::getLocalNodeCountOnPatchLevel(
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-        const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
-            patch->getPatchGeometry();
-        const double* const xLower = patch_geom->getXLower();
-        const double* const xUpper = patch_geom->getXUpper();
 
-        // Loop over all target points and increment the local node
-        // counter whenever the initial position of a target point
-        // lies within the present patch.
-        for (int k = 0; k < d_num_points; ++k)
-        {
-            const double* const X = &d_initial_posns[k*NDIM];
-            const bool patch_owns_node =
-                ((  xLower[0] <= X[0])&&(X[0] < xUpper[0]))
-#if (NDIM > 1)
-                &&((xLower[1] <= X[1])&&(X[1] < xUpper[1]))
-#if (NDIM > 2)
-                &&((xLower[2] <= X[2])&&(X[2] < xUpper[2]))
-#endif
-#endif
-                ;
-
-            if (patch_owns_node)
-            {
-                ++node_count;
-            }
-        }
+        // Count the number of target points whose initial locations
+        // will be within the given patch.
+        std::vector<int> point_indices;
+        getPatchTargetPointIndices(point_indices, patch,
+                                   level_number, can_be_refined);
+        node_count += point_indices.size();
     }
 
     return node_count;
@@ -226,6 +200,8 @@ TargetPointInitializer::getLocalNodeCountOnPatchLevel(
 void
 TargetPointInitializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
+    const int global_index_offset,
+    const int local_index_offset,
     SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
@@ -233,11 +209,6 @@ TargetPointInitializer::initializeDataOnPatchLevel(
     const bool can_be_refined,
     const bool initial_time)
 {
-    // All target points must reside on the finest level of the AMR
-    // grid.  Consequently, if can_be_refied == true, then there is no
-    // data to initialize.
-    if (can_be_refined) return;
-
     // Loop over all patches in the specified level of the patch level
     // and initialize the local target points.
     int local_idx = -1;
@@ -257,50 +228,48 @@ TargetPointInitializer::initializeDataOnPatchLevel(
         SAMRAI::tbox::Pointer<LNodeIndexData> index_data =
             patch->getPatchData(lag_node_index_idx);
 
-        // Loop over all target points and initialize all local target
-        // points.
-        for (int k = 0; k < d_num_points; ++k)
+        // Initialize the target points whose initial locations will
+        // be within the given patch.
+        std::vector<int> point_indices;
+        getPatchTargetPointIndices(
+            point_indices, patch, level_number, can_be_refined);
+        for (std::vector<int>::const_iterator it = point_indices.begin();
+             it != point_indices.end(); ++it)
         {
-            const double* const X = &d_initial_posns[k*NDIM];
-            const bool patch_owns_node =
-                ((  xLower[0] <= X[0])&&(X[0] < xUpper[0]))
-#if (NDIM > 1)
-                &&((xLower[1] <= X[1])&&(X[1] < xUpper[1]))
-#if (NDIM > 2)
-                &&((xLower[2] <= X[2])&&(X[2] < xUpper[2]))
-#endif
-#endif
-                ;
+            const int point_idx = (*it);
+            const int current_global_idx = point_idx + global_index_offset;
+            const int current_local_idx = ++local_idx + local_index_offset;
 
-            if (patch_owns_node)
+            // Get the coordinates and stiffnesses of the present
+            // target point.
+            const vector<double> X = getTargetPointPosn(point_idx);
+            const double kappa = getTargetPointStiffness(point_idx);
+
+            // Initialize the location of the present target point.
+            double* const node_X = &(*X_data)(current_local_idx);
+            for (int d = 0; d < NDIM; ++d)
             {
-                const SAMRAI::pdat::CellIndex<NDIM> idx = STOOLS::STOOLS_Utilities::getCellIndex(
-                    X, xLower, xUpper, dx, patch_lower, patch_upper);
-
-                const int current_lag_idx = k;
-                const int current_local_idx = ++local_idx;
-
-                std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec;
-                force_spec.push_back(
-                    new TargetPointForceSpec(X, d_stiffnesses[k]));
-
-                if (!index_data->isElement(idx))
-                {
-                    index_data->appendItem(idx,LNodeIndexSet());
-                }
-                LNodeIndexSet* node_set = index_data->getItem(idx);
-                node_set->push_back(
-                    new LNodeIndex(current_lag_idx,
-                                   current_local_idx,
-                                   &(*X_data)(current_local_idx),
-                                   force_spec));
-
-                double* const node_X = &(*X_data)(current_local_idx);
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    node_X[d] = X[d];
-                }
+                node_X[d] = X[d];
             }
+
+            // Get the index of the cell in which the present target
+            // point is initially located.
+            const SAMRAI::pdat::CellIndex<NDIM> idx = STOOLS::STOOLS_Utilities::getCellIndex(
+                X, xLower, xUpper, dx, patch_lower, patch_upper);
+
+            // Initialize the force specification object assocaited
+            // with the present target point.
+            std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec;
+            force_spec.push_back(new TargetPointForceSpec(X, kappa));
+
+            if (!index_data->isElement(idx))
+            {
+                index_data->appendItem(idx,LNodeIndexSet());
+            }
+            LNodeIndexSet* node_set = index_data->getItem(idx);
+            node_set->push_back(
+                new LNodeIndex(current_global_idx, current_local_idx,
+                               &(*X_data)(current_local_idx), force_spec));
         }
     }
     return;
@@ -330,15 +299,31 @@ TargetPointInitializer::tagCellsForInitialRefinement(
 
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tag_data = patch->getPatchData(tag_index);
 
-        for (int k = 0; k < d_num_points; ++k)
+        // Initialize the target points whose initial locations will
+        // be within the given patch.
+        //
+        // NOTE: Here, we want to tag the locations of all target
+        // points that are to be be assigned to any finer levels in
+        // the Cartesian grid.
+        static const bool can_be_refined = false;
+        std::vector<int> point_indices;
+        getPatchTargetPointIndices(
+            point_indices, patch, level_number+1, can_be_refined);
+        for (std::vector<int>::const_iterator it = point_indices.begin();
+             it != point_indices.end(); ++it)
         {
-            const double* const X = &d_initial_posns[k*NDIM];
+            const int point_idx = (*it);
+
+            // Get the coordinates of the present target point.
+            const vector<double> X = getTargetPointPosn(point_idx);
+
+            // Get the index of the cell in which the present target
+            // point is initially located.
             const SAMRAI::pdat::CellIndex<NDIM> idx = STOOLS::STOOLS_Utilities::getCellIndex(
                 X, xLower, xUpper, dx, patch_lower, patch_upper);
-            if (patch_box.contains(idx))
-            {
-                (*tag_data)(idx) = 1;
-            }
+
+            // Tag the cell for refinement.
+            if (patch_box.contains(idx)) (*tag_data)(idx) = 1;
         }
     }
     return;
@@ -347,6 +332,61 @@ TargetPointInitializer::tagCellsForInitialRefinement(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+TargetPointInitializer::getPatchTargetPointIndices(
+    std::vector<int>& point_indices,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    const int level_number,
+    const bool can_be_refined) const
+{
+    // All target points must reside on the finest level of the AMR
+    // grid.  Consequently, if can_be_refied == true, then there must
+    // be no points within the specified patch.
+    if (can_be_refined) return;
+
+    // Loop over all of the target points to determine the indices of
+    // those points within the present patch.
+    //
+    // NOTE: This is clearly not the best way to do this, but it will
+    // work for now.
+    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
+        patch->getPatchGeometry();
+    const double* const xLower = patch_geom->getXLower();
+    const double* const xUpper = patch_geom->getXUpper();
+
+    for (int k = 0; k < d_num_points; ++k)
+    {
+        const double* const X = &d_initial_posns[k*NDIM];
+        const bool patch_owns_node =
+            ((  xLower[0] <= X[0])&&(X[0] < xUpper[0]))
+#if (NDIM > 1)
+            &&((xLower[1] <= X[1])&&(X[1] < xUpper[1]))
+#if (NDIM > 2)
+            &&((xLower[2] <= X[2])&&(X[2] < xUpper[2]))
+#endif
+#endif
+            ;
+        if (patch_owns_node) point_indices.push_back(k);
+    }
+
+    return;
+}// getPatchTargetPointIndices
+
+std::vector<double>
+TargetPointInitializer::getTargetPointPosn(
+    const int point_index) const
+{
+    return std::vector<double>(
+        &d_initial_posns[point_index*NDIM], &d_initial_posns[(point_index+1)*NDIM]);
+}// getTargetPointPosn
+
+double
+TargetPointInitializer::getTargetPointStiffness(
+    const int point_index) const
+{
+    return d_stiffnesses[point_index];
+}// getTargetPointStiffness
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -1,6 +1,6 @@
 // Filename: XInit.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <25.Oct.2006 18:32:19 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Nov.2006 01:38:09 boyce@bigboy.nyconnect.com>
 
 #include "XInit.h"
 
@@ -146,6 +146,8 @@ XInit::getLocalNodeCountOnPatchLevel(
 void
 XInit::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
+    const int global_index_offset,
+    const int local_index_offset,
     tbox::Pointer<LNodeLevelData>& X_data,
     const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
@@ -222,8 +224,8 @@ XInit::initializeDataOnPatchLevel(
 #if (NDIM == 3)
                             + s*d_num_nodes*d_num_layers
 #endif
-                            ;
-                        const int current_local_idx = ++local_idx;
+                            + global_index_offset;
+                        const int current_local_idx = ++local_idx + local_index_offset;
 
                         vector<int> dst_idxs;
                         vector<double> stiffnesses, rest_lengths;
