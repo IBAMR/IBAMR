@@ -1,5 +1,5 @@
 // Filename: TargetPointInitializer.C
-// Last modified: <09.Nov.2006 03:32:49 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Nov.2006 03:34:31 boyce@bigboy.nyconnect.com>
 // Created on 26 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "TargetPointInitializer.h"
@@ -105,7 +105,7 @@ TargetPointInitializer::TargetPointInitializer(
 
         // The first entry in the file must be the number of target
         // points.
-        if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << input_filename <<endl);
+        if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << input_filename << endl);
         is >> d_num_points;
         ignore_rest_of_line(is);
 
@@ -118,10 +118,10 @@ TargetPointInitializer::TargetPointInitializer(
         {
             for (int d = 0; d < NDIM; ++d)
             {
-                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << input_filename <<endl);
+                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << input_filename << endl);
                 is >> d_initial_posns[k*NDIM+d];
             }
-            if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << input_filename <<endl);
+            if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << input_filename << endl);
             is >> d_stiffnesses[k];
             ignore_rest_of_line(is);
         }
