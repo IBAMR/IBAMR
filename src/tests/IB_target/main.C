@@ -279,8 +279,8 @@ int main(int argc, char* argv[])
                 "INSHierarchyIntegrator",
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
-        tbox::Pointer<SetDataStrategy> u_init = new UInit("UInit");
-        navier_stokes_integrator->registerVelocityInitialConditions(u_init);
+        //tbox::Pointer<SetDataStrategy> u_init = new UInit("UInit");
+        //navier_stokes_integrator->registerVelocityInitialConditions(u_init);
 
         tbox::Pointer<IBLagrangianForceStrategy> force_generator =
             new TargetPointForceGen();
@@ -451,8 +451,8 @@ int main(int argc, char* argv[])
                     const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                     tbox::Pointer<pdat::CellData<NDIM,double> > U_data =
                         patch->getPatchData(U_var, current_context);
-                    U_data->fillAll(0.0, patch_box*upper_box);
-                    U_data->fill(1.0,patch_box*upper_box,0);
+                    //U_data->fillAll(0.0, patch_box*upper_box);
+                    //U_data->fill(1.0,patch_box*upper_box,0);
                 }
             }
 #endif
