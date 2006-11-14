@@ -2,7 +2,7 @@
 #define included_TargetPointInitializer
 
 // Filename: TargetPointInitializer.h
-// Last modified: <09.Nov.2006 01:23:51 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Nov.2006 14:36:08 griffith@box221.cims.nyu.edu>
 // Created on 26 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -67,8 +67,11 @@ public:
      * \brief Initialize the LNodeIndex and LNodeLevel data needed to
      * specify the configuration of the curvilinear mesh on the patch
      * level.
+     *
+     * \return The number of local nodes initialized on the patch
+     * level.
      */
-    virtual void initializeDataOnPatchLevel(
+    virtual int initializeDataOnPatchLevel(
         const int lag_node_index_idx,
         const int global_index_offset,
         const int local_index_offset,

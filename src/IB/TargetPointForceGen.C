@@ -1,6 +1,6 @@
 // Filename: TargetPointForceGen.C
 // Created on 23 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
-// Last modified: <03.Nov.2006 12:40:06 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <14.Nov.2006 16:25:45 griffith@box221.cims.nyu.edu>
 
 #include "TargetPointForceGen.h"
 

@@ -1,5 +1,5 @@
 // Filename: TargetPointInitializer.C
-// Last modified: <09.Nov.2006 03:34:31 boyce@bigboy.nyconnect.com>
+// Last modified: <14.Nov.2006 16:36:11 griffith@box221.cims.nyu.edu>
 // Created on 26 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "TargetPointInitializer.h"
@@ -95,6 +95,18 @@ TargetPointInitializer::TargetPointInitializer(
 
     SAMRAI::tbox::pout << d_object_name << ":  Reading from input file " << input_filename << endl;
 
+    // Get the uniform stiffness, if appropriate.
+    double uniform_stiffness = 0.0;
+    bool use_uniform_stiffness = false;
+    if (input_db->keyExists("uniform_stiffness"))
+    {
+        uniform_stiffness = input_db->getDouble("uniform_stiffness");
+        use_uniform_stiffness = true;
+
+        SAMRAI::tbox::pout << d_object_name << ":  Using uniform spring stiffness for all target points" << endl
+                           << "Any spring constants in input file " << input_filename << " will be ignored" << endl;
+    }
+
     // Process the input file on the root MPI process.
     if (SAMRAI::tbox::MPI::getRank() == INPUT_MPI_ROOT)
     {
@@ -116,13 +128,25 @@ TargetPointInitializer::TargetPointInitializer(
 
         for (int k = 0; k < d_num_points; ++k)
         {
+            // Get the target point position.
             for (int d = 0; d < NDIM; ++d)
             {
                 if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << input_filename << endl);
                 is >> d_initial_posns[k*NDIM+d];
             }
-            if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << input_filename << endl);
-            is >> d_stiffnesses[k];
+
+            // Get the target point spring constant.
+            if (!use_uniform_stiffness)
+            {
+                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << input_filename << endl);
+                is >> d_stiffnesses[k];
+            }
+            else
+            {
+                d_stiffnesses[k] = uniform_stiffness;
+            }
+
+            // Ignore the rest of the line.
             ignore_rest_of_line(is);
         }
 
@@ -191,7 +215,7 @@ TargetPointInitializer::getLocalNodeCountOnPatchLevel(
 {
     // Loop over all patches in the specified level of the patch level
     // and count the number of local target points.
-    int node_count = 0;
+    int local_node_count = 0;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -202,13 +226,13 @@ TargetPointInitializer::getLocalNodeCountOnPatchLevel(
         std::vector<int> point_indices;
         getPatchTargetPointIndices(point_indices, patch,
                                    level_number, can_be_refined);
-        node_count += point_indices.size();
+        local_node_count += point_indices.size();
     }
 
-    return node_count;
+    return local_node_count;
 }// getLocalNodeCountOnPatchLevel
 
-void
+int
 TargetPointInitializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
     const int global_index_offset,
@@ -223,6 +247,7 @@ TargetPointInitializer::initializeDataOnPatchLevel(
     // Loop over all patches in the specified level of the patch level
     // and initialize the local target points.
     int local_idx = -1;
+    int local_node_count = 0;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -244,6 +269,7 @@ TargetPointInitializer::initializeDataOnPatchLevel(
         std::vector<int> point_indices;
         getPatchTargetPointIndices(
             point_indices, patch, level_number, can_be_refined);
+        local_node_count += point_indices.size();
         for (std::vector<int>::const_iterator it = point_indices.begin();
              it != point_indices.end(); ++it)
         {
@@ -283,7 +309,7 @@ TargetPointInitializer::initializeDataOnPatchLevel(
                                &(*X_data)(current_local_idx), force_spec));
         }
     }
-    return;
+    return local_node_count;
 }// initializeDataOnPatchLevel
 
 void

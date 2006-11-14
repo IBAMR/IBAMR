@@ -1,6 +1,6 @@
 // Filename: XInit.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <09.Nov.2006 01:38:09 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Nov.2006 15:32:59 griffith@box221.cims.nyu.edu>
 
 #include "XInit.h"
 
@@ -93,7 +93,7 @@ XInit::getLocalNodeCountOnPatchLevel(
 {
     if (can_be_refined) return 0;
 
-    int node_count = 0;
+    int local_node_count = 0;
 
     tbox::Pointer<hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
@@ -133,17 +133,17 @@ XInit::getLocalNodeCountOnPatchLevel(
 
                     if (patch_owns_node)
                     {
-                        ++node_count;
+                        ++local_node_count;
                     }
                 }
             }
         }
     }
 
-    return node_count;
+    return local_node_count;
 }// getLocalNodeCountOnPatchLevel
 
-void
+int
 XInit::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
     const int global_index_offset,
@@ -155,12 +155,12 @@ XInit::initializeDataOnPatchLevel(
     const bool can_be_refined,
     const bool initial_time)
 {
-    if (can_be_refined) return;
+    if (can_be_refined) return 0;
 
     tbox::Pointer<hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     int local_idx = -1;
-
+    int local_node_count = 0;
     for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -217,6 +217,7 @@ XInit::initializeDataOnPatchLevel(
 
                     if (patch_owns_node)
                     {
+                        ++local_node_count;
                         idx = STOOLS::STOOLS_Utilities::getCellIndex(
                             X, xLower, xUpper, dx, patch_lower, patch_upper);
 
@@ -408,7 +409,7 @@ XInit::initializeDataOnPatchLevel(
             }
         }
     }
-    return;
+    return local_node_count;
 }// initializeDataOnPatchLevel
 
 void

@@ -3,7 +3,7 @@
 
 // Filename: XInit.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <09.Nov.2006 01:37:21 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Nov.2006 15:30:00 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -64,8 +64,11 @@ public:
     /*!
      * @brief Initialize the LNodeIndex and LNodeLevel data on the
      * patch level.
+     *
+     * \return The number of local nodes initialized on the patch
+     * level.
      */
-    virtual void initializeDataOnPatchLevel(
+    virtual int initializeDataOnPatchLevel(
         const int lag_node_index_idx,
         const int global_index_offset,
         const int local_index_offset,
