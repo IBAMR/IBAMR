@@ -1,5 +1,5 @@
 // Filename: TargetPointInitializer.C
-// Last modified: <14.Nov.2006 16:36:11 griffith@box221.cims.nyu.edu>
+// Last modified: <15.Nov.2006 00:45:14 boyce@bigboy.nyconnect.com>
 // Created on 26 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "TargetPointInitializer.h"
@@ -111,7 +111,7 @@ TargetPointInitializer::TargetPointInitializer(
     if (SAMRAI::tbox::MPI::getRank() == INPUT_MPI_ROOT)
     {
         std::ifstream is;
-        is.open(input_filename.c_str(), ios::in);
+        is.open(input_filename.c_str(), std::ios::in);
         if (!is.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << input_filename << endl);
         is.peek();  // catch premature end-of-file for empty files
 

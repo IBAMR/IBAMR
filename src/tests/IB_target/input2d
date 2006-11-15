@@ -23,7 +23,7 @@ IBHierarchyIntegrator {
 
    enable_logging = TRUE
 
-   regrid_interval = 8
+   regrid_interval = 4
    dt_max = 0.8/NFINEST
    delta_fcn = DELTA_FCN
    timestepping_order = 2
@@ -49,7 +49,7 @@ INSHierarchyIntegrator {
    vorticity_threshold = 0.025
 
    output_P = TRUE
-   output_F = TRUE
+   output_F = FALSE
    output_Q = FALSE
 
    output_Omega = TRUE

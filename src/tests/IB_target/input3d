@@ -6,14 +6,14 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // constants
-N = 8              // coarsest grid spacing
-NFINEST = 1*N      // finest grid spacing
+N = 16              // coarsest grid spacing
+NFINEST = 16*N      // finest grid spacing
 
-DELTA_FCN = "IB_4"  // the choice of delta function
+DELTA_FCN = "IB_6"  // the choice of delta function
 
-R = 1.65201243937840 // the sphere radius
-Re = 200.0           // the desired Reynolds number (Re)
-MU = 2.0*R/Re        // the viscosity required to attain the desired Re
+R = 0.15            // the sphere radius
+Re = 500.0          // the desired Reynolds number (Re)
+MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 
 IBHierarchyIntegrator {
    start_time            = 0.e0     // initial simulation time
@@ -23,15 +23,15 @@ IBHierarchyIntegrator {
 
    enable_logging = TRUE
 
-   regrid_interval = 8
-   dt_max = 0.8/NFINEST
+   regrid_interval = 4
+   dt_max = 0.5/NFINEST
    delta_fcn = DELTA_FCN
    timestepping_order = 2
 }
 
 TargetPointInitializer {
-   input_filename = "sphere3d_vertices.dat"
-   uniform_stiffness = 0.0
+   input_filename = "sphere3d.dat"
+   uniform_stiffness = 20.0
 }
 
 INSHierarchyIntegrator {
@@ -47,7 +47,7 @@ INSHierarchyIntegrator {
    vorticity_threshold = 0.025
 
    output_P = TRUE
-   output_F = TRUE
+   output_F = FALSE
    output_Q = FALSE
 
    output_Omega = TRUE
@@ -190,13 +190,13 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0,0) , (N - 1,N - 1,N - 1) ]
-   x_lo         =   -5, -20, -20       // lower end of computational domain.
-   x_up         =   35,  20, -20       // upper end of computational domain.
+   x_lo         =  0, 0, 0    // lower end of computational domain.
+   x_up         =  8, 8, 8    // upper end of computational domain.
    periodic_dimension = 1,1,1
 }
 
 GriddingAlgorithm {
-   max_levels             = 1      // Maximum number of levels in hierarchy.
+   max_levels             = 3    // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1             = 4,4,4  // vector ratio to next coarser level
       level_2             = 4,4,4
@@ -209,7 +209,7 @@ GriddingAlgorithm {
    }
 
    smallest_patch_size {
-      level_0 =  4,  4,  4 // smallest patch allowed in hierarchy
+      level_0 =  8,  8,  8 // smallest patch allowed in hierarchy
                            // all finer levels will use same values as level_0...
    }
 

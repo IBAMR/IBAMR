@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <14.Nov.2006 17:29:46 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Nov.2006 21:01:16 boyce@bigboy.nyconnect.com>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -429,23 +429,6 @@ HierarchyProjector::projectHierarchy(
         1.0,                      // beta
         Q_idx, Q_var);            // src2
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > div_w_data = patch->getPatchData(d_div_w_idx);
-            SAMRAI::tbox::pout << "div w = \n";
-            div_w_data->print(div_w_data->getBox(),SAMRAI::tbox::pout);
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > w_data = patch->getPatchData(w_idx);
-            SAMRAI::tbox::pout << "w = \n";
-            w_data->print(w_data->getBox(),SAMRAI::tbox::pout);
-        }
-    }
-
     // Solve -div grad Phi = div u - div w.
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double> sol_vec(
         d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
@@ -484,34 +467,6 @@ HierarchyProjector::projectHierarchy(
         Phi_bdry_fill_time);        // src_bdry_fill_time
 
     d_hier_fc_data_ops->subtract(u_idx, w_idx, grad_Phi_idx);
-
-    SAMRAI::tbox::pout << "after projection!\n";
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data = patch->getPatchData(u_idx);
-            SAMRAI::tbox::pout << "u = \n";
-            u_data->print(u_data->getBox(),SAMRAI::tbox::pout);
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > w_data = patch->getPatchData(w_idx);
-            SAMRAI::tbox::pout << "w = \n";
-            w_data->print(w_data->getBox(),SAMRAI::tbox::pout);
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Phi_data = patch->getPatchData(Phi_idx);
-            SAMRAI::tbox::pout << "Phi = \n";
-            Phi_data->print(Phi_data->getBox(),SAMRAI::tbox::pout);
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > grad_Phi_data = patch->getPatchData(grad_Phi_idx);
-            SAMRAI::tbox::pout << "grad_Phi = \n";
-            grad_Phi_data->print(grad_Phi_data->getBox(),SAMRAI::tbox::pout);
-
-        }
-    }
 
     t_project_hierarchy_face->stop();
     return;

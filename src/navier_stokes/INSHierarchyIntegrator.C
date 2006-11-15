@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <14.Nov.2006 17:16:37 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Nov.2006 21:01:27 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1391,8 +1391,6 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         d_hier_cc_data_ops->setToScalar(d_Phi_idx, // data
                                         0.0);      // alpha
 
-        SAMRAI::tbox::pout << "here...." << endl;
-
         d_hier_projector->projectHierarchy(
             d_u_current_idx, d_u_var       , // u(n)
             d_Phi_idx      , d_Phi_var     , // Phi
@@ -1404,8 +1402,6 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
             current_time,                    // u_scratch data time
             false,                           // no synch needed
             d_Q_current_idx, d_Q_var);       // div u(n)
-
-        SAMRAI::tbox::pout << "....there" << endl;
 
         static const bool grad_Phi_cf_bdry_synch = false;
         d_hier_math_ops->interp(
