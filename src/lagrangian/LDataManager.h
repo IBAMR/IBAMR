@@ -3,7 +3,7 @@
 
 // Filename: LDataManager.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <07.Nov.2006 00:58:00 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Nov.2006 00:33:08 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -91,9 +91,9 @@ public:
      * not explicitly allocate or deallocate the LDataManager
      * instances.
      *
-     * @return A pointer to the data manager instance.
+     * \return A pointer to the data manager instance.
      *
-     * @todo fix this interface
+     * \todo fix this interface
      */
     static LDataManager* getManager(
         const string& name,
@@ -109,16 +109,19 @@ public:
      */
     static void freeAllManagers();
 
-    //@{ @name Methods to set the hierarchy and range of levels.
+    /*!
+     * \name Methods to set the hierarchy and range of levels.
+     */
+    //\{
 
     /*!
-     * @brief Reset patch hierarchy over which operations occur.
+     * \brief Reset patch hierarchy over which operations occur.
      */
     void setPatchHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
-     * @brief Reset range of patch levels over which operations occur.
+     * \brief Reset range of patch levels over which operations occur.
      *
      * The levels must exist in the hierarchy or an assertion failure
      * will result.
@@ -127,7 +130,7 @@ public:
         const int coarsest_ln,
         const int finest_ln);
 
-    //@}
+    //\}
 
     /*!
      * Register a concrete strategy object with the integrator that
@@ -140,7 +143,7 @@ public:
     /*!
      * Free the concrete Jacobian strategy object.
      *
-     * NOTE: Be sure to call this method only once the initialization
+     * \note Be sure to call this method only once the initialization
      * object is no longer needed.
      */
     void freeLNodeJacobianInitStrategy();
@@ -156,66 +159,66 @@ public:
     /*!
      * Free the concrete initialization strategy object.
      *
-     * NOTE: Be sure to call this method only once the initialization
+     * \note Be sure to call this method only once the initialization
      * object is no longer needed.
      */
     void freeLNodePosnInitStrategy();
 
     /*!
-     * @brief Register a VisIt data writer with the manager.
+     * \brief Register a VisIt data writer with the manager.
      */
     void registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
 
     /*!
-     * @brief Register a Silo data writer with the manager.
+     * \brief Register a Silo data writer with the manager.
      */
     void registerLagSiloDataWriter(
         SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer);
 
     /*!
-     * @brief Register a load balancer for non-uniform load balancing.
+     * \brief Register a load balancer for non-uniform load balancing.
      */
     void registerLoadBalancer(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
 
     /*!
-     * @brief Indicates whether there is Lagrangian data on the given
+     * \brief Indicates whether there is Lagrangian data on the given
      * patch hierarchy level.
      */
     bool levelContainsLagrangianData(
         const int level_number) const;
 
     /*!
-     * @return The number of total nodes of the Lagrangian data for
+     * \return The number of total nodes of the Lagrangian data for
      * the specified level of the patch hierarchy.
      */
     int getNumberOfNodes(
         const int level_number) const;
 
     /*!
-     * @return The number of local (i.e., on processor) nodes of the
+     * \return The number of local (i.e., on processor) nodes of the
      * Lagrangian data for the specified level of the patch hierarchy.
      *
-     * NOTE: This count does not include nodes which only lie in ghost
+     * \note This count does not include nodes which only lie in ghost
      * cells for the current process.
      */
     int getNumberOfLocalNodes(
         const int level_number) const;
 
     /*!
-     * @return The number of nodes on all processors with MPI rank
+     * \return The number of nodes on all processors with MPI rank
      * less than the current process on the specified level of the
      * patch hierarchy.
      *
-     * NOTE: This count does not include nodes which only lie in ghost
+     * \note This count does not include nodes which only lie in ghost
      * cells for the current process.
      */
     int getGlobalNodeOffset(
         const int level_number) const;
 
     /*!
-     * @brief Get the specified Lagrangian quantity data on the given
+     * \brief Get the specified Lagrangian quantity data on the given
      * patch hierarchy level.
      */
     SAMRAI::tbox::Pointer<LNodeLevelData> getLNodeLevelData(
@@ -223,11 +226,11 @@ public:
         const int level_number);
 
     /*!
-     * @brief Allocate new Lagrangian level data with the specified
+     * \brief Allocate new Lagrangian level data with the specified
      * name and depth.  If specified, the quantity is maintained as
      * the patch hierarchy evolves.
      *
-     * NOTE: Quantities maintained by the LDataManager must have
+     * \note Quantities maintained by the LDataManager must have
      * unique names.  The name "X" is reserved for the nodal
      * coordinates.
      */
@@ -238,31 +241,31 @@ public:
         const bool maintain_data=false);
 
     /*!
-     * @brief Get the patch data descriptor index for the Lagrangian
+     * \brief Get the patch data descriptor index for the Lagrangian
      * index data.
      */
     int getLNodeIndexPatchDescriptorIndex() const;
 
     /*!
-     * @brief Get the patch data descriptor index for the workload
+     * \brief Get the patch data descriptor index for the workload
      * cell data.
      */
     int getWorkloadPatchDescriptorIndex() const;
 
     /*!
-     * @brief Get the patch data descriptor index for the Lagrangian
+     * \brief Get the patch data descriptor index for the Lagrangian
      * node count cell data.
      */
     int getNodeCountPatchDescriptorIndex() const;
 
     /*!
-     * @brief Get the patch data descriptor index for the MPI process
+     * \brief Get the patch data descriptor index for the MPI process
      * mapping cell data.
      */
     int getProcMappingPatchDescriptorIndex() const;
 
     /*!
-     * @brief Map the collection of Lagrangian indices to the
+     * \brief Map the collection of Lagrangian indices to the
      * corresponding global PETSc indices.
      */
     void mapLagrangianToPETSc(
@@ -270,7 +273,7 @@ public:
         const int level_number) const;
 
     /*!
-     * @brief Map the collection of global PETSc indices to the
+     * \brief Map the collection of global PETSc indices to the
      * corresponding Lagrangian indices.
      */
     void mapPETScToLagrangian(
@@ -278,24 +281,24 @@ public:
         const int level_number) const;
 
     /*!
-     * @brief Start the process of redistributing the Lagrangian data.
+     * \brief Start the process of redistributing the Lagrangian data.
      *
      * This method uses the present location of each Lagrangian mesh
      * node to redistribue the LNodeIndexData managed by this object.
      *
-     * IMPORTANT NOTE: This routine assumes that the time interval
-     * between node redistribution satisfies a timestep restriction of
-     * the form dt <= C*dx*|U| with C <= 1.  This restriction prevents
-     * nodes from moving more than one cell width per timestep.
+     * \note This routine assumes that the time interval between node
+     * redistribution satisfies a timestep restriction of the form dt
+     * <= C*dx*|U| with C <= 1.  This restriction prevents nodes from
+     * moving more than one cell width per timestep.
      *
-     * @see endDataRedistribution
+     * \see endDataRedistribution
      */
     void beginDataRedistribution(
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
     /*!
-     * @brief Finish the process of redistributing the Lagrangian
+     * \brief Finish the process of redistributing the Lagrangian
      * data.
      *
      * This method redistribues the quantites associated with each
@@ -304,21 +307,21 @@ public:
      * routine potentially involves SUBSTANTIAL interprocessor
      * communication.
      *
-     * IMPORTANT NOTE: Since this routine potentially results in a
-     * large amount of interprocessor communication, it may be worth
-     * putting it off for as long as possible.  If the timestep dt
-     * satisfies a condition of the form dt <= C*dx*|U| with C << 1,
-     * it may be possible to redistribute the Lagrangian data less
-     * frequently than every timestep.
+     * \note Since this routine potentially results in a large amount
+     * of interprocessor communication, it may be worth putting it off
+     * for as long as possible.  If the timestep dt satisfies a
+     * condition of the form dt <= C*dx*|U| with C << 1, it may be
+     * possible to redistribute the Lagrangian data less frequently
+     * than every timestep.
      *
-     * @see beginDataRedistribution
+     * \see beginDataRedistribution
      */
     void endDataRedistribution(
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
     /*!
-     * @brief Update the workload and count of nodes per cell.
+     * \brief Update the workload and count of nodes per cell.
      *
      * This routine updates cell data which is maintained on the patch
      * hierarchy in order to keep track of the number of nodes in each
@@ -336,11 +339,11 @@ public:
         const int finest_ln=-1);
 
     /*!
-     * @brief Each LNodeIndex object owns a pointer to its nodal
+     * \brief Each LNodeIndex object owns a pointer to its nodal
      * location.  This routine updates these pointers based on the
      * current state of the Lagrangian nodal position data.
      *
-     * NOTE: It is important to note that any operation on the
+     * \note It is important to note that any operation on the
      * LNodeLevelData which results in the restoration of the local
      * form of the underlying PETSc Vec object potentially invalidates
      * these pointers.
@@ -350,7 +353,7 @@ public:
         const int finest_ln=-1);
 
     /*!
-     * @brief Each LNodeIndex object owns a pointer to its nodal
+     * \brief Each LNodeIndex object owns a pointer to its nodal
      * location.  This routine invalidates these pointers (an action
      * which is mainly useful for debugging purposes).
      */
@@ -366,7 +369,7 @@ public:
     ///      applyGradientDetector()
     ///
     ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::mesh::StandardTagAndInitStrategy<NDIM> abstract base class.
+    ///  SAMRAI::mesh::StandardTagAndInitStrategy abstract base class.
     ///
 
     /*!
@@ -476,7 +479,7 @@ public:
 
 protected:
     /*!
-     * @brief Constructor.
+     * \brief Constructor.
      *
      * XXXX: Need mechanism for specifiying GCW!
      */
@@ -486,45 +489,45 @@ protected:
         bool register_for_restart=true);
 
     /*!
-     * @brief The LDataManager destructor cleans up any remaining
+     * \brief The LDataManager destructor cleans up any remaining
      * PETSc AO objects.
      */
     ~LDataManager();
 
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      */
     LDataManager();
 
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     LDataManager(
         const LDataManager& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     LDataManager& operator=(
         const LDataManager& that);
 
     /*!
-     * @brief Begin the process of refilling nonlocal Lagrangian
+     * \brief Begin the process of refilling nonlocal Lagrangian
      * quantites over the specified range of levels in the patch
      * hierarchy.
      *
@@ -536,7 +539,7 @@ private:
         const int finest_ln=-1);
 
     /*!
-     * @brief End the process of refilling nonlocal Lagrangian
+     * \brief End the process of refilling nonlocal Lagrangian
      * quantites over the specified range of levels in the patch
      * hierarchy.
      *
@@ -553,14 +556,14 @@ private:
      * local PETSc indices of the interior and ghost nodes in each
      * patch of the specified level.
      *
-     * NOTE: The set of local Lagrangian indices lists all the nodes
+     * \note The set of local Lagrangian indices lists all the nodes
      * which are owned by this processor.  The set of nonlocal
      * Lagrangian indices lists all of the nodes which are not owned
      * by this processor but which appear in the ghost cell region of
      * some patch on this processor.  Both of these sets of node
      * indices use the fixed, global Lagrangian indexing scheme.
      *
-     * NOTE: The set of interior local indices lists the nodes which
+     * \note The set of interior local indices lists the nodes which
      * live on the interior on each patch.  The set of ghost local
      * indices lists the nodes which live in the ghost cell region of
      * each patch.  Both of these sets of node indices use the local
@@ -658,42 +661,44 @@ private:
     std::vector<bool> d_level_contains_lag_data;
 
     /*
-     * SAMRAI::hier::Variable<NDIM> pointer and patch data descriptor indices
-     * for the LNodeIndexData used to define the data distribution.
+     * SAMRAI::hier::Variable pointer and patch data descriptor
+     * indices for the LNodeIndexData used to define the data
+     * distribution.
      */
     SAMRAI::tbox::Pointer<LNodeIndexVariable> d_lag_node_index_var;
     int d_lag_node_index_current_idx, d_lag_node_index_scratch_idx;
 
     /*
-     * SAMRAI::hier::Variable<NDIM> pointer and patch data descriptor indices
-     * for the cell variable used to determine the workload for
-     * nonuniform load balancing.
+     * SAMRAI::hier::Variable pointer and patch data descriptor
+     * indices for the cell variable used to determine the workload
+     * for nonuniform load balancing.
      */
     double d_alpha_work, d_beta_work;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_workload_var;
     int d_workload_idx;
 
     /*
-     * SAMRAI::hier::Variable<NDIM> pointer and patch data descriptor indices
-     * for the cell variable used to keep track of the count of the
-     * nodes in each cell for visualization and tagging purposes.
+     * SAMRAI::hier::Variable pointer and patch data descriptor
+     * indices for the cell variable used to keep track of the count
+     * of the nodes in each cell for visualization and tagging
+     * purposes.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_node_count_var;
     int d_node_count_idx;
     bool d_output_node_count;
 
     /*
-     * SAMRAI::hier::Variable<NDIM> pointer and patch data descriptor indices
-     * for the cell variable used to keep track of the MPI process
-     * assigned to each patch.
+     * SAMRAI::hier::Variable pointer and patch data descriptor
+     * indices for the cell variable used to keep track of the MPI
+     * process assigned to each patch.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int> > d_mpi_proc_var;
     int d_mpi_proc_idx;
     bool d_output_mpi_proc;
 
     /*
-     * SAMRAI::hier::IntVector<NDIM> object which determines the ghost cell
-     * width of the LNodeIndexData SAMRAI::hier::PatchData<NDIM> objects.
+     * SAMRAI::hier::IntVector object which determines the ghost cell
+     * width of the LNodeIndexData SAMRAI::hier::PatchData objects.
      */
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
@@ -713,12 +718,15 @@ private:
 
     /*
      * ComponenetSelector object allow for the collective allocation
-     * and deallocation of SAMRAI::hier::PatchData<NDIM>.
+     * and deallocation of SAMRAI::hier::PatchData.
      */
     SAMRAI::hier::ComponentSelector d_current_data, d_scratch_data;
 
-    //@{ @Data that is separately maintained for each level of the
-    //patch hierarchy.
+    /*!
+     * \name Data that is separately maintained for each level of the
+     * patch hierarchy.
+     */
+    //\{
 
     /*!
      * The Lagrangian quantity data owned by the manager object.
@@ -788,18 +796,19 @@ private:
      * The indices are in the global PETSc ordering corresponding to a
      * depth of 1.
      *
-     * NOTE: These sets are used to create the VecScatter objects used
+     * \note These sets are used to create the VecScatter objects used
      * to transfer data from the old PETSc ordering to the new PETSc
      * ordering.  Since the ordering is different for different depths
      * of LNodeLevelData, we compute one set of indices for each depth
      * which is being reordered.
      *
-     * TODO: Is this data really necessary for depth != 1?  It doesn't
-     * seem to be used in any essential way by the class.
+     * \todo Is this data really necessary for depth != 1?  It doesn't
+     * seem to be used in any essential way by the present
+     * implementation.
      */
     std::vector<std::map<int,std::vector<int> > > d_nonlocal_petsc_indices;
 
-    //@}
+    //\}
 };
 }// namespace IBAMR
 

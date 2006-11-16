@@ -3,7 +3,7 @@
 
 // Filename: StashableManager.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <04.Oct.2006 19:49:57 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <16.Nov.2006 00:20:03 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -23,12 +23,12 @@
 namespace IBAMR
 {
 /*!
- * @brief Singleton manager class to handle object packing and
+ * \brief Singleton manager class to handle object packing and
  * unpacking for SAMRAI::tbox::AbstractStream based communication using the
  * Stashable and StashableFactory interfaces.
  *
- * @see Stashable
- * @see StashableFactory
+ * \see Stashable
+ * \see StashableFactory
  */
 class StashableManager
 {
@@ -46,7 +46,7 @@ public:
      * freed at program completion.  Thus, users of this class do not
      * explicitly allocate or deallocate the manager instances.
      *
-     * @return A pointer to the data manager instance.
+     * \return A pointer to the data manager instance.
      */
     static StashableManager* getManager();
 
@@ -60,7 +60,7 @@ public:
     static void freeManager();
 
     /*!
-     * @return A integer value reserved for unregistered
+     * \return A integer value reserved for unregistered
      * StashableFactory objects.  A concrete StashableFactory object
      * must use this as its initial stashable ID.
      */
@@ -70,10 +70,10 @@ public:
      * Check to see if a StashableFactory has been registered with the
      * manager.
      *
-     * @return true if the factory has been registered, false
+     * \return true if the factory has been registered, false
      * otherwise.
      *
-     * NOTE: This method simply checks to see if a StashableFactory
+     * \note This method simply checks to see if a StashableFactory
      * with the same Stashable ID has been registered with the
      * manager.  Every different Stashable/StashableFactory type
      * *must* have a unique ID.
@@ -87,7 +87,7 @@ public:
      * Each factory object registered with the manager is provided
      * with a unique ID.
      *
-     * NOTE: To ensure that each MPI process uses the same stashable
+     * \note To ensure that each MPI process uses the same stashable
      * ID for each stashable class registered with the manager, this
      * method is collective on all MPI processes!
      */
@@ -95,28 +95,28 @@ public:
         SAMRAI::tbox::Pointer<StashableFactory> factory);
 
     /*!
-     * @brief Return an upper bound on the amount of space required to
+     * \brief Return an upper bound on the amount of space required to
      * pack a Stashable object to a buffer.
      */
     size_t getDataStreamSize(
         const SAMRAI::tbox::Pointer<Stashable>& stash_data) const;
 
     /*!
-     * @brief Return an upper bound on the amount of space required to
+     * \brief Return an upper bound on the amount of space required to
      * pack a vector of Stashable objects to a buffer.
      */
     size_t getDataStreamSize(
         const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data) const;
 
     /*!
-     * @brief Pack a Stashable object into the output stream.
+     * \brief Pack a Stashable object into the output stream.
      */
     void packStream(
         SAMRAI::tbox::AbstractStream& stream,
         SAMRAI::tbox::Pointer<Stashable>& stash_data);
 
     /*!
-     * @brief Pack a vector of Stashable objects into the output
+     * \brief Pack a vector of Stashable objects into the output
      * stream.
      */
     void packStream(
@@ -124,7 +124,7 @@ public:
         std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data);
 
     /*!
-     * @brief Unpack a Stashable object from the input stream.
+     * \brief Unpack a Stashable object from the input stream.
      */
     void unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
@@ -132,7 +132,7 @@ public:
         SAMRAI::tbox::Pointer<Stashable>& stash_data);
 
     /*!
-     * @brief Unpack a vector of Stashable objects from the input
+     * \brief Unpack a vector of Stashable objects from the input
      * stream.
      */
     void unpackStream(
@@ -142,12 +142,12 @@ public:
 
 protected:
     /*!
-     * @brief Constructor.
+     * \brief Constructor.
      */
     StashableManager();
 
     /*!
-     * @brief Destructor.
+     * \brief Destructor.
      */
     ~StashableManager();
 
@@ -162,24 +162,24 @@ protected:
 
 private:
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     StashableManager(
         const StashableManager& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     StashableManager& operator=(
         const StashableManager& that);

@@ -2,7 +2,7 @@
 #define included_SetDataStrategy
 
 // Filename: SetDataStrategy.h
-// Last modified: <04.Oct.2006 19:49:40 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <16.Nov.2006 00:18:58 boyce@bigboy.nyconnect.com>
 // Created on 15 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -114,7 +114,7 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      */
     SetDataStrategy();
@@ -122,7 +122,7 @@ private:
     /*!
      * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
      * \param from The value to copy to this object.
@@ -133,7 +133,7 @@ private:
     /*!
      * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
      * \param that The value to assign to this object.
      *

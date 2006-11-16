@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <07.Oct.2006 23:09:11 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Nov.2006 00:22:29 boyce@bigboy.nyconnect.com>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -368,32 +368,32 @@ public:
 
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      */
     HierarchyProjector();
 
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     HierarchyProjector(
         const HierarchyProjector& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     HierarchyProjector& operator=(
         const HierarchyProjector& that);

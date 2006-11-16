@@ -3,7 +3,7 @@
 
 // Filename: LEInteractor.h
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <04.Oct.2006 19:51:06 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <16.Nov.2006 00:34:39 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -23,7 +23,7 @@
 namespace IBAMR
 {
 /*!
- * @brief Class LEInteractor is a Lagrangian--Eulerian utilities class
+ * \brief Class LEInteractor is a Lagrangian--Eulerian utilities class
  * that defines several functions to interpolate data from Eulerian
  * grid patches onto Lagrangian meshes and to spread densities from
  * Lagrangian meshes to Eulerian grid patches.
@@ -32,16 +32,16 @@ class LEInteractor
 {
 public:
     /*!
-     * @brief Initialize the Timer objects employed by the
+     * \brief Initialize the Timer objects employed by the
      * LEInteractor class.
      *
-     * NOTE: It is necessary to initialize the Timer objects prior to
+     * \note It is necessary to initialize the Timer objects prior to
      * using any of the functionality provided by this class.
      */
     static void initializeTimers();
 
     /*!
-     * @brief Returns the interpolation/spreading stencil
+     * \brief Returns the interpolation/spreading stencil
      * corresponding to the specified weighting function.
      *
      * The return value is -1 for any unknown weighting function type.
@@ -50,16 +50,16 @@ public:
         const string& weighting_fcn);
 
     /*!
-     * @brief Interpolate data from an Eulerian grid to a Lagrangian
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian
      * mesh.  The positions of the nodes of the Lagrangian mesh are
      * specified by X_data.
      *
-     * NOTE: This method employs periodic boundary conditions where
+     * \note This method employs periodic boundary conditions where
      * appropriate and when requested.  X_data must provide the
      * cannonical location of the node---i.e., each node location must
      * lie within the extents of the physical domain.
      *
-     * NOTE: The interpolation operator implements the operation
+     * \note The interpolation operator implements the operation
      *
      *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
      *
@@ -77,16 +77,16 @@ public:
         const bool enforce_periodic_bcs=false);
 
     /*!
-     * @brief Interpolate data from an Eulerian grid to a Lagrangian
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian
      * mesh.  The positions of the nodes of the Lagrangian mesh are
      * specified by X_data.
      *
-     * NOTE: This method employs periodic boundary conditions where
+     * \note This method employs periodic boundary conditions where
      * appropriate and when requested.  X_data must provide the
      * cannonical location of the node---i.e., each node location must
      * lie within the extents of the physical domain.
      *
-     * NOTE: The interpolation operator implements the operation
+     * \note The interpolation operator implements the operation
      *
      *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
      *
@@ -106,14 +106,14 @@ public:
         const bool enforce_periodic_bcs=false);
 
     /*!
-     * @brief Interpolate data from an Eulerian grid to a Lagrangian
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian
      * mesh.  The positions of the nodes of the Lagrangian mesh are
      * specified by X_data.
      *
-     * NOTE: This method does not implement periodic boundary
+     * \note This method does not implement periodic boundary
      * conditions!
      *
-     * NOTE: The interpolation operator implements the operation
+     * \note The interpolation operator implements the operation
      *
      *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
      *
@@ -132,16 +132,16 @@ public:
         const string& interp_fcn="IB_4");
 
     /*!
-     * @brief Spread data from a Lagrangian mesh to an Eulerian grid.
+     * \brief Spread data from a Lagrangian mesh to an Eulerian grid.
      * The positions of the nodes of the Lagrangian mesh are specified
      * by X_data.
      *
-     * NOTE: This method employs periodic boundary conditions where
+     * \note This method employs periodic boundary conditions where
      * appropriate and when requested.  X_data must provide the
      * cannonical location of the node---i.e., each node location must
      * lie within the extents of the physical domain.
      *
-     * NOTE: The spreading operation DOES NOT include the scale factor
+     * \note The spreading operation DOES NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).
      * The spreading formula is
      *
@@ -162,16 +162,16 @@ public:
         const bool enforce_periodic_bcs=false);
 
     /*!
-     * @brief Spread data from a Lagrangian mesh to an Eulerian grid.
+     * \brief Spread data from a Lagrangian mesh to an Eulerian grid.
      * The positions of the nodes of the Lagrangian mesh are specified
      * by X_data.
      *
-     * NOTE: This method employs periodic boundary conditions where
+     * \note This method employs periodic boundary conditions where
      * appropriate and when requested.  X_data must provide the
      * cannonical location of the node---i.e., each node location must
      * lie within the extents of the physical domain.
      *
-     * NOTE: The spreading operation DOES NOT include the scale factor
+     * \note The spreading operation DOES NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).
      * The spreading formula is
      *
@@ -194,14 +194,14 @@ public:
         const bool enforce_periodic_bcs=false);
 
     /*!
-     * @brief Spread data from a Lagrangian mesh to an Eulerian grid.
+     * \brief Spread data from a Lagrangian mesh to an Eulerian grid.
      * The positions of the nodes of the Lagrangian mesh are specified
      * by X_data.
      *
-     * NOTE: This method does not implement periodic boundary
+     * \note This method does not implement periodic boundary
      * conditions!
      *
-     * NOTE: The spreading operation DOES NOT include the scale factor
+     * \note The spreading operation DOES NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).
      * The spreading formula is
      *
@@ -224,40 +224,40 @@ public:
 
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      */
     LEInteractor();
 
     /*!
-     * @brief Default destructor constructor.
+     * \brief Default destructor constructor.
      *
-     * NOTE: This destructor is not implemented and should not be
+     * \note This destructor is not implemented and should not be
      * used.
      */
     ~LEInteractor();
 
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     LEInteractor(
         const LEInteractor& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     LEInteractor& operator=(
         const LEInteractor& that);

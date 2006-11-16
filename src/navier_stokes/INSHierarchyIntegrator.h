@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <25.Oct.2006 17:16:38 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Nov.2006 00:24:03 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -71,12 +71,12 @@ namespace IBAMR
  * constructor.  The advective terms are discretized by the supplied
  * GodunovAdvector object.
  *
- * @see AdvDiffHierarchyIntegrator
- * @see GodunovAdvector
- * @see algs::HyperbolicLevelIntegrator<NDIM>
- * @see SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
- * @see algs::TimeRefinementIntegrator<NDIM>
- * @see algs::TimeRefinementLevelStrategy<NDIM>
+ * \see AdvDiffHierarchyIntegrator
+ * \see GodunovAdvector
+ * \see algs::HyperbolicLevelIntegrator<NDIM>
+ * \see SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+ * \see algs::TimeRefinementIntegrator<NDIM>
+ * \see algs::TimeRefinementLevelStrategy<NDIM>
  */
 class INSHierarchyIntegrator
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
@@ -122,7 +122,7 @@ public:
     /*!
      * Supply initial conditions for the (cell centered) pressure.
      *
-     * NOTE: These initial conditions are used for output purposes
+     * \note These initial conditions are used for output purposes
      * only.  They are not actually used in the computation.
      */
     void registerPressureInitialConditions(
@@ -742,11 +742,11 @@ protected:
      * occurs, data in the current context is then overwritten by data
      * in the new context.
      *
-     * NOTE: If a refine operator is not specified, the data for the
+     * \note If a refine operator is not specified, the data for the
      * variable is UNDEFINED following any changes to the hierarchy
      * configuration.
      *
-     * TODO: Add variable registration to a HierarchyIntegrator base
+     * \todo Add variable registration to a HierarchyIntegrator base
      * class.
      */
     void registerVariable(
@@ -765,7 +765,7 @@ protected:
      * All scratch variables are registered with the scratch
      * context.
      *
-     * TODO: Add variable registration to a HierarchyIntegrator base
+     * \todo Add variable registration to a HierarchyIntegrator base
      * class.
      */
     void registerVariable(
@@ -799,32 +799,32 @@ protected:
 
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      */
     INSHierarchyIntegrator();
 
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     INSHierarchyIntegrator(
         const INSHierarchyIntegrator& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     INSHierarchyIntegrator& operator=(
         const INSHierarchyIntegrator& that);
@@ -1074,7 +1074,7 @@ private:
      * The fluid density (rho), dynamic viscosity (mu), and kinematic
      * viscosity (nu).
      *
-     * NOTE: rho_water = 1.00 g cm^-3
+     * \note rho_water = 1.00 g cm^-3
      *       mu_water  = 0.01 g cm^-1 s^-1
      *       nu_water  = 0.01 cm^2 s^-1
      */

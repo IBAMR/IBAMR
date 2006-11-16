@@ -3,7 +3,7 @@
 
 // Filename: SpringForceSpecFactory.h
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <04.Oct.2006 19:53:30 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <16.Nov.2006 00:33:58 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -21,31 +21,31 @@
 namespace IBAMR
 {
 /*!
- * @brief Description of class.
+ * \brief Description of class.
  */
 class SpringForceSpecFactory
     : public StashableFactory
 {
 public:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      */
     SpringForceSpecFactory();
 
     /*!
-     * @brief Destructor.
+     * \brief Destructor.
      */
     ~SpringForceSpecFactory();
 
     /*!
-     * @brief Return the unique identifier used to specify the
+     * \brief Return the unique identifier used to specify the
      * StashableFactory object used by the StashableManager to extract
      * Stashable objects from data streams.
      */
     int getStashableID() const;
 
     /*!
-     * @brief Set the unique identifier used to specify the
+     * \brief Set the unique identifier used to specify the
      * StashableFactory object used by the StashableManager to extract
      * Stashable objects from data streams.
      */
@@ -53,7 +53,7 @@ public:
         const int stashable_id);
 
     /*!
-     * @brief Build a Stashable object by unpacking data from the
+     * \brief Build a Stashable object by unpacking data from the
      * input stream.
      */
     SAMRAI::tbox::Pointer<Stashable> unpackStream(
@@ -62,24 +62,24 @@ public:
 
 private:
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     SpringForceSpecFactory(
         const SpringForceSpecFactory& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     SpringForceSpecFactory& operator=(
         const SpringForceSpecFactory& that);

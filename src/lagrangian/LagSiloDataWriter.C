@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <25.Oct.2006 18:28:57 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Nov.2006 13:30:24 boyce@bigboy.nyconnect.com>
 
 #include "LagSiloDataWriter.h"
 
@@ -39,6 +39,347 @@ extern "C" {
 namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
+#if 0
+
+template <class T>
+struct vector_less : public std::binary_function<std::vector<T>, std::vector<T>, bool>
+{
+    bool
+    operator()(
+        const std::vector<T>& v1,
+        const std::vector<T>& v2) const
+        {
+            if (v1.size() != v2.size())
+            {
+                assert(false);
+            }
+
+            for (unsigned k = 0; k < v1.size(); ++k)
+            {
+                if (v1[k] < v2[k])
+                {
+                    return true;
+                }
+                else if (v1[k] > v2[k])
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+};
+
+}
+
+int
+main(int argc, char *argv[])
+{
+    std::cout << "DON'T REORDER THE TRIANGLE AND QUADRILATERAL LISTS!\n";
+
+    int d_num_vertices;
+    std::vector<double> d_initial_posns;
+    std::vector<double> d_stiffnesses;
+
+    double uniform_stiffness = 0.0;
+    bool use_uniform_stiffness = true;
+
+    // Read in the input file.
+    std::string vertices_filename = "vertices.dat";
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+    {
+        std::ifstream is;
+        is.open(vertices_filename.c_str(), std::ios::in);
+        //if (!is.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertices_filename << endl);
+        is.peek();  // catch premature end-of-file for empty files
+
+        // The first entry in the file must be the number of target
+        // points.
+        //if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << vertices_filename << endl);
+        is >> d_num_vertices;
+        ignore_rest_of_line(is);
+
+        // Read in each target point location followed by the
+        // associated stiffness.
+        d_initial_posns.resize(d_num_vertices*NDIM);
+        d_stiffnesses.resize(d_num_vertices);
+
+        for (int k = 0; k < d_num_vertices; ++k)
+        {
+            // Get the target point position.
+            for (int d = 0; d < NDIM; ++d)
+            {
+                //if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << vertices_filename << endl);
+                is >> d_initial_posns[k*NDIM+d];
+            }
+
+            // Get the target point spring constant.
+            if (!use_uniform_stiffness)
+            {
+                //if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << vertices_filename << endl);
+                is >> d_stiffnesses[k];
+            }
+            else
+            {
+                d_stiffnesses[k] = uniform_stiffness;
+            }
+
+            // Ignore the rest of the line.
+            ignore_rest_of_line(is);
+        }
+
+        // Close the input file.
+        is.close();
+    }
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+    std::multimap<int,int> d_edge_map;
+    int d_num_edges;
+
+    // Read in the connectivity information.
+    std::string edges_filename = "edges.dat";
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+    {
+        std::ifstream is;
+        is.open(edges_filename.c_str(), std::ios::in);
+        //if (!is.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << edges_filename << endl);
+        is.peek();  // catch premature end-of-file for empty files
+
+        // The first entry in the file must be the number of target
+        // points.
+        //if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << edges_filename << endl);
+        is >> d_num_edges;
+        ignore_rest_of_line(is);
+
+        // Read in each edge.
+        for (int k = 0; k < d_num_edges; ++k)
+        {
+            int v1,v2;
+
+            //if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << edges_filename << endl);
+            is >> v1;
+            //if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << edges_filename << endl);
+            is >> v2;
+
+            d_edge_map.insert(std::pair<int,int>(v1,v2));
+            //d_edge_map.insert(std::pair<int,int>(v2,v1));
+
+            // Ignore the rest of the line.
+            ignore_rest_of_line(is);
+        }
+
+        // Close the input file.
+        is.close();
+    }
+
+    std::cout << "found " << d_edge_map.size()/2 << " edges" << std::endl;
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+    // Build lists of all triangles and quatrilaterals in the mesh.
+    std::set<std::vector<int>,vector_less<int> > d_tri_set, d_quad_set;
+
+    typedef std::multimap<int,int>::const_iterator edge_iterator;
+    for (edge_iterator it1 = d_edge_map.begin(); it1 != d_edge_map.end(); ++it1)
+    {
+        const int v1 = (*it1).first;
+        std::pair<edge_iterator,edge_iterator> range2 = d_edge_map.equal_range((*it1).second);
+        for (edge_iterator it2 = range2.first; it2 != range2.second; ++it2)
+        {
+            const int v2 = (*it2).first;
+            std::pair<edge_iterator,edge_iterator> range3 = d_edge_map.equal_range((*it2).second);
+            for (edge_iterator it3 = range3.first; it3 != range3.second; ++it3)
+            {
+                const int v3 = (*it3).first;
+                if (v1 != v3 && v2 != v3)
+                {
+                    std::pair<edge_iterator,edge_iterator> range4 = d_edge_map.equal_range((*it3).second);
+                    for (edge_iterator it4 = range4.first; it4 != range4.second; ++it4)
+                    {
+                        const int v4 = (*it4).first;
+                        if (v1 == v4)
+                        {
+                            std::vector<int> tri(3);
+                            tri[0] = v1;
+                            tri[1] = v2;
+                            tri[2] = v3;
+                            sort(tri.begin(),tri.end());
+                            if (d_tri_set.count(tri) == 0) d_tri_set.insert(tri);
+                        }
+#if 0
+                        else if (v1 != v4 && v2 != v4 && v3 != v4)
+                        {
+                            // Check to see if there is an edge
+                            // between v2 and v4.
+                            bool v2_v4_edge = false;
+                            for (edge_iterator it = range2.first; it != range2.second && !v2_v4_edge; ++it)
+                            {
+                                if (v4 == (*it).second) v2_v4_edge = true;
+                            }
+
+                            if (!v2_v4_edge)
+                            {
+                                std::pair<edge_iterator,edge_iterator> range5 = d_edge_map.equal_range((*it4).second);
+                                for (edge_iterator it5 = range5.first; it5 != range5.second; ++it5)
+                                {
+                                    const int v5 = (*it5).first;
+                                    if (v1 == v5)
+                                    {
+                                        std::vector<int> quad(4);
+                                        quad[0] = v1;
+                                        quad[1] = v2;
+                                        quad[2] = v3;
+                                        quad[3] = v4;
+                                        sort(quad.begin(),quad.end());
+                                        if (d_quad_set.count(quad) == 0) d_quad_set.insert(quad);
+                                    }
+                                }
+                            }
+                        }
+#endif
+                    }
+                }
+            }
+        }
+    }
+
+    std::cout << "found " << d_tri_set.size() << " triangles and "
+              << d_quad_set.size() << " quadrilaterals" << std::endl;
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+    DBfile* dbfile = NULL;
+
+    // Open the silo file.
+    dbfile = DBCreate("ucd3d.silo", DB_CLOBBER, DB_LOCAL, "Unstructured 3d mesh", DB_PDB);
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+    {
+        // Node coordinates.
+        int ndims = NDIM;
+
+        std::vector<float> x(d_num_vertices);
+        std::vector<float> y(d_num_vertices);
+        std::vector<float> z(d_num_vertices);
+        for (int k = 0; k < d_num_vertices; ++k)
+        {
+            x[k] = d_initial_posns[k*NDIM  ];
+            y[k] = d_initial_posns[k*NDIM+1];
+            z[k] = d_initial_posns[k*NDIM+2];
+        }
+        float* coords[] = {&x[0], &y[0], &z[0]};
+        int nnodes = x.size();
+
+        // Connectivity.
+        std::vector<int> nodelist;
+        nodelist.reserve(2*d_edge_map.size());
+
+        for (edge_iterator it = d_edge_map.begin(); it != d_edge_map.end(); ++it)
+        {
+            nodelist.push_back((*it).first);
+            nodelist.push_back((*it).second);
+        }
+        int lnodelist = static_cast<int>(nodelist.size());
+        int nshapetypes = 1;
+        int shapecnt[] = {d_edge_map.size()};
+        int shapesize[] = {2};
+        int shapetype[] = {DB_ZONETYPE_BEAM};
+        int nzones = d_edge_map.size();
+
+        // Write out connectivity information.
+        DBPutZonelist2(dbfile, "zonelist", nzones, ndims, &nodelist[0], lnodelist, 1, 0, 0,
+                       shapetype, shapesize, shapecnt, nshapetypes, NULL);
+
+        // Write an unstructured mesh.
+        DBPutUcdmesh(dbfile, "mesh", ndims, NULL, coords, nnodes, nzones,
+                     "zonelist", NULL, DB_FLOAT, NULL);
+    }
+
+#if 0
+    // Node coordinates.
+    int ndims = NDIM;
+
+    std::vector<float> x(d_num_vertices);
+    std::vector<float> y(d_num_vertices);
+    std::vector<float> z(d_num_vertices);
+    for (int k = 0; k < d_num_vertices; ++k)
+    {
+        x[k] = d_initial_posns[k*NDIM  ];
+        y[k] = d_initial_posns[k*NDIM+1];
+        z[k] = d_initial_posns[k*NDIM+2];
+    }
+    float* coords[] = {&x[0], &y[0], &z[0]};
+    int nnodes = x.size();
+
+    // Connectivity.
+    std::vector<int> nodelist;
+    nodelist.reserve(3*d_tri_set.size());
+
+    for (std::set<std::vector<int>,vector_less<int> >::const_iterator it = d_tri_set.begin();
+         it != d_tri_set.end(); ++it)
+    {
+        const std::vector<int>& tri = (*it);
+        nodelist.insert(nodelist.end(),tri.begin(),tri.end());
+    }
+    int lnodelist = static_cast<int>(nodelist.size());
+    int nshapetypes = 1;
+    int shapecnt[] = {d_tri_set.size()};
+    int shapesize[] = {3};
+    int shapetype[] = {DB_ZONETYPE_TRIANGLE};
+    int nzones = d_tri_set.size();
+
+    // Write out connectivity information.
+    DBPutZonelist2(dbfile, "zonelist", nzones, ndims, &nodelist[0], lnodelist, 1, 0, 0,
+                   shapetype, shapesize, shapecnt, nshapetypes, NULL);
+
+    // Write an unstructured mesh.
+    DBPutUcdmesh(dbfile, "mesh", ndims, NULL, coords, nnodes, nzones,
+                 "zonelist", NULL, DB_FLOAT, NULL);
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+    // Close the silo file.
+    DBClose(dbfile);
+
+    return 0;
+}
+
+#endif
 
 namespace
 {

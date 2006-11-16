@@ -2,7 +2,7 @@
 #define included_ConvergenceMonitor
 
 // Filename: ConvergenceMonitor.h
-// Last modified: <04.Oct.2006 19:49:28 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <16.Nov.2006 00:18:18 boyce@bigboy.nyconnect.com>
 // Created on 19 Jun 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -28,8 +28,10 @@
 namespace IBAMR
 {
 /*!
- * \brief Simple class to manage convergence monitoring.  Note that
- * this class should be redesigned in the near future.
+ * \brief Simple class to manage convergence monitoring.
+ *
+ * \note This class is broken and should be redesigned in the near
+ * future.
  */
 class ConvergenceMonitor
 {
@@ -83,7 +85,7 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      */
     ConvergenceMonitor();
@@ -91,7 +93,7 @@ private:
     /*!
      * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
      * \param from The value to copy to this object.
@@ -102,7 +104,7 @@ private:
     /*!
      * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
      * \param that The value to assign to this object.
      *
@@ -140,7 +142,7 @@ private:
     std::map<int,SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> > d_monitored_var_ctxs;
     std::map<int,SAMRAI::tbox::Pointer<SetDataStrategy> > d_exact_soln_setters;
 };
-}
+}// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 

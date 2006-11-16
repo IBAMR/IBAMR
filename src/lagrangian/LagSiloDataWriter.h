@@ -3,7 +3,7 @@
 
 // Filename: LagSiloDataWriter.h
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <04.Oct.2006 19:51:55 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <16.Nov.2006 00:22:04 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -29,28 +29,28 @@
 namespace IBAMR
 {
 /*!
- * @brief Description of class.
+ * \brief Description of class.
  */
 class LagSiloDataWriter
     : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
-     * @brief Constructor.
+     * \brief Constructor.
      */
     LagSiloDataWriter(
         const std::string& object_name,
         const std::string& dump_directory_name);
 
     /*!
-     * @brief Destructor.
+     * \brief Destructor.
      */
     ~LagSiloDataWriter();
 
-    //@{ @name Methods to set the range of levels.
+    //\{ \name Methods to set the range of levels.
 
     /*!
-     * @brief Reset range of patch levels over which operations occur.
+     * \brief Reset range of patch levels over which operations occur.
      *
      * The levels must exist in the hierarchy or an assertion failure
      * will result.
@@ -59,10 +59,13 @@ public:
         const int coarsest_ln,
         const int finest_ln);
 
-    //@}
+    //\}
 
     /*!
-     * @brief XXXX
+     * \brief Register a range of Lagrangian indices corresponding to
+     * a cloud of markers.
+     *
+     * \note This method must be used
      */
     void registerMarkerCloud(
         const std::string& name,
@@ -107,7 +110,7 @@ protected:
 
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
@@ -115,24 +118,24 @@ private:
     LagSiloDataWriter();
 
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     LagSiloDataWriter(
         const LagSiloDataWriter& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
      * NOTE: This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     LagSiloDataWriter& operator=(
         const LagSiloDataWriter& that);

@@ -3,7 +3,7 @@
 
 // Filename: StashableStream.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <25.Oct.2006 18:47:25 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Nov.2006 00:21:41 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -20,7 +20,7 @@
 
 namespace IBAMR
 {
-/**
+/*!
  * Class StashableStream implements a message buffer of fixed size
  * used by the communication routines.  It implements the
  * SAMRAI::tbox::AbstractStream interface.  Class StashableStream
@@ -28,6 +28,9 @@ namespace IBAMR
  * stream: (1) XDR and (2) a straight-forward byte copy.  XDR has the
  * advantage of machine independence for heterogenous networks but is
  * much slower than a simple copy.
+ *
+ * \todo XDR support is broken and should be either fixed or removed
+ * in the near future.
  */
 class StashableStream
     : public SAMRAI::tbox::AbstractStream
@@ -59,9 +62,9 @@ public:
 
     /*!
      * Create a message stream with the specified buffer and stream
-     * mode (one of StashableStream::Read or
-     * StashableStream::Write).  The choice of XDR translation is
-     * based on the current value of the class-wide useXDR() flag.
+     * mode (one of StashableStream::Read or StashableStream::Write).
+     * The choice of XDR translation is based on the current value of
+     * the class-wide useXDR() flag.
      */
     StashableStream(
         const void* const buffer,
@@ -70,10 +73,9 @@ public:
 
     /*!
      * Create a message stream with the specified buffer and stream
-     * mode (either StashableStream::Read or
-     * StashableStream::Write).  The choice of XDR translation is
-     * based on the argument to the constructor, which is independent
-     * of the class-wide XDR flag.
+     * mode (either StashableStream::Read or StashableStream::Write).
+     * The choice of XDR translation is based on the argument to the
+     * constructor, which is independent of the class-wide XDR flag.
      */
     StashableStream(
         const void* const buffer,
@@ -223,7 +225,7 @@ private:
     /*!
      * @brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
      * @param from The value to copy to this object.
@@ -233,7 +235,7 @@ private:
     /*!
      * @brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
      * @param from The value to copy to this object.
@@ -244,7 +246,7 @@ private:
     /*!
      * @brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
      * @param that The value to assign to this object.
      *

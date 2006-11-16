@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndex.h
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <04.Oct.2006 19:51:12 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <16.Nov.2006 00:35:20 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -25,21 +25,24 @@
 namespace IBAMR
 {
 /*!
- * @brief Class LNodeIndex provides index information about a single
+ * \brief Class LNodeIndex provides index information about a single
  * node of a Lagrangian mesh.
  */
 class LNodeIndex
     : public SAMRAI::tbox::DescribedClass
 {
 public:
-    //@{ @name Friend declarations.
+    /*!
+     * \name Friend declarations.
+     */
+    //\{
     friend bool operator<(
         const LNodeIndex&,
         const LNodeIndex&);
-    //@}
+    //\}
 
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      */
     LNodeIndex(
         const int lagrangian_nidx=-1,
@@ -48,80 +51,80 @@ public:
         const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data=vector<SAMRAI::tbox::Pointer<Stashable> >());
 
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     LNodeIndex(
         const LNodeIndex& from);
 
     /*!
-     * @brief Destructor.
+     * \brief Destructor.
      *
      * The LNodeIndex destructor does nothing interesting.
      */
     ~LNodeIndex();
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     LNodeIndex& operator=(
         const LNodeIndex& that);
 
     /*!
-     * @return The Lagrangian index refrenced by this LNodeIndex.
+     * \return The Lagrangian index refrenced by this LNodeIndex.
      */
     int getLagrangianIndex() const;
 
     /*!
-     * @brief Reset the Lagrangian index refrenced by this LNodeIndex.
+     * \brief Reset the Lagrangian index refrenced by this LNodeIndex.
      */
     void setLagrangianIndex(
         const int lagrangian_nidx);
 
     /*!
-     * @return The local PETSc index refrenced by this LNodeIndex.
+     * \return The local PETSc index refrenced by this LNodeIndex.
      */
     int getLocalPETScIndex() const;
 
     /*!
-     * @brief Reset the local PETSc index refrenced by this
+     * \brief Reset the local PETSc index refrenced by this
      * LNodeIndex.
      */
     void setLocalPETScIndex(
         const int local_petsc_nidx);
 
     /*!
-     * @return A pointer to the physical location of the node
+     * \return A pointer to the physical location of the node
      * refrenced by this LNodeIndex.
      */
     double* getNodeLocation() const;
 
     /*!
-     * @brief Reset the pointer to the physical location of the node
+     * \brief Reset the pointer to the physical location of the node
      * refrenced by this LNodeIndex.
      */
     void setNodeLocation(
         double* const X_ptr);
 
     /*!
-     * @return A constant refrence to any additional data associated
+     * \return A constant refrence to any additional data associated
      * with the node refrenced by this LNodeIndex.
      */
     const std::vector<SAMRAI::tbox::Pointer<Stashable> >& getStashData() const;
 
     /*!
-     * @return A non-constant refrence to any additional data
+     * \return A non-constant refrence to any additional data
      * associated with the node refrenced by this LNodeIndex.
      */
     std::vector<SAMRAI::tbox::Pointer<Stashable> >& getStashData();
 
     /*!
-     * @brief Copy data from the source.
+     * \brief Copy data from the source.
      *
      * NOTE: The cell index of the destination object is src_index +
      * src_offset.
@@ -132,19 +135,19 @@ public:
         const LNodeIndex& src_item);
 
     /*!
-     * @brief Return an upper bound on the amount of space required to
+     * \brief Return an upper bound on the amount of space required to
      * pack the object to a buffer.
      */
     size_t getDataStreamSize() const;
 
     /*!
-     * @brief Pack data into the output stream.
+     * \brief Pack data into the output stream.
      */
     void packStream(
         SAMRAI::tbox::AbstractStream& stream);
 
     /*!
-     * @brief Unpack data from the input stream.
+     * \brief Unpack data from the input stream.
      */
     void unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
@@ -170,12 +173,12 @@ private:
 };
 
 /*!
- * @brief Less-than comparison operator.
+ * \brief Less-than comparison operator.
  *
- * @param lhs The left-hand-side of the < operator.
- * @param rhs The right-hand-side of the < operator.
+ * \param lhs The left-hand-side of the < operator.
+ * \param rhs The right-hand-side of the < operator.
  *
- * @return Whether lhs < rhs.
+ * \return Whether lhs < rhs.
  *
  * The ordering is determined on the physical locations of the nodes.
  * When a set of indices is sorted according to operator<(), the nodes

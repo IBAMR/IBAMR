@@ -2,7 +2,7 @@
 #define included_get_version
 
 // Filename: get_version.h
-// Last modified: <24.Oct.2006 14:35:55 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Nov.2006 00:21:55 boyce@bigboy.nyconnect.com>
 // Created on 23 Sep 2006 by Boyce Griffith (boyce@boyce-griffiths-powerbook-g4-15.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -15,8 +15,7 @@
 namespace IBAMR
 {
 /*!
- * @brief Return a string indicating the version of the IBAMR
- * library.
+ * \brief Return a string indicating the version of the IBAMR library.
  */
 std::string get_version();
 }// namespace IBAMR

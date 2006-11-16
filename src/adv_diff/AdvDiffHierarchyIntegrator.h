@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <04.Oct.2006 19:52:13 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <16.Nov.2006 00:28:17 boyce@bigboy.nyconnect.com>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -70,11 +70,11 @@ namespace IBAMR
  * discretized by the GodunovAdvector object supplied to the
  * constructor.
  *
- * @see GodunovAdvector
- * @see SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>
- * @see SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
- * @see SAMRAI::algs::TimeRefinementIntegrator<NDIM>
- * @see SAMRAI::algs::TimeRefinementLevelStrategy<NDIM>
+ * \see GodunovAdvector
+ * \see SAMRAI::algs::HyperbolicLevelIntegrator
+ * \see SAMRAI::mesh::StandardTagAndInitStrategy
+ * \see SAMRAI::algs::TimeRefinementIntegrator
+ * \see SAMRAI::algs::TimeRefinementLevelStrategy
  */
 class AdvDiffHierarchyIntegrator
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
@@ -269,10 +269,10 @@ public:
      * STOOLS::HierarchyMathOps object.
      *
      * When the integrator is managing the state of its
-     * STOOLS::HierarchyMathOps object, the integrator is responsible for
-     * invoking STOOLS::HierarchyMathOps::setPatchHierarchy() and
-     * STOOLS::HierarchyMathOps::resetLevels() following any changes to the
-     * configuration of the patch hierarchy.
+     * STOOLS::HierarchyMathOps object, the integrator is responsible
+     * for invoking STOOLS::HierarchyMathOps::setPatchHierarchy() and
+     * STOOLS::HierarchyMathOps::resetLevels() following any changes
+     * to the configuration of the patch hierarchy.
      */
     bool isManagingHierarchyMathOps() const;
 
@@ -290,15 +290,15 @@ public:
 
     /*!
      * Returns a vector containing pointers to the
-     * SAMRAI::solv::PoissonSpecifications objects employed by the integrator
-     * for the specified diffusivity.
+     * SAMRAI::solv::PoissonSpecifications objects employed by the
+     * integrator for the specified diffusivity.
      */
     std::vector<const SAMRAI::solv::PoissonSpecifications*> getHelmholtzSpecs(
         const double mu);
 
     /*!
      * Returns a vector containing pointers to the
-     * SAMRAI::solv::RobinBcCoefStrategy<NDIM> objects employed by the
+     * SAMRAI::solv::RobinBcCoefStrategy objects employed by the
      * integrator for the specified diffusivity.
      */
     std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> getHelmholtzBcCoefs(
@@ -453,7 +453,8 @@ public:
     bool stepsRemaining() const;
 
     /*!
-     * Return a const pointer to the patch hierarchy managed by integrator.
+     * Return a const pointer to the patch hierarchy managed by
+     * integrator.
      */
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
 
@@ -463,15 +464,15 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > getGriddingAlgorithm() const;
 
     /*!
-     * Return a pointer to the SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> being used to
-     * integrate the advective terms.
+     * Return a pointer to the SAMRAI::algs::HyperbolicLevelIntegrator
+     * being used to integrate the advective terms.
      */
     SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > getHyperbolicLevelIntegrator() const;
 
     /*!
-     * Return a pointer to the SAMRAI::algs::HyperbolicPatchStrategy<NDIM> being used to
-     * specify the numerical routines used to integrate the advective
-     * terms.
+     * Return a pointer to the SAMRAI::algs::HyperbolicPatchStrategy
+     * being used to specify the numerical routines used to integrate
+     * the advective terms.
      */
     SAMRAI::tbox::Pointer<AdvDiffHypPatchOps> getHyperbolicPatchStrategy() const;
 
@@ -486,9 +487,9 @@ public:
     ///      resetTimeDependentHierData(),
     ///      resetHierDataToPreadvanceState()
     ///
-    ///  allow the AdvDiffHierarchyIntegrator to provide
-    ///  data management for a time integrator which making use of
-    ///  this class.
+    ///  allow the AdvDiffHierarchyIntegrator to provide data
+    ///  management for a time integrator which making use of this
+    ///  class.
     ///
 
     /*!
@@ -587,7 +588,7 @@ public:
     ///      applyGradientDetector()
     ///
     ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::mesh::StandardTagAndInitStrategy<NDIM> abstract base class.
+    ///  SAMRAI::mesh::StandardTagAndInitStrategy abstract base class.
     ///
 
     /*!
@@ -650,8 +651,9 @@ public:
      * changed.  However, this routine updates communication schedules
      * every level finer than and including that indexed by the
      * coarsest level number given.  When the integrator is managing
-     * the state of its STOOLS::HierarchyMathOps object, the integrator also
-     * invokes STOOLS::HierarchyMathOps::setPatchHierarchy() and
+     * the state of its STOOLS::HierarchyMathOps object, the
+     * integrator also invokes
+     * STOOLS::HierarchyMathOps::setPatchHierarchy() and
      * STOOLS::HierarchyMathOps::resetLevels().
      *
      * When a convergence monitor has been supplied to the integrator,
@@ -824,32 +826,32 @@ protected:
 
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      */
     AdvDiffHierarchyIntegrator();
 
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     AdvDiffHierarchyIntegrator(
         const AdvDiffHierarchyIntegrator& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     AdvDiffHierarchyIntegrator& operator=(
         const AdvDiffHierarchyIntegrator& that);
@@ -906,8 +908,9 @@ private:
     SAMRAI::tbox::Pointer<ConvergenceMonitor> d_convergence_monitor;
 
     /*
-     * The SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> supplies generic operations
-     * needed to handle the explicit integration of advection terms.
+     * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic
+     * operations needed to handle the explicit integration of
+     * advection terms.
      */
     SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
 
