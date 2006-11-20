@@ -35,6 +35,7 @@
 #include <ibamr/LagSiloDataWriter.h>
 #include <ibamr/TargetPointForceGen.h>
 
+#include "FeedbackFSet.h"
 #include "UInit.h"
 #include "XInit.h"
 
@@ -293,6 +294,13 @@ int main(int argc, char* argv[])
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
 
+        tbox::Pointer<SetDataStrategy> feedback_forcer_setter =
+            new FeedbackFSet(
+                "FeedbackFSet", grid_geometry, input_db->getDatabase("FeedbackFSet"));
+        time_integrator->registerBodyForceSpecification(feedback_force_setter);
+
+
+
         tbox::Pointer<LNodePosnInitStrategy> X_init =
             new XInit(
                 "XInit", grid_geometry, input_db->getDatabase("XInit"));
@@ -402,9 +410,18 @@ int main(int argc, char* argv[])
         ofstream lift_stream("C_L.curve", ios::out);
 
         drag_stream << "#C_D" << endl;
+
+        drag_stream.setf(ios_base::scientific);
+        drag_stream.setf(ios_base::showpos);
+        drag_stream.setf(ios_base::showpoint);
+        drag_stream.width(16); drag_stream.precision(15);
         drag_stream << 0.0 << " " << 0.0 << endl;
 
         lift_stream << "#C_L" << endl;
+        lift_stream.setf(ios_base::scientific);
+        lift_stream.setf(ios_base::showpos);
+        lift_stream.setf(ios_base::showpoint);
+        lift_stream.width(16); lift_stream.precision(15);
         lift_stream << 0.0 << " " << 0.0 << endl;
 
         const double radius = input_db->getDouble("R");
@@ -427,6 +444,7 @@ int main(int argc, char* argv[])
             const int coarsest_ln = 0;
             const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
+#if 0
             /*
              * Manually force the fluid velocity to be U = (1,0) at
              * the right periodic boundary.
@@ -493,6 +511,7 @@ int main(int argc, char* argv[])
                     U_data->fill(1.0,patch_box*upper_box,0);
                 }
             }
+#endif
 #endif
 
             /*
