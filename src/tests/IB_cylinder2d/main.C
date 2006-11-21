@@ -294,12 +294,10 @@ int main(int argc, char* argv[])
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
 
-        tbox::Pointer<SetDataStrategy> feedback_forcer_setter =
+        FeedbackFSet* feedback_forcer =
             new FeedbackFSet(
                 "FeedbackFSet", grid_geometry, input_db->getDatabase("FeedbackFSet"));
-        time_integrator->registerBodyForceSpecification(feedback_force_setter);
-
-
+        time_integrator->registerBodyForceSpecification(feedback_forcer);
 
         tbox::Pointer<LNodePosnInitStrategy> X_init =
             new XInit(
@@ -366,6 +364,12 @@ int main(int argc, char* argv[])
         time_integrator->rebalanceCoarsestLevel();
 
         tbox::RestartManager::getManager()->closeRestartFile();
+
+        /*
+         * Register the velocity variable with the feedback forcer.
+         */
+        feedback_forcer->d_U_var = navier_stokes_integrator->getVelocityVar();
+        feedback_forcer->d_U_context = navier_stokes_integrator->getCurrentContext();
 
         /*
          * After creating all objects and initializing their state, we
@@ -438,82 +442,6 @@ int main(int argc, char* argv[])
         while (!tbox::Utilities::deq(loop_time,loop_time_end) &&
                time_integrator->stepsRemaining())
         {
-            tbox::Pointer<hier::VariableContext> current_context =
-                navier_stokes_integrator->getCurrentContext();
-
-            const int coarsest_ln = 0;
-            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-#if 0
-            /*
-             * Manually force the fluid velocity to be U = (1,0) at
-             * the right periodic boundary.
-             */
-#if 1
-            /*
-             * NOTE: The following code assumes the right periodic
-             * boundary is uniformly refined.
-             */
-            (void) coarsest_ln;
-            tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var = navier_stokes_integrator->getVelocityVar();
-            {
-                int ln = finest_ln;
-                tbox::Pointer<hier::PatchLevel<NDIM> > level =
-                    patch_hierarchy->getPatchLevel(ln);
-
-                const hier::IntVector<NDIM>& ratio = level->getRatio();
-                const hier::Box<NDIM>& domain_box = grid_geometry->getPhysicalDomain()(0);
-
-                hier::Box<NDIM> lower_box = domain_box;
-                lower_box = hier::Box<NDIM>::refine(lower_box,ratio);
-                lower_box.upper(0) = lower_box.lower(0);
-
-                hier::Box<NDIM> upper_box = domain_box;
-                upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
-                upper_box.lower(0) = upper_box.upper(0);
-
-                for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                    tbox::Pointer<pdat::CellData<NDIM,double> > U_data =
-                        patch->getPatchData(U_var, current_context);
-                    U_data->fillAll(0.0, patch_box*lower_box);
-                    U_data->fillAll(0.0, patch_box*upper_box);
-                    U_data->fill(1.0,patch_box*lower_box,0);
-                    U_data->fill(1.0,patch_box*upper_box,0);
-                }
-            }
-#else
-            /*
-             * NOTE: The following code DOES NOT assume the right
-             * periodic boundary is uniformly refined.
-             */
-            tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var = navier_stokes_integrator->getVelocityVar();
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                tbox::Pointer<hier::PatchLevel<NDIM> > level =
-                    patch_hierarchy->getPatchLevel(ln);
-
-                const hier::IntVector<NDIM>& ratio = level->getRatio();
-                const hier::Box<NDIM>& domain_box = grid_geometry->getPhysicalDomain()(0);
-                hier::Box<NDIM> upper_box = domain_box;
-                upper_box.lower(0) = upper_box.upper(0)-1;
-                upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
-
-                for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                    tbox::Pointer<pdat::CellData<NDIM,double> > U_data =
-                        patch->getPatchData(U_var, current_context);
-                    U_data->fillAll(0.0, patch_box*upper_box);
-                    U_data->fill(1.0,patch_box*upper_box,0);
-                }
-            }
-#endif
-#endif
-
             /*
              * Advance the solution forward in time.
              */
@@ -540,7 +468,7 @@ int main(int argc, char* argv[])
              * the components of the Lagrangian force field over the
              * computational domain.
              */
-            const int ln = finest_ln;
+            const int ln = patch_hierarchy->getFinestLevelNumber();
             LDataManager* lag_data_manager = LDataManager::getManager(
                 "IBHierarchyIntegrator::LDataManager");
             tbox::Pointer<LNodeLevelData> X_data = lag_data_manager->getLNodeLevelData("X",ln);

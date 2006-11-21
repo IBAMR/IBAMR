@@ -2,7 +2,7 @@
 #define included_FeedbackFSet
 
 // Filename: FeedbackFSet.h
-// Last modified: <20.Nov.2006 17:18:25 griffith@box221.cims.nyu.edu>
+// Last modified: <20.Nov.2006 18:25:12 griffith@box221.cims.nyu.edu>
 // Created on 20 Nov 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -119,7 +119,7 @@ private:
     /*
      * Feedback force parameter.
      */
-    double d_kappa;
+    double d_kappa, d_width0, d_width1;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////

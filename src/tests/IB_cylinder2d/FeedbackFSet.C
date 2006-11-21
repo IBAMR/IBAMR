@@ -1,5 +1,5 @@
 // Filename: FeedbackFSet.C
-// Last modified: <20.Nov.2006 17:18:01 griffith@box221.cims.nyu.edu>
+// Last modified: <20.Nov.2006 19:02:39 griffith@box221.cims.nyu.edu>
 // Created on 20 Nov 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "FeedbackFSet.h"
@@ -39,7 +39,9 @@ FeedbackFSet::FeedbackFSet(
       d_U_context(NULL),
       d_object_name(object_name),
       d_grid_geom(grid_geom),
-      d_kappa(100.0)
+      d_kappa(1000.0),
+      d_width0(1.0/32.0),
+      d_width1(4.0/32.0)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
@@ -47,7 +49,9 @@ FeedbackFSet::FeedbackFSet(
 #endif
     if (!input_db.isNull())
     {
-        input_db->getDoubleWithDefault("kappa",d_kappa);
+        d_kappa = input_db->getDoubleWithDefault("kappa",d_kappa);
+        d_width0 = input_db->getDoubleWithDefault("width0",d_width0);
+        d_width1 = input_db->getDoubleWithDefault("width1",d_width1);
     }
     return;
 }// FeedbackFSet
@@ -75,22 +79,48 @@ FeedbackFSet::setDataOnPatch(
 
     // Supply a feedback force so that the fluid velocity is U = (1,0)
     // at the x-periodic boundary.
-    //
-    // NOTE: The following code DOES NOT assume the x-periodic
-    // boundary is uniformly refined.
     const hier::Box<NDIM>& patch_box = patch.getBox();
-    const hier::IntVector<NDIM>& ratio = patch.getPatchGeometry()->getRatio();
-    const hier::Box<NDIM>& domain_box = d_grid_geom->getPhysicalDomain()(0);
-    hier::Box<NDIM> upper_box = domain_box;
-    upper_box.lower(0) = upper_box.upper(0)-1;
-    upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
+    const hier::Index<NDIM>& patch_lower = patch_box.lower();
+    tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
 
+    const double* const XLower = pgeom->getXLower();
+    const double* const dx = pgeom->getDx();
+
+    const double* const grid_XLower = d_grid_geom->getXLower();
+    const double* const grid_XUpper = d_grid_geom->getXUpper();
+
+    double X[NDIM];
     F_data->fillAll(0.0);
-    for (pdat::CellIterator<NDIM> ic(patch_box*upper_box); ic; ic++)
+    for (pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
     {
         const hier::Index<NDIM>& i = ic();
-        (*F_data)(i,0) = d_kappa*(1.0-(*U_data)(i,0));
-        (*F_data)(i,1) = d_kappa*(0.0-(*U_data)(i,1));
+        for (int d = 0; d < NDIM; ++d)
+        {
+            X[d] = XLower[d] +
+                dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+        }
+
+        if ((tbox::Utilities::dabs(X[0]-grid_XLower[0]) <= d_width0) ||
+            (tbox::Utilities::dabs(X[0]-grid_XUpper[0]) <= d_width0))
+        {
+            (*F_data)(i,0) = d_kappa*(1.0-(*U_data)(i,0));
+            (*F_data)(i,1) = d_kappa*(0.0-(*U_data)(i,1));
+        }
+        else
+        {
+            if (X[0]-grid_XLower[0] <= d_width1)
+            {
+                const double fac = 0.5*(cos(M_PI*(X[0]-grid_XLower[0]-d_width0)/(d_width1-d_width0))+1.0);
+                (*F_data)(i,0) = d_kappa*fac*(1.0-(*U_data)(i,0));
+                (*F_data)(i,1) = d_kappa*fac*(0.0-(*U_data)(i,1));
+            }
+            else if (grid_XUpper[0]-X[0] <= d_width1)
+            {
+                const double fac = 0.5*(cos(M_PI*(grid_XUpper[0]-X[0]-d_width0)/(d_width1-d_width0))+1.0);
+                (*F_data)(i,0) = d_kappa*fac*(1.0-(*U_data)(i,0));
+                (*F_data)(i,1) = d_kappa*fac*(0.0-(*U_data)(i,1));
+            }
+        }
     }
 
     return;

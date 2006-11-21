@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C FSet.C FSet.h UInit.C UInit.h XInit.C XInit.h
+SOURCES = main.C FeedbackFSet.C FeedbackFSet.h UInit.C UInit.h XInit.C XInit.h
 EXTRA_DIST = input2d ##input3d
 
 check_PROGRAMS = main2d ##main3d

@@ -29,6 +29,10 @@ IBHierarchyIntegrator {
    timestepping_order = 2
 }
 
+FeedbackFSet {
+   kappa = 40000.0
+}
+
 XInit {
    num_nodes = 61*NFINEST/256
    center = 1.85 , 4.0
@@ -73,7 +77,7 @@ INSHierarchyIntegrator {
 }
 
 GodunovAdvector {
-   limiter_type = FOURTH_ORDER
+   limiter_type = MUSCL_LIMITED
 }
 
 AdvDiffHierarchyIntegrator {
