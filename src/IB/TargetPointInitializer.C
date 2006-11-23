@@ -1,5 +1,5 @@
 // Filename: TargetPointInitializer.C
-// Last modified: <15.Nov.2006 00:45:14 boyce@bigboy.nyconnect.com>
+// Last modified: <22.Nov.2006 15:31:47 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 26 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "TargetPointInitializer.h"
@@ -64,6 +64,7 @@ ignore_rest_of_line(
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+
 TargetPointInitializer::TargetPointInitializer(
     const std::string& object_name,
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
@@ -336,12 +337,10 @@ TargetPointInitializer::tagCellsForInitialRefinement(
 
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tag_data = patch->getPatchData(tag_index);
 
-        // Initialize the target points whose initial locations will
-        // be within the given patch.
-        //
-        // NOTE: Here, we want to tag the locations of all target
-        // points that are to be be assigned to any finer levels in
-        // the Cartesian grid.
+        // Tag cells for refinement whenever there are target points
+        // whose initial locations will be within the index space of
+        // the given patch, but on a finer level of the AMR patch
+        // hierarchy.
         static const bool can_be_refined = false;
         std::vector<int> point_indices;
         getPatchTargetPointIndices(

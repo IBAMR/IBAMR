@@ -56,6 +56,7 @@ am__objects_1 = libIBAMR_IB2d_la-IBEulerianForceSetter.lo \
 	libIBAMR_IB2d_la-IBHierarchyIntegrator.lo \
 	libIBAMR_IB2d_la-IBLagrangianForceStrategy.lo \
 	libIBAMR_IB2d_la-IBLagrangianSourceStrategy.lo \
+	libIBAMR_IB2d_la-IBStandardInitializer.lo \
 	libIBAMR_IB2d_la-SpringForceGen.lo \
 	libIBAMR_IB2d_la-SpringForceSpec.lo \
 	libIBAMR_IB2d_la-SpringForceSpecFactory.lo \
@@ -71,6 +72,7 @@ am__objects_2 = libIBAMR_IB3d_la-IBEulerianForceSetter.lo \
 	libIBAMR_IB3d_la-IBHierarchyIntegrator.lo \
 	libIBAMR_IB3d_la-IBLagrangianForceStrategy.lo \
 	libIBAMR_IB3d_la-IBLagrangianSourceStrategy.lo \
+	libIBAMR_IB3d_la-IBStandardInitializer.lo \
 	libIBAMR_IB3d_la-SpringForceGen.lo \
 	libIBAMR_IB3d_la-SpringForceSpec.lo \
 	libIBAMR_IB3d_la-SpringForceSpecFactory.lo \
@@ -236,15 +238,15 @@ SUFFIXES = .f.m4
 SUBDIRS = .
 pkg_include_HEADERS = IBEulerianForceSetter.h IBEulerianSourceSetter.h \
 	IBHierarchyIntegrator.h IBLagrangianForceStrategy.h \
-	IBLagrangianSourceStrategy.h SpringForceGen.h \
-	SpringForceSpec.h SpringForceSpecFactory.h \
+	IBLagrangianSourceStrategy.h IBStandardInitializer.h \
+	SpringForceGen.h SpringForceSpec.h SpringForceSpecFactory.h \
 	TargetPointForceGen.h TargetPointForceSpec.h \
 	TargetPointForceSpecFactory.h TargetPointInitializer.h
 noinst_LTLIBRARIES = libIBAMR_IB2d.la libIBAMR_IB3d.la
 #libIBAMR_IB_la_CXXFLAGS = $(AM_CXXFLAGS)
 #libIBAMR_IB_la_LIBADD = fortran/libIBAMR_IB_fortran.la
 #libIBAMR_IB_la_SOURCES =
-SOURCES = IBEulerianForceSetter.C IBEulerianSourceSetter.C IBHierarchyIntegrator.C IBLagrangianForceStrategy.C IBLagrangianSourceStrategy.C SpringForceGen.C SpringForceSpec.C SpringForceSpecFactory.C TargetPointForceGen.C TargetPointForceSpec.C TargetPointForceSpecFactory.C TargetPointInitializer.C
+SOURCES = IBEulerianForceSetter.C IBEulerianSourceSetter.C IBHierarchyIntegrator.C IBLagrangianForceStrategy.C IBLagrangianSourceStrategy.C IBStandardInitializer.C SpringForceGen.C SpringForceSpec.C SpringForceSpecFactory.C TargetPointForceGen.C TargetPointForceSpec.C TargetPointForceSpecFactory.C TargetPointInitializer.C
 libIBAMR_IB2d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR_IB2d_la_LIBADD = 
 libIBAMR_IB2d_la_SOURCES = $(SOURCES)
@@ -309,6 +311,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-IBHierarchyIntegrator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-IBLagrangianForceStrategy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-IBLagrangianSourceStrategy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-IBStandardInitializer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-SpringForceGen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-SpringForceSpec.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-SpringForceSpecFactory.Plo@am__quote@
@@ -321,6 +324,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-IBHierarchyIntegrator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-IBLagrangianForceStrategy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-IBLagrangianSourceStrategy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-IBStandardInitializer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-SpringForceGen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-SpringForceSpec.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-SpringForceSpecFactory.Plo@am__quote@
@@ -384,6 +388,13 @@ libIBAMR_IB2d_la-IBLagrangianSourceStrategy.lo: IBLagrangianSourceStrategy.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianSourceStrategy.C' object='libIBAMR_IB2d_la-IBLagrangianSourceStrategy.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-IBLagrangianSourceStrategy.lo `test -f 'IBLagrangianSourceStrategy.C' || echo '$(srcdir)/'`IBLagrangianSourceStrategy.C
+
+libIBAMR_IB2d_la-IBStandardInitializer.lo: IBStandardInitializer.C
+@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-IBStandardInitializer.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-IBStandardInitializer.Tpo" -c -o libIBAMR_IB2d_la-IBStandardInitializer.lo `test -f 'IBStandardInitializer.C' || echo '$(srcdir)/'`IBStandardInitializer.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-IBStandardInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-IBStandardInitializer.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-IBStandardInitializer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBStandardInitializer.C' object='libIBAMR_IB2d_la-IBStandardInitializer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-IBStandardInitializer.lo `test -f 'IBStandardInitializer.C' || echo '$(srcdir)/'`IBStandardInitializer.C
 
 libIBAMR_IB2d_la-SpringForceGen.lo: SpringForceGen.C
 @am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-SpringForceGen.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceGen.Tpo" -c -o libIBAMR_IB2d_la-SpringForceGen.lo `test -f 'SpringForceGen.C' || echo '$(srcdir)/'`SpringForceGen.C; \
@@ -468,6 +479,13 @@ libIBAMR_IB3d_la-IBLagrangianSourceStrategy.lo: IBLagrangianSourceStrategy.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianSourceStrategy.C' object='libIBAMR_IB3d_la-IBLagrangianSourceStrategy.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-IBLagrangianSourceStrategy.lo `test -f 'IBLagrangianSourceStrategy.C' || echo '$(srcdir)/'`IBLagrangianSourceStrategy.C
+
+libIBAMR_IB3d_la-IBStandardInitializer.lo: IBStandardInitializer.C
+@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-IBStandardInitializer.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-IBStandardInitializer.Tpo" -c -o libIBAMR_IB3d_la-IBStandardInitializer.lo `test -f 'IBStandardInitializer.C' || echo '$(srcdir)/'`IBStandardInitializer.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-IBStandardInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-IBStandardInitializer.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-IBStandardInitializer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBStandardInitializer.C' object='libIBAMR_IB3d_la-IBStandardInitializer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-IBStandardInitializer.lo `test -f 'IBStandardInitializer.C' || echo '$(srcdir)/'`IBStandardInitializer.C
 
 libIBAMR_IB3d_la-SpringForceGen.lo: SpringForceGen.C
 @am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-SpringForceGen.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceGen.Tpo" -c -o libIBAMR_IB3d_la-SpringForceGen.lo `test -f 'SpringForceGen.C' || echo '$(srcdir)/'`SpringForceGen.C; \
