@@ -211,6 +211,7 @@ EXTRA_DIST = autogen.sh bin/includes doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/IBLagrangianForceStrategy.h \
 	include/ibamr/IBLagrangianSourceStrategy.h \
 	include/ibamr/IBLogicalCartMeshInitializer.h \
+	include/ibamr/IBStandardInitializer.h \
 	include/ibamr/INSHierarchyIntegrator.h \
 	include/ibamr/LagSiloDataWriter.h include/ibamr/LDataManager.h \
 	include/ibamr/LEInteractor.h \

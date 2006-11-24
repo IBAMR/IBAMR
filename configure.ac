@@ -12,6 +12,7 @@ AC_LANG(C++)		# Set the default language to C++.
 # Checks for programs.
 ###########################################################################
 AC_ARG_VAR(LIBS,[linker commands, e.g. -l<lib> if you require a nonstandard library <lib>])
+AC_ARG_VAR(FLIBS,[linker flags and commands, e.g. -L<lib dir> and -l<lib> for the "Fortran 77 intrinsic and run-time libraries" that are required to successfully link a Fortran 77 program or shared library])
 AC_PROG_CC		# Check for a C compiler.
 AC_PROG_CXX		# Check for a C++ compiler.
 AC_PROG_F77		# Check for a Fortran compiler.
