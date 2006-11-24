@@ -111,7 +111,7 @@ AC_ARG_WITH([hypre],
   [HYPRE_DIR=/usr/local/sfw/hypre/current])
 
 if test -d "${HYPRE_DIR}/lib" ; then
-  LDFLAGS="-L${HYPRE_DIR}/lib $LDFLAGS"
+  LDFLAGS="-L${HYPRE_DIR}/lib -R${HYPRE_DIR}/lib $LDFLAGS"
 fi
 if test -d "${HYPRE_DIR}/include" ; then
   CPPFLAGS="-I${HYPRE_DIR}/include $CPPFLAGS"
@@ -150,7 +150,7 @@ AC_ARG_WITH([samrai],
   [SAMRAI_DIR=/usr/local/sfw/samrai/current])
 
 if test -d "${SAMRAI_DIR}/lib" ; then
-  LDFLAGS="-L${SAMRAI_DIR}/lib $LDFLAGS"
+  LDFLAGS="-L${SAMRAI_DIR}/lib -R${SAMRAI_DIR}/lib $LDFLAGS"
 fi
 if test -d "${SAMRAI_DIR}/include" ; then
   CPPFLAGS="-I${SAMRAI_DIR}/include $CPPFLAGS"
@@ -250,7 +250,7 @@ echo "using PETSc lib     directory = ${PETSC_DIR}/lib/${PETSC_ARCH}"
 echo "using PETSc include directory = ${PETSC_DIR}/include, ${PETSC_DIR}/bmake/${PETSC_ARCH}"
 
 if test -d "${PETSC_DIR}/lib/${PETSC_ARCH}" ; then
-  LDFLAGS="-L${PETSC_DIR}/lib/${PETSC_ARCH} $LDFLAGS"
+  LDFLAGS="-L${PETSC_DIR}/lib/${PETSC_ARCH} -R${PETSC_DIR}/lib/${PETSC_ARCH} $LDFLAGS"
 fi
 if test -d "${PETSC_DIR}/include" ; then
   CPPFLAGS="-I${PETSC_DIR}/include -I${PETSC_DIR}/bmake/${PETSC_ARCH} $CPPFLAGS"
@@ -279,7 +279,7 @@ AC_ARG_WITH([hdf5],
   [HDF5_DIR=/usr/local/sfw/hdf5/current])
 
 if test -d "${HDF5_DIR}/lib" ; then
-  LDFLAGS="-L${HDF5_DIR}/lib $LDFLAGS"
+  LDFLAGS="-L${HDF5_DIR}/lib -R${HDF5_DIR}/lib $LDFLAGS"
 fi
 if test -d "${HDF5_DIR}/include" ; then
   CPPFLAGS="-I${HDF5_DIR}/include $CPPFLAGS"
@@ -321,7 +321,7 @@ if test "$BLITZ_ENABLED" = yes; then
   echo "===================================="
 
   if test -d "${BLITZ_DIR}/lib" ; then
-    LDFLAGS="-L${BLITZ_DIR}/lib $LDFLAGS"
+    LDFLAGS="-L${BLITZ_DIR}/lib -R${BLITZ_DIR}/lib $LDFLAGS"
   fi
   if test -d "${BLITZ_DIR}/include" ; then
    CPPFLAGS="-I${BLITZ_DIR}/include $CPPFLAGS"
@@ -364,7 +364,7 @@ if test "$SILO_ENABLED" = yes; then
   echo "================================="
 
   if test -d "${SILO_DIR}/lib" ; then
-    LDFLAGS="-L${SILO_DIR}/lib $LDFLAGS"
+    LDFLAGS="-L${SILO_DIR}/lib -R${SILO_DIR}/lib $LDFLAGS"
   fi
   if test -d "${SILO_DIR}/include" ; then
     CPPFLAGS="-I${SILO_DIR}/include $CPPFLAGS"
