@@ -16,6 +16,7 @@ EXTRA_DIST += include/ibamr/IBHierarchyIntegrator.h
 EXTRA_DIST += include/ibamr/IBLagrangianForceStrategy.h
 EXTRA_DIST += include/ibamr/IBLagrangianSourceStrategy.h
 EXTRA_DIST += include/ibamr/IBLogicalCartMeshInitializer.h
+EXTRA_DIST += include/ibamr/IBStandardInitializer.h
 EXTRA_DIST += include/ibamr/INSHierarchyIntegrator.h
 EXTRA_DIST += include/ibamr/LagSiloDataWriter.h
 EXTRA_DIST += include/ibamr/LDataManager.h
