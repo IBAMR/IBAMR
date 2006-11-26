@@ -395,7 +395,6 @@ int main(int argc, char* argv[])
                     time_integrator->getIntegratorStep(),
                     time_integrator->getIntegratorTime());
                 silo_data_writer->writePlotData(
-                    patch_hierarchy,
                     time_integrator->getIntegratorStep(),
                     time_integrator->getIntegratorTime());
             }
@@ -447,7 +446,7 @@ int main(int argc, char* argv[])
                     visit_data_writer->writePlotData(
                         patch_hierarchy, iteration_num, loop_time);
                     silo_data_writer->writePlotData(
-                        patch_hierarchy, iteration_num, loop_time);
+                        iteration_num, loop_time);
                 }
             }
         }
@@ -462,7 +461,7 @@ int main(int argc, char* argv[])
                 visit_data_writer->writePlotData(
                     patch_hierarchy, iteration_num, loop_time);
                 silo_data_writer->writePlotData(
-                    patch_hierarchy, iteration_num, loop_time);
+                    iteration_num, loop_time);
             }
         }
 

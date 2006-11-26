@@ -3,7 +3,7 @@
 
 // Filename: LagSiloDataWriter.h
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <16.Nov.2006 00:22:04 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Nov.2006 22:43:08 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -29,7 +29,13 @@
 namespace IBAMR
 {
 /*!
- * \brief Description of class.
+ * \brief Class LagSiloDataWriter provides functionality to output
+ * Lagrangian data for visualization in the Silo data format.
+ *
+ * For more information about Silo, see the Silo manual <A
+ * HREF="http://www.llnl.gov/bdiv/meshtv/manuals/silo.pdf">here</A>.
+ * Silo data may be visualized using the <A
+ * HREF="http://www.llnl.gov/visit">VisIt visualization tool</A>.
  */
 class LagSiloDataWriter
     : public virtual SAMRAI::tbox::DescribedClass
@@ -37,6 +43,11 @@ class LagSiloDataWriter
 public:
     /*!
      * \brief Constructor.
+     *
+     * \param object_name std::string used for error reporting
+     * purposes
+     * \param dump_directory_name std::string used to specify the
+     * directory where visualization data is to be written
      */
     LagSiloDataWriter(
         const std::string& object_name,
@@ -47,13 +58,22 @@ public:
      */
     ~LagSiloDataWriter();
 
-    //\{ \name Methods to set the range of levels.
+    /*!
+     * \name Methods to set the hierarchy and range of levels.
+     */
+    //\{
+
+    /*!
+     * \brief Reset the patch hierarchy over which operations occur.
+     */
+    void setPatchHierarchy(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
      *
-     * The levels must exist in the hierarchy or an assertion failure
-     * will result.
+     * The specified levels must exist in the hierarchy or an
+     * assertion will result.
      */
     void resetLevels(
         const int coarsest_ln,
@@ -62,10 +82,12 @@ public:
     //\}
 
     /*!
-     * \brief Register a range of Lagrangian indices corresponding to
-     * a cloud of markers.
+     * \brief Register a range of Lagrangian indices that are to be
+     * visualized as a cloud of marker particles.
      *
-     * \note This method must be used
+     * \note This method is not collective over all MPI processes.  A
+     * particular cloud of markers must be registered on only \em one
+     * MPI process.
      */
     void registerMarkerCloud(
         const std::string& name,
@@ -73,6 +95,14 @@ public:
         const int first_lag_idx,
         const int level_number);
 
+    /*!
+     * \brief Register a range of Lagrangian indices that are to be
+     * treated as a logically Cartesian block.
+     *
+     * \note This method is not collective over all MPI processes.  A
+     * particular block of indices must be registered on only \em one
+     * MPI process.
+     */
     void registerLogicallyCartesianBlock(
         const std::string& name,
         const SAMRAI::hier::IntVector<NDIM>& nelem,
@@ -80,6 +110,14 @@ public:
         const int first_lag_idx,
         const int level_number);
 
+    /*!
+     * \brief Register several ranges of Lagrangian indices that are
+     * to be treated as logically Cartesian blocks.
+     *
+     * \note This method is not collective over all MPI processes.  A
+     * particular block of indices must be registered on only \em one
+     * MPI process.
+     */
     void registerLogicallyCartesianMultiblock(
         const std::string& name,
         const std::vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
@@ -87,22 +125,41 @@ public:
         const std::vector<int>& first_lag_idx,
         const int level_number);
 
+    /*!
+     * \brief Register the coordinates of the curvilinear mesh with
+     * the Silo data writer.
+     */
     void registerCoordsData(
         SAMRAI::tbox::Pointer<LNodeLevelData> coords_data,
         const int level_number);
 
+    /*!
+     * \brief Register a variable for plotting with the Silo data
+     * writer.
+     */
     void registerVariableData(
         const std::string& var_name,
         SAMRAI::tbox::Pointer<LNodeLevelData> var_data,
         const int level_number);
 
+    /*!
+     * \brief Register a collection of Lagrangian AO (application
+     * ordering) objects with the Silo data writer.
+     *
+     * These AO objects are used to map between (fixed) Lagrangian
+     * indices and (time-dependent) PETSc indices.  Each time that the
+     * AO objects are reset (e.g., during adaptive regridding), the
+     * new AO objects must be supplied to the Silo data writer.
+     */
     void setLagrangianAO(
         std::vector<AO>& ao,
         const int coarsest_ln,
         const int finest_ln);
 
+    /*!
+     * \brief Write the plot data to disk.
+     */
     void writePlotData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int time_step_number,
         const double simulation_time);
 
@@ -112,7 +169,7 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      */
     LagSiloDataWriter();
@@ -120,7 +177,7 @@ private:
     /*!
      * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
      * \param from The value to copy to this object.
@@ -131,7 +188,7 @@ private:
     /*!
      * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
      * \param that The value to assign to this object.
      *
@@ -158,6 +215,7 @@ private:
     /*
      * Grid hierarchy information.
      */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     /*

@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <23.Nov.2006 15:28:10 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <25.Nov.2006 11:17:21 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -18,7 +18,6 @@
 
 // IBAMR INCLUDES
 #include <ibamr/SpringForceSpec.h>
-#include <ibamr/TargetPointForceSpec.h>
 #include <ibamr/LNodeIndexData.h>
 
 // STOOLS INCLUDES
@@ -58,10 +57,9 @@ IBStandardInitializer::IBStandardInitializer(
     assert(!input_db.isNull());
 #endif
 
-    // Register the various force specification objects with the
+    // Register the force specification object with the
     // StashableManager class.
     SpringForceSpec::registerWithStashableManager();
-    TargetPointForceSpec::registerWithStashableManager();
 
     // Get the input filenames.
     std::vector<std::string> base_filenames;
@@ -87,13 +85,12 @@ IBStandardInitializer::IBStandardInitializer(
                            << "     optional files: " << *it << ".edges" << endl;
     }
 
-    // Process the input files on each MPI process.
+    // Process the vertex information on each MPI process.
     for (int rank = 0; rank < SAMRAI::tbox::MPI::getNodes(); ++rank)
     {
         if (rank == SAMRAI::tbox::MPI::getRank())
         {
             readVertexFiles(base_filenames);
-            //readEdgeFiles(base_filenames);
         }
         SAMRAI::tbox::MPI::barrier();
     }
@@ -104,6 +101,16 @@ IBStandardInitializer::IBStandardInitializer(
     for (int j = 1; j < static_cast<int>(d_num_vertices.size()); ++j)
     {
         d_vertex_offsets[j] = d_vertex_offsets[j-1]+d_num_vertices[j-1];
+    }
+
+    // Read the edge information on each MPI process.
+    for (int rank = 0; rank < SAMRAI::tbox::MPI::getNodes(); ++rank)
+    {
+        if (rank == SAMRAI::tbox::MPI::getRank())
+        {
+            readEdgeFiles(base_filenames);
+        }
+        SAMRAI::tbox::MPI::barrier();
     }
 
     return;
@@ -191,12 +198,11 @@ IBStandardInitializer::initializeDataOnPatchLevel(
         for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
              it != patch_vertices.end(); ++it)
         {
-            const std::pair<int,int> point_idx = (*it);
+            const std::pair<int,int>& point_idx = (*it);
             const int current_global_idx = getCannonicalLagrangianIndex(point_idx) + global_index_offset;
             const int current_local_idx = ++local_idx + local_index_offset;
 
-            // Get the coordinates and stiffnesses of the present
-            // vertex.
+            // Get the coordinates of the present vertex.
             const vector<double> X = getVertexPosn(point_idx);
 
             // Initialize the location of the present vertex.
@@ -213,8 +219,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 
             // Initialize the force specification object assocaited
             // with the present vertex.
-            std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec;
-            //force_spec.push_back(new TargetPointForceSpec(X, kappa));
+            std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec = initializeForceSpec(point_idx);
 
             if (!index_data->isElement(idx))
             {
@@ -263,7 +268,7 @@ IBStandardInitializer::tagCellsForInitialRefinement(
         for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
              it != patch_vertices.end(); ++it)
         {
-            const std::pair<int,int> point_idx = (*it);
+            const std::pair<int,int>& point_idx = (*it);
 
             // Get the coordinates of the present vertex.
             const vector<double> X = getVertexPosn(point_idx);
@@ -342,24 +347,24 @@ IBStandardInitializer::readVertexFiles(
             ignore_rest_of_line(is);
         }
 
+        // Close the input file.
+        is.close();
+
         SAMRAI::tbox::plog << d_object_name << ":  "
                            << "read " << d_num_vertices[j] << " vertices from input filename " << vertex_filename << endl
                            << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-
-        // Close the input file.
-        is.close();
     }
     return;
 }// readVertexFiles
 
-#if 0
 void
 IBStandardInitializer::readEdgeFiles(
     const std::vector<std::string>& base_filenames)
 {
     const int num_base_filenames = static_cast<int>(base_filenames.size());
-    d_num_vertices.resize(num_base_filenames);
-    d_vertex_posns.resize(num_base_filenames);
+    d_edge_map.resize(num_base_filenames);
+    d_edge_stiffnesses.resize(num_base_filenames);
+    d_edge_rest_lengths.resize(num_base_filenames);
     for (int j = 0; j < num_base_filenames; ++j)
     {
         const std::string edge_filename = base_filenames[j] + ".vertices";
@@ -375,8 +380,8 @@ IBStandardInitializer::readEdgeFiles(
 
             // The first entry in the file indicates whether the
             // numbering is assumed to start from 0 or from 1.
-            if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << edge_filename << endl);
             int base_index;
+            if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << edge_filename << endl);
             is >> base_index;
             ignore_rest_of_line(is);
 
@@ -387,32 +392,59 @@ IBStandardInitializer::readEdgeFiles(
 
             // The second line in the file indicates the number of
             // edges in the input file.
+            int num_edges;
+            if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 2 of file " << edge_filename << endl);
+            is >> num_edges;
+            ignore_rest_of_line(is);
 
+            if (num_edges <= 0)
+            {
+                TBOX_ERROR(d_object_name << ":\n  Line 2 of filename " << edge_filename << " is invalid" << endl);
+            }
 
             // Each successive line provides the connectivity
             // information for each edge in the structure.
-            d_edge_posns[j].resize(d_num_vertices[j]*NDIM);
-            for (int k = 0; k < d_num_vertices[j]; ++k)
+            for (int k = 0; k < num_edges; ++k)
             {
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << edge_filename << endl);
-                    is >> d_edge_posns[j][k*NDIM+d];
-                }
+                Edge e;
+                double kappa, length;
+                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
+                is >> e.first;   // first  vertex
+                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
+                is >> e.second;  // second vertex
+                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
+                is >> kappa;     // spring constant
+                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
+                is >> length;    // rest length
                 ignore_rest_of_line(is);
+
+                e.first  += d_vertex_offsets[j]-base_index; // correct the edge numbers to be in the
+                e.second += d_vertex_offsets[j]-base_index; // global Lagrangian indexing scheme
+
+                // Always place the lower index first.
+                if (e.first > e.second)
+                {
+                    int tmp = e.first;
+                    e.first = e.second;
+                    e.second = tmp;
+                }
+
+                d_edge_map[j].insert(std::make_pair(e.first ,e));
+                d_edge_map[j].insert(std::make_pair(e.second,e));
+                d_edge_stiffnesses [j][e] = kappa;
+                d_edge_rest_lengths[j][e] = length;
             }
+
+            // Close the input file.
+            is.close();
 
             SAMRAI::tbox::plog << d_object_name << ":  "
                                << "read " << d_num_vertices[j] << " vertices from input filename " << edge_filename << endl
                                << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-
-            // Close the input file.
-            is.close();
         }
     }
     return;
 }// readEdgeFiles
-#endif
 
 void
 IBStandardInitializer::getPatchVertices(
@@ -450,7 +482,7 @@ IBStandardInitializer::getPatchVertices(
 #endif
 #endif
                 ;
-            if (patch_owns_node) patch_vertices.push_back(std::pair<int,int>(j,k));
+            if (patch_owns_node) patch_vertices.push_back(std::make_pair(j,k));
         }
     }
 
@@ -459,19 +491,64 @@ IBStandardInitializer::getPatchVertices(
 
 int
 IBStandardInitializer::getCannonicalLagrangianIndex(
-    const std::pair<int,int> point_index) const
+    const std::pair<int,int>& point_index) const
 {
     return d_vertex_offsets[point_index.first]+point_index.second;
 }// getCannonicalLagrangianIndex
 
 std::vector<double>
 IBStandardInitializer::getVertexPosn(
-    const std::pair<int,int> point_index) const
+    const std::pair<int,int>& point_index) const
 {
     return std::vector<double>(
         &d_vertex_posns[point_index.first][point_index.second*NDIM     ],
         &d_vertex_posns[point_index.first][point_index.second*NDIM+NDIM]);
 }// getIBStandardPosn
+
+std::vector<SAMRAI::tbox::Pointer<Stashable> >
+IBStandardInitializer::initializeForceSpec(
+    const std::pair<int,int>& point_index) const
+{
+    std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec;
+
+    const int j = point_index.first;
+    const int lag_index = getCannonicalLagrangianIndex(point_index);
+
+    bool has_edges = false;
+    std::vector<int> dst_idxs;
+    std::vector<double> stiffnesses, rest_lengths;
+    for (std::multimap<int,Edge>::const_iterator it = d_edge_map[j].lower_bound(lag_index);
+         it != d_edge_map[j].upper_bound(lag_index); ++it)
+    {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        assert(lag_index == (*it).first);
+#endif
+        has_edges = true;
+
+        // The connectivity information.
+        const Edge& e = (*it).second;
+        if (e.first == lag_index)
+        {
+            dst_idxs.push_back(e.second);
+        }
+        else
+        {
+            dst_idxs.push_back(e.first);
+        }
+
+        // The material properties.
+        stiffnesses .push_back((*d_edge_stiffnesses [j].find(e)).second);
+        rest_lengths.push_back((*d_edge_rest_lengths[j].find(e)).second);
+    }
+
+    // Don't bother to create a force spec if there are no edges.
+    if (has_edges)
+    {
+        force_spec.push_back(new SpringForceSpec(dst_idxs, stiffnesses, rest_lengths));
+    }
+
+    return force_spec;
+}// initializeForceSpec
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

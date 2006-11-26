@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <09.Nov.2006 01:30:57 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Nov.2006 22:51:35 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 #include "LDataManager.h"
 
@@ -1662,6 +1662,7 @@ LDataManager::resetHierarchyConfiguration(
     // Reset the Silo data writer.
     if (!d_silo_writer.isNull())
     {
+        d_silo_writer->setPatchHierarchy(hierarchy);
         d_silo_writer->resetLevels(d_coarsest_ln, d_finest_ln);
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {

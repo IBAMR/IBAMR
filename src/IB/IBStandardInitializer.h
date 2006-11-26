@@ -2,13 +2,14 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <23.Nov.2006 15:13:47 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <25.Nov.2006 11:12:29 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/LNodePosnInitStrategy.h>
+#include <ibamr/Stashable.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -32,13 +33,6 @@ class IBStandardInitializer
     : public LNodePosnInitStrategy
 {
 public:
-    /*!
-     * \name Class typedefs.
-     */
-    //@{
-    typedef std::pair<std::pair<int,int>,std::pair<double,double> > SpringEdge;
-    //@}
-
     /*!
      * \brief Constructor.
      */
@@ -150,13 +144,11 @@ private:
     void readVertexFiles(
         const std::vector<std::string>& base_filenames);
 
-#if 0
     /*!
      * \brief Read the edge data from one or more input files.
      */
     void readEdgeFiles(
         const std::vector<std::string>& base_filenames);
-#endif
 
     /*!
      * \brief Determine the indices of any vertices initially located
@@ -173,13 +165,20 @@ private:
      * vertex.
      */
     int getCannonicalLagrangianIndex(
-        const std::pair<int,int> point_index) const;
+        const std::pair<int,int>& point_index) const;
 
     /*!
      * \return The initial position of the specified vertex.
      */
     std::vector<double> getVertexPosn(
-        const std::pair<int,int> point_index) const;
+        const std::pair<int,int>& point_index) const;
+
+    /*!
+     * \return The force specification objects associated with the
+     * specified vertex.
+     */
+    std::vector<SAMRAI::tbox::Pointer<Stashable> > initializeForceSpec(
+        const std::pair<int,int>& point_index) const;
 
     /*
      * The object name is used as a handle to databases stored in
@@ -188,10 +187,28 @@ private:
     std::string d_object_name;
 
     /*
-     * The number of vertices and their initial positions.
+     * Vertex information.
      */
     std::vector<int> d_num_vertices, d_vertex_offsets;
     std::vector<std::vector<double> > d_vertex_posns;
+
+    /*
+     * Edge information.
+     */
+    typedef std::pair<int,int> Edge;
+    struct EdgeComp
+        : public std::binary_function<Edge,Edge,bool>
+    {
+        bool
+        operator()(
+            const Edge& e1,
+            const Edge& e2) const
+            {
+                return (e1.first < e2.first) || (e1.first == e2.first && e1.second < e2.second);
+            }
+    };
+    std::vector<std::multimap<int,Edge> > d_edge_map;
+    std::vector<std::map<Edge,double,EdgeComp> > d_edge_stiffnesses, d_edge_rest_lengths;
 };
 }// namespace IBAMR
 

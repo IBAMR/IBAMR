@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <16.Nov.2006 13:30:24 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Nov.2006 22:39:00 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 #include "LagSiloDataWriter.h"
 
@@ -711,12 +711,28 @@ LagSiloDataWriter::~LagSiloDataWriter()
 }// ~LagSiloDataWriter
 
 void
+LagSiloDataWriter::setPatchHierarchy(
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(!hierarchy.isNull());
+#endif
+    // Reset the hierarchy.
+    d_hierarchy = hierarchy;
+
+    return;
+}// setPatchHierarchy
+
+void
 LagSiloDataWriter::resetLevels(
     const int coarsest_ln,
     const int finest_ln)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(coarsest_ln >= 0 && finest_ln >= coarsest_ln);
+    assert(!d_hierarchy.isNull());
+    assert((coarsest_ln >= 0) &&
+           (finest_ln >= coarsest_ln) &&
+           (finest_ln <= d_hierarchy->getFinestLevelNumber()));
 #endif
     // Destroy any un-needed PETSc objects.
     int ierr;
@@ -1149,7 +1165,6 @@ LagSiloDataWriter::setLagrangianAO(
 
 void
 LagSiloDataWriter::writePlotData(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int time_step_number,
     const double simulation_time)
 {
