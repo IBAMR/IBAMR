@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <25.Nov.2006 11:17:21 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <27.Nov.2006 03:10:15 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -122,6 +122,17 @@ IBStandardInitializer::~IBStandardInitializer()
     return;
 }// ~IBStandardInitializer
 
+void
+IBStandardInitializer::registerLagSiloDataWriter(
+    SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(!silo_writer.isNull());
+#endif
+
+    return;
+}// registerLagSiloDataWriter
+
 bool
 IBStandardInitializer::getLevelHasLagrangianData(
     const int level_number,
@@ -170,6 +181,12 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     const bool can_be_refined,
     const bool initial_time)
 {
+    d_finest_level_number = (can_be_refined
+                             ? -1
+                             : hierarchy->getFinestLevelNumber());
+    d_global_index_offset.resize(hierarchy->getFinestLevelNumber()+1);
+    d_global_index_offset[level_number] = global_index_offset;
+
     // Loop over all patches in the specified level of the patch level
     // and initialize the local vertices.
     int local_idx = -1;
@@ -219,7 +236,8 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 
             // Initialize the force specification object assocaited
             // with the present vertex.
-            std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec = initializeForceSpec(point_idx);
+            std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec =
+                initializeForceSpec(point_idx, global_index_offset);
 
             if (!index_data->isElement(idx))
             {
@@ -507,7 +525,8 @@ IBStandardInitializer::getVertexPosn(
 
 std::vector<SAMRAI::tbox::Pointer<Stashable> >
 IBStandardInitializer::initializeForceSpec(
-    const std::pair<int,int>& point_index) const
+    const std::pair<int,int>& point_index,
+    const int global_index_offset) const
 {
     std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec;
 
@@ -529,11 +548,11 @@ IBStandardInitializer::initializeForceSpec(
         const Edge& e = (*it).second;
         if (e.first == lag_index)
         {
-            dst_idxs.push_back(e.second);
+            dst_idxs.push_back(e.second+global_index_offset);
         }
         else
         {
-            dst_idxs.push_back(e.first);
+            dst_idxs.push_back(e.first+global_index_offset);
         }
 
         // The material properties.

@@ -2,13 +2,14 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <25.Nov.2006 11:12:29 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <27.Nov.2006 03:10:27 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/LNodePosnInitStrategy.h>
+#include <ibamr/LagSiloDataWriter.h>
 #include <ibamr/Stashable.h>
 
 // C++ STDLIB INCLUDES
@@ -44,6 +45,13 @@ public:
      * \brief Destructor.
      */
     virtual ~IBStandardInitializer();
+
+    /*!
+     * \brief Register a Silo data writer with the IB initializer
+     * object.
+     */
+    void registerLagSiloDataWriter(
+        SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer);
 
     /*!
      * \brief Determine whether there are any Lagrangian nodes on the
@@ -178,7 +186,8 @@ private:
      * specified vertex.
      */
     std::vector<SAMRAI::tbox::Pointer<Stashable> > initializeForceSpec(
-        const std::pair<int,int>& point_index) const;
+        const std::pair<int,int>& point_index,
+        const int global_index_offset) const;
 
     /*
      * The object name is used as a handle to databases stored in
@@ -209,6 +218,13 @@ private:
     };
     std::vector<std::multimap<int,Edge> > d_edge_map;
     std::vector<std::map<Edge,double,EdgeComp> > d_edge_stiffnesses, d_edge_rest_lengths;
+
+    /*
+     * Data required to specify connectivity information for
+     * visualization purposes.
+     */
+    int d_finest_level_number;
+    std::vector<int> d_global_index_offset;
 };
 }// namespace IBAMR
 

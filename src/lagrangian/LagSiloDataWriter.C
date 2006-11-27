@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <25.Nov.2006 22:39:00 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <27.Nov.2006 02:58:23 boyce@bigboy.nyconnect.com>
 
 #include "LagSiloDataWriter.h"
 
@@ -40,6 +40,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 #if 0
+
+// SAMPLE SILO WRITER:
 
 template <class T>
 struct vector_less : public std::binary_function<std::vector<T>, std::vector<T>, bool>
@@ -393,6 +395,7 @@ static const string SILO_DUMPS_FILENAME = "lag_dumps.visit";
 static const string SILO_DB_FILENAME = "lag_data.summary.silo";
 
 #if HAVE_LIBSILO
+
 /*!
  * @brief Build a local mesh database entry corresponding to a cloud
  * of marker points.
@@ -638,6 +641,181 @@ void buildLocalCurvBlock(
     }
     return;
 }// buildLocalCurvBlock
+
+/*!
+ * @brief Build a local mesh database entry corresponding to a
+ * quadrilateral curvilinear block.
+ */
+void buildLocalUcdMesh(
+    DBfile* dbfile,
+    string& dirname,
+    const std::set<int>& vertices,
+    const std::multimap<int,std::pair<int,int> >& edge_map,
+    const double* const X,
+    const int nvars,
+    const vector<string>& varnames,
+    const vector<int>& vardepths,
+    const vector<const double*> varvals,
+    const int time_step,
+    const double simulation_time)
+{
+    // Rearrange the data into the format required by Silo.
+    const int ntot = vertices.size();
+
+    std::map<int,int> local_vertex_map;
+
+    vector<float> block_X(NDIM*ntot);
+    vector<vector<float> > block_varvals(nvars);
+    for (int v = 0; v < nvars; ++v)
+    {
+        const int vardepth = vardepths[v];
+        block_varvals[v].resize(vardepth*ntot);
+    }
+
+    int offset = 0;
+    for (std::set<int>::const_iterator it = vertices.begin();
+         it != vertices.end(); ++it)
+    {
+        const int idx = (*it);
+        local_vertex_map[idx] = offset;
+
+        // Get the coordinate data.
+        for (int d = 0; d < NDIM; ++d)
+        {
+            block_X[d*ntot+offset] = static_cast<float>(X[NDIM*offset + d]);
+        }
+
+        // Get the variable data.
+        for (int v = 0; v < nvars; ++v)
+        {
+            const int vardepth = vardepths[v];
+            for (int d = 0; d < vardepth; ++d)
+            {
+                block_varvals[v][d*ntot+offset] = static_cast<float>(varvals[v][vardepth*offset + d]);
+            }
+        }
+
+        // Increment the counter.
+        ++offset;
+    }
+
+    std::multimap<int,int> local_edge_map;
+    for (std::multimap<int,std::pair<int,int> >::const_iterator it = edge_map.begin();
+         it != edge_map.end(); ++it)
+    {
+        const int& e1 = (*it).second.first;
+        const int& e2 = (*it).second.second;
+        if (e1 < e2)
+        {
+            local_edge_map.insert(std::make_pair(local_vertex_map[e1],local_vertex_map[e2]));
+        }
+    }
+
+    // Set the working directory in the Silo database.
+    if (DBSetDir(dbfile, dirname.c_str()) == -1)
+    {
+        TBOX_ERROR("LagSiloDataWriter::buildLocalUcdMesh()\n"
+                   << "  Could not set directory " << dirname << endl);
+    }
+
+    // Node coordinates.
+    int ndims = NDIM;
+
+    int    cycle = time_step;
+    float  time  = static_cast<float>(simulation_time);
+    double dtime = simulation_time;
+
+    static const int MAX_OPTS = 3;
+    DBoptlist* optlist = DBMakeOptlist(MAX_OPTS);
+    DBAddOption(optlist, DBOPT_CYCLE, &cycle);
+    DBAddOption(optlist, DBOPT_TIME , &time);
+    DBAddOption(optlist, DBOPT_DTIME, &dtime);
+
+    const char* meshname = "mesh";
+    const char* coordnames[3]  = { "xcoords" , "ycoords" , "zcoords" };
+    vector<float*> coords(NDIM);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        coords[d] = &block_X[d*ntot];
+    }
+    const int nnodes = ntot;
+
+    // Connectivity.
+    std::vector<int> nodelist;
+    nodelist.reserve(2*local_edge_map.size());
+
+    for (std::multimap<int,int>::const_iterator it = local_edge_map.begin();
+         it != local_edge_map.end(); ++it)
+    {
+        nodelist.push_back((*it).first);
+        nodelist.push_back((*it).second);
+    }
+    int lnodelist = static_cast<int>(nodelist.size());
+    int nshapetypes = 1;
+    int shapecnt[] = {local_edge_map.size()};
+    int shapesize[] = {2};
+    int shapetype[] = {DB_ZONETYPE_BEAM};
+    int nzones = local_edge_map.size();
+
+    // Write out connectivity information.
+    const int origin = 0;
+    const int lo_offset = 0;
+    const int hi_offset = 0;
+    DBPutZonelist2(dbfile, "zonelist", nzones, ndims, &nodelist[0], lnodelist, origin, lo_offset, hi_offset,
+                   shapetype, shapesize, shapecnt, nshapetypes, optlist);
+
+    // Write an unstructured mesh.
+    DBPutUcdmesh(dbfile, meshname, ndims, const_cast<char**>(coordnames), &coords[0], nnodes, nzones,
+                 "zonelist", NULL, DB_FLOAT, NULL);
+
+    // Write the variables defined on the unstructured mesh.
+    for (int v = 0; v < nvars; ++v)
+    {
+        const char* varname = varnames[v].c_str();
+        const int vardepth = vardepths[v];
+        vector<char*> compnames(vardepth);
+        for (int d = 0; d < vardepth; ++d)
+        {
+            ostringstream stream;
+            stream << "_" << d;
+            const string compname = varnames[v] + stream.str();
+            compnames[d] = strdup(compname.c_str());
+        }
+
+        vector<float*> vars(vardepth);
+        for (int d = 0; d < vardepth; ++d)
+        {
+            vars[d] = &block_varvals[v][d*ntot];
+        }
+
+        if (vardepth == 1)
+        {
+            DBPutUcdvar1(dbfile, varname, meshname, vars[0], nnodes,
+                         NULL, 0, DB_FLOAT, DB_NODECENT, optlist);
+        }
+        else
+        {
+            DBPutUcdvar(dbfile, varname, meshname, vardepth, &compnames[0], &vars[0], nnodes,
+                        NULL, 0, DB_FLOAT, DB_NODECENT, optlist);
+        }
+
+        for (int d = 0; d < vardepth; ++d)
+        {
+            free(compnames[d]);
+        }
+    }
+
+    DBFreeOptlist(optlist);
+
+    // Reset the working directory in the Silo database.
+    if (DBSetDir(dbfile, "..") == -1)
+    {
+        TBOX_ERROR("LagSiloDataWriter::buildLocalUcdMesh()\n"
+                   << "  Could not return to the base directory from subdirectory " << dirname << endl);
+    }
+    return;
+}// buildLocalUcdMesh
+
 #endif //if HAVE_LIBSILO
 
 }
@@ -676,7 +854,11 @@ LagSiloDataWriter::LagSiloDataWriter(
       d_dst_vec(),
       d_vec_scatter()
 {
+#if HAVE_LIBSILO
     // intentionally blank
+#else
+    TBOX_WARNING("LagSiloDataWriter::LagSiloDataWriter(): SILO is not installed; cannot write data." << endl);
+#endif
     return;
 }// LagSiloDataWriter
 
@@ -808,6 +990,11 @@ LagSiloDataWriter::resetLevels(
     d_mb_periodic     .resize(d_finest_ln+1);
     d_mb_first_lag_idx.resize(d_finest_ln+1);
 
+    d_nucd_meshes       .resize(d_finest_ln+1,0);
+    d_ucd_mesh_names    .resize(d_finest_ln+1);
+    d_ucd_mesh_vertices .resize(d_finest_ln+1);
+    d_ucd_mesh_edge_maps.resize(d_finest_ln+1);
+
     d_coords_data.resize(d_finest_ln+1);
     d_nvars      .resize(d_finest_ln+1);
     d_var_names  .resize(d_finest_ln+1);
@@ -857,6 +1044,14 @@ LagSiloDataWriter::registerMarkerCloud(
         TBOX_ERROR(d_object_name << "::registerMarkerCloud()\n"
                    << "  marker clouds must have unique names.\n"
                    << "  a Cartesian multiblock named ``" << name << "'' has already been registered.\n");
+    }
+
+    if (find(d_ucd_mesh_names[level_number].begin(), d_ucd_mesh_names[level_number].end(),
+             name) != d_ucd_mesh_names[level_number].end())
+    {
+        TBOX_ERROR(d_object_name << "::registerMarkerCloud()\n"
+                   << "  marker clouds must have unique names.\n"
+                   << "  an unstructured mesh named ``" << name << "'' has already been registered.\n");
     }
 
     // Record the layout of the marker cloud.
@@ -909,6 +1104,14 @@ LagSiloDataWriter::registerLogicallyCartesianBlock(
         TBOX_ERROR(d_object_name << "::registerLogicallyCartesianBlock()\n"
                    << "  Cartesian blocks must have unique names.\n"
                    << "  a Cartesian multiblock named ``" << name << "'' has already been registered.\n");
+    }
+
+    if (find(d_ucd_mesh_names[level_number].begin(), d_ucd_mesh_names[level_number].end(),
+             name) != d_ucd_mesh_names[level_number].end())
+    {
+        TBOX_ERROR(d_object_name << "::registerMarkerCloud()\n"
+                   << "  Cartesian blocks must have unique names.\n"
+                   << "  an unstructured mesh named ``" << name << "'' has already been registered.\n");
     }
 
     // Record the layout of the logically Cartesian block.
@@ -970,6 +1173,14 @@ LagSiloDataWriter::registerLogicallyCartesianMultiblock(
                    << "  a Cartesian multiblock named ``" << name << "'' has already been registered.\n");
     }
 
+    if (find(d_ucd_mesh_names[level_number].begin(), d_ucd_mesh_names[level_number].end(),
+             name) != d_ucd_mesh_names[level_number].end())
+    {
+        TBOX_ERROR(d_object_name << "::registerMarkerCloud()\n"
+                   << "  Cartesian multiblocks must have unique names.\n"
+                   << "  an unstructured mesh named ``" << name << "'' has already been registered.\n");
+    }
+
     // Record the layout of the logically Cartesian multiblock.
     ++d_nmbs[level_number];
     d_mb_names        [level_number].push_back(name);
@@ -980,6 +1191,68 @@ LagSiloDataWriter::registerLogicallyCartesianMultiblock(
 
     return;
 }// registerLogicallyCartesianMultiblock
+
+void
+LagSiloDataWriter::registerUnstructuredMesh(
+    const string& name,
+    const std::multimap<int,std::pair<int,int> > edge_map,
+    const int level_number)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(d_coarsest_ln <= level_number &&
+           d_finest_ln   >= level_number);
+#endif
+
+    // Check to see if the unstructured mesh name has already been
+    // registered.
+    if (find(d_cloud_names[level_number].begin(), d_cloud_names[level_number].end(),
+             name) != d_cloud_names[level_number].end())
+    {
+        TBOX_ERROR(d_object_name << "::registerLogicallyCartesianMultiblock()\n"
+                   << "  unstructured meshes must have unique names.\n"
+                   << "  a marker cloud named ``" << name << "'' has already been registered.\n");
+    }
+
+    if (find(d_block_names[level_number].begin(), d_block_names[level_number].end(),
+             name) != d_block_names[level_number].end())
+    {
+        TBOX_ERROR(d_object_name << "::registerLogicallyCartesianMultiblock()\n"
+                   << "  unstructured meshes must have unique names.\n"
+                   << "  a Cartesian block named ``" << name << "'' has already been registered.\n");
+    }
+
+    if (find(d_mb_names[level_number].begin(), d_mb_names[level_number].end(),
+             name) != d_mb_names[level_number].end())
+    {
+        TBOX_ERROR(d_object_name << "::registerLogicallyCartesianMultiblock()\n"
+                   << "  unstructured meshes must have unique names.\n"
+                   << "  a Cartesian multiblock named ``" << name << "'' has already been registered.\n");
+    }
+
+    if (find(d_ucd_mesh_names[level_number].begin(), d_ucd_mesh_names[level_number].end(),
+             name) != d_ucd_mesh_names[level_number].end())
+    {
+        TBOX_ERROR(d_object_name << "::registerMarkerCloud()\n"
+                   << "  unstructured meshes must have unique names.\n"
+                   << "  an unstructured mesh named ``" << name << "'' has already been registered.\n");
+    }
+
+    // Extract the list of vertices from the list of edges.
+    std::set<int> vertices;
+    for (std::multimap<int,std::pair<int,int> >::const_iterator it = edge_map.begin();
+         it != edge_map.end(); it = edge_map.upper_bound((*it).first))
+    {
+        vertices.insert((*it).first);
+    }
+
+    // Record the layout of the unstructured mesh.
+    ++d_nucd_meshes[level_number];
+    d_ucd_mesh_names    [level_number].push_back(name);
+    d_ucd_mesh_vertices [level_number].push_back(vertices);
+    d_ucd_mesh_edge_maps[level_number].push_back(edge_map);
+
+    return;
+}// registerUnstructuredMesh
 
 void
 LagSiloDataWriter::registerCoordsData(
@@ -1042,7 +1315,8 @@ LagSiloDataWriter::setLagrangianAO(
         {
             // Setup the IS data used to generate the VecScatters that
             // redistribute the distributed data into local marker
-            // clouds and local logically Cartesian blocks.
+            // clouds, local logically Cartesian blocks, and local UCD
+            // meshes.
             vector<int> ref_is_idxs;
             for (int cloud = 0; cloud < d_nclouds[ln]; ++cloud)
             {
@@ -1084,6 +1358,14 @@ LagSiloDataWriter::setLagrangianAO(
                         ref_is_idxs.push_back(idx);
                     }
                 }
+            }
+
+            for (int mesh = 0; mesh < d_nucd_meshes[ln]; ++mesh)
+            {
+                ref_is_idxs.insert(
+                    ref_is_idxs.end(),
+                    d_ucd_mesh_vertices[ln][mesh].begin(),
+                    d_ucd_mesh_vertices[ln][mesh].end());
             }
 
             // Map Lagrangian indices to PETSc indices.
@@ -1373,6 +1655,41 @@ LagSiloDataWriter::writePlotData(
                 }
             }
 
+            // Add the local UCD meshes to the local DBfile.
+            for (int mesh = 0; mesh < d_nucd_meshes[ln]; ++mesh)
+            {
+                const std::set<int>& vertices = d_ucd_mesh_vertices[ln][mesh];
+                const std::multimap<int,std::pair<int,int> >& edge_map = d_ucd_mesh_edge_maps[ln][mesh];
+                const int ntot = vertices.size();
+
+                ostringstream stream;
+                stream << "level_" << ln << "_mesh_" << mesh;
+                string dirname = stream.str();
+
+                if (DBMkDir(dbfile, dirname.c_str()) == -1)
+                {
+                    TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                               << "  Could not create directory named "
+                               << dirname << endl);
+                }
+
+                const double* const X = local_X_arr + NDIM*offset;
+
+                vector<const double*> var_vals(d_nvars[ln]);
+                for (int v = 0; v < d_nvars[ln]; ++v)
+                {
+                    var_vals[v] = local_v_arrs[v] + d_var_depths[ln][v]*offset;
+                }
+
+                buildLocalUcdMesh(dbfile, dirname, vertices, edge_map, X,
+                                  d_nvars[ln], d_var_names[ln], d_var_depths[ln], var_vals,
+                                  time_step_number, simulation_time);
+                meshtype[ln].push_back(DB_UCDMESH);
+                vartype [ln].push_back(DB_UCDVAR);
+
+                offset += ntot;
+            }
+
             // Clean up allocated data.
             ierr = VecRestoreArray(local_X_vec, &local_X_arr);
             PETSC_SAMRAI_ERROR(ierr);
@@ -1432,17 +1749,20 @@ LagSiloDataWriter::writePlotData(
         // Set the values for the root process.
         if (mpi_rank == SILO_MPI_ROOT)
         {
-            nclouds_per_proc       [ln][mpi_rank] = d_nclouds    [ln];
-            nblocks_per_proc       [ln][mpi_rank] = d_nblocks    [ln];
-            nmbs_per_proc          [ln][mpi_rank] = d_nmbs       [ln];
-            meshtypes_per_proc     [ln][mpi_rank] = meshtype     [ln];
-            vartypes_per_proc      [ln][mpi_rank] = vartype      [ln];
-            mb_nblocks_per_proc    [ln][mpi_rank] = d_mb_nblocks [ln];
-            multimeshtypes_per_proc[ln][mpi_rank] = multimeshtype[ln];
-            multivartypes_per_proc [ln][mpi_rank] = multivartype [ln];
-            cloud_names_per_proc   [ln][mpi_rank] = d_cloud_names[ln];
-            block_names_per_proc   [ln][mpi_rank] = d_block_names[ln];
-            mb_names_per_proc      [ln][mpi_rank] = d_mb_names   [ln];
+            nclouds_per_proc        [ln][mpi_rank] = d_nclouds    [ln];
+            nblocks_per_proc        [ln][mpi_rank] = d_nblocks    [ln] + d_nucd_meshes[ln];
+            nmbs_per_proc           [ln][mpi_rank] = d_nmbs       [ln];
+            meshtypes_per_proc      [ln][mpi_rank] = meshtype     [ln];
+            vartypes_per_proc       [ln][mpi_rank] = vartype      [ln];
+            mb_nblocks_per_proc     [ln][mpi_rank] = d_mb_nblocks [ln];
+            multimeshtypes_per_proc [ln][mpi_rank] = multimeshtype[ln];
+            multivartypes_per_proc  [ln][mpi_rank] = multivartype [ln];
+            cloud_names_per_proc    [ln][mpi_rank] = d_cloud_names[ln];
+            block_names_per_proc    [ln][mpi_rank] = d_block_names[ln];
+            block_names_per_proc    [ln][mpi_rank].insert(
+                block_names_per_proc[ln][mpi_rank].end(),
+                d_ucd_mesh_names[ln].begin(), d_ucd_mesh_names[ln].end());
+            mb_names_per_proc       [ln][mpi_rank] = d_mb_names   [ln];
         }
 
         // Get the values for the non-root processes.
@@ -1600,6 +1920,7 @@ LagSiloDataWriter::writePlotData(
                     delete[] name;
                 }
             }
+
             SAMRAI::tbox::MPI::barrier();
         }
     }

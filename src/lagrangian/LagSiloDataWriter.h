@@ -3,7 +3,7 @@
 
 // Filename: LagSiloDataWriter.h
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <25.Nov.2006 22:43:08 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <27.Nov.2006 01:46:00 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -22,6 +22,7 @@
 
 // C++ STDLIB INCLUDES
 #include <map>
+#include <set>
 #include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -123,6 +124,18 @@ public:
         const std::vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
         const std::vector<SAMRAI::hier::IntVector<NDIM> >& periodic,
         const std::vector<int>& first_lag_idx,
+        const int level_number);
+
+    /*!
+     * \brief Register an unstructured mesh.
+     *
+     * \note This method is not collective over all MPI processes.  A
+     * particular collection of indices must be registered on only \em
+     * one MPI process.
+     */
+    void registerUnstructuredMesh(
+        const std::string& name,
+        const std::multimap<int,std::pair<int,int> > edge_map,
         const int level_number);
 
     /*!
@@ -245,6 +258,14 @@ private:
     std::vector<std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > > d_mb_nelems;
     std::vector<std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > > d_mb_periodic;
     std::vector<std::vector<std::vector<int> > > d_mb_first_lag_idx;
+
+    /*
+     * Information about the indices in the unstructured meshes.
+     */
+    std::vector<int> d_nucd_meshes;
+    std::vector<std::vector<string> > d_ucd_mesh_names;
+    std::vector<std::vector<std::set<int> > > d_ucd_mesh_vertices;
+    std::vector<std::vector<std::multimap<int,std::pair<int,int> > > > d_ucd_mesh_edge_maps;
 
     /*
      * Coordinates and variable data for plotting.
