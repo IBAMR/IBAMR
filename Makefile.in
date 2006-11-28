@@ -37,7 +37,8 @@ build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/config/IBAMR_config.h.in \
-	$(top_srcdir)/config/Make-rules $(top_srcdir)/configure \
+	$(top_srcdir)/config/Make-rules \
+	$(top_srcdir)/config/make.inc.in $(top_srcdir)/configure \
 	$(top_srcdir)/sample/IB/Makefile.in \
 	$(top_srcdir)/sample/blank_slate/Makefile.in \
 	config/config.guess config/config.sub config/depcomp \
@@ -53,7 +54,8 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
-CONFIG_CLEAN_FILES = sample/IB/Makefile sample/blank_slate/Makefile
+CONFIG_CLEAN_FILES = config/make.inc sample/IB/Makefile \
+	sample/blank_slate/Makefile
 SOURCES =
 DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -290,6 +292,8 @@ $(top_srcdir)/config/IBAMR_config.h.in:  $(am__configure_deps)
 
 distclean-hdr:
 	-rm -f config/IBAMR_config.h config/stamp-h1
+config/make.inc: $(top_builddir)/config.status $(top_srcdir)/config/make.inc.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
 sample/IB/Makefile: $(top_builddir)/config.status $(top_srcdir)/sample/IB/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 sample/blank_slate/Makefile: $(top_builddir)/config.status $(top_srcdir)/sample/blank_slate/Makefile.in
@@ -581,7 +585,7 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-recursive
-all-am: Makefile
+all-am: Makefile all-local
 installdirs: installdirs-recursive
 installdirs-am:
 install: install-recursive
@@ -661,10 +665,10 @@ uninstall-am: uninstall-info-am
 
 uninstall-info: uninstall-info-recursive
 
-.PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am am--refresh check \
-	check-am clean clean-generic clean-libtool clean-recursive \
-	ctags ctags-recursive dist dist-all dist-bzip2 dist-gzip \
-	dist-shar dist-tarZ dist-zip distcheck distclean \
+.PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am all-local \
+	am--refresh check check-am clean clean-generic clean-libtool \
+	clean-recursive ctags ctags-recursive dist dist-all dist-bzip2 \
+	dist-gzip dist-shar dist-tarZ dist-zip distcheck distclean \
 	distclean-generic distclean-hdr distclean-libtool \
 	distclean-recursive distclean-tags distcleancheck distdir \
 	distuninstallcheck dvi dvi-am html html-am info info-am \
@@ -678,6 +682,14 @@ uninstall-info: uninstall-info-recursive
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+
+all-local:
+	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
+	  cp -f $(top_srcdir)/sample/IB/input[23]d $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/main.C $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/shell2d_64.{edges,vertices} $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/sphere3d.{edges,vertices} $(top_builddir)/sample/IB ; \
+	fi ;
 
 copy_headers:
 	cd stools && $(MAKE) relink_headers

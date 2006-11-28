@@ -3,7 +3,8 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.C FeedbackFSet.C FeedbackFSet.h UInit.C UInit.h XInit.C XInit.h
-EXTRA_DIST = input2d ##input3d
+EXTRA_DIST  = input2d ##input3d
+EXTRA_DIST += get_strouhal.m
 
 check_PROGRAMS = main2d ##main3d
 check-local:

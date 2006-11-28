@@ -60,6 +60,16 @@ EXTRA_DIST += sample/IB/shell2d_64.vertices
 EXTRA_DIST += sample/IB/sphere3d.edges
 EXTRA_DIST += sample/IB/sphere3d.vertices
 
+## Copy the sample sources to the build directory.
+all-local:
+	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
+	  cp -f $(top_srcdir)/sample/IB/input[23]d $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/main.C $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/shell2d_64.{edges,vertices} $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/sphere3d.{edges,vertices} $(top_builddir)/sample/IB ; \
+	fi ;
+
+
 ## Automatically link header files in $(top_srcdir)/include and
 ## refresh emacs TAGS file.
 ##
