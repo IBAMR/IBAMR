@@ -2,7 +2,11 @@
 include $(top_srcdir)/config/Make-rules
 SUBDIRS = stools doc src
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = autogen.sh bin/includes doc/Doxyfile doc/libstdc++.tag
+
+EXTRA_DIST  = autogen.sh
+EXTRA_DIST += bin/includes
+EXTRA_DIST += doc/Doxyfile
+EXTRA_DIST += doc/libstdc++.tag
 EXTRA_DIST += include/ibamr/AdvDiffHierarchyIntegrator.h
 EXTRA_DIST += include/ibamr/AdvDiffHypPatchOps.h
 EXTRA_DIST += include/ibamr/ConvergenceMonitor.h
@@ -48,6 +52,13 @@ EXTRA_DIST += include/ibamr/TargetPointForceGen.h
 EXTRA_DIST += include/ibamr/TargetPointForceSpecFactory.h
 EXTRA_DIST += include/ibamr/TargetPointForceSpec.h
 EXTRA_DIST += include/ibamr/TargetPointInitializer.h
+EXTRA_DIST += sample/IB/input2d
+EXTRA_DIST += sample/IB/input3d
+EXTRA_DIST += sample/IB/main.C
+EXTRA_DIST += sample/IB/shell2d_64.edges
+EXTRA_DIST += sample/IB/shell2d_64.vertices
+EXTRA_DIST += sample/IB/sphere3d.edges
+EXTRA_DIST += sample/IB/sphere3d.vertices
 
 ## Automatically link header files in $(top_srcdir)/include and
 ## refresh emacs TAGS file.

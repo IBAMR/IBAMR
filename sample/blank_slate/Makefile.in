@@ -41,41 +41,18 @@ STOOLS_OBJS2D = $(top_builddir)/stools/src/libSTOOLS2d.la $(top_builddir)/stools
 STOOLS_OBJS3D = $(top_builddir)/stools/src/libSTOOLS3d.la $(top_builddir)/stools/src/libSTOOLS.la
 
 ######################################################################
-## Build the IB tester application.
-OBJS = main.o
+## Build the IBAMR-based application.
+OBJS =
 
 default:
 	@echo "make one of: main2d, main3d"
 
-copy-source:
-	if !(test -f main.C) ; then \
-	  cp -f $(srcdir)/main.C $(PWD) ; \
-	 fi
-	if !(test -f input2d) ; then \
-	  cp -f $(srcdir)/input2d $(PWD) ; \
-	fi
-	if !(test -f input3d) ; then \
-	  cp -f $(srcdir)/input3d $(PWD) ; \
-	fi
-	if !(test -f shell2d_64.vertices) ; then \
-	  cp -f $(srcdir)/shell2d_64.vertices $(PWD) ; \
-	fi
-	if !(test -f shell2d_64.edges) ; then \
-	  cp -f $(srcdir)/shell2d_64.edges $(PWD) ; \
-	fi
-	if !(test -f sphere3d.vertices) ; then \
-	  cp -f $(srcdir)/sphere3d.vertices $(PWD) ; \
-	fi
-	if !(test -f sphere3d.edges) ; then \
-	  cp -f $(srcdir)/sphere3d.edges $(PWD) ; \
-	fi
-
-main2d: copy-source
+main2d:
 	if (test -f stamp-3d); then $(MAKE) clean; fi
 	touch stamp-2d
 	$(MAKE) PDIM=2 main-2d
 
-main3d: copy-source
+main3d:
 	if (test -f stamp-2d); then $(MAKE) clean; fi
 	touch stamp-3d
 	$(MAKE) PDIM=3 main-3d

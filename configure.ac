@@ -1,7 +1,7 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_INIT([IBAMR],[0.2-061031],[griffith AT cims DOT nyu DOT edu])
+AC_INIT([IBAMR],[0.2-061128],[griffith AT cims DOT nyu DOT edu])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config/IBAMR_config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 foreign])
@@ -390,6 +390,7 @@ AC_CONFIG_SUBDIRS([stools])
 AC_CONFIG_FILES([
   Makefile
   doc/Makefile doc/Doxyfile
+  sample/IB/Makefile sample/blank_slate/Makefile
   src/Makefile src/fortran/Makefile
   src/IB/Makefile
   src/adv_diff/Makefile src/adv_diff/fortran/Makefile
