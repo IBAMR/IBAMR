@@ -1,0 +1,71 @@
+## The following values are supplied by configure and should not be
+## modified.
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+
+CC = @CC@
+CFLAGS = @CFLAGS@
+CPP = @CPP@
+CPPFLAGS = -I. -I$(srcdir) -I$(top_builddir)/config -I${top_srcdir}/include -I${top_srcdir}/stools/include @CPPFLAGS@
+CXX = @CXX@
+CXXFLAGS = @CXXFLAGS@
+F77 = @F77@
+FFLAGS = @FFLAGS@
+FLIBS = @FLIBS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+LIBTOOL = @LIBTOOL@
+M4 = @M4@
+
+.SUFFIXES:
+.SUFFIXES: .f.m4 .f .c .C .lo .o .obj
+.f.m4.f:
+	$(M4) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+.f.o:
+	$(LIBTOOL) --tag=F77 --mode=compile $(F77) $(FFLAGS) -c $< -o $@
+.c.o:
+	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(CFLAGS) $(CPPFLAGS) -DNDIM=$(PDIM) -c $< -o $@
+.C.o:
+	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(CXXFLAGS) $(CPPFLAGS) -DNDIM=$(PDIM) -c $< -o $@
+
+## Here specify the location where IBAMR has been built.
+top_builddir = @top_builddir@
+
+## Here specify the locations of the IBAMR libraries.
+IBAMR_OBJS2D = $(top_builddir)/src/libIBAMR2d.la $(top_builddir)/src/libIBAMR.la
+IBAMR_OBJS3D = $(top_builddir)/src/libIBAMR3d.la $(top_builddir)/src/libIBAMR.la
+
+## Build the IB tester.
+OBJS = main.o
+
+default:
+	@echo "make one of: main2d, main3d"
+
+main2d:
+	if (test -f stamp-3d); then $(MAKE) clean; fi
+	touch stamp-2d
+	$(MAKE) PDIM=2 main-2d
+
+main3d:
+	if (test -f stamp-2d); then $(MAKE) clean; fi
+	touch stamp-3d
+	$(MAKE) PDIM=3 main-3d
+
+main-2d:  $(OBJS)
+	$(LIBTOOL) --tag=CXX --mode=link $(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJS) \
+	$(top_builddir)/src/libIBAMR2d.la $(top_builddir)/src/libIBAMR.la \
+	$(LDFLAGS) $(LIBS) -DNDIM=$(PDIM) -o main2d
+
+main-3d: $(top_builddir)/src/libIBAMR3d.la $(top_builddir)/src/libIBAMR.la $(OBJS)
+	$(LIBTOOL) --tag=CXX --mode=link $(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJS) \
+	$(top_builddir)/src/libIBAMR3d.la $(top_builddir)/src/libIBAMR.la \
+	$(LDFLAGS) $(LIBS) -DNDIM=$(PDIM) -o main3d
+
+clean:
+	$(RM) main2d main3d core
+	$(RM) *.o *.ii *.int.c stamp-[23]d stamp-[gO]
+
+cleanall:
+	$(RM) main2d main3d core
+	$(RM) *.o *.ii *.int.c stamp-[23]d stamp-[gO]
+	$(RM) -r ti_files ii_files
