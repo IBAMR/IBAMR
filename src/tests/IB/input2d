@@ -30,16 +30,11 @@ IBHierarchyIntegrator {
    timestepping_order = 2
 }
 
-XInit {
-   num_nodes = 50*NFINEST
-   num_layers = 2*NFINEST
-
-   tapered = FALSE // TRUE
-   width = 4.0/64.0
-   alpha = 0.2
-   beta  = 0.25
-
-   stiffness = 1.0/num_layers
+IBStandardInitializer {
+   base_filenames = "shell2d_64"   // corresponds to NFINEST=4
+// base_filenames = "shell2d_128"  // corresponds to NFINEST=8
+// base_filenames = "shell2d_256"  // corresponds to NFINEST=16
+// base_filenames = "shell2d_512"  // corresponds to NFINEST=32
 }
 
 INSHierarchyIntegrator {
@@ -207,7 +202,7 @@ GriddingAlgorithm {
    max_levels             = 2    // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1             = 4,4  // vector ratio to next coarser level
-      level_2             = 2,2
+      level_2             = 4,4
    }
 
    largest_patch_size {

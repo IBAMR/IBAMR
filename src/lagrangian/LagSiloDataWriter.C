@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <27.Nov.2006 02:58:23 boyce@bigboy.nyconnect.com>
+// Last modified: <28.Nov.2006 00:34:22 griffith@box221.cims.nyu.edu>
 
 #include "LagSiloDataWriter.h"
 
@@ -662,8 +662,6 @@ void buildLocalUcdMesh(
     // Rearrange the data into the format required by Silo.
     const int ntot = vertices.size();
 
-    std::map<int,int> local_vertex_map;
-
     vector<float> block_X(NDIM*ntot);
     vector<vector<float> > block_varvals(nvars);
     for (int v = 0; v < nvars; ++v)
@@ -673,6 +671,7 @@ void buildLocalUcdMesh(
     }
 
     int offset = 0;
+    std::map<int,int> local_vertex_map;
     for (std::set<int>::const_iterator it = vertices.begin();
          it != vertices.end(); ++it)
     {
@@ -699,16 +698,29 @@ void buildLocalUcdMesh(
         ++offset;
     }
 
-    std::multimap<int,int> local_edge_map;
+    // Prune duplicate edges.
+    std::set<std::pair<int,int> > local_edge_set;
     for (std::multimap<int,std::pair<int,int> >::const_iterator it = edge_map.begin();
          it != edge_map.end(); ++it)
     {
-        const int& e1 = (*it).second.first;
-        const int& e2 = (*it).second.second;
-        if (e1 < e2)
+        std::pair<int,int> e = (*it).second;
+        if (e.first > e.second)
         {
-            local_edge_map.insert(std::make_pair(local_vertex_map[e1],local_vertex_map[e2]));
+            const int tmp = e.first;
+            e.first = e.second;
+            e.second = tmp;
         }
+        local_edge_set.insert(e);
+    }
+
+    // Create an edge map corresponding to the pruned edge list.
+    std::multimap<int,int> local_edge_map;
+    for (std::set<std::pair<int,int> >::const_iterator it = local_edge_set.begin();
+         it != local_edge_set.end(); ++it)
+    {
+        const int e1 = (*it).first;
+        const int e2 = (*it).second;
+        local_edge_map.insert(std::make_pair(local_vertex_map[e1],local_vertex_map[e2]));
     }
 
     // Set the working directory in the Silo database.
@@ -761,6 +773,8 @@ void buildLocalUcdMesh(
     const int origin = 0;
     const int lo_offset = 0;
     const int hi_offset = 0;
+
+    // Write out connectivity information.
     DBPutZonelist2(dbfile, "zonelist", nzones, ndims, &nodelist[0], lnodelist, origin, lo_offset, hi_offset,
                    shapetype, shapesize, shapecnt, nshapetypes, optlist);
 
@@ -1573,7 +1587,6 @@ LagSiloDataWriter::writePlotData(
                 }
 
                 const double* const X = local_X_arr + NDIM*offset;
-
                 buildLocalMarkerCloud(dbfile, dirname, nmarks, X,
                                       time_step_number, simulation_time);
 
@@ -1599,7 +1612,6 @@ LagSiloDataWriter::writePlotData(
                 }
 
                 const double* const X = local_X_arr + NDIM*offset;
-
                 vector<const double*> var_vals(d_nvars[ln]);
                 for (int v = 0; v < d_nvars[ln]; ++v)
                 {
@@ -1638,7 +1650,6 @@ LagSiloDataWriter::writePlotData(
                     }
 
                     const double* const X = local_X_arr + NDIM*offset;
-
                     vector<const double*> var_vals(d_nvars[ln]);
                     for (int v = 0; v < d_nvars[ln]; ++v)
                     {
@@ -1674,7 +1685,6 @@ LagSiloDataWriter::writePlotData(
                 }
 
                 const double* const X = local_X_arr + NDIM*offset;
-
                 vector<const double*> var_vals(d_nvars[ln]);
                 for (int v = 0; v < d_nvars[ln]; ++v)
                 {
@@ -1684,8 +1694,6 @@ LagSiloDataWriter::writePlotData(
                 buildLocalUcdMesh(dbfile, dirname, vertices, edge_map, X,
                                   d_nvars[ln], d_var_names[ln], d_var_depths[ln], var_vals,
                                   time_step_number, simulation_time);
-                meshtype[ln].push_back(DB_UCDMESH);
-                vartype [ln].push_back(DB_UCDVAR);
 
                 offset += ntot;
             }
@@ -1709,16 +1717,17 @@ LagSiloDataWriter::writePlotData(
 
     // Send data to the root MPI process required to create the
     // multimesh and multivar objects.
-    vector<vector<int> > nclouds_per_proc, nblocks_per_proc, nmbs_per_proc;
+    vector<vector<int> > nclouds_per_proc, nblocks_per_proc, nmbs_per_proc, nucd_meshes_per_proc;
     vector<vector<vector<int> > > meshtypes_per_proc, vartypes_per_proc, mb_nblocks_per_proc;
     vector<vector<vector<vector<int> > > > multimeshtypes_per_proc, multivartypes_per_proc;
-    vector<vector<vector<string> > > cloud_names_per_proc, block_names_per_proc, mb_names_per_proc;
+    vector<vector<vector<string> > > cloud_names_per_proc, block_names_per_proc, mb_names_per_proc, ucd_mesh_names_per_proc;
 
     if (mpi_rank == SILO_MPI_ROOT)
     {
         nclouds_per_proc       .resize(d_finest_ln+1);
         nblocks_per_proc       .resize(d_finest_ln+1);
         nmbs_per_proc          .resize(d_finest_ln+1);
+        nucd_meshes_per_proc   .resize(d_finest_ln+1);
         meshtypes_per_proc     .resize(d_finest_ln+1);
         vartypes_per_proc      .resize(d_finest_ln+1);
         mb_nblocks_per_proc    .resize(d_finest_ln+1);
@@ -1727,6 +1736,7 @@ LagSiloDataWriter::writePlotData(
         cloud_names_per_proc   .resize(d_finest_ln+1);
         block_names_per_proc   .resize(d_finest_ln+1);
         mb_names_per_proc      .resize(d_finest_ln+1);
+        ucd_mesh_names_per_proc.resize(d_finest_ln+1);
     }
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -1736,6 +1746,7 @@ LagSiloDataWriter::writePlotData(
             nclouds_per_proc       [ln].resize(mpi_nodes);
             nblocks_per_proc       [ln].resize(mpi_nodes);
             nmbs_per_proc          [ln].resize(mpi_nodes);
+            nucd_meshes_per_proc   [ln].resize(mpi_nodes);
             meshtypes_per_proc     [ln].resize(mpi_nodes);
             vartypes_per_proc      [ln].resize(mpi_nodes);
             mb_nblocks_per_proc    [ln].resize(mpi_nodes);
@@ -1744,25 +1755,25 @@ LagSiloDataWriter::writePlotData(
             cloud_names_per_proc   [ln].resize(mpi_nodes);
             block_names_per_proc   [ln].resize(mpi_nodes);
             mb_names_per_proc      [ln].resize(mpi_nodes);
+            ucd_mesh_names_per_proc[ln].resize(mpi_nodes);
         }
 
         // Set the values for the root process.
         if (mpi_rank == SILO_MPI_ROOT)
         {
-            nclouds_per_proc        [ln][mpi_rank] = d_nclouds    [ln];
-            nblocks_per_proc        [ln][mpi_rank] = d_nblocks    [ln] + d_nucd_meshes[ln];
-            nmbs_per_proc           [ln][mpi_rank] = d_nmbs       [ln];
-            meshtypes_per_proc      [ln][mpi_rank] = meshtype     [ln];
-            vartypes_per_proc       [ln][mpi_rank] = vartype      [ln];
-            mb_nblocks_per_proc     [ln][mpi_rank] = d_mb_nblocks [ln];
-            multimeshtypes_per_proc [ln][mpi_rank] = multimeshtype[ln];
-            multivartypes_per_proc  [ln][mpi_rank] = multivartype [ln];
-            cloud_names_per_proc    [ln][mpi_rank] = d_cloud_names[ln];
-            block_names_per_proc    [ln][mpi_rank] = d_block_names[ln];
-            block_names_per_proc    [ln][mpi_rank].insert(
-                block_names_per_proc[ln][mpi_rank].end(),
-                d_ucd_mesh_names[ln].begin(), d_ucd_mesh_names[ln].end());
-            mb_names_per_proc       [ln][mpi_rank] = d_mb_names   [ln];
+            nclouds_per_proc        [ln][mpi_rank] = d_nclouds       [ln];
+            nblocks_per_proc        [ln][mpi_rank] = d_nblocks       [ln];
+            nmbs_per_proc           [ln][mpi_rank] = d_nmbs          [ln];
+            nucd_meshes_per_proc    [ln][mpi_rank] = d_nucd_meshes   [ln];
+            meshtypes_per_proc      [ln][mpi_rank] = meshtype        [ln];
+            vartypes_per_proc       [ln][mpi_rank] = vartype         [ln];
+            mb_nblocks_per_proc     [ln][mpi_rank] = d_mb_nblocks    [ln];
+            multimeshtypes_per_proc [ln][mpi_rank] = multimeshtype   [ln];
+            multivartypes_per_proc  [ln][mpi_rank] = multivartype    [ln];
+            cloud_names_per_proc    [ln][mpi_rank] = d_cloud_names   [ln];
+            block_names_per_proc    [ln][mpi_rank] = d_block_names   [ln];
+            mb_names_per_proc       [ln][mpi_rank] = d_mb_names      [ln];
+            ucd_mesh_names_per_proc [ln][mpi_rank] = d_ucd_mesh_names[ln];
         }
 
         // Get the values for the non-root processes.
@@ -1921,6 +1932,40 @@ LagSiloDataWriter::writePlotData(
                 }
             }
 
+            if (mpi_rank == proc)
+            {
+                SAMRAI::tbox::MPI::send(&d_nucd_meshes[ln], one, SILO_MPI_ROOT, false);
+            }
+            if (mpi_rank == SILO_MPI_ROOT)
+            {
+                SAMRAI::tbox::MPI::recv(&nucd_meshes_per_proc[ln][proc], one, proc, false);
+            }
+
+            if (mpi_rank == proc && d_nucd_meshes[ln] > 0)
+            {
+                int num_bytes;
+                for (int block = 0; block < d_nucd_meshes[ln]; ++block)
+                {
+                    num_bytes = (d_block_names[ln][block].size()+1)*sizeof(char);
+                    SAMRAI::tbox::MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
+                    SAMRAI::tbox::MPI::sendBytes(static_cast<const void*>(d_block_names[ln][block].c_str()), num_bytes, SILO_MPI_ROOT);
+                }
+            }
+            if (mpi_rank == SILO_MPI_ROOT && nucd_meshes_per_proc[ln][proc] > 0)
+            {
+                block_names_per_proc[ln][proc].resize(nucd_meshes_per_proc[ln][proc]);
+                int num_bytes;
+                char* name;
+                for (int block = 0; block < nucd_meshes_per_proc[ln][proc]; ++block)
+                {
+                    SAMRAI::tbox::MPI::recv(&num_bytes, one, proc, false);
+                    name = new char[num_bytes/sizeof(char)];
+                    SAMRAI::tbox::MPI::recvBytes(static_cast<void*>(name), num_bytes);
+                    block_names_per_proc[ln][proc][block].assign(name);
+                    delete[] name;
+                }
+            }
+
             SAMRAI::tbox::MPI::barrier();
         }
     }
@@ -2036,6 +2081,31 @@ LagSiloDataWriter::writePlotData(
                     delete[] meshnames;
                 }
 
+                for (int mesh = 0; mesh < nucd_meshes_per_proc[ln][proc]; ++mesh)
+                {
+                    sprintf(temp_buf, "%05d", proc);
+                    current_file_name = "lag_data.";
+                    current_file_name += temp_buf;
+                    current_file_name += ".silo";
+
+                    ostringstream stream;
+                    stream << current_file_name << ":level_" << ln << "_mesh_" << mesh << "/mesh";
+                    string meshname = stream.str();
+                    char* meshname_ptr = const_cast<char*>(meshname.c_str());
+                    int meshtype = DB_UCDMESH;
+
+                    string& mesh_name = ucd_mesh_names_per_proc[ln][proc][mesh];
+
+                    DBPutMultimesh(dbfile, mesh_name.c_str(), 1, &meshname_ptr, &meshtype, optlist);
+
+                    if (DBMkDir(dbfile, mesh_name.c_str()) == -1)
+                    {
+                        TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                                   << "  Could not create directory named "
+                                   << mesh_name << endl);
+                    }
+                }
+
                 for (int v = 0; v < d_nvars[ln]; ++v)
                 {
                     for (int block = 0; block < nblocks_per_proc[ln][proc]; ++block)
@@ -2090,6 +2160,28 @@ LagSiloDataWriter::writePlotData(
                             free(varnames[block]);
                         }
                         delete[] varnames;
+                    }
+
+                    for (int mesh = 0; mesh < nucd_meshes_per_proc[ln][proc]; ++mesh)
+                    {
+                        sprintf(temp_buf, "%05d", proc);
+                        current_file_name = "lag_data.";
+                        current_file_name += temp_buf;
+                        current_file_name += ".silo";
+
+                        ostringstream varname_stream;
+                        varname_stream << current_file_name << ":level_" << ln << "_mesh_" << mesh << "/" << d_var_names[ln][v];
+                        string varname = varname_stream.str();
+                        char* varname_ptr = const_cast<char*>(varname.c_str());
+                        int vartype = DB_UCDVAR;
+
+                        string& mesh_name = ucd_mesh_names_per_proc[ln][proc][mesh];
+
+                        ostringstream stream;
+                        stream << mesh_name << "/" << d_var_names[ln][v];
+                        string var_name = stream.str();
+
+                        DBPutMultivar(dbfile, var_name.c_str(), 1, &varname_ptr, &vartype, optlist);
                     }
                 }
             }

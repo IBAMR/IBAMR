@@ -7,7 +7,7 @@ MUSCL_LIMITED = 3
 
 // constants
 N = 1
-NFINEST = 4*N
+NFINEST = 2*N
 
 DELTA_FCN = "IB_6"
 MU = 0.005
@@ -18,7 +18,7 @@ SpringForceGen {
 
 IBHierarchyIntegrator {
    start_time            = 0.e0     // initial simulation time
-   end_time              = 0.4e0    // final simulation time
+   end_time              = 8.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
 
@@ -30,23 +30,14 @@ IBHierarchyIntegrator {
    timestepping_order = 2
 }
 
-XInit {
-   num_nodes  = 50*NFINEST
-   num_layers =  2*NFINEST
-   num_stacks = 25*NFINEST
-
-   tapered = FALSE // TRUE
-   width = 4.0/64.0
-   alpha = 0.2
-   beta  = 0.25
-
-   stiffness = 1.0/num_layers
+IBStandardInitializer {
+   base_filenames = "sphere3d"
 }
 
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 1
+   tag_buffer = 2
 
    cfl = 1.0  // this only affects the "acceleration" timestep restriction
 
@@ -191,7 +182,7 @@ Main {
    restart_write_dirname   = "restart_IB3d"
 
 // timer dump parameters
-   timer_dump_interval     = 0          // zero to turn off
+   timer_dump_interval     = 0           // zero to turn off
 
 // convergence monitoring parameters
    monitor_convergence = TRUE
@@ -207,7 +198,7 @@ CartesianGeometry {
 GriddingAlgorithm {
    max_levels             = 2      // Maximum number of levels in hierarchy.
    ratio_to_coarser {
-      level_1             = 4,4,4  // vector ratio to next coarser level
+      level_1             = 2,2,2  // vector ratio to next coarser level
       level_2             = 2,2,2
    }
 

@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <27.Nov.2006 03:10:27 boyce@bigboy.nyconnect.com>
+// Last modified: <27.Nov.2006 23:30:12 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -194,6 +194,12 @@ private:
      * restart files and for error reporting purposes.
      */
     std::string d_object_name;
+
+    /*
+     * The base filenames of the structures are used to generate
+     * unique names when registering data with the Silo data writer.
+     */
+    std::vector<std::string> d_base_filenames;
 
     /*
      * Vertex information.

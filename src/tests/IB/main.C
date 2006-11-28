@@ -30,11 +30,10 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/LagSiloDataWriter.h>
 #include <ibamr/SpringForceGen.h>
-
-#include "XInit.h"
 
 using namespace IBAMR;
 using namespace SAMRAI;
@@ -284,16 +283,17 @@ int main(int argc, char* argv[])
             new SpringForceGen(
                 input_db->getDatabase("SpringForceGen"));
 
+        tbox::Pointer<LNodePosnInitStrategy> initializer =
+            new IBStandardInitializer(
+                "IBStandardInitializer",
+                input_db->getDatabase("IBStandardInitializer"));
+
         tbox::Pointer<IBHierarchyIntegrator> time_integrator =
             new IBHierarchyIntegrator(
                 "IBHierarchyIntegrator",
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
-
-        tbox::Pointer<LNodePosnInitStrategy> X_init =
-            new XInit(
-                "XInit", grid_geometry, input_db->getDatabase("XInit"));
-        time_integrator->registerLNodePosnInitStrategy(X_init);
+        time_integrator->registerLNodePosnInitStrategy(initializer);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -338,28 +338,8 @@ int main(int argc, char* argv[])
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
 
-        if (main_db->getBoolWithDefault("output_silo_data",true) &&
-            (tbox::MPI::getRank() == 0))
-        {
-            hier::IntVector<NDIM> periodic = 0;
-            periodic(0) = 1;
-
-#if (NDIM == 2)
-            silo_data_writer->registerLogicallyCartesianBlock(
-                "curv_mesh",
-                hier::IntVector<NDIM>(input_db->getDatabase("XInit")->getInteger("num_nodes"),
-                                      input_db->getDatabase("XInit")->getInteger("num_layers")),
-                periodic, 0, patch_hierarchy->getFinestLevelNumber());
-#endif
-#if (NDIM == 3)
-            silo_data_writer->registerLogicallyCartesianBlock(
-                "curv_mesh",
-                hier::IntVector<NDIM>(input_db->getDatabase("XInit")->getInteger("num_nodes"),
-                                      input_db->getDatabase("XInit")->getInteger("num_layers"),
-                                      input_db->getDatabase("XInit")->getInteger("num_stacks")),
-                periodic, 0, patch_hierarchy->getFinestLevelNumber());
-#endif
-        }
+        dynamic_cast<IBStandardInitializer*>(initializer.getPointer())->
+            registerLagSiloDataWriter(silo_data_writer);
 
         time_integrator->rebalanceCoarsestLevel();
 

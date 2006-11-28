@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <27.Nov.2006 03:10:15 boyce@bigboy.nyconnect.com>
+// Last modified: <27.Nov.2006 23:48:33 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -62,12 +62,11 @@ IBStandardInitializer::IBStandardInitializer(
     SpringForceSpec::registerWithStashableManager();
 
     // Get the input filenames.
-    std::vector<std::string> base_filenames;
     if (input_db->keyExists("base_filenames"))
     {
         const int n_files = input_db->getArraySize("base_filenames");
-        base_filenames.resize(n_files);
-        input_db->getStringArray("base_filenames", &base_filenames[0], n_files);
+        d_base_filenames.resize(n_files);
+        input_db->getStringArray("base_filenames", &d_base_filenames[0], n_files);
     }
     else
     {
@@ -77,8 +76,8 @@ IBStandardInitializer::IBStandardInitializer(
 
     // Output the names of the input files to be read.
     SAMRAI::tbox::pout << d_object_name << ":  Reading from input files: " << endl;
-    for (std::vector<std::string>::const_iterator it = base_filenames.begin();
-         it != base_filenames.end(); ++it)
+    for (std::vector<std::string>::const_iterator it = d_base_filenames.begin();
+         it != d_base_filenames.end(); ++it)
     {
         SAMRAI::tbox::pout << "  base filename: " << *it << endl
                            << "     required files: " << *it << ".vertices" << endl
@@ -90,7 +89,7 @@ IBStandardInitializer::IBStandardInitializer(
     {
         if (rank == SAMRAI::tbox::MPI::getRank())
         {
-            readVertexFiles(base_filenames);
+            readVertexFiles(d_base_filenames);
         }
         SAMRAI::tbox::MPI::barrier();
     }
@@ -108,7 +107,7 @@ IBStandardInitializer::IBStandardInitializer(
     {
         if (rank == SAMRAI::tbox::MPI::getRank())
         {
-            readEdgeFiles(base_filenames);
+            readEdgeFiles(d_base_filenames);
         }
         SAMRAI::tbox::MPI::barrier();
     }
@@ -129,6 +128,34 @@ IBStandardInitializer::registerLagSiloDataWriter(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!silo_writer.isNull());
 #endif
+
+    // XXXX: This code is broken if the global node offset is nonzero.
+    if (d_global_index_offset[d_finest_level_number] != 0)
+    {
+        TBOX_ERROR("This is broken --- please submit a bug report if you encounter this error.\n");
+    }
+
+    // For now, we just register the data on MPI process 0.  This will
+    // fail if the structure is too large to be stored in the memory
+    // allocated to a single process.
+    if (SAMRAI::tbox::MPI::getRank() == 0)
+    {
+        for (unsigned j = 0; j < d_num_vertices.size(); ++j)
+        {
+            silo_writer->registerMarkerCloud(
+                d_base_filenames[j] + "_vertices",
+                d_num_vertices[j], d_vertex_offsets[j],
+                d_finest_level_number);
+
+            if (d_edge_map[j].size() > 0)
+            {
+                silo_writer->registerUnstructuredMesh(
+                    d_base_filenames[j] + "_mesh",
+                    d_edge_map[j],
+                    d_finest_level_number);
+            }
+        }
+    }
 
     return;
 }// registerLagSiloDataWriter
@@ -181,6 +208,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     const bool can_be_refined,
     const bool initial_time)
 {
+    // XXXX: This is a very hacky hack.
     d_finest_level_number = (can_be_refined
                              ? -1
                              : hierarchy->getFinestLevelNumber());
@@ -385,7 +413,7 @@ IBStandardInitializer::readEdgeFiles(
     d_edge_rest_lengths.resize(num_base_filenames);
     for (int j = 0; j < num_base_filenames; ++j)
     {
-        const std::string edge_filename = base_filenames[j] + ".vertices";
+        const std::string edge_filename = base_filenames[j] + ".edges";
         std::ifstream is;
         is.open(edge_filename.c_str(), std::ios::in);
         if (is.is_open())
@@ -442,7 +470,7 @@ IBStandardInitializer::readEdgeFiles(
                 // Always place the lower index first.
                 if (e.first > e.second)
                 {
-                    int tmp = e.first;
+                    const int tmp = e.first;
                     e.first = e.second;
                     e.second = tmp;
                 }
