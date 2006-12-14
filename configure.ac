@@ -317,6 +317,7 @@ AC_LANG_PUSH([C])
 AC_CHECK_LIB([hdf5],[H5open],,
   echo "checking to see if we need to include zlib to use hdf5"
   AC_CHECK_LIB([z], [inflateEnd])
+  AC_CHECK_LIB([sz], [SZ_encoder_enabled])
   unset ac_cv_lib_hdf5_H5open
   AC_CHECK_LIB([hdf5],[H5open],,AC_MSG_WARN([could not find libhdf5])))
 AC_CHECK_LIB([hdf5_hl],[H5open],,AC_MSG_WARN([could not find libhdf5_hl]))
