@@ -1,1 +1,1 @@
-/home/boyce/code/IBAMR/src/tests/IB/main.C
+../../src/tests/IB/main.C

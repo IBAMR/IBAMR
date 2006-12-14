@@ -383,16 +383,15 @@ int main(int argc, char *argv[])
             advector,
             grid_geometry);
 
-    tbox::Pointer< pdat::CellVariable<NDIM,double> > Q = new pdat::CellVariable<NDIM,double>("Q");
     tbox::Pointer< pdat::FaceVariable<NDIM,double> > u = new pdat::FaceVariable<NDIM,double>("u");
-
-    QInit q_init("QInit", grid_geometry, input_db->getDatabase("QInit"));
     USet u_set("USet", grid_geometry, input_db->getDatabase("USet"));
-
-    hyp_patch_ops->registerAdvectedQuantity(
-        Q, consv_form, tbox::Pointer<SetDataStrategy>(&q_init,false));
     hyp_patch_ops->registerAdvectionVelocity(
         u, u_is_div_free, tbox::Pointer<SetDataStrategy>(&u_set,false));
+
+    tbox::Pointer< pdat::CellVariable<NDIM,double> > Q = new pdat::CellVariable<NDIM,double>("Q");
+    QInit q_init("QInit", grid_geometry, input_db->getDatabase("QInit"));
+    hyp_patch_ops->registerAdvectedQuantity(
+        Q, consv_form, tbox::Pointer<SetDataStrategy>(&q_init,false));
 
     tbox::Pointer<algs::HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
         new algs::HyperbolicLevelIntegrator<NDIM>(

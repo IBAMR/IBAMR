@@ -19,7 +19,7 @@ AC_PROG_F77		# Check for a Fortran compiler.
 AC_F77_LIBRARY_LDFLAGS	# Determine the linker flags for the Fortran intrinsic and runtime libraries.
 AC_F77_WRAPPERS
 
-# Check for MPICXX and configure MPI options.
+# Check for MPICC and MPICXX and configure MPI options.
 AC_ARG_WITH([mpi],
   AS_HELP_STRING(--with-mpi=PATH,location of required MPI installation),
   [if test ! -d "$withval" ; then
@@ -31,14 +31,34 @@ AC_ARG_WITH([mpi],
    if test -d "$withval/bin" ; then
      PATH="${withval}/bin:$PATH"
    fi],)
+AC_ARG_WITH([mpicc],
+  AS_HELP_STRING(--with-mpicc=ARG,MPI C compiler command),
+  [MPICC=$withval],)
 AC_ARG_WITH([mpicxx],
   AS_HELP_STRING(--with-mpicxx=ARG,MPI C++ compiler command),
   [MPICXX=$withval],)
 
+AC_LANG_PUSH([C])
+ACX_MPI(,AC_MSG_WARN([unable to find working MPI installation]))
+CC="$MPICC"
+AC_LANG_POP([C])
+
 ACX_MPI(,AC_MSG_WARN([unable to find working MPI installation]))
 CXX="$MPICXX"
+
 if test "$MPILIBS" != "" ; then
   LIBS="$MPILIBS $LIBS"
+fi
+
+# Checks for C++ compiler features.
+AC_CXX_NAMESPACES
+if test "$ac_cv_cxx_namespaces" != "yes" ; then
+  AC_MSG_ERROR([C++ compiler does not appear to support namespaces])
+fi
+
+AC_CXX_HAVE_STL
+if test "$ac_cv_cxx_have_stl" != "yes" ; then
+  AC_MSG_ERROR([C++ compiler does not appear support the Standard Template Library])
 fi
 
 # Checks for other programs.
@@ -118,6 +138,8 @@ if test -d "${HYPRE_DIR}/include" ; then
 fi
 
 AC_CHECK_HEADER([HYPRE.h],,AC_MSG_WARN([could not find header file HYPRE.h]))
+
+AC_LANG_PUSH([C])
 AC_CHECK_LIB([HYPRE_utilities],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_utilities]))
 AC_CHECK_LIB([HYPRE_multivector],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_multivector]))
 AC_CHECK_LIB([HYPRE_krylov],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_krylov]))
@@ -135,6 +157,7 @@ AC_CHECK_LIB([HYPRE_struct_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHY
 AC_CHECK_LIB([HYPRE_struct_ls],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_struct_ls]))
 AC_CHECK_LIB([HYPRE_sstruct_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_sstruct_mv]))
 AC_CHECK_LIB([HYPRE_sstruct_ls],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_sstruct_ls]))
+AC_LANG_POP([C])
 
 # Check for SAMRAI library and configure SAMRAI options.
 echo
@@ -257,6 +280,8 @@ if test -d "${PETSC_DIR}/include" ; then
 fi
 
 AC_CHECK_HEADER([petsc.h],,AC_MSG_WARN([could not find header file petsc.h]))
+
+AC_LANG_PUSH([C])
 AC_CHECK_LIB([petsc],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetsc]))
 AC_CHECK_LIB([petscvec],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscvec]))
 AC_CHECK_LIB([petscmat],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscmat]))
@@ -264,6 +289,7 @@ AC_CHECK_LIB([petscdm],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscdm])
 AC_CHECK_LIB([petscksp],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscksp]))
 AC_CHECK_LIB([petscsnes],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscsnes]))
 AC_CHECK_LIB([petscts],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscts]))
+AC_LANG_POP([C])
 
 # Check for hdf5 library and configure hdf5 options.
 echo
@@ -286,10 +312,15 @@ if test -d "${HDF5_DIR}/include" ; then
 fi
 
 AC_CHECK_HEADER([hdf5.h],,AC_MSG_WARN([could not find header file hdf5.h]))
+
+AC_LANG_PUSH([C])
 AC_CHECK_LIB([hdf5],[H5open],,
   echo "checking to see if we need to include zlib to use hdf5"
   AC_CHECK_LIB([z], [inflateEnd])
+  unset ac_cv_lib_hdf5_H5open
   AC_CHECK_LIB([hdf5],[H5open],,AC_MSG_WARN([could not find libhdf5])))
+AC_CHECK_LIB([hdf5_hl],[H5open],,AC_MSG_WARN([could not find libhdf5_hl]))
+AC_LANG_POP([C])
 
 # Optional libraries.
 
@@ -371,7 +402,10 @@ if test "$SILO_ENABLED" = yes; then
   fi
 
   AC_CHECK_HEADER([silo.h],,AC_MSG_WARN([could not find header file silo.h]))
+
+  AC_LANG_PUSH([C])
   AC_CHECK_LIB([silo],[DBVersion],,AC_MSG_WARN([could not find libsilo]))
+  AC_LANG_POP([C])
 else
   echo
   echo "================================="

@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <07.Dec.2006 15:19:49 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Dec.2006 16:03:27 griffith@box221.cims.nyu.edu>
 
 #include "LagSiloDataWriter.h"
 
@@ -48,8 +48,12 @@ static const int SILO_MPI_TAG  = 0;
 
 // The name of the Silo dumps and database filenames.
 static const int SILO_NAME_BUFSIZE = 128;
-static const string SILO_DUMPS_FILENAME = "lag_dumps.visit";
-static const string SILO_DB_FILENAME = "summary.silo";
+static const string VISIT_DUMPS_FILENAME = "lag_data.visit";
+static const string SILO_DUMP_DIR_PREFIX = "lag_data.cycle_";
+static const string SILO_SUMMARY_FILE_PREFIX= "lag_data.cycle_";
+static const string SILO_SUMMARY_FILE_POSTFIX = ".summary.silo";
+static const string SILO_PROCESSOR_FILE_PREFIX = "lag_data.proc_";
+static const string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
 
 #if HAVE_LIBSILO
 
@@ -1152,19 +1156,17 @@ LagSiloDataWriter::writePlotData(
     const int mpi_nodes = SAMRAI::tbox::MPI::getNodes();
 
     // Create the working directory.
-    sprintf(temp_buf, "%05d", d_time_step_number);
-    string current_dump_directory_name = "silo_dump.";
-    current_dump_directory_name += temp_buf;
-    string dump_dirname = d_dump_directory_name + "/";
-    dump_dirname += current_dump_directory_name;
+    sprintf(temp_buf, "%06d", d_time_step_number);
+    string current_dump_directory_name = SILO_DUMP_DIR_PREFIX + temp_buf;
+    string dump_dirname = d_dump_directory_name + "/" + current_dump_directory_name;
 
     SAMRAI::tbox::Utilities::recursiveMkdir(dump_dirname);
 
     // Create one local DBfile per MPI process.
-    sprintf(temp_buf, "%05d", mpi_rank);
-    current_file_name = dump_dirname + "/" + "lag_data.";
+    sprintf(temp_buf, "%04d", mpi_rank);
+    current_file_name = dump_dirname + "/" + SILO_PROCESSOR_FILE_PREFIX;
     current_file_name += temp_buf;
-    current_file_name += ".silo";
+    current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
     if ((dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB))
         == NULL)
@@ -1631,7 +1633,8 @@ LagSiloDataWriter::writePlotData(
     {
         // Create and initialize the multimesh Silo database on the
         // root MPI process.
-        string summary_file_name = dump_dirname + "/" + SILO_DB_FILENAME;
+        sprintf(temp_buf, "%06d", d_time_step_number);
+        string summary_file_name = dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
         if ((dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB))
             == NULL)
         {
@@ -1655,10 +1658,10 @@ LagSiloDataWriter::writePlotData(
             {
                 for (int cloud = 0; cloud < nclouds_per_proc[ln][proc]; ++cloud)
                 {
-                    sprintf(temp_buf, "%05d", proc);
-                    current_file_name = "lag_data.";
+                    sprintf(temp_buf, "%04d", proc);
+                    current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                     current_file_name += temp_buf;
-                    current_file_name += ".silo";
+                    current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                     ostringstream stream;
                     stream << current_file_name << ":level_" << ln << "_cloud_" << cloud << "/mesh";
@@ -1680,10 +1683,10 @@ LagSiloDataWriter::writePlotData(
 
                 for (int block = 0; block < nblocks_per_proc[ln][proc]; ++block)
                 {
-                    sprintf(temp_buf, "%05d", proc);
-                    current_file_name = "lag_data.";
+                    sprintf(temp_buf, "%04d", proc);
+                    current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                     current_file_name += temp_buf;
-                    current_file_name += ".silo";
+                    current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                     ostringstream stream;
                     stream << current_file_name << ":level_" << ln << "_block_" << block << "/mesh";
@@ -1705,10 +1708,10 @@ LagSiloDataWriter::writePlotData(
 
                 for (int mb = 0; mb < nmbs_per_proc[ln][proc]; ++mb)
                 {
-                    sprintf(temp_buf, "%05d", proc);
-                    current_file_name = "lag_data.";
+                    sprintf(temp_buf, "%04d", proc);
+                    current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                     current_file_name += temp_buf;
-                    current_file_name += ".silo";
+                    current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                     const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
                     char** meshnames = new char*[nblocks];
@@ -1740,10 +1743,10 @@ LagSiloDataWriter::writePlotData(
 
                 for (int mesh = 0; mesh < nucd_meshes_per_proc[ln][proc]; ++mesh)
                 {
-                    sprintf(temp_buf, "%05d", proc);
-                    current_file_name = "lag_data.";
+                    sprintf(temp_buf, "%04d", proc);
+                    current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                     current_file_name += temp_buf;
-                    current_file_name += ".silo";
+                    current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                     ostringstream stream;
                     stream << current_file_name << ":level_" << ln << "_mesh_" << mesh << "/mesh";
@@ -1767,10 +1770,10 @@ LagSiloDataWriter::writePlotData(
                 {
                     for (int block = 0; block < nblocks_per_proc[ln][proc]; ++block)
                     {
-                        sprintf(temp_buf, "%05d", proc);
-                        current_file_name = "lag_data.";
+                        sprintf(temp_buf, "%04d", proc);
+                        current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                         current_file_name += temp_buf;
-                        current_file_name += ".silo";
+                        current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                         ostringstream varname_stream;
                         varname_stream << current_file_name << ":level_" << ln << "_block_" << block << "/" << d_var_names[ln][v];
@@ -1789,10 +1792,10 @@ LagSiloDataWriter::writePlotData(
 
                     for (int mb = 0; mb < nmbs_per_proc[ln][proc]; ++mb)
                     {
-                        sprintf(temp_buf, "%05d", proc);
-                        current_file_name = "lag_data.";
+                        sprintf(temp_buf, "%04d", proc);
+                        current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                         current_file_name += temp_buf;
-                        current_file_name += ".silo";
+                        current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                         const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
                         char** varnames = new char*[nblocks];
@@ -1821,10 +1824,10 @@ LagSiloDataWriter::writePlotData(
 
                     for (int mesh = 0; mesh < nucd_meshes_per_proc[ln][proc]; ++mesh)
                     {
-                        sprintf(temp_buf, "%05d", proc);
-                        current_file_name = "lag_data.";
+                        sprintf(temp_buf, "%04d", proc);
+                        current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                         current_file_name += temp_buf;
-                        current_file_name += ".silo";
+                        current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                         ostringstream varname_stream;
                         varname_stream << current_file_name << ":level_" << ln << "_mesh_" << mesh << "/" << d_var_names[ln][v];
@@ -1848,20 +1851,20 @@ LagSiloDataWriter::writePlotData(
 
         // Create or update the dumps file on the root MPI process.
         static bool summary_file_opened = false;
-        string path = d_dump_directory_name + "/" + SILO_DUMPS_FILENAME;
-        string file = current_dump_directory_name + "/" + SILO_DB_FILENAME;
-
+        string path = d_dump_directory_name + "/" + VISIT_DUMPS_FILENAME;
+        sprintf(temp_buf, "%06d", d_time_step_number);
+        string file = current_dump_directory_name + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
         if (!summary_file_opened)
         {
             summary_file_opened = true;
             ofstream sfile(path.c_str(), ios::out);
-            sfile << file << "\n";
+            sfile << file << endl;
             sfile.close();
         }
         else
         {
             ofstream sfile(path.c_str(), ios::app);
-            sfile << file << "\n";
+            sfile << file << endl;
             sfile.close();
         }
     }
