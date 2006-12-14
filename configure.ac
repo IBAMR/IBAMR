@@ -189,7 +189,7 @@ AC_ARG_ENABLE([samrai-1d],
   AS_HELP_STRING(--enable-samrai-1d,enable optional support for one-dimensional SAMRAI objects @<:@default=yes@:>@),
   [SAMRAI1D=$enableval], [SAMRAI1D=yes])
 
-if test "$SAMRAI1D" = yes; then
+if test "$SAMRAI1D" = "yes"; then
   AC_CHECK_LIB([SAMRAI1d_hier],[main],,AC_MSG_WARN([could not find libSAMRAI1d_hier]))
   AC_CHECK_LIB([SAMRAI1d_xfer],[main],,AC_MSG_WARN([could not find libSAMRAI1d_xfer]))
   AC_CHECK_LIB([SAMRAI1d_pdat_special],[main],,AC_MSG_WARN([could not find libSAMRAI1d_pdat_special]))
@@ -210,7 +210,7 @@ AC_ARG_ENABLE([samrai-2d],
   AS_HELP_STRING(--enable-samrai-2d,enable optional support for two-dimensional SAMRAI objects @<:@default=yes@:>@),
   [SAMRAI2D=$enablevar], [SAMRAI2D=yes])
 
-if test "$SAMRAI2D" = yes; then
+if test "$SAMRAI2D" = "yes"; then
   AC_CHECK_LIB([SAMRAI2d_hier],[main],,AC_MSG_WARN([could not find libSAMRAI2d_hier]))
   AC_CHECK_LIB([SAMRAI2d_xfer],[main],,AC_MSG_WARN([could not find libSAMRAI2d_xfer]))
   AC_CHECK_LIB([SAMRAI2d_pdat_special],[main],,AC_MSG_WARN([could not find libSAMRAI2d_pdat_special]))
@@ -231,7 +231,7 @@ AC_ARG_ENABLE([samrai-3d],
   AS_HELP_STRING(--enable-samrai-3D,enable optional support for three-dimensional SAMRAI objects @<:@default=yes@:>@),
   [SAMRAI3D=$enablevar], [SAMRAI3D=yes])
 
-if test "$SAMRAI3D" = yes; then
+if test "$SAMRAI3D" = "yes"; then
   AC_CHECK_LIB([SAMRAI3d_hier],[main],,AC_MSG_WARN([could not find libSAMRAI3d_hier]))
   AC_CHECK_LIB([SAMRAI3d_xfer],[main],,AC_MSG_WARN([could not find libSAMRAI3d_xfer]))
   AC_CHECK_LIB([SAMRAI3d_pdat_special],[main],,AC_MSG_WARN([could not find libSAMRAI3d_pdat_special]))
@@ -261,9 +261,13 @@ AC_ARG_WITH([petsc],
      AC_MSG_ERROR([you must specify an existing directory when using --with-petsc=PATH])
    fi
    PETSC_DIR=$withval],)
-AC_ARG_WITH([PETSC_ARCH],
+AC_ARG_WITH([petsc-arch],
   AS_HELP_STRING(--with-petsc-arch=ARCH,PETSc architecture @<:@default=PETSC_ARCH@:>@),
   [PETSC_ARCH=$withval],)
+AC_ARG_WITH([petsc-clanguage],
+  AS_HELP_STRING(--with-petsc-clanguage=LANG,the ``C language'' used by PETSc (i.e., C or C++) @<:@default=C@:>@),
+  [PETSC_CLANGUAGE=$withval],
+  [PETSC_CLANGUAGE=C])
 AC_SUBST(PETSC_DIR,$PETSC_DIR)
 AC_SUBST(PETSC_ARCH,$PETSC_ARCH)
 
@@ -281,15 +285,39 @@ fi
 
 AC_CHECK_HEADER([petsc.h],,AC_MSG_WARN([could not find header file petsc.h]))
 
-AC_LANG_PUSH([C])
-AC_CHECK_LIB([petsc],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetsc]))
-AC_CHECK_LIB([petscvec],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscvec]))
-AC_CHECK_LIB([petscmat],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscmat]))
-AC_CHECK_LIB([petscdm],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscdm]))
-AC_CHECK_LIB([petscksp],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscksp]))
-AC_CHECK_LIB([petscsnes],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscsnes]))
-AC_CHECK_LIB([petscts],[PetscTrMalloc],,AC_MSG_WARN([could not find libpetscts]))
-AC_LANG_POP([C])
+if test "${PETSC_CLANGAUGE}" = C ; then
+  AC_LANG_PUSH([C])
+fi
+AC_CHECK_LIB([petsc],[PetscTrMalloc],,
+             [AC_MSG_WARN([could not find libpetsc])
+              missing_petsc_lib=yes])
+AC_CHECK_LIB([petscvec],[PetscTrMalloc],,
+             [AC_MSG_WARN([could not find libpetscvec])
+              missing_petsc_lib=yes])
+AC_CHECK_LIB([petscmat],[PetscTrMalloc],,
+             [AC_MSG_WARN([could not find libpetscmat])
+              missing_petsc_lib=yes])
+AC_CHECK_LIB([petscdm],[PetscTrMalloc],,
+             [AC_MSG_WARN([could not find libpetscdm])
+              missing_petsc_lib=yes])
+AC_CHECK_LIB([petscksp],[PetscTrMalloc],,
+             [AC_MSG_WARN([could not find libpetscksp])
+              missing_petsc_lib=yes])
+AC_CHECK_LIB([petscsnes],[PetscTrMalloc],,
+             [AC_MSG_WARN([could not find libpetscsnes])
+              missing_petsc_lib=yes])
+AC_CHECK_LIB([petscts],[PetscTrMalloc],,
+             [AC_MSG_WARN([could not find libpetscts])
+              missing_petsc_lib=yes])
+if test "${PETSC_CLANGAUGE}" = C ; then
+  AC_LANG_POP([C])
+fi
+
+if test "$missing_petsc_lib" == "yes"; then
+  echo "could not find one of the PETSc libraries"
+  echo "ensure that you have supplied the correct value for --with-petsc-clanguage"
+  echo "by default, --with-petsc-clanguage=C"
+fi
 
 # Check for hdf5 library and configure hdf5 options.
 echo
@@ -346,7 +374,7 @@ AC_ARG_WITH([blitz],
    fi],
   [BLITZ_DIR=/usr/local/sfw/blitz/current])
 
-if test "$BLITZ_ENABLED" = yes; then
+if test "$BLITZ_ENABLED" = "yes"; then
   echo
   echo "===================================="
   echo "Configuring optional package Blitz++"
@@ -389,7 +417,7 @@ AC_ARG_WITH([silo],
    fi],
   [SILO_DIR=/usr/local/sfw/silo/current])
 
-if test "$SILO_ENABLED" = yes; then
+if test "$SILO_ENABLED" = "yes"; then
   echo
   echo "================================="
   echo "Configuring optional package Silo"
