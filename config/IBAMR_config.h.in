@@ -32,6 +32,9 @@
 /* Define to 1 if you have the `hdf5' library (-lhdf5). */
 #undef HAVE_LIBHDF5
 
+/* Define to 1 if you have the `hdf5_hl' library (-lhdf5_hl). */
+#undef HAVE_LIBHDF5_HL
+
 /* Define to 1 if you have the `HYPRE_DistributedMatrix' library
    (-lHYPRE_DistributedMatrix). */
 #undef HAVE_LIBHYPRE_DISTRIBUTEDMATRIX
@@ -242,6 +245,9 @@
 
 /* Define to 1 if you have the `silo' library (-lsilo). */
 #undef HAVE_LIBSILO
+
+/* Define to 1 if you have the `sz' library (-lsz). */
+#undef HAVE_LIBSZ
 
 /* Define to 1 if you have the `z' library (-lz). */
 #undef HAVE_LIBZ
