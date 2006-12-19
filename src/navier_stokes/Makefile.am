@@ -2,24 +2,14 @@
 include $(top_srcdir)/config/Make-rules
 SUBDIRS = fortran .
 
-## Dimension-independent library
-pkg_include_HEADERS = # intentionally blank
-
-noinst_LTLIBRARIES = #libIBAMR_navier_stokes.la
-#libIBAMR_navier_stokes_la_CXXFLAGS = $(AM_CXXFLAGS)
-#libIBAMR_navier_stokes_la_LIBADD = fortran/libIBAMR_navier_stokes_fortran.la
-#libIBAMR_navier_stokes_la_SOURCES =
+noinst_LIBRARIES = libIBAMR_navier_stokes2d.a libIBAMR_navier_stokes3d.a
 
 ## Dimension-dependent libraries
-SOURCES = HierarchyProjector.C INSHierarchyIntegrator.C
-pkg_include_HEADERS += HierarchyProjector.h INSHierarchyIntegrator.h
+SOURCES              = HierarchyProjector.C INSHierarchyIntegrator.C
+pkg_include_HEADERS  = HierarchyProjector.h INSHierarchyIntegrator.h
 
-noinst_LTLIBRARIES += libIBAMR_navier_stokes2d.la
-libIBAMR_navier_stokes2d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-libIBAMR_navier_stokes2d_la_LIBADD = fortran/libIBAMR_navier_stokes_fortran2d.la
-libIBAMR_navier_stokes2d_la_SOURCES = $(SOURCES)
+libIBAMR_navier_stokes2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+libIBAMR_navier_stokes2d_a_SOURCES = $(SOURCES)
 
-noinst_LTLIBRARIES += libIBAMR_navier_stokes3d.la
-libIBAMR_navier_stokes3d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBAMR_navier_stokes3d_la_LIBADD = fortran/libIBAMR_navier_stokes_fortran3d.la
-libIBAMR_navier_stokes3d_la_SOURCES = $(SOURCES)
+libIBAMR_navier_stokes3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+libIBAMR_navier_stokes3d_a_SOURCES = $(SOURCES)

@@ -35,8 +35,6 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-build_triplet = @build@
-host_triplet = @host@
 DIST_COMMON = $(pkg_include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/config/Make-rules
 subdir = src/adv_diff
@@ -50,32 +48,33 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES =
-LTLIBRARIES = $(noinst_LTLIBRARIES)
-libIBAMR_adv_diff2d_la_DEPENDENCIES =  \
-	fortran/libIBAMR_adv_diff_fortran2d.la
-am__objects_1 = libIBAMR_adv_diff2d_la-AdvDiffHierarchyIntegrator.lo \
-	libIBAMR_adv_diff2d_la-AdvDiffHypPatchOps.lo
-am_libIBAMR_adv_diff2d_la_OBJECTS = $(am__objects_1)
-libIBAMR_adv_diff2d_la_OBJECTS = $(am_libIBAMR_adv_diff2d_la_OBJECTS)
-libIBAMR_adv_diff3d_la_DEPENDENCIES =  \
-	fortran/libIBAMR_adv_diff_fortran3d.la
-am__objects_2 = libIBAMR_adv_diff3d_la-AdvDiffHierarchyIntegrator.lo \
-	libIBAMR_adv_diff3d_la-AdvDiffHypPatchOps.lo
-am_libIBAMR_adv_diff3d_la_OBJECTS = $(am__objects_2)
-libIBAMR_adv_diff3d_la_OBJECTS = $(am_libIBAMR_adv_diff3d_la_OBJECTS)
+LIBRARIES = $(noinst_LIBRARIES)
+AR = ar
+ARFLAGS = cru
+libIBAMR_adv_diff2d_a_AR = $(AR) $(ARFLAGS)
+libIBAMR_adv_diff2d_a_LIBADD =
+am__objects_1 =  \
+	libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.$(OBJEXT)
+am_libIBAMR_adv_diff2d_a_OBJECTS = $(am__objects_1)
+libIBAMR_adv_diff2d_a_OBJECTS = $(am_libIBAMR_adv_diff2d_a_OBJECTS)
+libIBAMR_adv_diff3d_a_AR = $(AR) $(ARFLAGS)
+libIBAMR_adv_diff3d_a_LIBADD =
+am__objects_2 =  \
+	libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.$(OBJEXT)
+am_libIBAMR_adv_diff3d_a_OBJECTS = $(am__objects_2)
+libIBAMR_adv_diff3d_a_OBJECTS = $(am_libIBAMR_adv_diff3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-LTCXXCOMPILE = $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(libIBAMR_adv_diff2d_la_SOURCES) \
-	$(libIBAMR_adv_diff3d_la_SOURCES)
+CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
+DIST_SOURCES = $(libIBAMR_adv_diff2d_a_SOURCES) \
+	$(libIBAMR_adv_diff3d_a_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -99,7 +98,6 @@ ACLOCAL = @ACLOCAL@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
-AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -108,7 +106,6 @@ BLAS_LIBS = @BLAS_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
@@ -121,7 +118,6 @@ DOT = @DOT@
 DOT_PATH = @DOT_PATH@
 DOXYGEN = @DOXYGEN@
 DOXYGEN_PATH = @DOXYGEN_PATH@
-ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -141,8 +137,6 @@ LAPACK_LIBS = @LAPACK_LIBS@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
-LIBTOOL = @LIBTOOL@
-LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 M4 = @M4@
 MAKEINFO = @MAKEINFO@
@@ -179,21 +173,13 @@ am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
-build = @build@
 build_alias = @build_alias@
-build_cpu = @build_cpu@
-build_os = @build_os@
-build_vendor = @build_vendor@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
-host = @host@
 host_alias = @host_alias@
-host_cpu = @host_cpu@
-host_os = @host_os@
-host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -219,23 +205,17 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = fortran .
-pkg_include_HEADERS = AdvDiffHierarchyIntegrator.h \
-	AdvDiffHypPatchOps.h
-noinst_LTLIBRARIES = libIBAMR_adv_diff2d.la libIBAMR_adv_diff3d.la
-#libIBAMR_adv_diff_la_CXXFLAGS = $(AM_CXXFLAGS)
-#libIBAMR_adv_diff_la_LIBADD = fortran/libIBAMR_adv_diff_fortran.la
-#libIBAMR_adv_diff_la_SOURCES =
+noinst_LIBRARIES = libIBAMR_adv_diff2d.a libIBAMR_adv_diff3d.a
 SOURCES = AdvDiffHierarchyIntegrator.C AdvDiffHypPatchOps.C
-libIBAMR_adv_diff2d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-libIBAMR_adv_diff2d_la_LIBADD = fortran/libIBAMR_adv_diff_fortran2d.la
-libIBAMR_adv_diff2d_la_SOURCES = $(SOURCES)
-libIBAMR_adv_diff3d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBAMR_adv_diff3d_la_LIBADD = fortran/libIBAMR_adv_diff_fortran3d.la
-libIBAMR_adv_diff3d_la_SOURCES = $(SOURCES)
+pkg_include_HEADERS = AdvDiffHierarchyIntegrator.h AdvDiffHypPatchOps.h
+libIBAMR_adv_diff2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+libIBAMR_adv_diff2d_a_SOURCES = $(SOURCES)
+libIBAMR_adv_diff3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+libIBAMR_adv_diff3d_a_SOURCES = $(SOURCES)
 all: all-recursive
 
 .SUFFIXES:
-.SUFFIXES: .f.m4 .C .f .lo .o .obj
+.SUFFIXES: .f.m4 .C .f .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -266,18 +246,16 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
-clean-noinstLTLIBRARIES:
-	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
-	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
-	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
-	  test "$$dir" != "$$p" || dir=.; \
-	  echo "rm -f \"$${dir}/so_locations\""; \
-	  rm -f "$${dir}/so_locations"; \
-	done
-libIBAMR_adv_diff2d.la: $(libIBAMR_adv_diff2d_la_OBJECTS) $(libIBAMR_adv_diff2d_la_DEPENDENCIES) 
-	$(CXXLINK)  $(libIBAMR_adv_diff2d_la_LDFLAGS) $(libIBAMR_adv_diff2d_la_OBJECTS) $(libIBAMR_adv_diff2d_la_LIBADD) $(LIBS)
-libIBAMR_adv_diff3d.la: $(libIBAMR_adv_diff3d_la_OBJECTS) $(libIBAMR_adv_diff3d_la_DEPENDENCIES) 
-	$(CXXLINK)  $(libIBAMR_adv_diff3d_la_LDFLAGS) $(libIBAMR_adv_diff3d_la_OBJECTS) $(libIBAMR_adv_diff3d_la_LIBADD) $(LIBS)
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+libIBAMR_adv_diff2d.a: $(libIBAMR_adv_diff2d_a_OBJECTS) $(libIBAMR_adv_diff2d_a_DEPENDENCIES) 
+	-rm -f libIBAMR_adv_diff2d.a
+	$(libIBAMR_adv_diff2d_a_AR) libIBAMR_adv_diff2d.a $(libIBAMR_adv_diff2d_a_OBJECTS) $(libIBAMR_adv_diff2d_a_LIBADD)
+	$(RANLIB) libIBAMR_adv_diff2d.a
+libIBAMR_adv_diff3d.a: $(libIBAMR_adv_diff3d_a_OBJECTS) $(libIBAMR_adv_diff3d_a_DEPENDENCIES) 
+	-rm -f libIBAMR_adv_diff3d.a
+	$(libIBAMR_adv_diff3d_a_AR) libIBAMR_adv_diff3d.a $(libIBAMR_adv_diff3d_a_OBJECTS) $(libIBAMR_adv_diff3d_a_LIBADD)
+	$(RANLIB) libIBAMR_adv_diff3d.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -285,10 +263,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_adv_diff2d_la-AdvDiffHierarchyIntegrator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_adv_diff2d_la-AdvDiffHypPatchOps.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_adv_diff3d_la-AdvDiffHierarchyIntegrator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_adv_diff3d_la-AdvDiffHypPatchOps.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.Po@am__quote@
 
 .C.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -304,49 +282,61 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-.C.lo:
-@am__fastdepCXX_TRUE@	if $(LTCXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o: AdvDiffHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o -MD -MP -MF "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.Tpo" -c -o libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o `test -f 'AdvDiffHierarchyIntegrator.C' || echo '$(srcdir)/'`AdvDiffHierarchyIntegrator.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.Tpo" "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.Po"; else rm -f "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvDiffHierarchyIntegrator.C' object='libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o `test -f 'AdvDiffHierarchyIntegrator.C' || echo '$(srcdir)/'`AdvDiffHierarchyIntegrator.C
 
-libIBAMR_adv_diff2d_la-AdvDiffHierarchyIntegrator.lo: AdvDiffHierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_adv_diff2d_la-AdvDiffHierarchyIntegrator.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_adv_diff2d_la-AdvDiffHierarchyIntegrator.Tpo" -c -o libIBAMR_adv_diff2d_la-AdvDiffHierarchyIntegrator.lo `test -f 'AdvDiffHierarchyIntegrator.C' || echo '$(srcdir)/'`AdvDiffHierarchyIntegrator.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_adv_diff2d_la-AdvDiffHierarchyIntegrator.Tpo" "$(DEPDIR)/libIBAMR_adv_diff2d_la-AdvDiffHierarchyIntegrator.Plo"; else rm -f "$(DEPDIR)/libIBAMR_adv_diff2d_la-AdvDiffHierarchyIntegrator.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvDiffHierarchyIntegrator.C' object='libIBAMR_adv_diff2d_la-AdvDiffHierarchyIntegrator.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.obj: AdvDiffHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.Tpo" -c -o libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.obj `if test -f 'AdvDiffHierarchyIntegrator.C'; then $(CYGPATH_W) 'AdvDiffHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/AdvDiffHierarchyIntegrator.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.Tpo" "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.Po"; else rm -f "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvDiffHierarchyIntegrator.C' object='libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_adv_diff2d_la-AdvDiffHierarchyIntegrator.lo `test -f 'AdvDiffHierarchyIntegrator.C' || echo '$(srcdir)/'`AdvDiffHierarchyIntegrator.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.obj `if test -f 'AdvDiffHierarchyIntegrator.C'; then $(CYGPATH_W) 'AdvDiffHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/AdvDiffHierarchyIntegrator.C'; fi`
 
-libIBAMR_adv_diff2d_la-AdvDiffHypPatchOps.lo: AdvDiffHypPatchOps.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_adv_diff2d_la-AdvDiffHypPatchOps.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_adv_diff2d_la-AdvDiffHypPatchOps.Tpo" -c -o libIBAMR_adv_diff2d_la-AdvDiffHypPatchOps.lo `test -f 'AdvDiffHypPatchOps.C' || echo '$(srcdir)/'`AdvDiffHypPatchOps.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_adv_diff2d_la-AdvDiffHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_adv_diff2d_la-AdvDiffHypPatchOps.Plo"; else rm -f "$(DEPDIR)/libIBAMR_adv_diff2d_la-AdvDiffHypPatchOps.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvDiffHypPatchOps.C' object='libIBAMR_adv_diff2d_la-AdvDiffHypPatchOps.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o: AdvDiffHypPatchOps.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o -MD -MP -MF "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.Tpo" -c -o libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o `test -f 'AdvDiffHypPatchOps.C' || echo '$(srcdir)/'`AdvDiffHypPatchOps.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.Po"; else rm -f "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvDiffHypPatchOps.C' object='libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_adv_diff2d_la-AdvDiffHypPatchOps.lo `test -f 'AdvDiffHypPatchOps.C' || echo '$(srcdir)/'`AdvDiffHypPatchOps.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o `test -f 'AdvDiffHypPatchOps.C' || echo '$(srcdir)/'`AdvDiffHypPatchOps.C
 
-libIBAMR_adv_diff3d_la-AdvDiffHierarchyIntegrator.lo: AdvDiffHierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_adv_diff3d_la-AdvDiffHierarchyIntegrator.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_adv_diff3d_la-AdvDiffHierarchyIntegrator.Tpo" -c -o libIBAMR_adv_diff3d_la-AdvDiffHierarchyIntegrator.lo `test -f 'AdvDiffHierarchyIntegrator.C' || echo '$(srcdir)/'`AdvDiffHierarchyIntegrator.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_adv_diff3d_la-AdvDiffHierarchyIntegrator.Tpo" "$(DEPDIR)/libIBAMR_adv_diff3d_la-AdvDiffHierarchyIntegrator.Plo"; else rm -f "$(DEPDIR)/libIBAMR_adv_diff3d_la-AdvDiffHierarchyIntegrator.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvDiffHierarchyIntegrator.C' object='libIBAMR_adv_diff3d_la-AdvDiffHierarchyIntegrator.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.obj: AdvDiffHypPatchOps.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.Tpo" -c -o libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.obj `if test -f 'AdvDiffHypPatchOps.C'; then $(CYGPATH_W) 'AdvDiffHypPatchOps.C'; else $(CYGPATH_W) '$(srcdir)/AdvDiffHypPatchOps.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.Po"; else rm -f "$(DEPDIR)/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvDiffHypPatchOps.C' object='libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_adv_diff3d_la-AdvDiffHierarchyIntegrator.lo `test -f 'AdvDiffHierarchyIntegrator.C' || echo '$(srcdir)/'`AdvDiffHierarchyIntegrator.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.obj `if test -f 'AdvDiffHypPatchOps.C'; then $(CYGPATH_W) 'AdvDiffHypPatchOps.C'; else $(CYGPATH_W) '$(srcdir)/AdvDiffHypPatchOps.C'; fi`
 
-libIBAMR_adv_diff3d_la-AdvDiffHypPatchOps.lo: AdvDiffHypPatchOps.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_adv_diff3d_la-AdvDiffHypPatchOps.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_adv_diff3d_la-AdvDiffHypPatchOps.Tpo" -c -o libIBAMR_adv_diff3d_la-AdvDiffHypPatchOps.lo `test -f 'AdvDiffHypPatchOps.C' || echo '$(srcdir)/'`AdvDiffHypPatchOps.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_adv_diff3d_la-AdvDiffHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_adv_diff3d_la-AdvDiffHypPatchOps.Plo"; else rm -f "$(DEPDIR)/libIBAMR_adv_diff3d_la-AdvDiffHypPatchOps.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvDiffHypPatchOps.C' object='libIBAMR_adv_diff3d_la-AdvDiffHypPatchOps.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o: AdvDiffHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o -MD -MP -MF "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.Tpo" -c -o libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o `test -f 'AdvDiffHierarchyIntegrator.C' || echo '$(srcdir)/'`AdvDiffHierarchyIntegrator.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.Tpo" "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.Po"; else rm -f "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvDiffHierarchyIntegrator.C' object='libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_adv_diff3d_la-AdvDiffHypPatchOps.lo `test -f 'AdvDiffHypPatchOps.C' || echo '$(srcdir)/'`AdvDiffHypPatchOps.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o `test -f 'AdvDiffHierarchyIntegrator.C' || echo '$(srcdir)/'`AdvDiffHierarchyIntegrator.C
 
-mostlyclean-libtool:
-	-rm -f *.lo
+libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.obj: AdvDiffHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.Tpo" -c -o libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.obj `if test -f 'AdvDiffHierarchyIntegrator.C'; then $(CYGPATH_W) 'AdvDiffHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/AdvDiffHierarchyIntegrator.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.Tpo" "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.Po"; else rm -f "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvDiffHierarchyIntegrator.C' object='libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.obj `if test -f 'AdvDiffHierarchyIntegrator.C'; then $(CYGPATH_W) 'AdvDiffHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/AdvDiffHierarchyIntegrator.C'; fi`
 
-clean-libtool:
-	-rm -rf .libs _libs
+libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o: AdvDiffHypPatchOps.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o -MD -MP -MF "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.Tpo" -c -o libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o `test -f 'AdvDiffHypPatchOps.C' || echo '$(srcdir)/'`AdvDiffHypPatchOps.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.Po"; else rm -f "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvDiffHypPatchOps.C' object='libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o `test -f 'AdvDiffHypPatchOps.C' || echo '$(srcdir)/'`AdvDiffHypPatchOps.C
 
-distclean-libtool:
-	-rm -f libtool
+libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.obj: AdvDiffHypPatchOps.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.Tpo" -c -o libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.obj `if test -f 'AdvDiffHypPatchOps.C'; then $(CYGPATH_W) 'AdvDiffHypPatchOps.C'; else $(CYGPATH_W) '$(srcdir)/AdvDiffHypPatchOps.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.Po"; else rm -f "$(DEPDIR)/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvDiffHypPatchOps.C' object='libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_adv_diff3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.obj `if test -f 'AdvDiffHypPatchOps.C'; then $(CYGPATH_W) 'AdvDiffHypPatchOps.C'; else $(CYGPATH_W) '$(srcdir)/AdvDiffHypPatchOps.C'; fi`
 uninstall-info-am:
 install-pkg_includeHEADERS: $(pkg_include_HEADERS)
 	@$(NORMAL_INSTALL)
@@ -543,7 +533,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(LTLIBRARIES) $(HEADERS)
+all-am: Makefile $(LIBRARIES) $(HEADERS)
 installdirs: installdirs-recursive
 installdirs-am:
 	for dir in "$(DESTDIR)$(pkg_includedir)"; do \
@@ -576,14 +566,13 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-recursive
 
-clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
-	mostlyclean-am
+clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-libtool distclean-tags
+	distclean-tags
 
 dvi: dvi-recursive
 
@@ -612,8 +601,7 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-recursive
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool
+mostlyclean-am: mostlyclean-compile mostlyclean-generic
 
 pdf: pdf-recursive
 
@@ -628,19 +616,19 @@ uninstall-am: uninstall-info-am uninstall-pkg_includeHEADERS
 uninstall-info: uninstall-info-recursive
 
 .PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am check check-am \
-	clean clean-generic clean-libtool clean-noinstLTLIBRARIES \
-	clean-recursive ctags ctags-recursive distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-recursive distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-man install-pkg_includeHEADERS \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	maintainer-clean-recursive mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool mostlyclean-recursive \
-	pdf pdf-am ps ps-am tags tags-recursive uninstall uninstall-am \
-	uninstall-info-am uninstall-pkg_includeHEADERS
+	clean clean-generic clean-noinstLIBRARIES clean-recursive \
+	ctags ctags-recursive distclean distclean-compile \
+	distclean-generic distclean-recursive distclean-tags distdir \
+	dvi dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-exec install-exec-am \
+	install-info install-info-am install-man \
+	install-pkg_includeHEADERS install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic maintainer-clean-recursive \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-recursive pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am uninstall-info-am \
+	uninstall-pkg_includeHEADERS
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@

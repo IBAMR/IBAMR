@@ -35,8 +35,6 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-build_triplet = @build@
-host_triplet = @host@
 DIST_COMMON = $(pkg_include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/config/Make-rules
 subdir = src/IB
@@ -50,51 +48,52 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES =
-LTLIBRARIES = $(noinst_LTLIBRARIES)
-libIBAMR_IB2d_la_DEPENDENCIES =
-am__objects_1 = libIBAMR_IB2d_la-IBEulerianForceSetter.lo \
-	libIBAMR_IB2d_la-IBEulerianSourceSetter.lo \
-	libIBAMR_IB2d_la-IBHierarchyIntegrator.lo \
-	libIBAMR_IB2d_la-IBLagrangianForceStrategy.lo \
-	libIBAMR_IB2d_la-IBLagrangianSourceStrategy.lo \
-	libIBAMR_IB2d_la-IBStandardInitializer.lo \
-	libIBAMR_IB2d_la-SpringForceGen.lo \
-	libIBAMR_IB2d_la-SpringForceSpec.lo \
-	libIBAMR_IB2d_la-SpringForceSpecFactory.lo \
-	libIBAMR_IB2d_la-TargetPointForceGen.lo \
-	libIBAMR_IB2d_la-TargetPointForceSpec.lo \
-	libIBAMR_IB2d_la-TargetPointForceSpecFactory.lo \
-	libIBAMR_IB2d_la-TargetPointInitializer.lo
-am_libIBAMR_IB2d_la_OBJECTS = $(am__objects_1)
-libIBAMR_IB2d_la_OBJECTS = $(am_libIBAMR_IB2d_la_OBJECTS)
-libIBAMR_IB3d_la_DEPENDENCIES =
-am__objects_2 = libIBAMR_IB3d_la-IBEulerianForceSetter.lo \
-	libIBAMR_IB3d_la-IBEulerianSourceSetter.lo \
-	libIBAMR_IB3d_la-IBHierarchyIntegrator.lo \
-	libIBAMR_IB3d_la-IBLagrangianForceStrategy.lo \
-	libIBAMR_IB3d_la-IBLagrangianSourceStrategy.lo \
-	libIBAMR_IB3d_la-IBStandardInitializer.lo \
-	libIBAMR_IB3d_la-SpringForceGen.lo \
-	libIBAMR_IB3d_la-SpringForceSpec.lo \
-	libIBAMR_IB3d_la-SpringForceSpecFactory.lo \
-	libIBAMR_IB3d_la-TargetPointForceGen.lo \
-	libIBAMR_IB3d_la-TargetPointForceSpec.lo \
-	libIBAMR_IB3d_la-TargetPointForceSpecFactory.lo \
-	libIBAMR_IB3d_la-TargetPointInitializer.lo
-am_libIBAMR_IB3d_la_OBJECTS = $(am__objects_2)
-libIBAMR_IB3d_la_OBJECTS = $(am_libIBAMR_IB3d_la_OBJECTS)
+LIBRARIES = $(noinst_LIBRARIES)
+AR = ar
+ARFLAGS = cru
+libIBAMR_IB2d_a_AR = $(AR) $(ARFLAGS)
+libIBAMR_IB2d_a_LIBADD =
+am__objects_1 = libIBAMR_IB2d_a-IBEulerianForceSetter.$(OBJEXT) \
+	libIBAMR_IB2d_a-IBEulerianSourceSetter.$(OBJEXT) \
+	libIBAMR_IB2d_a-IBHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR_IB2d_a-IBLagrangianForceStrategy.$(OBJEXT) \
+	libIBAMR_IB2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
+	libIBAMR_IB2d_a-IBStandardInitializer.$(OBJEXT) \
+	libIBAMR_IB2d_a-SpringForceGen.$(OBJEXT) \
+	libIBAMR_IB2d_a-SpringForceSpec.$(OBJEXT) \
+	libIBAMR_IB2d_a-SpringForceSpecFactory.$(OBJEXT) \
+	libIBAMR_IB2d_a-TargetPointForceGen.$(OBJEXT) \
+	libIBAMR_IB2d_a-TargetPointForceSpec.$(OBJEXT) \
+	libIBAMR_IB2d_a-TargetPointForceSpecFactory.$(OBJEXT) \
+	libIBAMR_IB2d_a-TargetPointInitializer.$(OBJEXT)
+am_libIBAMR_IB2d_a_OBJECTS = $(am__objects_1)
+libIBAMR_IB2d_a_OBJECTS = $(am_libIBAMR_IB2d_a_OBJECTS)
+libIBAMR_IB3d_a_AR = $(AR) $(ARFLAGS)
+libIBAMR_IB3d_a_LIBADD =
+am__objects_2 = libIBAMR_IB3d_a-IBEulerianForceSetter.$(OBJEXT) \
+	libIBAMR_IB3d_a-IBEulerianSourceSetter.$(OBJEXT) \
+	libIBAMR_IB3d_a-IBHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR_IB3d_a-IBLagrangianForceStrategy.$(OBJEXT) \
+	libIBAMR_IB3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
+	libIBAMR_IB3d_a-IBStandardInitializer.$(OBJEXT) \
+	libIBAMR_IB3d_a-SpringForceGen.$(OBJEXT) \
+	libIBAMR_IB3d_a-SpringForceSpec.$(OBJEXT) \
+	libIBAMR_IB3d_a-SpringForceSpecFactory.$(OBJEXT) \
+	libIBAMR_IB3d_a-TargetPointForceGen.$(OBJEXT) \
+	libIBAMR_IB3d_a-TargetPointForceSpec.$(OBJEXT) \
+	libIBAMR_IB3d_a-TargetPointForceSpecFactory.$(OBJEXT) \
+	libIBAMR_IB3d_a-TargetPointInitializer.$(OBJEXT)
+am_libIBAMR_IB3d_a_OBJECTS = $(am__objects_2)
+libIBAMR_IB3d_a_OBJECTS = $(am_libIBAMR_IB3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-LTCXXCOMPILE = $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(libIBAMR_IB2d_la_SOURCES) $(libIBAMR_IB3d_la_SOURCES)
+CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
+DIST_SOURCES = $(libIBAMR_IB2d_a_SOURCES) $(libIBAMR_IB3d_a_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -118,7 +117,6 @@ ACLOCAL = @ACLOCAL@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
-AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -127,7 +125,6 @@ BLAS_LIBS = @BLAS_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
@@ -140,7 +137,6 @@ DOT = @DOT@
 DOT_PATH = @DOT_PATH@
 DOXYGEN = @DOXYGEN@
 DOXYGEN_PATH = @DOXYGEN_PATH@
-ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -160,8 +156,6 @@ LAPACK_LIBS = @LAPACK_LIBS@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
-LIBTOOL = @LIBTOOL@
-LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 M4 = @M4@
 MAKEINFO = @MAKEINFO@
@@ -198,21 +192,13 @@ am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
-build = @build@
 build_alias = @build_alias@
-build_cpu = @build_cpu@
-build_os = @build_os@
-build_vendor = @build_vendor@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
-host = @host@
 host_alias = @host_alias@
-host_cpu = @host_cpu@
-host_os = @host_os@
-host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -238,27 +224,17 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = .
-pkg_include_HEADERS = IBEulerianForceSetter.h IBEulerianSourceSetter.h \
-	IBHierarchyIntegrator.h IBLagrangianForceStrategy.h \
-	IBLagrangianSourceStrategy.h IBStandardInitializer.h \
-	SpringForceGen.h SpringForceSpec.h SpringForceSpecFactory.h \
-	TargetPointForceGen.h TargetPointForceSpec.h \
-	TargetPointForceSpecFactory.h TargetPointInitializer.h
-noinst_LTLIBRARIES = libIBAMR_IB2d.la libIBAMR_IB3d.la
-#libIBAMR_IB_la_CXXFLAGS = $(AM_CXXFLAGS)
-#libIBAMR_IB_la_LIBADD = fortran/libIBAMR_IB_fortran.la
-#libIBAMR_IB_la_SOURCES =
+noinst_LIBRARIES = libIBAMR_IB2d.a libIBAMR_IB3d.a
 SOURCES = IBEulerianForceSetter.C IBEulerianSourceSetter.C IBHierarchyIntegrator.C IBLagrangianForceStrategy.C IBLagrangianSourceStrategy.C IBStandardInitializer.C SpringForceGen.C SpringForceSpec.C SpringForceSpecFactory.C TargetPointForceGen.C TargetPointForceSpec.C TargetPointForceSpecFactory.C TargetPointInitializer.C
-libIBAMR_IB2d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-libIBAMR_IB2d_la_LIBADD = 
-libIBAMR_IB2d_la_SOURCES = $(SOURCES)
-libIBAMR_IB3d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBAMR_IB3d_la_LIBADD = 
-libIBAMR_IB3d_la_SOURCES = $(SOURCES)
+pkg_include_HEADERS = IBEulerianForceSetter.h IBEulerianSourceSetter.h IBHierarchyIntegrator.h IBLagrangianForceStrategy.h IBLagrangianSourceStrategy.h IBStandardInitializer.h SpringForceGen.h SpringForceSpec.h SpringForceSpecFactory.h TargetPointForceGen.h TargetPointForceSpec.h TargetPointForceSpecFactory.h TargetPointInitializer.h
+libIBAMR_IB2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+libIBAMR_IB2d_a_SOURCES = $(SOURCES)
+libIBAMR_IB3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+libIBAMR_IB3d_a_SOURCES = $(SOURCES)
 all: all-recursive
 
 .SUFFIXES:
-.SUFFIXES: .f.m4 .C .f .lo .o .obj
+.SUFFIXES: .f.m4 .C .f .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -289,18 +265,16 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
-clean-noinstLTLIBRARIES:
-	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
-	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
-	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
-	  test "$$dir" != "$$p" || dir=.; \
-	  echo "rm -f \"$${dir}/so_locations\""; \
-	  rm -f "$${dir}/so_locations"; \
-	done
-libIBAMR_IB2d.la: $(libIBAMR_IB2d_la_OBJECTS) $(libIBAMR_IB2d_la_DEPENDENCIES) 
-	$(CXXLINK)  $(libIBAMR_IB2d_la_LDFLAGS) $(libIBAMR_IB2d_la_OBJECTS) $(libIBAMR_IB2d_la_LIBADD) $(LIBS)
-libIBAMR_IB3d.la: $(libIBAMR_IB3d_la_OBJECTS) $(libIBAMR_IB3d_la_DEPENDENCIES) 
-	$(CXXLINK)  $(libIBAMR_IB3d_la_LDFLAGS) $(libIBAMR_IB3d_la_OBJECTS) $(libIBAMR_IB3d_la_LIBADD) $(LIBS)
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+libIBAMR_IB2d.a: $(libIBAMR_IB2d_a_OBJECTS) $(libIBAMR_IB2d_a_DEPENDENCIES) 
+	-rm -f libIBAMR_IB2d.a
+	$(libIBAMR_IB2d_a_AR) libIBAMR_IB2d.a $(libIBAMR_IB2d_a_OBJECTS) $(libIBAMR_IB2d_a_LIBADD)
+	$(RANLIB) libIBAMR_IB2d.a
+libIBAMR_IB3d.a: $(libIBAMR_IB3d_a_OBJECTS) $(libIBAMR_IB3d_a_DEPENDENCIES) 
+	-rm -f libIBAMR_IB3d.a
+	$(libIBAMR_IB3d_a_AR) libIBAMR_IB3d.a $(libIBAMR_IB3d_a_OBJECTS) $(libIBAMR_IB3d_a_LIBADD)
+	$(RANLIB) libIBAMR_IB3d.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -308,32 +282,32 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-IBEulerianForceSetter.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-IBEulerianSourceSetter.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-IBHierarchyIntegrator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-IBLagrangianForceStrategy.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-IBLagrangianSourceStrategy.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-IBStandardInitializer.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-SpringForceGen.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-SpringForceSpec.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-SpringForceSpecFactory.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceGen.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceSpec.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceSpecFactory.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_la-TargetPointInitializer.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-IBEulerianForceSetter.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-IBEulerianSourceSetter.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-IBHierarchyIntegrator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-IBLagrangianForceStrategy.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-IBLagrangianSourceStrategy.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-IBStandardInitializer.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-SpringForceGen.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-SpringForceSpec.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-SpringForceSpecFactory.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceGen.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceSpec.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceSpecFactory.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_la-TargetPointInitializer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianForceSetter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianSourceSetter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBStandardInitializer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-SpringForceGen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceGen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-TargetPointInitializer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianForceSetter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianSourceSetter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBStandardInitializer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-SpringForceGen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceGen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-TargetPointInitializer.Po@am__quote@
 
 .C.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -349,203 +323,369 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-.C.lo:
-@am__fastdepCXX_TRUE@	if $(LTCXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-IBEulerianForceSetter.o: IBEulerianForceSetter.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBEulerianForceSetter.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianForceSetter.Tpo" -c -o libIBAMR_IB2d_a-IBEulerianForceSetter.o `test -f 'IBEulerianForceSetter.C' || echo '$(srcdir)/'`IBEulerianForceSetter.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianForceSetter.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianForceSetter.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianForceSetter.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBEulerianForceSetter.C' object='libIBAMR_IB2d_a-IBEulerianForceSetter.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBEulerianForceSetter.o `test -f 'IBEulerianForceSetter.C' || echo '$(srcdir)/'`IBEulerianForceSetter.C
 
-libIBAMR_IB2d_la-IBEulerianForceSetter.lo: IBEulerianForceSetter.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-IBEulerianForceSetter.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-IBEulerianForceSetter.Tpo" -c -o libIBAMR_IB2d_la-IBEulerianForceSetter.lo `test -f 'IBEulerianForceSetter.C' || echo '$(srcdir)/'`IBEulerianForceSetter.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-IBEulerianForceSetter.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-IBEulerianForceSetter.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-IBEulerianForceSetter.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBEulerianForceSetter.C' object='libIBAMR_IB2d_la-IBEulerianForceSetter.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-IBEulerianForceSetter.obj: IBEulerianForceSetter.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBEulerianForceSetter.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianForceSetter.Tpo" -c -o libIBAMR_IB2d_a-IBEulerianForceSetter.obj `if test -f 'IBEulerianForceSetter.C'; then $(CYGPATH_W) 'IBEulerianForceSetter.C'; else $(CYGPATH_W) '$(srcdir)/IBEulerianForceSetter.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianForceSetter.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianForceSetter.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianForceSetter.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBEulerianForceSetter.C' object='libIBAMR_IB2d_a-IBEulerianForceSetter.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-IBEulerianForceSetter.lo `test -f 'IBEulerianForceSetter.C' || echo '$(srcdir)/'`IBEulerianForceSetter.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBEulerianForceSetter.obj `if test -f 'IBEulerianForceSetter.C'; then $(CYGPATH_W) 'IBEulerianForceSetter.C'; else $(CYGPATH_W) '$(srcdir)/IBEulerianForceSetter.C'; fi`
 
-libIBAMR_IB2d_la-IBEulerianSourceSetter.lo: IBEulerianSourceSetter.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-IBEulerianSourceSetter.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-IBEulerianSourceSetter.Tpo" -c -o libIBAMR_IB2d_la-IBEulerianSourceSetter.lo `test -f 'IBEulerianSourceSetter.C' || echo '$(srcdir)/'`IBEulerianSourceSetter.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-IBEulerianSourceSetter.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-IBEulerianSourceSetter.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-IBEulerianSourceSetter.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBEulerianSourceSetter.C' object='libIBAMR_IB2d_la-IBEulerianSourceSetter.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-IBEulerianSourceSetter.o: IBEulerianSourceSetter.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBEulerianSourceSetter.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianSourceSetter.Tpo" -c -o libIBAMR_IB2d_a-IBEulerianSourceSetter.o `test -f 'IBEulerianSourceSetter.C' || echo '$(srcdir)/'`IBEulerianSourceSetter.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianSourceSetter.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianSourceSetter.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianSourceSetter.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBEulerianSourceSetter.C' object='libIBAMR_IB2d_a-IBEulerianSourceSetter.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-IBEulerianSourceSetter.lo `test -f 'IBEulerianSourceSetter.C' || echo '$(srcdir)/'`IBEulerianSourceSetter.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBEulerianSourceSetter.o `test -f 'IBEulerianSourceSetter.C' || echo '$(srcdir)/'`IBEulerianSourceSetter.C
 
-libIBAMR_IB2d_la-IBHierarchyIntegrator.lo: IBHierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-IBHierarchyIntegrator.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-IBHierarchyIntegrator.Tpo" -c -o libIBAMR_IB2d_la-IBHierarchyIntegrator.lo `test -f 'IBHierarchyIntegrator.C' || echo '$(srcdir)/'`IBHierarchyIntegrator.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-IBHierarchyIntegrator.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-IBHierarchyIntegrator.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-IBHierarchyIntegrator.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHierarchyIntegrator.C' object='libIBAMR_IB2d_la-IBHierarchyIntegrator.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-IBEulerianSourceSetter.obj: IBEulerianSourceSetter.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBEulerianSourceSetter.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianSourceSetter.Tpo" -c -o libIBAMR_IB2d_a-IBEulerianSourceSetter.obj `if test -f 'IBEulerianSourceSetter.C'; then $(CYGPATH_W) 'IBEulerianSourceSetter.C'; else $(CYGPATH_W) '$(srcdir)/IBEulerianSourceSetter.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianSourceSetter.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianSourceSetter.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianSourceSetter.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBEulerianSourceSetter.C' object='libIBAMR_IB2d_a-IBEulerianSourceSetter.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-IBHierarchyIntegrator.lo `test -f 'IBHierarchyIntegrator.C' || echo '$(srcdir)/'`IBHierarchyIntegrator.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBEulerianSourceSetter.obj `if test -f 'IBEulerianSourceSetter.C'; then $(CYGPATH_W) 'IBEulerianSourceSetter.C'; else $(CYGPATH_W) '$(srcdir)/IBEulerianSourceSetter.C'; fi`
 
-libIBAMR_IB2d_la-IBLagrangianForceStrategy.lo: IBLagrangianForceStrategy.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-IBLagrangianForceStrategy.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-IBLagrangianForceStrategy.Tpo" -c -o libIBAMR_IB2d_la-IBLagrangianForceStrategy.lo `test -f 'IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`IBLagrangianForceStrategy.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-IBLagrangianForceStrategy.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-IBLagrangianForceStrategy.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-IBLagrangianForceStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianForceStrategy.C' object='libIBAMR_IB2d_la-IBLagrangianForceStrategy.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-IBHierarchyIntegrator.o: IBHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBHierarchyIntegrator.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Tpo" -c -o libIBAMR_IB2d_a-IBHierarchyIntegrator.o `test -f 'IBHierarchyIntegrator.C' || echo '$(srcdir)/'`IBHierarchyIntegrator.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHierarchyIntegrator.C' object='libIBAMR_IB2d_a-IBHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-IBLagrangianForceStrategy.lo `test -f 'IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`IBLagrangianForceStrategy.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBHierarchyIntegrator.o `test -f 'IBHierarchyIntegrator.C' || echo '$(srcdir)/'`IBHierarchyIntegrator.C
 
-libIBAMR_IB2d_la-IBLagrangianSourceStrategy.lo: IBLagrangianSourceStrategy.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-IBLagrangianSourceStrategy.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-IBLagrangianSourceStrategy.Tpo" -c -o libIBAMR_IB2d_la-IBLagrangianSourceStrategy.lo `test -f 'IBLagrangianSourceStrategy.C' || echo '$(srcdir)/'`IBLagrangianSourceStrategy.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-IBLagrangianSourceStrategy.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-IBLagrangianSourceStrategy.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-IBLagrangianSourceStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianSourceStrategy.C' object='libIBAMR_IB2d_la-IBLagrangianSourceStrategy.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-IBHierarchyIntegrator.obj: IBHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBHierarchyIntegrator.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Tpo" -c -o libIBAMR_IB2d_a-IBHierarchyIntegrator.obj `if test -f 'IBHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBHierarchyIntegrator.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHierarchyIntegrator.C' object='libIBAMR_IB2d_a-IBHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-IBLagrangianSourceStrategy.lo `test -f 'IBLagrangianSourceStrategy.C' || echo '$(srcdir)/'`IBLagrangianSourceStrategy.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBHierarchyIntegrator.obj `if test -f 'IBHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBHierarchyIntegrator.C'; fi`
 
-libIBAMR_IB2d_la-IBStandardInitializer.lo: IBStandardInitializer.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-IBStandardInitializer.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-IBStandardInitializer.Tpo" -c -o libIBAMR_IB2d_la-IBStandardInitializer.lo `test -f 'IBStandardInitializer.C' || echo '$(srcdir)/'`IBStandardInitializer.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-IBStandardInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-IBStandardInitializer.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-IBStandardInitializer.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBStandardInitializer.C' object='libIBAMR_IB2d_la-IBStandardInitializer.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-IBLagrangianForceStrategy.o: IBLagrangianForceStrategy.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBLagrangianForceStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategy.Tpo" -c -o libIBAMR_IB2d_a-IBLagrangianForceStrategy.o `test -f 'IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`IBLagrangianForceStrategy.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategy.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianForceStrategy.C' object='libIBAMR_IB2d_a-IBLagrangianForceStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-IBStandardInitializer.lo `test -f 'IBStandardInitializer.C' || echo '$(srcdir)/'`IBStandardInitializer.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBLagrangianForceStrategy.o `test -f 'IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`IBLagrangianForceStrategy.C
 
-libIBAMR_IB2d_la-SpringForceGen.lo: SpringForceGen.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-SpringForceGen.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceGen.Tpo" -c -o libIBAMR_IB2d_la-SpringForceGen.lo `test -f 'SpringForceGen.C' || echo '$(srcdir)/'`SpringForceGen.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceGen.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceGen.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceGen.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceGen.C' object='libIBAMR_IB2d_la-SpringForceGen.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-IBLagrangianForceStrategy.obj: IBLagrangianForceStrategy.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBLagrangianForceStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategy.Tpo" -c -o libIBAMR_IB2d_a-IBLagrangianForceStrategy.obj `if test -f 'IBLagrangianForceStrategy.C'; then $(CYGPATH_W) 'IBLagrangianForceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/IBLagrangianForceStrategy.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategy.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianForceStrategy.C' object='libIBAMR_IB2d_a-IBLagrangianForceStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-SpringForceGen.lo `test -f 'SpringForceGen.C' || echo '$(srcdir)/'`SpringForceGen.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBLagrangianForceStrategy.obj `if test -f 'IBLagrangianForceStrategy.C'; then $(CYGPATH_W) 'IBLagrangianForceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/IBLagrangianForceStrategy.C'; fi`
 
-libIBAMR_IB2d_la-SpringForceSpec.lo: SpringForceSpec.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-SpringForceSpec.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceSpec.Tpo" -c -o libIBAMR_IB2d_la-SpringForceSpec.lo `test -f 'SpringForceSpec.C' || echo '$(srcdir)/'`SpringForceSpec.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceSpec.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceSpec.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceSpec.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceSpec.C' object='libIBAMR_IB2d_la-SpringForceSpec.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o: IBLagrangianSourceStrategy.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.Tpo" -c -o libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o `test -f 'IBLagrangianSourceStrategy.C' || echo '$(srcdir)/'`IBLagrangianSourceStrategy.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianSourceStrategy.C' object='libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-SpringForceSpec.lo `test -f 'SpringForceSpec.C' || echo '$(srcdir)/'`SpringForceSpec.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o `test -f 'IBLagrangianSourceStrategy.C' || echo '$(srcdir)/'`IBLagrangianSourceStrategy.C
 
-libIBAMR_IB2d_la-SpringForceSpecFactory.lo: SpringForceSpecFactory.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-SpringForceSpecFactory.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceSpecFactory.Tpo" -c -o libIBAMR_IB2d_la-SpringForceSpecFactory.lo `test -f 'SpringForceSpecFactory.C' || echo '$(srcdir)/'`SpringForceSpecFactory.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceSpecFactory.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-SpringForceSpecFactory.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceSpecFactory.C' object='libIBAMR_IB2d_la-SpringForceSpecFactory.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-IBLagrangianSourceStrategy.obj: IBLagrangianSourceStrategy.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBLagrangianSourceStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.Tpo" -c -o libIBAMR_IB2d_a-IBLagrangianSourceStrategy.obj `if test -f 'IBLagrangianSourceStrategy.C'; then $(CYGPATH_W) 'IBLagrangianSourceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/IBLagrangianSourceStrategy.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianSourceStrategy.C' object='libIBAMR_IB2d_a-IBLagrangianSourceStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-SpringForceSpecFactory.lo `test -f 'SpringForceSpecFactory.C' || echo '$(srcdir)/'`SpringForceSpecFactory.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBLagrangianSourceStrategy.obj `if test -f 'IBLagrangianSourceStrategy.C'; then $(CYGPATH_W) 'IBLagrangianSourceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/IBLagrangianSourceStrategy.C'; fi`
 
-libIBAMR_IB2d_la-TargetPointForceGen.lo: TargetPointForceGen.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-TargetPointForceGen.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceGen.Tpo" -c -o libIBAMR_IB2d_la-TargetPointForceGen.lo `test -f 'TargetPointForceGen.C' || echo '$(srcdir)/'`TargetPointForceGen.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceGen.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceGen.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceGen.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceGen.C' object='libIBAMR_IB2d_la-TargetPointForceGen.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-IBStandardInitializer.o: IBStandardInitializer.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBStandardInitializer.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBStandardInitializer.Tpo" -c -o libIBAMR_IB2d_a-IBStandardInitializer.o `test -f 'IBStandardInitializer.C' || echo '$(srcdir)/'`IBStandardInitializer.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBStandardInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBStandardInitializer.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBStandardInitializer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBStandardInitializer.C' object='libIBAMR_IB2d_a-IBStandardInitializer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-TargetPointForceGen.lo `test -f 'TargetPointForceGen.C' || echo '$(srcdir)/'`TargetPointForceGen.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBStandardInitializer.o `test -f 'IBStandardInitializer.C' || echo '$(srcdir)/'`IBStandardInitializer.C
 
-libIBAMR_IB2d_la-TargetPointForceSpec.lo: TargetPointForceSpec.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-TargetPointForceSpec.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceSpec.Tpo" -c -o libIBAMR_IB2d_la-TargetPointForceSpec.lo `test -f 'TargetPointForceSpec.C' || echo '$(srcdir)/'`TargetPointForceSpec.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceSpec.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceSpec.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceSpec.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceSpec.C' object='libIBAMR_IB2d_la-TargetPointForceSpec.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-IBStandardInitializer.obj: IBStandardInitializer.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBStandardInitializer.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBStandardInitializer.Tpo" -c -o libIBAMR_IB2d_a-IBStandardInitializer.obj `if test -f 'IBStandardInitializer.C'; then $(CYGPATH_W) 'IBStandardInitializer.C'; else $(CYGPATH_W) '$(srcdir)/IBStandardInitializer.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBStandardInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBStandardInitializer.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBStandardInitializer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBStandardInitializer.C' object='libIBAMR_IB2d_a-IBStandardInitializer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-TargetPointForceSpec.lo `test -f 'TargetPointForceSpec.C' || echo '$(srcdir)/'`TargetPointForceSpec.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBStandardInitializer.obj `if test -f 'IBStandardInitializer.C'; then $(CYGPATH_W) 'IBStandardInitializer.C'; else $(CYGPATH_W) '$(srcdir)/IBStandardInitializer.C'; fi`
 
-libIBAMR_IB2d_la-TargetPointForceSpecFactory.lo: TargetPointForceSpecFactory.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-TargetPointForceSpecFactory.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceSpecFactory.Tpo" -c -o libIBAMR_IB2d_la-TargetPointForceSpecFactory.lo `test -f 'TargetPointForceSpecFactory.C' || echo '$(srcdir)/'`TargetPointForceSpecFactory.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceSpecFactory.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointForceSpecFactory.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceSpecFactory.C' object='libIBAMR_IB2d_la-TargetPointForceSpecFactory.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-SpringForceGen.o: SpringForceGen.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-SpringForceGen.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceGen.Tpo" -c -o libIBAMR_IB2d_a-SpringForceGen.o `test -f 'SpringForceGen.C' || echo '$(srcdir)/'`SpringForceGen.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceGen.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceGen.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceGen.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceGen.C' object='libIBAMR_IB2d_a-SpringForceGen.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-TargetPointForceSpecFactory.lo `test -f 'TargetPointForceSpecFactory.C' || echo '$(srcdir)/'`TargetPointForceSpecFactory.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-SpringForceGen.o `test -f 'SpringForceGen.C' || echo '$(srcdir)/'`SpringForceGen.C
 
-libIBAMR_IB2d_la-TargetPointInitializer.lo: TargetPointInitializer.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_la-TargetPointInitializer.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointInitializer.Tpo" -c -o libIBAMR_IB2d_la-TargetPointInitializer.lo `test -f 'TargetPointInitializer.C' || echo '$(srcdir)/'`TargetPointInitializer.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointInitializer.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_la-TargetPointInitializer.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointInitializer.C' object='libIBAMR_IB2d_la-TargetPointInitializer.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-SpringForceGen.obj: SpringForceGen.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-SpringForceGen.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceGen.Tpo" -c -o libIBAMR_IB2d_a-SpringForceGen.obj `if test -f 'SpringForceGen.C'; then $(CYGPATH_W) 'SpringForceGen.C'; else $(CYGPATH_W) '$(srcdir)/SpringForceGen.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceGen.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceGen.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceGen.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceGen.C' object='libIBAMR_IB2d_a-SpringForceGen.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_la-TargetPointInitializer.lo `test -f 'TargetPointInitializer.C' || echo '$(srcdir)/'`TargetPointInitializer.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-SpringForceGen.obj `if test -f 'SpringForceGen.C'; then $(CYGPATH_W) 'SpringForceGen.C'; else $(CYGPATH_W) '$(srcdir)/SpringForceGen.C'; fi`
 
-libIBAMR_IB3d_la-IBEulerianForceSetter.lo: IBEulerianForceSetter.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-IBEulerianForceSetter.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-IBEulerianForceSetter.Tpo" -c -o libIBAMR_IB3d_la-IBEulerianForceSetter.lo `test -f 'IBEulerianForceSetter.C' || echo '$(srcdir)/'`IBEulerianForceSetter.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-IBEulerianForceSetter.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-IBEulerianForceSetter.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-IBEulerianForceSetter.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBEulerianForceSetter.C' object='libIBAMR_IB3d_la-IBEulerianForceSetter.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-SpringForceSpec.o: SpringForceSpec.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-SpringForceSpec.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpec.Tpo" -c -o libIBAMR_IB2d_a-SpringForceSpec.o `test -f 'SpringForceSpec.C' || echo '$(srcdir)/'`SpringForceSpec.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpec.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpec.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpec.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceSpec.C' object='libIBAMR_IB2d_a-SpringForceSpec.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-IBEulerianForceSetter.lo `test -f 'IBEulerianForceSetter.C' || echo '$(srcdir)/'`IBEulerianForceSetter.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-SpringForceSpec.o `test -f 'SpringForceSpec.C' || echo '$(srcdir)/'`SpringForceSpec.C
 
-libIBAMR_IB3d_la-IBEulerianSourceSetter.lo: IBEulerianSourceSetter.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-IBEulerianSourceSetter.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-IBEulerianSourceSetter.Tpo" -c -o libIBAMR_IB3d_la-IBEulerianSourceSetter.lo `test -f 'IBEulerianSourceSetter.C' || echo '$(srcdir)/'`IBEulerianSourceSetter.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-IBEulerianSourceSetter.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-IBEulerianSourceSetter.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-IBEulerianSourceSetter.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBEulerianSourceSetter.C' object='libIBAMR_IB3d_la-IBEulerianSourceSetter.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-SpringForceSpec.obj: SpringForceSpec.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-SpringForceSpec.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpec.Tpo" -c -o libIBAMR_IB2d_a-SpringForceSpec.obj `if test -f 'SpringForceSpec.C'; then $(CYGPATH_W) 'SpringForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/SpringForceSpec.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpec.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpec.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpec.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceSpec.C' object='libIBAMR_IB2d_a-SpringForceSpec.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-IBEulerianSourceSetter.lo `test -f 'IBEulerianSourceSetter.C' || echo '$(srcdir)/'`IBEulerianSourceSetter.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-SpringForceSpec.obj `if test -f 'SpringForceSpec.C'; then $(CYGPATH_W) 'SpringForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/SpringForceSpec.C'; fi`
 
-libIBAMR_IB3d_la-IBHierarchyIntegrator.lo: IBHierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-IBHierarchyIntegrator.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-IBHierarchyIntegrator.Tpo" -c -o libIBAMR_IB3d_la-IBHierarchyIntegrator.lo `test -f 'IBHierarchyIntegrator.C' || echo '$(srcdir)/'`IBHierarchyIntegrator.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-IBHierarchyIntegrator.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-IBHierarchyIntegrator.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-IBHierarchyIntegrator.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHierarchyIntegrator.C' object='libIBAMR_IB3d_la-IBHierarchyIntegrator.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-SpringForceSpecFactory.o: SpringForceSpecFactory.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-SpringForceSpecFactory.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpecFactory.Tpo" -c -o libIBAMR_IB2d_a-SpringForceSpecFactory.o `test -f 'SpringForceSpecFactory.C' || echo '$(srcdir)/'`SpringForceSpecFactory.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpecFactory.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpecFactory.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceSpecFactory.C' object='libIBAMR_IB2d_a-SpringForceSpecFactory.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-IBHierarchyIntegrator.lo `test -f 'IBHierarchyIntegrator.C' || echo '$(srcdir)/'`IBHierarchyIntegrator.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-SpringForceSpecFactory.o `test -f 'SpringForceSpecFactory.C' || echo '$(srcdir)/'`SpringForceSpecFactory.C
 
-libIBAMR_IB3d_la-IBLagrangianForceStrategy.lo: IBLagrangianForceStrategy.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-IBLagrangianForceStrategy.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-IBLagrangianForceStrategy.Tpo" -c -o libIBAMR_IB3d_la-IBLagrangianForceStrategy.lo `test -f 'IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`IBLagrangianForceStrategy.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-IBLagrangianForceStrategy.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-IBLagrangianForceStrategy.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-IBLagrangianForceStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianForceStrategy.C' object='libIBAMR_IB3d_la-IBLagrangianForceStrategy.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-SpringForceSpecFactory.obj: SpringForceSpecFactory.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-SpringForceSpecFactory.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpecFactory.Tpo" -c -o libIBAMR_IB2d_a-SpringForceSpecFactory.obj `if test -f 'SpringForceSpecFactory.C'; then $(CYGPATH_W) 'SpringForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/SpringForceSpecFactory.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpecFactory.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-SpringForceSpecFactory.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceSpecFactory.C' object='libIBAMR_IB2d_a-SpringForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-IBLagrangianForceStrategy.lo `test -f 'IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`IBLagrangianForceStrategy.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-SpringForceSpecFactory.obj `if test -f 'SpringForceSpecFactory.C'; then $(CYGPATH_W) 'SpringForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/SpringForceSpecFactory.C'; fi`
 
-libIBAMR_IB3d_la-IBLagrangianSourceStrategy.lo: IBLagrangianSourceStrategy.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-IBLagrangianSourceStrategy.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-IBLagrangianSourceStrategy.Tpo" -c -o libIBAMR_IB3d_la-IBLagrangianSourceStrategy.lo `test -f 'IBLagrangianSourceStrategy.C' || echo '$(srcdir)/'`IBLagrangianSourceStrategy.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-IBLagrangianSourceStrategy.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-IBLagrangianSourceStrategy.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-IBLagrangianSourceStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianSourceStrategy.C' object='libIBAMR_IB3d_la-IBLagrangianSourceStrategy.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-TargetPointForceGen.o: TargetPointForceGen.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-TargetPointForceGen.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceGen.Tpo" -c -o libIBAMR_IB2d_a-TargetPointForceGen.o `test -f 'TargetPointForceGen.C' || echo '$(srcdir)/'`TargetPointForceGen.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceGen.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceGen.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceGen.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceGen.C' object='libIBAMR_IB2d_a-TargetPointForceGen.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-IBLagrangianSourceStrategy.lo `test -f 'IBLagrangianSourceStrategy.C' || echo '$(srcdir)/'`IBLagrangianSourceStrategy.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-TargetPointForceGen.o `test -f 'TargetPointForceGen.C' || echo '$(srcdir)/'`TargetPointForceGen.C
 
-libIBAMR_IB3d_la-IBStandardInitializer.lo: IBStandardInitializer.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-IBStandardInitializer.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-IBStandardInitializer.Tpo" -c -o libIBAMR_IB3d_la-IBStandardInitializer.lo `test -f 'IBStandardInitializer.C' || echo '$(srcdir)/'`IBStandardInitializer.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-IBStandardInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-IBStandardInitializer.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-IBStandardInitializer.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBStandardInitializer.C' object='libIBAMR_IB3d_la-IBStandardInitializer.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-TargetPointForceGen.obj: TargetPointForceGen.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-TargetPointForceGen.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceGen.Tpo" -c -o libIBAMR_IB2d_a-TargetPointForceGen.obj `if test -f 'TargetPointForceGen.C'; then $(CYGPATH_W) 'TargetPointForceGen.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointForceGen.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceGen.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceGen.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceGen.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceGen.C' object='libIBAMR_IB2d_a-TargetPointForceGen.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-IBStandardInitializer.lo `test -f 'IBStandardInitializer.C' || echo '$(srcdir)/'`IBStandardInitializer.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-TargetPointForceGen.obj `if test -f 'TargetPointForceGen.C'; then $(CYGPATH_W) 'TargetPointForceGen.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointForceGen.C'; fi`
 
-libIBAMR_IB3d_la-SpringForceGen.lo: SpringForceGen.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-SpringForceGen.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceGen.Tpo" -c -o libIBAMR_IB3d_la-SpringForceGen.lo `test -f 'SpringForceGen.C' || echo '$(srcdir)/'`SpringForceGen.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceGen.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceGen.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceGen.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceGen.C' object='libIBAMR_IB3d_la-SpringForceGen.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-TargetPointForceSpec.o: TargetPointForceSpec.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-TargetPointForceSpec.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpec.Tpo" -c -o libIBAMR_IB2d_a-TargetPointForceSpec.o `test -f 'TargetPointForceSpec.C' || echo '$(srcdir)/'`TargetPointForceSpec.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpec.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpec.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpec.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceSpec.C' object='libIBAMR_IB2d_a-TargetPointForceSpec.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-SpringForceGen.lo `test -f 'SpringForceGen.C' || echo '$(srcdir)/'`SpringForceGen.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-TargetPointForceSpec.o `test -f 'TargetPointForceSpec.C' || echo '$(srcdir)/'`TargetPointForceSpec.C
 
-libIBAMR_IB3d_la-SpringForceSpec.lo: SpringForceSpec.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-SpringForceSpec.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceSpec.Tpo" -c -o libIBAMR_IB3d_la-SpringForceSpec.lo `test -f 'SpringForceSpec.C' || echo '$(srcdir)/'`SpringForceSpec.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceSpec.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceSpec.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceSpec.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceSpec.C' object='libIBAMR_IB3d_la-SpringForceSpec.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-TargetPointForceSpec.obj: TargetPointForceSpec.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-TargetPointForceSpec.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpec.Tpo" -c -o libIBAMR_IB2d_a-TargetPointForceSpec.obj `if test -f 'TargetPointForceSpec.C'; then $(CYGPATH_W) 'TargetPointForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointForceSpec.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpec.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpec.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpec.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceSpec.C' object='libIBAMR_IB2d_a-TargetPointForceSpec.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-SpringForceSpec.lo `test -f 'SpringForceSpec.C' || echo '$(srcdir)/'`SpringForceSpec.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-TargetPointForceSpec.obj `if test -f 'TargetPointForceSpec.C'; then $(CYGPATH_W) 'TargetPointForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointForceSpec.C'; fi`
 
-libIBAMR_IB3d_la-SpringForceSpecFactory.lo: SpringForceSpecFactory.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-SpringForceSpecFactory.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceSpecFactory.Tpo" -c -o libIBAMR_IB3d_la-SpringForceSpecFactory.lo `test -f 'SpringForceSpecFactory.C' || echo '$(srcdir)/'`SpringForceSpecFactory.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceSpecFactory.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-SpringForceSpecFactory.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceSpecFactory.C' object='libIBAMR_IB3d_la-SpringForceSpecFactory.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-TargetPointForceSpecFactory.o: TargetPointForceSpecFactory.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-TargetPointForceSpecFactory.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpecFactory.Tpo" -c -o libIBAMR_IB2d_a-TargetPointForceSpecFactory.o `test -f 'TargetPointForceSpecFactory.C' || echo '$(srcdir)/'`TargetPointForceSpecFactory.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpecFactory.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpecFactory.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceSpecFactory.C' object='libIBAMR_IB2d_a-TargetPointForceSpecFactory.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-SpringForceSpecFactory.lo `test -f 'SpringForceSpecFactory.C' || echo '$(srcdir)/'`SpringForceSpecFactory.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-TargetPointForceSpecFactory.o `test -f 'TargetPointForceSpecFactory.C' || echo '$(srcdir)/'`TargetPointForceSpecFactory.C
 
-libIBAMR_IB3d_la-TargetPointForceGen.lo: TargetPointForceGen.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-TargetPointForceGen.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceGen.Tpo" -c -o libIBAMR_IB3d_la-TargetPointForceGen.lo `test -f 'TargetPointForceGen.C' || echo '$(srcdir)/'`TargetPointForceGen.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceGen.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceGen.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceGen.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceGen.C' object='libIBAMR_IB3d_la-TargetPointForceGen.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-TargetPointForceSpecFactory.obj: TargetPointForceSpecFactory.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-TargetPointForceSpecFactory.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpecFactory.Tpo" -c -o libIBAMR_IB2d_a-TargetPointForceSpecFactory.obj `if test -f 'TargetPointForceSpecFactory.C'; then $(CYGPATH_W) 'TargetPointForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointForceSpecFactory.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpecFactory.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointForceSpecFactory.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceSpecFactory.C' object='libIBAMR_IB2d_a-TargetPointForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-TargetPointForceGen.lo `test -f 'TargetPointForceGen.C' || echo '$(srcdir)/'`TargetPointForceGen.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-TargetPointForceSpecFactory.obj `if test -f 'TargetPointForceSpecFactory.C'; then $(CYGPATH_W) 'TargetPointForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointForceSpecFactory.C'; fi`
 
-libIBAMR_IB3d_la-TargetPointForceSpec.lo: TargetPointForceSpec.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-TargetPointForceSpec.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceSpec.Tpo" -c -o libIBAMR_IB3d_la-TargetPointForceSpec.lo `test -f 'TargetPointForceSpec.C' || echo '$(srcdir)/'`TargetPointForceSpec.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceSpec.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceSpec.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceSpec.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceSpec.C' object='libIBAMR_IB3d_la-TargetPointForceSpec.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-TargetPointInitializer.o: TargetPointInitializer.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-TargetPointInitializer.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointInitializer.Tpo" -c -o libIBAMR_IB2d_a-TargetPointInitializer.o `test -f 'TargetPointInitializer.C' || echo '$(srcdir)/'`TargetPointInitializer.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointInitializer.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointInitializer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointInitializer.C' object='libIBAMR_IB2d_a-TargetPointInitializer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-TargetPointForceSpec.lo `test -f 'TargetPointForceSpec.C' || echo '$(srcdir)/'`TargetPointForceSpec.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-TargetPointInitializer.o `test -f 'TargetPointInitializer.C' || echo '$(srcdir)/'`TargetPointInitializer.C
 
-libIBAMR_IB3d_la-TargetPointForceSpecFactory.lo: TargetPointForceSpecFactory.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-TargetPointForceSpecFactory.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceSpecFactory.Tpo" -c -o libIBAMR_IB3d_la-TargetPointForceSpecFactory.lo `test -f 'TargetPointForceSpecFactory.C' || echo '$(srcdir)/'`TargetPointForceSpecFactory.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceSpecFactory.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointForceSpecFactory.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceSpecFactory.C' object='libIBAMR_IB3d_la-TargetPointForceSpecFactory.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB2d_a-TargetPointInitializer.obj: TargetPointInitializer.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-TargetPointInitializer.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointInitializer.Tpo" -c -o libIBAMR_IB2d_a-TargetPointInitializer.obj `if test -f 'TargetPointInitializer.C'; then $(CYGPATH_W) 'TargetPointInitializer.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointInitializer.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointInitializer.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-TargetPointInitializer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointInitializer.C' object='libIBAMR_IB2d_a-TargetPointInitializer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-TargetPointForceSpecFactory.lo `test -f 'TargetPointForceSpecFactory.C' || echo '$(srcdir)/'`TargetPointForceSpecFactory.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-TargetPointInitializer.obj `if test -f 'TargetPointInitializer.C'; then $(CYGPATH_W) 'TargetPointInitializer.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointInitializer.C'; fi`
 
-libIBAMR_IB3d_la-TargetPointInitializer.lo: TargetPointInitializer.C
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_la-TargetPointInitializer.lo -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointInitializer.Tpo" -c -o libIBAMR_IB3d_la-TargetPointInitializer.lo `test -f 'TargetPointInitializer.C' || echo '$(srcdir)/'`TargetPointInitializer.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointInitializer.Plo"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_la-TargetPointInitializer.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointInitializer.C' object='libIBAMR_IB3d_la-TargetPointInitializer.lo' libtool=yes @AMDEPBACKSLASH@
+libIBAMR_IB3d_a-IBEulerianForceSetter.o: IBEulerianForceSetter.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBEulerianForceSetter.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianForceSetter.Tpo" -c -o libIBAMR_IB3d_a-IBEulerianForceSetter.o `test -f 'IBEulerianForceSetter.C' || echo '$(srcdir)/'`IBEulerianForceSetter.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianForceSetter.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianForceSetter.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianForceSetter.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBEulerianForceSetter.C' object='libIBAMR_IB3d_a-IBEulerianForceSetter.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_la_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_la-TargetPointInitializer.lo `test -f 'TargetPointInitializer.C' || echo '$(srcdir)/'`TargetPointInitializer.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBEulerianForceSetter.o `test -f 'IBEulerianForceSetter.C' || echo '$(srcdir)/'`IBEulerianForceSetter.C
 
-mostlyclean-libtool:
-	-rm -f *.lo
+libIBAMR_IB3d_a-IBEulerianForceSetter.obj: IBEulerianForceSetter.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBEulerianForceSetter.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianForceSetter.Tpo" -c -o libIBAMR_IB3d_a-IBEulerianForceSetter.obj `if test -f 'IBEulerianForceSetter.C'; then $(CYGPATH_W) 'IBEulerianForceSetter.C'; else $(CYGPATH_W) '$(srcdir)/IBEulerianForceSetter.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianForceSetter.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianForceSetter.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianForceSetter.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBEulerianForceSetter.C' object='libIBAMR_IB3d_a-IBEulerianForceSetter.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBEulerianForceSetter.obj `if test -f 'IBEulerianForceSetter.C'; then $(CYGPATH_W) 'IBEulerianForceSetter.C'; else $(CYGPATH_W) '$(srcdir)/IBEulerianForceSetter.C'; fi`
 
-clean-libtool:
-	-rm -rf .libs _libs
+libIBAMR_IB3d_a-IBEulerianSourceSetter.o: IBEulerianSourceSetter.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBEulerianSourceSetter.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianSourceSetter.Tpo" -c -o libIBAMR_IB3d_a-IBEulerianSourceSetter.o `test -f 'IBEulerianSourceSetter.C' || echo '$(srcdir)/'`IBEulerianSourceSetter.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianSourceSetter.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianSourceSetter.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianSourceSetter.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBEulerianSourceSetter.C' object='libIBAMR_IB3d_a-IBEulerianSourceSetter.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBEulerianSourceSetter.o `test -f 'IBEulerianSourceSetter.C' || echo '$(srcdir)/'`IBEulerianSourceSetter.C
 
-distclean-libtool:
-	-rm -f libtool
+libIBAMR_IB3d_a-IBEulerianSourceSetter.obj: IBEulerianSourceSetter.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBEulerianSourceSetter.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianSourceSetter.Tpo" -c -o libIBAMR_IB3d_a-IBEulerianSourceSetter.obj `if test -f 'IBEulerianSourceSetter.C'; then $(CYGPATH_W) 'IBEulerianSourceSetter.C'; else $(CYGPATH_W) '$(srcdir)/IBEulerianSourceSetter.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianSourceSetter.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianSourceSetter.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianSourceSetter.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBEulerianSourceSetter.C' object='libIBAMR_IB3d_a-IBEulerianSourceSetter.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBEulerianSourceSetter.obj `if test -f 'IBEulerianSourceSetter.C'; then $(CYGPATH_W) 'IBEulerianSourceSetter.C'; else $(CYGPATH_W) '$(srcdir)/IBEulerianSourceSetter.C'; fi`
+
+libIBAMR_IB3d_a-IBHierarchyIntegrator.o: IBHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBHierarchyIntegrator.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Tpo" -c -o libIBAMR_IB3d_a-IBHierarchyIntegrator.o `test -f 'IBHierarchyIntegrator.C' || echo '$(srcdir)/'`IBHierarchyIntegrator.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHierarchyIntegrator.C' object='libIBAMR_IB3d_a-IBHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBHierarchyIntegrator.o `test -f 'IBHierarchyIntegrator.C' || echo '$(srcdir)/'`IBHierarchyIntegrator.C
+
+libIBAMR_IB3d_a-IBHierarchyIntegrator.obj: IBHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBHierarchyIntegrator.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Tpo" -c -o libIBAMR_IB3d_a-IBHierarchyIntegrator.obj `if test -f 'IBHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBHierarchyIntegrator.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHierarchyIntegrator.C' object='libIBAMR_IB3d_a-IBHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBHierarchyIntegrator.obj `if test -f 'IBHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBHierarchyIntegrator.C'; fi`
+
+libIBAMR_IB3d_a-IBLagrangianForceStrategy.o: IBLagrangianForceStrategy.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBLagrangianForceStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategy.Tpo" -c -o libIBAMR_IB3d_a-IBLagrangianForceStrategy.o `test -f 'IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`IBLagrangianForceStrategy.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategy.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianForceStrategy.C' object='libIBAMR_IB3d_a-IBLagrangianForceStrategy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBLagrangianForceStrategy.o `test -f 'IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`IBLagrangianForceStrategy.C
+
+libIBAMR_IB3d_a-IBLagrangianForceStrategy.obj: IBLagrangianForceStrategy.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBLagrangianForceStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategy.Tpo" -c -o libIBAMR_IB3d_a-IBLagrangianForceStrategy.obj `if test -f 'IBLagrangianForceStrategy.C'; then $(CYGPATH_W) 'IBLagrangianForceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/IBLagrangianForceStrategy.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategy.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianForceStrategy.C' object='libIBAMR_IB3d_a-IBLagrangianForceStrategy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBLagrangianForceStrategy.obj `if test -f 'IBLagrangianForceStrategy.C'; then $(CYGPATH_W) 'IBLagrangianForceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/IBLagrangianForceStrategy.C'; fi`
+
+libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o: IBLagrangianSourceStrategy.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.Tpo" -c -o libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o `test -f 'IBLagrangianSourceStrategy.C' || echo '$(srcdir)/'`IBLagrangianSourceStrategy.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianSourceStrategy.C' object='libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o `test -f 'IBLagrangianSourceStrategy.C' || echo '$(srcdir)/'`IBLagrangianSourceStrategy.C
+
+libIBAMR_IB3d_a-IBLagrangianSourceStrategy.obj: IBLagrangianSourceStrategy.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBLagrangianSourceStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.Tpo" -c -o libIBAMR_IB3d_a-IBLagrangianSourceStrategy.obj `if test -f 'IBLagrangianSourceStrategy.C'; then $(CYGPATH_W) 'IBLagrangianSourceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/IBLagrangianSourceStrategy.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianSourceStrategy.C' object='libIBAMR_IB3d_a-IBLagrangianSourceStrategy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBLagrangianSourceStrategy.obj `if test -f 'IBLagrangianSourceStrategy.C'; then $(CYGPATH_W) 'IBLagrangianSourceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/IBLagrangianSourceStrategy.C'; fi`
+
+libIBAMR_IB3d_a-IBStandardInitializer.o: IBStandardInitializer.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBStandardInitializer.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBStandardInitializer.Tpo" -c -o libIBAMR_IB3d_a-IBStandardInitializer.o `test -f 'IBStandardInitializer.C' || echo '$(srcdir)/'`IBStandardInitializer.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBStandardInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBStandardInitializer.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBStandardInitializer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBStandardInitializer.C' object='libIBAMR_IB3d_a-IBStandardInitializer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBStandardInitializer.o `test -f 'IBStandardInitializer.C' || echo '$(srcdir)/'`IBStandardInitializer.C
+
+libIBAMR_IB3d_a-IBStandardInitializer.obj: IBStandardInitializer.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBStandardInitializer.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBStandardInitializer.Tpo" -c -o libIBAMR_IB3d_a-IBStandardInitializer.obj `if test -f 'IBStandardInitializer.C'; then $(CYGPATH_W) 'IBStandardInitializer.C'; else $(CYGPATH_W) '$(srcdir)/IBStandardInitializer.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBStandardInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBStandardInitializer.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBStandardInitializer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBStandardInitializer.C' object='libIBAMR_IB3d_a-IBStandardInitializer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBStandardInitializer.obj `if test -f 'IBStandardInitializer.C'; then $(CYGPATH_W) 'IBStandardInitializer.C'; else $(CYGPATH_W) '$(srcdir)/IBStandardInitializer.C'; fi`
+
+libIBAMR_IB3d_a-SpringForceGen.o: SpringForceGen.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-SpringForceGen.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceGen.Tpo" -c -o libIBAMR_IB3d_a-SpringForceGen.o `test -f 'SpringForceGen.C' || echo '$(srcdir)/'`SpringForceGen.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceGen.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceGen.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceGen.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceGen.C' object='libIBAMR_IB3d_a-SpringForceGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-SpringForceGen.o `test -f 'SpringForceGen.C' || echo '$(srcdir)/'`SpringForceGen.C
+
+libIBAMR_IB3d_a-SpringForceGen.obj: SpringForceGen.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-SpringForceGen.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceGen.Tpo" -c -o libIBAMR_IB3d_a-SpringForceGen.obj `if test -f 'SpringForceGen.C'; then $(CYGPATH_W) 'SpringForceGen.C'; else $(CYGPATH_W) '$(srcdir)/SpringForceGen.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceGen.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceGen.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceGen.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceGen.C' object='libIBAMR_IB3d_a-SpringForceGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-SpringForceGen.obj `if test -f 'SpringForceGen.C'; then $(CYGPATH_W) 'SpringForceGen.C'; else $(CYGPATH_W) '$(srcdir)/SpringForceGen.C'; fi`
+
+libIBAMR_IB3d_a-SpringForceSpec.o: SpringForceSpec.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-SpringForceSpec.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpec.Tpo" -c -o libIBAMR_IB3d_a-SpringForceSpec.o `test -f 'SpringForceSpec.C' || echo '$(srcdir)/'`SpringForceSpec.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpec.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpec.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpec.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceSpec.C' object='libIBAMR_IB3d_a-SpringForceSpec.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-SpringForceSpec.o `test -f 'SpringForceSpec.C' || echo '$(srcdir)/'`SpringForceSpec.C
+
+libIBAMR_IB3d_a-SpringForceSpec.obj: SpringForceSpec.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-SpringForceSpec.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpec.Tpo" -c -o libIBAMR_IB3d_a-SpringForceSpec.obj `if test -f 'SpringForceSpec.C'; then $(CYGPATH_W) 'SpringForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/SpringForceSpec.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpec.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpec.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpec.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceSpec.C' object='libIBAMR_IB3d_a-SpringForceSpec.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-SpringForceSpec.obj `if test -f 'SpringForceSpec.C'; then $(CYGPATH_W) 'SpringForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/SpringForceSpec.C'; fi`
+
+libIBAMR_IB3d_a-SpringForceSpecFactory.o: SpringForceSpecFactory.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-SpringForceSpecFactory.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpecFactory.Tpo" -c -o libIBAMR_IB3d_a-SpringForceSpecFactory.o `test -f 'SpringForceSpecFactory.C' || echo '$(srcdir)/'`SpringForceSpecFactory.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpecFactory.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpecFactory.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceSpecFactory.C' object='libIBAMR_IB3d_a-SpringForceSpecFactory.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-SpringForceSpecFactory.o `test -f 'SpringForceSpecFactory.C' || echo '$(srcdir)/'`SpringForceSpecFactory.C
+
+libIBAMR_IB3d_a-SpringForceSpecFactory.obj: SpringForceSpecFactory.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-SpringForceSpecFactory.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpecFactory.Tpo" -c -o libIBAMR_IB3d_a-SpringForceSpecFactory.obj `if test -f 'SpringForceSpecFactory.C'; then $(CYGPATH_W) 'SpringForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/SpringForceSpecFactory.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpecFactory.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-SpringForceSpecFactory.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SpringForceSpecFactory.C' object='libIBAMR_IB3d_a-SpringForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-SpringForceSpecFactory.obj `if test -f 'SpringForceSpecFactory.C'; then $(CYGPATH_W) 'SpringForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/SpringForceSpecFactory.C'; fi`
+
+libIBAMR_IB3d_a-TargetPointForceGen.o: TargetPointForceGen.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-TargetPointForceGen.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceGen.Tpo" -c -o libIBAMR_IB3d_a-TargetPointForceGen.o `test -f 'TargetPointForceGen.C' || echo '$(srcdir)/'`TargetPointForceGen.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceGen.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceGen.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceGen.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceGen.C' object='libIBAMR_IB3d_a-TargetPointForceGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-TargetPointForceGen.o `test -f 'TargetPointForceGen.C' || echo '$(srcdir)/'`TargetPointForceGen.C
+
+libIBAMR_IB3d_a-TargetPointForceGen.obj: TargetPointForceGen.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-TargetPointForceGen.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceGen.Tpo" -c -o libIBAMR_IB3d_a-TargetPointForceGen.obj `if test -f 'TargetPointForceGen.C'; then $(CYGPATH_W) 'TargetPointForceGen.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointForceGen.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceGen.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceGen.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceGen.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceGen.C' object='libIBAMR_IB3d_a-TargetPointForceGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-TargetPointForceGen.obj `if test -f 'TargetPointForceGen.C'; then $(CYGPATH_W) 'TargetPointForceGen.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointForceGen.C'; fi`
+
+libIBAMR_IB3d_a-TargetPointForceSpec.o: TargetPointForceSpec.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-TargetPointForceSpec.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpec.Tpo" -c -o libIBAMR_IB3d_a-TargetPointForceSpec.o `test -f 'TargetPointForceSpec.C' || echo '$(srcdir)/'`TargetPointForceSpec.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpec.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpec.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpec.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceSpec.C' object='libIBAMR_IB3d_a-TargetPointForceSpec.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-TargetPointForceSpec.o `test -f 'TargetPointForceSpec.C' || echo '$(srcdir)/'`TargetPointForceSpec.C
+
+libIBAMR_IB3d_a-TargetPointForceSpec.obj: TargetPointForceSpec.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-TargetPointForceSpec.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpec.Tpo" -c -o libIBAMR_IB3d_a-TargetPointForceSpec.obj `if test -f 'TargetPointForceSpec.C'; then $(CYGPATH_W) 'TargetPointForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointForceSpec.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpec.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpec.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpec.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceSpec.C' object='libIBAMR_IB3d_a-TargetPointForceSpec.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-TargetPointForceSpec.obj `if test -f 'TargetPointForceSpec.C'; then $(CYGPATH_W) 'TargetPointForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointForceSpec.C'; fi`
+
+libIBAMR_IB3d_a-TargetPointForceSpecFactory.o: TargetPointForceSpecFactory.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-TargetPointForceSpecFactory.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpecFactory.Tpo" -c -o libIBAMR_IB3d_a-TargetPointForceSpecFactory.o `test -f 'TargetPointForceSpecFactory.C' || echo '$(srcdir)/'`TargetPointForceSpecFactory.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpecFactory.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpecFactory.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceSpecFactory.C' object='libIBAMR_IB3d_a-TargetPointForceSpecFactory.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-TargetPointForceSpecFactory.o `test -f 'TargetPointForceSpecFactory.C' || echo '$(srcdir)/'`TargetPointForceSpecFactory.C
+
+libIBAMR_IB3d_a-TargetPointForceSpecFactory.obj: TargetPointForceSpecFactory.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-TargetPointForceSpecFactory.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpecFactory.Tpo" -c -o libIBAMR_IB3d_a-TargetPointForceSpecFactory.obj `if test -f 'TargetPointForceSpecFactory.C'; then $(CYGPATH_W) 'TargetPointForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointForceSpecFactory.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpecFactory.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointForceSpecFactory.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointForceSpecFactory.C' object='libIBAMR_IB3d_a-TargetPointForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-TargetPointForceSpecFactory.obj `if test -f 'TargetPointForceSpecFactory.C'; then $(CYGPATH_W) 'TargetPointForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointForceSpecFactory.C'; fi`
+
+libIBAMR_IB3d_a-TargetPointInitializer.o: TargetPointInitializer.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-TargetPointInitializer.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointInitializer.Tpo" -c -o libIBAMR_IB3d_a-TargetPointInitializer.o `test -f 'TargetPointInitializer.C' || echo '$(srcdir)/'`TargetPointInitializer.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointInitializer.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointInitializer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointInitializer.C' object='libIBAMR_IB3d_a-TargetPointInitializer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-TargetPointInitializer.o `test -f 'TargetPointInitializer.C' || echo '$(srcdir)/'`TargetPointInitializer.C
+
+libIBAMR_IB3d_a-TargetPointInitializer.obj: TargetPointInitializer.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-TargetPointInitializer.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointInitializer.Tpo" -c -o libIBAMR_IB3d_a-TargetPointInitializer.obj `if test -f 'TargetPointInitializer.C'; then $(CYGPATH_W) 'TargetPointInitializer.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointInitializer.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointInitializer.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointInitializer.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-TargetPointInitializer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TargetPointInitializer.C' object='libIBAMR_IB3d_a-TargetPointInitializer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-TargetPointInitializer.obj `if test -f 'TargetPointInitializer.C'; then $(CYGPATH_W) 'TargetPointInitializer.C'; else $(CYGPATH_W) '$(srcdir)/TargetPointInitializer.C'; fi`
 uninstall-info-am:
 install-pkg_includeHEADERS: $(pkg_include_HEADERS)
 	@$(NORMAL_INSTALL)
@@ -742,7 +882,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(LTLIBRARIES) $(HEADERS)
+all-am: Makefile $(LIBRARIES) $(HEADERS)
 installdirs: installdirs-recursive
 installdirs-am:
 	for dir in "$(DESTDIR)$(pkg_includedir)"; do \
@@ -775,14 +915,13 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-recursive
 
-clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
-	mostlyclean-am
+clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-libtool distclean-tags
+	distclean-tags
 
 dvi: dvi-recursive
 
@@ -811,8 +950,7 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-recursive
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool
+mostlyclean-am: mostlyclean-compile mostlyclean-generic
 
 pdf: pdf-recursive
 
@@ -827,19 +965,19 @@ uninstall-am: uninstall-info-am uninstall-pkg_includeHEADERS
 uninstall-info: uninstall-info-recursive
 
 .PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am check check-am \
-	clean clean-generic clean-libtool clean-noinstLTLIBRARIES \
-	clean-recursive ctags ctags-recursive distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-recursive distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-man install-pkg_includeHEADERS \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	maintainer-clean-recursive mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool mostlyclean-recursive \
-	pdf pdf-am ps ps-am tags tags-recursive uninstall uninstall-am \
-	uninstall-info-am uninstall-pkg_includeHEADERS
+	clean clean-generic clean-noinstLIBRARIES clean-recursive \
+	ctags ctags-recursive distclean distclean-compile \
+	distclean-generic distclean-recursive distclean-tags distdir \
+	dvi dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-exec install-exec-am \
+	install-info install-info-am install-man \
+	install-pkg_includeHEADERS install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic maintainer-clean-recursive \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-recursive pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am uninstall-info-am \
+	uninstall-pkg_includeHEADERS
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@

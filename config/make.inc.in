@@ -15,7 +15,6 @@ FFLAGS = @FFLAGS@
 FLIBS = @FLIBS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-LIBTOOL = @LIBTOOL@
 M4 = @M4@
 
 .SUFFIXES:
@@ -23,8 +22,8 @@ M4 = @M4@
 .f.m4.f:
 	$(M4) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 .f.o:
-	$(LIBTOOL) --tag=F77 --mode=compile $(F77) $(FFLAGS) -c $< -o $@
+	$(F77) $(FFLAGS) -c $< -o $@
 .c.o:
-	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(CFLAGS) $(CPPFLAGS) -DNDIM=$(PDIM) -c $< -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) -DNDIM=$(PDIM) -c $< -o $@
 .C.o:
-	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(CXXFLAGS) $(CPPFLAGS) -DNDIM=$(PDIM) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -DNDIM=$(PDIM) -c $< -o $@

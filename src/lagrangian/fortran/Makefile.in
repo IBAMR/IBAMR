@@ -34,8 +34,6 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-build_triplet = @build@
-host_triplet = @host@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
 subdir = src/lagrangian/fortran
@@ -49,34 +47,37 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES =
-LTLIBRARIES = $(noinst_LTLIBRARIES)
-libIBAMR_lagrangian_fortran_la_LIBADD =
-am_libIBAMR_lagrangian_fortran_la_OBJECTS = lagrangian_delta.lo
-libIBAMR_lagrangian_fortran_la_OBJECTS =  \
-	$(am_libIBAMR_lagrangian_fortran_la_OBJECTS)
-libIBAMR_lagrangian_fortran2d_la_LIBADD =
-am_libIBAMR_lagrangian_fortran2d_la_OBJECTS =  \
-	lagrangian_interaction2d.lo
-libIBAMR_lagrangian_fortran2d_la_OBJECTS =  \
-	$(am_libIBAMR_lagrangian_fortran2d_la_OBJECTS)
-libIBAMR_lagrangian_fortran3d_la_LIBADD =
-am_libIBAMR_lagrangian_fortran3d_la_OBJECTS =  \
-	lagrangian_interaction3d.lo
-libIBAMR_lagrangian_fortran3d_la_OBJECTS =  \
-	$(am_libIBAMR_lagrangian_fortran3d_la_OBJECTS)
+LIBRARIES = $(noinst_LIBRARIES)
+AR = ar
+ARFLAGS = cru
+libIBAMR_lagrangian_fortran_a_AR = $(AR) $(ARFLAGS)
+libIBAMR_lagrangian_fortran_a_LIBADD =
+am_libIBAMR_lagrangian_fortran_a_OBJECTS = lagrangian_delta.$(OBJEXT)
+libIBAMR_lagrangian_fortran_a_OBJECTS =  \
+	$(am_libIBAMR_lagrangian_fortran_a_OBJECTS)
+libIBAMR_lagrangian_fortran2d_a_AR = $(AR) $(ARFLAGS)
+libIBAMR_lagrangian_fortran2d_a_LIBADD =
+am_libIBAMR_lagrangian_fortran2d_a_OBJECTS =  \
+	lagrangian_interaction2d.$(OBJEXT)
+libIBAMR_lagrangian_fortran2d_a_OBJECTS =  \
+	$(am_libIBAMR_lagrangian_fortran2d_a_OBJECTS)
+libIBAMR_lagrangian_fortran3d_a_AR = $(AR) $(ARFLAGS)
+libIBAMR_lagrangian_fortran3d_a_LIBADD =
+am_libIBAMR_lagrangian_fortran3d_a_OBJECTS =  \
+	lagrangian_interaction3d.$(OBJEXT)
+libIBAMR_lagrangian_fortran3d_a_OBJECTS =  \
+	$(am_libIBAMR_lagrangian_fortran3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
 F77COMPILE = $(F77) $(AM_FFLAGS) $(FFLAGS)
-LTF77COMPILE = $(LIBTOOL) --tag=F77 --mode=compile $(F77) $(AM_FFLAGS) \
-	$(FFLAGS)
 F77LD = $(F77)
-F77LINK = $(LIBTOOL) --tag=F77 --mode=link $(F77LD) $(AM_FFLAGS) \
-	$(FFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libIBAMR_lagrangian_fortran_la_SOURCES) \
-	$(libIBAMR_lagrangian_fortran2d_la_SOURCES) \
-	$(libIBAMR_lagrangian_fortran3d_la_SOURCES)
-DIST_SOURCES = $(libIBAMR_lagrangian_fortran_la_SOURCES) \
-	$(libIBAMR_lagrangian_fortran2d_la_SOURCES) \
-	$(libIBAMR_lagrangian_fortran3d_la_SOURCES)
+F77LINK = $(F77LD) $(AM_FFLAGS) $(FFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
+	$@
+SOURCES = $(libIBAMR_lagrangian_fortran_a_SOURCES) \
+	$(libIBAMR_lagrangian_fortran2d_a_SOURCES) \
+	$(libIBAMR_lagrangian_fortran3d_a_SOURCES)
+DIST_SOURCES = $(libIBAMR_lagrangian_fortran_a_SOURCES) \
+	$(libIBAMR_lagrangian_fortran2d_a_SOURCES) \
+	$(libIBAMR_lagrangian_fortran3d_a_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -84,7 +85,6 @@ ACLOCAL = @ACLOCAL@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
-AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -93,7 +93,6 @@ BLAS_LIBS = @BLAS_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
@@ -106,7 +105,6 @@ DOT = @DOT@
 DOT_PATH = @DOT_PATH@
 DOXYGEN = @DOXYGEN@
 DOXYGEN_PATH = @DOXYGEN_PATH@
-ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -126,8 +124,6 @@ LAPACK_LIBS = @LAPACK_LIBS@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
-LIBTOOL = @LIBTOOL@
-LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 M4 = @M4@
 MAKEINFO = @MAKEINFO@
@@ -164,21 +160,13 @@ am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
-build = @build@
 build_alias = @build_alias@
-build_cpu = @build_cpu@
-build_os = @build_os@
-build_vendor = @build_vendor@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
-host = @host@
 host_alias = @host_alias@
-host_cpu = @host_cpu@
-host_os = @host_os@
-host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -203,31 +191,21 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXTRA_DIST = \
-  lagrangian_delta.f.m4 lagrangian_interaction2d.f.m4 lagrangian_interaction3d.f.m4
-
-BUILT_SOURCES = \
-  lagrangian_delta.f lagrangian_interaction2d.f lagrangian_interaction3d.f
-
+EXTRA_DIST = lagrangian_delta.f.m4 lagrangian_interaction2d.f.m4 lagrangian_interaction3d.f.m4
+BUILT_SOURCES = lagrangian_delta.f lagrangian_interaction2d.f lagrangian_interaction3d.f
 CLEANFILES = ${BUILT_SOURCES}
-noinst_LTLIBRARIES = libIBAMR_lagrangian_fortran.la \
-	libIBAMR_lagrangian_fortran2d.la \
-	libIBAMR_lagrangian_fortran3d.la
-libIBAMR_lagrangian_fortran_la_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_lagrangian_fortran_la_SOURCES = lagrangian_delta.f
-libIBAMR_lagrangian_fortran2d_la_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_lagrangian_fortran2d_la_SOURCES = \
-  lagrangian_interaction2d.f
-
-libIBAMR_lagrangian_fortran3d_la_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_lagrangian_fortran3d_la_SOURCES = \
-  lagrangian_interaction3d.f
-
+noinst_LIBRARIES = libIBAMR_lagrangian_fortran.a libIBAMR_lagrangian_fortran2d.a libIBAMR_lagrangian_fortran3d.a
+libIBAMR_lagrangian_fortran_a_F77FLAGS = $(AM_F77FLAGS)
+libIBAMR_lagrangian_fortran_a_SOURCES = lagrangian_delta.f
+libIBAMR_lagrangian_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
+libIBAMR_lagrangian_fortran2d_a_SOURCES = lagrangian_interaction2d.f
+libIBAMR_lagrangian_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
+libIBAMR_lagrangian_fortran3d_a_SOURCES = lagrangian_interaction3d.f
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: .f.m4 .f .lo .o .obj
+.SUFFIXES: .f.m4 .f .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -258,20 +236,20 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
-clean-noinstLTLIBRARIES:
-	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
-	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
-	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
-	  test "$$dir" != "$$p" || dir=.; \
-	  echo "rm -f \"$${dir}/so_locations\""; \
-	  rm -f "$${dir}/so_locations"; \
-	done
-libIBAMR_lagrangian_fortran.la: $(libIBAMR_lagrangian_fortran_la_OBJECTS) $(libIBAMR_lagrangian_fortran_la_DEPENDENCIES) 
-	$(F77LINK)  $(libIBAMR_lagrangian_fortran_la_LDFLAGS) $(libIBAMR_lagrangian_fortran_la_OBJECTS) $(libIBAMR_lagrangian_fortran_la_LIBADD) $(LIBS)
-libIBAMR_lagrangian_fortran2d.la: $(libIBAMR_lagrangian_fortran2d_la_OBJECTS) $(libIBAMR_lagrangian_fortran2d_la_DEPENDENCIES) 
-	$(F77LINK)  $(libIBAMR_lagrangian_fortran2d_la_LDFLAGS) $(libIBAMR_lagrangian_fortran2d_la_OBJECTS) $(libIBAMR_lagrangian_fortran2d_la_LIBADD) $(LIBS)
-libIBAMR_lagrangian_fortran3d.la: $(libIBAMR_lagrangian_fortran3d_la_OBJECTS) $(libIBAMR_lagrangian_fortran3d_la_DEPENDENCIES) 
-	$(F77LINK)  $(libIBAMR_lagrangian_fortran3d_la_LDFLAGS) $(libIBAMR_lagrangian_fortran3d_la_OBJECTS) $(libIBAMR_lagrangian_fortran3d_la_LIBADD) $(LIBS)
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+libIBAMR_lagrangian_fortran.a: $(libIBAMR_lagrangian_fortran_a_OBJECTS) $(libIBAMR_lagrangian_fortran_a_DEPENDENCIES) 
+	-rm -f libIBAMR_lagrangian_fortran.a
+	$(libIBAMR_lagrangian_fortran_a_AR) libIBAMR_lagrangian_fortran.a $(libIBAMR_lagrangian_fortran_a_OBJECTS) $(libIBAMR_lagrangian_fortran_a_LIBADD)
+	$(RANLIB) libIBAMR_lagrangian_fortran.a
+libIBAMR_lagrangian_fortran2d.a: $(libIBAMR_lagrangian_fortran2d_a_OBJECTS) $(libIBAMR_lagrangian_fortran2d_a_DEPENDENCIES) 
+	-rm -f libIBAMR_lagrangian_fortran2d.a
+	$(libIBAMR_lagrangian_fortran2d_a_AR) libIBAMR_lagrangian_fortran2d.a $(libIBAMR_lagrangian_fortran2d_a_OBJECTS) $(libIBAMR_lagrangian_fortran2d_a_LIBADD)
+	$(RANLIB) libIBAMR_lagrangian_fortran2d.a
+libIBAMR_lagrangian_fortran3d.a: $(libIBAMR_lagrangian_fortran3d_a_OBJECTS) $(libIBAMR_lagrangian_fortran3d_a_DEPENDENCIES) 
+	-rm -f libIBAMR_lagrangian_fortran3d.a
+	$(libIBAMR_lagrangian_fortran3d_a_AR) libIBAMR_lagrangian_fortran3d.a $(libIBAMR_lagrangian_fortran3d_a_OBJECTS) $(libIBAMR_lagrangian_fortran3d_a_LIBADD)
+	$(RANLIB) libIBAMR_lagrangian_fortran3d.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -284,18 +262,6 @@ distclean-compile:
 
 .f.obj:
 	$(F77COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.f.lo:
-	$(LTF77COMPILE) -c -o $@ $<
-
-mostlyclean-libtool:
-	-rm -f *.lo
-
-clean-libtool:
-	-rm -rf .libs _libs
-
-distclean-libtool:
-	-rm -f libtool
 uninstall-info-am:
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
@@ -377,7 +343,7 @@ distdir: $(DISTFILES)
 check-am: all-am
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile $(LIBRARIES)
 installdirs:
 install: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) install-am
@@ -409,13 +375,12 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
-clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
-	mostlyclean-am
+clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-libtool distclean-tags
+	distclean-tags
 
 dvi: dvi-am
 
@@ -443,8 +408,7 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool
+mostlyclean-am: mostlyclean-compile mostlyclean-generic
 
 pdf: pdf-am
 
@@ -457,16 +421,15 @@ ps-am:
 uninstall-am: uninstall-info-am
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-libtool clean-noinstLTLIBRARIES ctags distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-exec \
-	install-exec-am install-info install-info-am install-man \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags uninstall uninstall-am \
-	uninstall-info-am
+	clean-noinstLIBRARIES ctags distclean distclean-compile \
+	distclean-generic distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-data \
+	install-data-am install-exec install-exec-am install-info \
+	install-info-am install-man install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
+	uninstall-am uninstall-info-am
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@

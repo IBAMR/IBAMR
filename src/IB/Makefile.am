@@ -2,24 +2,14 @@
 include $(top_srcdir)/config/Make-rules
 SUBDIRS = .
 
-## Dimension-independent library
-pkg_include_HEADERS = # intentionally blank
-
-noinst_LTLIBRARIES = #libIBAMR_IB.la
-#libIBAMR_IB_la_CXXFLAGS = $(AM_CXXFLAGS)
-#libIBAMR_IB_la_LIBADD = fortran/libIBAMR_IB_fortran.la
-#libIBAMR_IB_la_SOURCES =
+noinst_LIBRARIES = libIBAMR_IB2d.a libIBAMR_IB3d.a
 
 ## Dimension-dependent libraries
-SOURCES =              IBEulerianForceSetter.C IBEulerianSourceSetter.C IBHierarchyIntegrator.C IBLagrangianForceStrategy.C IBLagrangianSourceStrategy.C IBStandardInitializer.C SpringForceGen.C SpringForceSpec.C SpringForceSpecFactory.C TargetPointForceGen.C TargetPointForceSpec.C TargetPointForceSpecFactory.C TargetPointInitializer.C
-pkg_include_HEADERS += IBEulerianForceSetter.h IBEulerianSourceSetter.h IBHierarchyIntegrator.h IBLagrangianForceStrategy.h IBLagrangianSourceStrategy.h IBStandardInitializer.h SpringForceGen.h SpringForceSpec.h SpringForceSpecFactory.h TargetPointForceGen.h TargetPointForceSpec.h TargetPointForceSpecFactory.h TargetPointInitializer.h
+SOURCES              = IBEulerianForceSetter.C IBEulerianSourceSetter.C IBHierarchyIntegrator.C IBLagrangianForceStrategy.C IBLagrangianSourceStrategy.C IBStandardInitializer.C SpringForceGen.C SpringForceSpec.C SpringForceSpecFactory.C TargetPointForceGen.C TargetPointForceSpec.C TargetPointForceSpecFactory.C TargetPointInitializer.C
+pkg_include_HEADERS  = IBEulerianForceSetter.h IBEulerianSourceSetter.h IBHierarchyIntegrator.h IBLagrangianForceStrategy.h IBLagrangianSourceStrategy.h IBStandardInitializer.h SpringForceGen.h SpringForceSpec.h SpringForceSpecFactory.h TargetPointForceGen.h TargetPointForceSpec.h TargetPointForceSpecFactory.h TargetPointInitializer.h
 
-noinst_LTLIBRARIES += libIBAMR_IB2d.la
-libIBAMR_IB2d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-libIBAMR_IB2d_la_LIBADD =
-libIBAMR_IB2d_la_SOURCES = $(SOURCES)
+libIBAMR_IB2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+libIBAMR_IB2d_a_SOURCES = $(SOURCES)
 
-noinst_LTLIBRARIES += libIBAMR_IB3d.la
-libIBAMR_IB3d_la_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBAMR_IB3d_la_LIBADD =
-libIBAMR_IB3d_la_SOURCES = $(SOURCES)
+libIBAMR_IB3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+libIBAMR_IB3d_a_SOURCES = $(SOURCES)

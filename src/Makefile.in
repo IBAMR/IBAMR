@@ -34,8 +34,6 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-build_triplet = @build@
-host_triplet = @host@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
 subdir = src
@@ -56,43 +54,124 @@ am__vpath_adj = case $$p in \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)"
-libLTLIBRARIES_INSTALL = $(INSTALL)
-LTLIBRARIES = $(lib_LTLIBRARIES)
-am__DEPENDENCIES_1 =
-libIBAMR_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(top_builddir)/stools/src/libSTOOLS.la \
-	advect/libIBAMR_advect.la lagrangian/libIBAMR_lagrangian.la
-am_libIBAMR_la_OBJECTS =
-libIBAMR_la_OBJECTS = $(am_libIBAMR_la_OBJECTS)
-libIBAMR2d_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(top_builddir)/stools/src/libSTOOLS2d.la IB/libIBAMR_IB2d.la \
-	adv_diff/libIBAMR_adv_diff2d.la advect/libIBAMR_advect2d.la \
-	lagrangian/libIBAMR_lagrangian2d.la \
-	navier_stokes/libIBAMR_navier_stokes2d.la \
-	utilities/libIBAMR_utilities2d.la
-am_libIBAMR2d_la_OBJECTS =
-libIBAMR2d_la_OBJECTS = $(am_libIBAMR2d_la_OBJECTS)
-libIBAMR3d_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(top_builddir)/stools/src/libSTOOLS3d.la IB/libIBAMR_IB3d.la \
-	adv_diff/libIBAMR_adv_diff3d.la advect/libIBAMR_advect3d.la \
-	lagrangian/libIBAMR_lagrangian3d.la \
-	navier_stokes/libIBAMR_navier_stokes3d.la \
-	utilities/libIBAMR_utilities3d.la
-am_libIBAMR3d_la_OBJECTS =
-libIBAMR3d_la_OBJECTS = $(am_libIBAMR3d_la_OBJECTS)
+libLIBRARIES_INSTALL = $(INSTALL_DATA)
+LIBRARIES = $(lib_LIBRARIES)
+AR = ar
+ARFLAGS = cru
+libIBAMR_a_AR = $(AR) $(ARFLAGS)
+libIBAMR_a_DEPENDENCIES = advect/fortran/godunov_helpers.o \
+	lagrangian/fortran/lagrangian_delta.o
+am_libIBAMR_a_OBJECTS =
+libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
+libIBAMR2d_a_AR = $(AR) $(ARFLAGS)
+libIBAMR2d_a_DEPENDENCIES =  \
+	advect/libIBAMR_advect2d_a-GodunovAdvector.o \
+	advect/libIBAMR_advect2d_a-GodunovHypPatchOps.o \
+	advect/fortran/godunov_predictors2d.o \
+	advect/fortran/advect_diff2d.o \
+	advect/fortran/advect_stable2d.o \
+	advect/fortran/advect_detect2d.o \
+	adv_diff/fortran/adv_diff_consdiff2d.o \
+	adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o \
+	adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o \
+	navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
+	navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
+	navier_stokes/fortran/navier_stokes_stabledt2d.o \
+	navier_stokes/fortran/navier_stokes_divsource2d.o \
+	utilities/libIBAMR_utilities2d_a-SetDataStrategy.o \
+	utilities/libIBAMR_utilities2d_a-ConvergenceMonitor.o \
+	utilities/libIBAMR_utilities2d_a-StashableStream.o \
+	utilities/libIBAMR_utilities2d_a-StashableManager.o \
+	utilities/libIBAMR_utilities2d_a-get_version.o \
+	utilities/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.o \
+	utilities/libIBAMR_utilities2d_a-Stashable.o \
+	utilities/libIBAMR_utilities2d_a-StashableFactory.o \
+	IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
+	IB/libIBAMR_IB2d_a-TargetPointForceSpec.o \
+	IB/libIBAMR_IB2d_a-IBStandardInitializer.o \
+	IB/libIBAMR_IB2d_a-SpringForceSpec.o \
+	IB/libIBAMR_IB2d_a-TargetPointForceSpecFactory.o \
+	IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
+	IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
+	IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o \
+	IB/libIBAMR_IB2d_a-IBLagrangianForceStrategy.o \
+	IB/libIBAMR_IB2d_a-SpringForceGen.o \
+	IB/libIBAMR_IB2d_a-TargetPointInitializer.o \
+	IB/libIBAMR_IB2d_a-SpringForceSpecFactory.o \
+	IB/libIBAMR_IB2d_a-TargetPointForceGen.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LagSiloDataWriter.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LDataManager.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
+	lagrangian/fortran/lagrangian_interaction2d.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexSet.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o
+am_libIBAMR2d_a_OBJECTS =
+libIBAMR2d_a_OBJECTS = $(am_libIBAMR2d_a_OBJECTS)
+libIBAMR3d_a_AR = $(AR) $(ARFLAGS)
+libIBAMR3d_a_DEPENDENCIES =  \
+	advect/libIBAMR_advect3d_a-GodunovAdvector.o \
+	advect/fortran/godunov_predictors3d.o \
+	advect/fortran/advect_stable3d.o \
+	advect/fortran/advect_diff3d.o \
+	advect/fortran/advect_detect3d.o \
+	advect/libIBAMR_advect3d_a-GodunovHypPatchOps.o \
+	adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o \
+	adv_diff/fortran/adv_diff_consdiff3d.o \
+	adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o \
+	navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o \
+	navier_stokes/fortran/navier_stokes_stabledt3d.o \
+	navier_stokes/fortran/navier_stokes_divsource3d.o \
+	navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o \
+	utilities/libIBAMR_utilities3d_a-ConvergenceMonitor.o \
+	utilities/libIBAMR_utilities3d_a-get_version.o \
+	utilities/libIBAMR_utilities3d_a-SetDataStrategy.o \
+	utilities/libIBAMR_utilities3d_a-StashableStream.o \
+	utilities/libIBAMR_utilities3d_a-StashableFactory.o \
+	utilities/libIBAMR_utilities3d_a-StashableManager.o \
+	utilities/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.o \
+	utilities/libIBAMR_utilities3d_a-Stashable.o \
+	IB/libIBAMR_IB3d_a-IBLagrangianForceStrategy.o \
+	IB/libIBAMR_IB3d_a-TargetPointForceGen.o \
+	IB/libIBAMR_IB3d_a-SpringForceSpecFactory.o \
+	IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
+	IB/libIBAMR_IB3d_a-SpringForceSpec.o \
+	IB/libIBAMR_IB3d_a-IBStandardInitializer.o \
+	IB/libIBAMR_IB3d_a-TargetPointInitializer.o \
+	IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
+	IB/libIBAMR_IB3d_a-TargetPointForceSpecFactory.o \
+	IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o \
+	IB/libIBAMR_IB3d_a-TargetPointForceSpec.o \
+	IB/libIBAMR_IB3d_a-SpringForceGen.o \
+	IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexSet.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LDataManager.o \
+	lagrangian/fortran/lagrangian_interaction3d.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o
+am_libIBAMR3d_a_OBJECTS =
+libIBAMR3d_a_OBJECTS = $(am_libIBAMR3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libIBAMR_la_SOURCES) $(libIBAMR2d_la_SOURCES) \
-	$(libIBAMR3d_la_SOURCES)
-DIST_SOURCES = $(libIBAMR_la_SOURCES) $(libIBAMR2d_la_SOURCES) \
-	$(libIBAMR3d_la_SOURCES)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+SOURCES = $(libIBAMR_a_SOURCES) $(libIBAMR2d_a_SOURCES) \
+	$(libIBAMR3d_a_SOURCES)
+DIST_SOURCES = $(libIBAMR_a_SOURCES) $(libIBAMR2d_a_SOURCES) \
+	$(libIBAMR3d_a_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -107,7 +186,6 @@ ACLOCAL = @ACLOCAL@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
-AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -116,7 +194,6 @@ BLAS_LIBS = @BLAS_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
@@ -129,7 +206,6 @@ DOT = @DOT@
 DOT_PATH = @DOT_PATH@
 DOXYGEN = @DOXYGEN@
 DOXYGEN_PATH = @DOXYGEN_PATH@
-ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -149,8 +225,6 @@ LAPACK_LIBS = @LAPACK_LIBS@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
-LIBTOOL = @LIBTOOL@
-LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 M4 = @M4@
 MAKEINFO = @MAKEINFO@
@@ -187,21 +261,13 @@ am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
-build = @build@
 build_alias = @build_alias@
-build_cpu = @build_cpu@
-build_os = @build_os@
-build_vendor = @build_vendor@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
-host = @host@
 host_alias = @host_alias@
-host_cpu = @host_cpu@
-host_os = @host_os@
-host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -227,36 +293,103 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = fortran IB adv_diff advect lagrangian navier_stokes utilities . tests
-lib_LTLIBRARIES = libIBAMR.la libIBAMR2d.la libIBAMR3d.la
-libIBAMR_la_LIBADD = $(FLIBS)			\
-  $(top_builddir)/stools/src/libSTOOLS.la	\
-  advect/libIBAMR_advect.la			\
-  lagrangian/libIBAMR_lagrangian.la
-
-libIBAMR_la_LDFLAGS = -version 0:0:0
-libIBAMR_la_SOURCES = # intentionally blank
-libIBAMR2d_la_LIBADD = $(FLIBS)			\
-  $(top_builddir)/stools/src/libSTOOLS2d.la	\
-  IB/libIBAMR_IB2d.la				\
-  adv_diff/libIBAMR_adv_diff2d.la		\
-  advect/libIBAMR_advect2d.la			\
-  lagrangian/libIBAMR_lagrangian2d.la		\
-  navier_stokes/libIBAMR_navier_stokes2d.la	\
-  utilities/libIBAMR_utilities2d.la
-
-libIBAMR2d_la_LDFLAGS = -version 0:0:0
-libIBAMR2d_la_SOURCES = 
-libIBAMR3d_la_LIBADD = $(FLIBS)			\
-  $(top_builddir)/stools/src/libSTOOLS3d.la	\
-  IB/libIBAMR_IB3d.la				\
-  adv_diff/libIBAMR_adv_diff3d.la		\
-  advect/libIBAMR_advect3d.la			\
-  lagrangian/libIBAMR_lagrangian3d.la		\
-  navier_stokes/libIBAMR_navier_stokes3d.la	\
-  utilities/libIBAMR_utilities3d.la
-
-libIBAMR3d_la_LDFLAGS = -version 0:0:0
-libIBAMR3d_la_SOURCES = 
+lib_LIBRARIES = libIBAMR.a libIBAMR2d.a libIBAMR3d.a
+libIBAMR_a_LIBADD = advect/fortran/godunov_helpers.o lagrangian/fortran/lagrangian_delta.o
+libIBAMR_a_SOURCES = # intentionally blank
+libIBAMR2d_a_LIBADD = advect/libIBAMR_advect2d_a-GodunovAdvector.o \
+	advect/libIBAMR_advect2d_a-GodunovHypPatchOps.o \
+	advect/fortran/godunov_predictors2d.o \
+	advect/fortran/advect_diff2d.o \
+	advect/fortran/advect_stable2d.o \
+	advect/fortran/advect_detect2d.o \
+	adv_diff/fortran/adv_diff_consdiff2d.o \
+	adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o \
+	adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o \
+	navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
+	navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
+	navier_stokes/fortran/navier_stokes_stabledt2d.o \
+	navier_stokes/fortran/navier_stokes_divsource2d.o \
+	utilities/libIBAMR_utilities2d_a-SetDataStrategy.o \
+	utilities/libIBAMR_utilities2d_a-ConvergenceMonitor.o \
+	utilities/libIBAMR_utilities2d_a-StashableStream.o \
+	utilities/libIBAMR_utilities2d_a-StashableManager.o \
+	utilities/libIBAMR_utilities2d_a-get_version.o \
+	utilities/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.o \
+	utilities/libIBAMR_utilities2d_a-Stashable.o \
+	utilities/libIBAMR_utilities2d_a-StashableFactory.o \
+	IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
+	IB/libIBAMR_IB2d_a-TargetPointForceSpec.o \
+	IB/libIBAMR_IB2d_a-IBStandardInitializer.o \
+	IB/libIBAMR_IB2d_a-SpringForceSpec.o \
+	IB/libIBAMR_IB2d_a-TargetPointForceSpecFactory.o \
+	IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
+	IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
+	IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o \
+	IB/libIBAMR_IB2d_a-IBLagrangianForceStrategy.o \
+	IB/libIBAMR_IB2d_a-SpringForceGen.o \
+	IB/libIBAMR_IB2d_a-TargetPointInitializer.o \
+	IB/libIBAMR_IB2d_a-SpringForceSpecFactory.o \
+	IB/libIBAMR_IB2d_a-TargetPointForceGen.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LagSiloDataWriter.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LDataManager.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
+	lagrangian/fortran/lagrangian_interaction2d.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexSet.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o
+libIBAMR2d_a_SOURCES = # intentionally blank
+libIBAMR3d_a_LIBADD = advect/libIBAMR_advect3d_a-GodunovAdvector.o \
+	advect/fortran/godunov_predictors3d.o \
+	advect/fortran/advect_stable3d.o \
+	advect/fortran/advect_diff3d.o \
+	advect/fortran/advect_detect3d.o \
+	advect/libIBAMR_advect3d_a-GodunovHypPatchOps.o \
+	adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o \
+	adv_diff/fortran/adv_diff_consdiff3d.o \
+	adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o \
+	navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o \
+	navier_stokes/fortran/navier_stokes_stabledt3d.o \
+	navier_stokes/fortran/navier_stokes_divsource3d.o \
+	navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o \
+	utilities/libIBAMR_utilities3d_a-ConvergenceMonitor.o \
+	utilities/libIBAMR_utilities3d_a-get_version.o \
+	utilities/libIBAMR_utilities3d_a-SetDataStrategy.o \
+	utilities/libIBAMR_utilities3d_a-StashableStream.o \
+	utilities/libIBAMR_utilities3d_a-StashableFactory.o \
+	utilities/libIBAMR_utilities3d_a-StashableManager.o \
+	utilities/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.o \
+	utilities/libIBAMR_utilities3d_a-Stashable.o \
+	IB/libIBAMR_IB3d_a-IBLagrangianForceStrategy.o \
+	IB/libIBAMR_IB3d_a-TargetPointForceGen.o \
+	IB/libIBAMR_IB3d_a-SpringForceSpecFactory.o \
+	IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
+	IB/libIBAMR_IB3d_a-SpringForceSpec.o \
+	IB/libIBAMR_IB3d_a-IBStandardInitializer.o \
+	IB/libIBAMR_IB3d_a-TargetPointInitializer.o \
+	IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
+	IB/libIBAMR_IB3d_a-TargetPointForceSpecFactory.o \
+	IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o \
+	IB/libIBAMR_IB3d_a-TargetPointForceSpec.o \
+	IB/libIBAMR_IB3d_a-SpringForceGen.o \
+	IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexSet.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LDataManager.o \
+	lagrangian/fortran/lagrangian_interaction3d.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o
+libIBAMR3d_a_SOURCES = # intentionally blank
 all: all-recursive
 
 .SUFFIXES:
@@ -290,54 +423,53 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+install-libLIBRARIES: $(lib_LIBRARIES)
 	@$(NORMAL_INSTALL)
 	test -z "$(libdir)" || $(mkdir_p) "$(DESTDIR)$(libdir)"
-	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
 	  if test -f $$p; then \
 	    f=$(am__strip_dir) \
-	    echo " $(LIBTOOL) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(libdir)/$$f'"; \
-	    $(LIBTOOL) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(libdir)/$$f"; \
+	    echo " $(libLIBRARIES_INSTALL) '$$p' '$(DESTDIR)$(libdir)/$$f'"; \
+	    $(libLIBRARIES_INSTALL) "$$p" "$(DESTDIR)$(libdir)/$$f"; \
+	  else :; fi; \
+	done
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    p=$(am__strip_dir) \
+	    echo " $(RANLIB) '$(DESTDIR)$(libdir)/$$p'"; \
+	    $(RANLIB) "$(DESTDIR)$(libdir)/$$p"; \
 	  else :; fi; \
 	done
 
-uninstall-libLTLIBRARIES:
+uninstall-libLIBRARIES:
 	@$(NORMAL_UNINSTALL)
-	@set -x; list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
 	  p=$(am__strip_dir) \
-	  echo " $(LIBTOOL) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$p'"; \
-	  $(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$p"; \
+	  echo " rm -f '$(DESTDIR)$(libdir)/$$p'"; \
+	  rm -f "$(DESTDIR)$(libdir)/$$p"; \
 	done
 
-clean-libLTLIBRARIES:
-	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
-	  test "$$dir" != "$$p" || dir=.; \
-	  echo "rm -f \"$${dir}/so_locations\""; \
-	  rm -f "$${dir}/so_locations"; \
-	done
-libIBAMR.la: $(libIBAMR_la_OBJECTS) $(libIBAMR_la_DEPENDENCIES) 
-	$(LINK) -rpath $(libdir) $(libIBAMR_la_LDFLAGS) $(libIBAMR_la_OBJECTS) $(libIBAMR_la_LIBADD) $(LIBS)
-libIBAMR2d.la: $(libIBAMR2d_la_OBJECTS) $(libIBAMR2d_la_DEPENDENCIES) 
-	$(LINK) -rpath $(libdir) $(libIBAMR2d_la_LDFLAGS) $(libIBAMR2d_la_OBJECTS) $(libIBAMR2d_la_LIBADD) $(LIBS)
-libIBAMR3d.la: $(libIBAMR3d_la_OBJECTS) $(libIBAMR3d_la_DEPENDENCIES) 
-	$(LINK) -rpath $(libdir) $(libIBAMR3d_la_LDFLAGS) $(libIBAMR3d_la_OBJECTS) $(libIBAMR3d_la_LIBADD) $(LIBS)
+clean-libLIBRARIES:
+	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) 
+	-rm -f libIBAMR.a
+	$(libIBAMR_a_AR) libIBAMR.a $(libIBAMR_a_OBJECTS) $(libIBAMR_a_LIBADD)
+	$(RANLIB) libIBAMR.a
+libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) 
+	-rm -f libIBAMR2d.a
+	$(libIBAMR2d_a_AR) libIBAMR2d.a $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_LIBADD)
+	$(RANLIB) libIBAMR2d.a
+libIBAMR3d.a: $(libIBAMR3d_a_OBJECTS) $(libIBAMR3d_a_DEPENDENCIES) 
+	-rm -f libIBAMR3d.a
+	$(libIBAMR3d_a_AR) libIBAMR3d.a $(libIBAMR3d_a_OBJECTS) $(libIBAMR3d_a_LIBADD)
+	$(RANLIB) libIBAMR3d.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
-
-mostlyclean-libtool:
-	-rm -f *.lo
-
-clean-libtool:
-	-rm -rf .libs _libs
-
-distclean-libtool:
-	-rm -f libtool
 uninstall-info-am:
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -517,7 +649,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile $(LIBRARIES)
 installdirs: installdirs-recursive
 installdirs-am:
 	for dir in "$(DESTDIR)$(libdir)"; do \
@@ -550,13 +682,12 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-recursive
 
-clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
-	mostlyclean-am
+clean-am: clean-generic clean-libLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-libtool distclean-tags
+	distclean-tags
 
 dvi: dvi-recursive
 
@@ -570,7 +701,7 @@ info-am:
 
 install-data-am:
 
-install-exec-am: install-libLTLIBRARIES
+install-exec-am: install-libLIBRARIES
 
 install-info: install-info-recursive
 
@@ -584,8 +715,7 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-recursive
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool
+mostlyclean-am: mostlyclean-compile mostlyclean-generic
 
 pdf: pdf-recursive
 
@@ -595,24 +725,23 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
+uninstall-am: uninstall-info-am uninstall-libLIBRARIES
 
 uninstall-info: uninstall-info-recursive
 
 .PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am check check-am \
-	clean clean-generic clean-libLTLIBRARIES clean-libtool \
-	clean-recursive ctags ctags-recursive distclean \
-	distclean-compile distclean-generic distclean-libtool \
+	clean clean-generic clean-libLIBRARIES clean-recursive ctags \
+	ctags-recursive distclean distclean-compile distclean-generic \
 	distclean-recursive distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
 	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-libLTLIBRARIES install-man \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
+	install-info-am install-libLIBRARIES install-man install-strip \
+	installcheck installcheck-am installdirs installdirs-am \
+	maintainer-clean maintainer-clean-generic \
 	maintainer-clean-recursive mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool mostlyclean-recursive \
-	pdf pdf-am ps ps-am tags tags-recursive uninstall uninstall-am \
-	uninstall-info-am uninstall-libLTLIBRARIES
+	mostlyclean-generic mostlyclean-recursive pdf pdf-am ps ps-am \
+	tags tags-recursive uninstall uninstall-am uninstall-info-am \
+	uninstall-libLIBRARIES
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
