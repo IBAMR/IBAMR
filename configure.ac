@@ -68,7 +68,10 @@ if test "$MPILIBS" != "" ; then
   LIBS="$MPILIBS $LIBS"
 fi
 
-# Checks for C++ compiler features.
+# Checks for C and C++ compiler features.
+AC_HEADER_MAJOR
+AC_HEADER_STDC
+
 AC_CXX_NAMESPACES
 if test "$ac_cv_cxx_namespaces" != "yes" ; then
   AC_MSG_ERROR([the specified C++ compiler does not appear to support namespaces])
