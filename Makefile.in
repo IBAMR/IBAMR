@@ -38,9 +38,8 @@ DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(top_srcdir)/config/Make-rules \
 	$(top_srcdir)/config/make.inc.in $(top_srcdir)/configure \
 	$(top_srcdir)/sample/IB/Makefile.in \
-	$(top_srcdir)/sample/blank_slate/Makefile.in \
-	config/config.guess config/config.sub config/depcomp \
-	config/install-sh config/ltmain.sh config/missing
+	$(top_srcdir)/sample/blank_slate/Makefile.in config/depcomp \
+	config/install-sh config/missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
