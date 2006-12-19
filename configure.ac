@@ -19,6 +19,24 @@ AC_PROG_F77		# Check for a Fortran compiler.
 AC_F77_LIBRARY_LDFLAGS	# Determine the linker flags for the Fortran intrinsic and runtime libraries.
 AC_F77_WRAPPERS
 
+# Check rpath syntax.
+AC_ARG_WITH([rpath],
+  AS_HELP_STRING([--with-rpath],[indicate whether additional linker flags, e.g. -rpath<lib dir> are required when linking with shared libraries]),
+  [USE_RPATH_FLAG=$withval],
+  [USE_RPATH_FLAG="yes"])
+
+AC_ARG_WITH([rpath-syntax],
+  AS_HELP_STRING([--with-rpath-syntax=ARG],[linker flags, e.g. -rpath<lib dir> are required when linking with shared libraries @<:@default=-Wl,-rpath,@:>@]),
+  [RPATH_FLAG=$withval],
+  [RPATH_FLAG="-Wl,-rpath,"])
+
+if test "$USE_RPATH_FLAG" == "yes" ; then
+  echo "using rpath flags when linking against shared libraries"
+  echo "rpath flag syntax is: ${RPATH_FLAG}<lib dir>"
+else
+  echo "not using rpath flags when linking against shared libraries"
+fi
+
 # Check for MPICC and MPICXX and configure MPI options.
 AC_ARG_WITH([mpi],
   AS_HELP_STRING(--with-mpi=PATH,location of required MPI installation),
@@ -132,7 +150,10 @@ AC_ARG_WITH([hdf5],
   [HDF5_DIR=/usr/local/sfw/hdf5/current])
 
 if test -d "${HDF5_DIR}/lib" ; then
-  LDFLAGS="-L${HDF5_DIR}/lib -Wl,-rpath,${HDF5_DIR}/lib $LDFLAGS"
+  if test "${USE_RPATH_FLAG}" == "yes" ; then
+    LDFLAGS="${RPATH_FLAG}${HDF5_DIR}/lib $LDFLAGS"
+  fi
+  LDFLAGS="-L${HDF5_DIR}/lib $LDFLAGS"
 fi
 if test -d "${HDF5_DIR}/include" ; then
   CPPFLAGS="-I${HDF5_DIR}/include $CPPFLAGS"
@@ -164,7 +185,10 @@ AC_ARG_WITH([hypre],
   [HYPRE_DIR=/usr/local/sfw/hypre/current])
 
 if test -d "${HYPRE_DIR}/lib" ; then
-  LDFLAGS="-L${HYPRE_DIR}/lib -Wl,-rpath,${HYPRE_DIR}/lib $LDFLAGS"
+  if test "${USE_RPATH_FLAG}" == "yes" ; then
+    LDFLAGS="${RPATH_FLAG}${HYPRE_DIR}/lib $LDFLAGS"
+  fi
+  LDFLAGS="-L${HYPRE_DIR}/lib $LDFLAGS"
 fi
 if test -d "${HYPRE_DIR}/include" ; then
   CPPFLAGS="-I${HYPRE_DIR}/include $CPPFLAGS"
@@ -206,7 +230,10 @@ AC_ARG_WITH([samrai],
   [SAMRAI_DIR=/usr/local/sfw/samrai/current])
 
 if test -d "${SAMRAI_DIR}/lib" ; then
-  LDFLAGS="-L${SAMRAI_DIR}/lib -Wl,-rpath,${SAMRAI_DIR}/lib $LDFLAGS"
+  if test "${USE_RPATH_FLAG}" == "yes" ; then
+    LDFLAGS="${RPATH_FLAG}${SAMRAI_DIR}/lib $LDFLAGS"
+  fi
+  LDFLAGS="-L${SAMRAI_DIR}/lib $LDFLAGS"
 fi
 if test -d "${SAMRAI_DIR}/include" ; then
   CPPFLAGS="-I${SAMRAI_DIR}/include $CPPFLAGS"
@@ -306,7 +333,10 @@ echo "using PETSc lib     directory = ${PETSC_DIR}/lib/${PETSC_ARCH}"
 echo "using PETSc include directory = ${PETSC_DIR}/include, ${PETSC_DIR}/bmake/${PETSC_ARCH}"
 
 if test -d "${PETSC_DIR}/lib/${PETSC_ARCH}" ; then
-  LDFLAGS="-L${PETSC_DIR}/lib/${PETSC_ARCH} -Wl,-rpath,${PETSC_DIR}/lib/${PETSC_ARCH} $LDFLAGS"
+  if test "${USE_RPATH_FLAG}" == "yes" ; then
+    LDFLAGS="${RPATH_FLAG}${PETSC_DIR}/lib/${PETSC_ARCH} $LDFLAGS"
+  fi
+  LDFLAGS="-L${PETSC_DIR}/lib/${PETSC_ARCH} $LDFLAGS"
 fi
 if test -d "${PETSC_DIR}/include" ; then
   CPPFLAGS="-I${PETSC_DIR}/include -I${PETSC_DIR}/bmake/${PETSC_ARCH} $CPPFLAGS"
@@ -403,7 +433,10 @@ if test "$BLITZ_ENABLED" == "yes"; then
   echo "===================================="
 
   if test -d "${BLITZ_DIR}/lib" ; then
-    LDFLAGS="-L${BLITZ_DIR}/lib -Wl,-rpath,${BLITZ_DIR}/lib $LDFLAGS"
+    if test "${USE_RPATH_FLAG}" == "yes" ; then
+      LDFLAGS="${RPATH_FLAG}${BLITZ_DIR}/lib $LDFLAGS"
+    fi
+    LDFLAGS="-L${BLITZ_DIR}/lib $LDFLAGS"
   fi
   if test -d "${BLITZ_DIR}/include" ; then
    CPPFLAGS="-I${BLITZ_DIR}/include $CPPFLAGS"
@@ -446,7 +479,10 @@ if test "$SILO_ENABLED" == "yes"; then
   echo "================================="
 
   if test -d "${SILO_DIR}/lib" ; then
-    LDFLAGS="-L${SILO_DIR}/lib -Wl,-rpath,${SILO_DIR}/lib $LDFLAGS"
+    if test "${USE_RPATH_FLAG}" == "yes" ; then
+      LDFLAGS="${RPATH_FLAG}${SILO_DIR}/lib $LDFLAGS"
+    fi
+    LDFLAGS="-L${SILO_DIR}/lib $LDFLAGS"
   fi
   if test -d "${SILO_DIR}/include" ; then
     CPPFLAGS="-I${SILO_DIR}/include $CPPFLAGS"

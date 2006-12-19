@@ -1317,6 +1317,11 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-rpath            indicate whether additional linker flags, e.g.
+                          -rpath<lib dir> are required when linking with
+                          shared libraries
+  --with-rpath-syntax=ARG linker flags, e.g. -rpath<lib dir> are required when
+                          linking with shared libraries [default=-Wl,-rpath,]
   --with-mpi=PATH         location of required MPI installation
   --with-mpicc=ARG        MPI C compiler command
   --with-mpicxx=ARG       MPI C++ compiler command
@@ -5214,6 +5219,32 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
+# Check rpath syntax.
+
+# Check whether --with-rpath was given.
+if test "${with_rpath+set}" = set; then
+  withval=$with_rpath; USE_RPATH_FLAG=$withval
+else
+  USE_RPATH_FLAG="yes"
+fi
+
+
+
+# Check whether --with-rpath-syntax was given.
+if test "${with_rpath_syntax+set}" = set; then
+  withval=$with_rpath_syntax; RPATH_FLAG=$withval
+else
+  RPATH_FLAG="-Wl,-rpath,"
+fi
+
+
+if test "$USE_RPATH_FLAG" == "yes" ; then
+  echo "using rpath flags when linking against shared libraries"
+  echo "rpath flag syntax is: ${RPATH_FLAG}<lib dir>"
+else
+  echo "not using rpath flags when linking against shared libraries"
+fi
+
 # Check for MPICC and MPICXX and configure MPI options.
 
 # Check whether --with-mpi was given.
@@ -8786,7 +8817,10 @@ fi
 
 
 if test -d "${HDF5_DIR}/lib" ; then
-  LDFLAGS="-L${HDF5_DIR}/lib -Wl,-rpath,${HDF5_DIR}/lib $LDFLAGS"
+  if test "${USE_RPATH_FLAG}" == "yes" ; then
+    LDFLAGS="${RPATH_FLAG}${HDF5_DIR}/lib $LDFLAGS"
+  fi
+  LDFLAGS="-L${HDF5_DIR}/lib $LDFLAGS"
 fi
 if test -d "${HDF5_DIR}/include" ; then
   CPPFLAGS="-I${HDF5_DIR}/include $CPPFLAGS"
@@ -10174,7 +10208,10 @@ fi
 
 
 if test -d "${HYPRE_DIR}/lib" ; then
-  LDFLAGS="-L${HYPRE_DIR}/lib -Wl,-rpath,${HYPRE_DIR}/lib $LDFLAGS"
+  if test "${USE_RPATH_FLAG}" == "yes" ; then
+    LDFLAGS="${RPATH_FLAG}${HYPRE_DIR}/lib $LDFLAGS"
+  fi
+  LDFLAGS="-L${HYPRE_DIR}/lib $LDFLAGS"
 fi
 if test -d "${HYPRE_DIR}/include" ; then
   CPPFLAGS="-I${HYPRE_DIR}/include $CPPFLAGS"
@@ -12042,7 +12079,10 @@ fi
 
 
 if test -d "${SAMRAI_DIR}/lib" ; then
-  LDFLAGS="-L${SAMRAI_DIR}/lib -Wl,-rpath,${SAMRAI_DIR}/lib $LDFLAGS"
+  if test "${USE_RPATH_FLAG}" == "yes" ; then
+    LDFLAGS="${RPATH_FLAG}${SAMRAI_DIR}/lib $LDFLAGS"
+  fi
+  LDFLAGS="-L${SAMRAI_DIR}/lib $LDFLAGS"
 fi
 if test -d "${SAMRAI_DIR}/include" ; then
   CPPFLAGS="-I${SAMRAI_DIR}/include $CPPFLAGS"
@@ -15694,7 +15734,10 @@ echo "using PETSc lib     directory = ${PETSC_DIR}/lib/${PETSC_ARCH}"
 echo "using PETSc include directory = ${PETSC_DIR}/include, ${PETSC_DIR}/bmake/${PETSC_ARCH}"
 
 if test -d "${PETSC_DIR}/lib/${PETSC_ARCH}" ; then
-  LDFLAGS="-L${PETSC_DIR}/lib/${PETSC_ARCH} -Wl,-rpath,${PETSC_DIR}/lib/${PETSC_ARCH} $LDFLAGS"
+  if test "${USE_RPATH_FLAG}" == "yes" ; then
+    LDFLAGS="${RPATH_FLAG}${PETSC_DIR}/lib/${PETSC_ARCH} $LDFLAGS"
+  fi
+  LDFLAGS="-L${PETSC_DIR}/lib/${PETSC_ARCH} $LDFLAGS"
 fi
 if test -d "${PETSC_DIR}/include" ; then
   CPPFLAGS="-I${PETSC_DIR}/include -I${PETSC_DIR}/bmake/${PETSC_ARCH} $CPPFLAGS"
@@ -17317,7 +17360,10 @@ if test "$BLITZ_ENABLED" == "yes"; then
   echo "===================================="
 
   if test -d "${BLITZ_DIR}/lib" ; then
-    LDFLAGS="-L${BLITZ_DIR}/lib -Wl,-rpath,${BLITZ_DIR}/lib $LDFLAGS"
+    if test "${USE_RPATH_FLAG}" == "yes" ; then
+      LDFLAGS="${RPATH_FLAG}${BLITZ_DIR}/lib $LDFLAGS"
+    fi
+    LDFLAGS="-L${BLITZ_DIR}/lib $LDFLAGS"
   fi
   if test -d "${BLITZ_DIR}/include" ; then
    CPPFLAGS="-I${BLITZ_DIR}/include $CPPFLAGS"
@@ -17623,7 +17669,10 @@ if test "$SILO_ENABLED" == "yes"; then
   echo "================================="
 
   if test -d "${SILO_DIR}/lib" ; then
-    LDFLAGS="-L${SILO_DIR}/lib -Wl,-rpath,${SILO_DIR}/lib $LDFLAGS"
+    if test "${USE_RPATH_FLAG}" == "yes" ; then
+      LDFLAGS="${RPATH_FLAG}${SILO_DIR}/lib $LDFLAGS"
+    fi
+    LDFLAGS="-L${SILO_DIR}/lib $LDFLAGS"
   fi
   if test -d "${SILO_DIR}/include" ; then
     CPPFLAGS="-I${SILO_DIR}/include $CPPFLAGS"
