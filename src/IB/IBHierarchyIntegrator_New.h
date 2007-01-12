@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <04.Oct.2006 19:52:35 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <11.Jan.2007 17:20:13 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -20,7 +20,10 @@
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
+#include <CoarsenAlgorithm.h>
+#include <CoarsenSchedule.h>
 #include <GriddingAlgorithm.h>
+#include <HierarchyCellDataOpsReal.h>
 #include <IntVector.h>
 #include <LoadBalancer.h>
 #include <PatchHierarchy.h>
@@ -50,6 +53,9 @@ class IBHierarchyIntegrator
 public:
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineSchedMap;
+
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >          CoarsenAlgMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
 
     /*!
      * XXXX
@@ -638,7 +644,7 @@ private:
      * interpolation and spreading.
      */
     std::string d_delta_fcn;
-    SAMRAI::hier::IntVector<NDIM> d_ghosts, d_pres_ghosts, d_source_ghosts;
+    SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
     /*
      * Integrator data read from input or set at initialization.
@@ -664,12 +670,6 @@ private:
      * taken between invocations of the regridding process.
      */
     int d_regrid_interval;
-
-    /*
-     * The order of accuracy of the SSP Runge-Kutta method used to
-     * advance the configuration of the Lagrangian mesh.
-     */
-    int d_timestepping_order;
 
     /*
      * Integrator data that evolves during time integration and
@@ -704,14 +704,25 @@ private:
     RefineAlgMap    d_ralgs;
     RefineSchedMap  d_rscheds;
 
+    CoarsenAlgMap   d_calgs;
+    CoarsenSchedMap d_cscheds;
+
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_force_ralg;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_force_rscheds;
+
+    /*
+     * Hierarchy operations objects.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
+
     /*
      * Variables and variable contexts.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_V_var, d_W_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var, d_Q_var;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    int d_V_idx, d_W_idx, d_F_idx, d_P_idx, d_Q_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
+    int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_P_idx, d_Q_idx;
 };
 }// namespace IBAMR
 
