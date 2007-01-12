@@ -30,7 +30,7 @@ IBHierarchyIntegrator {
 }
 
 FeedbackFSet {
-   kappa = 1000.0
+   kappa = 500.0
    width0 = 1.0/32.0
    width1 = 4.0/32.0
 }

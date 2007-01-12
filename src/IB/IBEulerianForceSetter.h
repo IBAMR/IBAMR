@@ -3,7 +3,7 @@
 
 // Filename: IBEulerianForceSetter.h
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <04.Oct.2006 19:52:24 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <11.Jan.2007 16:33:24 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -38,13 +38,6 @@ public:
      * @brief Destructor.
      */
     ~IBEulerianForceSetter();
-
-    /*!
-     * Register an externally supplied (Eulerian) body force
-     * specification with the force setter.
-     */
-    void registerBodyForce(
-        SAMRAI::tbox::Pointer<SetDataStrategy> body_force_set);
 
     //@{ @name Methods to set the data.
 
@@ -101,11 +94,6 @@ private:
      * Patch data descriptor index for the force data.
      */
     const int d_F_idx;
-
-    /*
-     * Optional body force.
-     */
-    SAMRAI::tbox::Pointer<SetDataStrategy> d_body_force_set;
 };
 }// namespace IBAMR
 

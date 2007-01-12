@@ -50,7 +50,7 @@ INSHierarchyIntegrator {
    vorticity_threshold = 0.25
 
    output_P = TRUE
-   output_F = FALSE
+   output_F = TRUE
    output_Q = FALSE
 
    output_Omega = TRUE

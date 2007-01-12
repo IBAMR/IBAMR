@@ -1,6 +1,6 @@
 // Filename: IBEulerianForceSetter.C
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <25.Oct.2006 18:29:31 boyce@bigboy.nyconnect.com>
+// Last modified: <11.Jan.2007 16:33:51 griffith@box221.cims.nyu.edu>
 
 #include "IBEulerianForceSetter.h"
 
@@ -35,8 +35,7 @@ IBEulerianForceSetter::IBEulerianForceSetter(
     const string& object_name,
     const int F_idx)
     : SetDataStrategy(object_name),
-      d_F_idx(F_idx),
-      d_body_force_set(NULL)
+      d_F_idx(F_idx)
 {
     // intentionally blank
     return;
@@ -47,14 +46,6 @@ IBEulerianForceSetter::~IBEulerianForceSetter()
     // intentionally blank
     return;
 }// ~IBEulerianForceSetter
-
-void
-IBEulerianForceSetter::registerBodyForce(
-    SAMRAI::tbox::Pointer<SetDataStrategy> body_force_set)
-{
-    d_body_force_set = body_force_set;
-    return;
-}// registerBodyForce
 
 bool
 IBEulerianForceSetter::isTimeDependent() const
@@ -78,25 +69,13 @@ IBEulerianForceSetter::setDataOnPatch(
     {
         f_data->fillAll(0.0);
     }
-    else if (d_body_force_set.isNull())
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > my_f_data = patch.getPatchData(d_F_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        assert(!my_f_data.isNull());
-#endif
-        f_data->copy(*my_f_data);
-    }
     else
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > my_f_data = patch.getPatchData(d_F_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
         assert(!my_f_data.isNull());
 #endif
-        d_body_force_set->setDataOnPatch(
-            data_idx, var, patch, data_time, initial_time);
-
-        SAMRAI::math::PatchCellDataOpsReal<NDIM,double> patch_ops;
-        patch_ops.add(f_data, f_data, my_f_data, patch.getBox());
+        f_data->copy(*my_f_data);
     }
     return;
 }// setDataOnPatch
