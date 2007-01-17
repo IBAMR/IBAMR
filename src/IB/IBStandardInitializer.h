@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <27.Nov.2006 23:30:12 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Jan.2007 16:24:59 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -24,9 +24,6 @@ namespace IBAMR
  * \brief Class IBStandardInitialier is a concrete
  * LNodePosnInitStrategy that can intialize the initial configuration
  * of one or more IB structures from input files.
- *
- * \note Presently, all curvilinear mesh data must be assigned to the
- * finest level of the hierarchically refined Cartesian grid.
  *
  * \todo document input database entries
  */
@@ -149,14 +146,12 @@ private:
     /*!
      * \brief Read the vertex data from one or more input files.
      */
-    void readVertexFiles(
-        const std::vector<std::string>& base_filenames);
+    void readVertexFiles();
 
     /*!
      * \brief Read the edge data from one or more input files.
      */
-    void readEdgeFiles(
-        const std::vector<std::string>& base_filenames);
+    void readEdgeFiles();
 
     /*!
      * \brief Determine the indices of any vertices initially located
@@ -173,13 +168,15 @@ private:
      * vertex.
      */
     int getCannonicalLagrangianIndex(
-        const std::pair<int,int>& point_index) const;
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
 
     /*!
      * \return The initial position of the specified vertex.
      */
     std::vector<double> getVertexPosn(
-        const std::pair<int,int>& point_index) const;
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
 
     /*!
      * \return The force specification objects associated with the
@@ -187,7 +184,8 @@ private:
      */
     std::vector<SAMRAI::tbox::Pointer<Stashable> > initializeForceSpec(
         const std::pair<int,int>& point_index,
-        const int global_index_offset) const;
+        const int global_index_offset,
+        const int level_number) const;
 
     /*
      * The object name is used as a handle to databases stored in
@@ -196,16 +194,22 @@ private:
     std::string d_object_name;
 
     /*
+     * The maximum number of levels in the Cartesian grid patch
+     * hierarchy.
+     */
+    int d_max_levels;
+
+    /*
      * The base filenames of the structures are used to generate
      * unique names when registering data with the Silo data writer.
      */
-    std::vector<std::string> d_base_filenames;
+    std::vector<std::vector<std::string> > d_base_filenames;
 
     /*
      * Vertex information.
      */
-    std::vector<int> d_num_vertices, d_vertex_offsets;
-    std::vector<std::vector<double> > d_vertex_posns;
+    std::vector<std::vector<int> > d_num_vertices, d_vertex_offsets;
+    std::vector<std::vector<std::vector<double> > > d_vertex_posns;
 
     /*
      * Edge information.
@@ -222,14 +226,13 @@ private:
                 return (e1.first < e2.first) || (e1.first == e2.first && e1.second < e2.second);
             }
     };
-    std::vector<std::multimap<int,Edge> > d_edge_map;
-    std::vector<std::map<Edge,double,EdgeComp> > d_edge_stiffnesses, d_edge_rest_lengths;
+    std::vector<std::vector<std::multimap<int,Edge> > > d_edge_map;
+    std::vector<std::vector<std::map<Edge,double,EdgeComp> > > d_edge_stiffnesses, d_edge_rest_lengths;
 
     /*
      * Data required to specify connectivity information for
      * visualization purposes.
      */
-    int d_finest_level_number;
     std::vector<int> d_global_index_offset;
 };
 }// namespace IBAMR

@@ -11,7 +11,7 @@ alpha = 0.2;
 beta  = 0.25;
 
 tapered_stiffness = false;
-stiffness = 1.0/num_layers;
+stiffness = 0.5/num_layers;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

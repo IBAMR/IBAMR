@@ -3,7 +3,7 @@
 
 // Filename: IBEulerianForceSetter.h
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <11.Jan.2007 16:33:24 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Jan.2007 13:36:20 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -22,6 +22,11 @@ namespace IBAMR
 /*!
  * @brief Simple class to specify the body force on the Eulerian grid
  * during an IB computation.
+ *
+ * Presently, this class is only used to set the appropriate
+ * Lagrangian force at the end of the timestep, e.g., in an explicit
+ * timestepping scheme, to set f~(n+1) = S^{*} F~(n+1), where S^{*}
+ * denotes the IB spreading operator.
  */
 class IBEulerianForceSetter
     : public SetDataStrategy

@@ -33,7 +33,7 @@ IBHierarchyIntegrator {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-// base_filenames_1 = "shell2d_64"   // corresponds to NFINEST=4
+   base_filenames_0 = "shell2d_64"   // corresponds to NFINEST=4
 // base_filenames_1 = "shell2d_128"  // corresponds to NFINEST=8
    base_filenames_1 = "shell2d_256"  // corresponds to NFINEST=16
 // base_filenames_1 = "shell2d_512"  // corresponds to NFINEST=32

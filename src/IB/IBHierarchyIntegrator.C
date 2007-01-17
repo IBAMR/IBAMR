@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <11.Jan.2007 19:39:49 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Jan.2007 13:26:17 boyce@bigboy.nyconnect.com>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -170,8 +170,8 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     }
     getFromInput(input_db, from_restart);
 
-    // Set the ghost cell widths required for spreading and
-    // interpolation.
+    // Determine the ghost cell width required for cell-centered
+    // spreading and interpolating.
     const int stencil_size = LEInteractor::getStencilSize(d_delta_fcn);
     d_ghosts = static_cast<int>(floor(0.5*static_cast<double>(stencil_size))+1);
 
@@ -437,6 +437,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (!d_source_strategy.isNull())
     {
+        TBOX_ERROR("support for source/sinks is presently disabled.\n");
         d_P_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P",1);
         d_P_idx = var_db->registerVariableAndContext(d_P_var, d_current, no_ghosts);
 
@@ -679,6 +680,23 @@ IBHierarchyIntegrator::advanceHierarchy(
         d_cscheds["V->V::CONSERVATIVE_COARSEN"][ln]->coarsenData();
     }
 
+    // Compute the Lagrangian forces and spread those forces from the
+    // curvilinear mesh to the Cartesian grid.  It is VERY IMPORTANT
+    // to note that the implementation of the Lagrangian-Eulerian
+    // interaction operators assume that the Lagrangian force F is
+    // actually the total force and NOTE the force density.  This
+    // means, for instance, that the Cartesian grid force density f(x)
+    // is determined from the Lagrangian force F(q,r,s) via
+    //
+    //      f_{i,j,k} = Sum_{q,r,s} F_{q,r,s} delta_h(x_{i,j,k} - X_{q,r,s}).
+    //
+    // On the other hand, velocity interpolation is performed as
+    // usual, i.e.,
+    //
+    //      U_{q,r,s} = Sum_{i,j,k} u_{i,j,k} delta_h(x_{i,j,k} h_{l}^NDIM.
+    //
+    // In the following loop, we perform the following operations:
+    //
     // 1. Compute F(n) = F(X(n),n), the Lagrangian force corresponding
     //    to configuration X(n) at time t_{n}.
     //
@@ -788,8 +806,8 @@ IBHierarchyIntegrator::advanceHierarchy(
                     d_delta_fcn, ENFORCE_PERIODIC_BCS);
             }
 
-            // Interpolate the Cartesian velocity onto the Lagrangian
-            // mesh, U(X(n),n) = u(X(n),n).
+            // Interpolate the Cartesian grid velocity onto the
+            // Lagrangian mesh, so that U(X(n),n) = u(X(n),n).
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): interpolating u(n) to U(n)\n";
 
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -883,7 +901,7 @@ IBHierarchyIntegrator::advanceHierarchy(
         d_hier_cc_data_ops->add(d_F_idx, d_F_idx, d_F_scratch2_idx);
     }
 
-    // Deallocate scratch data.
+    // Deallocate unneeded scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1001,7 +1019,7 @@ IBHierarchyIntegrator::advanceHierarchy(
 
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing X(n+1)\n";
 
-            // Set X(n+1) = 0.5[X(n) + X~(n+1)] + dt*U(X~(n+1),n+1)).
+            // Set X(n+1) = X(n) + dt*0.5*[U(X(n),n) + U(X~(n+1),n+1)].
             int ierr;
             ierr = VecAXPY(X_new_data[ln]->getGlobalVec(),
                            dt, U_new_data[ln]->getGlobalVec());
@@ -1013,7 +1031,7 @@ IBHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // Deallocate scratch data.
+    // Deallocate any remaining scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1709,6 +1727,9 @@ template class SAMRAI::tbox::Pointer<IBAMR::IBHierarchyIntegrator>;
 //////////////////////////////////////////////////////////////////////////////
 
 
+// The following code used to be used to determine source/sink
+// strengths.  It will be reworked and re-inserted into the
+// IBHierarchyIntegrator code in the near future.
 #if 0
     // When necessary, determine the average pressure near the
     // periodic boundary at z=z_min and z=z_max.

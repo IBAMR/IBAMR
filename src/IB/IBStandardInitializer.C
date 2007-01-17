@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <27.Nov.2006 23:48:33 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Jan.2007 18:26:50 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -61,27 +61,66 @@ IBStandardInitializer::IBStandardInitializer(
     // StashableManager class.
     SpringForceSpec::registerWithStashableManager();
 
-    // Get the input filenames.
-    if (input_db->keyExists("base_filenames"))
+    // Determine the (maximum) number of levels in the locally refined
+    // grid.  Note that each piece of the Lagrangian structure must be
+    // assigned to a particular level of the grid.
+    if (input_db->keyExists("max_levels"))
     {
-        const int n_files = input_db->getArraySize("base_filenames");
-        d_base_filenames.resize(n_files);
-        input_db->getStringArray("base_filenames", &d_base_filenames[0], n_files);
+        d_max_levels = input_db->getInteger("max_levels");
     }
     else
     {
         TBOX_ERROR(d_object_name << ":  "
-                   << "Key data `base_filenames' not found in input.");
+                   << "Key data `max_levels' not found in input.");
+    }
+
+    if (d_max_levels < 1)
+    {
+        TBOX_ERROR(d_object_name << ":  "
+                   << "Key data `max_levels' found in input is < 1.");
+    }
+
+    d_base_filenames.resize(d_max_levels);
+    d_num_vertices.resize(d_max_levels);
+    d_vertex_offsets.resize(d_max_levels);
+    d_vertex_posns.resize(d_max_levels);
+    d_edge_map.resize(d_max_levels);
+    d_edge_stiffnesses.resize(d_max_levels);
+    d_edge_rest_lengths.resize(d_max_levels);
+    d_global_index_offset.resize(d_max_levels);
+
+    // Determine the various input file names.
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        std::ostringstream db_key_name_stream;
+        db_key_name_stream << "base_filenames_" << ln;
+        const std::string db_key_name = db_key_name_stream.str();
+        if (input_db->keyExists(db_key_name))
+        {
+            const int n_files = input_db->getArraySize(db_key_name);
+            d_base_filenames[ln].resize(n_files);
+            input_db->getStringArray(
+                db_key_name, &d_base_filenames[ln][0], n_files);
+        }
+        else
+        {
+            TBOX_WARNING(d_object_name << ":  "
+                         << "Key data `" + db_key_name + "' not found in input.");
+        }
     }
 
     // Output the names of the input files to be read.
     SAMRAI::tbox::pout << d_object_name << ":  Reading from input files: " << endl;
-    for (std::vector<std::string>::const_iterator it = d_base_filenames.begin();
-         it != d_base_filenames.end(); ++it)
+    for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        SAMRAI::tbox::pout << "  base filename: " << *it << endl
-                           << "     required files: " << *it << ".vertices" << endl
-                           << "     optional files: " << *it << ".edges" << endl;
+        for (std::vector<std::string>::const_iterator it = d_base_filenames[ln].begin();
+             it != d_base_filenames[ln].end(); ++it)
+        {
+            SAMRAI::tbox::pout << "  base filename: " << *it << endl
+                               << "  assigned to level: " << ln << " of the Cartesian grid patch hierarchy" << endl
+                               << "     required files: " << *it << ".vertices" << endl
+                               << "     optional files: " << *it << ".edges" << endl;
+        }
     }
 
     // Process the vertex information on each MPI process.
@@ -89,17 +128,23 @@ IBStandardInitializer::IBStandardInitializer(
     {
         if (rank == SAMRAI::tbox::MPI::getRank())
         {
-            readVertexFiles(d_base_filenames);
+            readVertexFiles();
         }
         SAMRAI::tbox::MPI::barrier();
     }
 
     // Compute the index offsets.
-    d_vertex_offsets.resize(d_num_vertices.size());
-    d_vertex_offsets[0] = 0;
-    for (int j = 1; j < static_cast<int>(d_num_vertices.size()); ++j)
+    //
+    // NOTE: A separate, independent Lagrangian numbering scheme is
+    // used on each level of the locally refined Cartesian grid.
+    for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        d_vertex_offsets[j] = d_vertex_offsets[j-1]+d_num_vertices[j-1];
+        d_vertex_offsets[ln].resize(d_num_vertices[ln].size());
+        d_vertex_offsets[ln][0] = 0;
+        for (int j = 1; j < static_cast<int>(d_num_vertices[ln].size()); ++j)
+        {
+            d_vertex_offsets[ln][j] = d_vertex_offsets[ln][j-1]+d_num_vertices[ln][j-1];
+        }
     }
 
     // Read the edge information on each MPI process.
@@ -107,7 +152,7 @@ IBStandardInitializer::IBStandardInitializer(
     {
         if (rank == SAMRAI::tbox::MPI::getRank())
         {
-            readEdgeFiles(d_base_filenames);
+            readEdgeFiles();
         }
         SAMRAI::tbox::MPI::barrier();
     }
@@ -129,10 +174,14 @@ IBStandardInitializer::registerLagSiloDataWriter(
     assert(!silo_writer.isNull());
 #endif
 
-    // XXXX: This code is broken if the global node offset is nonzero.
-    if (d_global_index_offset[d_finest_level_number] != 0)
+    // XXXX: This code is broken if the global node offset is nonzero
+    // on any of the levels of the locally refined Cartesian grid.
+    for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        TBOX_ERROR("This is broken --- please submit a bug report if you encounter this error.\n");
+        if (d_global_index_offset[ln] != 0)
+        {
+            TBOX_ERROR("This is broken --- please submit a bug report if you encounter this error.\n");
+        }
     }
 
     // For now, we just register the data on MPI process 0.  This will
@@ -140,19 +189,20 @@ IBStandardInitializer::registerLagSiloDataWriter(
     // allocated to a single process.
     if (SAMRAI::tbox::MPI::getRank() == 0)
     {
-        for (unsigned j = 0; j < d_num_vertices.size(); ++j)
+        for (int ln = 0; ln < d_max_levels; ++ln)
         {
-            silo_writer->registerMarkerCloud(
-                d_base_filenames[j] + "_vertices",
-                d_num_vertices[j], d_vertex_offsets[j],
-                d_finest_level_number);
-
-            if (d_edge_map[j].size() > 0)
+            for (unsigned j = 0; j < d_num_vertices[ln].size(); ++j)
             {
-                silo_writer->registerUnstructuredMesh(
-                    d_base_filenames[j] + "_mesh",
-                    d_edge_map[j],
-                    d_finest_level_number);
+                silo_writer->registerMarkerCloud(
+                    d_base_filenames[ln][j] + "_vertices",
+                    d_num_vertices[ln][j], d_vertex_offsets[ln][j], ln);
+
+                if (d_edge_map[ln][j].size() > 0)
+                {
+                    silo_writer->registerUnstructuredMesh(
+                        d_base_filenames[ln][j] + "_mesh",
+                        d_edge_map[ln][j], ln);
+                }
             }
         }
     }
@@ -165,9 +215,7 @@ IBStandardInitializer::getLevelHasLagrangianData(
     const int level_number,
     const bool can_be_refined) const
 {
-    // All curvilinear mesh nodes must reside on the finest level of
-    // the AMR patch hierarchy.
-    return !can_be_refined;
+    return !d_num_vertices[level_number].empty();
 }// getLevelHasLagrangianData
 
 int
@@ -208,11 +256,9 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     const bool can_be_refined,
     const bool initial_time)
 {
-    // XXXX: This is a very hacky hack.
-    d_finest_level_number = (can_be_refined
-                             ? -1
-                             : hierarchy->getFinestLevelNumber());
-    d_global_index_offset.resize(hierarchy->getFinestLevelNumber()+1);
+    // Set the global index offset.  This is equal to the number of
+    // Lagrangian indices that have already been initialized on the
+    // specified level.
     d_global_index_offset[level_number] = global_index_offset;
 
     // Loop over all patches in the specified level of the patch level
@@ -244,11 +290,12 @@ IBStandardInitializer::initializeDataOnPatchLevel(
              it != patch_vertices.end(); ++it)
         {
             const std::pair<int,int>& point_idx = (*it);
-            const int current_global_idx = getCannonicalLagrangianIndex(point_idx) + global_index_offset;
+            const int current_global_idx = getCannonicalLagrangianIndex(
+                point_idx, level_number) + global_index_offset;
             const int current_local_idx = ++local_idx + local_index_offset;
 
             // Get the coordinates of the present vertex.
-            const vector<double> X = getVertexPosn(point_idx);
+            const vector<double> X = getVertexPosn(point_idx, level_number);
 
             // Initialize the location of the present vertex.
             double* const node_X = &(*X_data)(current_local_idx);
@@ -265,7 +312,8 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             // Initialize the force specification object assocaited
             // with the present vertex.
             std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec =
-                initializeForceSpec(point_idx, global_index_offset);
+                initializeForceSpec(
+                    point_idx, global_index_offset, level_number);
 
             if (!index_data->isElement(idx))
             {
@@ -288,7 +336,8 @@ IBStandardInitializer::tagCellsForInitialRefinement(
     const int tag_index)
 {
     // Loop over all patches in the specified level of the patch level
-    // and tag cells for refinement whenever there are vertices.
+    // and tag cells for refinement wherever there are vertices
+    // assigned to a finer level of the Cartesian grid.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -308,24 +357,27 @@ IBStandardInitializer::tagCellsForInitialRefinement(
         // initial locations will be within the index space of the
         // given patch, but on a finer level of the AMR patch
         // hierarchy.
-        static const bool can_be_refined = false;
-        std::vector<std::pair<int,int> > patch_vertices;
-        getPatchVertices(patch_vertices, patch, level_number+1, can_be_refined);
-        for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
-             it != patch_vertices.end(); ++it)
+        for (int ln = level_number+1; ln < d_max_levels; ++ln)
         {
-            const std::pair<int,int>& point_idx = (*it);
+            const bool can_be_refined = ln+1 < d_max_levels;
+            std::vector<std::pair<int,int> > patch_vertices;
+            getPatchVertices(patch_vertices, patch, level_number+1, can_be_refined);
+            for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
+                 it != patch_vertices.end(); ++it)
+            {
+                const std::pair<int,int>& point_idx = (*it);
 
-            // Get the coordinates of the present vertex.
-            const vector<double> X = getVertexPosn(point_idx);
+                // Get the coordinates of the present vertex.
+                const vector<double> X = getVertexPosn(point_idx, ln);
 
-            // Get the index of the cell in which the present vertex
-            // is initially located.
-            const SAMRAI::pdat::CellIndex<NDIM> idx = STOOLS::STOOLS_Utilities::getCellIndex(
-                X, xLower, xUpper, dx, patch_lower, patch_upper);
+                // Get the index of the cell in which the present
+                // vertex is initially located.
+                const SAMRAI::pdat::CellIndex<NDIM> idx = STOOLS::STOOLS_Utilities::getCellIndex(
+                    X, xLower, xUpper, dx, patch_lower, patch_upper);
 
-            // Tag the cell for refinement.
-            if (patch_box.contains(idx)) (*tag_data)(idx) = 1;
+                // Tag the cell for refinement.
+                if (patch_box.contains(idx)) (*tag_data)(idx) = 1;
+            }
         }
     }
     return;
@@ -357,136 +409,140 @@ ignore_rest_of_line(
 }
 
 void
-IBStandardInitializer::readVertexFiles(
-    const std::vector<std::string>& base_filenames)
+IBStandardInitializer::readVertexFiles()
 {
-    const int num_base_filenames = static_cast<int>(base_filenames.size());
-    d_num_vertices.resize(num_base_filenames);
-    d_vertex_posns.resize(num_base_filenames);
-    for (int j = 0; j < num_base_filenames; ++j)
+    for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const std::string vertex_filename = base_filenames[j] + ".vertices";
-        std::ifstream is;
-        is.open(vertex_filename.c_str(), std::ios::in);
-        if (!is.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertex_filename << endl);
-        is.peek();  // try to catch premature end-of-file for empty files
-
-        SAMRAI::tbox::plog << d_object_name << ":  "
-                           << "processing vertex data from input filename " << vertex_filename << endl
-                           << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-
-        // The first entry in the file is the number of vertices.
-        if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << vertex_filename << endl);
-        is >> d_num_vertices[j];
-        ignore_rest_of_line(is);
-
-        // Each successive line provides the initial position of each
-        // vertex in the input file.
-        d_vertex_posns[j].resize(d_num_vertices[j]*NDIM);
-        for (int k = 0; k < d_num_vertices[j]; ++k)
+        const int num_base_filenames = static_cast<int>(d_base_filenames[ln].size());
+        d_num_vertices[ln].resize(num_base_filenames);
+        d_vertex_posns[ln].resize(num_base_filenames);
+        for (int j = 0; j < num_base_filenames; ++j)
         {
-            for (int d = 0; d < NDIM; ++d)
-            {
-                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << vertex_filename << endl);
-                is >> d_vertex_posns[j][k*NDIM+d];
-            }
-            ignore_rest_of_line(is);
-        }
-
-        // Close the input file.
-        is.close();
-
-        SAMRAI::tbox::plog << d_object_name << ":  "
-                           << "read " << d_num_vertices[j] << " vertices from input filename " << vertex_filename << endl
-                           << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-    }
-    return;
-}// readVertexFiles
-
-void
-IBStandardInitializer::readEdgeFiles(
-    const std::vector<std::string>& base_filenames)
-{
-    const int num_base_filenames = static_cast<int>(base_filenames.size());
-    d_edge_map.resize(num_base_filenames);
-    d_edge_stiffnesses.resize(num_base_filenames);
-    d_edge_rest_lengths.resize(num_base_filenames);
-    for (int j = 0; j < num_base_filenames; ++j)
-    {
-        const std::string edge_filename = base_filenames[j] + ".edges";
-        std::ifstream is;
-        is.open(edge_filename.c_str(), std::ios::in);
-        if (is.is_open())
-        {
+            const std::string vertex_filename = d_base_filenames[ln][j] + ".vertices";
+            std::ifstream is;
+            is.open(vertex_filename.c_str(), std::ios::in);
+            if (!is.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertex_filename << endl);
             is.peek();  // try to catch premature end-of-file for empty files
 
             SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "processing edge data from input filename " << edge_filename << endl
+                               << "processing vertex data from input filename " << vertex_filename << endl
                                << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
-            // The first entry in the file indicates whether the
-            // numbering is assumed to start from 0 or from 1.
-            int base_index;
-            if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << edge_filename << endl);
-            is >> base_index;
+            // The first entry in the file is the number of vertices.
+            if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << vertex_filename << endl);
+            is >> d_num_vertices[ln][j];
             ignore_rest_of_line(is);
 
-            if (base_index != 0 && base_index != 1)
+            // Each successive line provides the initial position of each
+            // vertex in the input file.
+            d_vertex_posns[ln][j].resize(d_num_vertices[ln][j]*NDIM);
+            for (int k = 0; k < d_num_vertices[ln][j]; ++k)
             {
-                TBOX_ERROR(d_object_name << ":\n  Line 1 of filename " << edge_filename << " is invalid" << endl);
-            }
-
-            // The second line in the file indicates the number of
-            // edges in the input file.
-            int num_edges;
-            if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 2 of file " << edge_filename << endl);
-            is >> num_edges;
-            ignore_rest_of_line(is);
-
-            if (num_edges <= 0)
-            {
-                TBOX_ERROR(d_object_name << ":\n  Line 2 of filename " << edge_filename << " is invalid" << endl);
-            }
-
-            // Each successive line provides the connectivity
-            // information for each edge in the structure.
-            for (int k = 0; k < num_edges; ++k)
-            {
-                Edge e;
-                double kappa, length;
-                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
-                is >> e.first;   // first  vertex
-                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
-                is >> e.second;  // second vertex
-                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
-                is >> kappa;     // spring constant
-                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
-                is >> length;    // rest length
-                ignore_rest_of_line(is);
-
-                e.first  += d_vertex_offsets[j]-base_index; // correct the edge numbers to be in the
-                e.second += d_vertex_offsets[j]-base_index; // global Lagrangian indexing scheme
-
-                // Always place the lower index first.
-                if (e.first > e.second)
+                for (int d = 0; d < NDIM; ++d)
                 {
-                    const int tmp = e.first;
-                    e.first = e.second;
-                    e.second = tmp;
+                    if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << vertex_filename << endl);
+                    is >> d_vertex_posns[ln][j][k*NDIM+d];
                 }
-
-                d_edge_map[j].insert(std::make_pair(e.first ,e));
-                d_edge_map[j].insert(std::make_pair(e.second,e));
-                d_edge_stiffnesses [j][e] = kappa;
-                d_edge_rest_lengths[j][e] = length;
+                ignore_rest_of_line(is);
             }
 
             // Close the input file.
             is.close();
 
             SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "read " << d_num_vertices[j] << " vertices from input filename " << edge_filename << endl
+                               << "read " << d_num_vertices[ln][j] << " vertices from input filename " << vertex_filename << endl
                                << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+        }
+    }
+    return;
+}// readVertexFiles
+
+void
+IBStandardInitializer::readEdgeFiles()
+{
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const int num_base_filenames = static_cast<int>(d_base_filenames[ln].size());
+        d_edge_map[ln].resize(num_base_filenames);
+        d_edge_stiffnesses[ln].resize(num_base_filenames);
+        d_edge_rest_lengths[ln].resize(num_base_filenames);
+        for (int j = 0; j < num_base_filenames; ++j)
+        {
+            const std::string edge_filename = d_base_filenames[ln][j] + ".edges";
+            std::ifstream is;
+            is.open(edge_filename.c_str(), std::ios::in);
+            if (is.is_open())
+            {
+                is.peek();  // try to catch premature end-of-file for empty files
+
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "processing edge data from input filename " << edge_filename << endl
+                                   << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+
+                // The first entry in the file indicates whether the
+                // numbering is assumed to start from 0 or from 1.
+                int base_index;
+                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << edge_filename << endl);
+                is >> base_index;
+                ignore_rest_of_line(is);
+
+                if (base_index != 0 && base_index != 1)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Line 1 of filename " << edge_filename << " is invalid" << endl);
+                }
+
+                // The second line in the file indicates the number of
+                // edges in the input file.
+                int num_edges;
+                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 2 of file " << edge_filename << endl);
+                is >> num_edges;
+                ignore_rest_of_line(is);
+
+                if (num_edges <= 0)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Line 2 of filename " << edge_filename << " is invalid" << endl);
+                }
+
+                // Each successive line provides the connectivity
+                // information for each edge in the structure.
+                for (int k = 0; k < num_edges; ++k)
+                {
+                    Edge e;
+                    double kappa, length;
+                    if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
+                    is >> e.first;   // first  vertex
+                    if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
+                    is >> e.second;  // second vertex
+                    if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
+                    is >> kappa;     // spring constant
+                    if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
+                    is >> length;    // rest length
+                    ignore_rest_of_line(is);
+
+                    e.first  += d_vertex_offsets[ln][j]-base_index; // correct the edge numbers to be in the
+                    e.second += d_vertex_offsets[ln][j]-base_index; // global Lagrangian indexing scheme
+
+                    // Always place the lower index first.
+                    if (e.first > e.second)
+                    {
+                        const int tmp = e.first;
+                        e.first = e.second;
+                        e.second = tmp;
+                    }
+
+                    d_edge_map[ln][j].insert(std::make_pair(e.first ,e));
+                    d_edge_map[ln][j].insert(std::make_pair(e.second,e));
+                    d_edge_stiffnesses [ln][j][e] = kappa;
+                    d_edge_rest_lengths[ln][j][e] = length;
+                }
+
+                // Close the input file.
+                is.close();
+
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "read " << d_num_vertices[ln][j] << " vertices from input filename " << edge_filename << endl
+                                   << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+            }
         }
     }
     return;
@@ -499,11 +555,6 @@ IBStandardInitializer::getPatchVertices(
     const int level_number,
     const bool can_be_refined) const
 {
-    // All curvilinear mesh nodes must reside on the finest level of
-    // the AMR grid.  Consequently, if can_be_refied == true, then
-    // there CANNOT be ANY points within the specified patch.
-    if (can_be_refined) return;
-
     // Loop over all of the vertices to determine the indices of those
     // vertices within the present patch.
     //
@@ -514,11 +565,11 @@ IBStandardInitializer::getPatchVertices(
     const double* const xLower = patch_geom->getXLower();
     const double* const xUpper = patch_geom->getXUpper();
 
-    for (unsigned j = 0; j < d_num_vertices.size(); ++j)
+    for (unsigned j = 0; j < d_num_vertices[level_number].size(); ++j)
     {
-        for (int k = 0; k < d_num_vertices[j]; ++k)
+        for (int k = 0; k < d_num_vertices[level_number][j]; ++k)
         {
-            const double* const X = &d_vertex_posns[j][k*NDIM];
+            const double* const X = &d_vertex_posns[level_number][j][k*NDIM];
             const bool patch_owns_node =
                 ((  xLower[0] <= X[0])&&(X[0] < xUpper[0]))
 #if (NDIM > 1)
@@ -537,35 +588,38 @@ IBStandardInitializer::getPatchVertices(
 
 int
 IBStandardInitializer::getCannonicalLagrangianIndex(
-    const std::pair<int,int>& point_index) const
+    const std::pair<int,int>& point_index,
+    const int level_number) const
 {
-    return d_vertex_offsets[point_index.first]+point_index.second;
+    return d_vertex_offsets[level_number][point_index.first]+point_index.second;
 }// getCannonicalLagrangianIndex
 
 std::vector<double>
 IBStandardInitializer::getVertexPosn(
-    const std::pair<int,int>& point_index) const
+    const std::pair<int,int>& point_index,
+    const int level_number) const
 {
     return std::vector<double>(
-        &d_vertex_posns[point_index.first][point_index.second*NDIM     ],
-        &d_vertex_posns[point_index.first][point_index.second*NDIM+NDIM]);
+        &d_vertex_posns[level_number][point_index.first][point_index.second*NDIM     ],
+        &d_vertex_posns[level_number][point_index.first][point_index.second*NDIM+NDIM]);
 }// getIBStandardPosn
 
 std::vector<SAMRAI::tbox::Pointer<Stashable> >
 IBStandardInitializer::initializeForceSpec(
     const std::pair<int,int>& point_index,
-    const int global_index_offset) const
+    const int global_index_offset,
+    const int level_number) const
 {
     std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec;
 
     const int j = point_index.first;
-    const int lag_index = getCannonicalLagrangianIndex(point_index);
+    const int lag_index = getCannonicalLagrangianIndex(point_index, level_number);
 
     bool has_edges = false;
     std::vector<int> dst_idxs;
     std::vector<double> stiffnesses, rest_lengths;
-    for (std::multimap<int,Edge>::const_iterator it = d_edge_map[j].lower_bound(lag_index);
-         it != d_edge_map[j].upper_bound(lag_index); ++it)
+    for (std::multimap<int,Edge>::const_iterator it = d_edge_map[level_number][j].lower_bound(lag_index);
+         it != d_edge_map[level_number][j].upper_bound(lag_index); ++it)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         assert(lag_index == (*it).first);
@@ -584,8 +638,8 @@ IBStandardInitializer::initializeForceSpec(
         }
 
         // The material properties.
-        stiffnesses .push_back((*d_edge_stiffnesses [j].find(e)).second);
-        rest_lengths.push_back((*d_edge_rest_lengths[j].find(e)).second);
+        stiffnesses .push_back((*d_edge_stiffnesses [level_number][j].find(e)).second);
+        rest_lengths.push_back((*d_edge_rest_lengths[level_number][j].find(e)).second);
     }
 
     // Don't bother to create a force spec if there are no edges.
