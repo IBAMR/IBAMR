@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <25.Nov.2006 22:51:35 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <16.Jan.2007 23:30:47 boyce@bigboy.nyconnect.com>
 
 #include "LDataManager.h"
 
@@ -1737,11 +1737,23 @@ LDataManager::applyGradientDetector(
     }
     else
     {
-        // Tag cells where nodes exist in finer levels on the patch
-        // hierarchy.
+        // Zero out the node count data on the current level.
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > node_count_data =
+                patch->getPatchData(d_node_count_idx);
+            node_count_data->fillAll(0.0);
+        }
+
+        // Update the workload estimate and node counts in each
+        // Cartesian grid cell on the next finer level, then coarsen
+        // the node count onto the present level.
         updateWorkloadAndNodeCount(level_number+1,level_number+1);
         d_node_count_coarsen_scheds[level_number+1]->coarsenData();
 
+        // Tag cells for refinement wherever there exist nodes on the
+        // finer level(s) of the Cartesian grid.
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
