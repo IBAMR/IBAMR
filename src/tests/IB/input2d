@@ -8,6 +8,7 @@ MUSCL_LIMITED = 3
 // constants
 N = 4
 NFINEST = 4*N
+MAX_LEVELS = 2
 
 DELTA_FCN = "IB_6"
 MU = 0.005
@@ -31,10 +32,11 @@ IBHierarchyIntegrator {
 }
 
 IBStandardInitializer {
-// base_filenames = "shell2d_64"   // corresponds to NFINEST=4
-// base_filenames = "shell2d_128"  // corresponds to NFINEST=8
-   base_filenames = "shell2d_256"  // corresponds to NFINEST=16
-// base_filenames = "shell2d_512"  // corresponds to NFINEST=32
+   max_levels = MAX_LEVELS
+// base_filenames_1 = "shell2d_64"   // corresponds to NFINEST=4
+// base_filenames_1 = "shell2d_128"  // corresponds to NFINEST=8
+   base_filenames_1 = "shell2d_256"  // corresponds to NFINEST=16
+// base_filenames_1 = "shell2d_512"  // corresponds to NFINEST=32
 }
 
 INSHierarchyIntegrator {
@@ -199,7 +201,7 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels             = 2    // Maximum number of levels in hierarchy.
+   max_levels = MAX_LEVELS       // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1             = 4,4  // vector ratio to next coarser level
       level_2             = 4,4

@@ -8,6 +8,7 @@ MUSCL_LIMITED = 3
 // constants
 N = 16              // coarsest grid spacing
 NFINEST = 16*N      // finest grid spacing
+MAX_LEVELS = 3      // number of levels in the patch hierarchy
 
 DELTA_FCN = "IB_6"  // the choice of delta function
 
@@ -30,10 +31,11 @@ IBHierarchyIntegrator {
 }
 
 TargetPointInitializer {
-   input_filename = "cylinder2d.256"   // corresponds to NFINEST = 256
-// input_filename = "cylinder2d.512"   // corresponds to NFINEST = 512
-// input_filename = "cylinder2d.1024"  // corresponds to NFINEST = 1024
-// input_filename = "cylinder2d.2048"  // corresponds to NFINEST = 2048
+   max_levels = MAX_LEVELS
+   input_filename_2 = "cylinder2d.256"   // corresponds to NFINEST = 256
+// input_filename_2 = "cylinder2d.512"   // corresponds to NFINEST = 512
+// input_filename_2 = "cylinder2d.1024"  // corresponds to NFINEST = 1024
+// input_filename_2 = "cylinder2d.2048"  // corresponds to NFINEST = 2048
 }
 
 INSHierarchyIntegrator {
@@ -198,7 +200,7 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels             = 3    // Maximum number of levels in hierarchy.
+   max_levels = MAX_LEVELS       // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1             = 4,4  // vector ratio to next coarser level
       level_2             = 4,4
