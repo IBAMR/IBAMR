@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <11.Jan.2007 17:20:13 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Jan.2007 19:31:18 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -723,6 +723,13 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var, d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
     int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_P_idx, d_Q_idx;
+
+    /*
+     * Parameters for the (optional) penalty IB method for boundaries
+     * with additional boundary mass.
+     */
+    bool d_use_pIB_method;
+    double d_pIB_kappa, d_pIB_M;
 };
 }// namespace IBAMR
 

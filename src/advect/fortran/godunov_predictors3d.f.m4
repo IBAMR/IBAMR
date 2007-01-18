@@ -564,17 +564,19 @@ c
 c     Employ second order slopes (no limiting).
          Qx = half*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2))
       elseif ( limiter.eq.fourth_order ) then
-      Qx = twothird*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2))
-     &     - sixth*half*(Q(ifirst0-1+2,ic1,ic2)-Q(ifirst0-1-2,ic1,ic2))
+         Qx = twothird*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2))
+     &      - sixth*half*(Q(ifirst0-1+2,ic1,ic2)-Q(ifirst0-1-2,ic1,ic2))
       elseif ( limiter.eq.mc_limited ) then
 c     Employ van Leer's MC limiter.
-      Qx =minmod3(
+         Qx = minmod3(
      &        0.5d0*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2)),
      &        2.0d0*(Q(ifirst0-1  ,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2)),
      &        2.0d0*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1  ,ic1,ic2)))
       elseif ( limiter.eq.muscl_limited ) then
 c     Employ Colella's MUSCL limiter.
-      Qx = muscldiff(Q(ifirst0-1-2,ic1,ic2))
+         Qx = muscldiff(Q(ifirst0-1-2,ic1,ic2))
+      else
+         Qx = 0.d0
       endif
 
 !     unorm = 0.5d0*(u0(ifirst0-1,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
@@ -682,17 +684,19 @@ c
 c     Employ second order slopes (no limiting).
          Qx = half*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2))
       elseif ( limiter.eq.fourth_order ) then
-      Qx = twothird*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2))
-     &     - sixth*half*(Q(ifirst0-1+2,ic1,ic2)-Q(ifirst0-1-2,ic1,ic2))
+         Qx = twothird*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2))
+     &      - sixth*half*(Q(ifirst0-1+2,ic1,ic2)-Q(ifirst0-1-2,ic1,ic2))
       elseif ( limiter.eq.mc_limited ) then
 c     Employ van Leer's MC limiter.
-      Qx =minmod3(
+         Qx = minmod3(
      &        0.5d0*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2)),
      &        2.0d0*(Q(ifirst0-1  ,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2)),
      &        2.0d0*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1  ,ic1,ic2)))
       elseif ( limiter.eq.muscl_limited ) then
 c     Employ Colella's MUSCL limiter.
-      Qx = muscldiff(Q(ifirst0-1-2,ic1,ic2))
+         Qx = muscldiff(Q(ifirst0-1-2,ic1,ic2))
+      else
+         Qx = 0.d0
       endif
 
 !     unorm = 0.5d0*(u0(ifirst0-1,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))

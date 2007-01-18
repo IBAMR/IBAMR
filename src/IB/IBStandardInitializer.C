@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <16.Jan.2007 18:26:50 boyce@bigboy.nyconnect.com>
+// Last modified: <18.Jan.2007 01:27:08 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -48,9 +48,15 @@ IBStandardInitializer::IBStandardInitializer(
     const std::string& object_name,
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_object_name(object_name),
+      d_max_levels(-1),
+      d_base_filenames(),
       d_num_vertices(),
       d_vertex_offsets(),
-      d_vertex_posns()
+      d_vertex_posns(),
+      d_edge_map(),
+      d_edge_stiffnesses(),
+      d_edge_rest_lengths(),
+      d_global_index_offset()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
@@ -117,7 +123,7 @@ IBStandardInitializer::IBStandardInitializer(
              it != d_base_filenames[ln].end(); ++it)
         {
             SAMRAI::tbox::pout << "  base filename: " << *it << endl
-                               << "  assigned to level: " << ln << " of the Cartesian grid patch hierarchy" << endl
+                               << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << endl
                                << "     required files: " << *it << ".vertices" << endl
                                << "     optional files: " << *it << ".edges" << endl;
         }

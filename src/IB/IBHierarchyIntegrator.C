@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <16.Jan.2007 13:26:17 boyce@bigboy.nyconnect.com>
+// Last modified: <18.Jan.2007 02:03:52 boyce@bigboy.nyconnect.com>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -132,6 +132,9 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_rscheds(),
       d_calgs(),
       d_cscheds(),
+      d_force_ralg(),
+      d_force_rscheds(),
+      d_hier_cc_data_ops(),
       d_V_var(NULL),
       d_W_var(NULL),
       d_F_var(NULL),
@@ -145,7 +148,10 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_F_scratch1_idx(-1),
       d_F_scratch2_idx(-1),
       d_P_idx(-1),
-      d_Q_idx(-1)
+      d_Q_idx(-1),
+      d_use_pIB_method(true), ///(false),
+      d_pIB_kappa(1.0), ///(numeric_limits<double>::quiet_NaN()),
+      d_pIB_M(1.0)///(numeric_limits<double>::quiet_NaN())
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
@@ -667,6 +673,11 @@ IBHierarchyIntegrator::advanceHierarchy(
     std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > F_new_data(finest_ln+1);
     std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > U_new_data(finest_ln+1);
 
+    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > Y_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > Y_new_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > dY_dt_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > dY_dt_new_data(finest_ln+1);
+
     // Synchronize the Cartesian grid velocity u(n) on the patch
     // hierarchy.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -775,14 +786,59 @@ IBHierarchyIntegrator::advanceHierarchy(
             F_new_data[ln]->restoreLocalFormVec();
             U_new_data[ln]->restoreLocalFormVec();
 
+            if (d_use_pIB_method)
+            {
+                if (initial_time)
+                {
+                    Y_data[ln]     = d_lag_data_manager->createLNodeLevelData("Y",ln,NDIM,true);
+                    dY_dt_data[ln] = d_lag_data_manager->createLNodeLevelData("dY_dt",ln,NDIM,true);
+                }
+                else
+                {
+                    Y_data[ln]     = d_lag_data_manager->getLNodeLevelData("Y",ln);
+                    dY_dt_data[ln] = d_lag_data_manager->getLNodeLevelData("dY_dt",ln);
+                }
+
+                Y_new_data[ln]     = d_lag_data_manager->createLNodeLevelData("Y_new",ln,NDIM);
+                dY_dt_new_data[ln] = d_lag_data_manager->createLNodeLevelData("dY_dt_new",ln,NDIM);
+
+                Y_data[ln]->restoreLocalFormVec();
+                dY_dt_data[ln]->restoreLocalFormVec();
+                Y_new_data[ln]->restoreLocalFormVec();
+                dY_dt_new_data[ln]->restoreLocalFormVec();
+            }
+
             // Compute F(n) = F(X(n),n) and spread the force onto the
             // Cartesian grid.
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F(n)\n";
 
-            ierr = VecSet(F_data[ln]->getGlobalVec(), 0.0);  PETSC_SAMRAI_ERROR(ierr);
+            Vec F_vec = F_data[ln]->getGlobalVec();
+
+            ierr = VecSet(F_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
             d_force_strategy->computeLagrangianForce(
                 F_data[ln], X_data[ln],
                 d_hierarchy, ln, current_time, d_lag_data_manager);
+
+            if (d_use_pIB_method)
+            {
+                // Add the penalty force associated with the massive
+                // ghost particles.
+                Vec F_vec = F_data[ln]->getGlobalVec();
+                Vec X_vec = X_data[ln]->getGlobalVec();
+                Vec Y_vec = Y_data[ln]->getGlobalVec();
+
+                if (initial_time)
+                {
+                    // The initial positions of the ghost particles
+                    // should be the same as the nodes of the
+                    // Lagrangian mesh.
+                    ierr = VecCopy(X_vec, Y_vec);  PETSC_SAMRAI_ERROR(ierr);
+                }
+
+                ierr = VecAXPY(F_vec, +d_pIB_kappa, Y_vec);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecAXPY(F_vec, -d_pIB_kappa, X_vec);  PETSC_SAMRAI_ERROR(ierr);
+            }
+
             X_data[ln]->beginGhostUpdate();
             F_data[ln]->beginGhostUpdate();
             X_data[ln]->endGhostUpdate();
@@ -828,20 +884,59 @@ IBHierarchyIntegrator::advanceHierarchy(
             // Set X~(n+1) = X(n) + dt*U(X(n),n).
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing X~(n+1)\n";
 
-            ierr = VecCopy(X_data[ln]->getGlobalVec(), X_new_data[ln]->getGlobalVec());
-            PETSC_SAMRAI_ERROR(ierr);
-            ierr = VecAXPY(X_new_data[ln]->getGlobalVec(),
-                           dt, U_data[ln]->getGlobalVec());
-            PETSC_SAMRAI_ERROR(ierr);
+            Vec U_vec = U_data[ln]->getGlobalVec();
+            Vec X_vec = X_data[ln]->getGlobalVec();
+            Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+
+            ierr = VecWAXPY(X_new_vec, dt, U_vec, X_vec);  PETSC_SAMRAI_ERROR(ierr);
+
+            if (d_use_pIB_method)
+            {
+                // Advance the positions and velocities of the massive
+                // ghost particles forward in time via forward Euler.
+                Vec Y_vec = Y_data[ln]->getGlobalVec();
+                Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
+
+                Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
+                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getGlobalVec();
+
+                if (initial_time)
+                {
+                    // The initial ghost particle velocity field
+                    // should be the same as the interpolated fluid
+                    // velocity.
+                    ierr = VecCopy(U_vec, dY_dt_vec);  PETSC_SAMRAI_ERROR(ierr);
+                }
+
+                ierr = VecWAXPY(dY_dt_new_vec, -dt*d_pIB_kappa/d_pIB_M, Y_vec, dY_dt_vec);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecAXPY(dY_dt_new_vec, +dt*d_pIB_kappa/d_pIB_M, X_vec);  PETSC_SAMRAI_ERROR(ierr);
+
+                ierr = VecWAXPY(Y_new_vec, dt, dY_dt_vec, Y_vec);  PETSC_SAMRAI_ERROR(ierr);
+            }
 
             // Compute F~(n+1) = F(X~(n+1),n+1) and spread the force
             // onto the Cartesian grid.
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F~(n+1)\n";
 
-            ierr = VecSet(F_new_data[ln]->getGlobalVec(), 0.0);  PETSC_SAMRAI_ERROR(ierr);
+            Vec F_new_vec = F_new_data[ln]->getGlobalVec();
+
+            ierr = VecSet(F_new_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
             d_force_strategy->computeLagrangianForce(
                 F_new_data[ln], X_new_data[ln],
                 d_hierarchy, ln, new_time, d_lag_data_manager);
+
+            if (d_use_pIB_method)
+            {
+                // Add the penalty force associated with the massive
+                // ghost particles.
+                Vec F_new_vec = F_new_data[ln]->getGlobalVec();
+                Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+                Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
+
+                ierr = VecAXPY(F_new_vec, +d_pIB_kappa, Y_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecAXPY(F_new_vec, -d_pIB_kappa, X_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+            }
+
             X_new_data[ln]->beginGhostUpdate();
             F_new_data[ln]->beginGhostUpdate();
             X_new_data[ln]->endGhostUpdate();
@@ -863,18 +958,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts),
                     d_delta_fcn, ENFORCE_PERIODIC_BCS);
             }
-        }
-
-        // Synchronize the Cartesian grid force field on the patch
-        // hierarchy.
-        //
-        // Note that these coarsen schedules synchronize both the
-        // force data maintained by the IBHierarchyIntegrator and the
-        // current context of the force data maintained by the
-        // Navier-Stokes solver.
-        if (ln > coarsest_ln)
-        {
-            d_cscheds["F->F::CONSERVATIVE_COARSEN"][ln]->coarsenData();
         }
     }
 
@@ -899,6 +982,18 @@ IBHierarchyIntegrator::advanceHierarchy(
             current_time+dt, false, coarsest_ln, finest_ln);
 
         d_hier_cc_data_ops->add(d_F_idx, d_F_idx, d_F_scratch2_idx);
+    }
+
+    // Synchronize the Cartesian grid force field on the patch
+    // hierarchy.
+    //
+    // Note that these coarsen schedules synchronize both the force
+    // data maintained by the IBHierarchyIntegrator and the current
+    // context of the force data maintained by the Navier-Stokes
+    // solver.
+    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    {
+        d_cscheds["F->F::CONSERVATIVE_COARSEN"][ln]->coarsenData();
     }
 
     // Deallocate unneeded scratch data.
@@ -1021,13 +1116,37 @@ IBHierarchyIntegrator::advanceHierarchy(
 
             // Set X(n+1) = X(n) + dt*0.5*[U(X(n),n) + U(X~(n+1),n+1)].
             int ierr;
-            ierr = VecAXPY(X_new_data[ln]->getGlobalVec(),
-                           dt, U_new_data[ln]->getGlobalVec());
-            PETSC_SAMRAI_ERROR(ierr);
 
-            ierr = VecAXPBY(X_data[ln]->getGlobalVec(),
-                            0.5, 0.5, X_new_data[ln]->getGlobalVec());
-            PETSC_SAMRAI_ERROR(ierr);
+            Vec U_new_vec = U_new_data[ln]->getGlobalVec();
+            Vec X_vec = X_data[ln]->getGlobalVec();
+            Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+
+            ierr = VecAXPY(X_new_data[ln]->getGlobalVec(), dt, U_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+            ierr = VecAXPBY(X_vec, 0.5, 0.5, X_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+
+            if (d_use_pIB_method)
+            {
+                // Advance the positions and velocities of the massive
+                // ghost particles forward in time via 2nd order SSP Runge-Kutta.
+                Vec Y_vec = Y_data[ln]->getGlobalVec();
+                Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
+
+                Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
+                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getGlobalVec();
+
+                Vec dY_dt_new_vec_copy;
+                ierr = VecDuplicate(dY_dt_new_vec, &dY_dt_new_vec_copy);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecCopy(dY_dt_new_vec, dY_dt_new_vec_copy);  PETSC_SAMRAI_ERROR(ierr);
+
+                ierr = VecAXPY(dY_dt_new_vec, -dt*d_pIB_kappa/d_pIB_M, Y_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecAXPY(dY_dt_new_vec, +dt*d_pIB_kappa/d_pIB_M, X_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecAXPBY(dY_dt_vec, 0.5, 0.5, dY_dt_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+
+                ierr = VecAXPY(Y_new_vec, dt, dY_dt_new_vec_copy);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecAXPBY(Y_vec, 0.5, 0.5, Y_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+
+                ierr = VecDestroy(dY_dt_new_vec_copy);  PETSC_SAMRAI_ERROR(ierr);
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <07.Dec.2006 16:03:27 griffith@box221.cims.nyu.edu>
+// Last modified: <18.Jan.2007 01:26:47 boyce@bigboy.nyconnect.com>
 
 #include "LagSiloDataWriter.h"
 
@@ -503,6 +503,7 @@ LagSiloDataWriter::LagSiloDataWriter(
     : d_object_name(object_name),
       d_dump_directory_name(dump_directory_name),
       d_time_step_number(-1),
+      d_hierarchy(),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
       d_nclouds(),
@@ -520,6 +521,10 @@ LagSiloDataWriter::LagSiloDataWriter(
       d_mb_nelems(),
       d_mb_periodic(),
       d_mb_first_lag_idx(),
+      d_nucd_meshes(),
+      d_ucd_mesh_names(),
+      d_ucd_mesh_vertices(),
+      d_ucd_mesh_edge_maps(),
       d_coords_data(),
       d_nvars(),
       d_var_names(),
