@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <18.Jan.2007 02:03:52 boyce@bigboy.nyconnect.com>
+// Last modified: <18.Jan.2007 02:10:22 boyce@bigboy.nyconnect.com>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -149,9 +149,9 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_F_scratch2_idx(-1),
       d_P_idx(-1),
       d_Q_idx(-1),
-      d_use_pIB_method(true), ///(false),
-      d_pIB_kappa(1.0), ///(numeric_limits<double>::quiet_NaN()),
-      d_pIB_M(1.0)///(numeric_limits<double>::quiet_NaN())
+      d_use_pIB_method(false),
+      d_pIB_kappa(numeric_limits<double>::quiet_NaN()),
+      d_pIB_M(numeric_limits<double>::quiet_NaN())
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
