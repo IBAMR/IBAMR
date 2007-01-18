@@ -1,8 +1,8 @@
-// Filename: IBStandardInitializer.C
-// Last modified: <18.Jan.2007 15:22:29 boyce@bigboy.nyconnect.com>
-// Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
+// Filename: pIBStandardInitializer.C
+// Last modified: <18.Jan.2007 15:39:13 boyce@bigboy.nyconnect.com>
+// Created on 18 Jan 2007 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
-#include "IBStandardInitializer.h"
+#include "pIBStandardInitializer.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -35,6 +35,7 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <limits>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -44,7 +45,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBStandardInitializer::IBStandardInitializer(
+pIBStandardInitializer::pIBStandardInitializer(
     const std::string& object_name,
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_object_name(object_name),
@@ -53,6 +54,8 @@ IBStandardInitializer::IBStandardInitializer(
       d_num_vertices(),
       d_vertex_offsets(),
       d_vertex_posns(),
+      d_vertex_masses(),
+      d_vertex_anchor_tags(),
       d_edge_map(),
       d_edge_stiffnesses(),
       d_edge_rest_lengths(),
@@ -90,6 +93,8 @@ IBStandardInitializer::IBStandardInitializer(
     d_num_vertices.resize(d_max_levels);
     d_vertex_offsets.resize(d_max_levels);
     d_vertex_posns.resize(d_max_levels);
+    d_vertex_masses.resize(d_max_levels);
+    d_vertex_anchor_tags.resize(d_max_levels);
     d_edge_map.resize(d_max_levels);
     d_edge_stiffnesses.resize(d_max_levels);
     d_edge_rest_lengths.resize(d_max_levels);
@@ -164,16 +169,16 @@ IBStandardInitializer::IBStandardInitializer(
     }
 
     return;
-}// IBStandardInitializer
+}// pIBStandardInitializer
 
-IBStandardInitializer::~IBStandardInitializer()
+pIBStandardInitializer::~pIBStandardInitializer()
 {
     // intentionally blank
     return;
-}// ~IBStandardInitializer
+}// ~pIBStandardInitializer
 
 void
-IBStandardInitializer::registerLagSiloDataWriter(
+pIBStandardInitializer::registerLagSiloDataWriter(
     SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -217,7 +222,7 @@ IBStandardInitializer::registerLagSiloDataWriter(
 }// registerLagSiloDataWriter
 
 bool
-IBStandardInitializer::getLevelHasLagrangianData(
+pIBStandardInitializer::getLevelHasLagrangianData(
     const int level_number,
     const bool can_be_refined) const
 {
@@ -225,7 +230,7 @@ IBStandardInitializer::getLevelHasLagrangianData(
 }// getLevelHasLagrangianData
 
 int
-IBStandardInitializer::getLocalNodeCountOnPatchLevel(
+pIBStandardInitializer::getLocalNodeCountOnPatchLevel(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -251,7 +256,7 @@ IBStandardInitializer::getLocalNodeCountOnPatchLevel(
 }// getLocalNodeCountOnPatchLevel
 
 int
-IBStandardInitializer::initializeDataOnPatchLevel(
+pIBStandardInitializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
     const int global_index_offset,
     const int local_index_offset,
@@ -335,7 +340,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 }// initializeDataOnPatchLevel
 
 void
-IBStandardInitializer::tagCellsForInitialRefinement(
+pIBStandardInitializer::tagCellsForInitialRefinement(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double error_data_time,
@@ -415,13 +420,15 @@ ignore_rest_of_line(
 }
 
 void
-IBStandardInitializer::readVertexFiles()
+pIBStandardInitializer::readVertexFiles()
 {
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filenames = static_cast<int>(d_base_filenames[ln].size());
         d_num_vertices[ln].resize(num_base_filenames);
         d_vertex_posns[ln].resize(num_base_filenames);
+        d_vertex_masses[ln].resize(num_base_filenames);
+        d_vertex_anchor_tags[ln].resize(num_base_filenames);
         for (int j = 0; j < num_base_filenames; ++j)
         {
             const std::string vertex_filename = d_base_filenames[ln][j] + ".vertices";
@@ -439,9 +446,12 @@ IBStandardInitializer::readVertexFiles()
             is >> d_num_vertices[ln][j];
             ignore_rest_of_line(is);
 
-            // Each successive line provides the initial position of each
-            // vertex in the input file.
+            // Each successive line provides the initial position of
+            // each vertex in the input file, its mass, and whether it
+            // is anchored.
             d_vertex_posns[ln][j].resize(d_num_vertices[ln][j]*NDIM);
+            d_vertex_masses[ln][j].resize(d_num_vertices[ln][j]);
+            d_vertex_anchor_tags[ln][j].resize(d_num_vertices[ln][j]);
             for (int k = 0; k < d_num_vertices[ln][j]; ++k)
             {
                 for (int d = 0; d < NDIM; ++d)
@@ -449,7 +459,18 @@ IBStandardInitializer::readVertexFiles()
                     if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << vertex_filename << endl);
                     is >> d_vertex_posns[ln][j][k*NDIM+d];
                 }
+                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << vertex_filename << endl);
+                is >> d_vertex_masses[ln][j][k];
+                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << vertex_filename << endl);
+                is >> d_vertex_anchor_tags[ln][j][k];
                 ignore_rest_of_line(is);
+
+                // We shift the value of the mass slightly to avoid
+                // division by zero in IBHierarchyIntegrator.
+                if (SAMRAI::tbox::Utilities::deq(d_vertex_masses[ln][j][k],0.0))
+                {
+                    d_vertex_masses[ln][j][k] = std::numeric_limits<double>::epsilon();
+                }
             }
 
             // Close the input file.
@@ -464,7 +485,7 @@ IBStandardInitializer::readVertexFiles()
 }// readVertexFiles
 
 void
-IBStandardInitializer::readEdgeFiles()
+pIBStandardInitializer::readEdgeFiles()
 {
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
@@ -555,7 +576,7 @@ IBStandardInitializer::readEdgeFiles()
 }// readEdgeFiles
 
 void
-IBStandardInitializer::getPatchVertices(
+pIBStandardInitializer::getPatchVertices(
     std::vector<std::pair<int,int> >& patch_vertices,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
     const int level_number,
@@ -593,7 +614,7 @@ IBStandardInitializer::getPatchVertices(
 }// getPatchVertices
 
 int
-IBStandardInitializer::getCannonicalLagrangianIndex(
+pIBStandardInitializer::getCannonicalLagrangianIndex(
     const std::pair<int,int>& point_index,
     const int level_number) const
 {
@@ -601,7 +622,7 @@ IBStandardInitializer::getCannonicalLagrangianIndex(
 }// getCannonicalLagrangianIndex
 
 std::vector<double>
-IBStandardInitializer::getVertexPosn(
+pIBStandardInitializer::getVertexPosn(
     const std::pair<int,int>& point_index,
     const int level_number) const
 {
@@ -610,8 +631,25 @@ IBStandardInitializer::getVertexPosn(
         &d_vertex_posns[level_number][point_index.first][point_index.second*NDIM+NDIM]);
 }// getVertexPosn
 
+double
+pIBStandardInitializer::getVertexMass(
+    const std::pair<int,int>& point_index,
+    const int level_number) const
+{
+    return d_vertex_masses[level_number][point_index.first][point_index.second];
+}// getVertexMass
+
+bool
+pIBStandardInitializer::getVertexAnchorTag(
+    const std::pair<int,int>& point_index,
+    const int level_number) const
+{
+    return (d_vertex_anchor_tags[level_number][point_index.first][point_index.second]
+            == 1);
+}// getVertexAnchorTag
+
 std::vector<SAMRAI::tbox::Pointer<Stashable> >
-IBStandardInitializer::initializeForceSpec(
+pIBStandardInitializer::initializeForceSpec(
     const std::pair<int,int>& point_index,
     const int global_index_offset,
     const int level_number) const
@@ -664,6 +702,6 @@ IBStandardInitializer::initializeForceSpec(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBStandardInitializer>;
+template class SAMRAI::tbox::Pointer<IBAMR::pIBStandardInitializer>;
 
 //////////////////////////////////////////////////////////////////////////////
