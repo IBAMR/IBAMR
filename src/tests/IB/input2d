@@ -13,7 +13,7 @@ MAX_LEVELS = 2
 DELTA_FCN = "IB_6"
 MU = 0.005
 
-SpringForceGen {
+IBStandardForceGen {
   // intentionally blank
 }
 

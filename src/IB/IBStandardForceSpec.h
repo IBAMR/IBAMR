@@ -1,9 +1,9 @@
-#ifndef included_SpringForceSpec
-#define included_SpringForceSpec
+#ifndef included_IBStandardForceSpec
+#define included_IBStandardForceSpec
 
-// Filename: SpringForceSpec.h
+// Filename: IBStandardForceSpec.h
+// Last modified: <18.Jan.2007 16:43:01 boyce@bigboy.nyconnect.com>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <04.Oct.2006 19:53:25 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -21,21 +21,21 @@
 namespace IBAMR
 {
 /*!
- * @brief Class SpringForceSpec provies a mechanism for specifying a
- * network of spring forces.
+ * @brief Class IBStandardForceSpec provies a mechanism for specifying
+ * a network of spring forces, with support for target points.
  */
-class SpringForceSpec
+class IBStandardForceSpec
     : public Stashable
 {
 public:
     /*!
      * @brief Register this class and its factory class with the
      * singleton StashableManager object.  This method must be called
-     * before any SpringForceSpec objects are created.
+     * before any IBStandardForceSpec objects are created.
      *
      * NOTE: This method is collective on all MPI processes.  This is
      * done to ensure that all processes employ the same stashable ID
-     * for the SpringForceSpec class.
+     * for the IBStandardForceSpec class.
      */
     static void registerWithStashableManager();
 
@@ -48,15 +48,17 @@ public:
     /*!
      * @brief Default constructor.
      */
-    SpringForceSpec(
+    IBStandardForceSpec(
         const std::vector<int>& dst_idxs=vector<int>(),
         const std::vector<double>& stiffnesses=vector<double>(),
-        const std::vector<double>& rest_lengths=vector<double>());
+        const std::vector<double>& rest_lengths=vector<double>(),
+        const std::vector<double>& X_target=vector<double>(),
+        const double kappa_target=0.0);
 
     /*!
      * @brief Destructor.
      */
-    ~SpringForceSpec();
+    ~IBStandardForceSpec();
 
     /*!
      * @return The number of links attatched to the source node.
@@ -100,6 +102,19 @@ public:
     std::vector<double>& getRestingLengths();
 
     /*!
+     * \return A const pointer to the target point location.
+     */
+    const std::vector<double>& getTargetPosition() const;
+
+    /*!
+     * \return A const reference to the stiffnesses of the spring that
+     * attaches the IB point to the target point.  Note that the
+     * stiffness may be zero in the case that this node is not
+     * tethered to a target point.
+     */
+    const double& getTargetStiffness() const;
+
+    /*!
      * @brief Return the unique identifier used to specify the
      * StashableFactory object used by the StashableManager to extract
      * Stashable objects from data streams.
@@ -120,6 +135,14 @@ public:
 
 private:
     /*!
+     * @brief Default constructor.
+     *
+     * NOTE: This constructor is not implemented and should not be
+     * used.
+     */
+    IBStandardForceSpec();
+
+    /*!
      * @brief Copy constructor.
      *
      * NOTE: This constructor is not implemented and should not be
@@ -127,8 +150,8 @@ private:
      *
      * @param from The value to copy to this object.
      */
-    SpringForceSpec(
-        const SpringForceSpec& from);
+    IBStandardForceSpec(
+        const IBStandardForceSpec& from);
 
     /*!
      * @brief Assignment operator.
@@ -139,8 +162,8 @@ private:
      *
      * @return A reference to this object.
      */
-    SpringForceSpec& operator=(
-        const SpringForceSpec& that);
+    IBStandardForceSpec& operator=(
+        const IBStandardForceSpec& that);
 
     /*
      * Indicates whether the factory has been registered with the
@@ -154,18 +177,24 @@ private:
     static int s_stashable_id;
 
     /*
-     * Data required to define the spring force.
+     * Data required to define the spring forces.
      */
     int d_num_links;
     std::vector<int> d_dst_idxs;
     std::vector<double> d_stiffnesses, d_rest_lengths;
+
+    /*
+     * Data required to define the target penalty force.
+     */
+    std::vector<double> d_X_target;
+    double d_kappa_target;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/SpringForceSpec.I>
+//#include <ibamr/IBStandardForceSpec.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_SpringForceSpec
+#endif //#ifndef included_IBStandardForceSpec

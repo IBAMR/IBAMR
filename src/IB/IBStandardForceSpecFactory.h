@@ -1,9 +1,9 @@
-#ifndef included_SpringForceSpecFactory
-#define included_SpringForceSpecFactory
+#ifndef included_IBStandardForceSpecFactory
+#define included_IBStandardForceSpecFactory
 
-// Filename: SpringForceSpecFactory.h
+// Filename: IBStandardForceSpecFactory.h
+// Last modified: <18.Jan.2007 15:54:04 boyce@bigboy.nyconnect.com>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <16.Nov.2006 00:33:58 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -23,19 +23,19 @@ namespace IBAMR
 /*!
  * \brief Description of class.
  */
-class SpringForceSpecFactory
+class IBStandardForceSpecFactory
     : public StashableFactory
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    SpringForceSpecFactory();
+    IBStandardForceSpecFactory();
 
     /*!
      * \brief Destructor.
      */
-    ~SpringForceSpecFactory();
+    ~IBStandardForceSpecFactory();
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -69,8 +69,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SpringForceSpecFactory(
-        const SpringForceSpecFactory& from);
+    IBStandardForceSpecFactory(
+        const IBStandardForceSpecFactory& from);
 
     /*!
      * \brief Assignment operator.
@@ -81,8 +81,8 @@ private:
      *
      * \return A reference to this object.
      */
-    SpringForceSpecFactory& operator=(
-        const SpringForceSpecFactory& that);
+    IBStandardForceSpecFactory& operator=(
+        const IBStandardForceSpecFactory& that);
 
     /*
      * The stashable ID for this object type.
@@ -93,8 +93,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/SpringForceSpecFactory.I>
+//#include <ibamr/IBStandardForceSpecFactory.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_SpringForceSpecFactory
+#endif //#ifndef included_IBStandardForceSpecFactory

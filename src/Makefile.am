@@ -9,8 +9,108 @@ libIBAMR_a_LIBADD = advect/fortran/godunov_helpers.o lagrangian/fortran/lagrangi
 libIBAMR_a_SOURCES = # intentionally blank
 
 ## Dimension-dependent libraries
-libIBAMR2d_a_LIBADD = advect/libIBAMR_advect2d_a-GodunovAdvector.o advect/libIBAMR_advect2d_a-GodunovHypPatchOps.o advect/fortran/godunov_predictors2d.o advect/fortran/advect_diff2d.o advect/fortran/advect_stable2d.o advect/fortran/advect_detect2d.o adv_diff/fortran/adv_diff_consdiff2d.o adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o navier_stokes/fortran/navier_stokes_stabledt2d.o navier_stokes/fortran/navier_stokes_divsource2d.o utilities/libIBAMR_utilities2d_a-SetDataStrategy.o utilities/libIBAMR_utilities2d_a-ConvergenceMonitor.o utilities/libIBAMR_utilities2d_a-StashableStream.o utilities/libIBAMR_utilities2d_a-StashableManager.o utilities/libIBAMR_utilities2d_a-get_version.o utilities/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.o utilities/libIBAMR_utilities2d_a-Stashable.o utilities/libIBAMR_utilities2d_a-StashableFactory.o IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o IB/libIBAMR_IB2d_a-TargetPointForceSpec.o IB/libIBAMR_IB2d_a-IBStandardInitializer.o IB/libIBAMR_IB2d_a-SpringForceSpec.o IB/libIBAMR_IB2d_a-TargetPointForceSpecFactory.o IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o IB/libIBAMR_IB2d_a-IBLagrangianForceStrategy.o IB/libIBAMR_IB2d_a-SpringForceGen.o IB/libIBAMR_IB2d_a-TargetPointInitializer.o IB/libIBAMR_IB2d_a-SpringForceSpecFactory.o IB/libIBAMR_IB2d_a-TargetPointForceGen.o lagrangian/libIBAMR_lagrangian2d_a-LagSiloDataWriter.o lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o lagrangian/libIBAMR_lagrangian2d_a-LDataManager.o lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o lagrangian/fortran/lagrangian_interaction2d.o lagrangian/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.o lagrangian/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.o lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexSet.o lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable.o lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory.o lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o
+libIBAMR2d_a_LIBADD = \
+IB/libIBAMR_IB2d_a-SpringForceSpec.o \
+IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
+IB/libIBAMR_IB2d_a-TargetPointForceGen.o \
+IB/libIBAMR_IB2d_a-IBStandardForceSpecFactory.o \
+IB/libIBAMR_IB2d_a-pIBStandardInitializer.o \
+IB/libIBAMR_IB2d_a-IBStandardForceGen.o \
+IB/libIBAMR_IB2d_a-IBStandardForceSpec.o \
+IB/libIBAMR_IB2d_a-SpringForceSpecFactory.o \
+IB/libIBAMR_IB2d_a-TargetPointForceSpecFactory.o \
+IB/libIBAMR_IB2d_a-TargetPointForceSpec.o \
+IB/libIBAMR_IB2d_a-TargetPointInitializer.o \
+IB/libIBAMR_IB2d_a-IBLagrangianForceStrategy.o \
+IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
+IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o \
+IB/libIBAMR_IB2d_a-SpringForceGen.o \
+IB/libIBAMR_IB2d_a-IBStandardInitializer.o \
+IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
+adv_diff/fortran/adv_diff_consdiff2d.o \
+adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o \
+adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o \
+advect/fortran/godunov_predictors2d.o \
+advect/fortran/advect_diff2d.o \
+advect/fortran/advect_stable2d.o \
+advect/fortran/advect_detect2d.o \
+advect/libIBAMR_advect2d_a-GodunovAdvector.o \
+advect/libIBAMR_advect2d_a-GodunovHypPatchOps.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.o \
+lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
+lagrangian/fortran/lagrangian_interaction2d.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexSet.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory.o \
+lagrangian/libIBAMR_lagrangian2d_a-LDataManager.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable.o \
+lagrangian/libIBAMR_lagrangian2d_a-LagSiloDataWriter.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.o \
+navier_stokes/fortran/navier_stokes_stabledt2d.o \
+navier_stokes/fortran/navier_stokes_divsource2d.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
+utilities/libIBAMR_utilities2d_a-ConvergenceMonitor.o \
+utilities/libIBAMR_utilities2d_a-StashableFactory.o \
+utilities/libIBAMR_utilities2d_a-StashableManager.o \
+utilities/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.o \
+utilities/libIBAMR_utilities2d_a-Stashable.o \
+utilities/libIBAMR_utilities2d_a-SetDataStrategy.o \
+utilities/libIBAMR_utilities2d_a-StashableStream.o \
+utilities/libIBAMR_utilities2d_a-get_version.o
 libIBAMR2d_a_SOURCES = # intentionally blank
 
-libIBAMR3d_a_LIBADD = advect/libIBAMR_advect3d_a-GodunovAdvector.o advect/fortran/godunov_predictors3d.o advect/fortran/advect_stable3d.o advect/fortran/advect_diff3d.o advect/fortran/advect_detect3d.o advect/libIBAMR_advect3d_a-GodunovHypPatchOps.o adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o adv_diff/fortran/adv_diff_consdiff3d.o adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o navier_stokes/fortran/navier_stokes_stabledt3d.o navier_stokes/fortran/navier_stokes_divsource3d.o navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o utilities/libIBAMR_utilities3d_a-ConvergenceMonitor.o utilities/libIBAMR_utilities3d_a-get_version.o utilities/libIBAMR_utilities3d_a-SetDataStrategy.o utilities/libIBAMR_utilities3d_a-StashableStream.o utilities/libIBAMR_utilities3d_a-StashableFactory.o utilities/libIBAMR_utilities3d_a-StashableManager.o utilities/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.o utilities/libIBAMR_utilities3d_a-Stashable.o IB/libIBAMR_IB3d_a-IBLagrangianForceStrategy.o IB/libIBAMR_IB3d_a-TargetPointForceGen.o IB/libIBAMR_IB3d_a-SpringForceSpecFactory.o IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o IB/libIBAMR_IB3d_a-SpringForceSpec.o IB/libIBAMR_IB3d_a-IBStandardInitializer.o IB/libIBAMR_IB3d_a-TargetPointInitializer.o IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o IB/libIBAMR_IB3d_a-TargetPointForceSpecFactory.o IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o IB/libIBAMR_IB3d_a-TargetPointForceSpec.o IB/libIBAMR_IB3d_a-SpringForceGen.o IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexSet.o lagrangian/libIBAMR_lagrangian3d_a-LDataManager.o lagrangian/fortran/lagrangian_interaction3d.o lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.o lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable.o lagrangian/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.o lagrangian/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.o lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o
+libIBAMR3d_a_LIBADD = \
+IB/libIBAMR_IB3d_a-SpringForceSpecFactory.o \
+IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
+IB/libIBAMR_IB3d_a-TargetPointInitializer.o \
+IB/libIBAMR_IB3d_a-IBStandardForceSpecFactory.o \
+IB/libIBAMR_IB3d_a-SpringForceSpec.o \
+IB/libIBAMR_IB3d_a-IBStandardInitializer.o \
+IB/libIBAMR_IB3d_a-IBLagrangianForceStrategy.o \
+IB/libIBAMR_IB3d_a-TargetPointForceSpec.o \
+IB/libIBAMR_IB3d_a-IBStandardForceSpec.o \
+IB/libIBAMR_IB3d_a-SpringForceGen.o \
+IB/libIBAMR_IB3d_a-TargetPointForceSpecFactory.o \
+IB/libIBAMR_IB3d_a-TargetPointForceGen.o \
+IB/libIBAMR_IB3d_a-pIBStandardInitializer.o \
+IB/libIBAMR_IB3d_a-IBStandardForceGen.o \
+IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
+IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
+IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o \
+adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o \
+adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o \
+adv_diff/fortran/adv_diff_consdiff3d.o \
+advect/libIBAMR_advect3d_a-GodunovHypPatchOps.o \
+advect/fortran/godunov_predictors3d.o \
+advect/fortran/advect_detect3d.o \
+advect/fortran/advect_stable3d.o \
+advect/fortran/advect_diff3d.o \
+advect/libIBAMR_advect3d_a-GodunovAdvector.o \
+lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
+lagrangian/fortran/lagrangian_interaction3d.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexSet.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.o \
+lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o \
+lagrangian/libIBAMR_lagrangian3d_a-LDataManager.o \
+navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o \
+navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o \
+navier_stokes/fortran/navier_stokes_stabledt3d.o \
+navier_stokes/fortran/navier_stokes_divsource3d.o \
+utilities/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.o \
+utilities/libIBAMR_utilities3d_a-get_version.o \
+utilities/libIBAMR_utilities3d_a-Stashable.o \
+utilities/libIBAMR_utilities3d_a-StashableFactory.o \
+utilities/libIBAMR_utilities3d_a-StashableManager.o \
+utilities/libIBAMR_utilities3d_a-SetDataStrategy.o \
+utilities/libIBAMR_utilities3d_a-StashableStream.o \
+utilities/libIBAMR_utilities3d_a-ConvergenceMonitor.o
 libIBAMR3d_a_SOURCES = # intentionally blank

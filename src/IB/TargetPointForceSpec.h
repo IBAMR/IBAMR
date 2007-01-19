@@ -3,7 +3,7 @@
 
 // Filename: TargetPointForceSpec.h
 // Created on 23 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
-// Last modified: <27.Oct.2006 00:22:57 boyce@bigboy.nyconnect.com>
+// Last modified: <18.Jan.2007 16:39:06 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -49,15 +49,15 @@ public:
      * \brief Constructor.
      */
     TargetPointForceSpec(
-        const std::vector<double>& X,
-        const double kappa);
+        const std::vector<double>& X_target,
+        const double kappa_target);
 
     /*!
      * \brief Constructor.
      */
     TargetPointForceSpec(
-        const double* const X,
-        const double kappa);
+        const double* const X_target,
+        const double kappa_target);
 
     /*!
      * \brief Destructor.
@@ -140,8 +140,8 @@ private:
     /*
      * Data required to define the target penalty force.
      */
-    const std::vector<double> d_X;
-    const double d_kappa;
+    const std::vector<double> d_X_target;
+    const double d_kappa_target;
 };
 }// namespace IBAMR
 

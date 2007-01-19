@@ -1,8 +1,8 @@
-// Filename: SpringForceGen.C
+// Filename: IBStandardForceGen.C
+// Last modified: <18.Jan.2007 17:38:23 boyce@bigboy.nyconnect.com>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <18.Jan.2007 17:29:17 boyce@bigboy.nyconnect.com>
 
-#include "SpringForceGen.h"
+#include "IBStandardForceGen.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -17,8 +17,8 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/IBStandardForceSpec.h>
 #include <ibamr/LNodeIndexData.h>
-#include <ibamr/SpringForceSpec.h>
 
 // STOOLS INCLUDES
 #include <stools/PETSC_SAMRAI_ERROR.h>
@@ -51,7 +51,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data_1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SpringForceGen::SpringForceGen(
+IBStandardForceGen::IBStandardForceGen(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_L_mats(),
       d_local_src_ids(),
@@ -70,29 +70,29 @@ SpringForceGen::SpringForceGen(
     if (timers_need_init)
     {
         t_compute_lagrangian_force = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::SpringForceGen::computeLagrangianForce()");
+            getTimer("IBAMR::IBStandardForceGen::computeLagrangianForce()");
         t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::SpringForceGen::initializeLevelData()");
+            getTimer("IBAMR::IBStandardForceGen::initializeLevelData()");
         t_initialize_level_data_0 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::SpringForceGen::initializeLevelData()[MatSetValues]");
+            getTimer("IBAMR::IBStandardForceGen::initializeLevelData()[MatSetValues]");
         t_initialize_level_data_1 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::SpringForceGen::initializeLevelData()[MatAssembly]");
+            getTimer("IBAMR::IBStandardForceGen::initializeLevelData()[MatAssembly]");
         timers_need_init = false;
     }
     return;
-}// SpringForceGen
+}// IBStandardForceGen
 
-SpringForceGen::~SpringForceGen()
+IBStandardForceGen::~IBStandardForceGen()
 {
     for (std::vector<Mat>::iterator it = d_L_mats.begin(); it != d_L_mats.end(); ++it)
     {
         if (*it) MatDestroy(*it);
     }
     return;
-}// ~SpringForceGen
+}// ~IBStandardForceGen
 
 void
-SpringForceGen::initializeLevelData(
+IBStandardForceGen::initializeLevelData(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -159,7 +159,7 @@ SpringForceGen::initializeLevelData(
                 {
                     const LNodeIndexSet::value_type& node_idx = *n;
                     const int& lag_idx = node_idx->getLagrangianIndex();
-                    SAMRAI::tbox::Pointer<SpringForceSpec> force_spec =
+                    SAMRAI::tbox::Pointer<IBStandardForceSpec> force_spec =
                         node_idx->getStashData()[0];
                     if (!force_spec.isNull())
                     {
@@ -277,7 +277,7 @@ SpringForceGen::initializeLevelData(
 }// initializeLevelData
 
 void
-SpringForceGen::computeLagrangianForce(
+IBStandardForceGen::computeLagrangianForce(
     SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
     SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -291,9 +291,33 @@ SpringForceGen::computeLagrangianForce(
     assert(level_number < static_cast<int>(d_level_initialized.size()));
     assert(d_level_initialized[level_number]);
 #endif
-    (void) hierarchy;
-    (void) lag_manager;
 
+    // Compute the linear spring forces.
+    computeElasticForce(F_data, X_data, hierarchy, level_number,
+                        data_time, lag_manager);
+
+    // Compute the penalty forces associated with any Lagrangian
+    // target points.
+    computeTargetForce(F_data, X_data, hierarchy, level_number,
+                       data_time, lag_manager);
+
+    t_compute_lagrangian_force->stop();
+    return;
+}// computeLagrangianForce
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+IBStandardForceGen::computeElasticForce(
+    SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
+    SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    const LDataManager* const lag_manager)
+{
     int ierr;
 
     // Create an appropriately sized temporary vector to store the
@@ -310,7 +334,7 @@ SpringForceGen::computeLagrangianForce(
     ierr = MatMult(d_L_mats[level_number], X_data->getGlobalVec(), D_vec);
     PETSC_SAMRAI_ERROR(ierr);
 
-    // Compute the forces acting on each node.
+    // Compute the spring forces acting on each node.
     Vec F_vec = F_data->getGlobalVec();
     double* F_arr, * D_arr;
     ierr = VecGetArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
@@ -345,13 +369,118 @@ SpringForceGen::computeLagrangianForce(
     ierr = VecRestoreArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecDestroy(D_vec);               PETSC_SAMRAI_ERROR(ierr);
 
-    t_compute_lagrangian_force->stop();
     return;
-}// computeLagrangianForce
+}// computeElasticForce
 
-/////////////////////////////// PROTECTED ////////////////////////////////////
+void
+IBStandardForceGen::computeTargetForce(
+    SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
+    SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    const LDataManager* const lag_manager)
+{
+    int ierr;
 
-/////////////////////////////// PRIVATE //////////////////////////////////////
+    // Extract the local arrays.
+    Vec F_vec = F_data->getGlobalVec();
+    double* F_arr;
+    ierr = VecGetArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
+
+    Vec X_vec = X_data->getGlobalVec();
+    double* X_arr;
+    ierr = VecGetArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
+
+    // Get the grid geometry object and determine the extents of the
+    // physical domain.
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    if (!grid_geom->getDomainIsSingleBox())
+    {
+        TBOX_ERROR("physical domain must be a single box...\n");
+    }
+    const double* const XLower = grid_geom->getXLower();
+    const double* const XUpper = grid_geom->getXUpper();
+
+    // Get the patch data descriptor index for the LNodeIndexData.
+    const int lag_node_index_idx = lag_manager->
+        getLNodeIndexPatchDescriptorIndex();
+
+    // Compute the penalty force associated with the Lagrangian target
+    // points.
+    static double max_displacement = 0.0;
+    double max_config_displacement = 0.0;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
+            patch->getPatchData(lag_node_index_idx);
+
+        for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+        {
+            if (patch_box.contains(it.getIndex()))
+            {
+                const LNodeIndexSet& node_set = *it;
+                for (LNodeIndexSet::const_iterator n = node_set.begin();
+                     n != node_set.end(); ++n)
+                {
+                    const LNodeIndexSet::value_type& node_idx = *n;
+                    SAMRAI::tbox::Pointer<IBStandardForceSpec> force_spec =
+                        node_idx->getStashData()[0];
+                    if (!force_spec.isNull())
+                    {
+                        const double& kappa_target = force_spec->getTargetStiffness();
+                        if (!SAMRAI::tbox::Utilities::deq(kappa_target,0.0))
+                        {
+                            const int& petsc_idx = node_idx->getLocalPETScIndex();
+                            const double* const X = &X_arr[NDIM*petsc_idx];
+                            const vector<double>& X_target = force_spec->getTargetPosition();
+
+                            double* const F = &F_arr[NDIM*petsc_idx];
+                            double displacement = 0.0;
+                            for (int d = 0; d < NDIM; ++d)
+                            {
+                                const double shift =
+                                    (X[d] < XLower[d]
+                                     ? XUpper[d] - XLower[d]
+                                     : (X[d] > XUpper[d]
+                                        ? XLower[d] - XUpper[d]
+                                        : 0.0));
+#ifdef DEBUG_CHECK_ASSERTIONS
+                                assert(X[d]+shift >= XLower[d]);
+                                assert(X[d]+shift <= XUpper[d]);
+#endif
+                                F[d] = kappa_target*(X_target[d] - (X[d]+shift));
+                                displacement += pow(X_target[d] - (X[d]+shift),2.0);
+                            }
+                            displacement = sqrt(displacement);
+                            if (displacement > max_config_displacement)
+                            {
+                                max_config_displacement = displacement;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    ierr = VecRestoreArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecRestoreArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
+
+    max_config_displacement = SAMRAI::tbox::MPI::maxReduction(max_config_displacement);
+    if (max_config_displacement > max_displacement)
+    {
+        max_displacement = max_config_displacement;
+    }
+    SAMRAI::tbox::plog << "IBStandardForceGen::computeLagrangianForce():" << endl;
+    SAMRAI::tbox::plog << "  maximum target point displacement [present configuration] = " << max_config_displacement << endl;
+    SAMRAI::tbox::plog << "  maximum target point displacement [entire simulation] = " << max_displacement << endl;
+
+    return;
+}// computeTargetForce
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -360,6 +489,6 @@ SpringForceGen::computeLagrangianForce(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::SpringForceGen>;
+template class SAMRAI::tbox::Pointer<IBAMR::IBStandardForceGen>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <18.Jan.2007 15:22:29 boyce@bigboy.nyconnect.com>
+// Last modified: <18.Jan.2007 18:49:10 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -17,7 +17,7 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/SpringForceSpec.h>
+#include <ibamr/IBStandardForceSpec.h>
 #include <ibamr/LNodeIndexData.h>
 
 // STOOLS INCLUDES
@@ -56,6 +56,7 @@ IBStandardInitializer::IBStandardInitializer(
       d_edge_map(),
       d_edge_stiffnesses(),
       d_edge_rest_lengths(),
+      d_target_stiffnesses(),
       d_global_index_offset()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -65,7 +66,7 @@ IBStandardInitializer::IBStandardInitializer(
 
     // Register the force specification object with the
     // StashableManager class.
-    SpringForceSpec::registerWithStashableManager();
+    IBStandardForceSpec::registerWithStashableManager();
 
     // Determine the (maximum) number of levels in the locally refined
     // grid.  Note that each piece of the Lagrangian structure must be
@@ -93,6 +94,7 @@ IBStandardInitializer::IBStandardInitializer(
     d_edge_map.resize(d_max_levels);
     d_edge_stiffnesses.resize(d_max_levels);
     d_edge_rest_lengths.resize(d_max_levels);
+    d_target_stiffnesses.resize(d_max_levels);
     d_global_index_offset.resize(d_max_levels);
 
     // Determine the various input file names.
@@ -422,6 +424,7 @@ IBStandardInitializer::readVertexFiles()
         const int num_base_filenames = static_cast<int>(d_base_filenames[ln].size());
         d_num_vertices[ln].resize(num_base_filenames);
         d_vertex_posns[ln].resize(num_base_filenames);
+        d_target_stiffnesses[ln].resize(num_base_filenames);
         for (int j = 0; j < num_base_filenames; ++j)
         {
             const std::string vertex_filename = d_base_filenames[ln][j] + ".vertices";
@@ -439,15 +442,25 @@ IBStandardInitializer::readVertexFiles()
             is >> d_num_vertices[ln][j];
             ignore_rest_of_line(is);
 
-            // Each successive line provides the initial position of each
-            // vertex in the input file.
+            // Each successive line provides the initial position of
+            // each vertex in the input file, followed by an optional
+            // target point spring constant.
             d_vertex_posns[ln][j].resize(d_num_vertices[ln][j]*NDIM);
+            d_target_stiffnesses[ln][j].resize(d_num_vertices[ln][j]);
             for (int k = 0; k < d_num_vertices[ln][j]; ++k)
             {
                 for (int d = 0; d < NDIM; ++d)
                 {
                     if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << vertex_filename << endl);
                     is >> d_vertex_posns[ln][j][k*NDIM+d];
+                }
+                if (is.peek() != '\n')  // XXXX: Make this more robust!
+                {
+                    is >> d_target_stiffnesses[ln][j][k];
+                }
+                else
+                {
+                    d_target_stiffnesses[ln][j][k] = 0.0;
                 }
                 ignore_rest_of_line(is);
             }
@@ -610,6 +623,14 @@ IBStandardInitializer::getVertexPosn(
         &d_vertex_posns[level_number][point_index.first][point_index.second*NDIM+NDIM]);
 }// getVertexPosn
 
+double
+IBStandardInitializer::getVertexTargetStiffness(
+    const std::pair<int,int>& point_index,
+    const int level_number) const
+{
+    return d_target_stiffnesses[level_number][point_index.first][point_index.second];
+}// getVertexTargetStiffness
+
 std::vector<SAMRAI::tbox::Pointer<Stashable> >
 IBStandardInitializer::initializeForceSpec(
     const std::pair<int,int>& point_index,
@@ -648,11 +669,12 @@ IBStandardInitializer::initializeForceSpec(
         rest_lengths.push_back((*d_edge_rest_lengths[level_number][j].find(e)).second);
     }
 
-    // Don't bother to create a force spec if there are no edges.
-    if (has_edges)
-    {
-        force_spec.push_back(new SpringForceSpec(dst_idxs, stiffnesses, rest_lengths));
-    }
+    const std::vector<double> X_target = getVertexPosn(point_index, level_number);
+    const double kappa_target = getVertexTargetStiffness(point_index, level_number);
+
+    force_spec.push_back(new IBStandardForceSpec(
+                             dst_idxs, stiffnesses, rest_lengths,
+                             X_target, kappa_target));
 
     return force_spec;
 }// initializeForceSpec

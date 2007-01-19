@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <16.Jan.2007 16:24:59 boyce@bigboy.nyconnect.com>
+// Last modified: <18.Jan.2007 18:10:37 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -179,6 +179,16 @@ private:
         const int level_number) const;
 
     /*!
+     * \return The target point penalty force spring constant
+     * associated with a particular node.  (Note that if this value is
+     * zero for any particular node, there will be no target point
+     * penalty force at that node.)
+     */
+    double getVertexTargetStiffness(
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
+
+    /*!
      * \return The force specification objects associated with the
      * specified vertex.
      */
@@ -228,6 +238,11 @@ private:
     };
     std::vector<std::vector<std::multimap<int,Edge> > > d_edge_map;
     std::vector<std::vector<std::map<Edge,double,EdgeComp> > > d_edge_stiffnesses, d_edge_rest_lengths;
+
+    /*
+     * Target point information.
+     */
+    std::vector<std::vector<std::vector<double> > > d_target_stiffnesses;
 
     /*
      * Data required to specify connectivity information for

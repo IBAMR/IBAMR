@@ -30,10 +30,10 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/LagSiloDataWriter.h>
-#include <ibamr/SpringForceGen.h>
 
 using namespace IBAMR;
 using namespace SAMRAI;
@@ -280,8 +280,8 @@ int main(int argc, char* argv[])
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
 
         tbox::Pointer<IBLagrangianForceStrategy> force_generator =
-            new SpringForceGen(
-                input_db->getDatabase("SpringForceGen"));
+            new IBStandardForceGen(
+                input_db->getDatabase("IBStandardForceGen"));
 
         tbox::Pointer<LNodePosnInitStrategy> initializer =
             new IBStandardInitializer(

@@ -1,6 +1,6 @@
 // Filename: TargetPointForceSpec.C
 // Created on 23 Oct 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
-// Last modified: <27.Oct.2006 00:25:31 boyce@bigboy.nyconnect.com>
+// Last modified: <18.Jan.2007 16:40:23 boyce@bigboy.nyconnect.com>
 
 #include "TargetPointForceSpec.h"
 
@@ -65,13 +65,14 @@ TargetPointForceSpec::getIsRegisteredWithStashableManager()
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 TargetPointForceSpec::TargetPointForceSpec(
-    const std::vector<double>& X,
-    const double kappa)
-    : d_X(X),
-      d_kappa(kappa)
+    const std::vector<double>& X_target,
+    const double kappa_target)
+    : d_X_target(X_target),
+      d_kappa_target(kappa_target)
 {
 #ifdef DEBUG_CHECK_ASSERTSIONS
-    assert(d_X.size() == NDIM);
+    assert(d_X_target.size() == NDIM);
+    assert(d_kappa_target >= 0.0);
 #endif
     if (!s_registered_factory)
     {
@@ -83,13 +84,14 @@ TargetPointForceSpec::TargetPointForceSpec(
 }// TargetPointForceSpec
 
 TargetPointForceSpec::TargetPointForceSpec(
-    const double* const X,
-    const double kappa)
-    : d_X(X,X+NDIM),
-      d_kappa(kappa)
+    const double* const X_target,
+    const double kappa_target)
+    : d_X_target(X_target,X_target+NDIM),
+      d_kappa_target(kappa_target)
 {
 #ifdef DEBUG_CHECK_ASSERTSIONS
-    assert(d_X.size() == NDIM);
+    assert(d_X_target.size() == NDIM);
+    assert(d_kappa_target >= 0.0);
 #endif
     if (!s_registered_factory)
     {
@@ -109,13 +111,13 @@ TargetPointForceSpec::~TargetPointForceSpec()
 const std::vector<double>&
 TargetPointForceSpec::getPosition() const
 {
-    return d_X;
+    return d_X_target;
 }// getPosition
 
 const double&
 TargetPointForceSpec::getStiffness() const
 {
-    return d_kappa;
+    return d_kappa_target;
 }// getStiffness
 
 int
@@ -134,8 +136,12 @@ void
 TargetPointForceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
-    stream.pack(&d_X[0], NDIM);
-    stream.pack(&d_kappa, 1);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(d_X_target.size() == NDIM);
+    assert(d_kappa_target >= 0.0);
+#endif
+    stream.pack(&d_X_target[0],NDIM);
+    stream.pack(&d_kappa_target,1);
     return;
 }// packStream
 
