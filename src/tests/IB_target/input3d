@@ -30,9 +30,14 @@ IBHierarchyIntegrator {
    timestepping_order = 2
 }
 
-TargetPointInitializer {
-   input_filename = "sphere3d.dat"
-   uniform_stiffness = 20.0
+IBStandardInitializerInitializer {
+   max_levels = MAX_LEVELS
+   base_filenames_2 = "sphere3d"
+   sphere3d_target_stiffness = 20.0
+}
+
+IBStandardForceGen {
+  // intentionally blank
 }
 
 INSHierarchyIntegrator {

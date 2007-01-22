@@ -30,12 +30,16 @@ IBHierarchyIntegrator {
    timestepping_order = 2
 }
 
-TargetPointInitializer {
+IBStandardInitializer {
    max_levels = MAX_LEVELS
-   input_filename_2 = "cylinder2d.256"   // corresponds to NFINEST = 256
-// input_filename_2 = "cylinder2d.512"   // corresponds to NFINEST = 512
-// input_filename_2 = "cylinder2d.1024"  // corresponds to NFINEST = 1024
-// input_filename_2 = "cylinder2d.2048"  // corresponds to NFINEST = 2048
+   input_filename_2 = "cylinder2d_256"   // corresponds to NFINEST = 256
+// input_filename_2 = "cylinder2d_512"   // corresponds to NFINEST = 512
+// input_filename_2 = "cylinder2d_1024"  // corresponds to NFINEST = 1024
+// input_filename_2 = "cylinder2d_2048"  // corresponds to NFINEST = 2048
+}
+
+IBStandardForceGen {
+  // intentionally blank
 }
 
 INSHierarchyIntegrator {

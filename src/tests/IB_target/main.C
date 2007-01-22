@@ -30,9 +30,9 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBStandardForceGen.h>
+#include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <ibamr/TargetPointForceGen.h>
-#include <ibamr/TargetPointInitializer.h>
 
 #include "UInit.h"
 
@@ -283,12 +283,13 @@ int main(int argc, char* argv[])
         navier_stokes_integrator->registerVelocityInitialConditions(u_init);
 
         tbox::Pointer<IBLagrangianForceStrategy> force_generator =
-            new TargetPointForceGen();
+            new IBStandardForceGen(
+                input_db->getDatabase("IBStandardForceGen"));
 
         tbox::Pointer<LNodePosnInitStrategy> initializer =
-            new TargetPointInitializer(
-                "TargetPointInitializer",
-                input_db->getDatabase("TargetPointInitializer"));
+            new IBStandardInitializer(
+                "IBStandardInitializer",
+                input_db->getDatabase("IBStandardInitializer"));
 
         tbox::Pointer<IBHierarchyIntegrator> time_integrator =
             new IBHierarchyIntegrator(
