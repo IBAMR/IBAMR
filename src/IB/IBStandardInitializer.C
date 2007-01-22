@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <18.Jan.2007 18:49:10 boyce@bigboy.nyconnect.com>
+// Last modified: <22.Jan.2007 14:28:49 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -126,41 +126,40 @@ IBStandardInitializer::IBStandardInitializer(
         {
             SAMRAI::tbox::pout << "  base filename: " << *it << endl
                                << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << endl
-                               << "     required files: " << *it << ".vertices" << endl
-                               << "     optional files: " << *it << ".edges" << endl;
+                               << "     required files: " << *it << ".vertex" << endl
+                               << "     optional files: " << *it << ".edge, " << *it << ".target_stiff " << endl;
         }
     }
 
-    // Process the vertex information on each MPI process.
+    // Process the various input files on each MPI process.
     for (int rank = 0; rank < SAMRAI::tbox::MPI::getNodes(); ++rank)
     {
         if (rank == SAMRAI::tbox::MPI::getRank())
         {
+            // Process the vertex information.
             readVertexFiles();
-        }
-        SAMRAI::tbox::MPI::barrier();
-    }
 
-    // Compute the index offsets.
-    //
-    // NOTE: A separate, independent Lagrangian numbering scheme is
-    // used on each level of the locally refined Cartesian grid.
-    for (int ln = 0; ln < d_max_levels; ++ln)
-    {
-        d_vertex_offsets[ln].resize(d_num_vertices[ln].size());
-        d_vertex_offsets[ln][0] = 0;
-        for (int j = 1; j < static_cast<int>(d_num_vertices[ln].size()); ++j)
-        {
-            d_vertex_offsets[ln][j] = d_vertex_offsets[ln][j-1]+d_num_vertices[ln][j-1];
-        }
-    }
+            // Compute the index offsets.  Note that this must be done
+            // prior to processing all remaining input files.
+            //
+            // NOTE: A separate, independent Lagrangian numbering
+            // scheme is used on each level of the locally refined
+            // Cartesian grid.
+            for (int ln = 0; ln < d_max_levels; ++ln)
+            {
+                d_vertex_offsets[ln].resize(d_num_vertices[ln].size());
+                d_vertex_offsets[ln][0] = 0;
+                for (int j = 1; j < static_cast<int>(d_num_vertices[ln].size()); ++j)
+                {
+                    d_vertex_offsets[ln][j] = d_vertex_offsets[ln][j-1]+d_num_vertices[ln][j-1];
+                }
+            }
 
-    // Read the edge information on each MPI process.
-    for (int rank = 0; rank < SAMRAI::tbox::MPI::getNodes(); ++rank)
-    {
-        if (rank == SAMRAI::tbox::MPI::getRank())
-        {
+            // Process the (optional) edge information.
             readEdgeFiles();
+
+            // Process the (optional) target point information.
+            readTargetPointFiles();
         }
         SAMRAI::tbox::MPI::barrier();
     }
@@ -395,27 +394,6 @@ IBStandardInitializer::tagCellsForInitialRefinement(
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-namespace
-{
-
-static const char DELIM = '\n';
-static const int NBUF = 256;
-static char buf[NBUF];
-
-void
-ignore_rest_of_line(
-    std::ifstream& is)
-{
-    for (char c = is.peek(); c != DELIM && !is.eof(); )
-    {
-        is.get(buf, NBUF, DELIM);
-        c = is.peek();
-    }
-    return;
-}// ignore_rest_of_line
-
-}
-
 void
 IBStandardInitializer::readVertexFiles()
 {
@@ -424,49 +402,56 @@ IBStandardInitializer::readVertexFiles()
         const int num_base_filenames = static_cast<int>(d_base_filenames[ln].size());
         d_num_vertices[ln].resize(num_base_filenames);
         d_vertex_posns[ln].resize(num_base_filenames);
-        d_target_stiffnesses[ln].resize(num_base_filenames);
         for (int j = 0; j < num_base_filenames; ++j)
         {
-            const std::string vertex_filename = d_base_filenames[ln][j] + ".vertices";
-            std::ifstream is;
-            is.open(vertex_filename.c_str(), std::ios::in);
-            if (!is.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertex_filename << endl);
-            is.peek();  // try to catch premature end-of-file for empty files
+            const std::string vertex_filename = d_base_filenames[ln][j] + ".vertex";
+            std::ifstream file_stream;
+            std::string line_string;
+            file_stream.open(vertex_filename.c_str(), std::ios::in);
+            if (!file_stream.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertex_filename << endl);
 
             SAMRAI::tbox::plog << d_object_name << ":  "
                                << "processing vertex data from input filename " << vertex_filename << endl
                                << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
             // The first entry in the file is the number of vertices.
-            if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << vertex_filename << endl);
-            is >> d_num_vertices[ln][j];
-            ignore_rest_of_line(is);
+            if (!std::getline(file_stream, line_string))
+            {
+                TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << vertex_filename << endl);
+            }
+            else
+            {
+                std::istringstream line_stream(line_string);
+                if (!(line_stream >> d_num_vertices[ln][j]))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << endl);
+                }
+            }
 
             // Each successive line provides the initial position of
-            // each vertex in the input file, followed by an optional
-            // target point spring constant.
+            // each vertex in the input file.
             d_vertex_posns[ln][j].resize(d_num_vertices[ln][j]*NDIM);
-            d_target_stiffnesses[ln][j].resize(d_num_vertices[ln][j]);
             for (int k = 0; k < d_num_vertices[ln][j]; ++k)
             {
-                for (int d = 0; d < NDIM; ++d)
+                if (!std::getline(file_stream, line_string))
                 {
-                    if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+2 << " of file " << vertex_filename << endl);
-                    is >> d_vertex_posns[ln][j][k*NDIM+d];
-                }
-                if (is.peek() != '\n')  // XXXX: Make this more robust!
-                {
-                    is >> d_target_stiffnesses[ln][j][k];
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << vertex_filename << endl);
                 }
                 else
                 {
-                    d_target_stiffnesses[ln][j][k] = 0.0;
+                    std::istringstream line_stream(line_string);
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        if (!(line_stream >> d_vertex_posns[ln][j][k*NDIM+d]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << vertex_filename << endl);
+                        }
+                    }
                 }
-                ignore_rest_of_line(is);
             }
 
             // Close the input file.
-            is.close();
+            file_stream.close();
 
             SAMRAI::tbox::plog << d_object_name << ":  "
                                << "read " << d_num_vertices[ln][j] << " vertices from input filename " << vertex_filename << endl
@@ -487,39 +472,35 @@ IBStandardInitializer::readEdgeFiles()
         d_edge_rest_lengths[ln].resize(num_base_filenames);
         for (int j = 0; j < num_base_filenames; ++j)
         {
-            const std::string edge_filename = d_base_filenames[ln][j] + ".edges";
-            std::ifstream is;
-            is.open(edge_filename.c_str(), std::ios::in);
-            if (is.is_open())
+            const std::string edge_filename = d_base_filenames[ln][j] + ".edge";
+            std::ifstream file_stream;
+            std::string line_string;
+            file_stream.open(edge_filename.c_str(), std::ios::in);
+            if (file_stream.is_open())
             {
-                is.peek();  // try to catch premature end-of-file for empty files
-
                 SAMRAI::tbox::plog << d_object_name << ":  "
                                    << "processing edge data from input filename " << edge_filename << endl
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
-                // The first entry in the file indicates whether the
-                // numbering is assumed to start from 0 or from 1.
-                int base_index;
-                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 1 of file " << edge_filename << endl);
-                is >> base_index;
-                ignore_rest_of_line(is);
-
-                if (base_index != 0 && base_index != 1)
-                {
-                    TBOX_ERROR(d_object_name << ":\n  Line 1 of filename " << edge_filename << " is invalid" << endl);
-                }
-
-                // The second line in the file indicates the number of
+                // The first line in the file indicates the number of
                 // edges in the input file.
                 int num_edges;
-                if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line 2 of file " << edge_filename << endl);
-                is >> num_edges;
-                ignore_rest_of_line(is);
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << edge_filename << endl);
+                }
+                else
+                {
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_edges))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << edge_filename << endl);
+                    }
+                }
 
                 if (num_edges <= 0)
                 {
-                    TBOX_ERROR(d_object_name << ":\n  Line 2 of filename " << edge_filename << " is invalid" << endl);
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << edge_filename << endl);
                 }
 
                 // Each successive line provides the connectivity
@@ -528,18 +509,58 @@ IBStandardInitializer::readEdgeFiles()
                 {
                     Edge e;
                     double kappa, length;
-                    if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
-                    is >> e.first;   // first  vertex
-                    if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
-                    is >> e.second;  // second vertex
-                    if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
-                    is >> kappa;     // spring constant
-                    if (is.eof()) TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered on line " << k+3 << " of file " << edge_filename << endl);
-                    is >> length;    // rest length
-                    ignore_rest_of_line(is);
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << edge_filename << endl);
+                    }
+                    else
+                    {
+                        std::istringstream line_stream(line_string);
+                        if (!(line_stream >> e.first))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl);
+                        }
+                        else if ((e.first < 0) || (e.first >= d_num_vertices[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl
+                                       << "  vertex index " << e.first << " is out of range" << endl);
+                        }
 
-                    e.first  += d_vertex_offsets[ln][j]-base_index; // correct the edge numbers to be in the
-                    e.second += d_vertex_offsets[ln][j]-base_index; // global Lagrangian indexing scheme
+                        if (!(line_stream >> e.second))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl);
+                        }
+                        else if ((e.second < 0) || (e.second >= d_num_vertices[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl
+                                       << "  vertex index " << e.second << " is out of range" << endl);
+                        }
+
+                        if (!(line_stream >> kappa))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl);
+                        }
+                        else if (kappa < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl
+                                       << "  spring constant is negative" << endl);
+                        }
+
+                        if (!(line_stream >> length))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl);
+                        }
+                        else if (length < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl
+                                       << "  spring resting length is negative" << endl);
+                        }
+                    }
+
+                    // Correct the edge numbers to be in the global
+                    // Lagrangian indexing scheme.
+                    e.first  += d_vertex_offsets[ln][j];
+                    e.second += d_vertex_offsets[ln][j];
 
                     // Always place the lower index first.
                     if (e.first > e.second)
@@ -549,6 +570,11 @@ IBStandardInitializer::readEdgeFiles()
                         e.second = tmp;
                     }
 
+                    // Initialize the edge map entries corresponding
+                    // to the present edge.
+                    //
+                    // Note that the edge is associated with both the
+                    // first and the second vertex in the edge map.
                     d_edge_map[ln][j].insert(std::make_pair(e.first ,e));
                     d_edge_map[ln][j].insert(std::make_pair(e.second,e));
                     d_edge_stiffnesses [ln][j][e] = kappa;
@@ -556,16 +582,105 @@ IBStandardInitializer::readEdgeFiles()
                 }
 
                 // Close the input file.
-                is.close();
+                file_stream.close();
 
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << d_num_vertices[ln][j] << " vertices from input filename " << edge_filename << endl
+                                   << "read " << num_edges << " edges from input filename " << edge_filename << endl
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
             }
         }
     }
     return;
 }// readEdgeFiles
+
+void
+IBStandardInitializer::readTargetPointFiles()
+{
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const int num_base_filenames = static_cast<int>(d_base_filenames[ln].size());
+        d_target_stiffnesses[ln].resize(num_base_filenames);
+        for (int j = 0; j < num_base_filenames; ++j)
+        {
+            d_target_stiffnesses[ln][j].resize(d_num_vertices[ln][j],0.0);
+
+            const std::string target_point_stiffness_filename = d_base_filenames[ln][j] + ".target_stiff";
+            std::ifstream file_stream;
+            std::string line_string;
+            file_stream.open(target_point_stiffness_filename.c_str(), std::ios::in);
+            if (file_stream.is_open())
+            {
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "processing target point data from input filename " << target_point_stiffness_filename << endl
+                                   << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+
+                // The first line in the file indicates the number of
+                // target point stiffnesses in the input file.
+                int num_target_stiffnesses;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << target_point_stiffness_filename << endl);
+                }
+                else
+                {
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_target_stiffnesses))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << target_point_stiffness_filename << endl);
+                    }
+                }
+
+                if (num_target_stiffnesses <= 0)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << target_point_stiffness_filename << endl);
+                }
+
+                // Each successive line indicates the vertex number
+                // and spring constant associated with any target
+                // points.
+                for (int k = 0; k < num_target_stiffnesses; ++k)
+                {
+                    int n;
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << target_point_stiffness_filename << endl);
+                    }
+                    else
+                    {
+                        std::istringstream line_stream(line_string);
+                        if (!(line_stream >> n))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << endl);
+                        }
+                        else if ((n < 0) || (n >= d_num_vertices[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << endl
+                                       << "  vertex index " << n << " is out of range" << endl);
+                        }
+
+                        if (!(line_stream >> d_target_stiffnesses[ln][j][n]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << endl);
+                        }
+                        else if (d_target_stiffnesses[ln][j][n] < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << endl
+                                       << "  target point spring constant is negative" << endl);
+                        }
+                    }
+                }
+
+                // Close the input file.
+                file_stream.close();
+
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "read " << num_target_stiffnesses << " target points from input filename " << target_point_stiffness_filename << endl
+                                   << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+            }
+        }
+    }
+    return;
+}// readTargetPointFiles
 
 void
 IBStandardInitializer::getPatchVertices(
@@ -642,7 +757,6 @@ IBStandardInitializer::initializeForceSpec(
     const int j = point_index.first;
     const int lag_index = getCannonicalLagrangianIndex(point_index, level_number);
 
-    bool has_edges = false;
     std::vector<int> dst_idxs;
     std::vector<double> stiffnesses, rest_lengths;
     for (std::multimap<int,Edge>::const_iterator it = d_edge_map[level_number][j].lower_bound(lag_index);
@@ -651,8 +765,6 @@ IBStandardInitializer::initializeForceSpec(
 #ifdef DEBUG_CHECK_ASSERTIONS
         assert(lag_index == (*it).first);
 #endif
-        has_edges = true;
-
         // The connectivity information.
         const Edge& e = (*it).second;
         if (e.first == lag_index)

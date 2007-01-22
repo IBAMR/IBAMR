@@ -220,9 +220,9 @@ EXTRA_DIST = autogen.sh bin/includes doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/TargetPointForceSpecFactory.h \
 	include/ibamr/TargetPointForceSpec.h \
 	include/ibamr/TargetPointInitializer.h sample/IB/input2d \
-	sample/IB/input3d sample/IB/main.C sample/IB/shell2d_64.edges \
-	sample/IB/shell2d_64.vertices sample/IB/sphere3d.edges \
-	sample/IB/sphere3d.vertices
+	sample/IB/input3d sample/IB/main.C sample/IB/shell2d_64.edge \
+	sample/IB/shell2d_64.vertex sample/IB/sphere3d.edge \
+	sample/IB/sphere3d.vertex
 all: all-recursive
 
 .SUFFIXES:
@@ -662,8 +662,8 @@ all-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(top_srcdir)/sample/IB/input[23]d $(top_builddir)/sample/IB ; \
 	  cp -f $(top_srcdir)/sample/IB/main.C $(top_builddir)/sample/IB ; \
-	  cp -f $(top_srcdir)/sample/IB/shell2d_64.{edges,vertices} $(top_builddir)/sample/IB ; \
-	  cp -f $(top_srcdir)/sample/IB/sphere3d.{edges,vertices} $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/shell2d_64.{edge,vertex} $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/sphere3d.{edge,vertex} $(top_builddir)/sample/IB ; \
 	fi ;
 
 copy_headers:

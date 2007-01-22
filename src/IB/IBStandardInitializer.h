@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <18.Jan.2007 18:10:37 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Jan.2007 01:07:22 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -152,6 +152,11 @@ private:
      * \brief Read the edge data from one or more input files.
      */
     void readEdgeFiles();
+
+    /*!
+     * \brief Read the target point data from one or more input files.
+     */
+    void readTargetPointFiles();
 
     /*!
      * \brief Determine the indices of any vertices initially located
