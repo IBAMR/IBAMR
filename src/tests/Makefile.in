@@ -162,7 +162,7 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = IB IB_cylinder2d IB_multilevel IB_target adv_diff advect navier_stokes_analytic_soln navier_stokes_shear_layer
+SUBDIRS = IB IB_multilevel IB_target adv_diff advect navier_stokes_analytic_soln navier_stokes_shear_layer
 all: all-recursive
 
 .SUFFIXES:

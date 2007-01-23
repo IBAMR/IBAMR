@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <22.Jan.2007 14:28:49 boyce@bigboy.nyconnect.com>
+// Last modified: <22.Jan.2007 21:20:44 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -49,14 +49,22 @@ IBStandardInitializer::IBStandardInitializer(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_object_name(object_name),
       d_max_levels(-1),
-      d_base_filenames(),
-      d_num_vertices(),
-      d_vertex_offsets(),
-      d_vertex_posns(),
+      d_base_filename(),
+      d_num_vertex(),
+      d_vertex_offset(),
+      d_vertex_posn(),
+      d_enable_edges(),
       d_edge_map(),
-      d_edge_stiffnesses(),
-      d_edge_rest_lengths(),
-      d_target_stiffnesses(),
+      d_edge_stiffness(),
+      d_edge_rest_length(),
+      d_use_uniform_edge_stiffness(),
+      d_uniform_edge_stiffness(),
+      d_use_uniform_edge_rest_length(),
+      d_uniform_edge_rest_length(),
+      d_enable_target_points(),
+      d_target_stiffness(),
+      d_use_uniform_target_stiffness(),
+      d_uniform_target_stiffness(),
       d_global_index_offset()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -68,68 +76,8 @@ IBStandardInitializer::IBStandardInitializer(
     // StashableManager class.
     IBStandardForceSpec::registerWithStashableManager();
 
-    // Determine the (maximum) number of levels in the locally refined
-    // grid.  Note that each piece of the Lagrangian structure must be
-    // assigned to a particular level of the grid.
-    if (input_db->keyExists("max_levels"))
-    {
-        d_max_levels = input_db->getInteger("max_levels");
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << ":  "
-                   << "Key data `max_levels' not found in input.");
-    }
-
-    if (d_max_levels < 1)
-    {
-        TBOX_ERROR(d_object_name << ":  "
-                   << "Key data `max_levels' found in input is < 1.");
-    }
-
-    d_base_filenames.resize(d_max_levels);
-    d_num_vertices.resize(d_max_levels);
-    d_vertex_offsets.resize(d_max_levels);
-    d_vertex_posns.resize(d_max_levels);
-    d_edge_map.resize(d_max_levels);
-    d_edge_stiffnesses.resize(d_max_levels);
-    d_edge_rest_lengths.resize(d_max_levels);
-    d_target_stiffnesses.resize(d_max_levels);
-    d_global_index_offset.resize(d_max_levels);
-
-    // Determine the various input file names.
-    for (int ln = 0; ln < d_max_levels; ++ln)
-    {
-        std::ostringstream db_key_name_stream;
-        db_key_name_stream << "base_filenames_" << ln;
-        const std::string db_key_name = db_key_name_stream.str();
-        if (input_db->keyExists(db_key_name))
-        {
-            const int n_files = input_db->getArraySize(db_key_name);
-            d_base_filenames[ln].resize(n_files);
-            input_db->getStringArray(
-                db_key_name, &d_base_filenames[ln][0], n_files);
-        }
-        else
-        {
-            TBOX_WARNING(d_object_name << ":  "
-                         << "Key data `" + db_key_name + "' not found in input.");
-        }
-    }
-
-    // Output the names of the input files to be read.
-    SAMRAI::tbox::pout << d_object_name << ":  Reading from input files: " << endl;
-    for (int ln = 0; ln < d_max_levels; ++ln)
-    {
-        for (std::vector<std::string>::const_iterator it = d_base_filenames[ln].begin();
-             it != d_base_filenames[ln].end(); ++it)
-        {
-            SAMRAI::tbox::pout << "  base filename: " << *it << endl
-                               << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << endl
-                               << "     required files: " << *it << ".vertex" << endl
-                               << "     optional files: " << *it << ".edge, " << *it << ".target_stiff " << endl;
-        }
-    }
+    // Initialize object with data read from the input database.
+    getFromInput(input_db);
 
     // Process the various input files on each MPI process.
     for (int rank = 0; rank < SAMRAI::tbox::MPI::getNodes(); ++rank)
@@ -147,11 +95,11 @@ IBStandardInitializer::IBStandardInitializer(
             // Cartesian grid.
             for (int ln = 0; ln < d_max_levels; ++ln)
             {
-                d_vertex_offsets[ln].resize(d_num_vertices[ln].size());
-                d_vertex_offsets[ln][0] = 0;
-                for (int j = 1; j < static_cast<int>(d_num_vertices[ln].size()); ++j)
+                d_vertex_offset[ln].resize(d_num_vertex[ln].size());
+                d_vertex_offset[ln][0] = 0;
+                for (int j = 1; j < static_cast<int>(d_num_vertex[ln].size()); ++j)
                 {
-                    d_vertex_offsets[ln][j] = d_vertex_offsets[ln][j-1]+d_num_vertices[ln][j-1];
+                    d_vertex_offset[ln][j] = d_vertex_offset[ln][j-1]+d_num_vertex[ln][j-1];
                 }
             }
 
@@ -198,16 +146,16 @@ IBStandardInitializer::registerLagSiloDataWriter(
     {
         for (int ln = 0; ln < d_max_levels; ++ln)
         {
-            for (unsigned j = 0; j < d_num_vertices[ln].size(); ++j)
+            for (unsigned j = 0; j < d_num_vertex[ln].size(); ++j)
             {
                 silo_writer->registerMarkerCloud(
-                    d_base_filenames[ln][j] + "_vertices",
-                    d_num_vertices[ln][j], d_vertex_offsets[ln][j], ln);
+                    d_base_filename[ln][j] + "_vertices",
+                    d_num_vertex[ln][j], d_vertex_offset[ln][j], ln);
 
                 if (d_edge_map[ln][j].size() > 0)
                 {
                     silo_writer->registerUnstructuredMesh(
-                        d_base_filenames[ln][j] + "_mesh",
+                        d_base_filename[ln][j] + "_mesh",
                         d_edge_map[ln][j], ln);
                 }
             }
@@ -222,7 +170,7 @@ IBStandardInitializer::getLevelHasLagrangianData(
     const int level_number,
     const bool can_be_refined) const
 {
-    return !d_num_vertices[level_number].empty();
+    return !d_num_vertex[level_number].empty();
 }// getLevelHasLagrangianData
 
 int
@@ -394,17 +342,49 @@ IBStandardInitializer::tagCellsForInitialRefinement(
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
+namespace
+{
+
+inline std::string
+discard_comments(
+    const std::string& input_string)
+{
+    // Create a copy of the input string, but without any text
+    // following a '!', '#', or '%' character.
+    std::string output_string = input_string;
+    std::istringstream string_stream;
+
+    // Discard any text following a '!' character.
+    string_stream.str(output_string);
+    std::getline(string_stream, output_string, '!');
+    string_stream.clear();
+
+    // Discard any text following a '#' character.
+    string_stream.str(output_string);
+    std::getline(string_stream, output_string, '#');
+    string_stream.clear();
+
+    // Discard any text following a '%' character.
+    string_stream.str(output_string);
+    std::getline(string_stream, output_string, '%');
+    string_stream.clear();
+
+    return output_string;
+}// discard_comments
+
+}
+
 void
 IBStandardInitializer::readVertexFiles()
 {
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filenames = static_cast<int>(d_base_filenames[ln].size());
-        d_num_vertices[ln].resize(num_base_filenames);
-        d_vertex_posns[ln].resize(num_base_filenames);
-        for (int j = 0; j < num_base_filenames; ++j)
+        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        d_num_vertex[ln].resize(num_base_filename);
+        d_vertex_posn[ln].resize(num_base_filename);
+        for (int j = 0; j < num_base_filename; ++j)
         {
-            const std::string vertex_filename = d_base_filenames[ln][j] + ".vertex";
+            const std::string vertex_filename = d_base_filename[ln][j] + ".vertex";
             std::ifstream file_stream;
             std::string line_string;
             file_stream.open(vertex_filename.c_str(), std::ios::in);
@@ -421,8 +401,9 @@ IBStandardInitializer::readVertexFiles()
             }
             else
             {
+                line_string = discard_comments(line_string);
                 std::istringstream line_stream(line_string);
-                if (!(line_stream >> d_num_vertices[ln][j]))
+                if (!(line_stream >> d_num_vertex[ln][j]))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << endl);
                 }
@@ -430,8 +411,8 @@ IBStandardInitializer::readVertexFiles()
 
             // Each successive line provides the initial position of
             // each vertex in the input file.
-            d_vertex_posns[ln][j].resize(d_num_vertices[ln][j]*NDIM);
-            for (int k = 0; k < d_num_vertices[ln][j]; ++k)
+            d_vertex_posn[ln][j].resize(d_num_vertex[ln][j]*NDIM);
+            for (int k = 0; k < d_num_vertex[ln][j]; ++k)
             {
                 if (!std::getline(file_stream, line_string))
                 {
@@ -439,10 +420,11 @@ IBStandardInitializer::readVertexFiles()
                 }
                 else
                 {
+                    line_string = discard_comments(line_string);
                     std::istringstream line_stream(line_string);
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        if (!(line_stream >> d_vertex_posns[ln][j][k*NDIM+d]))
+                        if (!(line_stream >> d_vertex_posn[ln][j][k*NDIM+d]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << vertex_filename << endl);
                         }
@@ -454,7 +436,7 @@ IBStandardInitializer::readVertexFiles()
             file_stream.close();
 
             SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "read " << d_num_vertices[ln][j] << " vertices from input filename " << vertex_filename << endl
+                               << "read " << d_num_vertex[ln][j] << " vertices from input filename " << vertex_filename << endl
                                << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
         }
     }
@@ -466,13 +448,13 @@ IBStandardInitializer::readEdgeFiles()
 {
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filenames = static_cast<int>(d_base_filenames[ln].size());
-        d_edge_map[ln].resize(num_base_filenames);
-        d_edge_stiffnesses[ln].resize(num_base_filenames);
-        d_edge_rest_lengths[ln].resize(num_base_filenames);
-        for (int j = 0; j < num_base_filenames; ++j)
+        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        d_edge_map[ln].resize(num_base_filename);
+        d_edge_stiffness[ln].resize(num_base_filename);
+        d_edge_rest_length[ln].resize(num_base_filename);
+        for (int j = 0; j < num_base_filename; ++j)
         {
-            const std::string edge_filename = d_base_filenames[ln][j] + ".edge";
+            const std::string edge_filename = d_base_filename[ln][j] + ".edge";
             std::ifstream file_stream;
             std::string line_string;
             file_stream.open(edge_filename.c_str(), std::ios::in);
@@ -491,6 +473,7 @@ IBStandardInitializer::readEdgeFiles()
                 }
                 else
                 {
+                    line_string = discard_comments(line_string);
                     std::istringstream line_stream(line_string);
                     if (!(line_stream >> num_edges))
                     {
@@ -515,12 +498,13 @@ IBStandardInitializer::readEdgeFiles()
                     }
                     else
                     {
+                        line_string = discard_comments(line_string);
                         std::istringstream line_stream(line_string);
                         if (!(line_stream >> e.first))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl);
                         }
-                        else if ((e.first < 0) || (e.first >= d_num_vertices[ln][j]))
+                        else if ((e.first < 0) || (e.first >= d_num_vertex[ln][j]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl
                                        << "  vertex index " << e.first << " is out of range" << endl);
@@ -530,7 +514,7 @@ IBStandardInitializer::readEdgeFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl);
                         }
-                        else if ((e.second < 0) || (e.second >= d_num_vertices[ln][j]))
+                        else if ((e.second < 0) || (e.second >= d_num_vertex[ln][j]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl
                                        << "  vertex index " << e.second << " is out of range" << endl);
@@ -557,10 +541,31 @@ IBStandardInitializer::readEdgeFiles()
                         }
                     }
 
+                    // Modify kappa and length according to whether
+                    // edge forces are enabled, or whether uniform
+                    // values are to be employed, for this particular
+                    // structure.
+                    if (!d_enable_edges[ln][j])
+                    {
+                        kappa = 0.0;
+                        length = 0.0;
+                    }
+                    else
+                    {
+                        if (d_use_uniform_edge_stiffness[ln][j])
+                        {
+                            kappa = d_uniform_edge_stiffness[ln][j];
+                        }
+                        if (d_use_uniform_edge_rest_length[ln][j])
+                        {
+                            length = d_uniform_edge_rest_length[ln][j];
+                        }
+                    }
+
                     // Correct the edge numbers to be in the global
                     // Lagrangian indexing scheme.
-                    e.first  += d_vertex_offsets[ln][j];
-                    e.second += d_vertex_offsets[ln][j];
+                    e.first  += d_vertex_offset[ln][j];
+                    e.second += d_vertex_offset[ln][j];
 
                     // Always place the lower index first.
                     if (e.first > e.second)
@@ -577,8 +582,8 @@ IBStandardInitializer::readEdgeFiles()
                     // first and the second vertex in the edge map.
                     d_edge_map[ln][j].insert(std::make_pair(e.first ,e));
                     d_edge_map[ln][j].insert(std::make_pair(e.second,e));
-                    d_edge_stiffnesses [ln][j][e] = kappa;
-                    d_edge_rest_lengths[ln][j][e] = length;
+                    d_edge_stiffness [ln][j][e] = kappa;
+                    d_edge_rest_length[ln][j][e] = length;
                 }
 
                 // Close the input file.
@@ -598,13 +603,13 @@ IBStandardInitializer::readTargetPointFiles()
 {
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filenames = static_cast<int>(d_base_filenames[ln].size());
-        d_target_stiffnesses[ln].resize(num_base_filenames);
-        for (int j = 0; j < num_base_filenames; ++j)
+        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        d_target_stiffness[ln].resize(num_base_filename);
+        for (int j = 0; j < num_base_filename; ++j)
         {
-            d_target_stiffnesses[ln][j].resize(d_num_vertices[ln][j],0.0);
+            d_target_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
 
-            const std::string target_point_stiffness_filename = d_base_filenames[ln][j] + ".target_stiff";
+            const std::string target_point_stiffness_filename = d_base_filename[ln][j] + ".target_stiff";
             std::ifstream file_stream;
             std::string line_string;
             file_stream.open(target_point_stiffness_filename.c_str(), std::ios::in);
@@ -616,21 +621,22 @@ IBStandardInitializer::readTargetPointFiles()
 
                 // The first line in the file indicates the number of
                 // target point stiffnesses in the input file.
-                int num_target_stiffnesses;
+                int num_target_stiffness;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << target_point_stiffness_filename << endl);
                 }
                 else
                 {
+                    line_string = discard_comments(line_string);
                     std::istringstream line_stream(line_string);
-                    if (!(line_stream >> num_target_stiffnesses))
+                    if (!(line_stream >> num_target_stiffness))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << target_point_stiffness_filename << endl);
                     }
                 }
 
-                if (num_target_stiffnesses <= 0)
+                if (num_target_stiffness <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << target_point_stiffness_filename << endl);
                 }
@@ -638,7 +644,7 @@ IBStandardInitializer::readTargetPointFiles()
                 // Each successive line indicates the vertex number
                 // and spring constant associated with any target
                 // points.
-                for (int k = 0; k < num_target_stiffnesses; ++k)
+                for (int k = 0; k < num_target_stiffness; ++k)
                 {
                     int n;
                     if (!std::getline(file_stream, line_string))
@@ -647,22 +653,23 @@ IBStandardInitializer::readTargetPointFiles()
                     }
                     else
                     {
+                        line_string = discard_comments(line_string);
                         std::istringstream line_stream(line_string);
                         if (!(line_stream >> n))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << endl);
                         }
-                        else if ((n < 0) || (n >= d_num_vertices[ln][j]))
+                        else if ((n < 0) || (n >= d_num_vertex[ln][j]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << endl
                                        << "  vertex index " << n << " is out of range" << endl);
                         }
 
-                        if (!(line_stream >> d_target_stiffnesses[ln][j][n]))
+                        if (!(line_stream >> d_target_stiffness[ln][j][n]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << endl);
                         }
-                        else if (d_target_stiffnesses[ln][j][n] < 0.0)
+                        else if (d_target_stiffness[ln][j][n] < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << endl
                                        << "  target point spring constant is negative" << endl);
@@ -674,8 +681,27 @@ IBStandardInitializer::readTargetPointFiles()
                 file_stream.close();
 
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_target_stiffnesses << " target points from input filename " << target_point_stiffness_filename << endl
+                                   << "read " << num_target_stiffness << " target points from input filename " << target_point_stiffness_filename << endl
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+            }
+
+            // Modify the target point stiffness constant according to
+            // whether target point penalty forces are enabled, or
+            // whether uniform values are to be employed, for this
+            // particular structure.
+            if (!d_enable_target_points[ln][j])
+            {
+                d_target_stiffness[ln][j] = std::vector<double>(
+                    d_num_vertex[ln][j], 0.0);
+            }
+            else
+            {
+                if (d_use_uniform_target_stiffness[ln][j])
+                {
+                    d_target_stiffness[ln][j] = std::vector<double>(
+                        d_num_vertex[ln][j],
+                        d_uniform_target_stiffness[ln][j]);
+                }
             }
         }
     }
@@ -699,11 +725,11 @@ IBStandardInitializer::getPatchVertices(
     const double* const xLower = patch_geom->getXLower();
     const double* const xUpper = patch_geom->getXUpper();
 
-    for (unsigned j = 0; j < d_num_vertices[level_number].size(); ++j)
+    for (unsigned j = 0; j < d_num_vertex[level_number].size(); ++j)
     {
-        for (int k = 0; k < d_num_vertices[level_number][j]; ++k)
+        for (int k = 0; k < d_num_vertex[level_number][j]; ++k)
         {
-            const double* const X = &d_vertex_posns[level_number][j][k*NDIM];
+            const double* const X = &d_vertex_posn[level_number][j][k*NDIM];
             const bool patch_owns_node =
                 ((  xLower[0] <= X[0])&&(X[0] < xUpper[0]))
 #if (NDIM > 1)
@@ -725,7 +751,7 @@ IBStandardInitializer::getCannonicalLagrangianIndex(
     const std::pair<int,int>& point_index,
     const int level_number) const
 {
-    return d_vertex_offsets[level_number][point_index.first]+point_index.second;
+    return d_vertex_offset[level_number][point_index.first]+point_index.second;
 }// getCannonicalLagrangianIndex
 
 std::vector<double>
@@ -734,8 +760,8 @@ IBStandardInitializer::getVertexPosn(
     const int level_number) const
 {
     return std::vector<double>(
-        &d_vertex_posns[level_number][point_index.first][point_index.second*NDIM     ],
-        &d_vertex_posns[level_number][point_index.first][point_index.second*NDIM+NDIM]);
+        &d_vertex_posn[level_number][point_index.first][point_index.second*NDIM     ],
+        &d_vertex_posn[level_number][point_index.first][point_index.second*NDIM+NDIM]);
 }// getVertexPosn
 
 double
@@ -743,7 +769,7 @@ IBStandardInitializer::getVertexTargetStiffness(
     const std::pair<int,int>& point_index,
     const int level_number) const
 {
-    return d_target_stiffnesses[level_number][point_index.first][point_index.second];
+    return d_target_stiffness[level_number][point_index.first][point_index.second];
 }// getVertexTargetStiffness
 
 std::vector<SAMRAI::tbox::Pointer<Stashable> >
@@ -758,7 +784,7 @@ IBStandardInitializer::initializeForceSpec(
     const int lag_index = getCannonicalLagrangianIndex(point_index, level_number);
 
     std::vector<int> dst_idxs;
-    std::vector<double> stiffnesses, rest_lengths;
+    std::vector<double> stiffness, rest_length;
     for (std::multimap<int,Edge>::const_iterator it = d_edge_map[level_number][j].lower_bound(lag_index);
          it != d_edge_map[level_number][j].upper_bound(lag_index); ++it)
     {
@@ -777,19 +803,211 @@ IBStandardInitializer::initializeForceSpec(
         }
 
         // The material properties.
-        stiffnesses .push_back((*d_edge_stiffnesses [level_number][j].find(e)).second);
-        rest_lengths.push_back((*d_edge_rest_lengths[level_number][j].find(e)).second);
+        stiffness  .push_back((*d_edge_stiffness  [level_number][j].find(e)).second);
+        rest_length.push_back((*d_edge_rest_length[level_number][j].find(e)).second);
     }
 
     const std::vector<double> X_target = getVertexPosn(point_index, level_number);
     const double kappa_target = getVertexTargetStiffness(point_index, level_number);
 
     force_spec.push_back(new IBStandardForceSpec(
-                             dst_idxs, stiffnesses, rest_lengths,
+                             dst_idxs, stiffness, rest_length,
                              X_target, kappa_target));
 
     return force_spec;
 }// initializeForceSpec
+
+void
+IBStandardInitializer::getFromInput(
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(!db.isNull());
+#endif
+
+    // Determine the (maximum) number of levels in the locally refined
+    // grid.  Note that each piece of the Lagrangian structure must be
+    // assigned to a particular level of the grid.
+    if (db->keyExists("max_levels"))
+    {
+        d_max_levels = db->getInteger("max_levels");
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  "
+                   << "Key data `max_levels' not found in input.");
+    }
+
+    if (d_max_levels < 1)
+    {
+        TBOX_ERROR(d_object_name << ":  "
+                   << "Key data `max_levels' found in input is < 1.");
+    }
+
+    // Resize the vectors that are indexed by the level number.
+    d_base_filename.resize(d_max_levels);
+    d_num_vertex.resize(d_max_levels);
+    d_vertex_offset.resize(d_max_levels);
+    d_vertex_posn.resize(d_max_levels);
+    d_enable_edges.resize(d_max_levels);
+    d_edge_map.resize(d_max_levels);
+    d_edge_stiffness.resize(d_max_levels);
+    d_edge_rest_length.resize(d_max_levels);
+    d_use_uniform_edge_stiffness.resize(d_max_levels);
+    d_uniform_edge_stiffness.resize(d_max_levels);
+    d_use_uniform_edge_rest_length.resize(d_max_levels);
+    d_uniform_edge_rest_length.resize(d_max_levels);
+    d_enable_target_points.resize(d_max_levels);
+    d_target_stiffness.resize(d_max_levels);
+    d_use_uniform_target_stiffness.resize(d_max_levels);
+    d_uniform_target_stiffness.resize(d_max_levels);
+    d_global_index_offset.resize(d_max_levels);
+
+    // Determine the various input file names.
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        std::ostringstream db_key_name_stream;
+        db_key_name_stream << "base_filenames_" << ln;
+        const std::string db_key_name = db_key_name_stream.str();
+        if (db->keyExists(db_key_name))
+        {
+            const int n_files = db->getArraySize(db_key_name);
+            d_base_filename[ln].resize(n_files);
+            db->getStringArray(db_key_name, &d_base_filename[ln][0], n_files);
+        }
+        else
+        {
+            TBOX_WARNING(d_object_name << ":  "
+                         << "Key data `" + db_key_name + "' not found in input.");
+        }
+    }
+
+    // Read in any sub-databases associated with the input file names.
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+
+        d_enable_edges[ln].resize(num_base_filename,true);
+
+        d_use_uniform_edge_stiffness[ln].resize(num_base_filename,false);
+        d_uniform_edge_stiffness[ln].resize(num_base_filename,-1.0);
+
+        d_use_uniform_edge_rest_length[ln].resize(num_base_filename,false);
+        d_uniform_edge_rest_length[ln].resize(num_base_filename,-1.0);
+
+        d_enable_target_points[ln].resize(num_base_filename,true);
+
+        d_use_uniform_target_stiffness[ln].resize(num_base_filename,false);
+        d_uniform_target_stiffness[ln].resize(num_base_filename,-1.0);
+
+        for (int j = 0; j < num_base_filename; ++j)
+        {
+            const std::string& base_filename = d_base_filename[ln][j];
+            if (db->isDatabase(base_filename))
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> sub_db =
+                    db->getDatabase(base_filename);
+
+                // Determine whether to enable or disable any
+                // particular features.
+                if (sub_db->keyExists("enable_edges"))
+                {
+                    d_enable_edges[ln][j] = sub_db->getBool("enable_edges");
+                }
+                if (sub_db->keyExists("enable_target_points"))
+                {
+                    d_enable_target_points[ln][j] = sub_db->getBool("enable_target_points");
+                }
+
+                // Determine whether to use uniform values for any
+                // particular structure attributes.
+                if (sub_db->keyExists("uniform_edge_stiffness"))
+                {
+                    d_use_uniform_edge_stiffness[ln][j] = true;
+                    d_uniform_edge_stiffness[ln][j] = sub_db->getDouble("uniform_edge_stiffness");
+
+                    if (d_uniform_edge_stiffness[ln][j] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_edge_stiffness' in database " << base_filename << endl
+                                   << "  spring constant is negative" << endl);
+                    }
+                }
+                if (sub_db->keyExists("uniform_edge_rest_length"))
+                {
+                    d_use_uniform_edge_rest_length[ln][j] = true;
+                    d_uniform_edge_rest_length[ln][j] = sub_db->getDouble("uniform_edge_rest_length");
+
+                    if (d_uniform_edge_rest_length[ln][j] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_edge_rest_length' in database " << base_filename << endl
+                                   << "  spring resting length is negative" << endl);
+                    }
+                }
+                if (sub_db->keyExists("uniform_target_stiffness"))
+                {
+                    d_use_uniform_target_stiffness[ln][j] = true;
+                    d_uniform_target_stiffness[ln][j] = sub_db->getDouble("uniform_target_stiffness");
+
+                    if (d_uniform_target_stiffness[ln][j] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_stiffness' in database " << base_filename << endl
+                                   << "  target point spring constant is negative" << endl);
+                    }
+                }
+            }
+        }
+    }
+
+    // Output the names of the input files to be read along with
+    // additional debugging information.
+    SAMRAI::tbox::pout << d_object_name << ":  Reading from input files: " << endl;
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        for (int j = 0; j < num_base_filename; ++j)
+        {
+            const std::string& base_filename = d_base_filename[ln][j];
+            SAMRAI::tbox::pout << "  base filename: " << base_filename << endl
+                               << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << endl
+                               << "     required files: " << base_filename << ".vertex" << endl
+                               << "     optional files: " << base_filename << ".edge, " << base_filename << ".target_stiff " << endl;
+            if (!d_enable_edges[ln][j])
+            {
+                SAMRAI::tbox::pout << "  NOTE: edge forces are DISABLED for " << base_filename << endl;
+            }
+            else
+            {
+                if (d_use_uniform_edge_stiffness[ln][j])
+                {
+                    SAMRAI::tbox::pout << "  NOTE: uniform edge stiffnesses are being employed for " << base_filename << endl
+                                       << "        any stiffness information in file " << base_filename << ".vertex will be IGNORED" << endl;
+                }
+                if (d_use_uniform_edge_rest_length[ln][j])
+                {
+                    SAMRAI::tbox::pout << "  NOTE: uniform edge resting lengths are being employed for " << base_filename << endl
+                                       << "        any resting length information in file " << base_filename << ".vertex will be IGNORED" << endl;
+                }
+            }
+
+            if (!d_enable_target_points[ln][j])
+            {
+                SAMRAI::tbox::pout << "  NOTE: target point penalty forces are DISABLED for " << base_filename << endl;
+            }
+            else
+            {
+                if (d_use_uniform_edge_stiffness[ln][j])
+                {
+                    SAMRAI::tbox::pout << "  NOTE: uniform target point stiffnesses are being employed for " << base_filename << endl
+                                       << "        any target point stiffness information in file " << base_filename << ".vertex will be IGNORED" << endl;
+                }
+            }
+
+            SAMRAI::tbox::pout << endl;
+        }
+    }
+
+    return;
+}// getFromDatabase
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

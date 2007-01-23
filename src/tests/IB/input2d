@@ -13,10 +13,6 @@ MAX_LEVELS = 2
 DELTA_FCN = "IB_6"
 MU = 0.005
 
-IBStandardForceGen {
-  // intentionally blank
-}
-
 IBHierarchyIntegrator {
    start_time            = 0.e0     // initial simulation time
    end_time              = 0.4e0    // final simulation time
@@ -37,6 +33,10 @@ IBStandardInitializer {
    base_filenames_1 = "shell2d_128"  // corresponds to NFINEST=8
 // base_filenames_1 = "shell2d_256"  // corresponds to NFINEST=16
 // base_filenames_1 = "shell2d_512"  // corresponds to NFINEST=32
+}
+
+IBStandardForceGen {
+  // intentionally blank
 }
 
 INSHierarchyIntegrator {

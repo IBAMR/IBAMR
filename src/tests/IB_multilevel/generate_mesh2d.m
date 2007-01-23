@@ -16,9 +16,9 @@ stiffness = 0.5/num_layers;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Step 1: Write out the vertex information
-vertex_fid = fopen("shell2d_left_64.vertices", "w");
+vertex_fid = fopen(["shell2d_" num2str(16*NFINEST) ".vertex"], "w");
 
-% first line is number of vertices in the file
+% first line is the number of vertices in the file
 fprintf(vertex_fid, "%d\n", num_layers*num_nodes);
 
 % remaining lines are the initial coordinates of each vertex
@@ -38,12 +38,9 @@ fclose(vertex_fid);
 
 % Step 2: Write out the link information (including connectivity and
 % material parameters).
-edge_fid = fopen("shell2d_left_64.edges", "w");
+edge_fid = fopen(["shell2d_" num2str(16*NFINEST) ".edge"], "w");
 
-% first line is the base index; here we use 0-based indexing
-fprintf(edge_fid, "%d\n", 0);
-
-% second line is the number of edges
+% first line is the number of edges in the file
 fprintf(edge_fid, "%d\n", num_layers*num_nodes);
 
 % remaining lines are the edges in the mesh

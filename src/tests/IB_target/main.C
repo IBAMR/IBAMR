@@ -33,7 +33,10 @@
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSHierarchyIntegrator.h>
+#include <ibamr/LDataManager.h>
+#include <ibamr/LagSiloDataWriter.h>
 
+#include "FeedbackFSet.h"
 #include "UInit.h"
 
 using namespace IBAMR;
@@ -286,17 +289,22 @@ int main(int argc, char* argv[])
             new IBStandardForceGen(
                 input_db->getDatabase("IBStandardForceGen"));
 
-        tbox::Pointer<LNodePosnInitStrategy> initializer =
-            new IBStandardInitializer(
-                "IBStandardInitializer",
-                input_db->getDatabase("IBStandardInitializer"));
-
         tbox::Pointer<IBHierarchyIntegrator> time_integrator =
             new IBHierarchyIntegrator(
                 "IBHierarchyIntegrator",
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
+
+        tbox::Pointer<LNodePosnInitStrategy> initializer =
+            new IBStandardInitializer(
+                "IBStandardInitializer",
+                input_db->getDatabase("IBStandardInitializer"));
         time_integrator->registerLNodePosnInitStrategy(initializer);
+
+        FeedbackFSet* feedback_forcer =
+            new FeedbackFSet(
+                "FeedbackFSet", grid_geometry, input_db->getDatabase("FeedbackFSet"));
+        time_integrator->registerBodyForceSpecification(feedback_forcer);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -323,10 +331,14 @@ int main(int argc, char* argv[])
         tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
             new appu::VisItDataWriter<NDIM>(
                 "VisIt Writer", visit_dump_dirname, visit_number_procs_per_file);
+        tbox::Pointer<LagSiloDataWriter> silo_data_writer =
+            new LagSiloDataWriter(
+                "LagSiloDataWriter", visit_dump_dirname);
 
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
+            time_integrator->registerLagSiloDataWriter(silo_data_writer);
         }
 
         /*
@@ -336,9 +348,19 @@ int main(int argc, char* argv[])
          */
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
+
+        dynamic_cast<IBStandardInitializer*>(initializer.getPointer())->
+            registerLagSiloDataWriter(silo_data_writer);
+
         time_integrator->rebalanceCoarsestLevel();
 
         tbox::RestartManager::getManager()->closeRestartFile();
+
+        /*
+         * Register the velocity variable with the feedback forcer.
+         */
+        feedback_forcer->d_U_var = navier_stokes_integrator->getVelocityVar();
+        feedback_forcer->d_U_context = navier_stokes_integrator->getCurrentContext();
 
         /*
          * After creating all objects and initializing their state, we
@@ -369,8 +391,39 @@ int main(int argc, char* argv[])
                     patch_hierarchy,
                     time_integrator->getIntegratorStep(),
                     time_integrator->getIntegratorTime());
+                silo_data_writer->writePlotData(
+                    time_integrator->getIntegratorStep(),
+                    time_integrator->getIntegratorTime());
             }
         }
+
+#if (NDIM == 2)
+        /*
+         * Open files to output the lift and drag coefficients.
+         */
+        const double radius = input_db->getDouble("R");
+        ofstream drag_stream, lift_stream;
+        if (tbox::MPI::getRank() == 0)
+        {
+            drag_stream.open("C_D.curve", ios::out);
+            lift_stream.open("C_L.curve", ios::out);
+
+            drag_stream << "#C_D" << endl;
+
+            drag_stream.setf(ios_base::scientific);
+            drag_stream.setf(ios_base::showpos);
+            drag_stream.setf(ios_base::showpoint);
+            drag_stream.width(16); drag_stream.precision(15);
+            drag_stream << 0.0 << " " << 0.0 << endl;
+
+            lift_stream << "#C_L" << endl;
+            lift_stream.setf(ios_base::scientific);
+            lift_stream.setf(ios_base::showpos);
+            lift_stream.setf(ios_base::showpoint);
+            lift_stream.width(16); lift_stream.precision(15);
+            lift_stream << 0.0 << " " << 0.0 << endl;
+        }
+#endif
 
         /*
          * Time step loop.  Note that the step count and integration
@@ -384,80 +437,6 @@ int main(int argc, char* argv[])
         while (!tbox::Utilities::deq(loop_time,loop_time_end) &&
                time_integrator->stepsRemaining())
         {
-            tbox::Pointer<hier::VariableContext> current_context =
-                navier_stokes_integrator->getCurrentContext();
-
-            const int coarsest_ln = 0;
-            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-            /*
-             * Manually force the fluid velocity to be U = (1,0) at
-             * the right periodic boundary.
-             */
-#if 0
-            /*
-             * NOTE: The following code assumes the right periodic
-             * boundary is uniformly refined.
-             */
-            (void) coarsest_ln;
-            tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var = navier_stokes_integrator->getVelocityVar();
-            {
-                int ln = finest_ln;
-                tbox::Pointer<hier::PatchLevel<NDIM> > level =
-                    patch_hierarchy->getPatchLevel(ln);
-
-                const hier::IntVector<NDIM>& ratio = level->getRatio();
-                const hier::Box<NDIM>& domain_box = grid_geometry->getPhysicalDomain()(0);
-
-                hier::Box<NDIM> lower_box = domain_box;
-                lower_box = hier::Box<NDIM>::refine(lower_box,ratio);
-                lower_box.upper(0) = lower_box.lower(0);
-
-                hier::Box<NDIM> upper_box = domain_box;
-                upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
-                upper_box.lower(0) = upper_box.upper(0);
-
-                for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                    tbox::Pointer<pdat::CellData<NDIM,double> > U_data =
-                        patch->getPatchData(U_var, current_context);
-                    U_data->fillAll(0.0, patch_box*lower_box);
-                    U_data->fillAll(0.0, patch_box*upper_box);
-                    U_data->fill(1.0,patch_box*lower_box,0);
-                    U_data->fill(1.0,patch_box*upper_box,0);
-                }
-            }
-#else
-            /*
-             * NOTE: The following code DOES NOT assume the right
-             * periodic boundary is uniformly refined.
-             */
-            tbox::Pointer<pdat::CellVariable<NDIM,double> > U_var = navier_stokes_integrator->getVelocityVar();
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                tbox::Pointer<hier::PatchLevel<NDIM> > level =
-                    patch_hierarchy->getPatchLevel(ln);
-
-                const hier::IntVector<NDIM>& ratio = level->getRatio();
-                const hier::Box<NDIM>& domain_box = grid_geometry->getPhysicalDomain()(0);
-                hier::Box<NDIM> upper_box = domain_box;
-                upper_box.lower(0) = upper_box.upper(0)-1;
-                upper_box = hier::Box<NDIM>::refine(upper_box,ratio);
-
-                for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                    tbox::Pointer<pdat::CellData<NDIM,double> > U_data =
-                        patch->getPatchData(U_var, current_context);
-                    U_data->fillAll(0.0, patch_box*upper_box);
-                    U_data->fill(1.0,patch_box*upper_box,0);
-                }
-            }
-#endif
-
             /*
              * Advance the solution forward in time.
              */
@@ -479,6 +458,46 @@ int main(int argc, char* argv[])
             tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
             tbox::pout <<                                                       endl;
 
+#if (NDIM == 2)
+            /*
+             * Compute the drag and lift coefficients by integrating
+             * the components of the Lagrangian force field over the
+             * computational domain.
+             */
+            const int ln = patch_hierarchy->getFinestLevelNumber();
+            LDataManager* lag_data_manager = LDataManager::getManager(
+                "IBHierarchyIntegrator::LDataManager");
+            tbox::Pointer<LNodeLevelData> X_data = lag_data_manager->getLNodeLevelData("X",ln);
+            tbox::Pointer<LNodeLevelData> F_data = lag_data_manager->createLNodeLevelData("F",ln,NDIM);
+            force_generator->computeLagrangianForce(
+                F_data, X_data,
+                patch_hierarchy, ln, loop_time, lag_data_manager);
+
+            double F_D = 0.0;
+            double F_L = 0.0;
+            for (int i = 0; i < F_data->getLocalNodeCount(); ++i)
+            {
+                F_D -= (*F_data)(i,0);
+                F_L -= (*F_data)(i,1);
+            }
+
+            F_D = tbox::MPI::sumReduction(F_D);
+            F_L = tbox::MPI::sumReduction(F_L);
+
+            /*
+             * Output the normalized drag and lift coefficients.
+             *
+             * NOTE: We assume that rho = 1.0, u_oo = 1.0, so:
+             *      C_D = F_D/(rho u_oo^2 R) = F_D/R
+             *      C_L = F_L/(rho u_oo^2 R) = F_L/R
+             */
+            if (tbox::MPI::getRank() == 0)
+            {
+                drag_stream << loop_time << " " << F_D/radius << endl;
+                lift_stream << loop_time << " " << F_L/radius << endl;
+            }
+#endif
+
             /*
              * At specified intervals, write restart and visualization files.
              */
@@ -494,9 +513,19 @@ int main(int argc, char* argv[])
                 {
                     visit_data_writer->writePlotData(
                         patch_hierarchy, iteration_num, loop_time);
+                    silo_data_writer->writePlotData(
+                        iteration_num, loop_time);
                 }
             }
         }
+
+#if (NDIM == 2)
+        if (tbox::MPI::getRank() == 0)
+        {
+            drag_stream.close();
+            lift_stream.close();
+        }
+#endif
 
         /*
          * Ensure the last state is written out.
@@ -507,6 +536,8 @@ int main(int argc, char* argv[])
             {
                 visit_data_writer->writePlotData(
                     patch_hierarchy, iteration_num, loop_time);
+                silo_data_writer->writePlotData(
+                    iteration_num, loop_time);
             }
         }
 

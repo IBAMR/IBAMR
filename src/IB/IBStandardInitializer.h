@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <20.Jan.2007 01:07:22 boyce@bigboy.nyconnect.com>
+// Last modified: <22.Jan.2007 19:30:30 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -202,6 +202,15 @@ private:
         const int global_index_offset,
         const int level_number) const;
 
+    /*!
+     * Read input values, indicated above, from given database.
+     *
+     * When assertion checking is active, the database pointer must be
+     * non-null.  Otherwise, all your base are belong to us.
+     */
+    void getFromInput(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
     /*
      * The object name is used as a handle to databases stored in
      * restart files and for error reporting purposes.
@@ -218,13 +227,13 @@ private:
      * The base filenames of the structures are used to generate
      * unique names when registering data with the Silo data writer.
      */
-    std::vector<std::vector<std::string> > d_base_filenames;
+    std::vector<std::vector<std::string> > d_base_filename;
 
     /*
      * Vertex information.
      */
-    std::vector<std::vector<int> > d_num_vertices, d_vertex_offsets;
-    std::vector<std::vector<std::vector<double> > > d_vertex_posns;
+    std::vector<std::vector<int> > d_num_vertex, d_vertex_offset;
+    std::vector<std::vector<std::vector<double> > > d_vertex_posn;
 
     /*
      * Edge information.
@@ -241,13 +250,24 @@ private:
                 return (e1.first < e2.first) || (e1.first == e2.first && e1.second < e2.second);
             }
     };
+    std::vector<std::vector<bool> > d_enable_edges;
     std::vector<std::vector<std::multimap<int,Edge> > > d_edge_map;
-    std::vector<std::vector<std::map<Edge,double,EdgeComp> > > d_edge_stiffnesses, d_edge_rest_lengths;
+    std::vector<std::vector<std::map<Edge,double,EdgeComp> > > d_edge_stiffness, d_edge_rest_length;
+
+    std::vector<std::vector<bool> > d_use_uniform_edge_stiffness;
+    std::vector<std::vector<double> > d_uniform_edge_stiffness;
+
+    std::vector<std::vector<bool> > d_use_uniform_edge_rest_length;
+    std::vector<std::vector<double> > d_uniform_edge_rest_length;
 
     /*
      * Target point information.
      */
-    std::vector<std::vector<std::vector<double> > > d_target_stiffnesses;
+    std::vector<std::vector<bool> > d_enable_target_points;
+    std::vector<std::vector<std::vector<double> > > d_target_stiffness;
+
+    std::vector<std::vector<bool> > d_use_uniform_target_stiffness;
+    std::vector<std::vector<double> > d_uniform_target_stiffness;
 
     /*
      * Data required to specify connectivity information for

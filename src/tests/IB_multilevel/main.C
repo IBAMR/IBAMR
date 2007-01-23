@@ -283,16 +283,16 @@ int main(int argc, char* argv[])
             new IBStandardForceGen(
                 input_db->getDatabase("IBStandardForceGen"));
 
-        tbox::Pointer<LNodePosnInitStrategy> initializer =
-            new IBStandardInitializer(
-                "IBStandardInitializer",
-                input_db->getDatabase("IBStandardInitializer"));
-
         tbox::Pointer<IBHierarchyIntegrator> time_integrator =
             new IBHierarchyIntegrator(
                 "IBHierarchyIntegrator",
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
+
+        tbox::Pointer<LNodePosnInitStrategy> initializer =
+            new IBStandardInitializer(
+                "IBStandardInitializer",
+                input_db->getDatabase("IBStandardInitializer"));
         time_integrator->registerLNodePosnInitStrategy(initializer);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =

@@ -2,15 +2,18 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C UInit.C UInit.h
-EXTRA_DIST = input2d input3d cylinder2d.256 cylinder2d.512 cylinder2d.1024 cylinder2d.2048 sphere3d.dat
+SOURCES = main.C FeedbackFSet.C FeedbackFSet.h UInit.C UInit.h
+EXTRA_DIST  = input2d input3d
+EXTRA_DIST += cylinder2d_256.vertex cylinder2d_512.vertex cylinder2d_1024.vertex cylinder2d_2048.vertex
+EXTRA_DIST += cylinder2d_256.edge   cylinder2d_512.edge   cylinder2d_1024.edge   cylinder2d_2048.edge
+EXTRA_DIST += sphere3d.vertex sphere3d.edge
 
 check_PROGRAMS = main2d main3d
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/cylinder2d.{256,512,1024,2048} $(PWD) ; \
-	  cp -f $(srcdir)/sphere3d.dat $(PWD) ; \
+	  cp -f $(srcdir)/cylinder2d_{256,512,1024,2048}.{vertex,edge} $(PWD) ; \
+	  cp -f $(srcdir)/sphere3d.{vertex,edge} $(PWD) ; \
 	fi ;
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

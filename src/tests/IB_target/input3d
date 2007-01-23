@@ -6,9 +6,9 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // constants
-N = 16              // coarsest grid spacing
-NFINEST = 16*N      // finest grid spacing
-MAX_LEVELS = 3
+N = 32              // coarsest grid spacing
+NFINEST = 4*N       // finest grid spacing
+MAX_LEVELS = 2
 
 DELTA_FCN = "IB_6"  // the choice of delta function
 
@@ -30,14 +30,22 @@ IBHierarchyIntegrator {
    timestepping_order = 2
 }
 
-IBStandardInitializerInitializer {
+IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_2 = "sphere3d"
-   sphere3d_target_stiffness = 20.0
+   base_filenames_1 = "sphere3d"
+   sphere3d {
+      uniform_target_stiffness = 20.0
+   }
 }
 
 IBStandardForceGen {
   // intentionally blank
+}
+
+FeedbackFSet {
+   kappa = 500.0
+   width0 = 1.0/16.0
+   width1 = 4.0/16.0
 }
 
 INSHierarchyIntegrator {
