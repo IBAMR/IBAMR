@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Jan.2007 23:30:47 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Jan.2007 01:54:33 boyce@bigboy.nyconnect.com>
 
 #include "LDataManager.h"
 
@@ -198,40 +198,22 @@ LDataManager::resetLevels(
 }// resetLevels
 
 void
-LDataManager::registerLNodeJacobianInitStrategy(
-    SAMRAI::tbox::Pointer<LNodeJacobianInitStrategy> lag_jac_init)
+LDataManager::registerLNodeInitStrategy(
+    SAMRAI::tbox::Pointer<LNodeInitStrategy> lag_init)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!lag_jac_init.isNull());
+    assert(!lag_init.isNull());
 #endif
-    d_lag_jac_init = lag_jac_init;
+    d_lag_init = lag_init;
     return;
-}// registerSpecAndInitStrategy
+}// registerLNodeInitStrategy
 
 void
-LDataManager::freeLNodeJacobianInitStrategy()
+LDataManager::freeLNodeInitStrategy()
 {
-    d_lag_jac_init.setNull();
+    d_lag_init.setNull();
     return;
-}// freeLNodeJacobianInitStrategy
-
-void
-LDataManager::registerLNodePosnInitStrategy(
-    SAMRAI::tbox::Pointer<LNodePosnInitStrategy> lag_posn_init)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!lag_posn_init.isNull());
-#endif
-    d_lag_posn_init = lag_posn_init;
-    return;
-}// registerSpecAndInitStrategy
-
-void
-LDataManager::freeLNodePosnInitStrategy()
-{
-    d_lag_posn_init.setNull();
-    return;
-}// freeLNodePosnInitStrategy
+}// freeLNodeInitStrategy
 
 void
 LDataManager::registerVisItDataWriter(
@@ -534,16 +516,7 @@ LDataManager::beginDataRedistribution(
             // Update the ghost values of the Lagrangian nodal
             // positions.
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->beginGhostUpdate();
-            if (!d_lag_jac_init.isNull())
-            {
-                d_lag_quantity_data[ln][JACOBIAN_DATA_NAME]->beginGhostUpdate();
-            }
-
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->endGhostUpdate();
-            if (!d_lag_jac_init.isNull())
-            {
-                d_lag_quantity_data[ln][JACOBIAN_DATA_NAME]->endGhostUpdate();
-            }
 
             // Make sure that the location pointers are properly set
             // for each LNodeIndex.  They are directly used below to
@@ -1463,16 +1436,16 @@ LDataManager::initializeLevelData(
         d_nonlocal_lag_indices   .resize(level_number+1);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(!d_lag_posn_init.isNull());
+        assert(!d_lag_init.isNull());
 #endif
-        d_level_contains_lag_data[level_number] = d_lag_posn_init->
+        d_level_contains_lag_data[level_number] = d_lag_init->
             getLevelHasLagrangianData(level_number, can_be_refined);
 
         if (d_level_contains_lag_data[level_number])
         {
             // First, determine the number of local (on processor)
             // nodes to be allocated on the patch level.
-            const int num_local_nodes = d_lag_posn_init->
+            const int num_local_nodes = d_lag_init->
                 getLocalNodeCountOnPatchLevel(hierarchy, level_number,
                                               init_data_time,
                                               can_be_refined, initial_time);
@@ -1489,29 +1462,12 @@ LDataManager::initializeLevelData(
 
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
-            d_lag_posn_init->initializeDataOnPatchLevel(
+            d_lag_init->initializeDataOnPatchLevel(
                 d_lag_node_index_current_idx,
                 global_index_offset, local_index_offset,
                 d_lag_quantity_data[level_number][COORDS_DATA_NAME],
                 hierarchy, level_number,
                 init_data_time, can_be_refined, initial_time);
-
-            // XXXX: In general, this will be time-dependent, and
-            // consequently it doesn't really belong here!
-            //
-            // NOTE: You must FIX the IMPLEMENTATION of these concrete
-            // strategies as soon as this is made MORE SENSIBLE!!!
-            if (!d_lag_jac_init.isNull())
-            {
-                d_lag_quantity_data[level_number][JACOBIAN_DATA_NAME] =
-                    new LNodeLevelData(JACOBIAN_DATA_NAME, num_local_nodes, 1);
-                d_lag_jac_init->initializeJacobianDet(
-                    d_lag_node_index_current_idx,
-                    d_lag_quantity_data[level_number][JACOBIAN_DATA_NAME],
-                    d_lag_quantity_data[level_number][COORDS_DATA_NAME  ],
-                    hierarchy, level_number,
-                    init_data_time, can_be_refined, initial_time);
-            }
 
             // Obtain the distribution (indexing) data for the data.
             //
@@ -1732,7 +1688,7 @@ LDataManager::applyGradientDetector(
     {
         // Tag cells for refinement based on the initial
         // configuration.
-        d_lag_posn_init->tagCellsForInitialRefinement(
+        d_lag_init->tagCellsForInitialRefinement(
             hierarchy, level_number, error_data_time, tag_index);
     }
     else
@@ -1881,8 +1837,7 @@ LDataManager::LDataManager(
       d_visit_writer(NULL),
       d_silo_writer(NULL),
       d_load_balancer(NULL),
-      d_lag_jac_init(NULL),
-      d_lag_posn_init(NULL),
+      d_lag_init(NULL),
       d_level_contains_lag_data(),
       d_lag_node_index_var(NULL),
       d_lag_node_index_current_idx(-1),

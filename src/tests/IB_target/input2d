@@ -33,12 +33,17 @@ IBHierarchyIntegrator {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
+
    base_filenames_2 = "cylinder2d_256"   // corresponds to NFINEST = 256
    cylinder2d_256 {
       // NOTE: this value is equal to 85.0*NFINEST scaled by ds, the
       // curvilinear mesh spacing, which is given by
       //
       //     ds = 2*PI*R/(61*NFINEST/256)
+      //
+      // Thus,
+      //
+      //     stiffnsess = 85.0*NFINEST*ds = 85.0*2.0*PI*R*(256/61)
       //
       // Note that this stiffness must be modified if generate_mesh2d.m
       // is modified.

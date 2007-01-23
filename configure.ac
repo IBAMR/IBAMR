@@ -531,5 +531,6 @@ AC_CONFIG_FILES([
   src/tests/advect/Makefile
   src/tests/navier_stokes_analytic_soln/Makefile
   src/tests/navier_stokes_shear_layer/Makefile
+  src/tests/pIB/Makefile
 ])
 AC_OUTPUT

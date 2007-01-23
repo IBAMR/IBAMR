@@ -29,7 +29,6 @@ advect/fortran/advect_detect2d.o \
 advect/libIBAMR_advect2d_a-GodunovAdvector.o \
 advect/libIBAMR_advect2d_a-GodunovHypPatchOps.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
-lagrangian/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.o \
 lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
 lagrangian/fortran/lagrangian_interaction2d.o \
@@ -39,7 +38,7 @@ lagrangian/libIBAMR_lagrangian2d_a-LDataManager.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable.o \
 lagrangian/libIBAMR_lagrangian2d_a-LagSiloDataWriter.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o \
-lagrangian/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeInitStrategy.o \
 navier_stokes/fortran/navier_stokes_stabledt2d.o \
 navier_stokes/fortran/navier_stokes_divsource2d.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
@@ -77,10 +76,9 @@ lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
 lagrangian/fortran/lagrangian_interaction3d.o \
-lagrangian/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeInitStrategy.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o \
-lagrangian/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexSet.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.o \
 lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o \

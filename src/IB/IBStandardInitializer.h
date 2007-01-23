@@ -2,13 +2,13 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <22.Jan.2007 19:30:30 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Jan.2007 01:52:44 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/LNodePosnInitStrategy.h>
+#include <ibamr/LNodeInitStrategy.h>
 #include <ibamr/LagSiloDataWriter.h>
 #include <ibamr/Stashable.h>
 
@@ -21,14 +21,14 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBStandardInitialier is a concrete
- * LNodePosnInitStrategy that can intialize the initial configuration
- * of one or more IB structures from input files.
+ * \brief Class IBStandardInitialier is a concrete LNodeInitStrategy
+ * that can intialize the initial configuration of one or more IB
+ * structures from input files.
  *
  * \todo document input database entries
  */
 class IBStandardInitializer
-    : public LNodePosnInitStrategy
+    : public LNodeInitStrategy
 {
 public:
     /*!
@@ -159,6 +159,12 @@ private:
     void readTargetPointFiles();
 
     /*!
+     * \brief Read the boundary mass data from one or more input
+     * files.
+     */
+    void readBoundaryMassFiles();
+
+    /*!
      * \brief Determine the indices of any vertices initially located
      * within the specified patch.
      */
@@ -268,6 +274,18 @@ private:
 
     std::vector<std::vector<bool> > d_use_uniform_target_stiffness;
     std::vector<std::vector<double> > d_uniform_target_stiffness;
+
+    /*
+     * Mass information for the pIB method.
+     */
+    std::vector<std::vector<bool> > d_enable_bdry_mass;
+    std::vector<std::vector<std::vector<double> > > d_bdry_mass, d_bdry_mass_stiffness;
+
+    std::vector<std::vector<bool> > d_use_uniform_bdry_mass;
+    std::vector<std::vector<double> > d_uniform_bdry_mass;
+
+    std::vector<std::vector<bool> > d_use_uniform_bdry_mass_stiffness;
+    std::vector<std::vector<double> > d_uniform_bdry_mass_stiffness;
 
     /*
      * Data required to specify connectivity information for

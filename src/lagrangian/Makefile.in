@@ -60,9 +60,8 @@ am__objects_1 = libIBAMR_lagrangian2d_a-LDataManager.$(OBJEXT) \
 	libIBAMR_lagrangian2d_a-LNodeIndexDataFactory.$(OBJEXT) \
 	libIBAMR_lagrangian2d_a-LNodeIndexSet.$(OBJEXT) \
 	libIBAMR_lagrangian2d_a-LNodeIndexVariable.$(OBJEXT) \
-	libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.$(OBJEXT) \
 	libIBAMR_lagrangian2d_a-LNodeLevelData.$(OBJEXT) \
-	libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.$(OBJEXT) \
+	libIBAMR_lagrangian2d_a-LNodeInitStrategy.$(OBJEXT) \
 	libIBAMR_lagrangian2d_a-LagSiloDataWriter.$(OBJEXT)
 am_libIBAMR_lagrangian2d_a_OBJECTS = $(am__objects_1)
 libIBAMR_lagrangian2d_a_OBJECTS =  \
@@ -76,9 +75,8 @@ am__objects_2 = libIBAMR_lagrangian3d_a-LDataManager.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LNodeIndexSet.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LNodeIndexVariable.$(OBJEXT) \
-	libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LNodeLevelData.$(OBJEXT) \
-	libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.$(OBJEXT) \
+	libIBAMR_lagrangian3d_a-LNodeInitStrategy.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LagSiloDataWriter.$(OBJEXT)
 am_libIBAMR_lagrangian3d_a_OBJECTS = $(am__objects_2)
 libIBAMR_lagrangian3d_a_OBJECTS =  \
@@ -218,12 +216,12 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = fortran .
 noinst_LIBRARIES = libIBAMR_lagrangian2d.a libIBAMR_lagrangian3d.a
-SOURCES = LDataManager.C LEInteractor.C LNodeIndex.C LNodeIndexData.C LNodeIndexDataFactory.C LNodeIndexSet.C LNodeIndexVariable.C LNodeJacobianInitStrategy.C LNodeLevelData.C LNodePosnInitStrategy.C LagSiloDataWriter.C
+SOURCES = LDataManager.C LEInteractor.C LNodeIndex.C LNodeIndexData.C LNodeIndexDataFactory.C LNodeIndexSet.C LNodeIndexVariable.C LNodeLevelData.C LNodeInitStrategy.C LagSiloDataWriter.C
 pkg_include_HEADERS = LDataManager.h LEInteractor.h LNodeIndex.h \
 	LNodeIndexData.h LNodeIndexDataFactory.h LNodeIndexSet.h \
-	LNodeIndexVariable.h LNodeJacobianInitStrategy.h \
-	LNodeLevelData.h LNodePosnInitStrategy.h LagSiloDataWriter.h \
-	LNodeIndex.I LNodeIndexData.I LNodeIndexSet.I LNodeLevelData.I
+	LNodeIndexVariable.h LNodeLevelData.h LNodeInitStrategy.h \
+	LagSiloDataWriter.h LNodeIndex.I LNodeIndexData.I \
+	LNodeIndexSet.I LNodeLevelData.I
 libIBAMR_lagrangian2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR_lagrangian2d_a_SOURCES = $(SOURCES)
 libIBAMR_lagrangian3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
@@ -286,9 +284,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeIndexSet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeIndexVariable.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeInitStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeLevelData.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian2d_a-LagSiloDataWriter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LDataManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LEInteractor.Po@am__quote@
@@ -297,9 +294,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeIndexSet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeIndexVariable.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeInitStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeLevelData.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LagSiloDataWriter.Po@am__quote@
 
 .C.o:
@@ -414,20 +410,6 @@ libIBAMR_lagrangian2d_a-LNodeIndexVariable.obj: LNodeIndexVariable.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian2d_a-LNodeIndexVariable.obj `if test -f 'LNodeIndexVariable.C'; then $(CYGPATH_W) 'LNodeIndexVariable.C'; else $(CYGPATH_W) '$(srcdir)/LNodeIndexVariable.C'; fi`
 
-libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.o: LNodeJacobianInitStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.Tpo" -c -o libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.o `test -f 'LNodeJacobianInitStrategy.C' || echo '$(srcdir)/'`LNodeJacobianInitStrategy.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.Tpo" "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LNodeJacobianInitStrategy.C' object='libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.o `test -f 'LNodeJacobianInitStrategy.C' || echo '$(srcdir)/'`LNodeJacobianInitStrategy.C
-
-libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.obj: LNodeJacobianInitStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.Tpo" -c -o libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.obj `if test -f 'LNodeJacobianInitStrategy.C'; then $(CYGPATH_W) 'LNodeJacobianInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/LNodeJacobianInitStrategy.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.Tpo" "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LNodeJacobianInitStrategy.C' object='libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian2d_a-LNodeJacobianInitStrategy.obj `if test -f 'LNodeJacobianInitStrategy.C'; then $(CYGPATH_W) 'LNodeJacobianInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/LNodeJacobianInitStrategy.C'; fi`
-
 libIBAMR_lagrangian2d_a-LNodeLevelData.o: LNodeLevelData.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian2d_a-LNodeLevelData.o -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeLevelData.Tpo" -c -o libIBAMR_lagrangian2d_a-LNodeLevelData.o `test -f 'LNodeLevelData.C' || echo '$(srcdir)/'`LNodeLevelData.C; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeLevelData.Tpo" "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeLevelData.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeLevelData.Tpo"; exit 1; fi
@@ -442,19 +424,19 @@ libIBAMR_lagrangian2d_a-LNodeLevelData.obj: LNodeLevelData.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian2d_a-LNodeLevelData.obj `if test -f 'LNodeLevelData.C'; then $(CYGPATH_W) 'LNodeLevelData.C'; else $(CYGPATH_W) '$(srcdir)/LNodeLevelData.C'; fi`
 
-libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.o: LNodePosnInitStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.Tpo" -c -o libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.o `test -f 'LNodePosnInitStrategy.C' || echo '$(srcdir)/'`LNodePosnInitStrategy.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.Tpo" "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LNodePosnInitStrategy.C' object='libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR_lagrangian2d_a-LNodeInitStrategy.o: LNodeInitStrategy.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian2d_a-LNodeInitStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeInitStrategy.Tpo" -c -o libIBAMR_lagrangian2d_a-LNodeInitStrategy.o `test -f 'LNodeInitStrategy.C' || echo '$(srcdir)/'`LNodeInitStrategy.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeInitStrategy.Tpo" "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeInitStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeInitStrategy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LNodeInitStrategy.C' object='libIBAMR_lagrangian2d_a-LNodeInitStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.o `test -f 'LNodePosnInitStrategy.C' || echo '$(srcdir)/'`LNodePosnInitStrategy.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian2d_a-LNodeInitStrategy.o `test -f 'LNodeInitStrategy.C' || echo '$(srcdir)/'`LNodeInitStrategy.C
 
-libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.obj: LNodePosnInitStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.Tpo" -c -o libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.obj `if test -f 'LNodePosnInitStrategy.C'; then $(CYGPATH_W) 'LNodePosnInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/LNodePosnInitStrategy.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.Tpo" "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LNodePosnInitStrategy.C' object='libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR_lagrangian2d_a-LNodeInitStrategy.obj: LNodeInitStrategy.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian2d_a-LNodeInitStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeInitStrategy.Tpo" -c -o libIBAMR_lagrangian2d_a-LNodeInitStrategy.obj `if test -f 'LNodeInitStrategy.C'; then $(CYGPATH_W) 'LNodeInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/LNodeInitStrategy.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeInitStrategy.Tpo" "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeInitStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian2d_a-LNodeInitStrategy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LNodeInitStrategy.C' object='libIBAMR_lagrangian2d_a-LNodeInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian2d_a-LNodePosnInitStrategy.obj `if test -f 'LNodePosnInitStrategy.C'; then $(CYGPATH_W) 'LNodePosnInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/LNodePosnInitStrategy.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian2d_a-LNodeInitStrategy.obj `if test -f 'LNodeInitStrategy.C'; then $(CYGPATH_W) 'LNodeInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/LNodeInitStrategy.C'; fi`
 
 libIBAMR_lagrangian2d_a-LagSiloDataWriter.o: LagSiloDataWriter.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian2d_a-LagSiloDataWriter.o -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian2d_a-LagSiloDataWriter.Tpo" -c -o libIBAMR_lagrangian2d_a-LagSiloDataWriter.o `test -f 'LagSiloDataWriter.C' || echo '$(srcdir)/'`LagSiloDataWriter.C; \
@@ -568,20 +550,6 @@ libIBAMR_lagrangian3d_a-LNodeIndexVariable.obj: LNodeIndexVariable.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian3d_a-LNodeIndexVariable.obj `if test -f 'LNodeIndexVariable.C'; then $(CYGPATH_W) 'LNodeIndexVariable.C'; else $(CYGPATH_W) '$(srcdir)/LNodeIndexVariable.C'; fi`
 
-libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.o: LNodeJacobianInitStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.Tpo" -c -o libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.o `test -f 'LNodeJacobianInitStrategy.C' || echo '$(srcdir)/'`LNodeJacobianInitStrategy.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.Tpo" "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LNodeJacobianInitStrategy.C' object='libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.o `test -f 'LNodeJacobianInitStrategy.C' || echo '$(srcdir)/'`LNodeJacobianInitStrategy.C
-
-libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.obj: LNodeJacobianInitStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.Tpo" -c -o libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.obj `if test -f 'LNodeJacobianInitStrategy.C'; then $(CYGPATH_W) 'LNodeJacobianInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/LNodeJacobianInitStrategy.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.Tpo" "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LNodeJacobianInitStrategy.C' object='libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian3d_a-LNodeJacobianInitStrategy.obj `if test -f 'LNodeJacobianInitStrategy.C'; then $(CYGPATH_W) 'LNodeJacobianInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/LNodeJacobianInitStrategy.C'; fi`
-
 libIBAMR_lagrangian3d_a-LNodeLevelData.o: LNodeLevelData.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian3d_a-LNodeLevelData.o -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeLevelData.Tpo" -c -o libIBAMR_lagrangian3d_a-LNodeLevelData.o `test -f 'LNodeLevelData.C' || echo '$(srcdir)/'`LNodeLevelData.C; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeLevelData.Tpo" "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeLevelData.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeLevelData.Tpo"; exit 1; fi
@@ -596,19 +564,19 @@ libIBAMR_lagrangian3d_a-LNodeLevelData.obj: LNodeLevelData.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian3d_a-LNodeLevelData.obj `if test -f 'LNodeLevelData.C'; then $(CYGPATH_W) 'LNodeLevelData.C'; else $(CYGPATH_W) '$(srcdir)/LNodeLevelData.C'; fi`
 
-libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.o: LNodePosnInitStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.Tpo" -c -o libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.o `test -f 'LNodePosnInitStrategy.C' || echo '$(srcdir)/'`LNodePosnInitStrategy.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.Tpo" "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LNodePosnInitStrategy.C' object='libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR_lagrangian3d_a-LNodeInitStrategy.o: LNodeInitStrategy.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian3d_a-LNodeInitStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeInitStrategy.Tpo" -c -o libIBAMR_lagrangian3d_a-LNodeInitStrategy.o `test -f 'LNodeInitStrategy.C' || echo '$(srcdir)/'`LNodeInitStrategy.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeInitStrategy.Tpo" "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeInitStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeInitStrategy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LNodeInitStrategy.C' object='libIBAMR_lagrangian3d_a-LNodeInitStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.o `test -f 'LNodePosnInitStrategy.C' || echo '$(srcdir)/'`LNodePosnInitStrategy.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian3d_a-LNodeInitStrategy.o `test -f 'LNodeInitStrategy.C' || echo '$(srcdir)/'`LNodeInitStrategy.C
 
-libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.obj: LNodePosnInitStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.Tpo" -c -o libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.obj `if test -f 'LNodePosnInitStrategy.C'; then $(CYGPATH_W) 'LNodePosnInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/LNodePosnInitStrategy.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.Tpo" "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LNodePosnInitStrategy.C' object='libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR_lagrangian3d_a-LNodeInitStrategy.obj: LNodeInitStrategy.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian3d_a-LNodeInitStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeInitStrategy.Tpo" -c -o libIBAMR_lagrangian3d_a-LNodeInitStrategy.obj `if test -f 'LNodeInitStrategy.C'; then $(CYGPATH_W) 'LNodeInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/LNodeInitStrategy.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeInitStrategy.Tpo" "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeInitStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeInitStrategy.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LNodeInitStrategy.C' object='libIBAMR_lagrangian3d_a-LNodeInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian3d_a-LNodePosnInitStrategy.obj `if test -f 'LNodePosnInitStrategy.C'; then $(CYGPATH_W) 'LNodePosnInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/LNodePosnInitStrategy.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian3d_a-LNodeInitStrategy.obj `if test -f 'LNodeInitStrategy.C'; then $(CYGPATH_W) 'LNodeInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/LNodeInitStrategy.C'; fi`
 
 libIBAMR_lagrangian3d_a-LagSiloDataWriter.o: LagSiloDataWriter.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian3d_a-LagSiloDataWriter.o -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian3d_a-LagSiloDataWriter.Tpo" -c -o libIBAMR_lagrangian3d_a-LagSiloDataWriter.o `test -f 'LagSiloDataWriter.C' || echo '$(srcdir)/'`LagSiloDataWriter.C; \

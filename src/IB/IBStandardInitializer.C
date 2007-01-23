@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <22.Jan.2007 21:20:44 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Jan.2007 00:30:29 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -65,6 +65,13 @@ IBStandardInitializer::IBStandardInitializer(
       d_target_stiffness(),
       d_use_uniform_target_stiffness(),
       d_uniform_target_stiffness(),
+      d_enable_bdry_mass(),
+      d_bdry_mass(),
+      d_bdry_mass_stiffness(),
+      d_use_uniform_bdry_mass(),
+      d_uniform_bdry_mass(),
+      d_use_uniform_bdry_mass_stiffness(),
+      d_uniform_bdry_mass_stiffness(),
       d_global_index_offset()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -709,6 +716,136 @@ IBStandardInitializer::readTargetPointFiles()
 }// readTargetPointFiles
 
 void
+IBStandardInitializer::readBoundaryMassFiles()
+{
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        d_bdry_mass[ln].resize(num_base_filename);
+        d_bdry_mass_stiffness[ln].resize(num_base_filename);
+        for (int j = 0; j < num_base_filename; ++j)
+        {
+            d_bdry_mass[ln][j].resize(d_num_vertex[ln][j], 0.0);
+            d_bdry_mass_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
+
+            const std::string bdry_mass_filename = d_base_filename[ln][j] + ".bdry_mass";
+            std::ifstream file_stream;
+            std::string line_string;
+            file_stream.open(bdry_mass_filename.c_str(), std::ios::in);
+            if (file_stream.is_open())
+            {
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "processing boundary mass data from input filename " << bdry_mass_filename << endl
+                                   << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+
+                // The first line in the file indicates the number of
+                // massive IB points in the input file.
+                int num_bdry_mass_pts;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << bdry_mass_filename << endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_bdry_mass_pts))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << bdry_mass_filename << endl);
+                    }
+                }
+
+                if (num_bdry_mass_pts <= 0)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << bdry_mass_filename << endl);
+                }
+
+                // Each successive line indicates the vertex number
+                // and spring constant associated with any massive IB
+                // points.
+                for (int k = 0; k < num_bdry_mass_pts; ++k)
+                {
+                    int n;
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << bdry_mass_filename << endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+                        std::istringstream line_stream(line_string);
+                        if (!(line_stream >> n))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << bdry_mass_filename << endl);
+                        }
+                        else if ((n < 0) || (n >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << bdry_mass_filename << endl
+                                       << "  vertex index " << n << " is out of range" << endl);
+                        }
+
+                        if (!(line_stream >> d_bdry_mass[ln][j][n]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << bdry_mass_filename << endl);
+                        }
+                        else if (d_bdry_mass[ln][j][n] < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << bdry_mass_filename << endl
+                                       << "  boundary mass is negative" << endl);
+                        }
+
+                        if (!(line_stream >> d_bdry_mass_stiffness[ln][j][n]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << bdry_mass_filename << endl);
+                        }
+                        else if (d_bdry_mass_stiffness[ln][j][n] < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << bdry_mass_filename << endl
+                                       << "  boundary mass spring constant is negative" << endl);
+                        }
+                    }
+                }
+
+                // Close the input file.
+                file_stream.close();
+
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "read " << num_bdry_mass_pts << " boundary mass points from input filename " << bdry_mass_filename << endl
+                                   << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+            }
+
+            // Modify the boundary mass and boundary mass stiffness
+            // constant according to whether boundary mass is enabled,
+            // or whether uniform values are to be employed, for this
+            // particular structure.
+            if (!d_enable_bdry_mass[ln][j])
+            {
+                d_bdry_mass[ln][j] = std::vector<double>(
+                    d_num_vertex[ln][j], 0.0);
+                d_bdry_mass_stiffness[ln][j] = std::vector<double>(
+                    d_num_vertex[ln][j], 0.0);
+            }
+            else
+            {
+                if (d_use_uniform_bdry_mass[ln][j])
+                {
+                    d_bdry_mass[ln][j] = std::vector<double>(
+                        d_num_vertex[ln][j],
+                        d_uniform_bdry_mass[ln][j]);
+                }
+                if (d_use_uniform_bdry_mass_stiffness[ln][j])
+                {
+                    d_bdry_mass_stiffness[ln][j] = std::vector<double>(
+                        d_num_vertex[ln][j],
+                        d_uniform_bdry_mass_stiffness[ln][j]);
+                }
+            }
+        }
+    }
+    return;
+}// readBoundaryMassFiles
+
+void
 IBStandardInitializer::getPatchVertices(
     std::vector<std::pair<int,int> >& patch_vertices,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
@@ -861,6 +998,13 @@ IBStandardInitializer::getFromInput(
     d_target_stiffness.resize(d_max_levels);
     d_use_uniform_target_stiffness.resize(d_max_levels);
     d_uniform_target_stiffness.resize(d_max_levels);
+    d_enable_bdry_mass.resize(d_max_levels);
+    d_bdry_mass.resize(d_max_levels);
+    d_bdry_mass_stiffness.resize(d_max_levels);
+    d_use_uniform_bdry_mass.resize(d_max_levels);
+    d_uniform_bdry_mass.resize(d_max_levels);
+    d_use_uniform_bdry_mass_stiffness.resize(d_max_levels);
+    d_uniform_bdry_mass_stiffness.resize(d_max_levels);
     d_global_index_offset.resize(d_max_levels);
 
     // Determine the various input file names.
@@ -900,6 +1044,14 @@ IBStandardInitializer::getFromInput(
         d_use_uniform_target_stiffness[ln].resize(num_base_filename,false);
         d_uniform_target_stiffness[ln].resize(num_base_filename,-1.0);
 
+        d_enable_bdry_mass[ln].resize(num_base_filename,false);
+
+        d_use_uniform_bdry_mass[ln].resize(num_base_filename,false);
+        d_uniform_bdry_mass[ln].resize(num_base_filename,-1.0);
+
+        d_use_uniform_bdry_mass_stiffness[ln].resize(num_base_filename,false);
+        d_uniform_bdry_mass_stiffness[ln].resize(num_base_filename,-1.0);
+
         for (int j = 0; j < num_base_filename; ++j)
         {
             const std::string& base_filename = d_base_filename[ln][j];
@@ -917,6 +1069,10 @@ IBStandardInitializer::getFromInput(
                 if (sub_db->keyExists("enable_target_points"))
                 {
                     d_enable_target_points[ln][j] = sub_db->getBool("enable_target_points");
+                }
+                if (sub_db->keyExists("enable_bdry_mass"))
+                {
+                    d_enable_bdry_mass[ln][j] = sub_db->getBool("enable_bdry_mass");
                 }
 
                 // Determine whether to use uniform values for any
@@ -943,6 +1099,7 @@ IBStandardInitializer::getFromInput(
                                    << "  spring resting length is negative" << endl);
                     }
                 }
+
                 if (sub_db->keyExists("uniform_target_stiffness"))
                 {
                     d_use_uniform_target_stiffness[ln][j] = true;
@@ -952,6 +1109,29 @@ IBStandardInitializer::getFromInput(
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_stiffness' in database " << base_filename << endl
                                    << "  target point spring constant is negative" << endl);
+                    }
+                }
+
+                if (sub_db->keyExists("uniform_bdry_mass"))
+                {
+                    d_use_uniform_bdry_mass[ln][j] = true;
+                    d_uniform_bdry_mass[ln][j] = sub_db->getDouble("uniform_bdry_mass");
+
+                    if (d_uniform_bdry_mass[ln][j] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_bdry_mass' in database " << base_filename << endl
+                                   << "  boundary mass is negative" << endl);
+                    }
+                }
+                if (sub_db->keyExists("uniform_bdry_mass_stiffness"))
+                {
+                    d_use_uniform_bdry_mass_stiffness[ln][j] = true;
+                    d_uniform_bdry_mass_stiffness[ln][j] = sub_db->getDouble("uniform_bdry_mass_stiffness");
+
+                    if (d_uniform_bdry_mass_stiffness[ln][j] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_bdry_mass_stiffness' in database " << base_filename << endl
+                                   << "  boundary mass spring constant is negative" << endl);
                     }
                 }
             }
@@ -970,7 +1150,7 @@ IBStandardInitializer::getFromInput(
             SAMRAI::tbox::pout << "  base filename: " << base_filename << endl
                                << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << endl
                                << "     required files: " << base_filename << ".vertex" << endl
-                               << "     optional files: " << base_filename << ".edge, " << base_filename << ".target_stiff " << endl;
+                               << "     optional files: " << base_filename << ".edge, " << base_filename << ".target_stiff, " << base_filename << ".bdry_mass" << endl;
             if (!d_enable_edges[ln][j])
             {
                 SAMRAI::tbox::pout << "  NOTE: edge forces are DISABLED for " << base_filename << endl;

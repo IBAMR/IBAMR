@@ -3,14 +3,13 @@
 
 // Filename: LDataManager.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Nov.2006 00:33:08 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Jan.2007 01:53:18 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
+#include <ibamr/LNodeInitStrategy.h>
 #include <ibamr/LNodeIndexVariable.h>
-#include <ibamr/LNodeJacobianInitStrategy.h>
-#include <ibamr/LNodePosnInitStrategy.h>
 
 // SAMRAI INCLUDES
 #include <BoxArray.h>
@@ -134,27 +133,11 @@ public:
 
     /*!
      * Register a concrete strategy object with the integrator that
-     * specifies the Jacobian determinant at the curvilinear mesh
-     * nodes.
-     */
-    void registerLNodeJacobianInitStrategy(
-        SAMRAI::tbox::Pointer<LNodeJacobianInitStrategy> lag_jac_init);
-
-    /*!
-     * Free the concrete Jacobian strategy object.
-     *
-     * \note Be sure to call this method only once the initialization
-     * object is no longer needed.
-     */
-    void freeLNodeJacobianInitStrategy();
-
-    /*!
-     * Register a concrete strategy object with the integrator that
      * specifies the initial configuration of the curvilinear mesh
      * nodes.
      */
-    void registerLNodePosnInitStrategy(
-        SAMRAI::tbox::Pointer<LNodePosnInitStrategy> lag_posn_init);
+    void registerLNodeInitStrategy(
+        SAMRAI::tbox::Pointer<LNodeInitStrategy> lag_init);
 
     /*!
      * Free the concrete initialization strategy object.
@@ -162,7 +145,7 @@ public:
      * \note Be sure to call this method only once the initialization
      * object is no longer needed.
      */
-    void freeLNodePosnInitStrategy();
+    void freeLNodeInitStrategy();
 
     /*!
      * \brief Register a VisIt data writer with the manager.
@@ -648,16 +631,10 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
 
     /*
-     * Objects used to specify the Jacobian determinant of the
-     * curvilinear coordinate system on the patch hierarchy.
-     */
-    SAMRAI::tbox::Pointer<LNodeJacobianInitStrategy> d_lag_jac_init;
-
-    /*
      * Objects used to specify and initialize the Lagrangian data on
      * the patch hierarchy.
      */
-    SAMRAI::tbox::Pointer<LNodePosnInitStrategy> d_lag_posn_init;
+    SAMRAI::tbox::Pointer<LNodeInitStrategy> d_lag_init;
     std::vector<bool> d_level_contains_lag_data;
 
     /*

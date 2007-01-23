@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <18.Jan.2007 14:42:48 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Jan.2007 02:10:46 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -14,7 +14,7 @@
 #include <ibamr/IBLagrangianSourceStrategy.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/LDataManager.h>
-#include <ibamr/LNodePosnInitStrategy.h>
+#include <ibamr/LNodeInitStrategy.h>
 #include <ibamr/LagSiloDataWriter.h>
 #include <ibamr/SetDataStrategy.h>
 
@@ -93,8 +93,8 @@ public:
      * specifies the initial configuration of the curvilinear mesh
      * nodes.
      */
-    void registerLNodePosnInitStrategy(
-        SAMRAI::tbox::Pointer<LNodePosnInitStrategy> lag_posn_init);
+    void registerLNodeInitStrategy(
+        SAMRAI::tbox::Pointer<LNodeInitStrategy> lag_init);
 
     /*!
      * Free the concrete initialization strategy object.
@@ -102,7 +102,7 @@ public:
      * NOTE: Be sure to call this method only once the initialization
      * object is no longer needed.
      */
-    void freeLNodePosnInitStrategy();
+    void freeLNodeInitStrategy();
 
     /*!
      * Register a VisIt data writer so this class will write plot
@@ -622,7 +622,7 @@ private:
      * The specification and initialization information for the
      * Lagrangian data used by the integrator.
      */
-    SAMRAI::tbox::Pointer<LNodePosnInitStrategy> d_lag_posn_init;
+    SAMRAI::tbox::Pointer<LNodeInitStrategy> d_lag_init;
 
     /*
      * The force generators.
@@ -728,7 +728,7 @@ private:
      * Parameters for the (optional) penalty IB method for boundaries
      * with additional boundary mass.
      */
-    bool d_use_pIB_method;
+    bool d_using_pIB_method;
     double d_pIB_kappa, d_pIB_M, d_pIB_g;
 };
 }// namespace IBAMR

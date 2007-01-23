@@ -295,11 +295,11 @@ int main(int argc, char* argv[])
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
 
-        tbox::Pointer<LNodePosnInitStrategy> initializer =
+        tbox::Pointer<LNodeInitStrategy> initializer =
             new IBStandardInitializer(
                 "IBStandardInitializer",
                 input_db->getDatabase("IBStandardInitializer"));
-        time_integrator->registerLNodePosnInitStrategy(initializer);
+        time_integrator->registerLNodeInitStrategy(initializer);
 
         FeedbackFSet* feedback_forcer =
             new FeedbackFSet(
