@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <23.Jan.2007 01:54:33 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Jan.2007 03:00:40 boyce@bigboy.nyconnect.com>
 
 #include "LDataManager.h"
 
@@ -1460,6 +1460,10 @@ LDataManager::initializeLevelData(
                                d_node_offset[level_number],
                                num_local_nodes);
 
+            // NOTE: If either offset is ever nonzero, note that it
+            // may be necessary to modify IBHierarchyIntegrator, in
+            // particular the code where the penalty IB method-related
+            // data are initialized.
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
             d_lag_init->initializeDataOnPatchLevel(

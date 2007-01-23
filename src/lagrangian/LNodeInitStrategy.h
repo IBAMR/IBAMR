@@ -3,7 +3,7 @@
 
 // Filename: LNodeInitStrategy.h
 // Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <23.Jan.2007 02:07:02 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Jan.2007 02:55:39 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -87,6 +87,8 @@ public:
      * for massive boundaries is not required.
      */
     virtual int initializeMassDataOnPatchLevel(
+        const int global_index_offset,
+        const int local_index_offset,
         SAMRAI::tbox::Pointer<LNodeLevelData>& M_data,
         SAMRAI::tbox::Pointer<LNodeLevelData>& K_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,

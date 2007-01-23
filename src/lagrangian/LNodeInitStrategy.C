@@ -1,6 +1,6 @@
 // Filename: LNodeInitStrategy.C
 // Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <23.Jan.2007 02:09:06 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Jan.2007 02:55:54 boyce@bigboy.nyconnect.com>
 
 #include "LNodeInitStrategy.h"
 
@@ -38,6 +38,8 @@ LNodeInitStrategy::~LNodeInitStrategy()
 
 int
 LNodeInitStrategy::initializeMassDataOnPatchLevel(
+    const int global_index_offset,
+    const int local_index_offset,
     SAMRAI::tbox::Pointer<LNodeLevelData>& M_data,
     SAMRAI::tbox::Pointer<LNodeLevelData>& K_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,

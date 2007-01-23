@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <23.Jan.2007 01:52:44 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Jan.2007 02:55:30 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -87,6 +87,25 @@ public:
         const int global_index_offset,
         const int local_index_offset,
         SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double init_data_time,
+        const bool can_be_refined,
+        const bool initial_time);
+
+    /*!
+     * @brief Initialize the LNodeLevel data needed to specify the
+     * mass and spring constant data required by the penalty IB
+     * method.
+     *
+     * \return The number of local nodes initialized on the patch
+     * level.
+     */
+    virtual int initializeMassDataOnPatchLevel(
+        const int global_index_offset,
+        const int local_index_offset,
+        SAMRAI::tbox::Pointer<LNodeLevelData>& M_data,
+        SAMRAI::tbox::Pointer<LNodeLevelData>& K_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -196,6 +215,21 @@ private:
      * penalty force at that node.)
      */
     double getVertexTargetStiffness(
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
+
+    /*!
+     * \return The mass associated with a particular node.
+     */
+    double getVertexMass(
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
+
+    /*!
+     * \return The mass spring constant associated with a particular
+     * node.
+     */
+    double getVertexMassStiffness(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 

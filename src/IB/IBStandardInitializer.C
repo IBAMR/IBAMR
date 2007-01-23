@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <23.Jan.2007 00:30:29 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Jan.2007 03:43:17 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -115,6 +115,9 @@ IBStandardInitializer::IBStandardInitializer(
 
             // Process the (optional) target point information.
             readTargetPointFiles();
+
+            // Process the (optional) mass information.
+            readBoundaryMassFiles();
         }
         SAMRAI::tbox::MPI::barrier();
     }
@@ -289,6 +292,59 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     }
     return local_node_count;
 }// initializeDataOnPatchLevel
+
+int
+IBStandardInitializer::initializeMassDataOnPatchLevel(
+    const int global_index_offset,
+    const int local_index_offset,
+    SAMRAI::tbox::Pointer<LNodeLevelData>& M_data,
+    SAMRAI::tbox::Pointer<LNodeLevelData>& K_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double init_data_time,
+    const bool can_be_refined,
+    const bool initial_time)
+{
+    // Loop over all patches in the specified level of the patch level
+    // and initialize the local vertices.
+    int local_idx = -1;
+    int local_node_count = 0;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+
+        // Initialize the vertices whose initial locations will be
+        // within the given patch.
+        std::vector<std::pair<int,int> > patch_vertices;
+        getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
+        local_node_count += patch_vertices.size();
+        for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
+             it != patch_vertices.end(); ++it)
+        {
+            const std::pair<int,int>& point_idx = (*it);
+            const int current_local_idx = ++local_idx + local_index_offset;
+
+            // Initialize the mass and stiffness coefficient
+            // corresponding to the present vertex.
+            const double M = getVertexMass(point_idx, level_number);
+            const double K = getVertexMassStiffness(point_idx, level_number);
+
+            // Avoid division by zero.
+            if (SAMRAI::tbox::Utilities::deq(M,0.0))
+            {
+                (*M_data)(current_local_idx) = std::numeric_limits<double>::epsilon();
+                (*K_data)(current_local_idx) = 0.0;
+            }
+            else
+            {
+                (*M_data)(current_local_idx) = M;
+                (*K_data)(current_local_idx) = K;
+            }
+        }
+    }
+    return local_node_count;
+}// initializeMassOnPatchLevel
 
 void
 IBStandardInitializer::tagCellsForInitialRefinement(
@@ -909,6 +965,22 @@ IBStandardInitializer::getVertexTargetStiffness(
     return d_target_stiffness[level_number][point_index.first][point_index.second];
 }// getVertexTargetStiffness
 
+double
+IBStandardInitializer::getVertexMass(
+    const std::pair<int,int>& point_index,
+    const int level_number) const
+{
+    return d_bdry_mass[level_number][point_index.first][point_index.second];
+}// getVertexMass
+
+double
+IBStandardInitializer::getVertexMassStiffness(
+    const std::pair<int,int>& point_index,
+    const int level_number) const
+{
+    return d_bdry_mass_stiffness[level_number][point_index.first][point_index.second];
+}// getVertexMassStiffness
+
 std::vector<SAMRAI::tbox::Pointer<Stashable> >
 IBStandardInitializer::initializeForceSpec(
     const std::pair<int,int>& point_index,
@@ -1044,7 +1116,7 @@ IBStandardInitializer::getFromInput(
         d_use_uniform_target_stiffness[ln].resize(num_base_filename,false);
         d_uniform_target_stiffness[ln].resize(num_base_filename,-1.0);
 
-        d_enable_bdry_mass[ln].resize(num_base_filename,false);
+        d_enable_bdry_mass[ln].resize(num_base_filename,true);
 
         d_use_uniform_bdry_mass[ln].resize(num_base_filename,false);
         d_uniform_bdry_mass[ln].resize(num_base_filename,-1.0);

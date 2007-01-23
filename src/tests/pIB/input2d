@@ -7,13 +7,16 @@ MUSCL_LIMITED = 3
 
 // constants
 N = 4
-NFINEST = 2*N
-MAX_LEVELS = 2
+NFINEST = 1*N
+MAX_LEVELS = 1
 
 DELTA_FCN = "IB_6"
-MU = 0.005
+MU = 0.0 // 0.005
 
 IBHierarchyIntegrator {
+   use_pIB_method = TRUE
+   g = 100.0
+
    start_time            = 0.e0     // initial simulation time
    end_time              = 0.4e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
@@ -29,10 +32,11 @@ IBHierarchyIntegrator {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-// base_filenames_1 = "shell2d_64"   // corresponds to NFINEST=4
-   base_filenames_1 = "shell2d_128"  // corresponds to NFINEST=8
-// base_filenames_1 = "shell2d_256"  // corresponds to NFINEST=16
-// base_filenames_1 = "shell2d_512"  // corresponds to NFINEST=32
+   base_filenames_0 = "shell2d_64"  // corresponds to NFINEST=4
+   shell2d_64 {
+      uniform_bdry_mass = 10.0
+      uniform_bdry_mass_stiffness = 1000.0
+   }
 }
 
 IBStandardForceGen {

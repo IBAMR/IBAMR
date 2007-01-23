@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <23.Jan.2007 02:11:04 boyce@bigboy.nyconnect.com>
+// Last modified: <23.Jan.2007 03:52:39 boyce@bigboy.nyconnect.com>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -842,7 +842,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 }
 
                 int n_local = 0;
-                ierr = VecGetLocalSize(X_vec, &n_local);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetLocalSize(K_vec, &n_local);  PETSC_SAMRAI_ERROR(ierr);
 
                 double* K_arr, * X_arr, * Y_arr, * F_K_arr;
                 ierr = VecGetArray(K_vec, &K_arr);  PETSC_SAMRAI_ERROR(ierr);
@@ -852,7 +852,10 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                 for (int i = 0; i < n_local; ++i)
                 {
-                    F_K_arr[i] = K_arr[i/NDIM]*(Y_arr[i] - X_arr[i]);
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        F_K_arr[NDIM*i+d] = K_arr[i]*(Y_arr[NDIM*i+d] - X_arr[NDIM*i+d]);
+                    }
                 }
 
                 ierr = VecRestoreArray(K_vec, &K_arr);  PETSC_SAMRAI_ERROR(ierr);
@@ -938,7 +941,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 }
 
                 int n_local = 0;
-                ierr = VecGetLocalSize(Y_vec, &n_local);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetLocalSize(M_vec, &n_local);  PETSC_SAMRAI_ERROR(ierr);
 
                 double* M_arr, * Y_arr, * Y_new_arr, * dY_dt_arr, * dY_dt_new_arr, * F_K_arr;
                 ierr = VecGetArray(M_vec, &M_arr);  PETSC_SAMRAI_ERROR(ierr);
@@ -950,11 +953,14 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                 for (int i = 0; i < n_local; ++i)
                 {
-                    Y_new_arr[i] = Y_arr[i] + dt*dY_dt_arr[i];
-                    dY_dt_new_arr[i] = dY_dt_arr[i] - (dt/M_arr[i/NDIM])*F_K_arr[i];
-                    if (i % NDIM == (NDIM-1))
+                    for (int d = 0; d < NDIM; ++d)
                     {
-                        dY_dt_new_arr[i] -= dt*d_pIB_g;
+                        Y_new_arr[NDIM*i+d] = Y_arr[NDIM*i+d] + dt*dY_dt_arr[NDIM*i+d];
+                        dY_dt_new_arr[NDIM*i+d] = dY_dt_arr[NDIM*i+d] - (dt/M_arr[i])*F_K_arr[NDIM*i+d];
+                        if (d == (NDIM-1))
+                        {
+                            dY_dt_new_arr[NDIM*i+d] -= dt*d_pIB_g;
+                        }
                     }
                 }
 
@@ -988,7 +994,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 Vec F_K_new_vec = F_K_new_data[ln]->getGlobalVec();
 
                 int n_local = 0;
-                ierr = VecGetLocalSize(X_new_vec, &n_local);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetLocalSize(K_vec, &n_local);  PETSC_SAMRAI_ERROR(ierr);
 
                 double* K_arr, * X_new_arr, * Y_new_arr, * F_K_new_arr;
                 ierr = VecGetArray(K_vec, &K_arr);  PETSC_SAMRAI_ERROR(ierr);
@@ -998,7 +1004,10 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                 for (int i = 0; i < n_local; ++i)
                 {
-                    F_K_new_arr[i] = K_arr[i/NDIM]*(Y_new_arr[i] - X_new_arr[i]);
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        F_K_new_arr[NDIM*i+d] = K_arr[i]*(Y_new_arr[NDIM*i+d] - X_new_arr[NDIM*i+d]);
+                    }
                 }
 
                 ierr = VecRestoreArray(K_vec, &K_arr);  PETSC_SAMRAI_ERROR(ierr);
@@ -1212,7 +1221,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 Vec F_K_new_vec = F_K_new_data[ln]->getGlobalVec();
 
                 int n_local = 0;
-                ierr = VecGetLocalSize(Y_vec, &n_local);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetLocalSize(M_vec, &n_local);  PETSC_SAMRAI_ERROR(ierr);
 
                 double* M_arr, * Y_new_arr, * dY_dt_new_arr, * F_K_new_arr;
                 ierr = VecGetArray(M_vec, &M_arr);  PETSC_SAMRAI_ERROR(ierr);
@@ -1222,11 +1231,14 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                 for (int i = 0; i < n_local; ++i)
                 {
-                    Y_new_arr[i] = Y_new_arr[i] + dt*dY_dt_new_arr[i];
-                    dY_dt_new_arr[i] = dY_dt_new_arr[i] - (dt/M_arr[i/NDIM])*F_K_new_arr[i];
-                    if (i % NDIM == (NDIM-1))
+                    for (int d = 0; d < NDIM; ++d)
                     {
-                        dY_dt_new_arr[i] -= dt*d_pIB_g;
+                        Y_new_arr[NDIM*i+d] = Y_new_arr[NDIM*i+d] + dt*dY_dt_new_arr[NDIM*i+d];
+                        dY_dt_new_arr[NDIM*i+d] = dY_dt_new_arr[NDIM*i+d] - (dt/M_arr[i])*F_K_new_arr[NDIM*i+d];
+                        if (d == (NDIM-1))
+                        {
+                            dY_dt_new_arr[NDIM*i+d] -= dt*d_pIB_g;
+                        }
                     }
                 }
 
@@ -1548,8 +1560,9 @@ IBHierarchyIntegrator::initializeLevelData(
                             can_be_refined, initial_time, old_level,
                             allocate_data);
 
-    // Initialize pIB data.
-    if (d_using_pIB_method)
+    // Setup the pIB data at the inital time only.
+    if (initial_time && d_using_pIB_method &&
+        d_lag_init->getLevelHasLagrangianData(level_number, can_be_refined))
     {
         static const bool manage_data = true;
         SAMRAI::tbox::Pointer<LNodeLevelData> M_data = d_lag_data_manager->
@@ -1561,7 +1574,10 @@ IBHierarchyIntegrator::initializeLevelData(
         SAMRAI::tbox::Pointer<LNodeLevelData> dY_dt_data = d_lag_data_manager->
             createLNodeLevelData("dY_dt",level_number,NDIM,manage_data);
 
+        static const int global_index_offset = 0;
+        static const int local_index_offset = 0;
         d_lag_init->initializeMassDataOnPatchLevel(
+            global_index_offset, local_index_offset,
             M_data, K_data,
             hierarchy, level_number,
             init_data_time, can_be_refined, initial_time);
@@ -1795,6 +1811,8 @@ IBHierarchyIntegrator::putToDatabase(
     db->putDouble("d_dt_max", d_dt_max);
     db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
     db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
+    db->putBool("d_using_pIB_method", d_using_pIB_method);
+    db->putDouble("d_pIB_g", d_pIB_g);
 
     t_put_to_database->stop();
     return;
@@ -1899,6 +1917,14 @@ IBHierarchyIntegrator::getFromInput(
 
         d_num_init_cycles = db->getIntegerWithDefault(
             "num_init_cycles", d_num_init_cycles);
+
+        d_using_pIB_method = db->getBoolWithDefault(
+            "use_pIB_method", d_using_pIB_method);
+
+        if (d_using_pIB_method)
+        {
+            d_pIB_g = db->getDoubleWithDefault("g", d_pIB_g);
+        }
     }
 
     return;
@@ -1940,6 +1966,8 @@ IBHierarchyIntegrator::getFromRestart()
     d_dt_max = db->getDouble("d_dt_max");
     d_dt_max_time_max = db->getDouble("d_dt_max_time_max");
     d_dt_max_time_min = db->getDouble("d_dt_max_time_min");
+    d_using_pIB_method = db->getBool("d_using_pIB_method");
+    d_pIB_g = db->getDouble("d_pIB_g");
 
     return;
 }// getFromRestart
