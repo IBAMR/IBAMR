@@ -2,8 +2,8 @@
 #define included_IBLagrangianSourceStrategy
 
 // Filename: IBLagrangianSourceStrategy.h
+// Last modified: <23.Jan.2007 21:23:10 griffith@box221.cims.nyu.edu>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <04.Oct.2006 19:53:04 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -41,10 +41,12 @@ public:
      */
     virtual ~IBLagrangianSourceStrategy();
 
-    virtual int getNumSources() const = 0;
+    virtual int getNumSources(
+        const int level_number) const = 0;
 
     virtual void getSourceLocations(
         std::vector<std::vector<double> >& X_src,
+        vector<double>& r_src,
         SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -55,6 +57,7 @@ public:
         std::vector<double>& Q_src,
         const std::vector<double>& P_src,
         const std::vector<std::vector<double> >& X_src,
+        const vector<double>& r_src,
         const int level_number,
         const double data_time) = 0;
 
