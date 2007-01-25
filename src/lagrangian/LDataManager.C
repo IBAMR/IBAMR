@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <23.Jan.2007 03:00:40 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Jan.2007 22:10:14 griffith@box221.cims.nyu.edu>
 
 #include "LDataManager.h"
 
@@ -1140,6 +1140,8 @@ LDataManager::updateWorkloadAndNodeCount(
            finest_ln   <= d_finest_ln);
 #endif
 
+    // XXXX: This code is suspect.
+
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1686,8 +1688,6 @@ LDataManager::applyGradientDetector(
     assert(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-
     if (initial_time)
     {
         // Tag cells for refinement based on the initial
@@ -1697,23 +1697,49 @@ LDataManager::applyGradientDetector(
     }
     else
     {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
+            hierarchy->getPatchLevel(level_number);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > finer_level =
+            hierarchy->getPatchLevel(level_number+1);
+
         // Zero out the node count data on the current level.
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > node_count_data =
                 patch->getPatchData(d_node_count_idx);
             node_count_data->fillAll(0.0);
         }
 
-        // Update the workload estimate and node counts in each
-        // Cartesian grid cell on the next finer level, then coarsen
-        // the node count onto the present level.
-        updateWorkloadAndNodeCount(level_number+1,level_number+1);
+        // Determine the node count information on the finer level and
+        // coarsen that data onto the level where we wish to tag cells
+        // for refinement.
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(finer_level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = finer_level->getPatch(p());
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+
+            const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
+                patch->getPatchData(d_lag_node_index_current_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > node_count_data =
+                patch->getPatchData(d_node_count_idx);
+
+            node_count_data->fillAll(0.0);
+
+            for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+            {
+                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                if (patch_box.contains(i))
+                {
+                    const LNodeIndexSet& node_set = *it;
+                    (*node_count_data)(i) += static_cast<double>(node_set.size());
+                }
+            }
+        }
         d_node_count_coarsen_scheds[level_number+1]->coarsenData();
 
         // Tag cells for refinement wherever there exist nodes on the
-        // finer level(s) of the Cartesian grid.
+        // the next finer level of the Cartesian grid.
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1727,8 +1753,7 @@ LDataManager::applyGradientDetector(
             for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
             {
                 const SAMRAI::hier::Index<NDIM>& i = ic();
-
-                if ((*node_count_data)(i) > 0.0)
+                if (!SAMRAI::tbox::Utilities::deq((*node_count_data)(i),0.0))
                 {
                     (*tag_data)(i) = 1;
                 }
