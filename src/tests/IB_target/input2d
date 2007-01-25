@@ -59,11 +59,6 @@ IBStandardInitializer {
 // cylinder2d_1024 {
 //    uniform_target_stiffness = 85.0*2.0*PI*R*(256/61)
 // }
-
-// base_filenames_2 = "cylinder2d_2048"  // corresponds to NFINEST = 2048
-// cylinder2d_2048 {
-//    uniform_target_stiffness = 85.0*2.0*PI*R*(256/61)
-// }
 }
 
 IBStandardForceGen {
