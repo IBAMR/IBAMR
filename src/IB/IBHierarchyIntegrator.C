@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <24.Jan.2007 21:59:20 griffith@box221.cims.nyu.edu>
+// Last modified: <26.Jan.2007 02:09:46 boyce@bigboy.nyconnect.com>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -636,6 +636,26 @@ IBHierarchyIntegrator::initializeHierarchy()
     return dt_next;
 }// initializeHierarchy
 
+namespace
+{
+
+inline double
+cos_delta(
+    const double x,
+    const double eps)
+{
+    if (fabs(x) > eps)
+    {
+        return 0.0;
+    }
+    else
+    {
+        return 0.5*(1.0+cos(M_PI*x/eps))/eps;
+    }
+}// cos_delta
+
+}
+
 double
 IBHierarchyIntegrator::advanceHierarchy(
     const double dt,
@@ -1197,13 +1217,58 @@ IBHierarchyIntegrator::advanceHierarchy(
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+                const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+
+                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+
+                const double* const xLower = pgeom->getXLower();
+                const double* const xUpper = pgeom->getXUpper();
+                const double* const dx = pgeom->getDx();
+
                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > p_data =
                     patch->getPatchData(P_current_idx);
                 for (int n = 0; n < n_src[ln]; ++n)
                 {
-                    LEInteractor::interpolate(
-                        &P_src[ln][n], 1, &X_src[ln][n][0], NDIM, 1, p_data,
-                        patch, patch_box, "IB_4");
+//                  LEInteractor::interpolate(
+//                      &P_src[ln][n], 1, &X_src[ln][n][0], NDIM, 1, p_data,
+//                      patch, patch_box, "IB_4");
+
+                    // The source radius must be an integer multiple
+                    // of the grid spacing.
+                    double r[NDIM];
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        r[d] = floor(r_src[ln][n]/dx[d])*dx[d];
+                    }
+
+                    // Determine the approximate source stencil box.
+                    const SAMRAI::hier::Index<NDIM> i_center =
+                        STOOLS::STOOLS_Utilities::getCellIndex(
+                            X_src[ln][n], xLower, xUpper, dx,
+                            patch_lower, patch_upper);
+                    SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        stencil_box.grow(
+                            d, static_cast<int>(ceil(r[d]/dx[d])));
+                    }
+
+                    // Interpolate the pressure from the Cartesian
+                    // grid.
+                    for (SAMRAI::hier::Box<NDIM>::Iterator b(patch_box*stencil_box);
+                         b; b++)
+                    {
+                        const SAMRAI::hier::Index<NDIM>& i = b();
+
+                        double wgt = 1.0;
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                            wgt *= cos_delta(X_center - X_src[ln][n][d], r[d])*dx[d];
+                        }
+                        P_src[ln][n] += (*p_data)(i)*wgt;
+                    }
                 }
             }
 
@@ -1258,13 +1323,58 @@ IBHierarchyIntegrator::advanceHierarchy(
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+                const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+
+                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+
+                const double* const xLower = pgeom->getXLower();
+                const double* const xUpper = pgeom->getXUpper();
+                const double* const dx = pgeom->getDx();
+
                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data =
                     patch->getPatchData(d_Q_idx);
                 for (int n = 0; n < n_src[ln]; ++n)
                 {
-                    LEInteractor::spread(
-                        q_data, &Q_src[ln][n], 1, &X_src[ln][n][0], NDIM, 1,
-                        patch, patch_box, "IB_4");
+//                  LEInteractor::spread(
+//                      q_data, &Q_src[ln][n], 1, &X_src[ln][n][0], NDIM, 1,
+//                      patch, patch_box, "IB_4");
+
+                    // The source radius must be an integer multiple
+                    // of the grid spacing.
+                    double r[NDIM];
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        r[d] = floor(r_src[ln][n]/dx[d])*dx[d];
+                    }
+
+                    // Determine the approximate source stencil box.
+                    const SAMRAI::hier::Index<NDIM> i_center =
+                        STOOLS::STOOLS_Utilities::getCellIndex(
+                            X_src[ln][n], xLower, xUpper, dx,
+                            patch_lower, patch_upper);
+                    SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        stencil_box.grow(
+                            d, static_cast<int>(ceil(r[d]/dx[d])));
+                    }
+
+                    // Spread the source strength onto the Cartesian
+                    // grid.
+                    for (SAMRAI::hier::Box<NDIM>::Iterator b(patch_box*stencil_box);
+                         b; b++)
+                    {
+                        const SAMRAI::hier::Index<NDIM>& i = b();
+
+                        double wgt = 1.0;
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                            wgt *= cos_delta(X_center - X_src[ln][n][d], r[d]);
+                        }
+                        (*q_data)(i) += Q_src[ln][n]*wgt;
+                    }
                 }
             }
         }
@@ -1276,6 +1386,18 @@ IBHierarchyIntegrator::advanceHierarchy(
         const double q_total = d_hier_cc_data_ops->integral(d_Q_idx, wgt_idx);
         const double q_norm = -q_total/vol;
         if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): q_total = " << q_total << "; q_norm = " << q_norm << "\n";
+
+        double sum_Q = 0.0;
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            sum_Q = std::accumulate(Q_src[ln].begin(), Q_src[ln].end(), sum_Q);
+        }
+
+        if (!SAMRAI::tbox::Utilities::deq(q_total, sum_Q))
+        {
+            TBOX_ERROR(d_object_name << ":  "
+                       << "Lagrangian and Eulerian source/sink strengths are inconsistent.");
+        }
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -2221,89 +2343,3 @@ IBHierarchyIntegrator::getFromRestart()
 template class SAMRAI::tbox::Pointer<IBAMR::IBHierarchyIntegrator>;
 
 //////////////////////////////////////////////////////////////////////////////
-
-
-
-#if 0
-                for (int n = 0; n < n_src[ln]; ++n)
-                {
-                    const SAMRAI::hier::Index<NDIM> i_center =
-                        STOOLS::STOOLS_Utilities::getCellIndex(
-                            X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
-                    SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        stencil_box.grow(d, static_cast<int>(ceil(r_src[ln][n]/dx[d])));
-                    }
-
-                    for (SAMRAI::hier::Box<NDIM>::Iterator b(patch_box*stencil_box); b; b++)
-                    {
-                        const SAMRAI::hier::Index<NDIM>& i = b();
-
-                        // Check to see if cell i lies within the
-                        // support of the regularized point source.
-                        bool stencil_point = true;
-                        double r[NDIM];
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            const double X_center =
-                                xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
-                            r[d] = X_center - X_src[ln][n][d];
-                            stencil_point = stencil_point &&
-                                (SAMRAI::tbox::Utilities::dabs(r[d]) < r_src[ln][n]);
-                        }
-
-                        if (stencil_point)
-                        {
-                            double wgt = 1.0;
-                            for (int d = 0; d < NDIM; ++d)
-                            {
-                                wgt *= dx[d]*(1.0+cos(M_PI*r[d]/r_src[ln][n]))/(2.0*r_src[ln][n]);
-                            }
-                            P_src[ln][n] += (*p_data)(i)*wgt;
-                        }
-                    }
-                }
-
-
-
-                for (int n = 0; n < n_src[ln]; ++n)
-                {
-                    const SAMRAI::hier::Index<NDIM> i_center =
-                        STOOLS::STOOLS_Utilities::getCellIndex(
-                            X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
-                    SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        stencil_box.grow(d, static_cast<int>(ceil(r_src[ln][n]/dx[d])));
-                    }
-
-                    for (SAMRAI::hier::Box<NDIM>::Iterator b(patch_box*stencil_box); b; b++)
-                    {
-                        const SAMRAI::hier::Index<NDIM>& i = b();
-
-                        // Check to see if cell i lies within the
-                        // support of the regularized point source.
-                        bool stencil_point = true;
-                        double r[NDIM];
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            const double X_center =
-                                xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
-                            r[d] = X_center - X_src[ln][n][d];
-                            stencil_point = stencil_point &&
-                                (SAMRAI::tbox::Utilities::dabs(r[d]) < r_src[ln][n]);
-                        }
-
-                        if (stencil_point)
-                        {
-                            double wgt = 1.0;
-                            for (int d = 0; d < NDIM; ++d)
-                            {
-                                wgt *= dx[d]*(1.0+cos(M_PI*r[d]/r_src[ln][n]))/(2.0*r_src[ln][n]);
-                            }
-                            (*q_data)(i) += Q_src[ln][n]*wgt;
-                        }
-                    }
-                }
-#endif
