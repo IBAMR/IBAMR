@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <18.Jan.2007 17:38:23 boyce@bigboy.nyconnect.com>
+// Last modified: <27.Jan.2007 18:42:09 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStandardForceGen.h"
@@ -309,6 +309,106 @@ IBStandardForceGen::computeLagrangianForce(
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
+namespace
+{
+
+inline double
+norm(
+    const double* const D)
+{
+    double r_sq = 0.0;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        r_sq += D[d]*D[d];
+    }
+    return sqrt(r_sq);
+}// norm
+
+inline void
+computeLinearSpringForce1(
+    double* const F,
+    const double* const D,
+    const double& stf,
+    const double& rst)
+{
+    const double r = norm(D);
+    if (r > numeric_limits<double>::epsilon())
+    {
+        const double stf_scal = stf*(1.0-rst/r);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            F[d] += stf_scal*D[d];
+        }
+    }
+    return;
+}// computeLinearSpringForce1
+
+inline void
+computeLinearSpringForce2(
+    double* const F,
+    const double* const D,
+    const double& stf,
+    const double& rst)
+{
+    const double r = norm(D);
+    if (rst > numeric_limits<double>::epsilon() &&
+        r   > numeric_limits<double>::epsilon())
+    {
+        const double ratio = r/rst - 1.0;
+        const double T = stf*ratio;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            F[d] += T*D[d]/r;
+        }
+    }
+    return;
+}// computeLinearSpringForce2
+
+inline void
+computeQuadraticSpringForce1(
+    double* const F,
+    const double* const D,
+    const double& stf,
+    const double& rst)
+{
+    const double r = norm(D);
+    if (rst > numeric_limits<double>::epsilon() &&
+        r   > numeric_limits<double>::epsilon())
+    {
+        const double ratio = r/rst - 1.0;
+        const double T = (r > rst ? 1.0 : -1.0)*stf*ratio*ratio;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            F[d] += T*D[d]/r;
+        }
+    }
+    return;
+}// computeQuadraticSpringForce1
+
+inline void
+computeQuadraticSpringForce2(
+    double* const F,
+    const double* const D,
+    const double& stf,
+    const double& rst)
+{
+    const double r = norm(D);
+    if (r > rst &&
+        rst > numeric_limits<double>::epsilon() &&
+        r   > numeric_limits<double>::epsilon())
+    {
+        const double ratio = r/rst - 1.0;
+        const double T = stf*ratio*ratio;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            F[d] += T*D[d]/r;
+        }
+    }
+    return;
+}// computeQuadraticSpringForce2
+
+}
+
 void
 IBStandardForceGen::computeElasticForce(
     SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
@@ -346,23 +446,16 @@ IBStandardForceGen::computeElasticForce(
     for (int k = 0; k < static_cast<int>(local_src_ids.size()); ++k)
     {
         const int& f_idx = local_src_ids[k];
-        double norm_D_sq = 0.0;
-        for (int d = 0; d < NDIM; ++d)
-        {
-            norm_D_sq += pow(D_arr[d+k*NDIM],2.0);
-        }
-        const double norm_D = sqrt(norm_D_sq);
+        double* const F = &F_arr[f_idx*NDIM];
+        const double* const D = &D_arr[k*NDIM];
+        const double& stf = stiffnesses[k];
+        const double& rst = rest_lengths[k];
 
-        if (!SAMRAI::tbox::Utilities::deq(norm_D,0.0))
-        {
-            const double& stf = stiffnesses[k];
-            const double& rst = rest_lengths[k];
-            const double stf_scal = stf*(norm_D-rst)/norm_D;
-            for (int d = 0; d < NDIM; ++d)
-            {
-                F_arr[d+f_idx*NDIM] += stf_scal*D_arr[d+k*NDIM];
-            }
-        }
+        // XXXX
+#if 0
+        computeLinearSpringForce1(F,D,stf,rst);
+#endif
+        computeQuadraticSpringForce2(F,D,stf,rst);
     }
 
     ierr = VecRestoreArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);

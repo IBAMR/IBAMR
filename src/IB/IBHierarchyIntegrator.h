@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <23.Jan.2007 23:34:49 griffith@box221.cims.nyu.edu>
+// Last modified: <27.Jan.2007 19:01:23 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -638,6 +638,9 @@ private:
     SAMRAI::tbox::Pointer<IBEulerianSourceSetter> d_eulerian_source_set;
     SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> d_source_strategy;
     bool d_source_strategy_needs_init;
+    std::vector<std::vector<std::vector<double> > > d_X_src;
+    std::vector<std::vector<double > > d_r_src, d_P_src, d_Q_src;
+    std::vector<int> d_n_src;
 
     /*
      * The name of the discrete delta function to employ for

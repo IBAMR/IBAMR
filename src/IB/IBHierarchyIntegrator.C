@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <26.Jan.2007 02:09:46 boyce@bigboy.nyconnect.com>
+// Last modified: <27.Jan.2007 22:25:54 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -111,6 +111,11 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_eulerian_source_set(NULL),
       d_source_strategy(source_strategy),
       d_source_strategy_needs_init(true),
+      d_X_src(),
+      d_r_src(),
+      d_P_src(),
+      d_Q_src(),
+      d_n_src(),
       d_delta_fcn("IB_4"),
       d_ghosts(-1),
       d_start_time(0.0),
@@ -721,11 +726,6 @@ IBHierarchyIntegrator::advanceHierarchy(
         d_cscheds["V->V::CONSERVATIVE_COARSEN"][ln]->coarsenData();
     }
 
-    // Data used in setting sources/sinks.
-    std::vector<std::vector<std::vector<double> > > X_src(finest_ln+1);
-    std::vector<std::vector<double> > r_src(finest_ln+1), P_src(finest_ln+1), Q_src(finest_ln+1);
-    std::vector<int> n_src(finest_ln+1);
-
     // Compute the Lagrangian forces and spread those forces from the
     // curvilinear mesh to the Cartesian grid.  It is VERY IMPORTANT
     // to note that the implementation of the Lagrangian-Eulerian
@@ -842,28 +842,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                 Y_new_data    [ln]->restoreLocalFormVec();
                 dY_dt_new_data[ln]->restoreLocalFormVec();
                 F_K_new_data  [ln]->restoreLocalFormVec();
-            }
-
-            if (!d_source_strategy.isNull())
-            {
-                // Get the present source locations.
-                //
-                // IMPORTANT NOTE: Here, we require that each MPI
-                // process is assigned the same source locations and
-                // radii.
-                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing source locations\n";
-
-                n_src[ln] = d_source_strategy->getNumSources(ln);
-
-                X_src[ln].resize(n_src[ln], std::vector<double>(NDIM,0.0));
-                r_src[ln].resize(n_src[ln], 0.0);
-                P_src[ln].resize(n_src[ln], 0.0);
-                Q_src[ln].resize(n_src[ln], 0.0);
-
-                d_source_strategy->getSourceLocations(
-                    X_src[ln], r_src[ln], X_data[ln],
-                    d_hierarchy, ln, current_time, d_lag_data_manager);
-
             }
 
             // Compute F(n) = F(X(n),n) and spread the force onto the
@@ -1206,6 +1184,26 @@ IBHierarchyIntegrator::advanceHierarchy(
         const double p_norm = SAMRAI::tbox::MPI::sumReduction(p_integral)/vol;
         if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): p_norm = " << p_norm << "\n";
 
+        // Reset the values of P_src and Q_src.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            d_P_src[ln] = std::vector<double>(d_n_src[ln],0.0);
+            d_Q_src[ln] = std::vector<double>(d_n_src[ln],0.0);
+        }
+
+        // Get the present source locations.
+        //
+        // IMPORTANT NOTE: Here, we require that each MPI process is
+        // assigned the same source locations and radii.
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing source locations\n";
+
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            d_source_strategy->getSourceLocations(
+                d_X_src[ln], d_r_src[ln], X_data[ln],
+                d_hierarchy, ln, current_time, d_lag_data_manager);
+        }
+
         // Compute the mean pressure at the sources/sinks associated
         // with each level of the Cartesian grid.
         if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing source pressures\n";
@@ -1228,7 +1226,7 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > p_data =
                     patch->getPatchData(P_current_idx);
-                for (int n = 0; n < n_src[ln]; ++n)
+                for (int n = 0; n < d_n_src[ln]; ++n)
                 {
 //                  LEInteractor::interpolate(
 //                      &P_src[ln][n], 1, &X_src[ln][n][0], NDIM, 1, p_data,
@@ -1239,13 +1237,13 @@ IBHierarchyIntegrator::advanceHierarchy(
                     double r[NDIM];
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        r[d] = floor(r_src[ln][n]/dx[d])*dx[d];
+                        r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
                     }
 
                     // Determine the approximate source stencil box.
                     const SAMRAI::hier::Index<NDIM> i_center =
                         STOOLS::STOOLS_Utilities::getCellIndex(
-                            X_src[ln][n], xLower, xUpper, dx,
+                            d_X_src[ln][n], xLower, xUpper, dx,
                             patch_lower, patch_upper);
                     SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
                     for (int d = 0; d < NDIM; ++d)
@@ -1265,15 +1263,15 @@ IBHierarchyIntegrator::advanceHierarchy(
                         for (int d = 0; d < NDIM; ++d)
                         {
                             const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
-                            wgt *= cos_delta(X_center - X_src[ln][n][d], r[d])*dx[d];
+                            wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d])*dx[d];
                         }
-                        P_src[ln][n] += (*p_data)(i)*wgt;
+                        d_P_src[ln][n] += (*p_data)(i)*wgt;
                     }
                 }
             }
 
-            SAMRAI::tbox::MPI::sumReduction(&P_src[ln][0], P_src[ln].size());
-            transform(P_src[ln].begin(), P_src[ln].end(), P_src[ln].begin(),
+            SAMRAI::tbox::MPI::sumReduction(&d_P_src[ln][0], d_P_src[ln].size());
+            transform(d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(),
                       bind2nd(plus<double>(),-p_norm));
         }
 
@@ -1286,7 +1284,7 @@ IBHierarchyIntegrator::advanceHierarchy(
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             d_source_strategy->computeSourceStrengths(
-                Q_src[ln], P_src[ln], X_src[ln], r_src[ln], ln, current_time);
+                d_Q_src[ln], d_P_src[ln], d_X_src[ln], d_r_src[ln], ln, current_time);
         }
 
         // Spread the sources/sinks onto the Cartesian grid.
@@ -1334,10 +1332,10 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data =
                     patch->getPatchData(d_Q_idx);
-                for (int n = 0; n < n_src[ln]; ++n)
+                for (int n = 0; n < d_n_src[ln]; ++n)
                 {
 //                  LEInteractor::spread(
-//                      q_data, &Q_src[ln][n], 1, &X_src[ln][n][0], NDIM, 1,
+//                      q_data, &d_Q_src[ln][n], 1, &d_X_src[ln][n][0], NDIM, 1,
 //                      patch, patch_box, "IB_4");
 
                     // The source radius must be an integer multiple
@@ -1345,13 +1343,13 @@ IBHierarchyIntegrator::advanceHierarchy(
                     double r[NDIM];
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        r[d] = floor(r_src[ln][n]/dx[d])*dx[d];
+                        r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
                     }
 
                     // Determine the approximate source stencil box.
                     const SAMRAI::hier::Index<NDIM> i_center =
                         STOOLS::STOOLS_Utilities::getCellIndex(
-                            X_src[ln][n], xLower, xUpper, dx,
+                            d_X_src[ln][n], xLower, xUpper, dx,
                             patch_lower, patch_upper);
                     SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
                     for (int d = 0; d < NDIM; ++d)
@@ -1371,9 +1369,9 @@ IBHierarchyIntegrator::advanceHierarchy(
                         for (int d = 0; d < NDIM; ++d)
                         {
                             const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
-                            wgt *= cos_delta(X_center - X_src[ln][n][d], r[d]);
+                            wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d]);
                         }
-                        (*q_data)(i) += Q_src[ln][n]*wgt;
+                        (*q_data)(i) += d_Q_src[ln][n]*wgt;
                     }
                 }
             }
@@ -1383,20 +1381,34 @@ IBHierarchyIntegrator::advanceHierarchy(
         // source/sink planes near the periodic boundary at z=z_min
         // and z=z_max so that the discrete integral of the source
         // density is zero.
-        const double q_total = d_hier_cc_data_ops->integral(d_Q_idx, wgt_idx);
-        const double q_norm = -q_total/vol;
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): q_total = " << q_total << "; q_norm = " << q_norm << "\n";
-
-        double sum_Q = 0.0;
+        double Q_sum = 0.0;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            sum_Q = std::accumulate(Q_src[ln].begin(), Q_src[ln].end(), sum_Q);
+            Q_sum = std::accumulate(d_Q_src[ln].begin(), d_Q_src[ln].end(), Q_sum);
         }
+        const double q_total = d_hier_cc_data_ops->integral(d_Q_idx, wgt_idx);
+        const double q_norm = -q_total/vol;
 
-        if (!SAMRAI::tbox::Utilities::deq(q_total, sum_Q))
+#if (NDIM == 2)
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy():\n"
+                                         << "    Sum_{i,j} q_{i,j} h^2     = " << q_total << "\n"
+                                         << "    Sum_{l=1,...,n_src} Q_{l} = " << Q_sum << "\n"
+                                         << "    q_norm = " << q_norm << "\n";
+#endif
+#if (NDIM == 3)
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy():\n"
+                                         << "    Sum_{i,j,k} q_{i,j,k} h^3 = " << q_total << "\n"
+                                         << "    Sum_{l=1,...,n_src} Q_{l} = " << Q_sum << "\n"
+                                         << "    q_norm = " << q_norm << "\n";
+#endif
+        if (!SAMRAI::tbox::Utilities::deq(q_total, Q_sum))
         {
             TBOX_ERROR(d_object_name << ":  "
-                       << "Lagrangian and Eulerian source/sink strengths are inconsistent.");
+                       << "Lagrangian and Eulerian source/sink strengths are inconsistent.\n"
+                       << "This can occur when the Cartesian grid spatial resolution is inadequate\n"
+                       << "to resolve the regularized ``point'' sources.  Please ensure that all\n"
+                       << "source/sink radii are at least 4 meshwidths on the appropriate level of\n"
+                       << "the locally refined Cartesian grid.");
         }
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1971,6 +1983,25 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_cc_data_ops->resetLevels(0, finest_hier_level);
 
+    // If we have added or removed a level, resize the source/sink
+    // data vectors.
+    d_X_src.resize(finest_hier_level+1);
+    d_r_src.resize(finest_hier_level+1);
+    d_P_src.resize(finest_hier_level+1);
+    d_Q_src.resize(finest_hier_level+1);
+    d_n_src.resize(finest_hier_level+1);
+
+    for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
+    {
+        // TODO: We should probably provide better initial values
+        // here.
+        d_n_src[ln] = d_source_strategy->getNumSources(ln);
+        d_X_src[ln].resize(d_n_src[ln], std::vector<double>(NDIM,0.0));
+        d_r_src[ln].resize(d_n_src[ln], 0.0);
+        d_P_src[ln].resize(d_n_src[ln], 0.0);
+        d_Q_src[ln].resize(d_n_src[ln], 0.0);
+    }
+
     // If we have added or removed a level, resize the schedule
     // vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
@@ -2088,6 +2119,64 @@ IBHierarchyIntegrator::applyGradientDetector(
                               tag_index, initial_time,
                               uses_richardson_extrapolation_too);
 
+    // Tag cells for refinement where the Cartesian source/sink
+    // strength is nonzero.
+    if (!initial_time &&
+        level_number+1 <= hierarchy->getFinestLevelNumber())
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
+
+        const SAMRAI::hier::Index<NDIM>& lower = grid_geom->getPhysicalDomain()(0).lower();
+        const SAMRAI::hier::Index<NDIM>& upper = grid_geom->getPhysicalDomain()(0).upper();
+        const double* const xLower = grid_geom->getXLower();
+        const double* const xUpper = grid_geom->getXUpper();
+        const double* const dx = grid_geom->getDx();
+
+        const int finer_level_number = level_number+1;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > finer_level =
+            hierarchy->getPatchLevel(finer_level_number);
+        for (int n = 0; n < d_n_src[finer_level_number]; ++n)
+        {
+            double dx_finer[NDIM];
+            for (int d = 0; d < NDIM; ++d)
+            {
+                dx_finer[d] = dx[d]/static_cast<double>(finer_level->getRatio()(d));
+            }
+
+            // The source radius must be an integer multiple of the
+            // grid spacing.
+            double r[NDIM];
+            for (int d = 0; d < NDIM; ++d)
+            {
+                r[d] = floor(d_r_src[finer_level_number][n]/dx_finer[d])*dx_finer[d];
+            }
+
+            // Determine the approximate source stencil box.
+            const SAMRAI::hier::Index<NDIM> i_center =
+                STOOLS::STOOLS_Utilities::getCellIndex(
+                    d_X_src[finer_level_number][n], xLower, xUpper, dx_finer,
+                    lower, upper);
+            SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
+            for (int d = 0; d < NDIM; ++d)
+            {
+                stencil_box.grow(
+                    d, static_cast<int>(ceil(r[d]/dx_finer[d])));
+            }
+
+            const SAMRAI::hier::Box<NDIM> coarsened_stencil_box =
+                SAMRAI::hier::Box<NDIM>::coarsen(
+                    stencil_box, finer_level->getRatioToCoarserLevel());
+
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tags_data = patch->getPatchData(tag_index);
+                tags_data->fillAll(1, coarsened_stencil_box);
+            }
+        }
+    }
+
     t_apply_gradient_detector->stop();
     return;
 }// applyGradientDetector
@@ -2174,6 +2263,8 @@ IBHierarchyIntegrator::putToDatabase(
     db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
     db->putBool("d_using_pIB_method", d_using_pIB_method);
     db->putDouble("d_pIB_g", d_pIB_g);
+
+    assert(false);  // add X_src, etc. XXXX
 
     t_put_to_database->stop();
     return;
