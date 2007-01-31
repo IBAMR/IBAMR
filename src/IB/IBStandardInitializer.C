@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <24.Jan.2007 22:03:56 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Jan.2007 18:07:16 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -30,6 +30,7 @@
 #include <CellIterator.h>
 #include <Index.h>
 #include <tbox/MPI.h>
+#include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
 #include <cassert>
@@ -635,15 +636,60 @@ IBStandardInitializer::readEdgeFiles()
                         e.second = tmp;
                     }
 
+                    // Check to see if the edge has already been
+                    // inserted in the edge map.
+                    bool duplicate_edge = false;
+                    for (std::multimap<int,Edge>::const_iterator it =
+                             d_edge_map[ln][j].lower_bound(e.first);
+                         it != d_edge_map[ln][j].upper_bound(e.first); ++it)
+                    {
+                        const Edge& other_e = (*it).second;
+                        if (e.first  == other_e.first &&
+                            e.second == other_e.second)
+                        {
+                            // This is a duplicate edge and should not
+                            // be inserted into the edge map.
+                            duplicate_edge = true;
+
+                            // Ensure that the stiffness and rest
+                            // length information is consistent.
+                            if (!SAMRAI::tbox::Utilities::deq(
+                                    (*d_edge_stiffness[ln][j].find(e)).second, kappa) ||
+                                !SAMRAI::tbox::Utilities::deq(
+                                    (*d_edge_rest_length[ln][j].find(e)).second, length))
+                            {
+                                TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges found in file " << edge_filename <<endl);
+                            }
+                        }
+                    }
+
+                    if (!duplicate_edge)
+                    {
+                        for (std::multimap<int,Edge>::const_iterator it =
+                                 d_edge_map[ln][j].lower_bound(e.second);
+                             it != d_edge_map[ln][j].upper_bound(e.second); ++it)
+                        {
+                            const Edge& other_e = (*it).second;
+                            if (e.first  == other_e.first &&
+                                e.second == other_e.second)
+                            {
+                                TBOX_ERROR(d_object_name << ":\n  Edge map is inconsistent.  Please contact the IBAMR developers." << endl);
+                            }
+                        }
+                    }
+
                     // Initialize the edge map entries corresponding
                     // to the present edge.
                     //
                     // Note that the edge is associated with both the
                     // first and the second vertex in the edge map.
-                    d_edge_map[ln][j].insert(std::make_pair(e.first ,e));
-                    d_edge_map[ln][j].insert(std::make_pair(e.second,e));
-                    d_edge_stiffness [ln][j][e] = kappa;
-                    d_edge_rest_length[ln][j][e] = length;
+                    if (!duplicate_edge)
+                    {
+                        d_edge_map[ln][j].insert(std::make_pair(e.first ,e));
+                        d_edge_map[ln][j].insert(std::make_pair(e.second,e));
+                        d_edge_stiffness[ln][j][e] = kappa;
+                        d_edge_rest_length[ln][j][e] = length;
+                    }
                 }
 
                 // Close the input file.
