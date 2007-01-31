@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <30.Jan.2007 18:07:16 griffith@box221.cims.nyu.edu>
+// Last modified: <31.Jan.2007 01:05:13 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"

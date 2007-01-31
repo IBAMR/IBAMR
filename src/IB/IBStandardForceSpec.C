@@ -1,5 +1,5 @@
 // Filename: IBStandardForceSpec.C
-// Last modified: <18.Jan.2007 16:44:56 boyce@bigboy.nyconnect.com>
+// Last modified: <31.Jan.2007 01:14:44 boyce@bigboy.nyconnect.com>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStandardForceSpec.h"
@@ -22,6 +22,7 @@
 
 // SAMRAI INCLUDES
 #include <tbox/MPI.h>
+#include <tbox/PIO.h>
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
@@ -74,8 +75,7 @@ IBStandardForceSpec::IBStandardForceSpec(
       d_dst_idxs(dst_idxs),
       d_stiffnesses(stiffnesses),
       d_rest_lengths(rest_lengths),
-      d_X_target(X_target.empty() ||
-                 SAMRAI::tbox::Utilities::deq(kappa_target,0.0)
+      d_X_target(X_target.empty() || SAMRAI::tbox::Utilities::deq(kappa_target,0.0)
                  ? std::vector<double>(NDIM,0.0) : X_target),
       d_kappa_target(kappa_target)
 {
