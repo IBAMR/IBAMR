@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <27.Jan.2007 18:42:09 griffith@box221.cims.nyu.edu>
+// Last modified: <31.Jan.2007 14:56:10 boyce@bigboy.nyconnect.com>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStandardForceGen.h"
@@ -545,7 +545,7 @@ IBStandardForceGen::computeTargetForce(
                                 assert(X[d]+shift >= XLower[d]);
                                 assert(X[d]+shift <= XUpper[d]);
 #endif
-                                F[d] = kappa_target*(X_target[d] - (X[d]+shift));
+                                F[d] += kappa_target*(X_target[d] - (X[d]+shift));
                                 displacement += pow(X_target[d] - (X[d]+shift),2.0);
                             }
                             displacement = sqrt(displacement);

@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <31.Jan.2007 01:05:13 boyce@bigboy.nyconnect.com>
+// Last modified: <31.Jan.2007 20:12:25 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -658,7 +658,10 @@ IBStandardInitializer::readEdgeFiles()
                                 !SAMRAI::tbox::Utilities::deq(
                                     (*d_edge_rest_length[ln][j].find(e)).second, length))
                             {
-                                TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges found in file " << edge_filename <<endl);
+                                TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << edge_filename << endl
+                                           << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << endl
+                                           << "  original spring constant = " << (*d_edge_stiffness[ln][j].find(e)).second << endl
+                                           << "  original resting length = " << (*d_edge_rest_length[ln][j].find(e)).second << endl);
                             }
                         }
                     }

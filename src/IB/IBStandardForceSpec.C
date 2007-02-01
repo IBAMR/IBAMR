@@ -1,5 +1,5 @@
 // Filename: IBStandardForceSpec.C
-// Last modified: <31.Jan.2007 01:14:44 boyce@bigboy.nyconnect.com>
+// Last modified: <31.Jan.2007 14:47:22 boyce@bigboy.nyconnect.com>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStandardForceSpec.h"
