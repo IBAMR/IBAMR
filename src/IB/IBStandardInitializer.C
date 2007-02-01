@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <31.Jan.2007 20:12:25 boyce@bigboy.nyconnect.com>
+// Last modified: <01.Feb.2007 00:44:41 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -140,8 +140,11 @@ IBStandardInitializer::registerLagSiloDataWriter(
     assert(!silo_writer.isNull());
 #endif
 
-    // XXXX: This code is broken if the global node offset is nonzero
-    // on any of the levels of the locally refined Cartesian grid.
+    // WARNING: This code is broken if the global node offset is
+    // nonzero on any of the levels of the locally refined Cartesian
+    // grid.
+    //
+    // TODO: Fix thix.
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         if (d_global_index_offset[ln] != 0)
@@ -152,7 +155,9 @@ IBStandardInitializer::registerLagSiloDataWriter(
 
     // For now, we just register the data on MPI process 0.  This will
     // fail if the structure is too large to be stored in the memory
-    // allocated to a single process.
+    // available to a single MPI process.
+    //
+    // TODO: Fix thix.
     if (SAMRAI::tbox::MPI::getRank() == 0)
     {
         for (int ln = 0; ln < d_max_levels; ++ln)
@@ -162,7 +167,6 @@ IBStandardInitializer::registerLagSiloDataWriter(
                 silo_writer->registerMarkerCloud(
                     d_base_filename[ln][j] + "_vertices",
                     d_num_vertex[ln][j], d_vertex_offset[ln][j], ln);
-
                 if (d_edge_map[ln][j].size() > 0)
                 {
                     silo_writer->registerUnstructuredMesh(

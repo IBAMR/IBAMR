@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <27.Jan.2007 22:25:54 griffith@box221.cims.nyu.edu>
+// Last modified: <31.Jan.2007 21:45:56 boyce@bigboy.nyconnect.com>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -1991,15 +1991,18 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
     d_Q_src.resize(finest_hier_level+1);
     d_n_src.resize(finest_hier_level+1);
 
-    for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
+    if (!d_source_strategy.isNull())
     {
-        // TODO: We should probably provide better initial values
-        // here.
-        d_n_src[ln] = d_source_strategy->getNumSources(ln);
-        d_X_src[ln].resize(d_n_src[ln], std::vector<double>(NDIM,0.0));
-        d_r_src[ln].resize(d_n_src[ln], 0.0);
-        d_P_src[ln].resize(d_n_src[ln], 0.0);
-        d_Q_src[ln].resize(d_n_src[ln], 0.0);
+        for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
+        {
+            // TODO: We should probably provide better initial values
+            // here.
+            d_n_src[ln] = d_source_strategy->getNumSources(ln);
+            d_X_src[ln].resize(d_n_src[ln], std::vector<double>(NDIM,0.0));
+            d_r_src[ln].resize(d_n_src[ln], 0.0);
+            d_P_src[ln].resize(d_n_src[ln], 0.0);
+            d_Q_src[ln].resize(d_n_src[ln], 0.0);
+        }
     }
 
     // If we have added or removed a level, resize the schedule
@@ -2121,7 +2124,7 @@ IBHierarchyIntegrator::applyGradientDetector(
 
     // Tag cells for refinement where the Cartesian source/sink
     // strength is nonzero.
-    if (!initial_time &&
+    if (!d_source_strategy.isNull() && !initial_time &&
         level_number+1 <= hierarchy->getFinestLevelNumber())
     {
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();

@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <31.Jan.2007 14:56:10 boyce@bigboy.nyconnect.com>
+// Last modified: <31.Jan.2007 22:12:57 boyce@bigboy.nyconnect.com>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStandardForceGen.h"
@@ -454,8 +454,9 @@ IBStandardForceGen::computeElasticForce(
         // XXXX
 #if 0
         computeLinearSpringForce1(F,D,stf,rst);
-#endif
+#else
         computeQuadraticSpringForce2(F,D,stf,rst);
+#endif
     }
 
     ierr = VecRestoreArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
