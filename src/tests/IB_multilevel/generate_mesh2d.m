@@ -2,30 +2,36 @@
 
 % Problem parameters
 
-NFINEST = 4;  % NFINEST = 4 corresponds to a uniform grid spacing of h=1/64
+NFINEST = 8;                                                               % NFINEST = 8 corresponds to a uniform grid spacing of h=1/128
 num_nodes = 50*NFINEST;
 num_layers = 2*NFINEST;
 
 width = 4.0/64.0;
-alpha = 0.2;
-beta  = 0.25;
+taper_width = 1.0/128.0;
 
-tapered_stiffness = false;
-stiffness = 0.5/num_layers;
+alpha = 0.2;
+beta  = 0.3;
+
+coarse_level_stiffness = true;
+stiffness = 1.0/num_layers;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Step 1: Write out the vertex information
-vertex_fid = fopen(["shell2d_" num2str(16*NFINEST) ".vertex"], "w");
+if (coarse_level_stiffness)
+  vertex_fid = fopen(["shell2d_crse_" num2str(16*NFINEST) ".vertex"], "w");
+else
+  vertex_fid = fopen(["shell2d_fine_" num2str(16*NFINEST) ".vertex"], "w");
+end %if
 
 % first line is the number of vertices in the file
 fprintf(vertex_fid, "%d\n", num_layers*num_nodes);
 
 % remaining lines are the initial coordinates of each vertex
 for r = 0:num_layers-1
+  delta_r = width*((r+0.5)/num_layers - 0.5);
   for l = 0:num_nodes-1
     theta = 2.0*pi*l/num_nodes;
-    delta_r = width*((r+0.5)/num_layers - 0.5);
     X(1) = 0.5 + (alpha+delta_r)*cos(theta);
     X(2) = 0.5 + (beta +delta_r)*sin(theta);
     fprintf(vertex_fid, "%1.16e %1.16e\n", X(1), X(2));
@@ -38,18 +44,33 @@ fclose(vertex_fid);
 
 % Step 2: Write out the link information (including connectivity and
 % material parameters).
-edge_fid = fopen(["shell2d_" num2str(16*NFINEST) ".edge"], "w");
+if (coarse_level_stiffness)
+  edge_fid = fopen(["shell2d_crse_" num2str(16*NFINEST) ".edge"], "w");
+else
+  edge_fid = fopen(["shell2d_fine_" num2str(16*NFINEST) ".edge"], "w");
+end %if
 
 % first line is the number of edges in the file
 fprintf(edge_fid, "%d\n", num_layers*num_nodes);
 
 % remaining lines are the edges in the mesh
 for r = 0:num_layers-1
-  if (tapered_stiffness)
-    theta = -0.5 + (r+0.5)/num_layers;
-    r_fac = 1.0 + cos(2.0*pi*theta);
-  else
+  delta_r = width*((r+0.5)/num_layers - 0.5);
+
+  if (delta_r < -0.5*width+taper_width)
+    r_fac = 0.0;
+  elseif (delta_r < -0.5*width+2.0*taper_width)
+    r_fac = (delta_r+0.5*width-taper_width)/taper_width;
+  elseif (delta_r < 0.5*width-2.0*taper_width)
     r_fac = 1.0;
+  elseif (delta_r < 0.5*width-taper_width)
+    r_fac = (0.5*width-taper_width-delta_r)/taper_width;
+  else
+    r_fac = 0.0;
+  end %if
+
+  if (~coarse_level_stiffness)
+    r_fac = 1.0-r_fac;
   end %if
 
   for l = 0:num_nodes-1
