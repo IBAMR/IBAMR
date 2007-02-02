@@ -1,2 +1,2 @@
 1       # number of target points in file
-0 1.0e6 # index, target stiffness
+0 5.0e6 # index, target stiffness

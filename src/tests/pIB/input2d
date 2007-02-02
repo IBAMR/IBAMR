@@ -9,7 +9,7 @@ MUSCL_LIMITED = 3
 MAX_LEVELS = 3
 REF_RATIO = 4
 
-N = 32
+N = 64
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N
 
 DELTA_FCN = "IB_6"
@@ -32,7 +32,7 @@ IBHierarchyIntegrator {
    enable_logging = TRUE
 
    regrid_interval = 8
-   dt_max = 5.0e-7
+   dt_max = 5.0e-7*512/NFINEST
    delta_fcn = DELTA_FCN
    timestepping_order = 2
 }
