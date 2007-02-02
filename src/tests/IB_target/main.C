@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
                 input_db->getDatabase("IBStandardInitializer"));
         time_integrator->registerLNodeInitStrategy(initializer);
 
-        FeedbackFSet* feedback_forcer =
+        tbox::Pointer<SetDataStrategy> feedback_forcer =
             new FeedbackFSet(
                 "FeedbackFSet", grid_geometry, input_db->getDatabase("FeedbackFSet"));
         time_integrator->registerBodyForceSpecification(feedback_forcer);
@@ -359,8 +359,10 @@ int main(int argc, char* argv[])
         /*
          * Register the velocity variable with the feedback forcer.
          */
-        feedback_forcer->d_U_var = navier_stokes_integrator->getVelocityVar();
-        feedback_forcer->d_U_context = navier_stokes_integrator->getCurrentContext();
+        dynamic_cast<FeedbackFSet*>(feedback_forcer.getPointer())->d_U_var =
+            navier_stokes_integrator->getVelocityVar();
+        dynamic_cast<FeedbackFSet*>(feedback_forcer.getPointer())->d_U_context =
+            navier_stokes_integrator->getCurrentContext();
 
         /*
          * After creating all objects and initializing their state, we

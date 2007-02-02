@@ -2,19 +2,15 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C
+SOURCES = main.C FeedbackFSet.C FeedbackFSet.h
 EXTRA_DIST  = input2d
-EXTRA_DIST += generate_mesh2d.m
-EXTRA_DIST += shell2d_64.vertex shell2d_64.edge
-EXTRA_DIST += shell2d_128.vertex shell2d_128.edge
-EXTRA_DIST += shell2d_256.vertex shell2d_256.edge
-EXTRA_DIST += shell2d_512.vertex shell2d_512.edge
+EXTRA_DIST += fila_1024.vertex fila_1024.edge fila_1024.target_stiff
 
 check_PROGRAMS = main2d
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/shell2d_{64,128,256,512}.{vertex,edge} $(PWD) ; \
+	  cp -f $(srcdir)/fila_1024.{vertex,edge,target_stiff} $(PWD) ; \
 	fi ;
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

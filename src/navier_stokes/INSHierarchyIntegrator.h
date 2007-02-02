@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <16.Nov.2006 00:24:03 boyce@bigboy.nyconnect.com>
+// Last modified: <01.Feb.2007 22:11:58 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -995,11 +995,6 @@ private:
     bool d_using_vorticity_tagging;
     SAMRAI::tbox::Array<double> d_Omega_eps;
     double d_Omega_max;
-
-    /*
-     * Tag cells based on the presence of sources/sinks.
-     */
-    bool d_using_div_tagging;
 
     /*
      * These boolean values determine the form of the pressure update.

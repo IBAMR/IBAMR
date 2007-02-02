@@ -47,7 +47,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES =
-am__objects_1 = main2d-main.$(OBJEXT)
+am__objects_1 = main2d-main.$(OBJEXT) main2d-FeedbackFSet.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(top_builddir)/src/libIBAMR2d.a \
@@ -62,6 +62,10 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(main2d_SOURCES)
 ETAGS = etags
 CTAGS = ctags
@@ -98,7 +102,6 @@ EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
 FLIBS = @FLIBS@
-GREP = @GREP@
 HAVE_DOT = @HAVE_DOT@
 HAVE_DOXYGEN = @HAVE_DOXYGEN@
 INSTALL_DATA = @INSTALL_DATA@
@@ -135,6 +138,8 @@ VERSION = @VERSION@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
+ac_ct_RANLIB = @ac_ct_RANLIB@
+ac_ct_STRIP = @ac_ct_STRIP@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -147,26 +152,19 @@ am__untar = @am__untar@
 bindir = @bindir@
 build_alias = @build_alias@
 datadir = @datadir@
-datarootdir = @datarootdir@
-docdir = @docdir@
-dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 host_alias = @host_alias@
-htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
-localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
-pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
-psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 subdirs = @subdirs@
@@ -176,11 +174,9 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = main.C
-EXTRA_DIST = input2d generate_mesh2d.m shell2d_64.vertex \
-	shell2d_64.edge shell2d_128.vertex shell2d_128.edge \
-	shell2d_256.vertex shell2d_256.edge shell2d_512.vertex \
-	shell2d_512.edge
+SOURCES = main.C FeedbackFSet.C FeedbackFSet.h
+EXTRA_DIST = input2d fila_1024.vertex fila_1024.edge \
+	fila_1024.target_stiff
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/stools/src/libSTOOLS2d.a $(top_builddir)/stools/src/libSTOOLS.a
 main2d_SOURCES = $(SOURCES)
@@ -230,6 +226,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-FeedbackFSet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
 
 .C.o:
@@ -259,6 +256,20 @@ main2d-main.obj: main.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main2d-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
+
+main2d-FeedbackFSet.o: FeedbackFSet.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-FeedbackFSet.o -MD -MP -MF "$(DEPDIR)/main2d-FeedbackFSet.Tpo" -c -o main2d-FeedbackFSet.o `test -f 'FeedbackFSet.C' || echo '$(srcdir)/'`FeedbackFSet.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main2d-FeedbackFSet.Tpo" "$(DEPDIR)/main2d-FeedbackFSet.Po"; else rm -f "$(DEPDIR)/main2d-FeedbackFSet.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='FeedbackFSet.C' object='main2d-FeedbackFSet.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-FeedbackFSet.o `test -f 'FeedbackFSet.C' || echo '$(srcdir)/'`FeedbackFSet.C
+
+main2d-FeedbackFSet.obj: FeedbackFSet.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-FeedbackFSet.obj -MD -MP -MF "$(DEPDIR)/main2d-FeedbackFSet.Tpo" -c -o main2d-FeedbackFSet.obj `if test -f 'FeedbackFSet.C'; then $(CYGPATH_W) 'FeedbackFSet.C'; else $(CYGPATH_W) '$(srcdir)/FeedbackFSet.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main2d-FeedbackFSet.Tpo" "$(DEPDIR)/main2d-FeedbackFSet.Po"; else rm -f "$(DEPDIR)/main2d-FeedbackFSet.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='FeedbackFSet.C' object='main2d-FeedbackFSet.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-FeedbackFSet.obj `if test -f 'FeedbackFSet.C'; then $(CYGPATH_W) 'FeedbackFSet.C'; else $(CYGPATH_W) '$(srcdir)/FeedbackFSet.C'; fi`
 uninstall-info-am:
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
@@ -433,7 +444,7 @@ uninstall-am: uninstall-info-am
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/shell2d_{64,128,256,512}.{vertex,edge} $(PWD) ; \
+	  cp -f $(srcdir)/fila_1024.{vertex,edge,target_stiff} $(PWD) ; \
 	fi ;
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

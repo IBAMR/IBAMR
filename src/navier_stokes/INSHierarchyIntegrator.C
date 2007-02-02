@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <14.Nov.2006 21:01:27 boyce@bigboy.nyconnect.com>
+// Last modified: <01.Feb.2007 22:26:37 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -197,8 +197,6 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 
     d_using_vorticity_tagging = false;
     d_Omega_max = 0.0;
-
-    d_using_div_tagging = false;
 
     d_project_predicted_flux = false;
     d_reproject_pressure = false;
@@ -2824,68 +2822,46 @@ INSHierarchyIntegrator::applyGradientDetector(
     // Tag cells based on the magnatude of the vorticity.
     if (d_using_vorticity_tagging)
     {
-        double tol =
+        const double Omega_eps =
             (level_number >= 0 && level_number < d_Omega_eps.getSize()
              ? d_Omega_eps[level_number]
              : (level_number < 0
                 ? d_Omega_eps[0]
                 : d_Omega_eps[d_Omega_eps.size()-1]));
-
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        if (Omega_eps > 0.0)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tags_data = patch->
-                getPatchData(tag_index);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Omega_current_data = patch->
-                getPatchData(d_Omega_current_idx);
-
-            for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
+            const double tol = Omega_eps*d_Omega_max + sqrt(std::numeric_limits<double>::epsilon());
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                const SAMRAI::hier::Index<NDIM>& i = ic();
-#if (NDIM == 2)
-                if (SAMRAI::tbox::Utilities::dabs((*Omega_current_data)(i)) > tol*d_Omega_max)
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tags_data = patch->
+                    getPatchData(tag_index);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Omega_current_data = patch->
+                    getPatchData(d_Omega_current_idx);
+
+                for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
                 {
-                    (*tags_data)(i) = 1;
-                }
+                    const SAMRAI::hier::Index<NDIM>& i = ic();
+#if (NDIM == 2)
+                    if (SAMRAI::tbox::Utilities::dabs((*Omega_current_data)(i)) > tol)
+                    {
+                        (*tags_data)(i) = 1;
+                    }
 #endif
 #if (NDIM == 3)
-                double n = 0.0;
-
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    n += (*Omega_current_data)(i,d)*(*Omega_current_data)(i,d);
-                }
-
-                if (sqrt(n) > tol*d_Omega_max)
-                {
-                    (*tags_data)(i) = 1;
-                }
+                    double norm_Omega_sq = 0.0;
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        norm_Omega_sq += (*Omega_current_data)(i,d)*(*Omega_current_data)(i,d);
+                    }
+                    const double norm_Omega = sqrt(norm_Omega_sq);
+                    if (norm_Omega > tol)
+                    {
+                        (*tags_data)(i) = 1;
+                    }
 #endif
-            }
-        }
-    }
-
-    // Tag cells where sources/sinks are located.
-    if (!d_Q_set.isNull() && d_using_div_tagging)
-    {
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tags_data = patch->
-                getPatchData(tag_index);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_current_data = patch->
-                getPatchData(d_Q_current_idx);
-
-            for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
-            {
-                const SAMRAI::hier::Index<NDIM>& i = ic();
-                if (!SAMRAI::tbox::Utilities::deq((*Q_current_data)(i),0.0))
-                {
-                    (*tags_data)(i) = 1;
                 }
             }
         }
@@ -3021,7 +2997,6 @@ INSHierarchyIntegrator::putToDatabase(
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
     if (d_using_vorticity_tagging) db->putDoubleArray("d_Omega_eps", d_Omega_eps);
     db->putDouble("d_Omega_max", d_Omega_max);
-    db->putBool("d_using_div_tagging", d_using_div_tagging);
     db->putBool("d_project_predicted_flux", d_project_predicted_flux);
     db->putBool("d_reproject_pressure", d_reproject_pressure);
     db->putBool("d_second_order_pressure_update", d_second_order_pressure_update);
@@ -3384,9 +3359,6 @@ INSHierarchyIntegrator::getFromInput(
         }
     }
 
-    d_using_div_tagging = db->getBoolWithDefault(
-        "using_div_tagging", d_using_div_tagging);
-
     d_output_P = db->getBoolWithDefault("output_P", d_output_P);
     d_output_F = db->getBoolWithDefault("output_F", d_output_F);
     d_output_Q = db->getBoolWithDefault("output_Q", d_output_Q);
@@ -3495,7 +3467,6 @@ INSHierarchyIntegrator::getFromRestart()
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
     if (d_using_vorticity_tagging) d_Omega_eps = db->getDoubleArray("d_Omega_eps");
     d_Omega_max = db->getDouble("d_Omega_max");
-    d_using_div_tagging = db->getBool("d_using_div_tagging");
     d_project_predicted_flux = db->getBool("d_project_predicted_flux");
     d_reproject_pressure = db->getBool("d_reproject_pressure");
     d_second_order_pressure_update = db->getBool("d_second_order_pressure_update");

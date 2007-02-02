@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <01.Feb.2007 00:44:41 boyce@bigboy.nyconnect.com>
+// Last modified: <01.Feb.2007 21:04:30 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -378,26 +378,29 @@ IBStandardInitializer::tagCellsForInitialRefinement(
 
         // Tag cells for refinement whenever there are vertices whose
         // initial locations will be within the index space of the
-        // given patch, but on the next finer level of the AMR patch
+        // given patch, but on the finer levels of the AMR patch
         // hierarchy.
         const bool can_be_refined = level_number+2 < d_max_levels;
         std::vector<std::pair<int,int> > patch_vertices;
-        getPatchVertices(patch_vertices, patch, level_number+1, can_be_refined);
-        for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
-             it != patch_vertices.end(); ++it)
+        for (int ln = level_number+1; ln < d_max_levels; ++ln)
         {
-            const std::pair<int,int>& point_idx = (*it);
+            getPatchVertices(patch_vertices, patch, ln, can_be_refined);
+            for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
+                 it != patch_vertices.end(); ++it)
+            {
+                const std::pair<int,int>& point_idx = (*it);
 
-            // Get the coordinates of the present vertex.
-            const vector<double> X = getVertexPosn(point_idx, level_number+1);
+                // Get the coordinates of the present vertex.
+                const vector<double> X = getVertexPosn(point_idx, ln);
 
-            // Get the index of the cell in which the present vertex
-            // is initially located.
-            const SAMRAI::pdat::CellIndex<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
-                X, xLower, xUpper, dx, patch_lower, patch_upper);
+                // Get the index of the cell in which the present vertex
+                // is initially located.
+                const SAMRAI::pdat::CellIndex<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
+                    X, xLower, xUpper, dx, patch_lower, patch_upper);
 
-            // Tag the cell for refinement.
-            if (patch_box.contains(i)) (*tag_data)(i) = 1;
+                // Tag the cell for refinement.
+                if (patch_box.contains(i)) (*tag_data)(i) = 1;
+            }
         }
     }
     return;
