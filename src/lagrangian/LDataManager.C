@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <01.Feb.2007 00:44:07 boyce@bigboy.nyconnect.com>
+// Last modified: <02.Feb.2007 18:30:34 griffith@box221.cims.nyu.edu>
 
 #include "LDataManager.h"
 
@@ -1357,8 +1357,8 @@ LDataManager::initializeLevelData(
     // when assertion checking is active.)
     SAMRAI::hier::BoxList<NDIM> boxes(level->getBoxes());
 
-    vector<bool> patch_overlaps(boxes.getNumberItems());
-    vector<bool>::size_type j, k;
+    std::vector<bool> patch_overlaps(boxes.getNumberItems());
+    std::vector<bool>::size_type j, k;
 
     for (k = 0; k < patch_overlaps.size(); ++k)
     {

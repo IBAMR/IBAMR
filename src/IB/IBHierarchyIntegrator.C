@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <01.Feb.2007 22:26:56 boyce@bigboy.nyconnect.com>
+// Last modified: <02.Feb.2007 19:36:20 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -432,7 +432,6 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     d_current = var_db->getContext(d_object_name+"::CURRENT");
     d_scratch = var_db->getContext(d_object_name+"::SCRATCH");
     const SAMRAI::hier::IntVector<NDIM> ghosts = d_ghosts;
-    const SAMRAI::hier::IntVector<NDIM> force_ghosts = 1;
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
     d_V_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::V",NDIM);
@@ -443,7 +442,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_F_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::F",NDIM);
     d_F_idx = var_db->registerVariableAndContext(d_F_var, d_current, no_ghosts);
-    d_F_scratch1_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, force_ghosts);
+    d_F_scratch1_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, no_ghosts);
     d_F_scratch2_idx = var_db->registerClonedPatchDataIndex(d_F_var, d_F_scratch1_idx);
 
     if (!d_source_strategy.isNull())
@@ -514,11 +513,17 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_W_idx,   // temporary work space
                        refine_operator);
 
+    // NOTE: When using conservative averaging to coarsen the velocity
+    // from finer levels to coarser levels, the appropriate
+    // prolongation operator for the force is constant refinement.
+    //
+    // This choice results in spreading and interpolation being
+    // adjoints.
     d_force_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
 
     refine_operator = grid_geom->lookupRefineOperator(
         d_ins_hier_integrator->getForceVar(),
-        "CONSERVATIVE_LINEAR_REFINE");
+        "CONSTANT_REFINE");
 
     const int F_current_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getForceVar(),
@@ -531,7 +536,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                        refine_operator);
 
     refine_operator = grid_geom->lookupRefineOperator(
-        d_F_var, "CONSERVATIVE_LINEAR_REFINE");
+        d_F_var, "CONSTANT_REFINE");
 
     d_force_ralg->
         registerRefine(d_F_idx,           // destination

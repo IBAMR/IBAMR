@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <01.Feb.2007 21:04:30 boyce@bigboy.nyconnect.com>
+// Last modified: <02.Feb.2007 15:48:57 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -265,7 +265,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             const int current_local_idx = ++local_idx + local_index_offset;
 
             // Get the coordinates of the present vertex.
-            const vector<double> X = getVertexPosn(point_idx, level_number);
+            const std::vector<double> X = getVertexPosn(point_idx, level_number);
 
             // Initialize the location of the present vertex.
             double* const node_X = &(*X_data)(current_local_idx);
@@ -330,12 +330,12 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
             const std::pair<int,int>& point_idx = (*it);
             const int current_local_idx = ++local_idx + local_index_offset;
 
-            // Initialize the mass and stiffness coefficient
+            // Initialize the mass and penalty stiffness coefficient
             // corresponding to the present vertex.
             const double M = getVertexMass(point_idx, level_number);
             const double K = getVertexMassStiffness(point_idx, level_number);
 
-            // Avoid division by zero.
+            // Avoid division by zero at massless nodes.
             if (SAMRAI::tbox::Utilities::deq(M,0.0))
             {
                 (*M_data)(current_local_idx) = std::numeric_limits<double>::epsilon();
@@ -381,9 +381,9 @@ IBStandardInitializer::tagCellsForInitialRefinement(
         // given patch, but on the finer levels of the AMR patch
         // hierarchy.
         const bool can_be_refined = level_number+2 < d_max_levels;
-        std::vector<std::pair<int,int> > patch_vertices;
         for (int ln = level_number+1; ln < d_max_levels; ++ln)
         {
+            std::vector<std::pair<int,int> > patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined);
             for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
                  it != patch_vertices.end(); ++it)
@@ -393,8 +393,8 @@ IBStandardInitializer::tagCellsForInitialRefinement(
                 // Get the coordinates of the present vertex.
                 const vector<double> X = getVertexPosn(point_idx, ln);
 
-                // Get the index of the cell in which the present vertex
-                // is initially located.
+                // Get the index of the cell in which the present
+                // vertex is initially located.
                 const SAMRAI::pdat::CellIndex<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
                     X, xLower, xUpper, dx, patch_lower, patch_upper);
 

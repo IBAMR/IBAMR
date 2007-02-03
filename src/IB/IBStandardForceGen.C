@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <31.Jan.2007 22:12:57 boyce@bigboy.nyconnect.com>
+// Last modified: <02.Feb.2007 19:43:54 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStandardForceGen.h"
@@ -452,7 +452,7 @@ IBStandardForceGen::computeElasticForce(
         const double& rst = rest_lengths[k];
 
         // XXXX
-#if 0
+#if 1
         computeLinearSpringForce1(F,D,stf,rst);
 #else
         computeQuadraticSpringForce2(F,D,stf,rst);
@@ -569,10 +569,13 @@ IBStandardForceGen::computeTargetForce(
     {
         max_displacement = max_config_displacement;
     }
-    SAMRAI::tbox::plog << "IBStandardForceGen::computeLagrangianForce():" << endl;
-    SAMRAI::tbox::plog << "  maximum target point displacement [present configuration] = " << max_config_displacement << endl;
-    SAMRAI::tbox::plog << "  maximum target point displacement [entire simulation] = " << max_displacement << endl;
 
+    if (!SAMRAI::tbox::Utilities::deq(max_config_displacement,0.0))
+    {
+        SAMRAI::tbox::plog << "IBStandardForceGen::computeLagrangianForce():" << endl;
+        SAMRAI::tbox::plog << "  maximum target point displacement [present configuration] = " << max_config_displacement << endl;
+        SAMRAI::tbox::plog << "  maximum target point displacement [entire simulation] = " << max_displacement << endl;
+    }
     return;
 }// computeTargetForce
 
