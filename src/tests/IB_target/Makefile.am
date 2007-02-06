@@ -7,6 +7,7 @@ EXTRA_DIST  = input2d input3d
 EXTRA_DIST += cylinder2d_256.vertex cylinder2d_512.vertex cylinder2d_1024.vertex
 EXTRA_DIST += cylinder2d_256.edge   cylinder2d_512.edge   cylinder2d_1024.edge
 EXTRA_DIST += sphere3d.vertex sphere3d.edge
+EXTRA_DIST += generate_mesh2d.m compute_St.m
 
 check_PROGRAMS = main2d main3d
 check-local:
@@ -14,6 +15,7 @@ check-local:
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
 	  cp -f $(srcdir)/cylinder2d_{256,512,1024}.{vertex,edge} $(PWD) ; \
 	  cp -f $(srcdir)/sphere3d.{vertex,edge} $(PWD) ; \
+          cp -f $(srcdir)/compute_St.m $(PWD) ; \
 	fi ;
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
