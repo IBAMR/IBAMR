@@ -21,8 +21,7 @@ AdvDiffHierarchyIntegrator {
    end_time              = 0.2      // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
-
-   regrid_interval = 10000  // no adaptive refinement
+   regrid_interval       = 10000    // disable regridding (fixed grid computation)
 
    AdvDiffHypPatchOps {
       compute_init_velocity  = TRUE
@@ -133,12 +132,9 @@ GriddingAlgorithm {
    efficiency_tolerance   = 0.95e0    // min % of tag cells in new patch level
    combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
-// write_regrid_boxes    = TRUE
-// regrid_boxes_filename  = "regrid_boxes"
 }
 
 StandardTagAndInitialize {
-// tagging_method = "GRADIENT_DETECTOR"
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
       level_0 = [(4*N,4*N),(12*N - 1,12*N - 1)]

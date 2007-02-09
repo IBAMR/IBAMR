@@ -178,10 +178,13 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.C
-EXTRA_DIST = input2d input3d generate_mesh2d.m shell2d_64.vertex \
-	shell2d_64.edge shell2d_128.vertex shell2d_128.edge \
-	shell2d_256.vertex shell2d_256.edge shell2d_512.vertex \
-	shell2d_512.edge sphere3d.vertex sphere3d.edge
+EXTRA_DIST = input2d input3d generate_mesh2d.m curve2d_64.vertex \
+	curve2d_64.edge curve2d_128.vertex curve2d_128.edge \
+	curve2d_256.vertex curve2d_256.edge curve2d_512.vertex \
+	curve2d_512.edge shell2d_64.vertex shell2d_64.edge \
+	shell2d_128.vertex shell2d_128.edge shell2d_256.vertex \
+	shell2d_256.edge shell2d_512.vertex shell2d_512.edge \
+	sphere3d.vertex sphere3d.edge
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/stools/src/libSTOOLS2d.a $(top_builddir)/stools/src/libSTOOLS.a
 main2d_SOURCES = $(SOURCES)
@@ -455,6 +458,7 @@ uninstall-am: uninstall-info-am
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
+	  cp -f $(srcdir)/curve2d_{64,128,256,512}.{vertex,edge} $(PWD) ; \
 	  cp -f $(srcdir)/shell2d_{64,128,256,512}.{vertex,edge} $(PWD) ; \
 	  cp -f $(srcdir)/sphere3d.{vertex,edge} $(PWD) ; \
 	fi ;

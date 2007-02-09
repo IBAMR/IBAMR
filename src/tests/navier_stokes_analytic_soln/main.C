@@ -457,8 +457,7 @@ int main(int argc, char* argv[])
 
             conv_monitor->resetHierarchyConfiguration(
                 patch_hierarchy, coarsest_ln, finest_ln);
-            conv_monitor->monitorConvergence(
-                time_integrator->getIntegratorTime());
+            conv_monitor->monitorConvergence(loop_time);
         }
 
     }// cleanup all smart Pointers prior to shutdown
