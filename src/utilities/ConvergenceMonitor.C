@@ -1,5 +1,5 @@
 // Filename: ConvergenceMonitor.C
-// Last modified: <25.Oct.2006 18:25:53 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Feb.2007 20:37:12 boyce@bigboy.nyconnect.com>
 // Created on 19 Jun 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "ConvergenceMonitor.h"
@@ -168,7 +168,8 @@ ConvergenceMonitor::initializeLevelData(
     assert(!hierarchy.isNull());
     assert((level_number >= 0)
            && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!(old_level.isNull())) {
+    if (old_level.isNull())
+    {
         assert(level_number == old_level->getLevelNumber());
     }
     assert(!(hierarchy->getPatchLevel(level_number)).isNull());
@@ -193,9 +194,9 @@ ConvergenceMonitor::resetHierarchyConfiguration(
     assert((coarsest_level >= 0)
            && (coarsest_level <= finest_level)
            && (finest_level <= hierarchy->getFinestLevelNumber()));
-    for (int ln0 = 0; ln0 <= finest_level; ++ln0)
+    for (int ln = 0; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln0)).isNull());
+        assert(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     // Reset the Hierarchy.

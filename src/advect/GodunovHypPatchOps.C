@@ -1,5 +1,5 @@
 // Filename: GodunovHypPatchOps.C
-// Last modified: <25.Oct.2006 18:29:10 boyce@bigboy.nyconnect.com>
+// Last modified: <12.Feb.2007 03:18:15 boyce@bigboy.nyconnect.com>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovHypPatchOps.h"
@@ -15,6 +15,10 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// STOOLS INCLUDES
+#include <stools/CartRobinPhysBdryOp.h>
+#include <stools/PhysicalBoundaryUtilities.h>
 
 // SAMRAI INCLUDES
 #include <BoundaryBox.h>
@@ -214,6 +218,7 @@ GodunovHypPatchOps::GodunovHypPatchOps(
       d_visit_writer(NULL),
       d_ghosts(CELLG),
       d_flux_ghosts(FLUXG),
+      d_extrap_type("CONSTANT"),
       d_refinement_criteria(),
       d_dev_tol(),
       d_dev(),
@@ -302,7 +307,7 @@ GodunovHypPatchOps::registerAdvectedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<SetDataStrategy> Q_init,
-    SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc,
+    SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > Q_bc,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -357,7 +362,7 @@ GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<SetDataStrategy> Q_init,
-    SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc,
+    SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > Q_bc,
     SAMRAI::tbox::Pointer<SetDataStrategy> F_set,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
@@ -492,7 +497,7 @@ GodunovHypPatchOps::registerModelVariables(
             "CONSERVATIVE_LINEAR_REFINE");
 
 #if (NDIM > 1)
-        if (!(d_visit_writer.isNull()))
+        if (!d_visit_writer.isNull())
         {
             const int qidx = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase()->
                 mapVariableAndContextToIndex(Q_var,
@@ -1545,27 +1550,36 @@ GodunovHypPatchOps::setPhysicalBoundaryConditions(
 {
     t_set_physical_boundary_conditions->start();
 
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
 
-    // Try to set physical boundary conditions on all advected
-    // quantities.
+    // Set physical boundary conditions for all advected quantities.
     for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
-        SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc  = d_Q_bcs [l];
+        SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > Q_bc  = d_Q_bcs [l];
+
+        const int patch_data_idx = var_db->mapVariableAndContextToIndex(
+            Q_var, getDataContext());
 
         if (!Q_bc.isNull())
         {
-            Q_bc->setPhysicalBoundaryConditionsOnPatch(
-                Q_var, getDataContext(), patch,
-                fill_time, ghost_width_to_fill);
+            STOOLS::CartRobinPhysBdryOp bc_helper(patch_data_idx, Q_bc);
+            bc_helper.setHomogeneousBc(false);
+            bc_helper.setPhysicalBoundaryConditions(
+                patch, fill_time, ghost_width_to_fill);
         }
         else
         {
             TBOX_ERROR(d_object_name << "::setPhysicalBoundaryConditions()\n"
-                       << "  no concrete PhysicalBCDataStrategy object provided for\n"
+                       << "  no concrete boundary condition specification object provided for\n"
                        << "  advected quantity " << Q_var->getName() << endl);
         }
+
+        // Extrapolate ghost cell values from interior values at
+        // outflow boundaries.
+        setOutflowBoundaryConditions(
+            patch_data_idx, patch, fill_time, ghost_width_to_fill);
     }
 
     t_set_physical_boundary_conditions->stop();
@@ -1755,6 +1769,180 @@ GodunovHypPatchOps::getQIntegralData(
     }
 }// getQIntegralData
 
+namespace
+{
+
+inline double
+compute_linear_extrap(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > patch_data,
+    const SAMRAI::hier::Index<NDIM>& i,
+    const SAMRAI::hier::Index<NDIM>& i_intr,
+    const SAMRAI::hier::Index<NDIM>& i_shft,
+    const int depth)
+{
+    double ret_val = (*patch_data)(i_intr,depth);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        SAMRAI::hier::Index<NDIM> i_intr_shft = i_intr;
+        i_intr_shft(d) += i_shft(d);
+        const double du = (*patch_data)(i_intr,depth) - (*patch_data)(i_intr_shft,depth);
+        const int delta = abs(i(d)-i_intr(d));
+        ret_val += du*static_cast<double>(delta);
+    }
+    return ret_val;
+}// compute_linear_extrap
+
+}
+
+void
+GodunovHypPatchOps::setOutflowBoundaryConditions(
+    const int patch_data_idx,
+    SAMRAI::hier::Patch<NDIM>& patch,
+    const double fill_time,
+    const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill)
+{
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch_ptr(&patch,false);
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
+    const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+    const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var;
+    var_db->mapIndexToVariable(patch_data_idx, var);
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cc_var = var;
+    if (cc_var.isNull())
+    {
+        TBOX_ERROR("GodunovHypPatchOps::setOutflowBoundaryConditions():\n"
+                   << "  patch data index " << patch_data_idx << " does not correspond to a cell-centered double precision variable." << endl);
+    }
+
+    // Set the boundary conditions by extrapolation at outflow
+    // boundaries.
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data =
+        patch.getPatchData(d_u_var, getDataContext());
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > patch_data =
+        patch.getPatchData(patch_data_idx);
+
+    std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > > bdry_fill_boxes;
+
+    // Compute the codimension one boundary fill boxes.
+    const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
+        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch_ptr);
+    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+    for (int n = 0; n < n_physical_codim1_boxes; ++n)
+    {
+        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+        const SAMRAI::hier::Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(
+            bdry_box, patch_box, ghost_width_to_fill);
+        const int location_index = bdry_box.getLocationIndex();
+        const int codim = 1;
+
+        bdry_fill_boxes.push_back(
+            std::make_pair(bdry_fill_box, std::make_pair(location_index,codim)));
+    }
+#if (NDIM > 1)
+    // Compute the codimension two boundary fill boxes.
+    const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim2_boxes =
+        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch_ptr);
+    const int n_physical_codim2_boxes = physical_codim2_boxes.size();
+    for (int n = 0; n < n_physical_codim2_boxes; ++n)
+    {
+        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim2_boxes[n];
+        const SAMRAI::hier::Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(
+            bdry_box, patch_box, ghost_width_to_fill);
+        const int location_index = bdry_box.getLocationIndex();
+        const int codim = 2;
+
+        bdry_fill_boxes.push_back(
+            std::make_pair(bdry_fill_box, std::make_pair(location_index,codim)));
+    }
+#if (NDIM > 2)
+    // Compute the codimension two boundary fill boxes.
+    const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim3_boxes =
+        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch_ptr);
+    const int n_physical_codim3_boxes = physical_codim3_boxes.size();
+    for (int n = 0; n < n_physical_codim3_boxes; ++n)
+    {
+        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim3_boxes[n];
+        const SAMRAI::hier::Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(
+            bdry_box, patch_box, ghost_width_to_fill);
+        const int location_index = bdry_box.getLocationIndex();
+        const int codim = 3;
+
+        bdry_fill_boxes.push_back(
+            std::make_pair(bdry_fill_box, std::make_pair(location_index,codim)));
+    }
+#endif
+#endif
+
+    // Loop over the boundary fill boxes and extrapolate the data.
+    for (std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > >::const_iterator
+             it = bdry_fill_boxes.begin();
+         it != bdry_fill_boxes.end(); ++it)
+    {
+        const SAMRAI::hier::Box<NDIM>& bdry_fill_box = (*it).first;
+        const int location_index = (*it).second.first;
+        const int codim = (*it).second.second;
+
+        // Loop over the boundary box indices and compute the nearest
+        // interior index.
+        for (SAMRAI::hier::Box<NDIM>::Iterator b(bdry_fill_box); b; b++)
+        {
+            const SAMRAI::hier::Index<NDIM>& i = b();
+            SAMRAI::hier::Index<NDIM> i_intr = i;
+            SAMRAI::hier::Index<NDIM> i_shft = 0;
+
+            bool is_outflow_bdry = false;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                if      (STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, d))
+                {
+                    i_intr(d) = patch_lower(d);
+                    i_shft(d) = +1; // use interior data for extrapolation
+
+                    const SAMRAI::pdat::FaceIndex<NDIM> i_face(
+                        i_intr, d, SAMRAI::pdat::FaceIndex<NDIM>::Lower);
+                    is_outflow_bdry = is_outflow_bdry || (*u_data)(i_face) <= 0.0;
+                }
+                else if (STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, d))
+                {
+                    i_intr(d) = patch_upper(d);
+                    i_shft(d) = -1; // use interior data for extrapolation
+
+                    const SAMRAI::pdat::FaceIndex<NDIM> i_face(
+                        i_intr, d, SAMRAI::pdat::FaceIndex<NDIM>::Upper);
+                    is_outflow_bdry = is_outflow_bdry || (*u_data)(i_face) >= 0.0;
+                }
+            }
+
+            // Perform either constant or linear extrapolation.
+            if (is_outflow_bdry)
+            {
+                for (int depth = 0; depth < patch_data->getDepth(); ++depth)
+                {
+                    if (d_extrap_type == "CONSTANT")
+                    {
+                        (*patch_data)(i,depth) = (*patch_data)(i_intr,depth);
+                    }
+                    else if (d_extrap_type == "LINEAR")
+                    {
+                        (*patch_data)(i,depth) = compute_linear_extrap(
+                            patch_data, i, i_intr, i_shft, depth);
+                    }
+                    else
+                    {
+                        TBOX_ERROR("GodunovHypPatchOps::setOutflowBoundaryConditions():\n"
+                                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
+                                   << "  valid selections are: CONSTANT, LINEAR" << endl);
+                    }
+                }
+            }
+        }
+    }
+    return;
+}// setOutflowBoundaryConditions
+
 /////////////////////////////// PRIVATE    ///////////////////////////////////
 
 void
@@ -1773,6 +1961,15 @@ GodunovHypPatchOps::getFromInput(
         "compute_half_velocity" , d_compute_half_velocity);
     d_compute_final_velocity = db->getBoolWithDefault(
         "compute_final_velocity", d_compute_final_velocity);
+
+    d_extrap_type = db->getStringWithDefault(
+        "extrap_type", d_extrap_type);
+    if (!(d_extrap_type == "CONSTANT" || d_extrap_type == "LINEAR"))
+    {
+        TBOX_ERROR("GodunovHypPatchOps::getFromInput():\n"
+                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR" << endl);
+    }
 
     if (db->keyExists("Refinement_data"))
     {
@@ -1801,10 +1998,10 @@ GodunovHypPatchOps::getFromInput(
             std::string error_key = refinement_keys[i];
             error_db.setNull();
 
-            if (!(error_key == "refine_criteria"))
+            if (error_key != "refine_criteria")
             {
                 if (!(error_key == "QVAL_DEVIATION" ||
-                      error_key == "QVAL_GRADIENT" ||
+                      error_key == "QVAL_GRADIENT"  ||
                       error_key == "QVAL_RICHARDSON"))
                 {
                     TBOX_ERROR(d_object_name << ":\n"
@@ -1987,14 +2184,14 @@ GodunovHypPatchOps::getFromRestart()
     }
 
     db->getIntegerArray("d_ghosts", static_cast<int*>(d_ghosts), NDIM);
-    if (!(d_ghosts == SAMRAI::hier::IntVector<NDIM>(CELLG)))
+    if (d_ghosts != SAMRAI::hier::IntVector<NDIM>(CELLG))
     {
         TBOX_ERROR(d_object_name << ":\n"
                    << "  Key data `d_ghosts' in restart file != CELLG.\n");
     }
 
     db->getIntegerArray("d_flux_ghosts", static_cast<int*>(d_flux_ghosts), NDIM);
-    if (!(d_flux_ghosts == SAMRAI::hier::IntVector<NDIM>(FLUXG)))
+    if (d_flux_ghosts != SAMRAI::hier::IntVector<NDIM>(FLUXG))
     {
         TBOX_ERROR(d_object_name << ":\n"
                    << "  Key data `d_flux_ghosts' in restart file != FLUXG.\n");

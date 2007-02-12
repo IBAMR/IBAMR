@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <09.Jan.2007 17:05:43 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Feb.2007 20:33:45 boyce@bigboy.nyconnect.com>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -324,7 +324,7 @@ AdvDiffHierarchyIntegrator::registerVisItDataWriter(
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!(visit_writer.isNull()));
+    assert(!visit_writer.isNull());
 #endif
     d_hyp_patch_ops->registerVisItDataWriter(visit_writer);
     return;
@@ -449,7 +449,7 @@ AdvDiffHierarchyIntegrator::registerConvergenceMonitor(
     SAMRAI::tbox::Pointer<ConvergenceMonitor> monitor)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!(monitor.isNull()));
+    assert(!monitor.isNull());
 #endif
     d_convergence_monitor = monitor;
     return;
@@ -1685,7 +1685,8 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
     assert(!hierarchy.isNull());
     assert((level_number >= 0)
            && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!(old_level.isNull())) {
+    if (!old_level.isNull())
+    {
         assert(level_number == old_level->getLevelNumber());
     }
     assert(!(hierarchy->getPatchLevel(level_number)).isNull());
@@ -1764,9 +1765,9 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
     assert((coarsest_level >= 0)
            && (coarsest_level <= finest_level)
            && (finest_level <= hierarchy->getFinestLevelNumber()));
-    for (int ln0 = 0; ln0 <= finest_level; ++ln0)
+    for (int ln = 0; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln0)).isNull());
+        assert(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();

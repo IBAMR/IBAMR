@@ -28,6 +28,8 @@
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <LocationIndexRobinBcCoefs.h>
+
 #include <ibamr/ConvergenceMonitor.h>
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/GodunovHypPatchOps.h>
@@ -321,8 +323,8 @@ int main(int argc, char *argv[])
         tbox::pout << "NOT using subcycled timestepping.\n";
     }
 
-    const bool write_restart = (restart_interval > 0)
-        && !(restart_write_dirname.empty());
+    const bool write_restart = restart_interval > 0
+        && !restart_write_dirname.empty();
 
     const bool u_is_div_free = main_db->getBoolWithDefault("u_is_div_free", false);
     if (u_is_div_free)
@@ -389,9 +391,14 @@ int main(int argc, char *argv[])
         u, u_is_div_free, tbox::Pointer<SetDataStrategy>(&u_set,false));
 
     tbox::Pointer< pdat::CellVariable<NDIM,double> > Q = new pdat::CellVariable<NDIM,double>("Q");
-    QInit q_init("QInit", grid_geometry, input_db->getDatabase("QInit"));
+    QInit q_init(
+        "QInit", grid_geometry, input_db->getDatabase("QInit"));
+    solv::LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
+        "physical_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs"));
     hyp_patch_ops->registerAdvectedQuantity(
-        Q, consv_form, tbox::Pointer<SetDataStrategy>(&q_init,false));
+        Q, consv_form,
+        tbox::Pointer<SetDataStrategy>(&q_init,false),
+        tbox::Pointer<solv::RobinBcCoefStrategy<NDIM> >(&physical_bc_coef,false));
 
     tbox::Pointer<algs::HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
         new algs::HyperbolicLevelIntegrator<NDIM>(
@@ -534,6 +541,7 @@ int main(int argc, char *argv[])
         }
     }
 
+#if 0
     /*
      * Monitor the accuracy of the computed solution.
      */
@@ -561,6 +569,7 @@ int main(int argc, char *argv[])
         conv_monitor->monitorConvergence(
             time_integrator->getIntegratorTime());
     }
+#endif
 
     /*
      * At conclusion of simulation, deallocate objects.

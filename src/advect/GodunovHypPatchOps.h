@@ -2,14 +2,13 @@
 #define included_GodunovHypPatchOps
 
 // Filename: GodunovHypPatchOps.h
-// Last modified: <07.Oct.2006 23:15:37 boyce@bigboy.nyconnect.com>
+// Last modified: <12.Feb.2007 01:05:01 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/GodunovAdvector.h>
-#include <ibamr/PhysicalBCDataStrategy.h>
 #include <ibamr/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
@@ -25,6 +24,7 @@
 #include <IntVector.h>
 #include <Patch.h>
 #include <PatchLevel.h>
+#include <RobinBcCoefStrategy.h>
 #include <VariableContext.h>
 #include <VisItDataWriter.h>
 #include <tbox/Array.h>
@@ -130,13 +130,14 @@ public:
      * the quantity when \p conservation_form is true.  Otherwise,
      * non-conservative differencing is used to update the quantity.
      *
-     * Optional concrete SetDataStrategy and PhysicalBCDataStrategy
-     * objects allow for the specification of initial and boundary
-     * data for the advected quantity Q.  If an initialization object
-     * is not specified, Q is initialized to zero.  If a boundary
-     * condition object is not specified for Q, it is necessary that
-     * the computational domain have only periodic boundaries, i.e.,
-     * the domain has no "physical" boundaries.
+     * Optional concrete SetDataStrategy and
+     * SAMRAI::solv::RobinBcCoefStrategy objects allow for the
+     * specification of initial and boundary data for the advected
+     * quantity Q.  If an initialization object is not specified, Q is
+     * initialized to zero.  If a boundary condition object is not
+     * specified for Q, it is necessary that the computational domain
+     * have only periodic boundaries, i.e., the domain has no
+     * "physical" boundaries.
      *
      * When the advected quantity Q is an incompressible velocity
      * field, an optional face-centered gradient may be specified that
@@ -153,7 +154,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<SetDataStrategy> Q_init=NULL,
-        SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc=NULL,
+        SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > Q_bc=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -165,13 +166,14 @@ public:
      * the quantity when \p conservation_form is true.  Otherwise,
      * non-conservative differencing is used to update the quantity.
      *
-     * Optional concrete SetDataStrategy and PhysicalBCDataStrategy
-     * objects allow for the specification of initial and boundary
-     * data for the advected quantity Q.  If an initialization object
-     * is not specified, Q is initialized to zero.  If a boundary
-     * condition object is not specified for Q, it is necessary that
-     * the computational domain have only periodic boundaries, i.e.,
-     * that the domain has no "physical" boundaries.
+     * Optional concrete SetDataStrategy and
+     * SAMRAI::solv::RobinBcCoefStrategy objects allow for the
+     * specification of initial and boundary data for the advected
+     * quantity Q.  If an initialization object is not specified, Q is
+     * initialized to zero.  If a boundary condition object is not
+     * specified for Q, it is necessary that the computational domain
+     * have only periodic boundaries, i.e., that the domain has no
+     * "physical" boundaries.
      *
      * The value of the source term is determined by an (optional)
      * SetDataStrategy object.  This allows for the specification of
@@ -194,7 +196,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<SetDataStrategy> Q_init=NULL,
-        SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc=NULL,
+        SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > Q_bc=NULL,
         SAMRAI::tbox::Pointer<SetDataStrategy> F_set=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
@@ -441,6 +443,16 @@ protected:
         SAMRAI::hier::Patch<NDIM>& patch,
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context);
 
+    /*!
+     * \brief Set the data in ghost cells corresponding to physical
+     * boundary conditions at outflow boundaries.
+     */
+    virtual void setOutflowBoundaryConditions(
+        const int patch_data_idx,
+        SAMRAI::hier::Patch<NDIM>& patch,
+        const double fill_time,
+        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+
     /*
      * The SAMRAI::algs::HyperbolicLevelIntegrator that is using the
      * patch strategy.
@@ -491,8 +503,8 @@ protected:
      * Objects to set initial and boundary conditions as well as
      * forcing terms for each advected quantity.
      */
-    std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >        d_Q_inits;
-    std::vector<SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> > d_Q_bcs;
+    std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >                          d_Q_inits;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > > d_Q_bcs;
 
     std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >  d_F_sets;
 
@@ -575,9 +587,13 @@ private:
      *    d_ghosts .............. number of ghost cells for cell-centered
      *                            and face/side-centered variables
      *    d_flux_ghosts ......... number of ghost cells for fluxes
+     *    d_extrap_type ......... type of extrapolation to use at
+     *                            outflow boundaries (choices are:
+     *                            CONSTANT, LINEAR)
      */
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
     SAMRAI::hier::IntVector<NDIM> d_flux_ghosts;
+    std::string d_extrap_type;
 
     /*
      * Refinement criteria parameters for gradient detection and

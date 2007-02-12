@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <02.Feb.2007 18:30:34 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Feb.2007 20:35:33 boyce@bigboy.nyconnect.com>
 
 #include "LDataManager.h"
 
@@ -1342,7 +1342,8 @@ LDataManager::initializeLevelData(
     assert(!hierarchy.isNull());
     assert((level_number >= 0)
            && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!(old_level.isNull())) {
+    if (!old_level.isNull())
+    {
         assert(level_number == old_level->getLevelNumber());
     }
     assert(!(hierarchy->getPatchLevel(level_number)).isNull());
@@ -1610,9 +1611,9 @@ LDataManager::resetHierarchyConfiguration(
     assert((coarsest_level >= 0)
            && (coarsest_level <= finest_level)
            && (finest_level <= hierarchy->getFinestLevelNumber()));
-    for (int ln0 = 0; ln0 <= finest_level; ++ln0)
+    for (int ln = 0; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln0)).isNull());
+        assert(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();

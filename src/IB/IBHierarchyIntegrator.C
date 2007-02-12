@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <02.Feb.2007 19:36:20 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Feb.2007 22:36:36 boyce@bigboy.nyconnect.com>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -516,9 +516,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     // NOTE: When using conservative averaging to coarsen the velocity
     // from finer levels to coarser levels, the appropriate
     // prolongation operator for the force is constant refinement.
-    //
-    // This choice results in spreading and interpolation being
-    // adjoints.
+    // This choice results in IB spreading and interpolation being
+    // adjoint.
     d_force_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
 
     refine_operator = grid_geom->lookupRefineOperator(
@@ -1908,7 +1907,8 @@ IBHierarchyIntegrator::initializeLevelData(
     assert(!hierarchy.isNull());
     assert((level_number >= 0)
            && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!(old_level.isNull())) {
+    if (!old_level.isNull())
+    {
         assert(level_number == old_level->getLevelNumber());
     }
     assert(!(hierarchy->getPatchLevel(level_number)).isNull());
@@ -1970,9 +1970,9 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
     assert((coarsest_level >= 0)
            && (coarsest_level <= finest_level)
            && (finest_level <= hierarchy->getFinestLevelNumber()));
-    for (int ln0 = 0; ln0 <= finest_level; ++ln0)
+    for (int ln = 0; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln0)).isNull());
+        assert(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();

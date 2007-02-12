@@ -1,5 +1,5 @@
 // Filename: ParabolicLevelIntegrator.C
-// Last modified: <09.Jan.2007 17:12:32 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Feb.2007 20:39:19 boyce@bigboy.nyconnect.com>
 // Created on 09 Jan 2007 by Boyce Griffith (boyce@box221.cims.nyu.edu)
 
 // NOTE: This implementation is directly derived from the SAMRAI
@@ -399,7 +399,8 @@ ParabolicLevelIntegrator::getMaxFinerLevelDt(
 *                                                                       *
 *  4) Compute next stable time increment for subsequent level advances: *
 *                                                                       *
-*     4a) If (d_lag_dt_computation == true) {                           *
+*     4a) If (d_lag_dt_computation == true)                             *
+*         {                                                             *
 *            DO NOT RECOMPUTE characteristic data after advancing       *
 *            data on patch. Use characteristic data corresponding       *
 *            to current time level, computed prior to flux computation, *
@@ -413,7 +414,8 @@ ParabolicLevelIntegrator::getMaxFinerLevelDt(
 *     4b) Copy data from scratch space patch interior to new data       *
 *         storage for patch (i.e., at time = new_time).                 *
 *                                                                       *
-*     4a) If (d_lag_dt_computation == false) {                          *
+*     4a) If (d_lag_dt_computation == false)                            *
+*         {                                                             *
 *            RECOMPUTE characteristic data after advancing data on      *
 *            patch. Use characteristic data corresponding to new time   *
 *            level in dt calculation.                                   *
@@ -1037,7 +1039,7 @@ ParabolicLevelIntegrator::initializeLevelData(
     assert(!hierarchy.isNull());
     assert((level_number >= 0)
             && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!(old_level.isNull()))
+    if (!old_level.isNull())
     {
         assert(level_number == old_level->getLevelNumber());
     }
@@ -1164,9 +1166,9 @@ ParabolicLevelIntegrator::resetHierarchyConfiguration(
     assert((coarsest_level >= 0)
             && (coarsest_level <= finest_level)
             && (finest_level <= hierarchy->getFinestLevelNumber()));
-    for (int ln0 = 0; ln0 <= finest_level; ln0++)
+    for (int ln = 0; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln0)).isNull());
+        assert(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     int finest_hiera_level = hierarchy->getFinestLevelNumber();
@@ -1690,7 +1692,7 @@ ParabolicLevelIntegrator::registerVariable(
             const tbox::Pointer<pdat::FaceVariable<DIM,double> > face_var(var);
             const tbox::Pointer<pdat::SideVariable<DIM,double> > side_var(var);
 
-            if (!(face_var.isNull()))
+            if (!face_var.isNull())
             {
                 if (d_flux_side_registered)
                 {
@@ -1702,7 +1704,7 @@ ParabolicLevelIntegrator::registerVariable(
                 d_flux_is_face = true;
 
             }
-            else if (!(side_var.isNull()))
+            else if (!side_var.isNull())
             {
                 if (d_flux_face_registered)
                 {
@@ -2094,7 +2096,7 @@ ParabolicLevelIntegrator::preprocessFluxData(
 
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        assert(!(fsum_data.isNull()));
+                        assert(!fsum_data.isNull());
 #endif
                         fsum_data->fillAll(0.0);
                     }
@@ -2104,7 +2106,7 @@ ParabolicLevelIntegrator::preprocessFluxData(
                             patch->getPatchData(fsum_id);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        assert(!(fsum_data.isNull()));
+                        assert(!fsum_data.isNull());
 #endif
                         fsum_data->fillAll(0.0);
                     }
@@ -2197,7 +2199,7 @@ ParabolicLevelIntegrator::postprocessFluxData(
                     ffsum_data = fsum_data;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(!(fflux_data.isNull()) && !(ffsum_data.isNull()));
+                    assert(!fflux_data.isNull() && !ffsum_data.isNull());
                     assert(fflux_data->getDepth() == ffsum_data->getDepth());
 #endif
                     ddepth = fflux_data->getDepth();
@@ -2209,7 +2211,7 @@ ParabolicLevelIntegrator::postprocessFluxData(
                     sfsum_data = fsum_data;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(!(sflux_data.isNull()) && !(sfsum_data.isNull()));
+                    assert(!sflux_data.isNull() && !sfsum_data.isNull());
                     assert(sflux_data->getDepth() == sfsum_data->getDepth());
 #endif
                     ddepth = sflux_data->getDepth();

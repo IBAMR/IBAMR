@@ -229,8 +229,8 @@ int main(int argc, char* argv[])
             getBool("monitor_convergence");
     }
 
-    const bool write_restart = (restart_interval > 0)
-        && !(restart_write_dirname.empty());
+    const bool write_restart = restart_interval > 0
+        && !restart_write_dirname.empty();
 
     /*
      * Get the restart manager and root restart database.  If run is

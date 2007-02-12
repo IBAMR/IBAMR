@@ -9,7 +9,7 @@ MUSCL_LIMITED = 3
 PI = 3.141592653589793e+00
 
 GodunovAdvector {
-   limiter_type = FOURTH_ORDER
+   limiter_type = MUSCL_LIMITED
 }
 
 GodunovHypPatchOps {
@@ -40,6 +40,13 @@ QInit {
 // init_type = "SINUSOIDAL"
 }
 
+LocationIndexRobinBcCoefs {
+   boundary_0 = "value", "10.0"
+   boundary_1 = "value", "0.0"
+   boundary_2 = "value", "0.0"
+   boundary_3 = "value", "0.0"
+}
+
 USet {
 // kappa = 0.0 , 0.0
    kappa = 2.0 , 2.0
@@ -55,7 +62,7 @@ USet {
 
 N = 8
 LEVS = 6
-NMAX = 8*(2^(LEVS - 1))
+NMAX = N*(2^(LEVS - 1))
 
 Main {
 // log file parameters
@@ -85,7 +92,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         =  0 , 0         // lower end of computational domain.
    x_up         =  1 , 1         // upper end of computational domain.
-   periodic_dimension = 1,1
+   periodic_dimension = 0,0
 }
 
 GriddingAlgorithm {
@@ -124,8 +131,8 @@ StandardTagAndInitialize {
 }
 
 HyperbolicLevelIntegrator {
-   cfl                      = 0.975 // max cfl factor used in problem
-   cfl_init                 = 0.975 // initial cfl factor
+   cfl                      = 0.4975 // max cfl factor used in problem
+   cfl_init                 = 0.4975 // initial cfl factor
    lag_dt_computation       = FALSE
    use_ghosts_to_compute_dt = FALSE
 }

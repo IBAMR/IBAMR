@@ -40,6 +40,15 @@ QInit {
 // init_type = "SINUSOIDAL"
 }
 
+LocationIndexRobinBcCoefs {
+   boundary_0 = "value", "0.0"
+   boundary_1 = "value", "0.0"
+   boundary_2 = "value", "0.0"
+   boundary_3 = "value", "0.0"
+   boundary_4 = "value", "0.0"
+   boundary_5 = "value", "0.0"
+}
+
 USet {
 // kappa = 0.0 , 0.0
    kappa = 2.0 , 2.0

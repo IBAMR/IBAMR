@@ -230,8 +230,8 @@ int main(int argc, char* argv[])
             }
         }
 
-        const bool write_restart = (restart_interval > 0)
-            && !(restart_write_dirname.empty());
+        const bool write_restart = restart_interval > 0
+            && !restart_write_dirname.empty();
 
         /*
          * Get the restart manager and root restart database.  If run is

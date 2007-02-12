@@ -13,7 +13,7 @@ INSHierarchyIntegrator {
    end_time              = 1.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = 10000    // disable regridding (fixed grid computation)
+   regrid_interval       = 1        // enable regridding (to test regrid synchronization projection)
 
    enable_logging = TRUE
 
