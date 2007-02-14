@@ -1,6 +1,6 @@
 // Filename: IBEulerianSourceSetter.C
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <25.Oct.2006 18:29:39 boyce@bigboy.nyconnect.com>
+// Last modified: <13.Feb.2007 03:25:29 boyce@bigboy.nyconnect.com>
 
 #include "IBEulerianSourceSetter.h"
 
@@ -33,7 +33,7 @@ namespace IBAMR
 IBEulerianSourceSetter::IBEulerianSourceSetter(
     const string& object_name,
     const int Q_idx)
-    : SetDataStrategy(object_name),
+    : STOOLS::SetDataStrategy(object_name),
       d_Q_idx(Q_idx)
 {
     // intentionally blank

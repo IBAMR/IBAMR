@@ -1,6 +1,6 @@
 // Filename: IBEulerianForceSetter.C
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <11.Jan.2007 16:33:51 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Feb.2007 03:25:29 boyce@bigboy.nyconnect.com>
 
 #include "IBEulerianForceSetter.h"
 
@@ -34,7 +34,7 @@ namespace IBAMR
 IBEulerianForceSetter::IBEulerianForceSetter(
     const string& object_name,
     const int F_idx)
-    : SetDataStrategy(object_name),
+    : STOOLS::SetDataStrategy(object_name),
       d_F_idx(F_idx)
 {
     // intentionally blank

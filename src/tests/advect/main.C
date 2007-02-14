@@ -30,7 +30,6 @@
 // Headers for application-specific algorithm/data structure objects
 #include <LocationIndexRobinBcCoefs.h>
 
-#include <ibamr/ConvergenceMonitor.h>
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/GodunovHypPatchOps.h>
 
@@ -294,13 +293,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    bool monitor_convergence = false;
-    if (main_db->keyExists("monitor_convergence"))
-    {
-        monitor_convergence = main_db->
-            getBool("monitor_convergence");
-    }
-
     bool use_refined_timestepping = false;
     if (main_db->keyExists("timestepping"))
     {
@@ -398,7 +390,7 @@ int main(int argc, char *argv[])
     hyp_patch_ops->registerAdvectedQuantity(
         Q, consv_form,
         tbox::Pointer<SetDataStrategy>(&q_init,false),
-        tbox::Pointer<solv::RobinBcCoefStrategy<NDIM> >(&physical_bc_coef,false));
+        &physical_bc_coef);
 
     tbox::Pointer<algs::HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
         new algs::HyperbolicLevelIntegrator<NDIM>(
@@ -415,15 +407,17 @@ int main(int argc, char *argv[])
     tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
 
     tbox::Pointer<mesh::LoadBalancer<NDIM> >  load_balancer =
-        new mesh::LoadBalancer<NDIM>("LoadBalancer",
-                                     input_db->getDatabase("LoadBalancer"));
+        new mesh::LoadBalancer<NDIM>(
+            "LoadBalancer",
+            input_db->getDatabase("LoadBalancer"));
 
     tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm =
-        new mesh::GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                          input_db->getDatabase("GriddingAlgorithm"),
-                                          error_detector,
-                                          box_generator,
-                                          load_balancer);
+        new mesh::GriddingAlgorithm<NDIM>(
+            "GriddingAlgorithm",
+            input_db->getDatabase("GriddingAlgorithm"),
+            error_detector,
+            box_generator,
+            load_balancer);
 
     tbox::Pointer<algs::TimeRefinementIntegrator<NDIM> > time_integrator =
         new algs::TimeRefinementIntegrator<NDIM>(
@@ -540,36 +534,6 @@ int main(int argc, char *argv[])
                 patch_hierarchy, iteration_num, loop_time);
         }
     }
-
-#if 0
-    /*
-     * Monitor the accuracy of the computed solution.
-     */
-    if (monitor_convergence)
-    {
-        tbox::Pointer<ConvergenceMonitor> conv_monitor = new ConvergenceMonitor("ConvergenceMonitor");
-
-        conv_monitor->registerMonitoredVariableAndContext(
-            Q, hyp_level_integrator->getCurrentContext(),
-            tbox::Pointer<SetDataStrategy>(&q_init, false));
-
-        const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        const bool initial_time = false;
-
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            conv_monitor->initializeLevelData(
-                patch_hierarchy, ln, time_integrator->getIntegratorTime(),
-                (ln < finest_ln), initial_time);
-        }
-
-        conv_monitor->resetHierarchyConfiguration(
-            patch_hierarchy, coarsest_ln, finest_ln);
-        conv_monitor->monitorConvergence(
-            time_integrator->getIntegratorTime());
-    }
-#endif
 
     /*
      * At conclusion of simulation, deallocate objects.

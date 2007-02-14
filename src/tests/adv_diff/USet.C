@@ -1,5 +1,5 @@
 // Filename: USet.C
-// Last modified: <25.Oct.2006 18:31:55 boyce@bigboy.nyconnect.com>
+// Last modified: <14.Feb.2007 00:03:15 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "USet.h"
@@ -78,75 +78,73 @@ USet::setDataOnPatch(
     const double data_time,
     const bool initial_time)
 {
-    if (initial_time)
-    {
-        tbox::Pointer< pdat::FaceData<NDIM,double> > u_data = patch.getPatchData(data_idx);
+    tbox::Pointer< pdat::FaceData<NDIM,double> > u_data = patch.getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(!u_data.isNull());
+    assert(!u_data.isNull());
 #endif
 
-        if (d_init_type == "UNIFORM")
+    if (d_init_type == "UNIFORM")
+    {
+        for (int axis = 0; axis < NDIM; ++axis)
         {
-            for (int axis = 0; axis < NDIM; ++axis)
-            {
-                u_data->getArrayData(axis).fillAll(d_uniform_u[axis]);
-            }
+            u_data->getArrayData(axis).fillAll(d_uniform_u[axis]);
         }
-        else if (d_init_type == "VORTEX")
+    }
+    else if (d_init_type == "VORTEX")
+    {
+        const hier::Box<NDIM>& patch_box = patch.getBox();
+        const hier::Box<NDIM>& ghost_box = u_data->getGhostBox();
+        const hier::Index<NDIM>& patch_lower = patch_box.lower();
+        tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+
+        const double* const XLower = pgeom->getXLower();
+        const double* const dx = pgeom->getDx();
+
+        double X[NDIM];
+
+        for (int axis = 0; axis < NDIM; ++axis)
         {
-            const hier::Box<NDIM>& patch_box = patch.getBox();
-            const hier::Index<NDIM>& patch_lower = patch_box.lower();
-            tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
-
-            const double* const XLower = pgeom->getXLower();
-            const double* const dx = pgeom->getDx();
-
-            double X[NDIM];
-
-            for (int axis = 0; axis < NDIM; ++axis)
+            for (pdat::FaceIterator<NDIM> it(ghost_box,axis); it; it++)
             {
-                for (pdat::FaceIterator<NDIM> it(patch_box,axis); it; it++)
+                const pdat::FaceIndex<NDIM>& i = it();
+                const hier::Index<NDIM>& cell_idx = i.toCell(1);
+
+                for (int d = 0; d < NDIM; ++d)
                 {
-                    const pdat::FaceIndex<NDIM>& i = it();
-                    const hier::Index<NDIM>& cell_idx = i.toCell(1);
-
-                    for (int d = 0; d < NDIM; ++d)
+                    if (d != axis)
                     {
-                        if (d != axis)
-                        {
-                            X[d] =
-                                XLower[d] +
-                                dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+0.5);
-                        }
-                        else
-                        {
-                            X[d] =
-                                XLower[d] +
-                                dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d)));
-                        }
-                    }
-
-                    // 2D vortex
-                    if (axis == 0)
-                    {
-                        (*u_data)(i) = X[1] - d_X[axis];
-                    }
-                    else if (axis == 1)
-                    {
-                        (*u_data)(i) = d_X[axis] - X[0];
+                        X[d] =
+                            XLower[d] +
+                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+0.5);
                     }
                     else
                     {
-                        (*u_data)(i) = 0.0;
+                        X[d] =
+                            XLower[d] +
+                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d)));
                     }
+                }
+
+                // 2D vortex
+                if (axis == 0)
+                {
+                    (*u_data)(i) = X[1] - d_X[axis];
+                }
+                else if (axis == 1)
+                {
+                    (*u_data)(i) = d_X[axis] - X[0];
+                }
+                else
+                {
+                    (*u_data)(i) = 0.0;
                 }
             }
         }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::initializeDataOnPatch()\n"
-                       << "  invalid initialization type " << d_init_type << "\n");
-        }
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::setDataOnPatch()\n"
+                   << "  invalid initialization type " << d_init_type << "\n");
     }
     return;
 }// setDataOnPatch

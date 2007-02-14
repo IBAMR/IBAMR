@@ -2,21 +2,21 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <01.Feb.2007 22:11:58 boyce@bigboy.nyconnect.com>
+// Last modified: <13.Feb.2007 03:31:10 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
-#include <ibamr/ConvergenceMonitor.h>
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/HierarchyProjector.h>
-#include <ibamr/SetDataStrategy.h>
 
 // STOOLS INCLUDES
 #include <stools/LinearSolver.h>
 #include <stools/HierarchyMathOps.h>
+#include <stools/SetDataStrategy.h>
+#include <stools/PhysicalBCDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -73,10 +73,10 @@ namespace IBAMR
  *
  * \see AdvDiffHierarchyIntegrator
  * \see GodunovAdvector
- * \see algs::HyperbolicLevelIntegrator<NDIM>
- * \see SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
- * \see algs::TimeRefinementIntegrator<NDIM>
- * \see algs::TimeRefinementLevelStrategy<NDIM>
+ * \see SAMRAI::algs::HyperbolicLevelIntegrator
+ * \see SAMRAI::mesh::StandardTagAndInitStrategy
+ * \see SAMRAI::algs::TimeRefinementIntegrator
+ * \see SAMRAI::algs::TimeRefinementLevelStrategy
  */
 class INSHierarchyIntegrator
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
@@ -117,7 +117,7 @@ public:
      * Supply initial conditions for the (cell centered) velocity.
      */
     void registerVelocityInitialConditions(
-        SAMRAI::tbox::Pointer<SetDataStrategy> U_init);
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> U_init);
 
     /*!
      * Supply initial conditions for the (cell centered) pressure.
@@ -126,20 +126,20 @@ public:
      * only.  They are not actually used in the computation.
      */
     void registerPressureInitialConditions(
-        SAMRAI::tbox::Pointer<SetDataStrategy> P_init);
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init);
 
     /*!
      * Supply a (possibly time dependent) cell centered forcing term.
      */
     void registerForceSpecification(
-        SAMRAI::tbox::Pointer<SetDataStrategy> F_set);
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set);
 
     /*!
      * Supply a (possibly time dependent) cell centered divergence
      * specification.
      */
     void registerDivergenceSpecification(
-        SAMRAI::tbox::Pointer<SetDataStrategy> Q_set);
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_set);
 
     /*!
      * Register a cell centered quantity to be advected and diffused
@@ -150,21 +150,21 @@ public:
      * advective term when conservation_form is true.  Otherwise,
      * non-conservative differencing is used to update the quantity.
      *
-     * Optional concrete SetDataStrategy and PhysicalBCDataStrategy
-     * objects allow for the specification of initial and boundary
-     * data for the advected and diffused quantity Q.  If an
-     * initialization object is not specified, Q is initialized to
-     * zero.  If a boundary condition object is not specified for Q,
-     * it is necessary that the computational domain have only
-     * periodic boundaries.  (I.e. the domain can have no "physical"
-     * boundaries.)
+     * Optional concrete STOOLS::SetDataStrategy and
+     * STOOLS::PhysicalBCDataStrategy objects allow for the
+     * specification of initial and boundary data for the advected and
+     * diffused quantity Q.  If an initialization object is not
+     * specified, Q is initialized to zero.  If a boundary condition
+     * object is not specified for Q, it is necessary that the
+     * computational domain have only periodic boundaries.  (I.e. the
+     * domain can have no "physical" boundaries.)
      */
     void registerAdvectedAndDiffusedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu=0.0,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<SetDataStrategy> Q_init=NULL,
-        SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc=NULL);
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<STOOLS::PhysicalBCDataStrategy> Q_bc=NULL);
 
     /*!
      * Register a VisIt data writer so this object will write plot
@@ -173,13 +173,6 @@ public:
      */
     void registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
-
-    /*!
-     * Register a convergence monitor, used to determine convergence
-     * for problems with known analytic solutions.
-     */
-    void registerConvergenceMonitor(
-        SAMRAI::tbox::Pointer<ConvergenceMonitor> monitor);
 
     ///
     ///  The following routines:
@@ -495,7 +488,7 @@ public:
     ///      applyGradientDetector()
     ///
     ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::mesh::StandardTagAndInitStrategy<NDIM> abstract base class.
+    ///  SAMRAI::mesh::StandardTagAndInitStrategy abstract base class.
     ///
 
     /*!
@@ -782,8 +775,8 @@ protected:
      * Objects to set initial and boundary conditions as well as
      * forcing terms for each advected and diffused quantity.
      */
-    std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >        d_Q_inits;
-    std::vector<SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> > d_Q_bcs;
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_Q_inits;
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::PhysicalBCDataStrategy> > d_Q_bcs;
 
     /*!
      * The diffusivity coefficients associated with each advected and
@@ -841,16 +834,6 @@ private:
         const int finest_ln);
 
     /*!
-     * Compute the "acceleration" timestep restriction
-     *
-     *      dt <= min sqrt(2 dx / |F - grad P|/rho)
-     */
-    double computeStableDt(
-        const int F_idx,
-        const int coarsest_ln,
-        const int finest_ln);
-
-    /*!
      * Read input values, indicated above, from given database.  The
      * boolean argument is_from_restart should be set to true if the
      * simulation is beginning from restart.  Otherwise it should be
@@ -898,37 +881,35 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
 
     /*
-     * The ConvergenceMonitor object is used to monitor the
-     * convergence of the computed solution to an exact solution.
-     */
-    SAMRAI::tbox::Pointer<ConvergenceMonitor> d_convergence_monitor;
-
-    /*
      * We cache a pointer to the VisIt data writer to register plot
      * variables.
+     *
+     * Double precision values are (optional) factors used to rescale
+     * the pressure, force, and source/sink density for plotting.
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
     double d_P_scale, d_F_scale, d_Q_scale;
 
     /*
      * The GodunovAdvector provides the numerical routines necessary
-     * to explicitly predict a time and face centered advection
-     * velocity.
+     * to perform the explicit prediction of the time and face
+     * centered advection velocity.
      */
     SAMRAI::tbox::Pointer<GodunovAdvector> d_explicit_predictor;
 
     /*
-     * The AdvDiffHierarchyIntegrator maintains the linear
-     * solvers and related data needed to handle the implicit
-     * integration of the diffusive terms and the explicit integration
-     * of the advective terms.
+     * The AdvDiffHierarchyIntegrator maintains the linear solvers and
+     * related data needed to handle the implicit integration of the
+     * diffusive terms and the explicit integration of the advective
+     * terms.
      */
     SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
 
     /*
-     * The algs::HyperbolicLevelIntegrator<NDIM> supplies generic operations
-     * needed to handle the explicit integration of advection terms.
-     * It is maintained by the AdvDiffHierarchyIntegrator.
+     * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic
+     * operations needed to handle the explicit integration of
+     * advection terms.  It is supplied and maintained by the
+     * AdvDiffHierarchyIntegrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
 
@@ -945,16 +926,20 @@ private:
     double d_end_time;
     double d_grow_dt;
     int d_max_integrator_steps;
-    double d_cfl;
 
     /*
-     * The number of initial cycles to perform each timestep.
+     * The number of cycles to perform each timestep.  During each
+     * cycle, the most recently available pressure is employed as the
+     * time centered approximation to the pressure gradient that
+     * appears in the momentum equation.  (During the first cycle,
+     * this is simply the lagged pressure computed during the previous
+     * timestep.)  Typically, num_cycles will equal 1.
      */
     int d_num_cycles;
 
     /*
-     * The number of initial cycles to perform in order to obtain a
-     * sufficiently accurate guess for P(n=1/2).
+     * The number of cycles to perform during the first timestep in
+     * order to initialize the pressure.
      */
     int d_num_init_cycles;
 
@@ -997,10 +982,15 @@ private:
     double d_Omega_max;
 
     /*
-     * These boolean values determine the form of the pressure update.
+     * This boolean value determines whether the predicted,
+     * time-centered advection term is approximately projected.
      */
     bool d_project_predicted_flux;
-    bool d_reproject_pressure;
+
+    /*
+     * This boolean value determines whether the pressure update is
+     * second order accurate in time.
+     */
     bool d_second_order_pressure_update;
 
     /*
@@ -1031,7 +1021,6 @@ private:
      * the AMR hierarchy.
      */
     double d_old_dt;
-    double d_stable_dt;
     double d_integrator_time;
     int    d_integrator_step;
 
@@ -1099,9 +1088,8 @@ private:
      * of the pressure is for visualization purposes only) as well as
      * constant or time-dependent body forcing.
      */
-    SAMRAI::tbox::Pointer<SetDataStrategy> d_U_init, d_P_init;
-    SAMRAI::tbox::Pointer<SetDataStrategy> d_F_set;
-    SAMRAI::tbox::Pointer<SetDataStrategy> d_Q_set;
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_U_init, d_P_init;
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set, d_Q_set;
 
     /*
      * Linear solvers and associated data.
@@ -1114,24 +1102,20 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
 
-    double d_poisson_abs_residual_tol, d_poisson_rel_residual_tol;
-    SAMRAI::tbox::Pointer<STOOLS::LinearSolver>    d_poisson_solver;
-
     const SAMRAI::solv::PoissonSpecifications*     d_helmholtz1_spec;
     const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_helmholtz1_bc_coef;
-    SAMRAI::tbox::Pointer<STOOLS::LinearSolver>    d_helmholtz1_solver;
 
     const SAMRAI::solv::PoissonSpecifications*     d_helmholtz2_spec;
     const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_helmholtz2_bc_coef;
-    SAMRAI::tbox::Pointer<STOOLS::LinearSolver>    d_helmholtz2_solver;
 
     const SAMRAI::solv::PoissonSpecifications*     d_helmholtz4_spec;
     const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_helmholtz4_bc_coef;
     SAMRAI::tbox::Pointer<STOOLS::LinearSolver>    d_helmholtz4_solver;
 
     /*
-     * SAMRAI::hier::Variable<NDIM> lists and SAMRAI::hier::ComponentSelector objects
-     * are used for data management.
+     * SAMRAI::hier::Variable lists and
+     * SAMRAI::hier::ComponentSelector objects are used for data
+     * management.
      */
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_state_variables;
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_scratch_variables;
@@ -1165,7 +1149,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var, d_Div_u_var, d_Div_u_adv_var;
 
     /*
-     * SAMRAI::hier::Patch<NDIM> data descriptor indices for all variables
+     * SAMRAI::hier::Patch data descriptor indices for all variables
      * managed by the integrator.
      *
      * State variables have three contexts: current, scratch, and new.
@@ -1188,7 +1172,7 @@ private:
     int d_Div_u_adv_current_idx, d_Div_u_adv_new_idx, d_Div_u_adv_scratch_idx;
 
     /*
-     * SAMRAI::hier::Patch<NDIM> data descriptor indices for all variables
+     * SAMRAI::hier::Patch data descriptor indices for all variables
      * managed by the integrator.
      *
      * Scratch variables have only one context.
@@ -1196,8 +1180,8 @@ private:
     int d_Phi_idx, d_Grad_Phi_idx, d_grad_Phi_idx, d_G_idx, d_H_idx, d_V_idx;
 
     /*
-     * SAMRAI::hier::Patch<NDIM> data descriptors for all variables managed by
-     * the AdvDiffHierarchyIntegrator class.
+     * SAMRAI::hier::Patch data descriptors for all variables managed
+     * by the AdvDiffHierarchyIntegrator class.
      *
      * TIME_DEP variables have three contexts: current, scratch, and
      * new.  Note that the new context is only available for use after
@@ -1213,8 +1197,8 @@ private:
     int d_sol_idx, d_rhs_idx, d_tmp_idx;
 
     /*
-     * SAMRAI::hier::Patch<NDIM> data descriptors for all variables managed by
-     * the HierarchyMathOps class.
+     * SAMRAI::hier::Patch data descriptors for all variables managed
+     * by the HierarchyMathOps class.
      *
      * Such variables have only one context.
      */

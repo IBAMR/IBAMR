@@ -3,12 +3,12 @@
 
 // Filename: IBEulerianForceSetter.h
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <16.Jan.2007 13:36:20 boyce@bigboy.nyconnect.com>
+// Last modified: <13.Feb.2007 03:23:13 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/SetDataStrategy.h>
+// STOOLS INCLUDES
+#include <stools/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <Patch.h>
@@ -29,7 +29,7 @@ namespace IBAMR
  * denotes the IB spreading operator.
  */
 class IBEulerianForceSetter
-    : public SetDataStrategy
+    : public STOOLS::SetDataStrategy
 {
 public:
     /*!

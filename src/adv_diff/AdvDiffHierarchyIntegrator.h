@@ -2,23 +2,21 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <16.Nov.2006 00:28:17 boyce@bigboy.nyconnect.com>
+// Last modified: <14.Feb.2007 01:48:24 boyce@bigboy.nyconnect.com>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBAMR INCLUDES
+#include <ibamr/AdvDiffHypPatchOps.h>
+#include <ibamr/GodunovAdvector.h>
+
 // STOOLS INCLUDES
-#include <stools/LinearSolver.h>
 #include <stools/CCLaplaceOperator.h>
 #include <stools/CCPoissonFACOperator.h>
 #include <stools/HierarchyMathOps.h>
-
-// IBAMR INCLUDES
-#include <ibamr/AdvDiffHypPatchOps.h>
-#include <ibamr/ConvergenceMonitor.h>
-#include <ibamr/GodunovAdvector.h>
-#include <ibamr/PhysicalBCDataStrategy.h>
-#include <ibamr/SetDataStrategy.h>
+#include <stools/KrylovLinearSolver.h>
+#include <stools/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -29,6 +27,7 @@
 #include <GriddingAlgorithm.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <HyperbolicLevelIntegrator.h>
+#include <LocationIndexRobinBcCoefs.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <PoissonSpecifications.h>
@@ -81,10 +80,12 @@ class AdvDiffHierarchyIntegrator
       public virtual SAMRAI::tbox::Serializable
 {
 public:
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >               RefineAlgMap;
-    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > >  RefineSchedMap;
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > >          RefinePatchStrategyMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineSchedMap;
 
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenPatchStrategy<NDIM> > >          CoarsenPatchStrategyMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
 
     /*!
@@ -123,7 +124,8 @@ public:
     ///
     ///      registerAdvectedAndDiffusedQuantity(),
     ///      registerAdvectedAndDiffusedQuantityWithSourceTerm(),
-    ///      registerAdvectionVelocity()
+    ///      registerAdvectionVelocity(),
+    ///      setHomogeneousPhysicalBcCoef()
     ///
     ///  allow the specification of quantities to be advected and
     ///  diffused.
@@ -138,14 +140,14 @@ public:
      * advective term when conservation_form is true.  Otherwise,
      * non-conservative differencing is used to update the quantity.
      *
-     * Optional concrete SetDataStrategy and PhysicalBCDataStrategy
-     * objects allow for the specification of initial and boundary
-     * data for the advected and diffused quantity Q.  If an
-     * initialization object is not specified, Q is initialized to
-     * zero.  If a boundary condition object is not specified for Q,
-     * it is necessary that the computational domain have only
-     * periodic boundaries.  (I.e. the domain can have no "physical"
-     * boundaries.)
+     * Optional concrete STOOLS::SetDataStrategy and
+     * SAMRAI::solv::RobinBcCoefStrategy objects allow for the
+     * specification of initial and boundary data for the advected and
+     * diffused quantity Q.  If an initialization object is not
+     * specified, Q is initialized to zero.  If a boundary condition
+     * object is not specified for Q, it is necessary that the
+     * computational domain have only periodic boundaries.  (I.e. the
+     * domain can have no "physical" boundaries.)
      *
      * When the advected and diffused quantity Q is an incompressible
      * velocity field, an optional face centered gradient may be
@@ -158,8 +160,8 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<SetDataStrategy> Q_init=NULL,
-        SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc=NULL,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -171,17 +173,17 @@ public:
      * advective term when conservation_form is true.  Otherwise,
      * non-conservative differencing is used to update the quantity.
      *
-     * Optional concrete SetDataStrategy and PhysicalBCDataStrategy
-     * objects allow for the specification of initial and boundary
-     * data for the advected and diffused quantity Q.  If an
-     * initialization object is not specified, Q is initialized to
-     * zero.  If a boundary condition object is not specified for Q,
-     * it is necessary that the computational domain have only
-     * periodic boundaries.  (I.e. the domain can have no "physical"
-     * boundaries.)
+     * Optional concrete STOOLS::SetDataStrategy and
+     * SAMRAI::solv::RobinBcCoefStrategy objects allow for the
+     * specification of initial and boundary data for the advected and
+     * diffused quantity Q.  If an initialization object is not
+     * specified, Q is initialized to zero.  If a boundary condition
+     * object is not specified for Q, it is necessary that the
+     * computational domain have only periodic boundaries.  (I.e. the
+     * domain can have no "physical" boundaries.)
      *
      * The value of the source term is determined by an (optional)
-     * SetDataStrategy object.  This allows for the specification of
+     * STOOLS::SetDataStrategy object.  This allows for the specification of
      * either a constant or a time-dependent source term.  If this
      * object is not provided, the source term is initialized to zero.
      *
@@ -197,9 +199,9 @@ public:
         const double Q_mu,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<SetDataStrategy> Q_init=NULL,
-        SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc=NULL,
-        SAMRAI::tbox::Pointer<SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc=NULL,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -207,7 +209,7 @@ public:
      * integrator to advect the cell centered quantities registered
      * with the integrator.
      *
-     * An optional SetDataStrategy object allows for the specification
+     * An optional STOOLS::SetDataStrategy object allows for the specification
      * of a constant or time-dependent advection velocity.  If this
      * object is not provided, the advection velocity is initialized
      * to zero.
@@ -219,15 +221,23 @@ public:
     void registerAdvectionVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
         const bool u_is_div_free,
-        SAMRAI::tbox::Pointer<SetDataStrategy> u_set=NULL);
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> u_set=NULL);
 
     /*!
-     * Register a convergence monitor with the integrator, used to
-     * monitor the convergence of the computed solution to some
-     * reference solution.
+     * Set the SAMRAI::solv::RobinBcCoefStrategy object used to
+     * specify the homogeneous form of the physical boundary
+     * conditions.
+     *
+     * \note \a bc_coef may be NULL.  In this case, homogeneous
+     * Dirichlet boundary conditions are employed.
+     *
+     * \note The inhomogeneous terms employed for different quantities
+     * registered with the integrator may be different; however, the
+     * homogeneous terms must be identical for all quantities
+     * registered with the integrator.
      */
-    void registerConvergenceMonitor(
-        SAMRAI::tbox::Pointer<ConvergenceMonitor> monitor);
+    void setHomogeneousPhysicalBcCoef(
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
 
     ///
     ///  The following routines:
@@ -275,50 +285,6 @@ public:
      * to the configuration of the patch hierarchy.
      */
     bool isManagingHierarchyMathOps() const;
-
-    ///
-    ///  The following routines:
-    ///
-    ///      getHelmholtzSpecs(),
-    ///      getHelmholtzBcCoefs(),
-    ///      getHelmholtzSolvers(),
-    ///      maintainExtraSolvers()
-    ///
-    ///  allow other objects to access the Helmholtz solvers and
-    ///  related data used by this integrator.
-    ///
-
-    /*!
-     * Returns a vector containing pointers to the
-     * SAMRAI::solv::PoissonSpecifications objects employed by the
-     * integrator for the specified diffusivity.
-     */
-    std::vector<const SAMRAI::solv::PoissonSpecifications*> getHelmholtzSpecs(
-        const double mu);
-
-    /*!
-     * Returns a vector containing pointers to the
-     * SAMRAI::solv::RobinBcCoefStrategy objects employed by the
-     * integrator for the specified diffusivity.
-     */
-    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> getHelmholtzBcCoefs(
-        const double mu);
-
-    /*!
-     * Returns a vector containing pointers to the concrete linear
-     * solver objects employed by the integrator for the specified
-     * diffusivity.
-     */
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::LinearSolver> > getHelmholtzSolvers(
-        const double mu);
-
-    /*!
-     * Indicate that "extra" Helmholtz solvers should be maintained
-     * even if they aren't being used by the hierarchy integrator
-     * itself.
-     */
-    void maintainExtraSolvers(
-        const int coeff);
 
     ///
     ///  The following routines:
@@ -623,9 +589,6 @@ public:
      * level allowed in the hierarchy.  This may or may not affect the
      * data initialization process depending on the problem.
      *
-     * When a convergence monitor has been supplied to the integrator,
-     * this routine calls ConvergenceMonitor::initializeLevelData().
-     *
      * When assertion checking is active, an unrecoverable exception
      * will result if the hierarchy pointer is null, the level number
      * does not match any level in the hierarchy, or the old level
@@ -655,10 +618,6 @@ public:
      * integrator also invokes
      * STOOLS::HierarchyMathOps::setPatchHierarchy() and
      * STOOLS::HierarchyMathOps::resetLevels().
-     *
-     * When a convergence monitor has been supplied to the integrator,
-     * this routine calls
-     * ConvergenceMonitor::resetHierarchyConfiguration().
      *
      * When assertion checking is active, an unrecoverable exception
      * will result if the hierarchy pointer is null, any pointer to a
@@ -806,10 +765,9 @@ protected:
      * Objects to set initial and boundary conditions as well as
      * forcing terms for each advected and diffused quantity.
      */
-    std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >        d_Q_inits;
-    std::vector<SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> > d_Q_bcs;
-
-    std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >  d_F_sets;
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_Q_inits;
+    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* > d_Q_bcs;
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_F_sets;
 
     /*!
      * The diffusivity coefficients associated with each advected and
@@ -821,7 +779,7 @@ protected:
      * The advection velocity.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_var;
-    SAMRAI::tbox::Pointer<SetDataStrategy> d_u_set;
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_u_set;
     bool d_u_is_div_free;
 
 private:
@@ -902,12 +860,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
 
     /*
-     * The ConvergenceMonitor object is used to monitor the
-     * convergence of the computed solution to an exact solution.
-     */
-    SAMRAI::tbox::Pointer<ConvergenceMonitor> d_convergence_monitor;
-
-    /*
      * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic
      * operations needed to handle the explicit integration of
      * advection terms.
@@ -980,11 +932,13 @@ private:
     /*
      * Communications algorithms and schedules.
      */
-    RefineAlgMap    d_ralgs;
-    RefineSchedMap  d_rscheds;
+    RefineAlgMap           d_ralgs;
+    RefinePatchStrategyMap d_rstrategies;
+    RefineSchedMap         d_rscheds;
 
-    CoarsenAlgMap   d_calgs;
-    CoarsenSchedMap d_cscheds;
+    CoarsenAlgMap           d_calgs;
+    CoarsenPatchStrategyMap d_cstrategies;
+    CoarsenSchedMap         d_cscheds;
 
     /*
      * Linear solvers (one set for each diffusion coefficient) and
@@ -996,42 +950,26 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
 
-    std::string d_solver_package;
-    bool d_using_ksp_method;
     int d_max_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
 
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::LinearSolver> >                     d_helmholtz1_solvers;
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >                d_helmholtz1_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >      d_helmholtz1_specs;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > > d_helmholtz1_bc_coefs;
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >             d_helmholtz1_fac_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > >   d_helmholtz1_fac_pcs;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_homogeneous_bc_coef;
 
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::LinearSolver> >                     d_helmholtz2_solvers;
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >                d_helmholtz2_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >      d_helmholtz2_specs;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > > d_helmholtz2_bc_coefs;
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >             d_helmholtz2_fac_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > >   d_helmholtz2_fac_pcs;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> >             d_helmholtz1_solvers;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >              d_helmholtz1_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz1_specs;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >           d_helmholtz1_fac_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > d_helmholtz1_fac_pcs;
 
-    bool d_maintain_helmholtz3_solvers;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> >             d_helmholtz2_solvers;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >              d_helmholtz2_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz2_specs;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >           d_helmholtz2_fac_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > d_helmholtz2_fac_pcs;
 
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::LinearSolver> >                     d_helmholtz3_solvers;
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >                d_helmholtz3_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >      d_helmholtz3_specs;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > > d_helmholtz3_bc_coefs;
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >             d_helmholtz3_fac_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > >   d_helmholtz3_fac_pcs;
-
-    bool d_maintain_helmholtz4_solvers;
-
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::LinearSolver> >                     d_helmholtz4_solvers;
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >                d_helmholtz4_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >      d_helmholtz4_specs;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > > d_helmholtz4_bc_coefs;
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >             d_helmholtz4_fac_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > >   d_helmholtz4_fac_pcs;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz3_specs;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz4_specs;
 
     std::map<double,bool> d_helmholtz_solvers_need_init;
     int d_coarsest_reset_ln, d_finest_reset_ln;

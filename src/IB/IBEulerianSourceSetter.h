@@ -3,12 +3,12 @@
 
 // Filename: IBEulerianForceSetter.h
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <04.Oct.2006 19:52:29 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <13.Feb.2007 03:23:44 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/SetDataStrategy.h>
+// STOOLS INCLUDES
+#include <stools/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <Patch.h>
@@ -24,7 +24,7 @@ namespace IBAMR
  * grid during an IB computation.
  */
 class IBEulerianSourceSetter
-    : public SetDataStrategy
+    : public STOOLS::SetDataStrategy
 {
 public:
     /*!

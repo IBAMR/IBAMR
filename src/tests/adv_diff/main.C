@@ -28,7 +28,8 @@
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/ConvergenceMonitor.h>
+#include <LocationIndexRobinBcCoefs.h>
+
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/GodunovAdvector.h>
 
@@ -222,13 +223,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    bool monitor_convergence = false;
-    if (main_db->keyExists("monitor_convergence"))
-    {
-        monitor_convergence = main_db->
-            getBool("monitor_convergence");
-    }
-
     const bool write_restart = restart_interval > 0
         && !restart_write_dirname.empty();
 
@@ -271,9 +265,11 @@ int main(int argc, char* argv[])
             predictor);
 
     tbox::Pointer< pdat::CellVariable<NDIM,double> > Q = new pdat::CellVariable<NDIM,double>("Q");
-    tbox::Pointer< pdat::FaceVariable<NDIM,double> > u = new pdat::FaceVariable<NDIM,double>("u");
-
     QInit q_init("QInit", grid_geometry, input_db->getDatabase("QInit"));
+    solv::LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
+        "physical_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs"));
+
+    tbox::Pointer< pdat::FaceVariable<NDIM,double> > u = new pdat::FaceVariable<NDIM,double>("u");
     USet u_set("USet", grid_geometry, input_db->getDatabase("USet"));
 
     const bool u_is_div_free = true;
@@ -283,7 +279,8 @@ int main(int argc, char* argv[])
     const double kappa = input_db->getDatabase("QInit")->getDouble("kappa");
     const bool consv_form = false;
     time_integrator->registerAdvectedAndDiffusedQuantity(
-        Q, kappa, consv_form, tbox::Pointer<SetDataStrategy>(&q_init,false));
+        Q, kappa, consv_form, tbox::Pointer<SetDataStrategy>(&q_init,false),
+        &physical_bc_coef);
 
     tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
         new mesh::StandardTagAndInitialize<NDIM>(
@@ -294,15 +291,17 @@ int main(int argc, char* argv[])
     tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
 
     tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
-        new mesh::LoadBalancer<NDIM>("LoadBalancer",
-                                     input_db->getDatabase("LoadBalancer"));
+        new mesh::LoadBalancer<NDIM>(
+            "LoadBalancer",
+            input_db->getDatabase("LoadBalancer"));
 
     tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm =
-        new mesh::GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                          input_db->getDatabase("GriddingAlgorithm"),
-                                          error_detector,
-                                          box_generator,
-                                          load_balancer);
+        new mesh::GriddingAlgorithm<NDIM>(
+            "GriddingAlgorithm",
+            input_db->getDatabase("GriddingAlgorithm"),
+            error_detector,
+            box_generator,
+            load_balancer);
 
     /*
      * Set up visualization plot file writer.
@@ -411,34 +410,6 @@ int main(int argc, char* argv[])
             visit_data_writer->writePlotData(
                 patch_hierarchy, iteration_num, loop_time);
         }
-    }
-
-    /*
-     * Monitor the accuracy of the computed solution.
-     */
-    if (monitor_convergence)
-    {
-        tbox::Pointer<ConvergenceMonitor> conv_monitor = new ConvergenceMonitor("ConvergenceMonitor");
-
-        conv_monitor->registerMonitoredVariableAndContext(
-            Q, time_integrator->getCurrentContext(),
-            tbox::Pointer<SetDataStrategy>(&q_init, false));
-
-        const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        const bool initial_time = false;
-
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            conv_monitor->initializeLevelData(
-                patch_hierarchy, ln, time_integrator->getIntegratorTime(),
-                (ln < finest_ln), initial_time);
-        }
-
-        conv_monitor->resetHierarchyConfiguration(
-            patch_hierarchy, coarsest_ln, finest_ln);
-        conv_monitor->monitorConvergence(
-            time_integrator->getIntegratorTime());
     }
 
     /*

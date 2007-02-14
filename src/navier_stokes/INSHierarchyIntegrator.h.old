@@ -2,14 +2,13 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <01.Feb.2007 22:11:58 boyce@bigboy.nyconnect.com>
+// Last modified: <13.Feb.2007 03:38:01 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
-#include <ibamr/ConvergenceMonitor.h>
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/HierarchyProjector.h>
 #include <ibamr/SetDataStrategy.h>
@@ -173,13 +172,6 @@ public:
      */
     void registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
-
-    /*!
-     * Register a convergence monitor, used to determine convergence
-     * for problems with known analytic solutions.
-     */
-    void registerConvergenceMonitor(
-        SAMRAI::tbox::Pointer<ConvergenceMonitor> monitor);
 
     ///
     ///  The following routines:
@@ -896,12 +888,6 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
-
-    /*
-     * The ConvergenceMonitor object is used to monitor the
-     * convergence of the computed solution to an exact solution.
-     */
-    SAMRAI::tbox::Pointer<ConvergenceMonitor> d_convergence_monitor;
 
     /*
      * We cache a pointer to the VisIt data writer to register plot

@@ -13,6 +13,7 @@ GodunovAdvector {
 }
 
 GodunovHypPatchOps {
+   extrap_type = "LINEAR"
    Refinement_data {
 //    refine_criteria = "QVAL_RICHARDSON", "QVAL_GRADIENT"
       refine_criteria = "QVAL_GRADIENT"
@@ -28,21 +29,21 @@ GodunovHypPatchOps {
 }
 
 QInit {
-   init_type = "GAUSSIAN"
-   kappa = 0.001
+// init_type = "GAUSSIAN"
+// kappa = 0.001
 
-// init_type = "ZALESAK"
-// zalesak_r = 0.15
-// zalesak_slot_w = 0.025
-// zalesak_slot_l = 0.1
-// X = 0.5, 0.5
+   init_type = "ZALESAK"
+   zalesak_r = 0.15
+   zalesak_slot_w = 0.025
+   zalesak_slot_l = 0.1
+   X = 0.5, 0.5
 
 // init_type = "SINUSOIDAL"
 }
 
 LocationIndexRobinBcCoefs {
-   boundary_0 = "value", "10.0"
-   boundary_1 = "value", "0.0"
+   boundary_0 = "value", "1.0"
+   boundary_1 = "value", "1.0"
    boundary_2 = "value", "0.0"
    boundary_3 = "value", "0.0"
 }
@@ -54,14 +55,14 @@ USet {
 // omega = 1.0 , 1.0
 // omega = 10.0*PI , 10.0*PI
 
-// init_type = "VORTEX"
+   init_type = "VORTEX"
 
-   init_type = "UNIFORM"
-   uniform_u = 1.0, 1.0
+// init_type = "UNIFORM"
+// uniform_u = 1.0, 1.0
 }
 
-N = 8
-LEVS = 6
+N = 128
+LEVS = 1
 NMAX = N*(2^(LEVS - 1))
 
 Main {
@@ -71,7 +72,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NMAX/N     // zero to turn off
+   viz_dump_interval     = 1          // zero to turn off
    viz_dump_dirname      = "viz_advect2d"
    visit_number_procs_per_file = 1
 
@@ -83,7 +84,7 @@ Main {
    monitor_convergence = TRUE
 
 // application parameters
-   timestepping = "SYNCHRONIZED"
+   timestepping = "REFINED"
    u_is_div_free = TRUE
    consv_form = TRUE
 }
@@ -92,7 +93,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         =  0 , 0         // lower end of computational domain.
    x_up         =  1 , 1         // upper end of computational domain.
-   periodic_dimension = 0,0
+   periodic_dimension = 0,1
 }
 
 GriddingAlgorithm {
@@ -131,15 +132,15 @@ StandardTagAndInitialize {
 }
 
 HyperbolicLevelIntegrator {
-   cfl                      = 0.4975 // max cfl factor used in problem
-   cfl_init                 = 0.4975 // initial cfl factor
+   cfl                      = 0.9975 // max cfl factor used in problem
+   cfl_init                 = 0.9975 // initial cfl factor
    lag_dt_computation       = FALSE
    use_ghosts_to_compute_dt = FALSE
 }
 
 TimeRefinementIntegrator {
    start_time            = 0.e0     // initial simulation time
-   end_time              = 1.e0     // final simulation time
+   end_time              = 2*PI     // final simulation time
    grow_dt               = 1.1e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
 // tag_buffer            = 1,1,1,1  // a max of 4 finer levels in hierarchy

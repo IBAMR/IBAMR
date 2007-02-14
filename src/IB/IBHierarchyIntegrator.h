@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <27.Jan.2007 19:01:23 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Feb.2007 03:29:49 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -16,7 +16,9 @@
 #include <ibamr/LDataManager.h>
 #include <ibamr/LNodeInitStrategy.h>
 #include <ibamr/LagSiloDataWriter.h>
-#include <ibamr/SetDataStrategy.h>
+
+// STOOLS INCLUDES
+#include <stools/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -86,7 +88,7 @@ public:
      * density.
      */
     void registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<SetDataStrategy> body_force_set);
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> body_force_set);
 
     /*!
      * Register a concrete strategy object with the integrator that
@@ -627,7 +629,7 @@ private:
     /*
      * The force generators.
      */
-    SAMRAI::tbox::Pointer<SetDataStrategy> d_body_force_set;
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_body_force_set;
     SAMRAI::tbox::Pointer<IBEulerianForceSetter> d_eulerian_force_set;
     SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_force_strategy;
     bool d_force_strategy_needs_init;

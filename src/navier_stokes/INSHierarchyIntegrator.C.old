@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <01.Feb.2007 22:26:37 boyce@bigboy.nyconnect.com>
+// Last modified: <13.Feb.2007 03:37:42 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -394,17 +394,6 @@ INSHierarchyIntegrator::registerVisItDataWriter(
     d_visit_writer = visit_writer;
     return;
 }// registerVisItDataWriter
-
-void
-INSHierarchyIntegrator::registerConvergenceMonitor(
-    SAMRAI::tbox::Pointer<ConvergenceMonitor> monitor)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!(monitor.isNull()));
-#endif
-    d_convergence_monitor = monitor;
-    return;
-}// registerConvergenceMonitor
 
 ///
 ///  The following routines:
@@ -2347,16 +2336,6 @@ INSHierarchyIntegrator::initializeLevelData(
                             can_be_refined, initial_time, old_level,
                             allocate_data);
 
-    // If a ConvergenceMonitor object is registered with the
-    // integrator, initialize any level data associated with it.
-    if (!d_convergence_monitor.isNull())
-    {
-        d_convergence_monitor->
-            initializeLevelData(hierarchy, level_number, init_data_time,
-                                can_be_refined, initial_time, old_level,
-                                allocate_data);
-    }
-
     // Allocate storage needed to initialize the level and fill
     // data from coarser levels in AMR hierarchy, if any.
     //
@@ -2691,10 +2670,6 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
     // possible.
     d_adv_diff_hier_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     d_hier_projector          ->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
-
-    // If a ConvergenceMonitor object is registered with the
-    // integrator, reset any data associated with it.
-    if (!d_convergence_monitor.isNull()) d_convergence_monitor->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
     // Indicate that the velocity field needs to be re-projected (but
     // only in the multi-level case).

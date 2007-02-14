@@ -2,13 +2,13 @@
 #define included_USet
 
 // Filename: USet.h
-// Last modified: <25.Oct.2006 17:53:31 boyce@bigboy.nyconnect.com>
+// Last modified: <13.Feb.2007 15:23:52 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/SetDataStrategy.h>
+// STOOLS INCLUDES
+#include <stools/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -17,8 +17,8 @@
 #include <tbox/Database.h>
 
 // NAMESPACE
-using namespace IBAMR;
 using namespace SAMRAI;
+using namespace STOOLS;
 using namespace std;
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

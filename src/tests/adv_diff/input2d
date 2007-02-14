@@ -78,6 +78,13 @@ QInit {
   kappa = 0.01
 }
 
+LocationIndexRobinBcCoefs {
+   boundary_0 = "value", "0.0"
+   boundary_1 = "value", "0.0"
+   boundary_2 = "value", "0.0"
+   boundary_3 = "value", "0.0"
+}
+
 USet {
   init_type = "UNIFORM"
   uniform_u = 10.0,-5.0
@@ -112,7 +119,7 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels             = 2    // Maximum number of levels in hierarchy.
+   max_levels             = 1    // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1             = 2,2  // vector ratio to next coarser level
       level_2             = 2,2

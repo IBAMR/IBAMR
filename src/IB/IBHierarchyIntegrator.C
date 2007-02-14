@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <09.Feb.2007 22:36:36 boyce@bigboy.nyconnect.com>
+// Last modified: <13.Feb.2007 03:28:34 boyce@bigboy.nyconnect.com>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -247,7 +247,7 @@ IBHierarchyIntegrator::~IBHierarchyIntegrator()
 
 void
 IBHierarchyIntegrator::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<SetDataStrategy> body_force_set)
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> body_force_set)
 {
     d_body_force_set = body_force_set;
     return;

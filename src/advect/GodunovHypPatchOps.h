@@ -2,14 +2,16 @@
 #define included_GodunovHypPatchOps
 
 // Filename: GodunovHypPatchOps.h
-// Last modified: <12.Feb.2007 01:05:01 boyce@bigboy.nyconnect.com>
+// Last modified: <14.Feb.2007 01:48:28 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/GodunovAdvector.h>
-#include <ibamr/SetDataStrategy.h>
+
+// STOOLS INCLUDES
+#include <stools/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -153,8 +155,8 @@ public:
     void registerAdvectedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<SetDataStrategy> Q_init=NULL,
-        SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > Q_bc=NULL,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -195,9 +197,9 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<SetDataStrategy> Q_init=NULL,
-        SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > Q_bc=NULL,
-        SAMRAI::tbox::Pointer<SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc=NULL,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -221,7 +223,7 @@ public:
     void registerAdvectionVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
         const bool u_is_div_free,
-        SAMRAI::tbox::Pointer<SetDataStrategy> u_set=NULL);
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> u_set=NULL);
 
 #if (NDIM>1)
     /*!
@@ -236,6 +238,9 @@ public:
     ///
     ///  The following routines:
     ///
+    ///      setupAdvancePatchState(),
+    ///      setupInitializePatchState(),
+    ///      clearPatchState(),
     ///      registerModelVariables(),
     ///      initializeDataOnPatch(),
     ///      computeStableDtOnPatch(),
@@ -249,6 +254,50 @@ public:
     ///  are concrete implementations of functions declared in the
     ///  SAMRAI::algs::HyperbolicPatchStrategy abstract base class.
     ///
+
+    /*!
+     * Indicate that the patch strategy is presently being used to
+     * advance the solution state forward in time.
+     *
+     * This method is used by class GodunovHypPatchOps to determine
+     * the manner in which physical boundary conditions are
+     * determined.  In particular, when advancing the solution forward
+     * in time, appropriate boundary conditions are determined at
+     * inflow boundaries by making use of the boundary condition
+     * specification objects.  At outflow boundaries, constant or
+     * linear extrapolation is employed to set physical boundary ghost
+     * cell values.
+     */
+    virtual void setupAdvancePatchState(
+        const double current_time,
+        const double new_time,
+        const bool first_step,
+        const bool last_step,
+        const bool regrid_advance);
+
+    /*!
+     * Indicate that the patch strategy is presently being used to
+     * initialize data on the patch hierarchy, either at the initial
+     * simulation time, or later times during the adaptive regridding
+     * process.
+     *
+     * This method is used by class GodunovHypPatchOps to determine
+     * the manner in which physical boundary conditions are
+     * determined.  In particular, when (re-)initializing the
+     * solution, constant or linear extrapolation is employed to
+     * physical boundary ghost cell values at all physical boundaries.
+     */
+    virtual void setupInitializePatchState(
+        const double init_data_time,
+        const bool can_be_refined,
+        const bool initial_time);
+
+    /*!
+     * Indicate that the patch strategy is not presently being used
+     * either to advance the solution data forward in time, or to
+     * initialize data on the patch hierarchy.
+     */
+    virtual void clearPatchState();
 
     /*!
      * \brief Register GodunovHypPatchOps model variables with the
@@ -444,11 +493,19 @@ protected:
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context);
 
     /*!
-     * \brief Set the data in ghost cells corresponding to physical
-     * boundary conditions at outflow boundaries.
+     * \brief Set the data in ghost cells via constant or linear
+     * extrapolation at inflow boundaries.
+     */
+    virtual void setInflowBoundaryConditions(
+        SAMRAI::hier::Patch<NDIM>& patch,
+        const double fill_time,
+        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+
+    /*!
+     * \brief Set the data in ghost cells via constant or linear
+     * extrapolation at outflow boundaries.
      */
     virtual void setOutflowBoundaryConditions(
-        const int patch_data_idx,
         SAMRAI::hier::Patch<NDIM>& patch,
         const double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
@@ -466,10 +523,20 @@ protected:
     SAMRAI::tbox::Pointer<GodunovAdvector> d_godunov_advector;
 
     /*
+     * Boolean values that indicate whether we are presently advancing
+     * the solution forward in time or initializing the solution
+     * (either at the initial time, or during adaptive regridding).
+     *
+     * Double precision values are used to keep track of the current
+     * and new times when advancing the solution state.
+     */
+    bool d_advance_soln, d_initialize_soln;
+    double d_current_time, d_new_time;
+
+    /*
      * Advected quantities Q, source terms F (possibly NULL) and the
      * optional face-centered gradient terms used to enforce
      * incompressibility.
-
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_vars;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_vars;
@@ -503,16 +570,15 @@ protected:
      * Objects to set initial and boundary conditions as well as
      * forcing terms for each advected quantity.
      */
-    std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >                          d_Q_inits;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > > d_Q_bcs;
-
-    std::vector<SAMRAI::tbox::Pointer<SetDataStrategy> >  d_F_sets;
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_Q_inits;
+    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* > d_Q_bcs;
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_F_sets;
 
     /*
      * The advection velocity.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_var;
-    SAMRAI::tbox::Pointer<SetDataStrategy> d_u_set;
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_u_set;
     bool d_u_is_div_free, d_u_is_registered;
     bool d_compute_init_velocity, d_compute_half_velocity, d_compute_final_velocity;
 

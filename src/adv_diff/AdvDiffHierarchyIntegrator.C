@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <09.Feb.2007 20:33:45 boyce@bigboy.nyconnect.com>
+// Last modified: <14.Feb.2007 02:33:13 boyce@bigboy.nyconnect.com>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -17,7 +17,7 @@
 #endif
 
 // STOOLS INCLUDES
-#include <stools/KrylovLinearSolver.h>
+#include <stools/CartRobinPhysBdryOp.h>
 #include <stools/FACPreconditionerLSWrapper.h>
 #include <stools/PETScKrylovLinearSolver.h>
 
@@ -27,7 +27,6 @@
 #include <CoarsenOperator.h>
 #include <HierarchyDataOpsManager.h>
 #include <RefineOperator.h>
-#include <SimpleCellRobinBcCoefs.h>
 #include <VariableDatabase.h>
 #include <tbox/NullDatabase.h>
 #include <tbox/RestartManager.h>
@@ -94,7 +93,6 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_registered_for_restart(register_for_restart),
       d_hierarchy(hierarchy),
       d_gridding_alg(NULL),
-      d_convergence_monitor(NULL),
       d_hyp_level_integrator(NULL),
       d_hyp_patch_ops(NULL),
       d_start_time(0.0),
@@ -115,8 +113,10 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_wgt_var(NULL),
       d_wgt_idx(-1),
       d_ralgs(),
+      d_rstrategies(),
       d_rscheds(),
       d_calgs(),
+      d_cstrategies(),
       d_cscheds(),
       d_sol_var(),
       d_rhs_var(),
@@ -126,37 +126,24 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_tmp_idx(-1),
       d_sol_vec(NULL),
       d_rhs_vec(NULL),
-      d_solver_package("PETSc"),
-      d_using_ksp_method(true),
       d_max_iterations(25),
       d_abs_residual_tol(1.0e-30),
       d_rel_residual_tol(1.0e-8),
+      d_default_bc_coef(new SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>(
+                            d_object_name+"::default_bc_coef", SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL))),
+      d_homogeneous_bc_coef(NULL),
       d_helmholtz1_solvers(),
       d_helmholtz1_ops(),
       d_helmholtz1_specs(),
-      d_helmholtz1_bc_coefs(),
       d_helmholtz1_fac_ops(),
       d_helmholtz1_fac_pcs(),
       d_helmholtz2_solvers(),
       d_helmholtz2_ops(),
       d_helmholtz2_specs(),
-      d_helmholtz2_bc_coefs(),
       d_helmholtz2_fac_ops(),
       d_helmholtz2_fac_pcs(),
-      d_maintain_helmholtz3_solvers(false),
-      d_helmholtz3_solvers(),
-      d_helmholtz3_ops(),
       d_helmholtz3_specs(),
-      d_helmholtz3_bc_coefs(),
-      d_helmholtz3_fac_ops(),
-      d_helmholtz3_fac_pcs(),
-      d_maintain_helmholtz4_solvers(false),
-      d_helmholtz4_solvers(),
-      d_helmholtz4_ops(),
       d_helmholtz4_specs(),
-      d_helmholtz4_bc_coefs(),
-      d_helmholtz4_fac_ops(),
-      d_helmholtz4_fac_pcs(),
       d_helmholtz_solvers_need_init(),
       d_coarsest_reset_ln(-1),
       d_finest_reset_ln(-1),
@@ -240,6 +227,15 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(
         cc_var, hierarchy);
 
+    // Setup a default boundary condition object that specifies
+    // homogeneous Dirichlet boundary conditions.
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
+        d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
+    }
+    setHomogeneousPhysicalBcCoef(d_default_bc_coef);
+
     // Setup Timers.
     static bool timers_need_init = true;
     if (timers_need_init)
@@ -293,28 +289,17 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     d_helmholtz1_fac_ops.clear();
     d_helmholtz1_ops.clear();
     d_helmholtz1_specs.clear();
-    d_helmholtz1_bc_coefs.clear();
 
     d_helmholtz2_solvers.clear();
     d_helmholtz2_fac_pcs.clear();
     d_helmholtz2_fac_ops.clear();
     d_helmholtz2_ops.clear();
     d_helmholtz2_specs.clear();
-    d_helmholtz2_bc_coefs.clear();
 
-    d_helmholtz3_solvers.clear();
-    d_helmholtz3_fac_pcs.clear();
-    d_helmholtz3_fac_ops.clear();
-    d_helmholtz3_ops.clear();
     d_helmholtz3_specs.clear();
-    d_helmholtz3_bc_coefs.clear();
-
-    d_helmholtz4_solvers.clear();
-    d_helmholtz4_fac_pcs.clear();
-    d_helmholtz4_fac_ops.clear();
-    d_helmholtz4_ops.clear();
     d_helmholtz4_specs.clear();
-    d_helmholtz4_bc_coefs.clear();
+
+    delete d_default_bc_coef;
 
     return;
 }// ~AdvDiffHierarchyIntegrator
@@ -346,8 +331,8 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const double Q_mu,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<SetDataStrategy> Q_init,
-    SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc,
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -374,7 +359,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
 
     d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
         Q_var, Psi_var, conservation_form, Q_init, Q_bc,
-        SAMRAI::tbox::Pointer<SetDataStrategy>(NULL), grad_var);
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>(NULL), grad_var);
 
     return;
 }// registerAdvectedAndDiffusedQuantity
@@ -385,9 +370,9 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     const double Q_mu,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<SetDataStrategy> Q_init,
-    SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc,
-    SAMRAI::tbox::Pointer<SetDataStrategy> F_set,
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc,
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -422,7 +407,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
 
     d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
         Q_var, Psi_var, conservation_form, Q_init, Q_bc,
-        SAMRAI::tbox::Pointer<SetDataStrategy>(NULL), grad_var);
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>(NULL), grad_var);
 
     return;
 }// registerAdvectedAndDiffusedQuantityWithSourceTerm
@@ -431,7 +416,7 @@ void
 AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
     const bool u_is_div_free,
-    SAMRAI::tbox::Pointer<SetDataStrategy> u_set)
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> u_set)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!u_var.isNull());
@@ -445,15 +430,23 @@ AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
 }// registerAdvectionVelocity
 
 void
-AdvDiffHierarchyIntegrator::registerConvergenceMonitor(
-    SAMRAI::tbox::Pointer<ConvergenceMonitor> monitor)
+AdvDiffHierarchyIntegrator::setHomogeneousPhysicalBcCoef(
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!monitor.isNull());
-#endif
-    d_convergence_monitor = monitor;
+    if (bc_coef != NULL)
+    {
+        d_homogeneous_bc_coef = bc_coef;
+    }
+    else
+    {
+        d_homogeneous_bc_coef = d_default_bc_coef;
+    }
+
+    d_rstrategies["sol->sol::CONSTANT_REFINE"] = new STOOLS::CartRobinPhysBdryOp(
+        d_tmp_idx, d_homogeneous_bc_coef, "LINEAR");
+
     return;
-}// registerConvergenceMonitor
+}// setHomogeneousPhysicalBcCoef
 
 ///
 ///  The following routines:
@@ -493,93 +486,6 @@ AdvDiffHierarchyIntegrator::isManagingHierarchyMathOps() const
 {
     return d_is_managing_hier_math_ops;
 }// isManagingHierarchyMathOps
-
-///
-///  The following routines:
-///
-///      getHelmholtzSpecs(),
-///      getHelmholtzBcCoefs(),
-///      getHelmholtzSolvers(),
-///      maintainExtraSolvers()
-///
-///  allow other objects to access the Helmholtz solvers and related
-///  data used by this integrator.
-///
-
-std::vector<const SAMRAI::solv::PoissonSpecifications*>
-AdvDiffHierarchyIntegrator::getHelmholtzSpecs(
-    const double mu)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_helmholtz1_specs.count(mu) > 0);
-    assert(d_helmholtz2_specs.count(mu) > 0);
-    assert(d_helmholtz3_specs.count(mu) > 0);
-    assert(d_helmholtz4_specs.count(mu) > 0);
-#endif
-    std::vector<const SAMRAI::solv::PoissonSpecifications*> return_vec;
-    return_vec.push_back(d_helmholtz1_specs[mu]);
-    return_vec.push_back(d_helmholtz2_specs[mu]);
-    return_vec.push_back(d_helmholtz3_specs[mu]);
-    return_vec.push_back(d_helmholtz4_specs[mu]);
-
-    return return_vec;
-}// getHelmholtzSpecs
-
-std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>
-AdvDiffHierarchyIntegrator::getHelmholtzBcCoefs(
-    const double mu)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_helmholtz1_bc_coefs.count(mu) > 0);
-    assert(d_helmholtz2_bc_coefs.count(mu) > 0);
-    assert(d_helmholtz3_bc_coefs.count(mu) > 0);
-    assert(d_helmholtz4_bc_coefs.count(mu) > 0);
-#endif
-    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> return_vec;
-    return_vec.push_back(d_helmholtz1_bc_coefs[mu]);
-    return_vec.push_back(d_helmholtz2_bc_coefs[mu]);
-    return_vec.push_back(d_helmholtz3_bc_coefs[mu]);
-    return_vec.push_back(d_helmholtz4_bc_coefs[mu]);
-
-    return return_vec;
-}// getHelmholtzBcCoefs
-
-std::vector<SAMRAI::tbox::Pointer<STOOLS::LinearSolver> >
-AdvDiffHierarchyIntegrator::getHelmholtzSolvers(
-    const double mu)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_helmholtz1_solvers.count(mu) > 0);
-    assert(d_helmholtz2_solvers.count(mu) > 0);
-#endif
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::LinearSolver> > return_vec;
-    return_vec.push_back(d_helmholtz1_solvers[mu]);
-    return_vec.push_back(d_helmholtz2_solvers[mu]);
-    return_vec.push_back(d_helmholtz3_solvers[mu]);
-    return_vec.push_back(d_helmholtz4_solvers[mu]);
-
-    return return_vec;
-}// getHelmholtzSolvers
-
-void
-AdvDiffHierarchyIntegrator::maintainExtraSolvers(
-    const int coeff)
-{
-    if (coeff == 3)
-    {
-        d_maintain_helmholtz3_solvers = true;
-    }
-    else if (coeff == 4)
-    {
-        d_maintain_helmholtz4_solvers = true;
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << "::maintainExtraSolvers()\n"
-                   << "  unknown solver coefficient: " << coeff << "\n");
-    }
-    return;
-}// maintainExtraSolvers
 
 ///
 ///  The following routines:
@@ -648,45 +554,45 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
 
         if (!F_var.isNull())
         {
-            d_hyp_level_integrator->
-                registerVariable(F_var, cell_ghosts,
-                                 SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
-                                 d_hierarchy->getGridGeometry(),
-                                 "CONSERVATIVE_COARSEN",
-                                 "CONSERVATIVE_LINEAR_REFINE");
+            d_hyp_level_integrator->registerVariable(
+                F_var, cell_ghosts,
+                SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
+                d_hierarchy->getGridGeometry(),
+                "CONSERVATIVE_COARSEN",
+                "CONSERVATIVE_LINEAR_REFINE");
         }
     }
 
     // Register rhs and sol data used by the linear solvers.
     d_sol_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
         "AdvDiffHierarchyIntegrator::sol",1);
-    d_hyp_level_integrator->
-        registerVariable(d_sol_var, cell_ghosts,
-                         SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::NO_FILL,
-                         d_hierarchy->getGridGeometry(),
-                         "NO_COARSEN", "NO_REFINE");
+    d_hyp_level_integrator->registerVariable(
+        d_sol_var, cell_ghosts,
+        SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::NO_FILL,
+        d_hierarchy->getGridGeometry(),
+        "NO_COARSEN", "NO_REFINE");
 
     d_sol_idx = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase()->
         mapVariableAndContextToIndex(d_sol_var, getCurrentContext());
 
     d_rhs_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
         "AdvDiffHierarchyIntegrator::rhs",1);
-    d_hyp_level_integrator->
-        registerVariable(d_rhs_var, cell_ghosts,
-                         SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::NO_FILL,
-                         d_hierarchy->getGridGeometry(),
-                         "NO_COARSEN", "NO_REFINE");
+    d_hyp_level_integrator->registerVariable(
+        d_rhs_var, cell_ghosts,
+        SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::NO_FILL,
+        d_hierarchy->getGridGeometry(),
+        "NO_COARSEN", "NO_REFINE");
 
     d_rhs_idx = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase()->
         mapVariableAndContextToIndex(d_rhs_var, getCurrentContext());
 
     d_tmp_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
         "AdvDiffHierarchyIntegrator::tmp",1);
-    d_hyp_level_integrator->
-        registerVariable(d_tmp_var, cell_ghosts,
-                         SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::NO_FILL,
-                         d_hierarchy->getGridGeometry(),
-                         "NO_COARSEN", "NO_REFINE");
+    d_hyp_level_integrator->registerVariable(
+        d_tmp_var, cell_ghosts,
+        SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::NO_FILL,
+        d_hierarchy->getGridGeometry(),
+        "NO_COARSEN", "NO_REFINE");
 
     d_tmp_idx = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase()->
         mapVariableAndContextToIndex(d_tmp_var, getCurrentContext());
@@ -702,15 +608,16 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator;
 
-    d_ralgs["sol->sol::::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-
+    d_ralgs["sol->sol::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
         d_sol_var, "CONSTANT_REFINE");
-    d_ralgs["sol->sol::::CONSTANT_REFINE"]->
+    d_ralgs["sol->sol::CONSTANT_REFINE"]->
         registerRefine(d_sol_idx, // destination
                        d_sol_idx, // source
                        d_tmp_idx, // temporary work space
                        refine_operator);
+    d_rstrategies["sol->sol::CONSTANT_REFINE"] = new STOOLS::CartRobinPhysBdryOp(
+        d_tmp_idx, d_homogeneous_bc_coef, "LINEAR");
 
     d_calgs["SYNCH_NEW_STATE_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
 
@@ -737,7 +644,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         d_is_managing_hier_math_ops = true;
     }
 
-    // Setup the FAC preconditioners.
+    // Setup the linear solver and operator data.
     std::set<double> initialized_mus;
     for (std::vector<double>::const_iterator it = d_Q_mus.begin();
          it != d_Q_mus.end(); ++it)
@@ -750,17 +657,18 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
             stream << mu;
             const std::string& mu_name = stream.str();
 
-            // Helmholtz problem #1 data
+            // Helmholtz solver/operator #1 data.
             d_helmholtz1_specs[mu] = new SAMRAI::solv::PoissonSpecifications(
                 d_object_name+"::Helmholtz Specs 1::"+mu_name);
-            d_helmholtz1_bc_coefs[mu] = new SAMRAI::solv::SimpleCellRobinBcCoefs<NDIM>();
+
+            d_helmholtz1_ops[mu] = new STOOLS::CCLaplaceOperator(
+                d_object_name+"::Helmholtz Operator 1::"+mu_name);
 
             d_helmholtz1_fac_ops[mu] = new STOOLS::CCPoissonFACOperator(
                 d_object_name+"::FAC Ops 1::"+mu_name, d_fac_ops_db);
             d_helmholtz1_fac_ops[mu]->setPoissonSpecifications(
                 *d_helmholtz1_specs[mu]);
-            d_helmholtz1_fac_ops[mu]->setPhysicalBcCoef(
-                d_helmholtz1_bc_coefs[mu]);
+            d_helmholtz1_fac_ops[mu]->setPhysicalBcCoef(d_homogeneous_bc_coef);
 
             d_helmholtz1_fac_pcs[mu] = new SAMRAI::solv::FACPreconditioner<NDIM>(
                 d_object_name+"::FAC Preconditioner 1::"+mu_name,
@@ -768,17 +676,29 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
             d_helmholtz1_fac_ops[mu]->setPreconditioner(
                 d_helmholtz1_fac_pcs[mu]);
 
-            // Helmholtz problem #2 data
+            d_helmholtz1_solvers[mu] = new STOOLS::PETScKrylovLinearSolver(
+                d_object_name+"::PETSc Krylov solver 1::"+mu_name, "adv_diff_");
+            d_helmholtz1_solvers[mu]->setMaxIterations(d_max_iterations);
+            d_helmholtz1_solvers[mu]->setAbsoluteTolerance(d_abs_residual_tol);
+            d_helmholtz1_solvers[mu]->setRelativeTolerance(d_rel_residual_tol);
+            d_helmholtz1_solvers[mu]->setInitialGuessNonzero(true);
+            d_helmholtz1_solvers[mu]->setOperator(d_helmholtz1_ops[mu]);
+            d_helmholtz1_solvers[mu]->setPreconditioner(
+                new STOOLS::FACPreconditionerLSWrapper(
+                    d_helmholtz1_fac_pcs[mu], d_fac_pcs_db));
+
+            // Helmholtz solver/operator #2 data.
             d_helmholtz2_specs[mu] = new SAMRAI::solv::PoissonSpecifications(
                 d_object_name+"::Helmholtz Specs 2::"+mu_name);
-            d_helmholtz2_bc_coefs[mu] = new SAMRAI::solv::SimpleCellRobinBcCoefs<NDIM>();
+
+            d_helmholtz2_ops[mu] = new STOOLS::CCLaplaceOperator(
+                d_object_name+"::Helmholtz Operator 2::"+mu_name);
 
             d_helmholtz2_fac_ops[mu] = new STOOLS::CCPoissonFACOperator(
                 d_object_name+"::FAC Ops 2::"+mu_name, d_fac_ops_db);
             d_helmholtz2_fac_ops[mu]->setPoissonSpecifications(
                 *d_helmholtz2_specs[mu]);
-            d_helmholtz2_fac_ops[mu]->setPhysicalBcCoef(
-                d_helmholtz2_bc_coefs[mu]);
+            d_helmholtz2_fac_ops[mu]->setPhysicalBcCoef(d_homogeneous_bc_coef);
 
             d_helmholtz2_fac_pcs[mu] = new SAMRAI::solv::FACPreconditioner<NDIM>(
                 d_object_name+"::FAC Preconditioner 2::"+mu_name,
@@ -786,163 +706,27 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
             d_helmholtz2_fac_ops[mu]->setPreconditioner(
                 d_helmholtz2_fac_pcs[mu]);
 
-            // Helmholtz problem #3 data
-            d_helmholtz3_specs[mu] = new SAMRAI::solv::PoissonSpecifications(
-                d_object_name+"::Helmholtz Specs 3::"+mu_name);
-            d_helmholtz3_bc_coefs[mu] = new SAMRAI::solv::SimpleCellRobinBcCoefs<NDIM>();
-
-            if (d_maintain_helmholtz3_solvers)
-            {
-                d_helmholtz3_fac_ops[mu] = new STOOLS::CCPoissonFACOperator(
-                    d_object_name+"::FAC Ops 3::"+mu_name, d_fac_ops_db);
-                d_helmholtz3_fac_ops[mu]->setPoissonSpecifications(
-                    *d_helmholtz3_specs[mu]);
-                d_helmholtz3_fac_ops[mu]->setPhysicalBcCoef(
-                    d_helmholtz3_bc_coefs[mu]);
-
-                d_helmholtz3_fac_pcs[mu] = new SAMRAI::solv::FACPreconditioner<NDIM>(
-                    d_object_name+"::FAC Preconditioner 3::"+mu_name,
-                    *d_helmholtz3_fac_ops[mu], d_fac_pcs_db);
-                d_helmholtz3_fac_ops[mu]->setPreconditioner(
-                    d_helmholtz3_fac_pcs[mu]);
-            }
-
-            // Helmholtz problem #4 data
-            d_helmholtz4_specs[mu] = new SAMRAI::solv::PoissonSpecifications(
-                d_object_name+"::Helmholtz Specs 4::"+mu_name);
-            d_helmholtz4_bc_coefs[mu] = new SAMRAI::solv::SimpleCellRobinBcCoefs<NDIM>();
-
-            if (d_maintain_helmholtz4_solvers)
-            {
-                d_helmholtz4_fac_ops[mu] = new STOOLS::CCPoissonFACOperator(
-                    d_object_name+"::FAC Ops 4::"+mu_name, d_fac_ops_db);
-                d_helmholtz4_fac_ops[mu]->setPoissonSpecifications(
-                    *d_helmholtz4_specs[mu]);
-                d_helmholtz4_fac_ops[mu]->setPhysicalBcCoef(
-                    d_helmholtz4_bc_coefs[mu]);
-
-                d_helmholtz4_fac_pcs[mu] = new SAMRAI::solv::FACPreconditioner<NDIM>(
-                    d_object_name+"::FAC Preconditioner 4::"+mu_name,
-                    *d_helmholtz4_fac_ops[mu], d_fac_pcs_db);
-                d_helmholtz4_fac_ops[mu]->setPreconditioner(
-                    d_helmholtz4_fac_pcs[mu]);
-            }
-
-            // Initialize the Helmholtz solvers.
-            if (d_solver_package == "PETSc")
-            {
-                d_helmholtz1_solvers[mu] = new STOOLS::PETScKrylovLinearSolver(
-                    d_object_name+"::PETSc Krylov solver 1::"+mu_name, "adv_diff_");
-                d_helmholtz2_solvers[mu] = new STOOLS::PETScKrylovLinearSolver(
-                    d_object_name+"::PETSc Krylov solver 2::"+mu_name, "adv_diff_");
-
-                if (d_maintain_helmholtz3_solvers)
-                {
-                    d_helmholtz3_solvers[mu] = new STOOLS::PETScKrylovLinearSolver(
-                        d_object_name+"::PETSc Krylov solver 3::"+mu_name, "adv_diff_");
-                }
-                if (d_maintain_helmholtz4_solvers)
-                {
-                    d_helmholtz4_solvers[mu] = new STOOLS::PETScKrylovLinearSolver(
-                        d_object_name+"::PETSc Krylov solver 4::"+mu_name, "adv_diff_");
-                }
-
-                d_using_ksp_method = true;
-            }
-            else if (d_solver_package == "SAMRAI")
-            {
-                d_helmholtz1_solvers[mu] = new STOOLS::FACPreconditionerLSWrapper(d_helmholtz1_fac_pcs[mu], d_fac_pcs_db);
-                d_helmholtz2_solvers[mu] = new STOOLS::FACPreconditionerLSWrapper(d_helmholtz2_fac_pcs[mu], d_fac_pcs_db);
-
-                if (d_maintain_helmholtz3_solvers)
-                {
-                    d_helmholtz3_solvers[mu] = new STOOLS::FACPreconditionerLSWrapper(d_helmholtz3_fac_pcs[mu], d_fac_pcs_db);
-                }
-                if (d_maintain_helmholtz4_solvers)
-                {
-                    d_helmholtz4_solvers[mu] = new STOOLS::FACPreconditionerLSWrapper(d_helmholtz4_fac_pcs[mu], d_fac_pcs_db);
-                }
-
-                d_using_ksp_method = false;
-            }
-            else
-            {
-                TBOX_ERROR(d_object_name << "::AdvDiffHierarchyIntegrator():\n" <<
-                           "  unknown linear solver package " << d_solver_package << "\n");
-            }
-
-            d_helmholtz1_solvers[mu]->setMaxIterations(d_max_iterations);
-            d_helmholtz1_solvers[mu]->setAbsoluteTolerance(d_abs_residual_tol);
-            d_helmholtz1_solvers[mu]->setRelativeTolerance(d_rel_residual_tol);
-
+            d_helmholtz2_solvers[mu] = new STOOLS::PETScKrylovLinearSolver(
+                d_object_name+"::PETSc Krylov solver 2::"+mu_name, "adv_diff_");
             d_helmholtz2_solvers[mu]->setMaxIterations(d_max_iterations);
             d_helmholtz2_solvers[mu]->setAbsoluteTolerance(d_abs_residual_tol);
             d_helmholtz2_solvers[mu]->setRelativeTolerance(d_rel_residual_tol);
+            d_helmholtz2_solvers[mu]->setInitialGuessNonzero(true);
+            d_helmholtz2_solvers[mu]->setOperator(d_helmholtz2_ops[mu]);
+            d_helmholtz2_solvers[mu]->setPreconditioner(
+                new STOOLS::FACPreconditionerLSWrapper(
+                    d_helmholtz2_fac_pcs[mu], d_fac_pcs_db));
 
-            if (d_maintain_helmholtz3_solvers)
-            {
-                d_helmholtz3_solvers[mu]->setMaxIterations(d_max_iterations);
-                d_helmholtz3_solvers[mu]->setAbsoluteTolerance(d_abs_residual_tol);
-                d_helmholtz3_solvers[mu]->setRelativeTolerance(d_rel_residual_tol);
-            }
-            if (d_maintain_helmholtz4_solvers)
-            {
-                d_helmholtz4_solvers[mu]->setMaxIterations(d_max_iterations);
-                d_helmholtz4_solvers[mu]->setAbsoluteTolerance(d_abs_residual_tol);
-                d_helmholtz4_solvers[mu]->setRelativeTolerance(d_rel_residual_tol);
-            }
+            // Helmholtz operator #3 data.
+            d_helmholtz3_specs[mu] = new SAMRAI::solv::PoissonSpecifications(
+                d_object_name+"::Helmholtz Specs 3::"+mu_name);
 
-            // Initilize the Helmholtz operators.
-            if (d_using_ksp_method)
-            {
-                d_helmholtz1_ops[mu] = new STOOLS::CCLaplaceOperator(d_object_name+"::Helmholtz Operator 1::"+mu_name);
-                d_helmholtz2_ops[mu] = new STOOLS::CCLaplaceOperator(d_object_name+"::Helmholtz Operator 2::"+mu_name);
+            // Helmholtz operator #4 data.
+            d_helmholtz4_specs[mu] = new SAMRAI::solv::PoissonSpecifications(
+                d_object_name+"::Helmholtz Specs 4::"+mu_name);
 
-                SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> krylov1_solver = d_helmholtz1_solvers[mu];
-                SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> krylov2_solver = d_helmholtz2_solvers[mu];
-#ifdef DEBUG_CHECK_ASSERTIONS
-                assert(!krylov1_solver.isNull());
-                assert(!krylov2_solver.isNull());
-#endif
-                krylov1_solver->setInitialGuessNonzero(true);
-                krylov2_solver->setInitialGuessNonzero(true);
-
-                krylov1_solver->setOperator(d_helmholtz1_ops[mu]);
-                krylov2_solver->setOperator(d_helmholtz2_ops[mu]);
-
-                krylov1_solver->setPreconditioner(
-                    new STOOLS::FACPreconditionerLSWrapper(d_helmholtz1_fac_pcs[mu], d_fac_pcs_db));
-                krylov2_solver->setPreconditioner(
-                    new STOOLS::FACPreconditionerLSWrapper(d_helmholtz2_fac_pcs[mu], d_fac_pcs_db));
-
-                if (d_maintain_helmholtz3_solvers)
-                {
-                    d_helmholtz3_ops[mu] = new STOOLS::CCLaplaceOperator(d_object_name+"::Helmholtz Operator 3::"+mu_name);
-                    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> krylov3_solver = d_helmholtz3_solvers[mu];
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(!krylov3_solver.isNull());
-#endif
-                    krylov3_solver->setInitialGuessNonzero(true);
-                    krylov3_solver->setOperator(d_helmholtz3_ops[mu]);
-                    krylov3_solver->setPreconditioner(
-                        new STOOLS::FACPreconditionerLSWrapper(d_helmholtz3_fac_pcs[mu], d_fac_pcs_db));
-                }
-                if (d_maintain_helmholtz4_solvers)
-                {
-                    d_helmholtz4_ops[mu] = new STOOLS::CCLaplaceOperator(d_object_name+"::Helmholtz Operator 4::"+mu_name);
-                    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> krylov4_solver = d_helmholtz4_solvers[mu];
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(!krylov4_solver.isNull());
-#endif
-                    krylov4_solver->setInitialGuessNonzero(true);
-                    krylov4_solver->setOperator(d_helmholtz4_ops[mu]);
-                    krylov4_solver->setPreconditioner(
-                        new STOOLS::FACPreconditionerLSWrapper(d_helmholtz4_fac_pcs[mu], d_fac_pcs_db));
-                }
-            }
-
+            // Indicate the the solvers need to be initialized.
             d_helmholtz_solvers_need_init[mu] = true;
-
             initialized_mus.insert(mu);
         }
     }
@@ -1205,7 +989,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var   = d_F_vars[l];
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_vars[l];
         const double mu = d_Q_mus[l];
-        SAMRAI::tbox::Pointer<SetDataStrategy> F_set = d_F_sets[l];
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set = d_F_sets[l];
 
         // Setup the right hand side for the advective flux
         // prediction.
@@ -1259,7 +1043,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                 laplace(Psi_current_idx, Psi_var  ,  // dst
                         mu_spec,                     // Poisson spec
                         d_sol_idx      , d_sol_var,  // src1
-                        d_rscheds["sol->sol::::CONSTANT_REFINE"],
+                        d_rscheds["sol->sol::CONSTANT_REFINE"],
                         d_integrator_time,           // src1_bdry_fill_time
                         1.0,                         // beta
                         F_current_idx, F_var,        // src2
@@ -1303,8 +1087,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
     // we use the TGA scheme (see below).
 
     // Indicate that all solvers need to be reinitialized if the
-    // current timestep is sufficiently different from the previous
-    // one.
+    // current timestep is different from the previous one.
     if (!SAMRAI::tbox::Utilities::deq(dt,d_old_dt))
     {
         for (std::map<double,bool>::iterator it = d_helmholtz_solvers_need_init.begin();
@@ -1322,35 +1105,24 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
         const double mu = d_Q_mus[l];
-        SAMRAI::tbox::Pointer<SetDataStrategy> F_set = d_F_sets[l];
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set = d_F_sets[l];
 
         SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications>    helmholtz1_spec   = d_helmholtz1_specs  [mu];
         SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator>           helmholtz1_fac_op = d_helmholtz1_fac_ops[mu];
         SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > helmholtz1_fac_pc = d_helmholtz1_fac_pcs[mu];
 
-        SAMRAI::tbox::Pointer<STOOLS::LinearSolver>                   helmholtz1_solver = d_helmholtz1_solvers[mu];
+        SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>             helmholtz1_solver = d_helmholtz1_solvers[mu];
         SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>              helmholtz1_op     = d_helmholtz1_ops    [mu];
 
         SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications>    helmholtz2_spec   = d_helmholtz2_specs  [mu];
         SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator>           helmholtz2_fac_op = d_helmholtz2_fac_ops[mu];
         SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > helmholtz2_fac_pc = d_helmholtz2_fac_pcs[mu];
 
-        SAMRAI::tbox::Pointer<STOOLS::LinearSolver>                   helmholtz2_solver = d_helmholtz2_solvers[mu];
+        SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>             helmholtz2_solver = d_helmholtz2_solvers[mu];
         SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>              helmholtz2_op     = d_helmholtz2_ops    [mu];
 
         SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications>    helmholtz3_spec   = d_helmholtz3_specs  [mu];
-        SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator>           helmholtz3_fac_op = d_helmholtz3_fac_ops[mu];
-        SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > helmholtz3_fac_pc = d_helmholtz3_fac_pcs[mu];
-
-        SAMRAI::tbox::Pointer<STOOLS::LinearSolver>                   helmholtz3_solver = d_helmholtz3_solvers[mu];
-        SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>              helmholtz3_op     = d_helmholtz3_ops    [mu];
-
         SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications>    helmholtz4_spec   = d_helmholtz4_specs  [mu];
-        SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator>           helmholtz4_fac_op = d_helmholtz4_fac_ops[mu];
-        SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > helmholtz4_fac_pc = d_helmholtz4_fac_pcs[mu];
-
-        SAMRAI::tbox::Pointer<STOOLS::LinearSolver>                   helmholtz4_solver = d_helmholtz4_solvers[mu];
-        SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>              helmholtz4_op     = d_helmholtz4_ops    [mu];
 
         // Coefficients corresponding to the TGA discretization.
         //
@@ -1391,54 +1163,22 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             helmholtz2_fac_op->setPoissonSpecifications(*helmholtz2_spec);
             helmholtz2_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
 
-            if (d_maintain_helmholtz3_solvers)
-            {
-                helmholtz3_fac_op->setPoissonSpecifications(*helmholtz3_spec);
-                helmholtz3_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
-            }
-
-            if (d_maintain_helmholtz4_solvers)
-            {
-                helmholtz4_fac_op->setPoissonSpecifications(*helmholtz4_spec);
-                helmholtz4_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
-            }
-
             // Setup the Krylov solvers.
-            if (d_using_ksp_method)
-            {
-                helmholtz1_op->setPoissonSpecifications(*helmholtz1_spec);
-                helmholtz1_op->setHierarchyMathOps(d_hier_math_ops);
-
-                helmholtz2_op->setPoissonSpecifications(*helmholtz2_spec);
-                helmholtz2_op->setHierarchyMathOps(d_hier_math_ops);
-
-                if (d_maintain_helmholtz3_solvers)
-                {
-                    helmholtz3_op->setPoissonSpecifications(*helmholtz3_spec);
-                    helmholtz3_op->setHierarchyMathOps(d_hier_math_ops);
-                }
-                if (d_maintain_helmholtz4_solvers)
-                {
-                    helmholtz4_op->setPoissonSpecifications(*helmholtz4_spec);
-                    helmholtz4_op->setHierarchyMathOps(d_hier_math_ops);
-                }
-            }
-
+            helmholtz1_op->setPoissonSpecifications(*helmholtz1_spec);
+            helmholtz1_op->setHierarchyMathOps(d_hier_math_ops);
             helmholtz1_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
+
+            helmholtz2_op->setPoissonSpecifications(*helmholtz2_spec);
+            helmholtz2_op->setHierarchyMathOps(d_hier_math_ops);
             helmholtz2_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
-            if (d_maintain_helmholtz3_solvers) helmholtz3_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
-            if (d_maintain_helmholtz4_solvers) helmholtz4_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
 
             d_helmholtz_solvers_need_init[mu] = false;
         }
 
-        if (d_using_ksp_method)
-        {
-            helmholtz1_op->setTime(d_integrator_time);
-            helmholtz2_op->setTime(d_integrator_time);
-            if (d_maintain_helmholtz3_solvers) helmholtz3_op->setTime(d_integrator_time);
-            if (d_maintain_helmholtz4_solvers) helmholtz4_op->setTime(d_integrator_time);
-        }
+        // Set the data times.
+        // XXXX these times are incorrect for time-dependent boundary conditions
+        helmholtz1_op->setTime(d_integrator_time);
+        helmholtz2_op->setTime(d_integrator_time);
 
         // Setup the rhs terms and solve the systems.
         const int Q_current_idx = var_db->
@@ -1494,7 +1234,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                 laplace(d_rhs_idx, d_rhs_var,  // dst
                         *helmholtz4_spec,      // Poisson spec
                         d_sol_idx, d_sol_var,  // src
-                        d_rscheds["sol->sol::::CONSTANT_REFINE"],
+                        d_rscheds["sol->sol::CONSTANT_REFINE"],
                         d_integrator_time);    // src_bdry_fill_time
 
             // Setup the rhs data part 2:
@@ -1523,7 +1263,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                 laplace(d_rhs_idx, d_rhs_var,   // dst
                         *helmholtz3_spec,       // Poisson spec
                         d_sol_idx, d_sol_var,   // src1
-                        d_rscheds["sol->sol::::CONSTANT_REFINE"],
+                        d_rscheds["sol->sol::CONSTANT_REFINE"],
                         d_integrator_time,      // src1_bdry_fill_time
                         dt,                     // gamma
                         d_rhs_idx, d_rhs_var);  // src2
@@ -1698,16 +1438,6 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
                             can_be_refined, initial_time, old_level,
                             allocate_data);
 
-    // If a ConvergenceMonitor object is registered with the
-    // integrator, initialize any level data associated with it.
-    if (!d_convergence_monitor.isNull())
-    {
-        d_convergence_monitor->
-            initializeLevelData(hierarchy, level_number, init_data_time,
-                                can_be_refined, initial_time, old_level,
-                                allocate_data);
-    }
-
     // Set the initial values of any forcing terms.
     if (initial_time)
     {
@@ -1722,7 +1452,7 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
             {
                 const int F_idx = var_db->mapVariableAndContextToIndex(
                     F_var, getCurrentContext());
-                SAMRAI::tbox::Pointer<SetDataStrategy> F_set = d_F_sets [l];
+                SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set = d_F_sets [l];
 
                 if (!F_set.isNull())
                 {
@@ -1776,14 +1506,6 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
     // management as possible.
     d_hyp_level_integrator->
         resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
-
-    // If a ConvergenceMonitor object is registered with the
-    // integrator, reset any data associated with it.
-    if (!d_convergence_monitor.isNull())
-    {
-        d_convergence_monitor->resetHierarchyConfiguration(
-            hierarchy, coarsest_level, finest_level);
-    }
 
     // Reset the Hierarchy data operations for the new hierarchy
     // configuration.
@@ -1845,7 +1567,8 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
 
             d_rscheds[(*it).first][ln] = (*it).second->
-                createSchedule(level, ln-1, hierarchy);
+                createSchedule(
+                    level, ln-1, hierarchy, d_rstrategies[(*it).first]);
         }
     }
 
@@ -1862,13 +1585,14 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
                 hierarchy->getPatchLevel(ln-1);
 
             d_cscheds[(*it).first][ln] = (*it).second->
-                createSchedule(coarser_level, level);
+                createSchedule(
+                    coarser_level, level, d_cstrategies[(*it).first]); // XXXX
         }
     }
 
     // Reset the "empty" schedule vectors.
-    d_rscheds["NONE"]=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(finest_hier_level+1);
-    d_cscheds["NONE"]=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(finest_hier_level+1);
+    d_rscheds["NONE"] = std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(finest_hier_level+1);
+    d_cscheds["NONE"] = std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(finest_hier_level+1);
 
     t_reset_hierarchy_configuration->stop();
     return;
@@ -2055,7 +1779,6 @@ AdvDiffHierarchyIntegrator::getFromInput(
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
 
-    d_solver_package = db->getStringWithDefault("solver_package", d_solver_package);
     d_max_iterations = db->getIntegerWithDefault("max_iterations", d_max_iterations);
     d_abs_residual_tol = db->getDoubleWithDefault("abs_residual_tol", d_abs_residual_tol);
     d_rel_residual_tol = db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol);

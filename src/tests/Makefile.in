@@ -162,7 +162,7 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = IB IB_multilevel IB_target adv_diff advect navier_stokes_analytic_soln navier_stokes_shear_layer pIB
+SUBDIRS = adv_diff advect
 all: all-recursive
 
 .SUFFIXES:
@@ -465,6 +465,7 @@ uninstall-info: uninstall-info-recursive
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+#SUBDIRS = IB IB_multilevel IB_target adv_diff advect navier_stokes_analytic_soln navier_stokes_shear_layer pIB
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

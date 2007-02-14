@@ -54,10 +54,7 @@ AR = ar
 ARFLAGS = cru
 libIBAMR_utilities2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_utilities2d_a_LIBADD =
-am__objects_1 = libIBAMR_utilities2d_a-ConvergenceMonitor.$(OBJEXT) \
-	libIBAMR_utilities2d_a-PhysicalBCDataStrategy.$(OBJEXT) \
-	libIBAMR_utilities2d_a-SetDataStrategy.$(OBJEXT) \
-	libIBAMR_utilities2d_a-Stashable.$(OBJEXT) \
+am__objects_1 = libIBAMR_utilities2d_a-Stashable.$(OBJEXT) \
 	libIBAMR_utilities2d_a-StashableFactory.$(OBJEXT) \
 	libIBAMR_utilities2d_a-StashableManager.$(OBJEXT) \
 	libIBAMR_utilities2d_a-StashableStream.$(OBJEXT) \
@@ -66,10 +63,7 @@ am_libIBAMR_utilities2d_a_OBJECTS = $(am__objects_1)
 libIBAMR_utilities2d_a_OBJECTS = $(am_libIBAMR_utilities2d_a_OBJECTS)
 libIBAMR_utilities3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_utilities3d_a_LIBADD =
-am__objects_2 = libIBAMR_utilities3d_a-ConvergenceMonitor.$(OBJEXT) \
-	libIBAMR_utilities3d_a-PhysicalBCDataStrategy.$(OBJEXT) \
-	libIBAMR_utilities3d_a-SetDataStrategy.$(OBJEXT) \
-	libIBAMR_utilities3d_a-Stashable.$(OBJEXT) \
+am__objects_2 = libIBAMR_utilities3d_a-Stashable.$(OBJEXT) \
 	libIBAMR_utilities3d_a-StashableFactory.$(OBJEXT) \
 	libIBAMR_utilities3d_a-StashableManager.$(OBJEXT) \
 	libIBAMR_utilities3d_a-StashableStream.$(OBJEXT) \
@@ -211,9 +205,8 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = .
 noinst_LIBRARIES = libIBAMR_utilities2d.a libIBAMR_utilities3d.a
-SOURCES = ConvergenceMonitor.C PhysicalBCDataStrategy.C SetDataStrategy.C Stashable.C StashableFactory.C StashableManager.C StashableStream.C get_version.C
-pkg_include_HEADERS = ConvergenceMonitor.h PhysicalBCDataStrategy.h \
-	SetDataStrategy.h Stashable.h StashableFactory.h \
+SOURCES = Stashable.C StashableFactory.C StashableManager.C StashableStream.C get_version.C
+pkg_include_HEADERS = Stashable.h StashableFactory.h \
 	StashableManager.h StashableStream.h get_version.h \
 	StashableManager.I StashableStream.I
 libIBAMR_utilities2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -273,17 +266,11 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-ConvergenceMonitor.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-SetDataStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-Stashable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-StashableFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-StashableManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-StashableStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-get_version.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-ConvergenceMonitor.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-SetDataStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-Stashable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-StashableFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-StashableManager.Po@am__quote@
@@ -303,48 +290,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-libIBAMR_utilities2d_a-ConvergenceMonitor.o: ConvergenceMonitor.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-ConvergenceMonitor.o -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities2d_a-ConvergenceMonitor.Tpo" -c -o libIBAMR_utilities2d_a-ConvergenceMonitor.o `test -f 'ConvergenceMonitor.C' || echo '$(srcdir)/'`ConvergenceMonitor.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_utilities2d_a-ConvergenceMonitor.Tpo" "$(DEPDIR)/libIBAMR_utilities2d_a-ConvergenceMonitor.Po"; else rm -f "$(DEPDIR)/libIBAMR_utilities2d_a-ConvergenceMonitor.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ConvergenceMonitor.C' object='libIBAMR_utilities2d_a-ConvergenceMonitor.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-ConvergenceMonitor.o `test -f 'ConvergenceMonitor.C' || echo '$(srcdir)/'`ConvergenceMonitor.C
-
-libIBAMR_utilities2d_a-ConvergenceMonitor.obj: ConvergenceMonitor.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-ConvergenceMonitor.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities2d_a-ConvergenceMonitor.Tpo" -c -o libIBAMR_utilities2d_a-ConvergenceMonitor.obj `if test -f 'ConvergenceMonitor.C'; then $(CYGPATH_W) 'ConvergenceMonitor.C'; else $(CYGPATH_W) '$(srcdir)/ConvergenceMonitor.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_utilities2d_a-ConvergenceMonitor.Tpo" "$(DEPDIR)/libIBAMR_utilities2d_a-ConvergenceMonitor.Po"; else rm -f "$(DEPDIR)/libIBAMR_utilities2d_a-ConvergenceMonitor.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ConvergenceMonitor.C' object='libIBAMR_utilities2d_a-ConvergenceMonitor.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-ConvergenceMonitor.obj `if test -f 'ConvergenceMonitor.C'; then $(CYGPATH_W) 'ConvergenceMonitor.C'; else $(CYGPATH_W) '$(srcdir)/ConvergenceMonitor.C'; fi`
-
-libIBAMR_utilities2d_a-PhysicalBCDataStrategy.o: PhysicalBCDataStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-PhysicalBCDataStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.Tpo" -c -o libIBAMR_utilities2d_a-PhysicalBCDataStrategy.o `test -f 'PhysicalBCDataStrategy.C' || echo '$(srcdir)/'`PhysicalBCDataStrategy.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.Tpo" "$(DEPDIR)/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PhysicalBCDataStrategy.C' object='libIBAMR_utilities2d_a-PhysicalBCDataStrategy.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-PhysicalBCDataStrategy.o `test -f 'PhysicalBCDataStrategy.C' || echo '$(srcdir)/'`PhysicalBCDataStrategy.C
-
-libIBAMR_utilities2d_a-PhysicalBCDataStrategy.obj: PhysicalBCDataStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-PhysicalBCDataStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.Tpo" -c -o libIBAMR_utilities2d_a-PhysicalBCDataStrategy.obj `if test -f 'PhysicalBCDataStrategy.C'; then $(CYGPATH_W) 'PhysicalBCDataStrategy.C'; else $(CYGPATH_W) '$(srcdir)/PhysicalBCDataStrategy.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.Tpo" "$(DEPDIR)/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_utilities2d_a-PhysicalBCDataStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PhysicalBCDataStrategy.C' object='libIBAMR_utilities2d_a-PhysicalBCDataStrategy.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-PhysicalBCDataStrategy.obj `if test -f 'PhysicalBCDataStrategy.C'; then $(CYGPATH_W) 'PhysicalBCDataStrategy.C'; else $(CYGPATH_W) '$(srcdir)/PhysicalBCDataStrategy.C'; fi`
-
-libIBAMR_utilities2d_a-SetDataStrategy.o: SetDataStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-SetDataStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities2d_a-SetDataStrategy.Tpo" -c -o libIBAMR_utilities2d_a-SetDataStrategy.o `test -f 'SetDataStrategy.C' || echo '$(srcdir)/'`SetDataStrategy.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_utilities2d_a-SetDataStrategy.Tpo" "$(DEPDIR)/libIBAMR_utilities2d_a-SetDataStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_utilities2d_a-SetDataStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SetDataStrategy.C' object='libIBAMR_utilities2d_a-SetDataStrategy.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-SetDataStrategy.o `test -f 'SetDataStrategy.C' || echo '$(srcdir)/'`SetDataStrategy.C
-
-libIBAMR_utilities2d_a-SetDataStrategy.obj: SetDataStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-SetDataStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities2d_a-SetDataStrategy.Tpo" -c -o libIBAMR_utilities2d_a-SetDataStrategy.obj `if test -f 'SetDataStrategy.C'; then $(CYGPATH_W) 'SetDataStrategy.C'; else $(CYGPATH_W) '$(srcdir)/SetDataStrategy.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_utilities2d_a-SetDataStrategy.Tpo" "$(DEPDIR)/libIBAMR_utilities2d_a-SetDataStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_utilities2d_a-SetDataStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SetDataStrategy.C' object='libIBAMR_utilities2d_a-SetDataStrategy.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-SetDataStrategy.obj `if test -f 'SetDataStrategy.C'; then $(CYGPATH_W) 'SetDataStrategy.C'; else $(CYGPATH_W) '$(srcdir)/SetDataStrategy.C'; fi`
 
 libIBAMR_utilities2d_a-Stashable.o: Stashable.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-Stashable.o -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities2d_a-Stashable.Tpo" -c -o libIBAMR_utilities2d_a-Stashable.o `test -f 'Stashable.C' || echo '$(srcdir)/'`Stashable.C; \
@@ -415,48 +360,6 @@ libIBAMR_utilities2d_a-get_version.obj: get_version.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='get_version.C' object='libIBAMR_utilities2d_a-get_version.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-get_version.obj `if test -f 'get_version.C'; then $(CYGPATH_W) 'get_version.C'; else $(CYGPATH_W) '$(srcdir)/get_version.C'; fi`
-
-libIBAMR_utilities3d_a-ConvergenceMonitor.o: ConvergenceMonitor.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-ConvergenceMonitor.o -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities3d_a-ConvergenceMonitor.Tpo" -c -o libIBAMR_utilities3d_a-ConvergenceMonitor.o `test -f 'ConvergenceMonitor.C' || echo '$(srcdir)/'`ConvergenceMonitor.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_utilities3d_a-ConvergenceMonitor.Tpo" "$(DEPDIR)/libIBAMR_utilities3d_a-ConvergenceMonitor.Po"; else rm -f "$(DEPDIR)/libIBAMR_utilities3d_a-ConvergenceMonitor.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ConvergenceMonitor.C' object='libIBAMR_utilities3d_a-ConvergenceMonitor.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-ConvergenceMonitor.o `test -f 'ConvergenceMonitor.C' || echo '$(srcdir)/'`ConvergenceMonitor.C
-
-libIBAMR_utilities3d_a-ConvergenceMonitor.obj: ConvergenceMonitor.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-ConvergenceMonitor.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities3d_a-ConvergenceMonitor.Tpo" -c -o libIBAMR_utilities3d_a-ConvergenceMonitor.obj `if test -f 'ConvergenceMonitor.C'; then $(CYGPATH_W) 'ConvergenceMonitor.C'; else $(CYGPATH_W) '$(srcdir)/ConvergenceMonitor.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_utilities3d_a-ConvergenceMonitor.Tpo" "$(DEPDIR)/libIBAMR_utilities3d_a-ConvergenceMonitor.Po"; else rm -f "$(DEPDIR)/libIBAMR_utilities3d_a-ConvergenceMonitor.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ConvergenceMonitor.C' object='libIBAMR_utilities3d_a-ConvergenceMonitor.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-ConvergenceMonitor.obj `if test -f 'ConvergenceMonitor.C'; then $(CYGPATH_W) 'ConvergenceMonitor.C'; else $(CYGPATH_W) '$(srcdir)/ConvergenceMonitor.C'; fi`
-
-libIBAMR_utilities3d_a-PhysicalBCDataStrategy.o: PhysicalBCDataStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-PhysicalBCDataStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.Tpo" -c -o libIBAMR_utilities3d_a-PhysicalBCDataStrategy.o `test -f 'PhysicalBCDataStrategy.C' || echo '$(srcdir)/'`PhysicalBCDataStrategy.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.Tpo" "$(DEPDIR)/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PhysicalBCDataStrategy.C' object='libIBAMR_utilities3d_a-PhysicalBCDataStrategy.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-PhysicalBCDataStrategy.o `test -f 'PhysicalBCDataStrategy.C' || echo '$(srcdir)/'`PhysicalBCDataStrategy.C
-
-libIBAMR_utilities3d_a-PhysicalBCDataStrategy.obj: PhysicalBCDataStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-PhysicalBCDataStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.Tpo" -c -o libIBAMR_utilities3d_a-PhysicalBCDataStrategy.obj `if test -f 'PhysicalBCDataStrategy.C'; then $(CYGPATH_W) 'PhysicalBCDataStrategy.C'; else $(CYGPATH_W) '$(srcdir)/PhysicalBCDataStrategy.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.Tpo" "$(DEPDIR)/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_utilities3d_a-PhysicalBCDataStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PhysicalBCDataStrategy.C' object='libIBAMR_utilities3d_a-PhysicalBCDataStrategy.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-PhysicalBCDataStrategy.obj `if test -f 'PhysicalBCDataStrategy.C'; then $(CYGPATH_W) 'PhysicalBCDataStrategy.C'; else $(CYGPATH_W) '$(srcdir)/PhysicalBCDataStrategy.C'; fi`
-
-libIBAMR_utilities3d_a-SetDataStrategy.o: SetDataStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-SetDataStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities3d_a-SetDataStrategy.Tpo" -c -o libIBAMR_utilities3d_a-SetDataStrategy.o `test -f 'SetDataStrategy.C' || echo '$(srcdir)/'`SetDataStrategy.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_utilities3d_a-SetDataStrategy.Tpo" "$(DEPDIR)/libIBAMR_utilities3d_a-SetDataStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_utilities3d_a-SetDataStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SetDataStrategy.C' object='libIBAMR_utilities3d_a-SetDataStrategy.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-SetDataStrategy.o `test -f 'SetDataStrategy.C' || echo '$(srcdir)/'`SetDataStrategy.C
-
-libIBAMR_utilities3d_a-SetDataStrategy.obj: SetDataStrategy.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-SetDataStrategy.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities3d_a-SetDataStrategy.Tpo" -c -o libIBAMR_utilities3d_a-SetDataStrategy.obj `if test -f 'SetDataStrategy.C'; then $(CYGPATH_W) 'SetDataStrategy.C'; else $(CYGPATH_W) '$(srcdir)/SetDataStrategy.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_utilities3d_a-SetDataStrategy.Tpo" "$(DEPDIR)/libIBAMR_utilities3d_a-SetDataStrategy.Po"; else rm -f "$(DEPDIR)/libIBAMR_utilities3d_a-SetDataStrategy.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SetDataStrategy.C' object='libIBAMR_utilities3d_a-SetDataStrategy.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-SetDataStrategy.obj `if test -f 'SetDataStrategy.C'; then $(CYGPATH_W) 'SetDataStrategy.C'; else $(CYGPATH_W) '$(srcdir)/SetDataStrategy.C'; fi`
 
 libIBAMR_utilities3d_a-Stashable.o: Stashable.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-Stashable.o -MD -MP -MF "$(DEPDIR)/libIBAMR_utilities3d_a-Stashable.Tpo" -c -o libIBAMR_utilities3d_a-Stashable.o `test -f 'Stashable.C' || echo '$(srcdir)/'`Stashable.C; \
