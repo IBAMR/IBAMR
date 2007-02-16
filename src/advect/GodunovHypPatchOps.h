@@ -2,7 +2,7 @@
 #define included_GodunovHypPatchOps
 
 // Filename: GodunovHypPatchOps.h
-// Last modified: <14.Feb.2007 01:48:28 boyce@bigboy.nyconnect.com>
+// Last modified: <15.Feb.2007 20:13:57 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -125,8 +125,9 @@ public:
     ///
 
     /*!
-     * \brief Register a cell-centered quantity to be advected by the
-     * GodunovAdvector according to the specified advection velocity.
+     * \brief Register a scalar-valued cell-centered quantity to be
+     * advected by the GodunovAdvector according to the specified
+     * advection velocity.
      *
      * Conservative differencing is employed in updating the value of
      * the quantity when \p conservation_form is true.  Otherwise,
@@ -156,13 +157,49 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc=NULL,
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
-     * \brief Register a cell-centered quantity to be advected by the
-     * GodunovAdvector according to the specified advection velocity
-     * and source term.
+     * \brief Register a vector-valued cell-centered quantity to be
+     * advected by the GodunovAdvector according to the specified
+     * advection velocity.
+     *
+     * Conservative differencing is employed in updating the value of
+     * the quantity when \p conservation_form is true.  Otherwise,
+     * non-conservative differencing is used to update the quantity.
+     *
+     * Optional concrete SetDataStrategy and
+     * SAMRAI::solv::RobinBcCoefStrategy objects allow for the
+     * specification of initial and boundary data for the advected
+     * quantity Q.  If an initialization object is not specified, Q is
+     * initialized to zero.  If a boundary condition object is not
+     * specified for Q, it is necessary that the computational domain
+     * have only periodic boundaries, i.e., the domain has no
+     * "physical" boundaries.
+     *
+     * When the advected quantity Q is an incompressible velocity
+     * field, an optional face-centered gradient may be specified that
+     * approximately enforces the incompressibility constraint.  The
+     * gradient is subtracted from the predicted face-centered and
+     * time-centered values prior to the computation of the advective
+     * fluxes.
+     *
+     * IMPORTANT NOTE: The advection velocity must be registered with
+     * the patch strategy prior to the registration of advected
+     * quantities.
+     */
+    void registerAdvectedQuantity(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        const bool conservation_form=true,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
+
+    /*!
+     * \brief Register a scalar-valued cell-centered quantity to be
+     * advected by the GodunovAdvector according to the specified
+     * advection velocity and source term.
      *
      * Conservative differencing is employed in updating the value of
      * the quantity when \p conservation_form is true.  Otherwise,
@@ -198,7 +235,50 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc=NULL,
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
+
+    /*!
+     * \brief Register a vector-valued cell-centered quantity to be
+     * advected by the GodunovAdvector according to the specified
+     * advection velocity and source term.
+     *
+     * Conservative differencing is employed in updating the value of
+     * the quantity when \p conservation_form is true.  Otherwise,
+     * non-conservative differencing is used to update the quantity.
+     *
+     * Optional concrete SetDataStrategy and
+     * SAMRAI::solv::RobinBcCoefStrategy objects allow for the
+     * specification of initial and boundary data for the advected
+     * quantity Q.  If an initialization object is not specified, Q is
+     * initialized to zero.  If a boundary condition object is not
+     * specified for Q, it is necessary that the computational domain
+     * have only periodic boundaries, i.e., that the domain has no
+     * "physical" boundaries.
+     *
+     * The value of the source term is determined by an (optional)
+     * SetDataStrategy object.  This allows for the specification of
+     * either a constant or a time-dependent source term.  If this
+     * object is not provided, the source term is initialized to zero.
+     *
+     * When the advected quantity Q is an incompressible velocity
+     * field, an optional face-centered gradient may be specified that
+     * approximately enforces the incompressibility constraint.  The
+     * gradient is subtracted from the predicted face-centered and
+     * time-centered values prior to the computation of the advective
+     * fluxes.
+     *
+     * IMPORTANT NOTE: The advection velocity must be registered with
+     * the patch strategy prior to the registration of advected
+     * quantities.
+     */
+    void registerAdvectedQuantityWithSourceTerm(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
+        const bool conservation_form=true,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
@@ -526,12 +606,8 @@ protected:
      * Boolean values that indicate whether we are presently advancing
      * the solution forward in time or initializing the solution
      * (either at the initial time, or during adaptive regridding).
-     *
-     * Double precision values are used to keep track of the current
-     * and new times when advancing the solution state.
      */
     bool d_advance_soln, d_initialize_soln;
-    double d_current_time, d_new_time;
 
     /*
      * Advected quantities Q, source terms F (possibly NULL) and the
@@ -571,7 +647,7 @@ protected:
      * forcing terms for each advected quantity.
      */
     std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_Q_inits;
-    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* > d_Q_bcs;
+    std::vector<std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coefs;
     std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_F_sets;
 
     /*

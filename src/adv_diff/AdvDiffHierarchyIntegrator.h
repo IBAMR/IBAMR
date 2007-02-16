@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <14.Feb.2007 01:48:24 boyce@bigboy.nyconnect.com>
+// Last modified: <15.Feb.2007 21:04:14 boyce@bigboy.nyconnect.com>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -19,6 +19,7 @@
 #include <stools/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
+#include <CartesianRobinBcHelper.h>
 #include <CellVariable.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
@@ -124,17 +125,16 @@ public:
     ///
     ///      registerAdvectedAndDiffusedQuantity(),
     ///      registerAdvectedAndDiffusedQuantityWithSourceTerm(),
-    ///      registerAdvectionVelocity(),
-    ///      setHomogeneousPhysicalBcCoef()
+    ///      registerAdvectionVelocity()
     ///
     ///  allow the specification of quantities to be advected and
     ///  diffused.
     ///
 
     /*!
-     * Register a cell centered quantity to be advected and diffused
-     * according to the specified advection velocity and diffusion
-     * coefficient.
+     * Register a scalar-valued cell-centered quantity to be advected
+     * and diffused according to the specified advection velocity and
+     * diffusion coefficient.
      *
      * Conservative differencing is employed in evaluating the
      * advective term when conservation_form is true.  Otherwise,
@@ -161,13 +161,46 @@ public:
         const double Q_mu,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc=NULL,
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
-     * Register a cell centered quantity to be advected and diffused
-     * according to the specified advection velocity, diffusion
-     * coefficient, and source term.
+     * Register a vector-valued cell-centered quantity to be advected
+     * and diffused according to the specified advection velocity and
+     * diffusion coefficient.
+     *
+     * Conservative differencing is employed in evaluating the
+     * advective term when conservation_form is true.  Otherwise,
+     * non-conservative differencing is used to update the quantity.
+     *
+     * Optional concrete STOOLS::SetDataStrategy and
+     * SAMRAI::solv::RobinBcCoefStrategy objects allow for the
+     * specification of initial and boundary data for the advected and
+     * diffused quantity Q.  If an initialization object is not
+     * specified, Q is initialized to zero.  If a boundary condition
+     * object is not specified for Q, it is necessary that the
+     * computational domain have only periodic boundaries.  (I.e. the
+     * domain can have no "physical" boundaries.)
+     *
+     * When the advected and diffused quantity Q is an incompressible
+     * velocity field, an optional face centered gradient may be
+     * specified that approximately enforces the incompressibility
+     * constraint.  The gradient is subtracted from the predicted face
+     * centered and time centered values prior to the computation of
+     * the advective fluxes.
+     */
+    void registerAdvectedAndDiffusedQuantity(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        const double Q_mu,
+        const bool conservation_form=true,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
+
+    /*!
+     * Register a scalar-valued cell-centered quantity to be advected
+     * and diffused according to the specified advection velocity,
+     * diffusion coefficient, and source term.
      *
      * Conservative differencing is employed in evaluating the
      * advective term when conservation_form is true.  Otherwise,
@@ -200,7 +233,47 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc=NULL,
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
+
+    /*!
+     * Register a vector-valued cell-centered quantity to be advected
+     * and diffused according to the specified advection velocity,
+     * diffusion coefficient, and source term.
+     *
+     * Conservative differencing is employed in evaluating the
+     * advective term when conservation_form is true.  Otherwise,
+     * non-conservative differencing is used to update the quantity.
+     *
+     * Optional concrete STOOLS::SetDataStrategy and
+     * SAMRAI::solv::RobinBcCoefStrategy objects allow for the
+     * specification of initial and boundary data for the advected and
+     * diffused quantity Q.  If an initialization object is not
+     * specified, Q is initialized to zero.  If a boundary condition
+     * object is not specified for Q, it is necessary that the
+     * computational domain have only periodic boundaries.  (I.e. the
+     * domain can have no "physical" boundaries.)
+     *
+     * The value of the source term is determined by an (optional)
+     * STOOLS::SetDataStrategy object.  This allows for the specification of
+     * either a constant or a time-dependent source term.  If this
+     * object is not provided, the source term is initialized to zero.
+     *
+     * When the advected and diffused quantity Q is an incompressible
+     * velocity field, an optional face centered gradient may be
+     * specified that approximately enforces the incompressibility
+     * constraint.  The gradient is subtracted from the predicted face
+     * centered and time centered values prior to the computation of
+     * the advective fluxes.
+     */
+    void registerAdvectedAndDiffusedQuantityWithSourceTerm(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        const double Q_mu,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
+        const bool conservation_form=true,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
@@ -222,22 +295,6 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
         const bool u_is_div_free,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> u_set=NULL);
-
-    /*!
-     * Set the SAMRAI::solv::RobinBcCoefStrategy object used to
-     * specify the homogeneous form of the physical boundary
-     * conditions.
-     *
-     * \note \a bc_coef may be NULL.  In this case, homogeneous
-     * Dirichlet boundary conditions are employed.
-     *
-     * \note The inhomogeneous terms employed for different quantities
-     * registered with the integrator may be different; however, the
-     * homogeneous terms must be identical for all quantities
-     * registered with the integrator.
-     */
-    void setHomogeneousPhysicalBcCoef(
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
 
     ///
     ///  The following routines:
@@ -766,7 +823,7 @@ protected:
      * forcing terms for each advected and diffused quantity.
      */
     std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_Q_inits;
-    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* > d_Q_bcs;
+    std::vector<std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coefs;
     std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_F_sets;
 
     /*!
@@ -953,25 +1010,26 @@ private:
     int d_max_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
 
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_homogeneous_bc_coef;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::CartesianRobinBcHelper<NDIM> > d_bc_helper;
 
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> >             d_helmholtz1_solvers;
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >              d_helmholtz1_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz1_specs;
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >           d_helmholtz1_fac_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > d_helmholtz1_fac_pcs;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >           d_helmholtz1_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> > d_helmholtz1_specs;
 
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> >             d_helmholtz2_solvers;
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >              d_helmholtz2_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz2_specs;
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >           d_helmholtz2_fac_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > d_helmholtz2_fac_pcs;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >           d_helmholtz2_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> > d_helmholtz2_specs;
 
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz3_specs;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz4_specs;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> > d_helmholtz3_specs;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> > d_helmholtz4_specs;
 
-    std::map<double,bool> d_helmholtz_solvers_need_init;
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> > >             d_helmholtz1_solvers;
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> > >           d_helmholtz1_fac_ops;
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > > d_helmholtz1_fac_pcs;
+
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> > >             d_helmholtz2_solvers;
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> > >           d_helmholtz2_fac_ops;
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > > d_helmholtz2_fac_pcs;
+
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,bool> > d_helmholtz_solvers_need_init;
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_ops_db;

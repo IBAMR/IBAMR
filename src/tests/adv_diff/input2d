@@ -18,7 +18,7 @@ AdvDiffHierarchyIntegrator {
    tag_buffer = 1
 
    start_time            = 0.e0     // initial simulation time
-   end_time              = 0.2      // final simulation time
+   end_time              = 2*PI     // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
    regrid_interval       = 10000    // disable regridding (fixed grid computation)
@@ -38,8 +38,8 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.9375e0  // max cfl factor used in problem
-      cfl_init                 = 0.9375e0  // initial cfl factor
+      cfl                      = 0.9975e0  // max cfl factor used in problem
+      cfl_init                 = 0.9975e0  // initial cfl factor
       lag_dt_computation       = TRUE
       use_ghosts_to_compute_dt = FALSE
    }
@@ -74,8 +74,8 @@ AdvDiffHierarchyIntegrator {
 }
 
 QInit {
-  init_type = "GAUSSIAN"
-  kappa = 0.01
+   init_type = "GAUSSIAN"
+   kappa = 0.001
 }
 
 LocationIndexRobinBcCoefs {
@@ -86,8 +86,10 @@ LocationIndexRobinBcCoefs {
 }
 
 USet {
-  init_type = "UNIFORM"
-  uniform_u = 10.0,-5.0
+// init_type = "UNIFORM"
+// uniform_u = 10.0,-5.0
+
+   init_type = "VORTEX"
 }
 
 Main {
@@ -109,13 +111,13 @@ Main {
    monitor_convergence = TRUE
 }
 
-N = 1
+N = 8
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (16*N - 1,16*N - 1) ]
    x_lo         =  0, 0    // lower end of computational domain.
    x_up         =  1, 1    // upper end of computational domain.
-   periodic_dimension = 1,1
+   periodic_dimension = 0,0
 }
 
 GriddingAlgorithm {
@@ -132,7 +134,7 @@ GriddingAlgorithm {
    }
 
    smallest_patch_size {
-      level_0 =  8, 8  // smallest patch allowed in hierarchy
+      level_0 =  4, 4  // smallest patch allowed in hierarchy
                        // all finer levels will use same values as level_0...
    }
 

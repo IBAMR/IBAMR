@@ -1,5 +1,5 @@
 // Filename: QInit.C
-// Last modified: <25.Oct.2006 18:31:48 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Feb.2007 00:51:17 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "QInit.h"
@@ -106,9 +106,10 @@ QInit::setDataOnPatch(
     double X[NDIM];
     const double t = data_time;
 
+    Q_data->fillAll(0.0);
+
     if (d_init_type == "GAUSSIAN")
     {
-        Q_data->fillAll(0.0);
         for (pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
             const hier::Index<NDIM>& i = ic();

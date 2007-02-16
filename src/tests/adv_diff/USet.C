@@ -1,5 +1,5 @@
 // Filename: USet.C
-// Last modified: <14.Feb.2007 00:03:15 boyce@bigboy.nyconnect.com>
+// Last modified: <15.Feb.2007 00:18:01 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "USet.h"
@@ -87,7 +87,8 @@ USet::setDataOnPatch(
     {
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            u_data->getArrayData(axis).fillAll(d_uniform_u[axis]);
+            u_data->getArrayData(axis).
+                fillAll(d_uniform_u[axis]);
         }
     }
     else if (d_init_type == "VORTEX")
@@ -128,11 +129,11 @@ USet::setDataOnPatch(
                 // 2D vortex
                 if (axis == 0)
                 {
-                    (*u_data)(i) = X[1] - d_X[axis];
+                    (*u_data)(i) = (X[1] - d_X[axis]);
                 }
                 else if (axis == 1)
                 {
-                    (*u_data)(i) = d_X[axis] - X[0];
+                    (*u_data)(i) = (d_X[axis] - X[0]);
                 }
                 else
                 {

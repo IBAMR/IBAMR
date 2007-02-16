@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <13.Feb.2007 03:31:10 boyce@bigboy.nyconnect.com>
+// Last modified: <15.Feb.2007 20:28:27 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -16,7 +16,6 @@
 #include <stools/LinearSolver.h>
 #include <stools/HierarchyMathOps.h>
 #include <stools/SetDataStrategy.h>
-#include <stools/PhysicalBCDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -120,6 +119,13 @@ public:
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> U_init);
 
     /*!
+     * Supply physical boundary conditions for the (cell centered)
+     * velocity.
+     */
+    void registerVelocityPhysicalBcCoef(
+        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
+
+    /*!
      * Supply initial conditions for the (cell centered) pressure.
      *
      * \note These initial conditions are used for output purposes
@@ -127,6 +133,13 @@ public:
      */
     void registerPressureInitialConditions(
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init);
+
+    /*!
+     * Supply physical boundary conditions for the (cell centered)
+     * pressure.
+     */
+    void registerPressurePhysicalBcCoef(
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef);
 
     /*!
      * Supply a (possibly time dependent) cell centered forcing term.
@@ -142,16 +155,16 @@ public:
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_set);
 
     /*!
-     * Register a cell centered quantity to be advected and diffused
-     * according to the computed advection velocity and specified
-     * diffusion coefficient.
+     * Register a scalar-valued cell-centered quantity to be advected
+     * and diffused according to the computed advection velocity and
+     * specified diffusion coefficient.
      *
      * Conservative differencing is employed in evaluating the
      * advective term when conservation_form is true.  Otherwise,
      * non-conservative differencing is used to update the quantity.
      *
      * Optional concrete STOOLS::SetDataStrategy and
-     * STOOLS::PhysicalBCDataStrategy objects allow for the
+     * SAMRAI::solv::RobinBcCoefStrategy objects allow for the
      * specification of initial and boundary data for the advected and
      * diffused quantity Q.  If an initialization object is not
      * specified, Q is initialized to zero.  If a boundary condition
@@ -164,7 +177,32 @@ public:
         const double Q_mu=0.0,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
-        SAMRAI::tbox::Pointer<STOOLS::PhysicalBCDataStrategy> Q_bc=NULL);
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL);
+
+    /*!
+     * Register a vector-valued cell-centered quantity to be advected
+     * and diffused according to the computed advection velocity and
+     * specified diffusion coefficient.
+     *
+     * Conservative differencing is employed in evaluating the
+     * advective term when conservation_form is true.  Otherwise,
+     * non-conservative differencing is used to update the quantity.
+     *
+     * Optional concrete STOOLS::SetDataStrategy and
+     * SAMRAI::solv::RobinBcCoefStrategy objects allow for the
+     * specification of initial and boundary data for the advected and
+     * diffused quantity Q.  If an initialization object is not
+     * specified, Q is initialized to zero.  If a boundary condition
+     * object is not specified for Q, it is necessary that the
+     * computational domain have only periodic boundaries.  (I.e. the
+     * domain can have no "physical" boundaries.)
+     */
+    void registerAdvectedAndDiffusedQuantity(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        const double Q_mu=0.0,
+        const bool conservation_form=true,
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
 
     /*!
      * Register a VisIt data writer so this object will write plot
@@ -776,7 +814,7 @@ protected:
      * forcing terms for each advected and diffused quantity.
      */
     std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_Q_inits;
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::PhysicalBCDataStrategy> > d_Q_bcs;
+    std::vector<std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coefs;
 
     /*!
      * The diffusivity coefficients associated with each advected and
@@ -1089,6 +1127,8 @@ private:
      * constant or time-dependent body forcing.
      */
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_U_init, d_P_init;
+    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set, d_Q_set;
 
     /*

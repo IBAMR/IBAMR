@@ -264,11 +264,6 @@ int main(int argc, char* argv[])
             patch_hierarchy,
             predictor);
 
-    tbox::Pointer< pdat::CellVariable<NDIM,double> > Q = new pdat::CellVariable<NDIM,double>("Q");
-    QInit q_init("QInit", grid_geometry, input_db->getDatabase("QInit"));
-    solv::LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
-        "physical_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs"));
-
     tbox::Pointer< pdat::FaceVariable<NDIM,double> > u = new pdat::FaceVariable<NDIM,double>("u");
     USet u_set("USet", grid_geometry, input_db->getDatabase("USet"));
 
@@ -276,6 +271,10 @@ int main(int argc, char* argv[])
     time_integrator->registerAdvectionVelocity(
         u, u_is_div_free, tbox::Pointer<SetDataStrategy>(&u_set,false));
 
+    tbox::Pointer< pdat::CellVariable<NDIM,double> > Q = new pdat::CellVariable<NDIM,double>("Q");
+    QInit q_init("QInit", grid_geometry, input_db->getDatabase("QInit"));
+    solv::LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
+        "physical_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs"));
     const double kappa = input_db->getDatabase("QInit")->getDouble("kappa");
     const bool consv_form = false;
     time_integrator->registerAdvectedAndDiffusedQuantity(

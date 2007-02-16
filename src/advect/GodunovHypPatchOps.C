@@ -1,5 +1,5 @@
 // Filename: GodunovHypPatchOps.C
-// Last modified: <14.Feb.2007 01:50:14 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Feb.2007 01:10:04 boyce@bigboy.nyconnect.com>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovHypPatchOps.h"
@@ -198,8 +198,6 @@ GodunovHypPatchOps::GodunovHypPatchOps(
       d_godunov_advector(godunov_advector),
       d_advance_soln(false),
       d_initialize_soln(false),
-      d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_Q_vars(),
       d_F_vars(),
       d_grad_vars(),
@@ -208,7 +206,7 @@ GodunovHypPatchOps::GodunovHypPatchOps(
       d_q_integral_vars(),
       d_u_integral_var(),
       d_Q_inits(),
-      d_Q_bcs(),
+      d_Q_bc_coefs(),
       d_F_sets(),
       d_u_var(NULL),
       d_u_set(NULL),
@@ -312,7 +310,22 @@ GodunovHypPatchOps::registerAdvectedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc,
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
+{
+    registerAdvectedQuantity(
+        Q_var, conservation_form, Q_init,
+        std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
+        grad_var);
+    return;
+}// registerAdvectedQuantity
+
+void
+GodunovHypPatchOps::registerAdvectedQuantity(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+    const bool conservation_form,
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -321,6 +334,14 @@ GodunovHypPatchOps::registerAdvectedQuantity(
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
         Q_var->getPatchDataFactory();
+    const int Q_depth = Q_factory->getDefaultDepth();
+    if (Q_depth != static_cast<int>(Q_bc_coefs.size()))
+    {
+        TBOX_ERROR(d_object_name << "::registerAdvectedQuantity():\n"
+                   << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
+                   << "  but " << Q_bc_coefs.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
+    }
+
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > flux_integral_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > q_integral_var;
 
@@ -338,9 +359,9 @@ GodunovHypPatchOps::registerAdvectedQuantity(
             Q_factory->getDefaultDepth());
     }
 
-    d_Q_vars .push_back(Q_var);
-    d_Q_inits.push_back(Q_init);
-    d_Q_bcs  .push_back(Q_bc);
+    d_Q_vars    .push_back(Q_var);
+    d_Q_inits   .push_back(Q_init);
+    d_Q_bc_coefs.push_back(Q_bc_coefs);
 
     d_Q_conservation_form.push_back(conservation_form);
 
@@ -367,7 +388,24 @@ GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc,
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
+{
+    registerAdvectedQuantityWithSourceTerm(
+        Q_var, F_var, conservation_form, Q_init,
+        std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
+        F_set, grad_var);
+    return;
+}// registerAdvectedQuantityWithSourceTerm
+
+void
+GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
+    const bool conservation_form,
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
@@ -378,6 +416,14 @@ GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
         Q_var->getPatchDataFactory();
+    const int Q_depth = Q_factory->getDefaultDepth();
+    if (Q_depth != static_cast<int>(Q_bc_coefs.size()))
+    {
+        TBOX_ERROR(d_object_name << "::registerAdvectedQuantityWithSourceTerm():\n"
+                   << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
+                   << "  but " << Q_bc_coefs.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
+    }
+
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > flux_integral_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > q_integral_var;
 
@@ -400,9 +446,9 @@ GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
         F_var->getPatchDataFactory();
     assert(Q_factory->getDefaultDepth() == F_factory->getDefaultDepth());
 #endif
-    d_Q_vars .push_back(Q_var);
-    d_Q_inits.push_back(Q_init);
-    d_Q_bcs  .push_back(Q_bc);
+    d_Q_vars    .push_back(Q_var);
+    d_Q_inits   .push_back(Q_init);
+    d_Q_bc_coefs.push_back(Q_bc_coefs);
 
     d_Q_conservation_form.push_back(conservation_form);
 
@@ -499,8 +545,6 @@ GodunovHypPatchOps::setupAdvancePatchState(
                    << "  patch strategy state already set to initialize solution" << endl);
     }
     d_advance_soln = true;
-    d_current_time = current_time;
-    d_new_time = new_time;
     return;
 }// setupAdvancePatchState
 
@@ -529,10 +573,6 @@ GodunovHypPatchOps::clearPatchState()
 {
     d_advance_soln = false;
     d_initialize_soln = false;
-
-    d_current_time = std::numeric_limits<double>::quiet_NaN();
-    d_new_time = std::numeric_limits<double>::quiet_NaN();
-
     return;
 }// clearPatchState
 
@@ -1610,6 +1650,9 @@ GodunovHypPatchOps::setPhysicalBoundaryConditions(
 {
     t_set_physical_boundary_conditions->start();
 
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
+
     if (d_advance_soln)
     {
         // First, at inflow boundaries, use the Robin boundary
@@ -1621,6 +1664,20 @@ GodunovHypPatchOps::setPhysicalBoundaryConditions(
         // data to set the ghost cell values.
         setOutflowBoundaryConditions(
             patch, fill_time, ghost_width_to_fill);
+
+        // Third, extrapolate the boundary values for any forcing
+        // terms at all physical boundaries.
+        SAMRAI::hier::ComponentSelector patch_data_indices;
+        for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+            const int F_data_idx = var_db->mapVariableAndContextToIndex(
+                F_var, getDataContext());
+            if (F_data_idx != -1) patch_data_indices.setFlag(F_data_idx);
+        }
+        STOOLS::CartExtrapPhysBdryOp bc_helper(patch_data_indices, d_extrap_type);
+        bc_helper.setPhysicalBoundaryConditions(
+            patch, fill_time, ghost_width_to_fill);
     }
     else
     {
@@ -1628,18 +1685,15 @@ GodunovHypPatchOps::setPhysicalBoundaryConditions(
         // via linear extrapolation.  (This is equivalent to using
         // interpolation stencils which have been "shifted" at
         // physical boundaries.)
-        std::set<int> patch_data_idxs;
-        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-        typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
+        SAMRAI::hier::ComponentSelector patch_data_indices;
         for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
-            const int patch_data_idx = var_db->mapVariableAndContextToIndex(
+            const int Q_data_idx = var_db->mapVariableAndContextToIndex(
                 Q_var, getDataContext());
-            patch_data_idxs.insert(patch_data_idx);
+            patch_data_indices.setFlag(Q_data_idx);
         }
-
-        STOOLS::CartExtrapPhysBdryOp bc_helper(patch_data_idxs, "LINEAR");
+        STOOLS::CartExtrapPhysBdryOp bc_helper(patch_data_indices, "LINEAR");
         bc_helper.setPhysicalBoundaryConditions(
             patch, fill_time, ghost_width_to_fill);
     }
@@ -1837,33 +1891,20 @@ GodunovHypPatchOps::setInflowBoundaryConditions(
     const double fill_time,
     const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill)
 {
-    const double dt = d_new_time - d_current_time;
-
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
     for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const            Q_bc  = d_Q_bcs [l];
+        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs = d_Q_bc_coefs[l];
 
         const int patch_data_idx = var_db->mapVariableAndContextToIndex(
             Q_var, getDataContext());
 
-        if (Q_bc != NULL)
-        {
-            STOOLS::CartRobinPhysBdryOp bc_helper(patch_data_idx, Q_bc, d_extrap_type);
-            bc_helper.setHomogeneousBc(false);
-            bc_helper.setPhysicalBoundaryConditions(
-                patch, fill_time + 0.5*dt, ghost_width_to_fill);
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::setInflowBoundaryConditions()\n"
-                       << "  cannot fill physical boundary conditions!\n"
-                       << "  no concrete boundary condition specification object provided for\n"
-                       << "  advected quantity " << Q_var->getName() << endl);
-        }
-
+        STOOLS::CartRobinPhysBdryOp bc_helper(patch_data_idx, Q_bc_coefs, d_extrap_type);
+        bc_helper.setHomogeneousBc(false);
+        bc_helper.setPhysicalBoundaryConditions(
+            patch, fill_time, ghost_width_to_fill);
     }
     return;
 }// setInflowBoundaryConditions

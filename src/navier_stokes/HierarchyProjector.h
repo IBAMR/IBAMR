@@ -2,16 +2,16 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <16.Nov.2006 00:22:29 boyce@bigboy.nyconnect.com>
+// Last modified: <15.Feb.2007 18:44:47 boyce@bigboy.nyconnect.com>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // STOOLS INCLUDES
 #include <stools/LinearOperator.h>
-#include <stools/LinearSolver.h>
 #include <stools/CCLaplaceOperator.h>
 #include <stools/CCPoissonFACOperator.h>
+#include <stools/KrylovLinearSolver.h>
 #include <stools/HierarchyMathOps.h>
 
 // SAMRAI INCLUDES
@@ -162,7 +162,7 @@ public:
      * Returns a pointer to the concrete linear solver object employed
      * by the projector to solve the elliptic projection equation.
      */
-    SAMRAI::tbox::Pointer<STOOLS::LinearSolver> getPoissonSolver() const;
+    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> getPoissonSolver() const;
 
     ///
     ///  The following routines:
@@ -186,7 +186,7 @@ public:
      *        boundary condition coefficients
      */
     void setPhysicalBcCoef(
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.
@@ -471,8 +471,6 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
 
-    std::string d_solver_package;
-    bool d_using_ksp_method;
     int d_max_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
 
@@ -481,7 +479,7 @@ private:
     const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
     bool d_homogeneous_bc;
 
-    SAMRAI::tbox::Pointer<STOOLS::LinearSolver> d_poisson_solver;
+    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> d_poisson_solver;
     SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> d_laplace_op;
     SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> d_poisson_fac_op;
     SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_poisson_fac_pc;

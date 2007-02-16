@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <09.Feb.2007 20:36:03 boyce@bigboy.nyconnect.com>
+// Last modified: <15.Feb.2007 18:50:52 boyce@bigboy.nyconnect.com>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -80,8 +80,6 @@ HierarchyProjector::HierarchyProjector(
       d_div_w_idx(-1),
       d_sol_vec(NULL),
       d_rhs_vec(NULL),
-      d_solver_package("PETSc"),
-      d_using_ksp_method(true),
       d_max_iterations(50),
       d_abs_residual_tol(1.0e-12),
       d_rel_residual_tol(1.0e-8),
@@ -156,42 +154,19 @@ HierarchyProjector::HierarchyProjector(
     d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
 
     // Initialize the Poisson solver.
-    if (d_solver_package == "PETSc")
-    {
-        d_poisson_solver = new STOOLS::PETScKrylovLinearSolver(
-            d_object_name+"::PETSc Krylov solver", "proj_");
-        d_using_ksp_method = true;
-    }
-    else if (d_solver_package == "SAMRAI")
-    {
-        d_poisson_solver = new STOOLS::FACPreconditionerLSWrapper(d_poisson_fac_pc, fac_pc_db);
-        d_using_ksp_method = false;
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << "::HierarchyProjector():\n" <<
-                   "  unknown linear solver package " << d_solver_package << "\n");
-    }
+    d_laplace_op = new STOOLS::CCLaplaceOperator(
+        d_object_name+"::Laplace Operator", &d_poisson_spec,
+        d_bc_coef, d_homogeneous_bc);
 
+    d_poisson_solver = new STOOLS::PETScKrylovLinearSolver(
+        d_object_name+"::PETSc Krylov solver", "proj_");
     d_poisson_solver->setMaxIterations(d_max_iterations);
     d_poisson_solver->setAbsoluteTolerance(d_abs_residual_tol);
     d_poisson_solver->setRelativeTolerance(d_rel_residual_tol);
-
-    // Initilize the Laplace operator when using a Krylov solver.
-    if (d_using_ksp_method)
-    {
-        d_laplace_op = new STOOLS::CCLaplaceOperator(
-            d_object_name+"::Laplace Operator", &d_poisson_spec,
-            d_bc_coef, d_homogeneous_bc);
-        SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> krylov_solver = d_poisson_solver;
-#ifdef DEBUG_CHECK_ASSERTIONS
-        assert(!krylov_solver.isNull());
-#endif
-        krylov_solver->setInitialGuessNonzero(true);
-        krylov_solver->setOperator(d_laplace_op);
-        krylov_solver->setPreconditioner(
-            new STOOLS::FACPreconditionerLSWrapper(d_poisson_fac_pc, fac_pc_db));
-    }
+    d_poisson_solver->setInitialGuessNonzero(true);
+    d_poisson_solver->setOperator(d_laplace_op);
+    d_poisson_solver->setPreconditioner(
+        new STOOLS::FACPreconditionerLSWrapper(d_poisson_fac_pc, fac_pc_db));
 
     // Initialize Variables and contexts.
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
@@ -210,7 +185,7 @@ HierarchyProjector::HierarchyProjector(
     d_rhs_idx = var_db->registerVariableAndContext(
         d_rhs_var, d_context, ghosts);
     d_div_w_idx = var_db->registerVariableAndContext(
-        d_div_w_var, d_context, (d_using_ksp_method ? ghosts : no_ghosts));
+        d_div_w_var, d_context, ghosts);
 
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =
@@ -332,7 +307,7 @@ HierarchyProjector::getHomogeneousBc() const
     return d_homogeneous_bc;
 }// getHomogeneousBc
 
-SAMRAI::tbox::Pointer<STOOLS::LinearSolver>
+SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>
 HierarchyProjector::getPoissonSolver() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -354,7 +329,7 @@ HierarchyProjector::getPoissonSolver() const
 
 void
 HierarchyProjector::setPhysicalBcCoef(
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef)
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef)
 {
     if (bc_coef != NULL)
     {
@@ -365,6 +340,7 @@ HierarchyProjector::setPhysicalBcCoef(
         d_bc_coef = d_default_bc_coef;
         setHomogeneousBc(true);
     }
+    d_laplace_op->setPhysicalBcCoef(d_bc_coef);
     return;
 }// setPhysicalBcCoef
 
@@ -373,6 +349,7 @@ HierarchyProjector::setHomogeneousBc(
     const bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
+    d_laplace_op->setHomogeneousBc(d_homogeneous_bc);
     return;
 }// setHomogeneousBc
 
@@ -404,10 +381,7 @@ HierarchyProjector::projectHierarchy(
 {
     t_project_hierarchy_face->start();
 
-    if (d_using_ksp_method)
-    {
-        d_laplace_op->setTime(Phi_bdry_fill_time);
-    }
+    d_laplace_op->setTime(Phi_bdry_fill_time);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -492,10 +466,7 @@ HierarchyProjector::projectHierarchy(
 {
     t_project_hierarchy_side->start();
 
-    if (d_using_ksp_method)
-    {
-        d_laplace_op->setTime(Phi_bdry_fill_time);
-    }
+    d_laplace_op->setTime(Phi_bdry_fill_time);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -660,10 +631,7 @@ HierarchyProjector::resetHierarchyConfiguration(
     d_rhs_vec->addComponent(d_rhs_var,d_rhs_idx,d_wgt_idx,d_hier_cc_data_ops);
 
     // (Re)-initialize the Poisson solver.
-    if (d_using_ksp_method)
-    {
-        d_laplace_op->setHierarchyMathOps(d_hier_math_ops);
-    }
+    d_laplace_op->setHierarchyMathOps(d_hier_math_ops);
     d_poisson_fac_op->setResetLevels(coarsest_level, finest_level);
     d_poisson_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
 
@@ -724,7 +692,6 @@ HierarchyProjector::getFromInput(
     assert(!db.isNull());
 #endif
     (void) is_from_restart;
-    d_solver_package = db->getStringWithDefault("solver_package", d_solver_package);
     d_max_iterations = db->getIntegerWithDefault("max_iterations", d_max_iterations);
     d_abs_residual_tol = db->getDoubleWithDefault("abs_residual_tol", d_abs_residual_tol);
     d_rel_residual_tol = db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol);

@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <14.Feb.2007 00:22:26 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Feb.2007 01:10:52 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -22,6 +22,7 @@
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
+#include <CellDataFactory.h>
 #include <CellIterator.h>
 #include <CoarseFineBoundary.h>
 #include <CoarsenOperator.h>
@@ -231,12 +232,6 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     }
     getFromInput(input_db, from_restart);
 
-    // In some cases, we need an extra Helmholtz solver.
-    if (d_second_order_pressure_update)
-    {
-        d_adv_diff_hier_integrator->maintainExtraSolvers(4);
-    }
-
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =
         SAMRAI::math::HierarchyDataOpsManager<NDIM>::getManager();
@@ -309,23 +304,39 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
 
 void
 INSHierarchyIntegrator::registerVelocityInitialConditions(
-    SAMRAI::tbox::Pointer<SetDataStrategy> U_init)
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> U_init)
 {
     d_U_init = U_init;
     return;
 }// registerVelocityInitialConditions
 
 void
+INSHierarchyIntegrator::registerVelocityPhysicalBcCoef(
+    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs)
+{
+    d_U_bc_coefs = U_bc_coefs;
+    return;
+}// registerVelocityPhysicalBcCoef
+
+void
 INSHierarchyIntegrator::registerPressureInitialConditions(
-    SAMRAI::tbox::Pointer<SetDataStrategy> P_init)
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init)
 {
     d_P_init = P_init;
     return;
 }// registerPressureInitialConditions
 
 void
+INSHierarchyIntegrator::registerPressurePhysicalBcCoef(
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef)
+{
+    d_P_bc_coef = P_bc_coef;
+    return;
+}// registerPressurePhysicalBcCoef
+
+void
 INSHierarchyIntegrator::registerForceSpecification(
-    SAMRAI::tbox::Pointer<SetDataStrategy> F_set)
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set)
 {
     d_F_set = F_set;
     return;
@@ -333,7 +344,7 @@ INSHierarchyIntegrator::registerForceSpecification(
 
 void
 INSHierarchyIntegrator::registerDivergenceSpecification(
-    SAMRAI::tbox::Pointer<SetDataStrategy> Q_set)
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_set)
 {
     d_Q_set = Q_set;
     return;
@@ -344,17 +355,41 @@ INSHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const double Q_mu,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<SetDataStrategy> Q_init,
-    SAMRAI::tbox::Pointer<PhysicalBCDataStrategy> Q_bc)
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef)
+{
+    registerAdvectedAndDiffusedQuantity(
+        Q_var, Q_mu, conservation_form, Q_init,
+        std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef));
+    return;
+}// registerAdvectedAndDiffusedQuantity
+
+void
+INSHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+    const double Q_mu,
+    const bool conservation_form,
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!Q_var.isNull());
     assert(Q_mu >= 0.0);
 #endif
-    d_Q_vars .push_back(Q_var);
-    d_Q_inits.push_back(Q_init);
-    d_Q_bcs  .push_back(Q_bc);
-    d_Q_mus  .push_back(Q_mu);
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
+        Q_var->getPatchDataFactory();
+    const int Q_depth = Q_factory->getDefaultDepth();
+    if (Q_depth != static_cast<int>(Q_bc_coefs.size()))
+    {
+        TBOX_ERROR(d_object_name << "::registerAdvectedAndDiffusedQuantity():\n"
+                   << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
+                   << "  but " << Q_bc_coefs.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
+    }
+
+    d_Q_vars     .push_back(Q_var);
+    d_Q_inits    .push_back(Q_init);
+    d_Q_bc_coefs .push_back(Q_bc_coefs);
+    d_Q_mus      .push_back(Q_mu);
     d_Q_cons_form.push_back(conservation_form);
 
     return;
@@ -678,9 +713,8 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_adv_diff_hier_integrator->
         registerAdvectedAndDiffusedQuantityWithSourceTerm(
             d_U_var, d_nu, d_Grad_P_var, d_conservation_form,
-            d_U_init,
-            SAMRAI::tbox::Pointer<PhysicalBCDataStrategy>(NULL),
-            SAMRAI::tbox::Pointer<SetDataStrategy>(NULL),
+            d_U_init, d_U_bc_coefs,
+            SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>(NULL),
             d_project_predicted_flux ? d_grad_Phi_var : SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >(NULL));
 
     for (unsigned l = 0; l < d_Q_vars.size(); ++l)
@@ -688,7 +722,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         d_adv_diff_hier_integrator->
             registerAdvectedAndDiffusedQuantity(
                 d_Q_vars[l], d_Q_mus[l], d_Q_cons_form[l],
-                d_Q_inits[l], d_Q_bcs[l]);
+                d_Q_inits[l], d_Q_bc_coefs[l]);
     }
 
     // Initialize the AdvDiffHierarchyIntegrator.
@@ -923,22 +957,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // specifications used for a second order update to the pressure.
     if (d_second_order_pressure_update)
     {
-        d_helmholtz1_spec = d_adv_diff_hier_integrator->
-            getHelmholtzSpecs(d_nu)[0];
-        d_helmholtz1_bc_coef = d_adv_diff_hier_integrator->
-            getHelmholtzBcCoefs(d_nu)[0];
-
-        d_helmholtz2_spec = d_adv_diff_hier_integrator->
-            getHelmholtzSpecs(d_nu)[1];
-        d_helmholtz2_bc_coef = d_adv_diff_hier_integrator->
-            getHelmholtzBcCoefs(d_nu)[1];
-
-        d_helmholtz4_spec = d_adv_diff_hier_integrator->
-            getHelmholtzSpecs(d_nu)[3];
-        d_helmholtz4_bc_coef = d_adv_diff_hier_integrator->
-            getHelmholtzBcCoefs(d_nu)[3];
-        d_helmholtz4_solver = d_adv_diff_hier_integrator->
-            getHelmholtzSolvers(d_nu)[3];
+        assert(false); // XXXX
     }
 
     // Set the current integration time.
