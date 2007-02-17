@@ -2,13 +2,13 @@
 #define included_FeedbackFSet
 
 // Filename: FeedbackFSet.h
-// Last modified: <20.Nov.2006 18:25:12 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Feb.2007 16:32:58 griffith@box221.cims.nyu.edu>
 // Created on 20 Nov 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/SetDataStrategy.h>
+// STOOLS INCLUDES
+#include <stools/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -19,8 +19,8 @@
 #include <tbox/Database.h>
 
 // NAMESPACE
-using namespace IBAMR;
 using namespace SAMRAI;
+using namespace STOOLS;
 using namespace std;
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

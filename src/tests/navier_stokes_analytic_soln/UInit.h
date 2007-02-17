@@ -2,17 +2,17 @@
 #define included_UInit
 
 // Filename: UInit.h
-// Last modified: <25.Oct.2006 17:49:00 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Feb.2007 16:34:35 griffith@box221.cims.nyu.edu>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/SetDataStrategy.h>
+// STOOLS INCLUDES
+#include <stools/SetDataStrategy.h>
 
 // NAMESPACE
-using namespace IBAMR;
 using namespace SAMRAI;
+using namespace STOOLS;
 using namespace std;
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

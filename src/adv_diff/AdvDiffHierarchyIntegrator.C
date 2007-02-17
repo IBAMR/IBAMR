@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <16.Feb.2007 01:49:35 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Feb.2007 17:24:53 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -345,18 +345,25 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
         Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
-    if (Q_depth != static_cast<int>(Q_bc_coefs.size()))
+
+    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
+    if (Q_bc_coefs_local.empty())
+    {
+        Q_bc_coefs_local = std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(Q_depth,NULL);
+    }
+
+    if (Q_depth != static_cast<int>(Q_bc_coefs_local.size()))
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedAndDiffusedQuantity():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coefs.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
+                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
     }
 
     if (!SAMRAI::tbox::Utilities::deq(Q_mu,0.0))
     {
         d_Q_vars    .push_back(Q_var);
         d_Q_inits   .push_back(Q_init);
-        d_Q_bc_coefs.push_back(Q_bc_coefs);
+        d_Q_bc_coefs.push_back(Q_bc_coefs_local);
         d_Q_mus     .push_back(Q_mu);
 
         d_grad_vars.push_back(grad_var);
@@ -373,13 +380,13 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
         d_Psi_vars.push_back(Psi_var);
 
         d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
-            Q_var, Psi_var, conservation_form, Q_init, Q_bc_coefs,
+            Q_var, Psi_var, conservation_form, Q_init, Q_bc_coefs_local,
             SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>(NULL), grad_var);
     }
     else
     {
         d_hyp_patch_ops->registerAdvectedQuantity(
-            Q_var, conservation_form, Q_init, Q_bc_coefs, grad_var);
+            Q_var, conservation_form, Q_init, Q_bc_coefs_local, grad_var);
     }
     return;
 }// registerAdvectedAndDiffusedQuantity
@@ -421,18 +428,25 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
         Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
-    if (Q_depth != static_cast<int>(Q_bc_coefs.size()))
+
+    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
+    if (Q_bc_coefs_local.empty())
+    {
+        Q_bc_coefs_local = std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(Q_depth,NULL);
+    }
+
+    if (Q_depth != static_cast<int>(Q_bc_coefs_local.size()))
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedAndDiffusedQuantityWithSourceTerm():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coefs.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
+                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
     }
 
     if (!SAMRAI::tbox::Utilities::deq(Q_mu,0.0))
     {
         d_Q_vars    .push_back(Q_var);
         d_Q_inits   .push_back(Q_init);
-        d_Q_bc_coefs.push_back(Q_bc_coefs);
+        d_Q_bc_coefs.push_back(Q_bc_coefs_local);
         d_Q_mus     .push_back(Q_mu);
 
         d_grad_vars.push_back(grad_var);
@@ -456,13 +470,13 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
         d_Psi_vars.push_back(Psi_var);
 
         d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
-            Q_var, Psi_var, conservation_form, Q_init, Q_bc_coefs,
+            Q_var, Psi_var, conservation_form, Q_init, Q_bc_coefs_local,
             SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>(NULL), grad_var);
     }
     else
     {
         d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
-            Q_var, F_var, conservation_form, Q_init, Q_bc_coefs, F_set, grad_var);
+            Q_var, F_var, conservation_form, Q_init, Q_bc_coefs_local, F_set, grad_var);
     }
     return;
 }// registerAdvectedAndDiffusedQuantityWithSourceTerm
@@ -1068,6 +1082,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
         for (int depth = 0; depth < Q_depth; ++depth)
         {
+            const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef = Q_bc_coefs[depth];
+
             // Setup F and Psi.
             if (!F_set.isNull() && F_set->isTimeDependent())
             {
@@ -1095,9 +1111,12 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                 }
             }
 
-            d_bc_helper->setTargetDataId(d_tmp_idx);
-            d_bc_helper->setCoefImplementation(Q_bc_coefs[depth]);
-            d_bc_helper->setHomogeneousBc(false);
+            if (bc_coef != NULL)
+            {
+                d_bc_helper->setTargetDataId(d_tmp_idx);
+                d_bc_helper->setCoefImplementation(bc_coef);
+                d_bc_helper->setHomogeneousBc(false);
+            }
             d_hier_math_ops->
                 laplace(Psi_current_idx, Psi_var  ,  // dst
                         mu_spec,                     // Poisson spec
@@ -1307,9 +1326,12 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                 }
             }
 
-            d_bc_helper->setTargetDataId(d_tmp_idx);
-            d_bc_helper->setCoefImplementation(Q_bc_coefs[l]);
-            d_bc_helper->setHomogeneousBc(true);
+            if (bc_coef != NULL)
+            {
+                d_bc_helper->setTargetDataId(d_tmp_idx);
+                d_bc_helper->setCoefImplementation(bc_coef);
+                d_bc_helper->setHomogeneousBc(true);
+            }
             d_hier_math_ops->
                 laplace(d_rhs_idx, d_rhs_var,  // dst
                         *helmholtz4_spec,      // Poisson spec
@@ -1339,10 +1361,12 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                 }
             }
 
-
-            d_bc_helper->setTargetDataId(d_tmp_idx);
-            d_bc_helper->setCoefImplementation(bc_coef);
-            d_bc_helper->setHomogeneousBc(false);
+            if (bc_coef != NULL)
+            {
+                d_bc_helper->setTargetDataId(d_tmp_idx);
+                d_bc_helper->setCoefImplementation(bc_coef);
+                d_bc_helper->setHomogeneousBc(false);
+            }
             d_hier_math_ops->
                 laplace(d_rhs_idx, d_rhs_var,   // dst
                         *helmholtz3_spec,       // Poisson spec

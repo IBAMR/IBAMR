@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <16.Feb.2007 01:10:52 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Feb.2007 17:23:30 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -379,16 +379,23 @@ INSHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
         Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
-    if (Q_depth != static_cast<int>(Q_bc_coefs.size()))
+
+    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
+    if (Q_bc_coefs_local.empty())
+    {
+        Q_bc_coefs_local = std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(Q_depth,NULL);
+    }
+
+    if (Q_depth != static_cast<int>(Q_bc_coefs_local.size()))
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedAndDiffusedQuantity():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coefs.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
+                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
     }
 
     d_Q_vars     .push_back(Q_var);
     d_Q_inits    .push_back(Q_init);
-    d_Q_bc_coefs .push_back(Q_bc_coefs);
+    d_Q_bc_coefs .push_back(Q_bc_coefs_local);
     d_Q_mus      .push_back(Q_mu);
     d_Q_cons_form.push_back(conservation_form);
 
