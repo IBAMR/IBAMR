@@ -1,5 +1,5 @@
 // Filename: USet.C
-// Last modified: <13.Feb.2007 22:57:28 boyce@bigboy.nyconnect.com>
+// Last modified: <19.Feb.2007 01:04:49 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 23 June 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "USet.h"
@@ -99,7 +99,6 @@ USet::setDataOnPatch(
     else if (d_init_type == "VORTEX")
     {
         const hier::Box<NDIM>& patch_box = patch.getBox();
-        const hier::Box<NDIM>& ghost_box = u_data->getGhostBox();
         const hier::Index<NDIM>& patch_lower = patch_box.lower();
         tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
 
@@ -110,7 +109,7 @@ USet::setDataOnPatch(
 
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            for (pdat::FaceIterator<NDIM> it(ghost_box,axis); it; it++)
+            for (pdat::FaceIterator<NDIM> it(patch_box,axis); it; it++)
             {
                 const pdat::FaceIndex<NDIM>& i = it();
                 const hier::Index<NDIM>& cell_idx = i.toCell(1);

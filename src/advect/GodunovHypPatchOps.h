@@ -2,7 +2,7 @@
 #define included_GodunovHypPatchOps
 
 // Filename: GodunovHypPatchOps.h
-// Last modified: <15.Feb.2007 20:13:57 boyce@bigboy.nyconnect.com>
+// Last modified: <18.Feb.2007 23:14:51 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -571,6 +571,15 @@ protected:
         const size_t l,
         SAMRAI::hier::Patch<NDIM>& patch,
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context);
+
+    /*!
+     * \brief Set the advection velocity data in ghost cells via
+     * constant or linear extrapolation at all physical boundaries.
+     */
+    virtual void setAdvectionVelocityBoundaryConditions(
+        SAMRAI::hier::Patch<NDIM>& patch,
+        const double fill_time,
+        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
      * \brief Set the data in ghost cells via constant or linear

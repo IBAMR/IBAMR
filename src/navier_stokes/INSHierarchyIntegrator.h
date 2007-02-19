@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <15.Feb.2007 20:28:27 boyce@bigboy.nyconnect.com>
+// Last modified: <18.Feb.2007 22:30:58 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -153,56 +153,6 @@ public:
      */
     void registerDivergenceSpecification(
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_set);
-
-    /*!
-     * Register a scalar-valued cell-centered quantity to be advected
-     * and diffused according to the computed advection velocity and
-     * specified diffusion coefficient.
-     *
-     * Conservative differencing is employed in evaluating the
-     * advective term when conservation_form is true.  Otherwise,
-     * non-conservative differencing is used to update the quantity.
-     *
-     * Optional concrete STOOLS::SetDataStrategy and
-     * SAMRAI::solv::RobinBcCoefStrategy objects allow for the
-     * specification of initial and boundary data for the advected and
-     * diffused quantity Q.  If an initialization object is not
-     * specified, Q is initialized to zero.  If a boundary condition
-     * object is not specified for Q, it is necessary that the
-     * computational domain have only periodic boundaries.  (I.e. the
-     * domain can have no "physical" boundaries.)
-     */
-    void registerAdvectedAndDiffusedQuantity(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const double Q_mu=0.0,
-        const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL);
-
-    /*!
-     * Register a vector-valued cell-centered quantity to be advected
-     * and diffused according to the computed advection velocity and
-     * specified diffusion coefficient.
-     *
-     * Conservative differencing is employed in evaluating the
-     * advective term when conservation_form is true.  Otherwise,
-     * non-conservative differencing is used to update the quantity.
-     *
-     * Optional concrete STOOLS::SetDataStrategy and
-     * SAMRAI::solv::RobinBcCoefStrategy objects allow for the
-     * specification of initial and boundary data for the advected and
-     * diffused quantity Q.  If an initialization object is not
-     * specified, Q is initialized to zero.  If a boundary condition
-     * object is not specified for Q, it is necessary that the
-     * computational domain have only periodic boundaries.  (I.e. the
-     * domain can have no "physical" boundaries.)
-     */
-    void registerAdvectedAndDiffusedQuantity(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const double Q_mu=0.0,
-        const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
-        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
 
     /*!
      * Register a VisIt data writer so this object will write plot
@@ -803,30 +753,6 @@ protected:
         int& scratch_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
         const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0));
-
-    /*!
-     * Advected and diffused quantities Q.
-     */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_vars;
-
-    /*!
-     * Objects to set initial and boundary conditions as well as
-     * forcing terms for each advected and diffused quantity.
-     */
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_Q_inits;
-    std::vector<std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coefs;
-
-    /*!
-     * The diffusivity coefficients associated with each advected and
-     * diffused quantity.
-     */
-    std::vector<double> d_Q_mus;
-
-    /*!
-     * Whether or not to use conservative differencing for each
-     * advected and diffused quantity.
-     */
-    std::vector<bool> d_Q_cons_form;
 
 private:
     /*!

@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <16.Feb.2007 17:24:53 griffith@box221.cims.nyu.edu>
+// Last modified: <18.Feb.2007 22:27:45 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -349,7 +349,8 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
     if (Q_bc_coefs_local.empty())
     {
-        Q_bc_coefs_local = std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(Q_depth,NULL);
+        Q_bc_coefs_local = std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
+            Q_depth,static_cast<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
     }
 
     if (Q_depth != static_cast<int>(Q_bc_coefs_local.size()))
@@ -432,7 +433,8 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
     if (Q_bc_coefs_local.empty())
     {
-        Q_bc_coefs_local = std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(Q_depth,NULL);
+        Q_bc_coefs_local = std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
+            Q_depth,static_cast<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
     }
 
     if (Q_depth != static_cast<int>(Q_bc_coefs_local.size()))
