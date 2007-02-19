@@ -30,8 +30,8 @@
 // Headers for application-specific algorithm/data structure objects
 #include <LocationIndexRobinBcCoefs.h>
 
+#include <ibamr/AdvectHypPatchOps.h>
 #include <ibamr/GodunovAdvector.h>
-#include <ibamr/GodunovHypPatchOps.h>
 
 #include "QInit.h"
 #include "USet.h"
@@ -93,7 +93,7 @@ using namespace std;
  *          to solve the discrete linear advection equation on each     *
  *          patch in the AMR hierarchy.                                 *
  *                                                                      *
- *       GodunovHypPatchOps - Defines variables and numerical routines  *
+ *       AdvectHypPatchOps - Defines variables and numerical routines   *
  *          for the discrete linear advection equation on each patch    *
  *          in the AMR hierarchy and interfaces the GodunovAdvector     *
  *          with the HyperbolicLevelIntegrator.                         *
@@ -370,10 +370,10 @@ int main(int argc, char *argv[])
             "GodunovAdvector",
             input_db->getDatabase("GodunovAdvector"));
 
-    tbox::Pointer<GodunovHypPatchOps> hyp_patch_ops =
-        new GodunovHypPatchOps(
-            "GodunovHypPatchOps",
-            input_db->getDatabase("GodunovHypPatchOps"),
+    tbox::Pointer<AdvectHypPatchOps> hyp_patch_ops =
+        new AdvectHypPatchOps(
+            "AdvectHypPatchOps",
+            input_db->getDatabase("AdvectHypPatchOps"),
             advector,
             grid_geometry);
 

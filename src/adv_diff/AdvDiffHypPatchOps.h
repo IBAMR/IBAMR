@@ -2,14 +2,14 @@
 #define included_AdvDiffHypPatchOps
 
 // Filename: AdvDiffHypPatchOps.h
-// Last modified: <04.Oct.2006 19:52:18 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <19.Feb.2007 17:10:36 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
+#include <ibamr/AdvectHypPatchOps.h>
 #include <ibamr/GodunovAdvector.h>
-#include <ibamr/GodunovHypPatchOps.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -25,14 +25,14 @@
 namespace IBAMR
 {
 /*!
- * \brief A specialized version of the GodunovHypPatchOps class for
+ * \brief A specialized version of the AdvectHypPatchOps class for
  * use with an implicit time integrator for the advection-diffusion
  * equation.
  *
- * \see GodunovHypPatchOps
+ * \see AdvectHypPatchOps
  */
 class AdvDiffHypPatchOps
-    : public GodunovHypPatchOps
+    : public AdvectHypPatchOps
 {
 public:
     /*!
@@ -67,7 +67,7 @@ public:
     ///      preprocessAdvanceLevelState(),
     ///      postprocessAdvanceLevelState()
     ///
-    ///  are redefined from the GodunovHypPatchOps base class.
+    ///  are redefined from the AdvectHypPatchOps base class.
     ///
 
     /*!

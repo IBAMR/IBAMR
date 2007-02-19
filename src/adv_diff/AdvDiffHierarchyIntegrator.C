@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <18.Feb.2007 22:27:45 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <19.Feb.2007 17:00:41 boyce@bigboy.nyconnect.com>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -128,8 +128,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_max_iterations(25),
       d_abs_residual_tol(1.0e-30),
       d_rel_residual_tol(1.0e-8),
-      d_bc_helper(new SAMRAI::solv::CartesianRobinBcHelper<NDIM>(
-                      d_object_name+"::boundary conditions helper")),
+      d_bc_op(NULL),
       d_helmholtz1_ops(),
       d_helmholtz1_specs(),
       d_helmholtz2_ops(),
@@ -669,7 +668,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_sol_idx, // source
                        d_tmp_idx, // temporary work space
                        refine_operator);
-    d_rstrategies["sol->sol::CONSTANT_REFINE"] = d_bc_helper;
+    d_rstrategies["sol->sol::CONSTANT_REFINE"] = d_bc_op;
 
     d_calgs["SYNCH_NEW_STATE_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
 
@@ -1115,9 +1114,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
             if (bc_coef != NULL)
             {
-                d_bc_helper->setTargetDataId(d_tmp_idx);
-                d_bc_helper->setCoefImplementation(bc_coef);
-                d_bc_helper->setHomogeneousBc(false);
+                d_bc_op->setPatchDataIndex(d_tmp_idx);
+                d_bc_op->setRobinBcCoefStrategy(bc_coef);
+                d_bc_op->setHomogeneousBc(false);
             }
             d_hier_math_ops->
                 laplace(Psi_current_idx, Psi_var  ,  // dst
@@ -1330,9 +1329,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
             if (bc_coef != NULL)
             {
-                d_bc_helper->setTargetDataId(d_tmp_idx);
-                d_bc_helper->setCoefImplementation(bc_coef);
-                d_bc_helper->setHomogeneousBc(true);
+                d_bc_op->setPatchDataIndex(d_tmp_idx);
+                d_bc_op->setRobinBcCoefStrategy(bc_coef);
+                d_bc_op->setHomogeneousBc(true);
             }
             d_hier_math_ops->
                 laplace(d_rhs_idx, d_rhs_var,  // dst
@@ -1365,9 +1364,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
             if (bc_coef != NULL)
             {
-                d_bc_helper->setTargetDataId(d_tmp_idx);
-                d_bc_helper->setCoefImplementation(bc_coef);
-                d_bc_helper->setHomogeneousBc(false);
+                d_bc_op->setPatchDataIndex(d_tmp_idx);
+                d_bc_op->setRobinBcCoefStrategy(bc_coef);
+                d_bc_op->setHomogeneousBc(false);
             }
             d_hier_math_ops->
                 laplace(d_rhs_idx, d_rhs_var,   // dst

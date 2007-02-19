@@ -26,8 +26,8 @@ advect/fortran/godunov_predictors2d.o \
 advect/fortran/advect_diff2d.o \
 advect/fortran/advect_stable2d.o \
 advect/fortran/advect_detect2d.o \
+advect/libIBAMR_advect2d_a-AdvectHypPatchOps.o \
 advect/libIBAMR_advect2d_a-GodunovAdvector.o \
-advect/libIBAMR_advect2d_a-GodunovHypPatchOps.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
 lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
@@ -67,8 +67,8 @@ advect/fortran/godunov_predictors3d.o \
 advect/fortran/advect_diff3d.o \
 advect/fortran/advect_stable3d.o \
 advect/fortran/advect_detect3d.o \
+advect/libIBAMR_advect3d_a-AdvectHypPatchOps.o \
 advect/libIBAMR_advect3d_a-GodunovAdvector.o \
-advect/libIBAMR_advect3d_a-GodunovHypPatchOps.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
 lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o \

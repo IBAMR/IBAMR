@@ -1,8 +1,8 @@
-// Filename: GodunovHypPatchOps.C
-// Last modified: <19.Feb.2007 17:05:29 boyce@bigboy.nyconnect.com>
+// Filename: AdvectHypPatchOps.C
+// Last modified: <19.Feb.2007 17:08:44 boyce@bigboy.nyconnect.com>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
-#include "GodunovHypPatchOps.h"
+#include "AdvectHypPatchOps.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -183,13 +183,13 @@ static const int RICHARDSON_ALREADY_TAGGED = -11;
 static const int TRUE_VAL  = 1;
 static const int FALSE_VAL = 0;
 
-// Version of GodunovHypPatchOps restart file data.
-static const int GODUNOV_HYP_PATCH_OPS_VERSION = 1;
+// Version of AdvectHypPatchOps restart file data.
+static const int ADVECT_HYP_PATCH_OPS_VERSION = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-GodunovHypPatchOps::GodunovHypPatchOps(
+AdvectHypPatchOps::AdvectHypPatchOps(
     const std::string& object_name,
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
     SAMRAI::tbox::Pointer<GodunovAdvector> godunov_advector,
@@ -259,40 +259,40 @@ GodunovHypPatchOps::GodunovHypPatchOps(
     if (timers_need_init)
     {
         t_register_model_vars = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::GodunovHypPatchOps::registerModelVariables()");
+            getTimer("IBAMR::AdvectHypPatchOps::registerModelVariables()");
         t_initialize_data_on_patch = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::GodunovHypPatchOps::initializeDataOnPatch()");
+            getTimer("IBAMR::AdvectHypPatchOps::initializeDataOnPatch()");
         t_compute_stable_dt_on_patch = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::GodunovHypPatchOps::computeStableDtOnPatch()");
+            getTimer("IBAMR::AdvectHypPatchOps::computeStableDtOnPatch()");
         t_compute_fluxes_on_patch = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::GodunovHypPatchOps::computeFluxesOnPatch()");
+            getTimer("IBAMR::AdvectHypPatchOps::computeFluxesOnPatch()");
         t_conservative_difference_on_patch = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::GodunovHypPatchOps::conservativeDifferenceOnPatch()");
+            getTimer("IBAMR::AdvectHypPatchOps::conservativeDifferenceOnPatch()");
         t_preprocess_advance_level_state = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::GodunovHypPatchOps::preprocessAdvanceLevelState()");
+            getTimer("IBAMR::AdvectHypPatchOps::preprocessAdvanceLevelState()");
         t_postprocess_advance_level_state = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::GodunovHypPatchOps::postprocessAdvanceLevelState()");
+            getTimer("IBAMR::AdvectHypPatchOps::postprocessAdvanceLevelState()");
         t_tag_richardson_extrapolation_cells = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::GodunovHypPatchOps::tagRichardsonExtrapolationCells()");
+            getTimer("IBAMR::AdvectHypPatchOps::tagRichardsonExtrapolationCells()");
         t_tag_gradient_detector_cells = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::GodunovHypPatchOps::tagGradientDetectorCells()");
+            getTimer("IBAMR::AdvectHypPatchOps::tagGradientDetectorCells()");
         t_set_physical_boundary_conditions = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::GodunovHypPatchOps::setPhysicalBoundaryConditions()");
+            getTimer("IBAMR::AdvectHypPatchOps::setPhysicalBoundaryConditions()");
         t_put_to_database = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::GodunovHypPatchOps::putToDatabase()");
+            getTimer("IBAMR::AdvectHypPatchOps::putToDatabase()");
         timers_need_init = false;
     }
     return;
-}// GodunovHypPatchOps
+}// AdvectHypPatchOps
 
-GodunovHypPatchOps::~GodunovHypPatchOps()
+AdvectHypPatchOps::~AdvectHypPatchOps()
 {
     if (d_registered_for_restart)
     {
         SAMRAI::tbox::RestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
     return;
-}// ~GodunovHypPatchOps
+}// ~AdvectHypPatchOps
 
 ///
 ///  The following routines:
@@ -302,12 +302,12 @@ GodunovHypPatchOps::~GodunovHypPatchOps()
 ///      registerAdvectionVelocity(),
 ///      registerVisItDataWriter()
 ///
-///  allow the GodunovHypPatchOps to be used as a generic advection
+///  allow the AdvectHypPatchOps to be used as a generic advection
 ///  scheme.
 ///
 
 void
-GodunovHypPatchOps::registerAdvectedQuantity(
+AdvectHypPatchOps::registerAdvectedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
@@ -322,7 +322,7 @@ GodunovHypPatchOps::registerAdvectedQuantity(
 }// registerAdvectedQuantity
 
 void
-GodunovHypPatchOps::registerAdvectedQuantity(
+AdvectHypPatchOps::registerAdvectedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
@@ -392,7 +392,7 @@ GodunovHypPatchOps::registerAdvectedQuantity(
 }// registerAdvectedQuantity
 
 void
-GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
+AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
@@ -409,7 +409,7 @@ GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
 }// registerAdvectedQuantityWithSourceTerm
 
 void
-GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
+AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
@@ -487,7 +487,7 @@ GodunovHypPatchOps::registerAdvectedQuantityWithSourceTerm(
 }// registerAdvectedQuantityWithSourceTerm
 
 void
-GodunovHypPatchOps::registerAdvectionVelocity(
+AdvectHypPatchOps::registerAdvectionVelocity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
     const bool u_is_div_free,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> u_set)
@@ -512,7 +512,7 @@ GodunovHypPatchOps::registerAdvectionVelocity(
 
 #if (NDIM>1)
 void
-GodunovHypPatchOps::registerVisItDataWriter(
+AdvectHypPatchOps::registerVisItDataWriter(
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -544,7 +544,7 @@ GodunovHypPatchOps::registerVisItDataWriter(
 ///
 
 void
-GodunovHypPatchOps::setupAdvancePatchState(
+AdvectHypPatchOps::setupAdvancePatchState(
     const double current_time,
     const double new_time,
     const bool first_step,
@@ -566,7 +566,7 @@ GodunovHypPatchOps::setupAdvancePatchState(
 }// setupAdvancePatchState
 
 void
-GodunovHypPatchOps::setupInitializePatchState(
+AdvectHypPatchOps::setupInitializePatchState(
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time)
@@ -586,7 +586,7 @@ GodunovHypPatchOps::setupInitializePatchState(
 }// setupInitializePatchState
 
 void
-GodunovHypPatchOps::clearPatchState()
+AdvectHypPatchOps::clearPatchState()
 {
     d_advance_soln = false;
     d_initialize_soln = false;
@@ -594,7 +594,7 @@ GodunovHypPatchOps::clearPatchState()
 }// clearPatchState
 
 void
-GodunovHypPatchOps::registerModelVariables(
+AdvectHypPatchOps::registerModelVariables(
     SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* integrator)
 {
     t_register_model_vars->start();
@@ -730,7 +730,7 @@ GodunovHypPatchOps::registerModelVariables(
 }// registerModelVariables
 
 void
-GodunovHypPatchOps::initializeDataOnPatch(
+AdvectHypPatchOps::initializeDataOnPatch(
     SAMRAI::hier::Patch<NDIM>& patch,
     const double data_time,
     const bool initial_time)
@@ -825,7 +825,7 @@ GodunovHypPatchOps::initializeDataOnPatch(
 }// initializeDataOnPatch
 
 double
-GodunovHypPatchOps::computeStableDtOnPatch(
+AdvectHypPatchOps::computeStableDtOnPatch(
     SAMRAI::hier::Patch<NDIM>& patch,
     const bool initial_time,
     const double dt_time)
@@ -850,7 +850,7 @@ GodunovHypPatchOps::computeStableDtOnPatch(
 }// computeStableDtOnPatch
 
 void
-GodunovHypPatchOps::computeFluxesOnPatch(
+AdvectHypPatchOps::computeFluxesOnPatch(
     SAMRAI::hier::Patch<NDIM>& patch,
     const double time,
     const double dt)
@@ -977,7 +977,7 @@ GodunovHypPatchOps::computeFluxesOnPatch(
 }// computeFluxesOnPatch
 
 void
-GodunovHypPatchOps::conservativeDifferenceOnPatch(
+AdvectHypPatchOps::conservativeDifferenceOnPatch(
     SAMRAI::hier::Patch<NDIM>& patch,
     const double time,
     const double dt,
@@ -1139,7 +1139,7 @@ GodunovHypPatchOps::conservativeDifferenceOnPatch(
 }// conservativeDifferenceOnPatch
 
 void
-GodunovHypPatchOps::preprocessAdvanceLevelState(
+AdvectHypPatchOps::preprocessAdvanceLevelState(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
     double current_time,
     double dt,
@@ -1169,7 +1169,7 @@ GodunovHypPatchOps::preprocessAdvanceLevelState(
 }// preprocessAdvanceLevelState
 
 void
-GodunovHypPatchOps::postprocessAdvanceLevelState(
+AdvectHypPatchOps::postprocessAdvanceLevelState(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
     double current_time,
     double dt,
@@ -1274,7 +1274,7 @@ GodunovHypPatchOps::postprocessAdvanceLevelState(
 }// postprocessAdvanceLevelState
 
 void
-GodunovHypPatchOps::tagRichardsonExtrapolationCells(
+AdvectHypPatchOps::tagRichardsonExtrapolationCells(
     SAMRAI::hier::Patch<NDIM>& patch,
     const int error_level_number,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> coarsened_fine,
@@ -1462,7 +1462,7 @@ GodunovHypPatchOps::tagRichardsonExtrapolationCells(
 }// tagRichardsonExtrapolationCells
 
 void
-GodunovHypPatchOps::tagGradientDetectorCells(
+AdvectHypPatchOps::tagGradientDetectorCells(
     SAMRAI::hier::Patch<NDIM>& patch,
     const double regrid_time,
     const bool initial_error,
@@ -1660,7 +1660,7 @@ GodunovHypPatchOps::tagGradientDetectorCells(
 ///
 
 void
-GodunovHypPatchOps::setPhysicalBoundaryConditions(
+AdvectHypPatchOps::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch<NDIM>& patch,
     const double fill_time,
     const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill)
@@ -1737,7 +1737,7 @@ GodunovHypPatchOps::setPhysicalBoundaryConditions(
 ///
 
 void
-GodunovHypPatchOps::putToDatabase(
+AdvectHypPatchOps::putToDatabase(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
     t_put_to_database->start();
@@ -1746,8 +1746,8 @@ GodunovHypPatchOps::putToDatabase(
     assert(!db.isNull());
 #endif
 
-    db->putInteger("GODUNOV_HYP_PATCH_OPS_VERSION",
-                   GODUNOV_HYP_PATCH_OPS_VERSION);
+    db->putInteger("ADVECT_HYP_PATCH_OPS_VERSION",
+                   ADVECT_HYP_PATCH_OPS_VERSION);
 
     db->putIntegerArray("d_ghosts", static_cast<int*>(d_ghosts), NDIM);
     db->putIntegerArray("d_flux_ghosts", static_cast<int*>(d_flux_ghosts), NDIM);
@@ -1792,12 +1792,12 @@ GodunovHypPatchOps::putToDatabase(
 ///
 
 void
-GodunovHypPatchOps::printClassData(
+AdvectHypPatchOps::printClassData(
     std::ostream &os) const
 {
     os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
-    os << "\nGodunovHypPatchOps::printClassData...\n";
-    os << "GodunovHypPatchOps: this = " << const_cast<GodunovHypPatchOps*>(this) << "\n";
+    os << "\nAdvectHypPatchOps::printClassData...\n";
+    os << "AdvectHypPatchOps: this = " << const_cast<AdvectHypPatchOps*>(this) << "\n";
     os << "d_object_name = " << d_object_name << "\n";
     os << "d_grid_geometry = " << static_cast<SAMRAI::geom::CartesianGridGeometry<NDIM>*>(d_grid_geometry) << "\n";
 
@@ -1879,7 +1879,7 @@ GodunovHypPatchOps::printClassData(
 /////////////////////////////// PROTECTED  ///////////////////////////////////
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> >
-GodunovHypPatchOps::getFluxIntegralData(
+AdvectHypPatchOps::getFluxIntegralData(
     const size_t l,
     SAMRAI::hier::Patch<NDIM>& patch,
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context)
@@ -1895,7 +1895,7 @@ GodunovHypPatchOps::getFluxIntegralData(
 }// getFluxIntegralData
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> >
-GodunovHypPatchOps::getQIntegralData(
+AdvectHypPatchOps::getQIntegralData(
     const size_t l,
     SAMRAI::hier::Patch<NDIM>& patch,
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context)
@@ -1936,7 +1936,7 @@ compute_linear_extrap(
 }
 
 void
-GodunovHypPatchOps::setAdvectionVelocityBoundaryConditions(
+AdvectHypPatchOps::setAdvectionVelocityBoundaryConditions(
     SAMRAI::hier::Patch<NDIM>& patch,
     const double fill_time,
     const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill)
@@ -2055,7 +2055,7 @@ GodunovHypPatchOps::setAdvectionVelocityBoundaryConditions(
                 }
                 else
                 {
-                    TBOX_ERROR("GodunovHypPatchOps::setAdvectionVelocityBoundaryConditions():\n"
+                    TBOX_ERROR("AdvectHypPatchOps::setAdvectionVelocityBoundaryConditions():\n"
                                << "  unknown extrapolation type: " << d_extrap_type << "\n"
                                << "  valid selections are: CONSTANT, LINEAR" << endl);
                 }
@@ -2066,7 +2066,7 @@ GodunovHypPatchOps::setAdvectionVelocityBoundaryConditions(
 }// setAdvectionVelocityBoundaryConditions
 
 void
-GodunovHypPatchOps::setInflowBoundaryConditions(
+AdvectHypPatchOps::setInflowBoundaryConditions(
     SAMRAI::hier::Patch<NDIM>& patch,
     const double fill_time,
     const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill)
@@ -2116,7 +2116,7 @@ compute_linear_extrap(
 }
 
 void
-GodunovHypPatchOps::setOutflowBoundaryConditions(
+AdvectHypPatchOps::setOutflowBoundaryConditions(
     SAMRAI::hier::Patch<NDIM>& patch,
     const double fill_time,
     const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill)
@@ -2246,7 +2246,7 @@ GodunovHypPatchOps::setOutflowBoundaryConditions(
                         }
                         else
                         {
-                            TBOX_ERROR("GodunovHypPatchOps::setOutflowBoundaryConditions():\n"
+                            TBOX_ERROR("AdvectHypPatchOps::setOutflowBoundaryConditions():\n"
                                        << "  unknown extrapolation type: " << d_extrap_type << "\n"
                                        << "  valid selections are: CONSTANT, LINEAR" << endl);
                         }
@@ -2261,7 +2261,7 @@ GodunovHypPatchOps::setOutflowBoundaryConditions(
 /////////////////////////////// PRIVATE    ///////////////////////////////////
 
 void
-GodunovHypPatchOps::getFromInput(
+AdvectHypPatchOps::getFromInput(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
     bool is_from_restart)
 {
@@ -2281,7 +2281,7 @@ GodunovHypPatchOps::getFromInput(
         "extrap_type", d_extrap_type);
     if (!(d_extrap_type == "CONSTANT" || d_extrap_type == "LINEAR"))
     {
-        TBOX_ERROR("GodunovHypPatchOps::getFromInput():\n"
+        TBOX_ERROR("AdvectHypPatchOps::getFromInput():\n"
                    << "  unknown extrapolation type: " << d_extrap_type << "\n"
                    << "  valid selections are: CONSTANT, LINEAR" << endl);
     }
@@ -2473,7 +2473,7 @@ GodunovHypPatchOps::getFromInput(
 }// getFromInput
 
 void
-GodunovHypPatchOps::getFromRestart()
+AdvectHypPatchOps::getFromRestart()
 {
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> root_db =
         SAMRAI::tbox::RestartManager::getManager()->getRootDatabase();
@@ -2491,8 +2491,8 @@ GodunovHypPatchOps::getFromRestart()
                    << d_object_name << " not found in restart file.");
     }
 
-    int ver = db->getInteger("GODUNOV_HYP_PATCH_OPS_VERSION");
-    if (ver != GODUNOV_HYP_PATCH_OPS_VERSION)
+    int ver = db->getInteger("ADVECT_HYP_PATCH_OPS_VERSION");
+    if (ver != ADVECT_HYP_PATCH_OPS_VERSION)
     {
         TBOX_ERROR(d_object_name << ":\n"
                    << "  Restart file version different than class version.");
@@ -2549,76 +2549,6 @@ GodunovHypPatchOps::getFromRestart()
 /////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::GodunovHypPatchOps>;
+template class SAMRAI::tbox::Pointer<IBAMR::AdvectHypPatchOps>;
 
 //////////////////////////////////////////////////////////////////////////////
-
-#if 0
-    // Update the predicted q data to "exactly" enforce physical
-    // boundary conditions at inflow boundaries.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch_ptr(&patch,false);
-    const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
-        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch_ptr);
-    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    for (int n = 0; n < n_physical_codim1_boxes; ++n)
-    {
-        static const int ghost_width_to_fill = 1;
-        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-        const SAMRAI::hier::BoundaryBox<NDIM> trimmed_bdry_box =
-            STOOLS::PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, patch_ptr);
-        const SAMRAI::hier::Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(
-            trimmed_bdry_box, patch_box, ghost_width_to_fill);
-        const int location_index = bdry_box.getLocationIndex();
-        const int codim = 1;
-
-        for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
-                patch.getPatchData(d_Q_vars[l], getDataContext());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > q_integral_data =
-                getQIntegralData(l, patch, getDataContext());
-
-            // Loop over the boundary box indices and compute the
-            // nearest interior index.
-            for (SAMRAI::hier::Box<NDIM>::Iterator b(bdry_fill_box); b; b++)
-            {
-                const SAMRAI::hier::Index<NDIM>& i = b();
-                SAMRAI::hier::Index<NDIM> i_intr = i;
-                SAMRAI::hier::Index<NDIM> i_bdry = i;
-                SAMRAI::pdat::FaceIndex<NDIM> i_face;
-
-                bool is_inflow_bdry = false;
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    if      (STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, d))
-                    {
-                        i_intr(d) = patch_lower(d);
-                        i_bdry(d) = i_intr(d)-1; // use boundary data for interpolation
-
-                        i_face = SAMRAI::pdat::FaceIndex<NDIM>(
-                            i_intr, d, SAMRAI::pdat::FaceIndex<NDIM>::Lower);
-                        is_inflow_bdry = is_inflow_bdry || (*u_data)(i_face) > 0.0;
-                    }
-                    else if (STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, d))
-                    {
-                        i_intr(d) = patch_upper(d);
-                        i_bdry(d) = i_intr(d)+1; // use boundary data for interpolation
-
-                        i_face = SAMRAI::pdat::FaceIndex<NDIM>(
-                            i_intr, d, SAMRAI::pdat::FaceIndex<NDIM>::Upper);
-                        is_inflow_bdry = is_inflow_bdry || (*u_data)(i_face) < 0.0;
-                    }
-                }
-
-                if (is_inflow_bdry)
-                {
-                    for (int depth = 0; depth < Q_data->getDepth(); ++depth)
-                    {
-                        (*q_integral_data)(i_face,depth) =
-                            0.5*((*Q_data)(i_intr,depth)+(*Q_data)(i_bdry,depth));
-                    }
-                }
-            }
-        }
-    }
-#endif

@@ -12,7 +12,7 @@ GodunovAdvector {
    limiter_type = MUSCL_LIMITED
 }
 
-GodunovHypPatchOps {
+AdvectHypPatchOps {
    extrap_type = "LINEAR"
    Refinement_data {
 //    refine_criteria = "QVAL_RICHARDSON", "QVAL_GRADIENT"

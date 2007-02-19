@@ -53,14 +53,14 @@ AR = ar
 ARFLAGS = cru
 libIBAMR_advect2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_advect2d_a_LIBADD =
-am__objects_1 = libIBAMR_advect2d_a-GodunovAdvector.$(OBJEXT) \
-	libIBAMR_advect2d_a-GodunovHypPatchOps.$(OBJEXT)
+am__objects_1 = libIBAMR_advect2d_a-AdvectHypPatchOps.$(OBJEXT) \
+	libIBAMR_advect2d_a-GodunovAdvector.$(OBJEXT)
 am_libIBAMR_advect2d_a_OBJECTS = $(am__objects_1)
 libIBAMR_advect2d_a_OBJECTS = $(am_libIBAMR_advect2d_a_OBJECTS)
 libIBAMR_advect3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_advect3d_a_LIBADD =
-am__objects_2 = libIBAMR_advect3d_a-GodunovAdvector.$(OBJEXT) \
-	libIBAMR_advect3d_a-GodunovHypPatchOps.$(OBJEXT)
+am__objects_2 = libIBAMR_advect3d_a-AdvectHypPatchOps.$(OBJEXT) \
+	libIBAMR_advect3d_a-GodunovAdvector.$(OBJEXT)
 am_libIBAMR_advect3d_a_OBJECTS = $(am__objects_2)
 libIBAMR_advect3d_a_OBJECTS = $(am_libIBAMR_advect3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
@@ -124,7 +124,6 @@ EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
 FLIBS = @FLIBS@
-GREP = @GREP@
 HAVE_DOT = @HAVE_DOT@
 HAVE_DOXYGEN = @HAVE_DOXYGEN@
 INSTALL_DATA = @INSTALL_DATA@
@@ -161,6 +160,8 @@ VERSION = @VERSION@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
+ac_ct_RANLIB = @ac_ct_RANLIB@
+ac_ct_STRIP = @ac_ct_STRIP@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -173,26 +174,19 @@ am__untar = @am__untar@
 bindir = @bindir@
 build_alias = @build_alias@
 datadir = @datadir@
-datarootdir = @datarootdir@
-docdir = @docdir@
-dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 host_alias = @host_alias@
-htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
-localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
-pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
-psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 subdirs = @subdirs@
@@ -204,8 +198,8 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = fortran .
 noinst_LIBRARIES = libIBAMR_advect2d.a libIBAMR_advect3d.a
-SOURCES = GodunovAdvector.C GodunovHypPatchOps.C
-pkg_include_HEADERS = GodunovAdvector.h GodunovHypPatchOps.h
+SOURCES = AdvectHypPatchOps.C GodunovAdvector.C
+pkg_include_HEADERS = AdvectHypPatchOps.h GodunovAdvector.h
 libIBAMR_advect2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR_advect2d_a_SOURCES = $(SOURCES)
 libIBAMR_advect3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
@@ -261,10 +255,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_advect2d_a-AdvectHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_advect2d_a-GodunovAdvector.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_advect2d_a-GodunovHypPatchOps.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_advect3d_a-AdvectHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_advect3d_a-GodunovAdvector.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_advect3d_a-GodunovHypPatchOps.Po@am__quote@
 
 .C.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -280,6 +274,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
+libIBAMR_advect2d_a-AdvectHypPatchOps.o: AdvectHypPatchOps.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_advect2d_a-AdvectHypPatchOps.o -MD -MP -MF "$(DEPDIR)/libIBAMR_advect2d_a-AdvectHypPatchOps.Tpo" -c -o libIBAMR_advect2d_a-AdvectHypPatchOps.o `test -f 'AdvectHypPatchOps.C' || echo '$(srcdir)/'`AdvectHypPatchOps.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_advect2d_a-AdvectHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_advect2d_a-AdvectHypPatchOps.Po"; else rm -f "$(DEPDIR)/libIBAMR_advect2d_a-AdvectHypPatchOps.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvectHypPatchOps.C' object='libIBAMR_advect2d_a-AdvectHypPatchOps.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_advect2d_a-AdvectHypPatchOps.o `test -f 'AdvectHypPatchOps.C' || echo '$(srcdir)/'`AdvectHypPatchOps.C
+
+libIBAMR_advect2d_a-AdvectHypPatchOps.obj: AdvectHypPatchOps.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_advect2d_a-AdvectHypPatchOps.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_advect2d_a-AdvectHypPatchOps.Tpo" -c -o libIBAMR_advect2d_a-AdvectHypPatchOps.obj `if test -f 'AdvectHypPatchOps.C'; then $(CYGPATH_W) 'AdvectHypPatchOps.C'; else $(CYGPATH_W) '$(srcdir)/AdvectHypPatchOps.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_advect2d_a-AdvectHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_advect2d_a-AdvectHypPatchOps.Po"; else rm -f "$(DEPDIR)/libIBAMR_advect2d_a-AdvectHypPatchOps.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvectHypPatchOps.C' object='libIBAMR_advect2d_a-AdvectHypPatchOps.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_advect2d_a-AdvectHypPatchOps.obj `if test -f 'AdvectHypPatchOps.C'; then $(CYGPATH_W) 'AdvectHypPatchOps.C'; else $(CYGPATH_W) '$(srcdir)/AdvectHypPatchOps.C'; fi`
+
 libIBAMR_advect2d_a-GodunovAdvector.o: GodunovAdvector.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_advect2d_a-GodunovAdvector.o -MD -MP -MF "$(DEPDIR)/libIBAMR_advect2d_a-GodunovAdvector.Tpo" -c -o libIBAMR_advect2d_a-GodunovAdvector.o `test -f 'GodunovAdvector.C' || echo '$(srcdir)/'`GodunovAdvector.C; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_advect2d_a-GodunovAdvector.Tpo" "$(DEPDIR)/libIBAMR_advect2d_a-GodunovAdvector.Po"; else rm -f "$(DEPDIR)/libIBAMR_advect2d_a-GodunovAdvector.Tpo"; exit 1; fi
@@ -294,19 +302,19 @@ libIBAMR_advect2d_a-GodunovAdvector.obj: GodunovAdvector.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_advect2d_a-GodunovAdvector.obj `if test -f 'GodunovAdvector.C'; then $(CYGPATH_W) 'GodunovAdvector.C'; else $(CYGPATH_W) '$(srcdir)/GodunovAdvector.C'; fi`
 
-libIBAMR_advect2d_a-GodunovHypPatchOps.o: GodunovHypPatchOps.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_advect2d_a-GodunovHypPatchOps.o -MD -MP -MF "$(DEPDIR)/libIBAMR_advect2d_a-GodunovHypPatchOps.Tpo" -c -o libIBAMR_advect2d_a-GodunovHypPatchOps.o `test -f 'GodunovHypPatchOps.C' || echo '$(srcdir)/'`GodunovHypPatchOps.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_advect2d_a-GodunovHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_advect2d_a-GodunovHypPatchOps.Po"; else rm -f "$(DEPDIR)/libIBAMR_advect2d_a-GodunovHypPatchOps.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='GodunovHypPatchOps.C' object='libIBAMR_advect2d_a-GodunovHypPatchOps.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR_advect3d_a-AdvectHypPatchOps.o: AdvectHypPatchOps.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_advect3d_a-AdvectHypPatchOps.o -MD -MP -MF "$(DEPDIR)/libIBAMR_advect3d_a-AdvectHypPatchOps.Tpo" -c -o libIBAMR_advect3d_a-AdvectHypPatchOps.o `test -f 'AdvectHypPatchOps.C' || echo '$(srcdir)/'`AdvectHypPatchOps.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_advect3d_a-AdvectHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_advect3d_a-AdvectHypPatchOps.Po"; else rm -f "$(DEPDIR)/libIBAMR_advect3d_a-AdvectHypPatchOps.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvectHypPatchOps.C' object='libIBAMR_advect3d_a-AdvectHypPatchOps.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_advect2d_a-GodunovHypPatchOps.o `test -f 'GodunovHypPatchOps.C' || echo '$(srcdir)/'`GodunovHypPatchOps.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_advect3d_a-AdvectHypPatchOps.o `test -f 'AdvectHypPatchOps.C' || echo '$(srcdir)/'`AdvectHypPatchOps.C
 
-libIBAMR_advect2d_a-GodunovHypPatchOps.obj: GodunovHypPatchOps.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_advect2d_a-GodunovHypPatchOps.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_advect2d_a-GodunovHypPatchOps.Tpo" -c -o libIBAMR_advect2d_a-GodunovHypPatchOps.obj `if test -f 'GodunovHypPatchOps.C'; then $(CYGPATH_W) 'GodunovHypPatchOps.C'; else $(CYGPATH_W) '$(srcdir)/GodunovHypPatchOps.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_advect2d_a-GodunovHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_advect2d_a-GodunovHypPatchOps.Po"; else rm -f "$(DEPDIR)/libIBAMR_advect2d_a-GodunovHypPatchOps.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='GodunovHypPatchOps.C' object='libIBAMR_advect2d_a-GodunovHypPatchOps.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR_advect3d_a-AdvectHypPatchOps.obj: AdvectHypPatchOps.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_advect3d_a-AdvectHypPatchOps.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_advect3d_a-AdvectHypPatchOps.Tpo" -c -o libIBAMR_advect3d_a-AdvectHypPatchOps.obj `if test -f 'AdvectHypPatchOps.C'; then $(CYGPATH_W) 'AdvectHypPatchOps.C'; else $(CYGPATH_W) '$(srcdir)/AdvectHypPatchOps.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_advect3d_a-AdvectHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_advect3d_a-AdvectHypPatchOps.Po"; else rm -f "$(DEPDIR)/libIBAMR_advect3d_a-AdvectHypPatchOps.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AdvectHypPatchOps.C' object='libIBAMR_advect3d_a-AdvectHypPatchOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_advect2d_a-GodunovHypPatchOps.obj `if test -f 'GodunovHypPatchOps.C'; then $(CYGPATH_W) 'GodunovHypPatchOps.C'; else $(CYGPATH_W) '$(srcdir)/GodunovHypPatchOps.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_advect3d_a-AdvectHypPatchOps.obj `if test -f 'AdvectHypPatchOps.C'; then $(CYGPATH_W) 'AdvectHypPatchOps.C'; else $(CYGPATH_W) '$(srcdir)/AdvectHypPatchOps.C'; fi`
 
 libIBAMR_advect3d_a-GodunovAdvector.o: GodunovAdvector.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_advect3d_a-GodunovAdvector.o -MD -MP -MF "$(DEPDIR)/libIBAMR_advect3d_a-GodunovAdvector.Tpo" -c -o libIBAMR_advect3d_a-GodunovAdvector.o `test -f 'GodunovAdvector.C' || echo '$(srcdir)/'`GodunovAdvector.C; \
@@ -321,20 +329,6 @@ libIBAMR_advect3d_a-GodunovAdvector.obj: GodunovAdvector.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='GodunovAdvector.C' object='libIBAMR_advect3d_a-GodunovAdvector.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_advect3d_a-GodunovAdvector.obj `if test -f 'GodunovAdvector.C'; then $(CYGPATH_W) 'GodunovAdvector.C'; else $(CYGPATH_W) '$(srcdir)/GodunovAdvector.C'; fi`
-
-libIBAMR_advect3d_a-GodunovHypPatchOps.o: GodunovHypPatchOps.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_advect3d_a-GodunovHypPatchOps.o -MD -MP -MF "$(DEPDIR)/libIBAMR_advect3d_a-GodunovHypPatchOps.Tpo" -c -o libIBAMR_advect3d_a-GodunovHypPatchOps.o `test -f 'GodunovHypPatchOps.C' || echo '$(srcdir)/'`GodunovHypPatchOps.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_advect3d_a-GodunovHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_advect3d_a-GodunovHypPatchOps.Po"; else rm -f "$(DEPDIR)/libIBAMR_advect3d_a-GodunovHypPatchOps.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='GodunovHypPatchOps.C' object='libIBAMR_advect3d_a-GodunovHypPatchOps.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_advect3d_a-GodunovHypPatchOps.o `test -f 'GodunovHypPatchOps.C' || echo '$(srcdir)/'`GodunovHypPatchOps.C
-
-libIBAMR_advect3d_a-GodunovHypPatchOps.obj: GodunovHypPatchOps.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_advect3d_a-GodunovHypPatchOps.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_advect3d_a-GodunovHypPatchOps.Tpo" -c -o libIBAMR_advect3d_a-GodunovHypPatchOps.obj `if test -f 'GodunovHypPatchOps.C'; then $(CYGPATH_W) 'GodunovHypPatchOps.C'; else $(CYGPATH_W) '$(srcdir)/GodunovHypPatchOps.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_advect3d_a-GodunovHypPatchOps.Tpo" "$(DEPDIR)/libIBAMR_advect3d_a-GodunovHypPatchOps.Po"; else rm -f "$(DEPDIR)/libIBAMR_advect3d_a-GodunovHypPatchOps.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='GodunovHypPatchOps.C' object='libIBAMR_advect3d_a-GodunovHypPatchOps.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_advect3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_advect3d_a-GodunovHypPatchOps.obj `if test -f 'GodunovHypPatchOps.C'; then $(CYGPATH_W) 'GodunovHypPatchOps.C'; else $(CYGPATH_W) '$(srcdir)/GodunovHypPatchOps.C'; fi`
 uninstall-info-am:
 install-pkg_includeHEADERS: $(pkg_include_HEADERS)
 	@$(NORMAL_INSTALL)

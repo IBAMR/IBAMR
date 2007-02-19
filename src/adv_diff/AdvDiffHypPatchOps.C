@@ -1,5 +1,5 @@
 // Filename: AdvDiffHypPatchOps.C
-// Last modified: <25.Oct.2006 18:29:24 boyce@bigboy.nyconnect.com>
+// Last modified: <19.Feb.2007 17:10:26 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHypPatchOps.h"
@@ -130,7 +130,7 @@ AdvDiffHypPatchOps::AdvDiffHypPatchOps(
     SAMRAI::tbox::Pointer<GodunovAdvector> godunov_advector,
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
     bool register_for_restart)
-    : GodunovHypPatchOps(object_name, input_db, godunov_advector, grid_geom, register_for_restart)
+    : AdvectHypPatchOps(object_name, input_db, godunov_advector, grid_geom, register_for_restart)
 {
     // Setup Timers.
     static bool timers_need_init = true;
@@ -160,7 +160,7 @@ AdvDiffHypPatchOps::~AdvDiffHypPatchOps()
 ///      preprocessAdvanceLevelState(),
 ///      postprocessAdvanceLevelState()
 ///
-///  are redefined from the GodunovHypPatchOps base class.
+///  are redefined from the AdvectHypPatchOps base class.
 ///
 
 void

@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <15.Feb.2007 21:04:14 boyce@bigboy.nyconnect.com>
+// Last modified: <19.Feb.2007 16:59:30 boyce@bigboy.nyconnect.com>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -14,12 +14,12 @@
 // STOOLS INCLUDES
 #include <stools/CCLaplaceOperator.h>
 #include <stools/CCPoissonFACOperator.h>
+#include <stools/CartRobinPhysBdryOp.h>
 #include <stools/HierarchyMathOps.h>
 #include <stools/KrylovLinearSolver.h>
 #include <stools/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
-#include <CartesianRobinBcHelper.h>
 #include <CellVariable.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
@@ -1010,7 +1010,7 @@ private:
     int d_max_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::CartesianRobinBcHelper<NDIM> > d_bc_helper;
+    SAMRAI::tbox::Pointer<STOOLS::CartRobinPhysBdryOp> d_bc_op;
 
     std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >           d_helmholtz1_ops;
     std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> > d_helmholtz1_specs;

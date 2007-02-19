@@ -12,7 +12,7 @@ GodunovAdvector {
    limiter_type = FOURTH_ORDER
 }
 
-GodunovHypPatchOps {
+AdvectHypPatchOps {
    Refinement_data {
 //    refine_criteria = "QVAL_RICHARDSON", "QVAL_GRADIENT"
       refine_criteria = "QVAL_GRADIENT"

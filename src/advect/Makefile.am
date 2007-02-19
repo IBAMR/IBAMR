@@ -5,8 +5,8 @@ SUBDIRS = fortran .
 noinst_LIBRARIES = libIBAMR_advect2d.a libIBAMR_advect3d.a
 
 ## Dimension-dependent libraries
-SOURCES              = GodunovAdvector.C GodunovHypPatchOps.C
-pkg_include_HEADERS  = GodunovAdvector.h GodunovHypPatchOps.h
+SOURCES              = AdvectHypPatchOps.C GodunovAdvector.C
+pkg_include_HEADERS  = AdvectHypPatchOps.h GodunovAdvector.h
 
 libIBAMR_advect2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR_advect2d_a_SOURCES = $(SOURCES)

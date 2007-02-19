@@ -81,8 +81,8 @@ libIBAMR2d_a_DEPENDENCIES =  \
 	advect/fortran/advect_diff2d.o \
 	advect/fortran/advect_stable2d.o \
 	advect/fortran/advect_detect2d.o \
+	advect/libIBAMR_advect2d_a-AdvectHypPatchOps.o \
 	advect/libIBAMR_advect2d_a-GodunovAdvector.o \
-	advect/libIBAMR_advect2d_a-GodunovHypPatchOps.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
@@ -123,8 +123,8 @@ libIBAMR3d_a_DEPENDENCIES =  \
 	advect/fortran/advect_diff3d.o \
 	advect/fortran/advect_stable3d.o \
 	advect/fortran/advect_detect3d.o \
+	advect/libIBAMR_advect3d_a-AdvectHypPatchOps.o \
 	advect/libIBAMR_advect3d_a-GodunovAdvector.o \
-	advect/libIBAMR_advect3d_a-GodunovHypPatchOps.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o \
@@ -198,7 +198,6 @@ EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
 FLIBS = @FLIBS@
-GREP = @GREP@
 HAVE_DOT = @HAVE_DOT@
 HAVE_DOXYGEN = @HAVE_DOXYGEN@
 INSTALL_DATA = @INSTALL_DATA@
@@ -235,6 +234,8 @@ VERSION = @VERSION@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
+ac_ct_RANLIB = @ac_ct_RANLIB@
+ac_ct_STRIP = @ac_ct_STRIP@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -247,26 +248,19 @@ am__untar = @am__untar@
 bindir = @bindir@
 build_alias = @build_alias@
 datadir = @datadir@
-datarootdir = @datarootdir@
-docdir = @docdir@
-dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 host_alias = @host_alias@
-htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
-localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
-pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
-psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 subdirs = @subdirs@
@@ -297,8 +291,8 @@ advect/fortran/godunov_predictors2d.o \
 advect/fortran/advect_diff2d.o \
 advect/fortran/advect_stable2d.o \
 advect/fortran/advect_detect2d.o \
+advect/libIBAMR_advect2d_a-AdvectHypPatchOps.o \
 advect/libIBAMR_advect2d_a-GodunovAdvector.o \
-advect/libIBAMR_advect2d_a-GodunovHypPatchOps.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
 lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
@@ -338,8 +332,8 @@ advect/fortran/godunov_predictors3d.o \
 advect/fortran/advect_diff3d.o \
 advect/fortran/advect_stable3d.o \
 advect/fortran/advect_detect3d.o \
+advect/libIBAMR_advect3d_a-AdvectHypPatchOps.o \
 advect/libIBAMR_advect3d_a-GodunovAdvector.o \
-advect/libIBAMR_advect3d_a-GodunovHypPatchOps.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
 lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o \

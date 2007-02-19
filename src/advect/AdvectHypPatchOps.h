@@ -1,8 +1,8 @@
-#ifndef included_GodunovHypPatchOps
-#define included_GodunovHypPatchOps
+#ifndef included_AdvectHypPatchOps
+#define included_AdvectHypPatchOps
 
-// Filename: GodunovHypPatchOps.h
-// Last modified: <18.Feb.2007 23:14:51 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Filename: AdvectHypPatchOps.h
+// Last modified: <19.Feb.2007 17:09:13 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -47,7 +47,7 @@ namespace IBAMR
  * \brief SAMRAI::algs::HyperbolicPatchStrategy interface for the
  * GodunovAdvector class.
  *
- * Class GodunovHypPatchOps provides numerical routines for solving
+ * Class AdvectHypPatchOps provides numerical routines for solving
  * the advection equation in conservative form, \f[
  *
  *      \frac{dQ}{dt} + \nabla \cdot (\vec{u}^{\mbox{\scriptsize ADV}} Q) = F - Q \nabla \cdot \vec{u}^{\mbox{\scriptsize ADV}},
@@ -82,13 +82,13 @@ namespace IBAMR
  * \todo Verify that subcycling works for both conservative and
  * non-conservative forms of the equation.
  */
-class GodunovHypPatchOps
+class AdvectHypPatchOps
     : public SAMRAI::algs::HyperbolicPatchStrategy<NDIM>,
       public virtual SAMRAI::tbox::Serializable
 {
 public:
     /*!
-     * The constructor for GodunovHypPatchOps sets default parameters
+     * The constructor for AdvectHypPatchOps sets default parameters
      * for the advection solver.  The constructor also registers this
      * object for restart with the restart manager using the object
      * name.
@@ -99,7 +99,7 @@ public:
      * input database (potentially overriding those found in the
      * restart file).
      */
-    GodunovHypPatchOps(
+    AdvectHypPatchOps(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<GodunovAdvector> godunov_advector,
@@ -107,10 +107,10 @@ public:
         bool register_for_restart=true);
 
     /*!
-     * The destructor for GodunovHypPatchOps unregisters the patch
+     * The destructor for AdvectHypPatchOps unregisters the patch
      * strategy object with the restart manager when so registered.
      */
-    virtual ~GodunovHypPatchOps();
+    virtual ~AdvectHypPatchOps();
 
     ///
     ///  The following routines:
@@ -120,7 +120,7 @@ public:
     ///      registerAdvectionVelocity(),
     ///      registerVisItDataWriter()
     ///
-    ///  allow the GodunovHypPatchOps to be used as a generic
+    ///  allow the AdvectHypPatchOps to be used as a generic
     ///  advection scheme.
     ///
 
@@ -339,7 +339,7 @@ public:
      * Indicate that the patch strategy is presently being used to
      * advance the solution state forward in time.
      *
-     * This method is used by class GodunovHypPatchOps to determine
+     * This method is used by class AdvectHypPatchOps to determine
      * the manner in which physical boundary conditions are
      * determined.  In particular, when advancing the solution forward
      * in time, appropriate boundary conditions are determined at
@@ -361,7 +361,7 @@ public:
      * simulation time, or later times during the adaptive regridding
      * process.
      *
-     * This method is used by class GodunovHypPatchOps to determine
+     * This method is used by class AdvectHypPatchOps to determine
      * the manner in which physical boundary conditions are
      * determined.  In particular, when (re-)initializing the
      * solution, constant or linear extrapolation is employed to
@@ -380,7 +380,7 @@ public:
     virtual void clearPatchState();
 
     /*!
-     * \brief Register GodunovHypPatchOps model variables with the
+     * \brief Register AdvectHypPatchOps model variables with the
      * SAMRAI::algs::HyperbolicLevelIntegrator according to the
      * variable registration function provided by the integrator.
      *
@@ -530,7 +530,7 @@ public:
     ///
 
     /*!
-     * \brief Write state of GodunovHypPatchOps object to the given
+     * \brief Write state of AdvectHypPatchOps object to the given
      * database for restart.
      *
      * This routine is a concrete implementation of the function
@@ -548,7 +548,7 @@ public:
     ///
 
     /*!
-     * \brief Print all data members for GodunovHypPatchOps class.
+     * \brief Print all data members for AdvectHypPatchOps class.
      */
     virtual void printClassData(
         std::ostream& os) const;
@@ -674,7 +674,7 @@ private:
      * NOTE: This constructor is not implemented and should not be
      * used.
      */
-    GodunovHypPatchOps();
+    AdvectHypPatchOps();
 
     /*!
      * \brief Copy constructor.
@@ -684,8 +684,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    GodunovHypPatchOps(
-        const GodunovHypPatchOps& from);
+    AdvectHypPatchOps(
+        const AdvectHypPatchOps& from);
 
     /*!
      * \brief Assignment operator.
@@ -696,8 +696,8 @@ private:
      *
      * \return A reference to this object.
      */
-    GodunovHypPatchOps& operator=(
-        const GodunovHypPatchOps& that);
+    AdvectHypPatchOps& operator=(
+        const AdvectHypPatchOps& that);
 
     /*
      * These private member functions read data from input and
@@ -766,8 +766,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/GodunovHypPatchOps.I>
+//#include <ibamr/AdvectHypPatchOps.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_GodunovHypPatchOps
+#endif //#ifndef included_AdvectHypPatchOps
