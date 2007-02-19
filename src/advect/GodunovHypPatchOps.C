@@ -1,5 +1,5 @@
 // Filename: GodunovHypPatchOps.C
-// Last modified: <19.Feb.2007 02:52:13 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <19.Feb.2007 17:05:29 boyce@bigboy.nyconnect.com>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovHypPatchOps.h"
@@ -2081,8 +2081,9 @@ GodunovHypPatchOps::setInflowBoundaryConditions(
         const int patch_data_idx = var_db->mapVariableAndContextToIndex(
             Q_var, getDataContext());
 
-        STOOLS::CartRobinPhysBdryOp bc_helper(patch_data_idx, Q_bc_coefs, d_extrap_type);
-        bc_helper.setHomogeneousBc(false);
+        static const bool homogeneous_bc = false;
+        STOOLS::CartRobinPhysBdryOp bc_helper(
+            patch_data_idx, Q_bc_coefs, homogeneous_bc, d_extrap_type);
         bc_helper.setPhysicalBoundaryConditions(
             patch, fill_time, ghost_width_to_fill);
     }
