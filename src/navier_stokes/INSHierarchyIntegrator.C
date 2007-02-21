@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <20.Feb.2007 04:05:13 boyce@bigboy.nyconnect.com>
+// Last modified: <21.Feb.2007 00:44:58 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -184,8 +184,6 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 
     d_using_vorticity_tagging = false;
     d_Omega_max = 0.0;
-
-    d_project_predicted_flux = false;
 
     d_second_order_pressure_update = true;
 
@@ -704,8 +702,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     registerVariable(d_Phi_idx, d_Phi_var, cell_ghosts);
 
     registerVariable(d_Grad_Phi_idx, d_Grad_Phi_var, no_ghosts);
-    registerVariable(d_grad_Phi_idx, d_grad_Phi_var,
-                     d_project_predicted_flux ? face_ghosts : no_ghosts);
+    registerVariable(d_grad_Phi_idx, d_grad_Phi_var, face_ghosts);
 
     registerVariable(d_G_idx, d_G_var, no_ghosts);
     registerVariable(d_H_idx, d_H_var, cell_ghosts);
@@ -724,7 +721,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
             d_U_var, d_nu, d_Grad_P_var, d_conservation_form,
             d_U_init, d_U_bc_coefs,
             SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>(NULL),
-            d_project_predicted_flux ? d_grad_Phi_var : SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >(NULL));
+            d_grad_Phi_var);
 
     // Initialize the AdvDiffHierarchyIntegrator.
     //
@@ -890,7 +887,8 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_grad_Phi_idx,      // source
                        d_u_adv_scratch_idx, // temporary work space
                        refine_operator);
-    d_rstrategies["grad_Phi->grad_Phi::CONSTANT_REFINE"] = NULL;
+    d_rstrategies["grad_Phi->grad_Phi::CONSERVATIVE_LINEAR_REFINE"] =
+        new STOOLS::CartExtrapPhysBdryOp(d_u_adv_scratch_idx, "LINEAR");
 
     // WARNING: Memory leak!
     std::vector<SAMRAI::xfer::RefinePatchStrategy<NDIM>*> refine_strategy_set;
@@ -1410,7 +1408,6 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     // Initialize the advection velocity to equal u(n).
     d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
 
-#if 0
     // Setup the forcing terms for velocity prediction.
     d_hier_math_ops->grad(
         d_Grad_P_current_idx, d_Grad_P_var, // dst
@@ -1542,7 +1539,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
                                          << d_hier_cc_data_ops->maxNorm(d_Div_u_adv_new_idx, d_wgt_idx)
                                          << endl;
     }
-#endif
+
     t_predict_advection_velocity->stop();
     return;
 }// predictAdvectionVelocity
@@ -1565,13 +1562,12 @@ INSHierarchyIntegrator::integrateAdvDiff(
 
     const double dt = new_time - current_time;
 
-    if (d_project_predicted_flux)
+    // The face-centered gradient of Phi is reused to approximately
+    // project the time-centered predicted velocity.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            d_rscheds["grad_Phi->grad_Phi::CONSERVATIVE_LINEAR_REFINE"][ln]->
-                fillData(current_time);
-        }
+        d_rscheds["grad_Phi->grad_Phi::CONSERVATIVE_LINEAR_REFINE"][ln]->
+            fillData(current_time);
     }
 
     // Setup time centered forcing terms.
@@ -1912,7 +1908,6 @@ INSHierarchyIntegrator::updatePressure(
                                   d_Phi_idx);  // src
     }
 
-#if 0
     // Normalize P(n+1/2) to have mean (discrete integral) zero.
     const double P_mean = (1.0/d_volume)*
         d_hier_cc_data_ops->integral(d_P_new_idx, d_wgt_idx);
@@ -1920,7 +1915,6 @@ INSHierarchyIntegrator::updatePressure(
     d_hier_cc_data_ops->addScalar(d_P_new_idx, // dst
                                   d_P_new_idx, // src
                                   -P_mean);    // alpha
-#endif
 
     if (override_current_pressure)
     {
@@ -2770,7 +2764,6 @@ INSHierarchyIntegrator::putToDatabase(
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
     if (d_using_vorticity_tagging) db->putDoubleArray("d_Omega_eps", d_Omega_eps);
     db->putDouble("d_Omega_max", d_Omega_max);
-    db->putBool("d_project_predicted_flux", d_project_predicted_flux);
     db->putBool("d_second_order_pressure_update", d_second_order_pressure_update);
     db->putDouble("d_old_dt", d_old_dt);
     db->putDouble("d_integrator_time", d_integrator_time);
@@ -3106,9 +3099,6 @@ INSHierarchyIntegrator::getFromInput(
         d_num_init_cycles = db->getIntegerWithDefault(
             "num_init_cycles", d_num_init_cycles);
 
-        d_project_predicted_flux = db->getBoolWithDefault(
-            "project_predicted_flux", d_project_predicted_flux);
-
         d_second_order_pressure_update = db->getBoolWithDefault(
             "second_order_pressure_update", d_second_order_pressure_update);
 
@@ -3176,7 +3166,6 @@ INSHierarchyIntegrator::getFromRestart()
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
     if (d_using_vorticity_tagging) d_Omega_eps = db->getDoubleArray("d_Omega_eps");
     d_Omega_max = db->getDouble("d_Omega_max");
-    d_project_predicted_flux = db->getBool("d_project_predicted_flux");
     d_second_order_pressure_update = db->getBool("d_second_order_pressure_update");
     d_old_dt = db->getDouble("d_old_dt");
     d_integrator_time = db->getDouble("d_integrator_time");

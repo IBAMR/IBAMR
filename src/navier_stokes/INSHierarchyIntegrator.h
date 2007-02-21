@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <20.Feb.2007 03:33:25 boyce@bigboy.nyconnect.com>
+// Last modified: <21.Feb.2007 00:41:35 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -952,12 +952,6 @@ private:
     bool d_using_vorticity_tagging;
     SAMRAI::tbox::Array<double> d_Omega_eps;
     double d_Omega_max;
-
-    /*
-     * This boolean value determines whether the predicted,
-     * time-centered advection term is approximately projected.
-     */
-    bool d_project_predicted_flux;
 
     /*
      * This boolean value determines whether the pressure update is

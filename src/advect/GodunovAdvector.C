@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <20.Feb.2007 02:08:50 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Feb.2007 22:34:59 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
