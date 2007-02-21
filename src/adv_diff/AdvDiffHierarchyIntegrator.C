@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <19.Feb.2007 17:00:41 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Feb.2007 02:07:40 boyce@bigboy.nyconnect.com>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -117,6 +117,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_calgs(),
       d_cstrategies(),
       d_cscheds(),
+      d_bc_op(new STOOLS::CartRobinPhysBdryOp()),
       d_sol_var(),
       d_rhs_var(),
       d_tmp_var(),
@@ -128,7 +129,6 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_max_iterations(25),
       d_abs_residual_tol(1.0e-30),
       d_rel_residual_tol(1.0e-8),
-      d_bc_op(NULL),
       d_helmholtz1_ops(),
       d_helmholtz1_specs(),
       d_helmholtz2_ops(),
@@ -289,6 +289,12 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
 
     return;
 }// ~AdvDiffHierarchyIntegrator
+
+const std::string&
+AdvDiffHierarchyIntegrator::getName() const
+{
+    return d_object_name;
+}// getName
 
 void
 AdvDiffHierarchyIntegrator::registerVisItDataWriter(
@@ -668,6 +674,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_sol_idx, // source
                        d_tmp_idx, // temporary work space
                        refine_operator);
+
     d_rstrategies["sol->sol::CONSTANT_REFINE"] = d_bc_op;
 
     d_calgs["SYNCH_NEW_STATE_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
@@ -1117,6 +1124,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                 d_bc_op->setPatchDataIndex(d_tmp_idx);
                 d_bc_op->setRobinBcCoefStrategy(bc_coef);
                 d_bc_op->setHomogeneousBc(false);
+                d_bc_op->setExtrapolationType("LINEAR");
             }
             d_hier_math_ops->
                 laplace(Psi_current_idx, Psi_var  ,  // dst
@@ -1332,6 +1340,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                 d_bc_op->setPatchDataIndex(d_tmp_idx);
                 d_bc_op->setRobinBcCoefStrategy(bc_coef);
                 d_bc_op->setHomogeneousBc(true);
+                d_bc_op->setExtrapolationType("LINEAR");
             }
             d_hier_math_ops->
                 laplace(d_rhs_idx, d_rhs_var,  // dst
@@ -1367,6 +1376,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                 d_bc_op->setPatchDataIndex(d_tmp_idx);
                 d_bc_op->setRobinBcCoefStrategy(bc_coef);
                 d_bc_op->setHomogeneousBc(false);
+                d_bc_op->setExtrapolationType("LINEAR");
             }
             d_hier_math_ops->
                 laplace(d_rhs_idx, d_rhs_var,   // dst

@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <16.Feb.2007 16:58:21 griffith@box221.cims.nyu.edu>
+// Last modified: <20.Feb.2007 04:12:40 boyce@bigboy.nyconnect.com>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -242,6 +242,12 @@ HierarchyProjector::~HierarchyProjector()
     return;
 }// ~HierarchyProjector
 
+const std::string&
+HierarchyProjector::getName() const
+{
+    return d_object_name;
+}// getName
+
 ///
 ///  The following routines:
 ///
@@ -340,6 +346,8 @@ HierarchyProjector::setPhysicalBcCoef(
         d_bc_coef = d_default_bc_coef;
         setHomogeneousBc(true);
     }
+
+    if (!d_poisson_fac_op.isNull()) d_poisson_fac_op->setPhysicalBcCoef(d_bc_coef);
     if (!d_laplace_op.isNull()) d_laplace_op->setPhysicalBcCoef(d_bc_coef);
     return;
 }// setPhysicalBcCoef

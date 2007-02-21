@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <15.Feb.2007 18:44:47 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Feb.2007 02:06:29 boyce@bigboy.nyconnect.com>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -83,6 +83,11 @@ public:
      * object with the restart manager when so registered.
      */
     virtual ~HierarchyProjector();
+
+    /*!
+     * Return the name of the hierarchy projector object.
+     */
+    const std::string& getName() const;
 
     ///
     ///  The following routines:

@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <13.Feb.2007 03:29:49 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Feb.2007 02:06:39 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -80,6 +80,11 @@ public:
      * integrator object with the restart manager when so registered.
      */
     virtual ~IBHierarchyIntegrator();
+
+    /*!
+     * Return the name of the hierarchy integrator object.
+     */
+    const std::string& getName() const;
 
     /*!
      * Supply an optional cell centered body forcing term.

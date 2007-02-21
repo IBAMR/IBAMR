@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <25.Oct.2006 18:29:04 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Feb.2007 02:08:50 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -340,6 +340,12 @@ GodunovAdvector::~GodunovAdvector()
     }
     return;
 }// ~GodunovAdvector
+
+const std::string&
+GodunovAdvector::getName() const
+{
+    return d_object_name;
+}// getName
 
 double
 GodunovAdvector::computeStableDtOnPatch(

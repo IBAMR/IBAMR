@@ -2,7 +2,7 @@
 #define included_GodunovAdvector
 
 // Filename: GodunovAdvector.h
-// Last modified: <04.Oct.2006 19:52:00 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <20.Feb.2007 02:06:20 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -96,6 +96,11 @@ public:
      * object with the restart manager when so registered.
      */
     ~GodunovAdvector();
+
+    /*!
+     * Return the name of the patch operations object.
+     */
+    const std::string& getName() const;
 
     ///
     ///  The following routines:

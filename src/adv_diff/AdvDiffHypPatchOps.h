@@ -2,7 +2,7 @@
 #define included_AdvDiffHypPatchOps
 
 // Filename: AdvDiffHypPatchOps.h
-// Last modified: <19.Feb.2007 17:10:36 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Feb.2007 02:05:11 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -59,6 +59,11 @@ public:
      * strategy object with the restart manager when so registered.
      */
     virtual ~AdvDiffHypPatchOps();
+
+    /*!
+     * Return the name of the patch operations object.
+     */
+    const std::string& getName() const;
 
     ///
     ///  The following routines:

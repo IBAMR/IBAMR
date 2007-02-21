@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <18.Feb.2007 22:30:58 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <20.Feb.2007 03:33:25 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -27,6 +27,7 @@
 #include <GriddingAlgorithm.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <HierarchyFaceDataOpsReal.h>
+#include <LocationIndexRobinBcCoefs.h>
 #include <NodeVariable.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
@@ -82,10 +83,12 @@ class INSHierarchyIntegrator
       public SAMRAI::tbox::Serializable
 {
 public:
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >           RefineAlgMap;
-    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > >  RefineSchedMap;
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;
+    typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* >                                 RefinePatchStrategyMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineSchedMap;
 
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >          CoarsenAlgMap;
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;
+    typedef std::map<std::string,SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* >                                 CoarsenPatchStrategyMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
 
     /*!
@@ -113,6 +116,11 @@ public:
     virtual ~INSHierarchyIntegrator();
 
     /*!
+     * Return the name of the hierarchy integrator object.
+     */
+    const std::string& getName() const;
+
+    /*!
      * Supply initial conditions for the (cell centered) velocity.
      */
     void registerVelocityInitialConditions(
@@ -122,7 +130,7 @@ public:
      * Supply physical boundary conditions for the (cell centered)
      * velocity.
      */
-    void registerVelocityPhysicalBcCoef(
+    void registerVelocityPhysicalBcCoefs(
         const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
 
     /*!
@@ -1037,15 +1045,18 @@ private:
     bool d_is_managing_hier_math_ops;
 
     /*
-     * Communications algorithms and schedules.
+     * Communications algorithms, patch strategies, and schedules.
      */
-    RefineAlgMap    d_ralgs;
-    RefineSchedMap  d_rscheds;
+    RefineAlgMap           d_ralgs;
+    RefinePatchStrategyMap d_rstrategies;
+    RefineSchedMap         d_rscheds;
 
-    CoarsenAlgMap   d_calgs;
-    CoarsenSchedMap d_cscheds;
+    CoarsenAlgMap           d_calgs;
+    CoarsenPatchStrategyMap d_cstrategies;
+    CoarsenSchedMap         d_cscheds;
 
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
+    SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
 
     /*
      * Objects to set initial conditions (note that the initial value
@@ -1053,6 +1064,8 @@ private:
      * constant or time-dependent body forcing.
      */
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_U_init, d_P_init;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_P_bc_coef;
     std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set, d_Q_set;

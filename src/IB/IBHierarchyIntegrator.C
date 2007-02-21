@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <13.Feb.2007 03:28:34 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Feb.2007 02:09:28 boyce@bigboy.nyconnect.com>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -244,6 +244,12 @@ IBHierarchyIntegrator::~IBHierarchyIntegrator()
     }
     return;
 }// ~IBHierarchyIntegrator
+
+const std::string&
+IBHierarchyIntegrator::getName() const
+{
+    return d_object_name;
+}// getName
 
 void
 IBHierarchyIntegrator::registerBodyForceSpecification(

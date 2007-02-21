@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <19.Feb.2007 16:59:30 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Feb.2007 02:05:42 boyce@bigboy.nyconnect.com>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -28,7 +28,6 @@
 #include <GriddingAlgorithm.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <HyperbolicLevelIntegrator.h>
-#include <LocationIndexRobinBcCoefs.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <PoissonSpecifications.h>
@@ -82,11 +81,11 @@ class AdvDiffHierarchyIntegrator
 {
 public:
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > >          RefinePatchStrategyMap;
+    typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* >                                 RefinePatchStrategyMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineSchedMap;
 
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenPatchStrategy<NDIM> > >          CoarsenPatchStrategyMap;
+    typedef std::map<std::string,SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* >                                 CoarsenPatchStrategyMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
 
     /*!
@@ -111,6 +110,11 @@ public:
      * integrator object with the restart manager when so registered.
      */
     virtual ~AdvDiffHierarchyIntegrator();
+
+    /*!
+     * Return the name of the hierarchy integrator object.
+     */
+    const std::string& getName() const;
 
     /*!
      * Register a VisIt data writer so this class will write plot
@@ -987,7 +991,7 @@ private:
     int d_wgt_idx;
 
     /*
-     * Communications algorithms and schedules.
+     * Communications algorithms, patch strategies, and schedules.
      */
     RefineAlgMap           d_ralgs;
     RefinePatchStrategyMap d_rstrategies;
@@ -996,6 +1000,8 @@ private:
     CoarsenAlgMap           d_calgs;
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;
+
+    SAMRAI::tbox::Pointer<STOOLS::CartRobinPhysBdryOp> d_bc_op;
 
     /*
      * Linear solvers (one set for each diffusion coefficient) and
@@ -1009,8 +1015,6 @@ private:
 
     int d_max_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
-
-    SAMRAI::tbox::Pointer<STOOLS::CartRobinPhysBdryOp> d_bc_op;
 
     std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >           d_helmholtz1_ops;
     std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> > d_helmholtz1_specs;

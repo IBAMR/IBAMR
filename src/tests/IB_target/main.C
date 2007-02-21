@@ -28,6 +28,8 @@
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <LocationIndexRobinBcCoefs.h>
+
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/IBStandardForceGen.h>
@@ -36,7 +38,6 @@
 #include <ibamr/LDataManager.h>
 #include <ibamr/LagSiloDataWriter.h>
 
-#include "FeedbackFSet.h"
 #include "UInit.h"
 
 using namespace IBAMR;
@@ -285,6 +286,45 @@ int main(int argc, char* argv[])
         tbox::Pointer<SetDataStrategy> u_init = new UInit("UInit");
         navier_stokes_integrator->registerVelocityInitialConditions(u_init);
 
+        solv::LocationIndexRobinBcCoefs<NDIM> u_physical_bc_coef(
+            "u_physical_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        for (int d = 0; d < NDIM; ++d)
+        {
+            u_physical_bc_coef.setBoundarySlope(2*d  ,0.0);
+            u_physical_bc_coef.setBoundarySlope(2*d+1,0.0);
+        }
+        u_physical_bc_coef.setBoundaryValue(0,1.0);
+
+        solv::LocationIndexRobinBcCoefs<NDIM> v_physical_bc_coef(
+            "v_physical_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        for (int d = 0; d < NDIM; ++d)
+        {
+            v_physical_bc_coef.setBoundaryValue(2*d  ,0.0);
+            v_physical_bc_coef.setBoundaryValue(2*d+1,0.0);
+        }
+        v_physical_bc_coef.setBoundarySlope(1,0.0);
+
+        vector<const solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
+        U_bc_coefs[0] = &u_physical_bc_coef;
+        for (int d = 1; d < NDIM; ++d)
+        {
+            U_bc_coefs[d] = &v_physical_bc_coef;
+        }
+
+        navier_stokes_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
+
+        solv::LocationIndexRobinBcCoefs<NDIM> P_physical_bc_coef(
+            "P_physical_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        for (int d = 0; d < NDIM; ++d)
+        {
+            P_physical_bc_coef.setBoundarySlope(2*d  ,0.0);
+            P_physical_bc_coef.setBoundarySlope(2*d+1,0.0);
+        }
+        P_physical_bc_coef.setBoundaryValue(1,0.0);
+
+        navier_stokes_integrator->registerPressurePhysicalBcCoef(&P_physical_bc_coef);
+        hier_projector->setPhysicalBcCoef(&P_physical_bc_coef);
+
         tbox::Pointer<IBLagrangianForceStrategy> force_generator =
             new IBStandardForceGen(
                 input_db->getDatabase("IBStandardForceGen"));
@@ -300,11 +340,6 @@ int main(int argc, char* argv[])
                 "IBStandardInitializer",
                 input_db->getDatabase("IBStandardInitializer"));
         time_integrator->registerLNodeInitStrategy(initializer);
-
-        tbox::Pointer<SetDataStrategy> feedback_forcer =
-            new FeedbackFSet(
-                "FeedbackFSet", grid_geometry, input_db->getDatabase("FeedbackFSet"));
-        time_integrator->registerBodyForceSpecification(feedback_forcer);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -355,14 +390,6 @@ int main(int argc, char* argv[])
         time_integrator->rebalanceCoarsestLevel();
 
         tbox::RestartManager::getManager()->closeRestartFile();
-
-        /*
-         * Register the velocity variable with the feedback forcer.
-         */
-        dynamic_cast<FeedbackFSet*>(feedback_forcer.getPointer())->d_U_var =
-            navier_stokes_integrator->getVelocityVar();
-        dynamic_cast<FeedbackFSet*>(feedback_forcer.getPointer())->d_U_context =
-            navier_stokes_integrator->getCurrentContext();
 
         /*
          * After creating all objects and initializing their state, we

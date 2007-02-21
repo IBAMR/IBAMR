@@ -1,5 +1,5 @@
 // Filename: AdvDiffHypPatchOps.C
-// Last modified: <19.Feb.2007 17:10:26 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Feb.2007 02:14:43 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHypPatchOps.h"
@@ -152,6 +152,12 @@ AdvDiffHypPatchOps::~AdvDiffHypPatchOps()
     // intentionally blank
     return;
 }// ~AdvDiffHypPatchOps
+
+const std::string&
+AdvDiffHypPatchOps::getName() const
+{
+    return AdvectHypPatchOps::getName();
+}// getName
 
 ///
 ///  The following routines:

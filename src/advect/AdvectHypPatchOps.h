@@ -2,7 +2,7 @@
 #define included_AdvectHypPatchOps
 
 // Filename: AdvectHypPatchOps.h
-// Last modified: <19.Feb.2007 17:09:13 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Feb.2007 02:12:30 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -111,6 +111,11 @@ public:
      * strategy object with the restart manager when so registered.
      */
     virtual ~AdvectHypPatchOps();
+
+    /*!
+     * Return the name of the patch operations object.
+     */
+    const std::string& getName() const;
 
     ///
     ///  The following routines:

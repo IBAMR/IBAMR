@@ -1,5 +1,5 @@
 // Filename: PInit.C
-// Last modified: <25.Oct.2006 18:31:15 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Feb.2007 02:35:52 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "PInit.h"
@@ -79,6 +79,8 @@ PInit::setDataOnPatch(
         }
 #if (NDIM == 2)
         (*P_data)(i) = -(cos(4.0*M_PI*(X[0]-t)) + cos(4.0*M_PI*(X[1]-t)))*
+            exp(-16.0*M_PI*M_PI*d_nu*t);
+        (*P_data)(i) = -(cos(4.0*M_PI*(X[0])) + cos(4.0*M_PI*(X[1])))*
             exp(-16.0*M_PI*M_PI*d_nu*t);
 #endif
 #if (NDIM == 3)
