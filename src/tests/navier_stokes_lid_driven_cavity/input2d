@@ -32,7 +32,7 @@ INSHierarchyIntegrator {
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.0625
+   vorticity_threshold = 0.03125 , 0.0625
 
    output_P = TRUE
    output_F = FALSE
@@ -96,7 +96,7 @@ AdvDiffHierarchyIntegrator {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 2
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "LINEAR_REFINE"
+      cf_discretization = "Ewing"
    }
 
    FACPreconditioners {
@@ -128,7 +128,7 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "LINEAR_REFINE"
+      cf_discretization = "Ewing"
 
       hypre_solver {
          solver_type = "PFMG"
@@ -157,7 +157,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 25         // zero to turn off
+   viz_dump_interval     = 100        // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 
