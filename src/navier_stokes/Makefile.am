@@ -5,8 +5,8 @@ SUBDIRS = fortran .
 noinst_LIBRARIES = libIBAMR_navier_stokes2d.a libIBAMR_navier_stokes3d.a
 
 ## Dimension-dependent libraries
-SOURCES              = HierarchyProjector.C INSHierarchyIntegrator.C
-pkg_include_HEADERS  = HierarchyProjector.h INSHierarchyIntegrator.h
+SOURCES              = HierarchyProjector.C INSHierarchyIntegrator.C NormalVelocityBcCoefAdapter.C
+pkg_include_HEADERS  = HierarchyProjector.h INSHierarchyIntegrator.h NormalVelocityBcCoefAdapter.h
 
 libIBAMR_navier_stokes2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR_navier_stokes2d_a_SOURCES = $(SOURCES)
