@@ -242,6 +242,28 @@ int main(int argc, char* argv[])
         }
 
         /*
+         * Create boundary condition specification objects.
+         */
+        solv::LocationIndexRobinBcCoefs<NDIM> u0_bc_coef(
+            "u0_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_u0"));
+        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
+            "u1_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_u1"));
+#if (NDIM == 3)
+        solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef(
+            "u2_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_u2"));
+#endif
+
+        vector<const solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
+        U_bc_coefs[0] = &u0_bc_coef;
+        U_bc_coefs[1] = &u1_bc_coef;
+#if (NDIM > 2)
+        U_bc_coefs[2] = &u2_bc_coef;
+#endif
+
+        solv::LocationIndexRobinBcCoefs<NDIM> phi_bc_coef(
+            "phi_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_phi"));
+
+        /*
          * Create major algorithm and data objects which comprise application.
          * Each object will be initialized either from input data or restart
          * files, or a combination of both.  Refer to each class constructor
@@ -272,12 +294,14 @@ int main(int argc, char* argv[])
                 "HierarchyProjector",
                 input_db->getDatabase("HierarchyProjector"),
                 patch_hierarchy);
+        hier_projector->setPhysicalBcCoef(&phi_bc_coef);
 
         tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator =
             new INSHierarchyIntegrator(
                 "INSHierarchyIntegrator",
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
+        navier_stokes_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
         tbox::Pointer<IBLagrangianForceStrategy> force_generator =
             new IBStandardForceGen(
@@ -347,25 +371,15 @@ int main(int argc, char* argv[])
 
         /*
          * After creating all objects and initializing their state, we
-         * print the input database and variable database contents
-         * to the log file.
+         * print the input database contents to the log file.
          */
-        tbox::plog << "\nCheck input data and variables before simulation:" << endl;
+        tbox::plog << "\nCheck input data before simulation:" << endl;
         tbox::plog << "Input database..." << endl;
         input_db->printClassData(tbox::plog);
-        tbox::plog << "\nVariable database..." << endl;
-        hier::VariableDatabase<NDIM>::getDatabase()->printClassData(tbox::plog);
-        tbox::plog << "\nCheck Godunov Predictor data... " << endl;
-        predictor->printClassData(tbox::plog);
-        tbox::plog << "\nCheck Advection-Diffusion Solver data... " << endl;
-        adv_diff_integrator->printClassData(tbox::plog);
-        tbox::plog << "\nCheck Hierarchy Projector data... " << endl;
-        hier_projector->printClassData(tbox::plog);
-        tbox::plog << "\nCheck Navier-Stokes Solver data... " << endl;
-        navier_stokes_integrator->printClassData(tbox::plog);
-        tbox::plog << "\nCheck IB Solver data... " << endl;
-        time_integrator->printClassData(tbox::plog);
 
+        /*
+         * Write initial visualization files.
+         */
         if (viz_dump_data)
         {
             if (uses_visit)

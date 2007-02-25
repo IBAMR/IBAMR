@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C FeedbackFSet.C FeedbackFSet.h UInit.C UInit.h
+SOURCES = main.C UInit.C UInit.h
 EXTRA_DIST  = input2d input3d
 EXTRA_DIST += cylinder2d_256.vertex cylinder2d_512.vertex cylinder2d_1024.vertex
 EXTRA_DIST += cylinder2d_256.edge   cylinder2d_512.edge   cylinder2d_1024.edge

@@ -42,12 +42,6 @@ IBStandardForceGen {
   // intentionally blank
 }
 
-FeedbackFSet {
-   kappa = 500.0
-   width0 = 1.0/16.0
-   width1 = 4.0/16.0
-}
-
 INSHierarchyIntegrator {
    enable_logging = TRUE
 

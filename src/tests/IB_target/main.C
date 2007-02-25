@@ -36,7 +36,6 @@
 #include <ibamr/LDataManager.h>
 #include <ibamr/LagSiloDataWriter.h>
 
-#include "FeedbackFSet.h"
 #include "UInit.h"
 
 using namespace IBAMR;
@@ -246,6 +245,28 @@ int main(int argc, char* argv[])
         }
 
         /*
+         * Create boundary condition specification objects.
+         */
+        solv::LocationIndexRobinBcCoefs<NDIM> u0_bc_coef(
+            "u0_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_u0"));
+        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
+            "u1_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_u1"));
+#if (NDIM == 3)
+        solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef(
+            "u2_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_u2"));
+#endif
+
+        vector<const solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
+        U_bc_coefs[0] = &u0_bc_coef;
+        U_bc_coefs[1] = &u1_bc_coef;
+#if (NDIM > 2)
+        U_bc_coefs[2] = &u2_bc_coef;
+#endif
+
+        solv::LocationIndexRobinBcCoefs<NDIM> phi_bc_coef(
+            "phi_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_phi"));
+
+        /*
          * Create major algorithm and data objects which comprise application.
          * Each object will be initialized either from input data or restart
          * files, or a combination of both.  Refer to each class constructor
@@ -276,6 +297,7 @@ int main(int argc, char* argv[])
                 "HierarchyProjector",
                 input_db->getDatabase("HierarchyProjector"),
                 patch_hierarchy);
+        hier_projector->setPhysicalBcCoef(&phi_bc_coef);
 
         tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator =
             new INSHierarchyIntegrator(
@@ -284,6 +306,7 @@ int main(int argc, char* argv[])
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
         tbox::Pointer<SetDataStrategy> u_init = new UInit("UInit");
         navier_stokes_integrator->registerVelocityInitialConditions(u_init);
+        navier_stokes_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
         tbox::Pointer<IBLagrangianForceStrategy> force_generator =
             new IBStandardForceGen(
@@ -300,11 +323,6 @@ int main(int argc, char* argv[])
                 "IBStandardInitializer",
                 input_db->getDatabase("IBStandardInitializer"));
         time_integrator->registerLNodeInitStrategy(initializer);
-
-        tbox::Pointer<SetDataStrategy> feedback_forcer =
-            new FeedbackFSet(
-                "FeedbackFSet", grid_geometry, input_db->getDatabase("FeedbackFSet"));
-        time_integrator->registerBodyForceSpecification(feedback_forcer);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -355,14 +373,6 @@ int main(int argc, char* argv[])
         time_integrator->rebalanceCoarsestLevel();
 
         tbox::RestartManager::getManager()->closeRestartFile();
-
-        /*
-         * Register the velocity variable with the feedback forcer.
-         */
-        dynamic_cast<FeedbackFSet*>(feedback_forcer.getPointer())->d_U_var =
-            navier_stokes_integrator->getVelocityVar();
-        dynamic_cast<FeedbackFSet*>(feedback_forcer.getPointer())->d_U_context =
-            navier_stokes_integrator->getCurrentContext();
 
         /*
          * After creating all objects and initializing their state, we

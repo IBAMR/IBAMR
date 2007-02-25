@@ -5,21 +5,20 @@ FOURTH_ORDER = 1
 MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
-// constants
-MAX_LEVELS = 5
-REF_RATIO = 2
-
-N = 32
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N
-
-DELTA_FCN = "IB_6"
-
-MU  = 5.0e-3
+// physical parameters
+MU = 0.005
 RHO = 1.0
+
+// grid spacing parameters
+MAX_LEVELS = 3   // maximum number of levels in locally refined grid
+REF_RATIO  = 2   // refinement ratio between levels
+
+N = 64                                    // coarsest grid spacing
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 IBHierarchyIntegrator {
    start_time            = 0.e0     // initial simulation time
-   end_time              = 0.5e0    // final simulation time
+   end_time              = 0.4e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
 
@@ -27,26 +26,44 @@ IBHierarchyIntegrator {
 
    regrid_interval = 8
    dt_max = 8.0e-2/NFINEST
-   delta_fcn = DELTA_FCN
-   timestepping_order = 2
+   delta_fcn = "IB_6"
 }
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_3 = "shell2d_crse_256"
-   base_filenames_4 = "shell2d_fine_512"
+   base_filenames_1 = "shell2d_crse_128"
+   base_filenames_2 = "shell2d_fine_256"
 }
 
 IBStandardForceGen {
-  // intentionally blank
+   // intentionally blank
+}
+
+LocationIndexRobinBcCoefs_u0 {
+   boundary_0 = "value", "0.0"  // lower x boundary condition
+   boundary_1 = "value", "0.0"  // upper x boundary condition
+   boundary_2 = "value", "0.0"  // lower y boundary condition
+   boundary_3 = "value", "0.0"  // upper y boundary condition
+}
+
+LocationIndexRobinBcCoefs_u1 {
+   boundary_0 = "value", "0.0"  // lower x boundary condition
+   boundary_1 = "value", "0.0"  // upper x boundary condition
+   boundary_2 = "value", "0.0"  // lower y boundary condition
+   boundary_3 = "value", "0.0"  // upper y boundary condition
+}
+
+LocationIndexRobinBcCoefs_phi {
+   boundary_0 = "slope", "0.0"  // lower x boundary condition
+   boundary_1 = "slope", "0.0"  // upper x boundary condition
+   boundary_2 = "slope", "0.0"  // lower y boundary condition
+   boundary_3 = "slope", "0.0"  // upper y boundary condition
 }
 
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
    tag_buffer = 1
-
-   cfl = 1.0  // this only affects the "acceleration" timestep restriction
 
    conservation_form = FALSE
 
@@ -63,15 +80,10 @@ INSHierarchyIntegrator {
    output_Div_u = FALSE
    output_Div_u_adv = FALSE
 
+   mu  = MU
    rho = RHO
-   mu = MU
 
-   project_predicted_flux = TRUE
-   reproject_pressure = TRUE
-   second_order_pressure_update = TRUE
-
-   poisson_abs_residual_tol = 1.0e-30
-   poisson_rel_residual_tol = 1.0e-6
+   second_order_pressure_update = FALSE
 
    num_cycles = 1
    num_init_cycles = 5
@@ -99,7 +111,6 @@ AdvDiffHierarchyIntegrator {
       use_ghosts_to_compute_dt = FALSE
    }
 
-   solver_package = "PETSc"
    max_iterations = 25
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-8
@@ -132,7 +143,6 @@ AdvDiffHierarchyIntegrator {
 HierarchyProjector {
    enable_logging = TRUE
 
-   solver_package = "PETSc"
    max_iterations = 25
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-8
@@ -190,25 +200,23 @@ Main {
 
 // timer dump parameters
    timer_dump_interval     = 0           // zero to turn off
-
-// convergence monitoring parameters
-   monitor_convergence = TRUE
 }
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         =  0, 0          // lower end of computational domain.
    x_up         =  1, 1          // upper end of computational domain.
-   periodic_dimension = 1,1
+   periodic_dimension = 0,0
 }
 
 GriddingAlgorithm {
-   max_levels = MAX_LEVELS           // maximum number of levels in hierarchy
+   allow_patches_smaller_than_ghostwidth = TRUE
+
+   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
       level_2 = REF_RATIO,REF_RATIO
       level_3 = REF_RATIO,REF_RATIO
-      level_4 = REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {
@@ -221,11 +229,9 @@ GriddingAlgorithm {
                        // all finer levels will use same values as level_0...
    }
 
-   efficiency_tolerance   = 0.75e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.95e0    // chop box if sum of volumes of smaller
+   efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
-
-   allow_patches_smaller_than_ghostwidth = TRUE
 }
 
 StandardTagAndInitialize {

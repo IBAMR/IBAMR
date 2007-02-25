@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C FeedbackFSet.C FeedbackFSet.h
+SOURCES = main.C
 EXTRA_DIST  = input2d
 EXTRA_DIST += fila_1024.vertex fila_1024.edge fila_1024.target_stiff
 

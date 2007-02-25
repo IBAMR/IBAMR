@@ -5,23 +5,16 @@ FOURTH_ORDER = 1
 MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
-// constants
-MAX_LEVELS = 5
-REF_RATIO = 2
-
-N = 64
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N
-
-DELTA_FCN = "IB_6"
-
+// physical parameters
 MU  = 1.2e-5
 RHO = 3.0e-4
 
-FeedbackFSet {
-   inflow_vel = -300.0   // desired inflow velocity
-   alpha = 1.0e3         // penalty parameter
-   tau = 5.0e-4          // time constant
-}
+// grid spacing parameters
+MAX_LEVELS = 5   // maximum number of levels in locally refined grid
+REF_RATIO  = 2   // refinement ratio between levels
+
+N = 64                                    // coarsest grid spacing
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 IBHierarchyIntegrator {
    start_time            = 0.e0     // initial simulation time
@@ -43,7 +36,7 @@ IBStandardInitializer {
 }
 
 IBStandardForceGen {
-  // intentionally blank
+   // intentionally blank
 }
 
 INSHierarchyIntegrator {

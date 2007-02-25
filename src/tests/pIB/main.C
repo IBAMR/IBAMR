@@ -35,8 +35,6 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/LagSiloDataWriter.h>
 
-#include "FeedbackFSet.h"
-
 using namespace IBAMR;
 using namespace SAMRAI;
 using namespace std;
@@ -297,11 +295,6 @@ int main(int argc, char* argv[])
                 input_db->getDatabase("IBStandardInitializer"));
         time_integrator->registerLNodeInitStrategy(initializer);
 
-        tbox::Pointer<SetDataStrategy> feedback_forcer =
-            new FeedbackFSet(
-                "FeedbackFSet", grid_geometry, input_db->getDatabase("FeedbackFSet"));
-        time_integrator->registerBodyForceSpecification(feedback_forcer);
-
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
                 "StandardTagAndInitialize",
@@ -351,14 +344,6 @@ int main(int argc, char* argv[])
         time_integrator->rebalanceCoarsestLevel();
 
         tbox::RestartManager::getManager()->closeRestartFile();
-
-        /*
-         * Register the velocity variable with the feedback forcer.
-         */
-        dynamic_cast<FeedbackFSet*>(feedback_forcer.getPointer())->d_U_var =
-            navier_stokes_integrator->getVelocityVar();
-        dynamic_cast<FeedbackFSet*>(feedback_forcer.getPointer())->d_U_context =
-            navier_stokes_integrator->getCurrentContext();
 
         /*
          * After creating all objects and initializing their state, we
