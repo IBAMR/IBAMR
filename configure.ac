@@ -529,9 +529,10 @@ AC_CONFIG_FILES([
   src/tests/IB_target/Makefile
   src/tests/adv_diff/Makefile
   src/tests/advect/Makefile
-  src/tests/navier_stokes_analytic_soln/Makefile
-  src/tests/navier_stokes_lid_driven_cavity/Makefile
-  src/tests/navier_stokes_shear_layer/Makefile
+  src/tests/navier_stokes/Makefile
+  src/tests/navier_stokes/analytic_soln/Makefile
+  src/tests/navier_stokes/lid_driven_cavity/Makefile
+  src/tests/navier_stokes/periodic_shear_layer/Makefile
   src/tests/pIB/Makefile
 ])
 AC_OUTPUT

@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <20.Feb.2007 04:12:40 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Feb.2007 19:13:05 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -85,9 +85,9 @@ HierarchyProjector::HierarchyProjector(
       d_rel_residual_tol(1.0e-8),
       d_poisson_spec(d_object_name+"::Poisson spec"),
       d_default_bc_coef(new SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>(
-                            d_object_name+"::default_bc_coef", SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL))),
+                            d_object_name+"::default_bc_coef",
+                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL))),
       d_bc_coef(NULL),
-      d_homogeneous_bc(false),
       d_poisson_solver(NULL),
       d_laplace_op(NULL),
       d_poisson_fac_op(NULL),
@@ -128,7 +128,6 @@ HierarchyProjector::HierarchyProjector(
     }
 
     // Initialize the boundary conditions objects.
-    setHomogeneousBc(d_homogeneous_bc);
     setPhysicalBcCoef(d_default_bc_coef);
 
     // Get initialization data for the FAC ops and FAC preconditioners
@@ -154,9 +153,10 @@ HierarchyProjector::HierarchyProjector(
     d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
 
     // Initialize the Poisson solver.
+    static const bool homogeneous_bc = false;
     d_laplace_op = new STOOLS::CCLaplaceOperator(
         d_object_name+"::Laplace Operator", &d_poisson_spec,
-        d_bc_coef, d_homogeneous_bc);
+        d_bc_coef, homogeneous_bc);
 
     d_poisson_solver = new STOOLS::PETScKrylovLinearSolver(
         d_object_name+"::PETSc Krylov solver", "proj_");
@@ -290,47 +290,12 @@ HierarchyProjector::isManagingHierarchyMathOps() const
 ///
 ///  The following routines:
 ///
+///      setPhysicalBcCoef(),
 ///      getPhysicalBcCoef(),
-///      getHomogeneousBc(),
 ///      getPoissonSolver()
 ///
 ///  allow other objects to access the Poisson solver and related data
 ///  used by this integrator.
-///
-
-const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
-HierarchyProjector::getPhysicalBcCoef() const
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_bc_coef != NULL);
-#endif
-    return d_bc_coef;
-}// getPhysicalBcCoef
-
-bool
-HierarchyProjector::getHomogeneousBc() const
-{
-    return d_homogeneous_bc;
-}// getHomogeneousBc
-
-SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>
-HierarchyProjector::getPoissonSolver() const
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!d_poisson_solver.isNull());
-#endif
-    return d_poisson_solver;
-}// getPoissonSolver
-
-///
-///  The following routines:
-///
-///      setPhysicalBcCoef(),
-///      setHomogeneousBc()
-///
-///  allow users of this class to specify the physical boundary
-///  conditions employed by the projector when solving the elliptic
-///  projection equation.
 ///
 
 void
@@ -344,7 +309,6 @@ HierarchyProjector::setPhysicalBcCoef(
     else
     {
         d_bc_coef = d_default_bc_coef;
-        setHomogeneousBc(true);
     }
 
     if (!d_poisson_fac_op.isNull()) d_poisson_fac_op->setPhysicalBcCoef(d_bc_coef);
@@ -352,14 +316,23 @@ HierarchyProjector::setPhysicalBcCoef(
     return;
 }// setPhysicalBcCoef
 
-void
-HierarchyProjector::setHomogeneousBc(
-    const bool homogeneous_bc)
+const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
+HierarchyProjector::getPhysicalBcCoef() const
 {
-    d_homogeneous_bc = homogeneous_bc;
-    if (!d_laplace_op.isNull()) d_laplace_op->setHomogeneousBc(d_homogeneous_bc);
-    return;
-}// setHomogeneousBc
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(d_bc_coef != NULL);
+#endif
+    return d_bc_coef;
+}// getPhysicalBcCoef
+
+SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>
+HierarchyProjector::getPoissonSolver() const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(!d_poisson_solver.isNull());
+#endif
+    return d_poisson_solver;
+}// getPoissonSolver
 
 ///
 ///  The following routines:

@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <20.Feb.2007 02:06:29 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Feb.2007 19:09:33 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -79,8 +79,8 @@ public:
         bool register_for_restart=true);
 
     /*!
-     * The destructor for HierarchyProjector unregisters the integrator
-     * object with the restart manager when so registered.
+     * The destructor for HierarchyProjector unregisters the
+     * integrator object with the restart manager when so registered.
      */
     virtual ~HierarchyProjector();
 
@@ -139,45 +139,12 @@ public:
     ///
     ///  The following routines:
     ///
+    ///      setPhysicalBcCoef(),
     ///      getPhysicalBcCoef(),
-    ///      getHomogeneousBc(),
-    ///      getPoissonBcCoef(),
     ///      getPoissonSolver()
     ///
     ///  allow other objects to access the Poisson solver and related
     ///  data used by this integrator.
-    ///
-
-    /*!
-     * Returns a pointer to the SAMRAI::solv::RobinBcCoefStrategy
-     * object employed by the projector to solve the elliptic
-     * projection equation.
-     */
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPhysicalBcCoef() const;
-
-    /*!
-     * Returns a boolean indicating whether the
-     * SAMRAI::solv::RobinBcCoefStrategy object employed by the
-     * projector to sole the elliptic projection equation employs
-     * homogeneous boundary conditions.
-     */
-    bool getHomogeneousBc() const;
-
-    /*!
-     * Returns a pointer to the concrete linear solver object employed
-     * by the projector to solve the elliptic projection equation.
-     */
-    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> getPoissonSolver() const;
-
-    ///
-    ///  The following routines:
-    ///
-    ///      setPhysicalBcCoef(),
-    ///      setHomogeneousBc()
-    ///
-    ///  allow users of this class to specify the physical boundary
-    ///  conditions employed by the projector when solving the
-    ///  elliptic projection equation.
     ///
 
     /*!
@@ -194,10 +161,17 @@ public:
         const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
 
     /*!
-     * \brief Specify whether the boundary conditions are homogeneous.
+     * Returns a pointer to the SAMRAI::solv::RobinBcCoefStrategy
+     * object employed by the projector to solve the elliptic
+     * projection equation.
      */
-    void setHomogeneousBc(
-        const bool homogeneous_bc);
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPhysicalBcCoef() const;
+
+    /*!
+     * Returns a pointer to the concrete linear solver object employed
+     * by the projector to solve the elliptic projection equation.
+     */
+    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> getPoissonSolver() const;
 
     ///
     ///  The following routines:
@@ -216,9 +190,10 @@ public:
      * Storage and communications schedules to fill ghost data for Phi
      * are required.
      *
-     * Optional SAMRAI::xfer::RefineSchedule objects allow for the filling of ghost
-     * cells in w at the specified time.  Additionally, w data along
-     * the coarse-fine interface is synchronized when specified.
+     * Optional SAMRAI::xfer::RefineSchedule objects allow for the
+     * filling of ghost cells in w at the specified time.
+     * Additionally, w data along the coarse-fine interface is
+     * synchronized when specified.
      */
     virtual void projectHierarchy(
         const int u_idx,
@@ -246,9 +221,10 @@ public:
      * Storage and communications schedules to fill ghost data for Phi
      * are required.
      *
-     * Optional SAMRAI::xfer::RefineSchedule objects allow for the filling of ghost
-     * cells in w at the specified time.  Additionally, w data along
-     * the coarse-fine interface is synchronized when specified.
+     * Optional SAMRAI::xfer::RefineSchedule objects allow for the
+     * filling of ghost cells in w at the specified time.
+     * Additionally, w data along the coarse-fine interface is
+     * synchronized when specified.
      */
     virtual void projectHierarchy(
         const int u_idx,
@@ -482,7 +458,6 @@ private:
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
     const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
-    bool d_homogeneous_bc;
 
     SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> d_poisson_solver;
     SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> d_laplace_op;

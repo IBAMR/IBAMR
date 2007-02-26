@@ -241,6 +241,16 @@ int main(int argc, char* argv[])
         }
 
         /*
+         * Create initial condition specification objects.
+         */
+        const double rho = input_db->getDatabase("INSHierarchyIntegrator")->getDouble("rho");
+        const double mu  = input_db->getDatabase("INSHierarchyIntegrator")->getDouble("mu" );
+        const double nu  = mu/rho;
+
+        UInit u_init("UInit", nu);
+        PInit p_init("PInit", nu);
+
+        /*
          * Create major algorithm and data objects which comprise application.
          * Each object will be initialized either from input data or restart
          * files, or a combination of both.  Refer to each class constructor
@@ -248,11 +258,14 @@ int main(int argc, char* argv[])
          * for this application, see comments at top of file.
          */
         tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
-            new geom::CartesianGridGeometry<NDIM>("CartesianGeometry",
-                                                  input_db->getDatabase("CartesianGeometry"));
+            new geom::CartesianGridGeometry<NDIM>(
+                "CartesianGeometry",
+                input_db->getDatabase("CartesianGeometry"));
 
         tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
-            new hier::PatchHierarchy<NDIM>("PatchHierarchy",grid_geometry);
+            new hier::PatchHierarchy<NDIM>(
+                "PatchHierarchy",
+                grid_geometry);
 
         tbox::Pointer<GodunovAdvector> predictor =
             new GodunovAdvector(
@@ -276,14 +289,6 @@ int main(int argc, char* argv[])
                 "INSHierarchyIntegrator",
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
-
-        const double nu =
-            input_db->getDatabase("INSHierarchyIntegrator")->getDouble("mu" )/
-            input_db->getDatabase("INSHierarchyIntegrator")->getDouble("rho");
-
-        UInit u_init("UInit", nu);
-        PInit p_init("PInit", nu);
-
         time_integrator->registerVelocityInitialConditions(
             tbox::Pointer<SetDataStrategy>(&u_init,false));
         time_integrator->registerPressureInitialConditions(
@@ -295,30 +300,31 @@ int main(int argc, char* argv[])
                 time_integrator,
                 input_db->getDatabase("StandardTagAndInitialize"));
 
-        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
+        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator =
+            new mesh::BergerRigoutsos<NDIM>();
 
         tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
-            new mesh::LoadBalancer<NDIM>("LoadBalancer",
-                                         input_db->getDatabase("LoadBalancer"));
+            new mesh::LoadBalancer<NDIM>(
+                "LoadBalancer",
+                input_db->getDatabase("LoadBalancer"));
 
         tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new mesh::GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                              input_db->getDatabase("GriddingAlgorithm"),
-                                              error_detector,
-                                              box_generator,
-                                              load_balancer);
+            new mesh::GriddingAlgorithm<NDIM>(
+                "GriddingAlgorithm",
+                input_db->getDatabase("GriddingAlgorithm"),
+                error_detector, box_generator, load_balancer);
 
         /*
          * Set up visualization plot file writer.
          */
         tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
             new appu::VisItDataWriter<NDIM>(
-                "VisIt Writer", visit_dump_dirname, visit_number_procs_per_file);
+                "VisIt Writer",
+                visit_dump_dirname, visit_number_procs_per_file);
 
         if (uses_visit)
         {
-            time_integrator->
-                registerVisItDataWriter(visit_data_writer);
+            time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
         /*
@@ -332,23 +338,15 @@ int main(int argc, char* argv[])
 
         /*
          * After creating all objects and initializing their state, we
-         * print the input database and variable database contents
-         * to the log file.
+         * print the input database contents to the log file.
          */
-        tbox::plog << "\nCheck input data and variables before simulation:" << endl;
+        tbox::plog << "\nCheck input data before simulation:" << endl;
         tbox::plog << "Input database..." << endl;
         input_db->printClassData(tbox::plog);
-        tbox::plog << "\nVariable database..." << endl;
-        hier::VariableDatabase<NDIM>::getDatabase()->printClassData(tbox::plog);
-        tbox::plog << "\nCheck Godunov Predictor data... " << endl;
-        predictor->printClassData(tbox::plog);
-        tbox::plog << "\nCheck Advection-Diffusion Solver data... " << endl;
-        adv_diff_integrator->printClassData(tbox::plog);
-        tbox::plog << "\nCheck Hierarchy Projector data... " << endl;
-        hier_projector->printClassData(tbox::plog);
-        tbox::plog << "\nCheck Navier-Stokes Solver data... " << endl;
-        time_integrator->printClassData(tbox::plog);
 
+        /*
+         * Write initial visualization files.
+         */
         if (viz_dump_data)
         {
             if (uses_visit)
@@ -360,7 +358,7 @@ int main(int argc, char* argv[])
             }
         }
 
-        /*
+       /*
          * Time step loop.  Note that the step count and integration
          * time are maintained by the time integrator object.
          */

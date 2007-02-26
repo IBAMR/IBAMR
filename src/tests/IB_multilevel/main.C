@@ -198,8 +198,7 @@ int main(int argc, char* argv[])
                 }
                 if (main_db->keyExists("visit_number_procs_per_file"))
                 {
-                    visit_number_procs_per_file =
-                        main_db->getInteger("visit_number_procs_per_file");
+                    visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
                 }
             }
         }
@@ -236,9 +235,8 @@ int main(int argc, char* argv[])
         tbox::RestartManager* restart_manager = tbox::RestartManager::getManager();
         if (is_from_restart)
         {
-            restart_manager->
-                openRestartFile(restart_read_dirname, restore_num,
-                                tbox::MPI::getNodes());
+            restart_manager->openRestartFile(
+                restart_read_dirname, restore_num, tbox::MPI::getNodes());
         }
 
         /*
@@ -272,11 +270,13 @@ int main(int argc, char* argv[])
          */
         tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
             new geom::CartesianGridGeometry<NDIM>(
-                "CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+                "CartesianGeometry",
+                input_db->getDatabase("CartesianGeometry"));
 
         tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
             new hier::PatchHierarchy<NDIM>(
-                "PatchHierarchy", grid_geometry);
+                "PatchHierarchy",
+                grid_geometry);
 
         tbox::Pointer<GodunovAdvector> predictor =
             new GodunovAdvector(
@@ -325,7 +325,8 @@ int main(int argc, char* argv[])
                 time_integrator,
                 input_db->getDatabase("StandardTagAndInitialize"));
 
-        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
+        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator =
+            new mesh::BergerRigoutsos<NDIM>();
 
         tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
             new mesh::LoadBalancer<NDIM>(
@@ -343,10 +344,12 @@ int main(int argc, char* argv[])
          */
         tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
             new appu::VisItDataWriter<NDIM>(
-                "VisIt Writer", visit_dump_dirname, visit_number_procs_per_file);
+                "VisIt Writer",
+                visit_dump_dirname, visit_number_procs_per_file);
         tbox::Pointer<LagSiloDataWriter> silo_data_writer =
             new LagSiloDataWriter(
-                "LagSiloDataWriter", visit_dump_dirname);
+                "LagSiloDataWriter",
+                visit_dump_dirname);
 
         if (uses_visit)
         {

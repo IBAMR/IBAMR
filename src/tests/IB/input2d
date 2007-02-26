@@ -17,7 +17,7 @@ N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 IBHierarchyIntegrator {
-   start_time            = 0.e0     // initial simulation time
+   start_time            = 0.0e0    // initial simulation time
    end_time              = 0.4e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
@@ -214,7 +214,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         =  0, 0          // lower end of computational domain.
    x_up         =  1, 1          // upper end of computational domain.
-   periodic_dimension = 0,0
+   periodic_dimension = 1, 1
 }
 
 GriddingAlgorithm {

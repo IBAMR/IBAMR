@@ -33,13 +33,13 @@
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <ibamr/LDataManager.h>
 #include <ibamr/LagSiloDataWriter.h>
 
-#include "UInit.h"
+#include <stools/TimeDependentLocationIndexRobinBcCoefs.h>
 
 using namespace IBAMR;
 using namespace SAMRAI;
+using namespace STOOLS;
 using namespace std;
 
 /************************************************************************
@@ -201,8 +201,7 @@ int main(int argc, char* argv[])
                 }
                 if (main_db->keyExists("visit_number_procs_per_file"))
                 {
-                    visit_number_procs_per_file =
-                        main_db->getInteger("visit_number_procs_per_file");
+                    visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
                 }
             }
         }
@@ -239,21 +238,54 @@ int main(int argc, char* argv[])
         tbox::RestartManager* restart_manager = tbox::RestartManager::getManager();
         if (is_from_restart)
         {
-            restart_manager->
-                openRestartFile(restart_read_dirname, restore_num,
-                                tbox::MPI::getNodes());
+            restart_manager->openRestartFile(
+                restart_read_dirname, restore_num, tbox::MPI::getNodes());
         }
 
         /*
          * Create boundary condition specification objects.
          */
-        solv::LocationIndexRobinBcCoefs<NDIM> u0_bc_coef(
-            "u0_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_u0"));
+        TimeDependentLocationIndexRobinBcCoefs u0_bc_coef(
+            "u0_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        for (int i = 0; i < 2*NDIM; ++i)
+        {
+            u0_bc_coef.setBoundaryTimeConstant(i, 1.0);
+        }
+        u0_bc_coef.setBoundaryInitialValue(0,0.0);  // x lower boundary
+        u0_bc_coef.setBoundaryInitialSlope(1,0.0);  // x upper boundary
+        u0_bc_coef.setBoundaryInitialSlope(2,0.0);  // y lower boundary
+        u0_bc_coef.setBoundaryInitialSlope(3,0.0);  // y upper boundary
+#if (NDIM > 2)
+        u0_bc_coef.setBoundaryInitialSlope(4,0.0);  // z lower boundary
+        u0_bc_coef.setBoundaryInitialSlope(5,0.0);  // z upper boundary
+#endif
+        u0_bc_coef.setBoundaryFinalValue(0,1.0);  // x lower boundary
+        u0_bc_coef.setBoundaryFinalSlope(1,0.0);  // x upper boundary
+        u0_bc_coef.setBoundaryFinalSlope(2,0.0);  // y lower boundary
+        u0_bc_coef.setBoundaryFinalSlope(3,0.0);  // y upper boundary
+#if (NDIM > 2)
+        u0_bc_coef.setBoundaryFinalSlope(4,0.0);  // z lower boundary
+        u0_bc_coef.setBoundaryFinalSlope(5,0.0);  // z upper boundary
+#endif
         solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
-            "u1_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_u1"));
-#if (NDIM == 3)
+            "u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        u1_bc_coef.setBoundaryValue(0,0.0);  // x lower boundary
+        u1_bc_coef.setBoundarySlope(1,0.0);  // x upper boundary
+        u1_bc_coef.setBoundaryValue(2,0.0);  // y lower boundary
+        u1_bc_coef.setBoundaryValue(3,0.0);  // y upper boundary
+#if (NDIM > 2)
+        u1_bc_coef.setBoundarySlope(4,0.0);  // z lower boundary
+        u1_bc_coef.setBoundarySlope(5,0.0);  // z upper boundary
+#endif
+#if (NDIM > 2)
         solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef(
-            "u2_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_u2"));
+            "u2_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        u2_bc_coef.setBoundaryValue(0,0.0);  // x lower boundary
+        u2_bc_coef.setBoundarySlope(1,0.0);  // x upper boundary
+        u2_bc_coef.setBoundarySlope(2,0.0);  // y lower boundary
+        u2_bc_coef.setBoundarySlope(3,0.0);  // y upper boundary
+        u2_bc_coef.setBoundaryValue(4,0.0);  // z lower boundary
+        u2_bc_coef.setBoundaryValue(5,0.0);  // z upper boundary
 #endif
 
         vector<const solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
@@ -264,7 +296,15 @@ int main(int argc, char* argv[])
 #endif
 
         solv::LocationIndexRobinBcCoefs<NDIM> phi_bc_coef(
-            "phi_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_phi"));
+            "phi_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        phi_bc_coef.setBoundarySlope(0,0.0);  // x lower boundary
+        phi_bc_coef.setBoundaryValue(1,0.0);  // x upper boundary
+        phi_bc_coef.setBoundarySlope(2,0.0);  // y lower boundary
+        phi_bc_coef.setBoundarySlope(3,0.0);  // y upper boundary
+#if (NDIM > 2)
+        phi_bc_coef.setBoundarySlope(4,0.0);  // z lower boundary
+        phi_bc_coef.setBoundarySlope(5,0.0);  // z upper boundary
+#endif
 
         /*
          * Create major algorithm and data objects which comprise application.
@@ -275,11 +315,13 @@ int main(int argc, char* argv[])
          */
         tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
             new geom::CartesianGridGeometry<NDIM>(
-                "CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+                "CartesianGeometry",
+                input_db->getDatabase("CartesianGeometry"));
 
         tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
             new hier::PatchHierarchy<NDIM>(
-                "PatchHierarchy", grid_geometry);
+                "PatchHierarchy",
+                grid_geometry);
 
         tbox::Pointer<GodunovAdvector> predictor =
             new GodunovAdvector(
@@ -304,8 +346,6 @@ int main(int argc, char* argv[])
                 "INSHierarchyIntegrator",
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
-        tbox::Pointer<SetDataStrategy> u_init = new UInit("UInit");
-        navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         navier_stokes_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
         tbox::Pointer<IBLagrangianForceStrategy> force_generator =
@@ -330,7 +370,8 @@ int main(int argc, char* argv[])
                 time_integrator,
                 input_db->getDatabase("StandardTagAndInitialize"));
 
-        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
+        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator =
+            new mesh::BergerRigoutsos<NDIM>();
 
         tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
             new mesh::LoadBalancer<NDIM>(
@@ -348,10 +389,12 @@ int main(int argc, char* argv[])
          */
         tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
             new appu::VisItDataWriter<NDIM>(
-                "VisIt Writer", visit_dump_dirname, visit_number_procs_per_file);
+                "VisIt Writer",
+                visit_dump_dirname, visit_number_procs_per_file);
         tbox::Pointer<LagSiloDataWriter> silo_data_writer =
             new LagSiloDataWriter(
-                "LagSiloDataWriter", visit_dump_dirname);
+                "LagSiloDataWriter",
+                visit_dump_dirname);
 
         if (uses_visit)
         {
@@ -376,25 +419,15 @@ int main(int argc, char* argv[])
 
         /*
          * After creating all objects and initializing their state, we
-         * print the input database and variable database contents
-         * to the log file.
+         * print the input database contents to the log file.
          */
-        tbox::plog << "\nCheck input data and variables before simulation:" << endl;
+        tbox::plog << "\nCheck input data before simulation:" << endl;
         tbox::plog << "Input database..." << endl;
         input_db->printClassData(tbox::plog);
-        tbox::plog << "\nVariable database..." << endl;
-        hier::VariableDatabase<NDIM>::getDatabase()->printClassData(tbox::plog);
-        tbox::plog << "\nCheck Godunov Predictor data... " << endl;
-        predictor->printClassData(tbox::plog);
-        tbox::plog << "\nCheck Advection-Diffusion Solver data... " << endl;
-        adv_diff_integrator->printClassData(tbox::plog);
-        tbox::plog << "\nCheck Hierarchy Projector data... " << endl;
-        hier_projector->printClassData(tbox::plog);
-        tbox::plog << "\nCheck Navier-Stokes Solver data... " << endl;
-        navier_stokes_integrator->printClassData(tbox::plog);
-        tbox::plog << "\nCheck IB Solver data... " << endl;
-        time_integrator->printClassData(tbox::plog);
 
+        /*
+         * Write initial visualization files.
+         */
         if (viz_dump_data)
         {
             if (uses_visit)
@@ -420,15 +453,12 @@ int main(int argc, char* argv[])
             drag_stream.open("C_D.curve", ios::out);
             lift_stream.open("C_L.curve", ios::out);
 
-            drag_stream << "#C_D" << endl;
-
             drag_stream.setf(ios_base::scientific);
             drag_stream.setf(ios_base::showpos);
             drag_stream.setf(ios_base::showpoint);
             drag_stream.width(16); drag_stream.precision(15);
             drag_stream << 0.0 << " " << 0.0 << endl;
 
-            lift_stream << "#C_L" << endl;
             lift_stream.setf(ios_base::scientific);
             lift_stream.setf(ios_base::showpos);
             lift_stream.setf(ios_base::showpoint);
@@ -449,9 +479,6 @@ int main(int argc, char* argv[])
         while (!tbox::Utilities::deq(loop_time,loop_time_end) &&
                time_integrator->stepsRemaining())
         {
-            /*
-             * Advance the solution forward in time.
-             */
             iteration_num = time_integrator->getIntegratorStep() + 1;
 
             tbox::pout <<                                                       endl;
@@ -531,14 +558,6 @@ int main(int argc, char* argv[])
             }
         }
 
-#if (NDIM == 2)
-        if (tbox::MPI::getRank() == 0)
-        {
-            drag_stream.close();
-            lift_stream.close();
-        }
-#endif
-
         /*
          * Ensure the last state is written out.
          */
@@ -552,7 +571,6 @@ int main(int argc, char* argv[])
                     iteration_num, loop_time);
             }
         }
-
     }// cleanup all smart Pointers prior to shutdown
 
     tbox::SAMRAIManager::shutdown();

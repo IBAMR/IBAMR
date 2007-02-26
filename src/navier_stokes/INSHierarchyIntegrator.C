@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <21.Feb.2007 00:44:58 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <25.Feb.2007 19:04:59 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -236,15 +236,6 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     }
     d_U_bc_coefs = std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef);
 
-    d_default_P_bc_coef = new SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>(
-        d_object_name+"::default_P_bc_coef", SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL));
-    for (int d = 0; d < NDIM; ++d)
-    {
-        d_default_P_bc_coef->setBoundarySlope(2*d  ,0.0);
-        d_default_P_bc_coef->setBoundarySlope(2*d+1,0.0);
-    }
-    d_P_bc_coef = d_default_P_bc_coef;
-
     // Initialize object with data read from the input and restart
     // databases.
     const bool from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
@@ -323,7 +314,6 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
     }
 
     delete d_default_U_bc_coef;
-    delete d_default_P_bc_coef;
     return;
 }// ~INSHierarchyIntegrator
 
@@ -368,23 +358,6 @@ INSHierarchyIntegrator::registerPressureInitialConditions(
     d_P_init = P_init;
     return;
 }// registerPressureInitialConditions
-
-void
-INSHierarchyIntegrator::registerPressurePhysicalBcCoef(
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef)
-{
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::registerPressurePhysicalBcCoef()\n"
-                   << "  pressure boundary conditions must be registered prior to initialization\n"
-                   << "  of the hierarchy integrator object." << endl);
-    }
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(P_bc_coef != NULL);
-#endif
-    d_P_bc_coef = P_bc_coef;
-    return;
-}// registerPressurePhysicalBcCoef
 
 void
 INSHierarchyIntegrator::registerForceSpecification(

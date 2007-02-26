@@ -9,7 +9,7 @@ EXTRA_DIST += fila_1024.vertex fila_1024.edge fila_1024.target_stiff
 check_PROGRAMS = main2d
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[23]d $(PWD) ; \
+	  cp -f $(srcdir)/input2d $(PWD) ; \
 	  cp -f $(srcdir)/fila_1024.{vertex,edge,target_stiff} $(PWD) ; \
 	fi ;
 
