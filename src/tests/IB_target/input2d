@@ -18,7 +18,7 @@ RHO = 1.0
 MAX_LEVELS = 3   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 IBHierarchyIntegrator {
@@ -76,10 +76,10 @@ INSHierarchyIntegrator {
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.025
+   vorticity_threshold = 0.0 , 0.05
 
    output_P = TRUE
-   output_F = FALSE
+   output_F = TRUE
    output_Q = FALSE
 
    output_Omega = TRUE
