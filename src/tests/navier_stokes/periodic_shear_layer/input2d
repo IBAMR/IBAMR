@@ -5,8 +5,16 @@ FOURTH_ORDER = 1
 MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
-// constants
-PI = 3.141592653589793e+00
+// physical parameters
+MU = 0.0001
+RHO = 1.0
+
+// grid spacing parameters
+MAX_LEVELS = 4   // maximum number of levels in locally refined grid
+REF_RATIO  = 2   // refinement ratio between levels
+
+N = 16                                    // coarsest grid spacing
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 UInit {
    rho = 80.0
@@ -14,16 +22,14 @@ UInit {
 }
 
 INSHierarchyIntegrator {
-   start_time            = 0.e0     // initial simulation time
-   end_time              = 2.0e0    // final simulation time
+   start_time            = 0.0e0    // initial simulation time
+   end_time              = 5.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
 
    enable_logging = TRUE
 
    tag_buffer = 1
-
-   cfl = 1.0  // this only affects the "acceleration" timestep restriction
 
    conservation_form = FALSE
 
@@ -40,15 +46,10 @@ INSHierarchyIntegrator {
    output_Div_u = FALSE
    output_Div_u_adv = FALSE
 
-   rho = 1.0
-   mu = 0.001
+   mu  = MU
+   rho = RHO
 
-   project_predicted_flux = TRUE
-   reproject_pressure = TRUE
-   second_order_pressure_update = TRUE
-
-   poisson_abs_residual_tol = 1.0e-30
-   poisson_rel_residual_tol = 1.0e-6
+   second_order_pressure_update = FALSE
 
    num_cycles = 1
    num_init_cycles = 5
@@ -70,13 +71,12 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.975e0    // max cfl factor used in problem
-      cfl_init                 = 0.975e0    // initial cfl factor
+      cfl                      = 0.9975e0  // max cfl factor used in problem
+      cfl_init                 = 0.9975e0  // initial cfl factor
       lag_dt_computation       = FALSE
       use_ghosts_to_compute_dt = FALSE
    }
 
-   solver_package = "PETSc"
    max_iterations = 25
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-12
@@ -93,7 +93,7 @@ AdvDiffHierarchyIntegrator {
 
       coarse_solver_choice = "block_jacobi"
       coarse_solver_tolerance = 1.0e-6
-      coarse_solver_max_iterations = 2
+      coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
       cf_discretization = "LINEAR_REFINE"
    }
@@ -102,14 +102,13 @@ AdvDiffHierarchyIntegrator {
       max_cycles = 1
       residual_tol = 1.0e-12
       num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 2
+      num_post_sweeps = 3
    }
 }
 
 HierarchyProjector {
    enable_logging = TRUE
 
-   solver_package = "PETSc"
    max_iterations = 25
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-12
@@ -122,7 +121,7 @@ HierarchyProjector {
       skip_restrict_sol = TRUE
       skip_restrict_residual = FALSE
 
-      ssor_iterations = 2
+      ssor_iterations = 1
 
       coarse_solver_choice = "hypre"
       coarse_solver_tolerance = 1.0e-6
@@ -146,7 +145,7 @@ HierarchyProjector {
       max_cycles = 1
       residual_tol = 1.0e-12
       num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 2
+      num_post_sweeps = 3
    }
 }
 
@@ -157,7 +156,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 25         // zero to turn off
+   viz_dump_interval     = NFINEST/8  // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 
@@ -170,20 +169,20 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (31,31) ]
-   x_lo         =  0, 0    // lower end of computational domain.
-   x_up         =  1, 1    // upper end of computational domain.
-   periodic_dimension = 1,1
+   domain_boxes = [ (0,0) , (N - 1,N - 1) ]
+   x_lo         =  0, 0          // lower end of computational domain.
+   x_up         =  1, 1          // upper end of computational domain.
+   periodic_dimension = 1, 1
 }
 
 GriddingAlgorithm {
-   max_levels             = 3    // Maximum number of levels in hierarchy.
+   allow_patches_smaller_than_ghostwidth = TRUE
+
+   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
-      level_1             = 2,2  // vector ratio to next coarser level
-      level_2             = 2,2
-      level_3             = 2,2
-      level_4             = 2,2
-      level_5             = 2,2
+      level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {
@@ -192,8 +191,8 @@ GriddingAlgorithm {
    }
 
    smallest_patch_size {
-      level_1 =  8,  8 // smallest patch allowed in hierarchy
-                       // all finer levels will use same values as level_1...
+      level_0 =  4,  4 // smallest patch allowed in hierarchy
+                       // all finer levels will use same values as level_0...
    }
 
    efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level

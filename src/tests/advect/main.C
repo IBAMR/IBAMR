@@ -33,6 +33,8 @@
 #include <ibamr/AdvectHypPatchOps.h>
 #include <ibamr/GodunovAdvector.h>
 
+#include <stools/HierarchyMathOps.h>
+
 #include "QInit.h"
 #include "USet.h"
 
@@ -293,6 +295,9 @@ int main(int argc, char *argv[])
         }
     }
 
+    const bool write_restart = restart_interval > 0
+        && !restart_write_dirname.empty();
+
     bool use_refined_timestepping = false;
     if (main_db->keyExists("timestepping"))
     {
@@ -314,9 +319,6 @@ int main(int argc, char *argv[])
     {
         tbox::pout << "NOT using subcycled timestepping.\n";
     }
-
-    const bool write_restart = restart_interval > 0
-        && !restart_write_dirname.empty();
 
     const bool u_is_div_free = main_db->getBoolWithDefault("u_is_div_free", false);
     if (u_is_div_free)
@@ -345,9 +347,8 @@ int main(int argc, char *argv[])
     tbox::RestartManager* restart_manager = tbox::RestartManager::getManager();
     if (is_from_restart)
     {
-        restart_manager->
-            openRestartFile(restart_read_dirname, restore_num,
-                            tbox::MPI::getNodes());
+        restart_manager->openRestartFile(
+            restart_read_dirname, restore_num, tbox::MPI::getNodes());
     }
 
     /*
@@ -359,11 +360,14 @@ int main(int argc, char *argv[])
      * top of file.
      */
     tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
-        new geom::CartesianGridGeometry<NDIM>("CartesianGeometry",
-                                              input_db->getDatabase("CartesianGeometry"));
+        new geom::CartesianGridGeometry<NDIM>(
+            "CartesianGeometry",
+            input_db->getDatabase("CartesianGeometry"));
 
     tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
-        new hier::PatchHierarchy<NDIM>("PatchHierarchy",grid_geometry);
+        new hier::PatchHierarchy<NDIM>(
+            "PatchHierarchy",
+            grid_geometry);
 
     tbox::Pointer<GodunovAdvector> advector =
         new GodunovAdvector(
@@ -374,22 +378,24 @@ int main(int argc, char *argv[])
         new AdvectHypPatchOps(
             "AdvectHypPatchOps",
             input_db->getDatabase("AdvectHypPatchOps"),
-            advector,
-            grid_geometry);
+            advector, grid_geometry);
 
-    tbox::Pointer< pdat::FaceVariable<NDIM,double> > u = new pdat::FaceVariable<NDIM,double>("u");
+    tbox::Pointer< pdat::FaceVariable<NDIM,double> > u_var =
+        new pdat::FaceVariable<NDIM,double>("u");
     USet u_set("USet", grid_geometry, input_db->getDatabase("USet"));
     hyp_patch_ops->registerAdvectionVelocity(
-        u, u_is_div_free, tbox::Pointer<SetDataStrategy>(&u_set,false));
+        u_var, u_is_div_free, tbox::Pointer<SetDataStrategy>(&u_set,false));
 
-    tbox::Pointer< pdat::CellVariable<NDIM,double> > Q = new pdat::CellVariable<NDIM,double>("Q");
-    QInit q_init(
+    tbox::Pointer< pdat::CellVariable<NDIM,double> > Q_var =
+        new pdat::CellVariable<NDIM,double>("Q");
+    QInit Q_init(
         "QInit", grid_geometry, input_db->getDatabase("QInit"));
     solv::LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
-        "physical_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs"));
+        "physical_bc_coef",
+        input_db->getDatabase("LocationIndexRobinBcCoefs"));
     hyp_patch_ops->registerAdvectedQuantity(
-        Q, consv_form,
-        tbox::Pointer<SetDataStrategy>(&q_init,false),
+        Q_var, consv_form,
+        tbox::Pointer<SetDataStrategy>(&Q_init,false),
         &physical_bc_coef);
 
     tbox::Pointer<algs::HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
@@ -404,7 +410,8 @@ int main(int argc, char *argv[])
             hyp_level_integrator,
             input_db->getDatabase("StandardTagAndInitialize"));
 
-    tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
+    tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator =
+        new mesh::BergerRigoutsos<NDIM>();
 
     tbox::Pointer<mesh::LoadBalancer<NDIM> >  load_balancer =
         new mesh::LoadBalancer<NDIM>(
@@ -415,17 +422,13 @@ int main(int argc, char *argv[])
         new mesh::GriddingAlgorithm<NDIM>(
             "GriddingAlgorithm",
             input_db->getDatabase("GriddingAlgorithm"),
-            error_detector,
-            box_generator,
-            load_balancer);
+            error_detector, box_generator, load_balancer);
 
     tbox::Pointer<algs::TimeRefinementIntegrator<NDIM> > time_integrator =
         new algs::TimeRefinementIntegrator<NDIM>(
             "TimeRefinementIntegrator",
             input_db->getDatabase("TimeRefinementIntegrator"),
-            patch_hierarchy,
-            hyp_level_integrator,
-            gridding_algorithm);
+            patch_hierarchy, hyp_level_integrator, gridding_algorithm);
 
     /*
      * Set up visualization plot file writer.
@@ -436,8 +439,7 @@ int main(int argc, char *argv[])
 
     if (uses_visit)
     {
-        hyp_patch_ops->
-            registerVisItDataWriter(visit_data_writer);
+        hyp_patch_ops->registerVisItDataWriter(visit_data_writer);
     }
 
     /*
@@ -448,21 +450,17 @@ int main(int argc, char *argv[])
     double dt_now = time_integrator->initializeHierarchy();
     tbox::RestartManager::getManager()->closeRestartFile();
 
-    /*
+        /*
      * After creating all objects and initializing their state, we
-     * print the input database and variable database contents to the
-     * log file.
+     * print the input database contents to the log file.
      */
-    tbox::plog << "\nCheck input data and variables before simulation:" << endl;
+    tbox::plog << "\nCheck input data before simulation:" << endl;
     tbox::plog << "Input database..." << endl;
     input_db->printClassData(tbox::plog);
-    tbox::plog << "\nVariable database..." << endl;
-    hier::VariableDatabase<NDIM>::getDatabase()->printClassData(tbox::plog);
-    tbox::plog << "\nCheck Godunov Advector data... " << endl;
-    advector->printClassData(tbox::plog);
-    tbox::plog << "\nCheck Godunov Hyperbolic Patch Ops data... " << endl;
-    hyp_patch_ops->printClassData(tbox::plog);
 
+    /*
+     * Write initial visualization files.
+     */
     if (viz_dump_data)
     {
         if (uses_visit)
@@ -522,6 +520,41 @@ int main(int argc, char *argv[])
             }
         }
     }
+
+    /*
+     * Determine the accuracy of the computed solution.
+     */
+    hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+
+    const tbox::Pointer<hier::VariableContext> Q_ctx =
+        hyp_level_integrator->getCurrentContext();
+    const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
+    const int Q_cloned_idx = var_db->registerClonedPatchDataIndex(Q_var, Q_idx);
+
+    const int coarsest_ln = 0;
+    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        patch_hierarchy->getPatchLevel(ln)->allocatePatchData(Q_cloned_idx, loop_time);
+    }
+
+    Q_init.setDataOnPatchHierarchy(
+        Q_cloned_idx, Q_var, patch_hierarchy, loop_time);
+
+    STOOLS::HierarchyMathOps hier_math_ops(
+        "HierarchyMathOps", patch_hierarchy);
+    hier_math_ops.setPatchHierarchy(patch_hierarchy);
+    hier_math_ops.resetLevels(coarsest_ln, finest_ln);
+    const int wgt_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+
+    math::HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(
+        patch_hierarchy, coarsest_ln, finest_ln);
+
+    hier_cc_data_ops.subtract(Q_cloned_idx, Q_idx, Q_cloned_idx);
+    tbox::pout << "Error in " << Q_var->getName() << " at time " << loop_time << ":\n"
+               << "  L1-norm:  " << hier_cc_data_ops.L1Norm(Q_cloned_idx,wgt_idx)  << "\n"
+               << "  L2-norm:  " << hier_cc_data_ops.L2Norm(Q_cloned_idx,wgt_idx)  << "\n"
+               << "  max-norm: " << hier_cc_data_ops.maxNorm(Q_cloned_idx,wgt_idx) << "\n";
 
     /*
      * Ensure the last state is written out for plotting.

@@ -12,6 +12,7 @@ MUSCL_LIMITED = 3
 R = 0.15            // the cylinder radius
 Re = 100.0          // the desired Reynolds number (Re)
 MU = 2.0*R/Re       // the viscosity required to attain the desired Re
+RHO = 1.0
 
 // grid spacing parameters
 MAX_LEVELS = 3   // maximum number of levels in locally refined grid
@@ -70,7 +71,7 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 1 , 1 , 2
+   tag_buffer = 1 , 2
 
    conservation_form = FALSE
 
@@ -78,7 +79,7 @@ INSHierarchyIntegrator {
    vorticity_threshold = 0.025
 
    output_P = TRUE
-   output_F = TRUE
+   output_F = FALSE
    output_Q = FALSE
 
    output_Omega = TRUE
@@ -87,8 +88,8 @@ INSHierarchyIntegrator {
    output_Div_u = FALSE
    output_Div_u_adv = FALSE
 
-   rho = 1.0
-   mu = MU
+   mu  = MU
+   rho = RHO
 
    second_order_pressure_update = FALSE
 

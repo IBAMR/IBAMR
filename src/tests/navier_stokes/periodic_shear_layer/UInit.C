@@ -1,5 +1,5 @@
 // Filename: UInit.C
-// Last modified: <25.Oct.2006 19:28:13 boyce@bigboy.nyconnect.com>
+// Last modified: <26.Feb.2007 04:56:02 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "UInit.h"
@@ -43,6 +43,12 @@ UInit::UInit(
 #endif
 
     if (NDIM != 2) TBOX_ERROR("only NDIM=2 is presently implemented!\n");
+
+    if (!input_db.isNull())
+    {
+        d_rho   = input_db->getDoubleWithDefault("rho"  , d_rho  );
+        d_delta = input_db->getDoubleWithDefault("delta", d_delta);
+    }
 
     return;
 }// UInit

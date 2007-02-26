@@ -235,9 +235,8 @@ int main(int argc, char* argv[])
         tbox::RestartManager* restart_manager = tbox::RestartManager::getManager();
         if (is_from_restart)
         {
-            restart_manager->
-                openRestartFile(restart_read_dirname, restore_num,
-                                tbox::MPI::getNodes());
+            restart_manager->openRestartFile(
+                restart_read_dirname, restore_num, tbox::MPI::getNodes());
         }
 
         /*

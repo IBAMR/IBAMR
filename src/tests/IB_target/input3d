@@ -5,29 +5,30 @@ FOURTH_ORDER = 1
 MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
-// constants
-N = 32              // coarsest grid spacing
-NFINEST = 4*N       // finest grid spacing
-MAX_LEVELS = 2
-
-DELTA_FCN = "IB_6"  // the choice of delta function
-
-R = 0.15            // the sphere radius
-Re = 500.0          // the desired Reynolds number (Re)
+// physical parameters
+R = 0.15            // the cylinder radius
+Re = 100.0          // the desired Reynolds number (Re)
 MU = 2.0*R/Re       // the viscosity required to attain the desired Re
+RHO = 1.0
+
+// grid spacing parameters
+MAX_LEVELS = 2   // maximum number of levels in locally refined grid
+REF_RATIO  = 4   // refinement ratio between levels
+
+N = 16                                    // coarsest grid spacing
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 IBHierarchyIntegrator {
-   start_time            = 0.e0     // initial simulation time
+   start_time            = 0.0e0    // initial simulation time
    end_time              = 250.0e0  // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
 
    enable_logging = TRUE
 
-   regrid_interval = 4
-   dt_max = 0.5/NFINEST
-   delta_fcn = DELTA_FCN
-   timestepping_order = 2
+   regrid_interval = 2
+   dt_max = 0.8/NFINEST
+   delta_fcn = "IB_6"
 }
 
 IBStandardInitializer {
@@ -39,15 +40,13 @@ IBStandardInitializer {
 }
 
 IBStandardForceGen {
-  // intentionally blank
+   // intentionally blank
 }
 
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 1
-
-   cfl = 1.0  // this only affects the "acceleration" timestep restriction
+   tag_buffer = 1 , 2
 
    conservation_form = FALSE
 
@@ -64,22 +63,17 @@ INSHierarchyIntegrator {
    output_Div_u = FALSE
    output_Div_u_adv = FALSE
 
-   rho = 1.0
-   mu = MU
+   mu  = MU
+   rho = RHO
 
-   project_predicted_flux = TRUE
-   reproject_pressure = TRUE
-   second_order_pressure_update = TRUE
-
-   poisson_abs_residual_tol = 1.0e-30
-   poisson_rel_residual_tol = 1.0e-6
+   second_order_pressure_update = FALSE
 
    num_cycles = 1
    num_init_cycles = 5
 }
 
 GodunovAdvector {
-   limiter_type = FOURTH_ORDER
+   limiter_type = MUSCL_LIMITED
 }
 
 AdvDiffHierarchyIntegrator {
@@ -94,13 +88,12 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.2475e0 // max cfl factor used in problem
-      cfl_init                 = 0.2475e0 // initial cfl factor
+      cfl                      = 0.4875e0 // max cfl factor used in problem
+      cfl_init                 = 0.4875e0 // initial cfl factor
       lag_dt_computation       = FALSE
       use_ghosts_to_compute_dt = FALSE
    }
 
-   solver_package = "PETSc"
    max_iterations = 25
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-8
@@ -117,7 +110,7 @@ AdvDiffHierarchyIntegrator {
 
       coarse_solver_choice = "block_jacobi"
       coarse_solver_tolerance = 1.0e-6
-      coarse_solver_max_iterations = 2
+      coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
       cf_discretization = "LINEAR_REFINE"
    }
@@ -126,14 +119,13 @@ AdvDiffHierarchyIntegrator {
       max_cycles = 1
       residual_tol = 1.0e-12
       num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 2
+      num_post_sweeps = 1
    }
 }
 
 HierarchyProjector {
    enable_logging = TRUE
 
-   solver_package = "PETSc"
    max_iterations = 25
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-8
@@ -146,7 +138,7 @@ HierarchyProjector {
       skip_restrict_sol = TRUE
       skip_restrict_residual = FALSE
 
-      ssor_iterations = 2
+      ssor_iterations = 1
 
       coarse_solver_choice = "hypre"
       coarse_solver_tolerance = 1.0e-6
@@ -170,7 +162,7 @@ HierarchyProjector {
       max_cycles = 1
       residual_tol = 1.0e-12
       num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 2
+      num_post_sweeps = 3
    }
 }
 
@@ -191,24 +183,23 @@ Main {
 
 // timer dump parameters
    timer_dump_interval     = 0           // zero to turn off
-
-// convergence monitoring parameters
-   monitor_convergence = TRUE
 }
 
 CartesianGeometry {
    domain_boxes = [ (0,0,0) , (N - 1,N - 1,N - 1) ]
    x_lo         =  0, 0, 0    // lower end of computational domain.
    x_up         =  8, 8, 8    // upper end of computational domain.
-   periodic_dimension = 1,1,1
+   periodic_dimension = 0, 0, 0
 }
 
 GriddingAlgorithm {
-   max_levels = MAX_LEVELS         // Maximum number of levels in hierarchy.
+   allow_patches_smaller_than_ghostwidth = TRUE
+
+   max_levels = MAX_LEVELS                     // Maximum number of levels in hierarchy.
    ratio_to_coarser {
-      level_1             = 4,4,4  // vector ratio to next coarser level
-      level_2             = 4,4,4
-      level_3             = 4,4,4
+      level_1 = REF_RATIO,REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {
