@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <27.Feb.2007 01:25:37 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Feb.2007 02:05:42 boyce@bigboy.nyconnect.com>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -64,9 +64,10 @@ namespace IBAMR
  * levels of the patch hierarchy are synchronously integrated in time.
  * In particular, subcycling in time is not employed.
  *
- * The trapezoidal rule is employed for the implicit treatment of the
- * diffusive terms.  The advective terms are discretized by the
- * GodunovAdvector object supplied to the constructor.
+ * The L-stable TGA time discretization is employed for the implicit
+ * discretization of the diffusive terms.  The advective terms are
+ * discretized by the GodunovAdvector object supplied to the
+ * constructor.
  *
  * \see GodunovAdvector
  * \see SAMRAI::algs::HyperbolicLevelIntegrator
@@ -1015,12 +1016,22 @@ private:
     int d_max_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
 
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >           d_helmholtz_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> > d_helmholtz_specs;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >           d_helmholtz1_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> > d_helmholtz1_specs;
 
-    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> > >             d_helmholtz_solvers;
-    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> > >           d_helmholtz_fac_ops;
-    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > > d_helmholtz_fac_pcs;
+    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >           d_helmholtz2_ops;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> > d_helmholtz2_specs;
+
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> > d_helmholtz3_specs;
+    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> > d_helmholtz4_specs;
+
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> > >             d_helmholtz1_solvers;
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> > >           d_helmholtz1_fac_ops;
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > > d_helmholtz1_fac_pcs;
+
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> > >             d_helmholtz2_solvers;
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> > >           d_helmholtz2_fac_ops;
+    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > > d_helmholtz2_fac_pcs;
 
     std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,bool> > d_helmholtz_solvers_need_init;
     int d_coarsest_reset_ln, d_finest_reset_ln;

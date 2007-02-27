@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <25.Feb.2007 19:04:59 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <27.Feb.2007 02:56:03 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -186,6 +186,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_Omega_max = 0.0;
 
     d_second_order_pressure_update = true;
+    d_normalize_pressure = true;
 
     d_num_cycles = 1;
     d_num_init_cycles = 5;
@@ -937,13 +938,6 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the Hierarchy math operations object.
     setHierarchyMathOps(d_adv_diff_hier_integrator->getHierarchyMathOps());
     d_hier_projector->setHierarchyMathOps(d_hier_math_ops);
-
-    // Setup the FAC preconditioner and obtain the Poisson
-    // specifications used for a second order update to the pressure.
-    if (d_second_order_pressure_update)
-    {
-        assert(false); // XXXX
-    }
 
     // Set the current integration time.
     if (!SAMRAI::tbox::RestartManager::getManager()->isFromRestart())
@@ -1810,69 +1804,33 @@ INSHierarchyIntegrator::updatePressure(
     assert(SAMRAI::tbox::Utilities::deq(d_integrator_time,current_time));
 #endif
 
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
     const double dt = new_time - current_time;
 
-    // We have to solve an additional Helmholtz problem in order to
-    // obtain a formally consistent second order timestepping scheme
-    // for the pressure.
-    //
-    // Setup the rhs data to solve for the second order update to the
-    // pressure.
+    // The second-order pressure update corresponding to an implicit
+    // Crank-Nicolson discretization of the viscous terms.
     if (d_second_order_pressure_update)
     {
-        d_hier_cc_data_ops->linearSum(d_Phi_idx,        // dst
-                                      d_rho/dt,         // alpha
-                                      d_Phi_idx,        // src1
-                                      -1.0,             // beta
-                                      d_P_current_idx); // src2
+        d_hier_cc_data_ops->axpy(d_P_current_idx,  // dst
+                                 -d_rho/dt,        // alpha
+                                 d_Phi_idx,        // src1
+                                 d_P_current_idx); // src2
 
-        d_hier_math_ops->laplace(
-            d_sol_idx, d_sol_var, // dst
-            *d_helmholtz1_spec,   // Poisson spec
-            d_Phi_idx, d_Phi_var, // src
-            d_rscheds["Phi->Phi::CONSTANT_REFINE"],
-            current_time);        // data time
+        SAMRAI::solv::PoissonSpecifications mu_spec("mu_spec");
+        mu_spec.setCConstant(0.0);
+        mu_spec.setDConstant(0.5*dt*d_mu/d_rho);
 
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom =
-            d_hierarchy->getGridGeometry();
+        d_hier_math_ops->laplace(d_P_new_idx, d_P_var,     // dst
+                                 mu_spec,                  // Poisson spec
+                                 d_P_scratch_idx, d_P_var, // src1
+                                 d_rscheds["P->P::C->S::CONSTANT_REFINE"],
+                                 new_time,                 // src1_bdry_fill_time
+                                 d_rho/dt,                 // gamma
+                                 d_Phi_idx, d_Phi_var);    // src2
 
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > bdry_fill_op = grid_geom->
-            lookupRefineOperator(d_sol_var, "CONSTANT_REFINE");
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > bdry_fill_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-        bdry_fill_alg->registerRefine(d_sol_idx, // destination
-                                      d_sol_idx, // source
-                                      d_tmp_idx, // temporary work space
-                                      bdry_fill_op);
-
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            bdry_fill_alg->resetSchedule(
-                d_rscheds["Phi->Phi::CONSTANT_REFINE"][ln]);
-        }
-
-        d_hier_math_ops->laplace(
-            d_rhs_idx, d_rhs_var, // dst
-            *d_helmholtz2_spec,   // Poisson spec
-            d_sol_idx, d_sol_var, // src
-            d_rscheds["Phi->Phi::CONSTANT_REFINE"],
-            current_time);        // data time
-
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            d_ralgs["Phi->Phi::CONSTANT_REFINE"]->resetSchedule(
-                d_rscheds["Phi->Phi::CONSTANT_REFINE"][ln]);
-        }
-
-        // Solve the linear system.
-        d_helmholtz4_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
-
-        // Update the pressure.
-        d_hier_cc_data_ops->add(d_P_new_idx,      // dst
-                                d_sol_idx,        // src1
-                                d_P_current_idx); // src2
+        d_hier_cc_data_ops->axpy(d_P_current_idx,  // dst
+                                 +d_rho/dt,        // alpha
+                                 d_Phi_idx,        // src1
+                                 d_P_current_idx); // src2
     }
     else
     {
@@ -1882,13 +1840,17 @@ INSHierarchyIntegrator::updatePressure(
     }
 
     // Normalize P(n+1/2) to have mean (discrete integral) zero.
-    const double P_mean = (1.0/d_volume)*
-        d_hier_cc_data_ops->integral(d_P_new_idx, d_wgt_idx);
+    if (d_normalize_pressure)
+    {
+        const double P_mean = (1.0/d_volume)*
+            d_hier_cc_data_ops->integral(d_P_new_idx, d_wgt_idx);
 
-    d_hier_cc_data_ops->addScalar(d_P_new_idx, // dst
-                                  d_P_new_idx, // src
-                                  -P_mean);    // alpha
+        d_hier_cc_data_ops->addScalar(d_P_new_idx, // dst
+                                      d_P_new_idx, // src
+                                      -P_mean);    // alpha
+    }
 
+    // Reset the value of p(n-1/2) during the initial timestep.
     if (override_current_pressure)
     {
         d_hier_cc_data_ops->copyData(d_P_current_idx, d_P_new_idx);
@@ -2738,6 +2700,7 @@ INSHierarchyIntegrator::putToDatabase(
     if (d_using_vorticity_tagging) db->putDoubleArray("d_Omega_eps", d_Omega_eps);
     db->putDouble("d_Omega_max", d_Omega_max);
     db->putBool("d_second_order_pressure_update", d_second_order_pressure_update);
+    db->putBool("d_normalize_pressure", d_normalize_pressure);
     db->putDouble("d_old_dt", d_old_dt);
     db->putDouble("d_integrator_time", d_integrator_time);
     db->putInteger("d_integrator_step", d_integrator_step);
@@ -3075,6 +3038,9 @@ INSHierarchyIntegrator::getFromInput(
         d_second_order_pressure_update = db->getBoolWithDefault(
             "second_order_pressure_update", d_second_order_pressure_update);
 
+        d_normalize_pressure = db->getBoolWithDefault(
+            "normalize_pressure", d_normalize_pressure);
+
         if (db->keyExists("rho"))
         {
             d_rho = db->getDouble("rho");
@@ -3140,6 +3106,7 @@ INSHierarchyIntegrator::getFromRestart()
     if (d_using_vorticity_tagging) d_Omega_eps = db->getDoubleArray("d_Omega_eps");
     d_Omega_max = db->getDouble("d_Omega_max");
     d_second_order_pressure_update = db->getBool("d_second_order_pressure_update");
+    d_normalize_pressure = db->getBool("d_normalize_pressure");
     d_old_dt = db->getDouble("d_old_dt");
     d_integrator_time = db->getDouble("d_integrator_time");
     d_integrator_step = db->getInteger("d_integrator_step");

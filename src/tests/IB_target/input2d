@@ -15,8 +15,8 @@ MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3   // maximum number of levels in locally refined grid
-REF_RATIO  = 4   // refinement ratio between levels
+MAX_LEVELS = 5   // maximum number of levels in locally refined grid
+REF_RATIO  = 2   // refinement ratio between levels
 
 N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
@@ -29,38 +29,39 @@ IBHierarchyIntegrator {
 
    enable_logging = TRUE
 
-   regrid_interval = 2
-   dt_max = 0.8/NFINEST
+   regrid_interval = 1
+   dt_max = 1.6/NFINEST
    delta_fcn = "IB_6"
 }
+
+// NOTE: The spring constant is equal to 22.5*NFINEST scaled by ds, the
+// curvilinear mesh spacing, which is given by
+//
+//     ds = 2*PI*R/(61*NFINEST/256)
+//
+// Thus,
+//
+//     stiffnsess = 22.5*NFINEST*ds = 22.5*2.0*PI*R*(256/61)
+//
+// Note that this stiffness must be modified if generate_mesh2d.m
+// is modified.
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
 
-   base_filenames_2 = "cylinder2d_256"   // corresponds to NFINEST = 256
-   cylinder2d_256 {
-      // NOTE: this value is equal to 85.0*NFINEST scaled by ds, the
-      // curvilinear mesh spacing, which is given by
-      //
-      //     ds = 2*PI*R/(61*NFINEST/256)
-      //
-      // Thus,
-      //
-      //     stiffnsess = 85.0*NFINEST*ds = 85.0*2.0*PI*R*(256/61)
-      //
-      // Note that this stiffness must be modified if generate_mesh2d.m
-      // is modified.
-      uniform_target_stiffness = 85.0*2.0*PI*R*(256/61)
-   }
-
-// base_filenames_2 = "cylinder2d_512"   // corresponds to NFINEST = 512
-// cylinder2d_512 {
-//    uniform_target_stiffness = 85.0*2.0*PI*R*(256/61)
+// base_filenames_4 = "cylinder2d_256"   // corresponds to NFINEST = 256
+// cylinder2d_256 {
+//    uniform_target_stiffness = 22.5*2.0*PI*R*(256/61)
 // }
 
-// base_filenames_2 = "cylinder2d_1024"  // corresponds to NFINEST = 1024
+   base_filenames_4 = "cylinder2d_512"   // corresponds to NFINEST = 512
+   cylinder2d_512 {
+      uniform_target_stiffness = 22.5*2.0*PI*R*(256/61)
+   }
+
+// base_filenames_4 = "cylinder2d_1024"  // corresponds to NFINEST = 1024
 // cylinder2d_1024 {
-//    uniform_target_stiffness = 85.0*2.0*PI*R*(256/61)
+//    uniform_target_stiffness = 22.5*2.0*PI*R*(256/61)
 // }
 }
 
@@ -71,15 +72,15 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 1 , 2
+   tag_buffer = 1 , 1, 1, 2
 
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.0 , 0.05
+   vorticity_threshold = 0.0 , 0.025 , 0.05 , 0.1
 
    output_P = TRUE
-   output_F = TRUE
+   output_F = FALSE
    output_Q = FALSE
 
    output_Omega = TRUE
@@ -91,7 +92,8 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   second_order_pressure_update = FALSE
+   second_order_pressure_update = TRUE
+   normalize_pressure = FALSE
 
    num_cycles = 1
    num_init_cycles = 5
@@ -113,8 +115,8 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.4875e0 // max cfl factor used in problem
-      cfl_init                 = 0.4875e0 // initial cfl factor
+      cfl                      = 0.5e0  // max cfl factor used in problem
+      cfl_init                 = 0.5e0  // initial cfl factor
       lag_dt_computation       = FALSE
       use_ghosts_to_compute_dt = FALSE
    }
@@ -198,7 +200,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/2     // zero to turn off
+   viz_dump_interval     = NFINEST/4     // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -225,6 +227,10 @@ GriddingAlgorithm {
       level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
       level_2 = REF_RATIO,REF_RATIO
       level_3 = REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO
+      level_6 = REF_RATIO,REF_RATIO
+      level_7 = REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {

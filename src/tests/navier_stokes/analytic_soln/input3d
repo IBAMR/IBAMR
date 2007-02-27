@@ -45,7 +45,7 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   second_order_pressure_update = FALSE
+   second_order_pressure_update = TRUE
 
    num_cycles = 1
    num_init_cycles = 5

@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <25.Feb.2007 19:04:05 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <27.Feb.2007 02:54:56 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -951,6 +951,13 @@ private:
      * second order accurate in time.
      */
     bool d_second_order_pressure_update;
+
+    /*
+     * This boolean value determines whether the pressure is
+     * normalized to have zero mean (i.e., discrete integral) at the
+     * end of each timestep.
+     */
+    bool d_normalize_pressure;
 
     /*
      * These boolean values indicate whether to output the pressure,

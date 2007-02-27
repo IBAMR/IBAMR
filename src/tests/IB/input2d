@@ -11,9 +11,9 @@ RHO = 1.0
 
 // grid spacing parameters
 MAX_LEVELS = 2   // maximum number of levels in locally refined grid
-REF_RATIO  = 2   // refinement ratio between levels
+REF_RATIO  = 4   // refinement ratio between levels
 
-N = 32                                    // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 IBHierarchyIntegrator {
@@ -91,7 +91,7 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   second_order_pressure_update = FALSE
+   second_order_pressure_update = TRUE
 
    num_cycles = 1
    num_init_cycles = 5
