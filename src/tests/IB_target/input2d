@@ -72,7 +72,7 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 1 , 1, 1, 2
+   tag_buffer = 1 , 1 , 1 , 2
 
    conservation_form = FALSE
 

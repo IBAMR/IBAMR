@@ -17,8 +17,8 @@ N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 IBHierarchyIntegrator {
-   start_time            = 0.e0     // initial simulation time
-   end_time              = 0.4e0    // final simulation time
+   start_time            = 0.0e0    // initial simulation time
+   end_time              = 5.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
 
@@ -26,8 +26,7 @@ IBHierarchyIntegrator {
 
    regrid_interval = 8
    dt_max = 5.0e-7*512/NFINEST
-   delta_fcn = DELTA_FCN
-   timestepping_order = 2
+   delta_fcn = "IB_6"
 }
 
 IBStandardInitializer {
@@ -42,14 +41,12 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 1 , 2
-
-   cfl = 1.0  // this only affects the "acceleration" timestep restriction
+   tag_buffer = 1 , 1 , 1 , 4
 
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.0 , 0.5
+   vorticity_threshold = 0.0 , 0.025 , 0.05 , 0.1
 
    output_P = TRUE
    output_F = TRUE
@@ -61,15 +58,10 @@ INSHierarchyIntegrator {
    output_Div_u = FALSE
    output_Div_u_adv = FALSE
 
+   mu  = MU
    rho = RHO
-   mu = MU
 
-   project_predicted_flux = TRUE
-   reproject_pressure = TRUE
    second_order_pressure_update = TRUE
-
-   poisson_abs_residual_tol = 1.0e-30
-   poisson_rel_residual_tol = 1.0e-6
 
    num_cycles = 1
    num_init_cycles = 5
@@ -97,7 +89,6 @@ AdvDiffHierarchyIntegrator {
       use_ghosts_to_compute_dt = FALSE
    }
 
-   solver_package = "PETSc"
    max_iterations = 25
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-8
@@ -130,7 +121,6 @@ AdvDiffHierarchyIntegrator {
 HierarchyProjector {
    enable_logging = TRUE
 
-   solver_package = "PETSc"
    max_iterations = 25
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-8
@@ -178,7 +168,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST       // zero to turn off
+   viz_dump_interval     = NFINEST/2     // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -188,26 +178,27 @@ Main {
 
 // timer dump parameters
    timer_dump_interval     = 0           // zero to turn off
-
-// convergence monitoring parameters
-   monitor_convergence = TRUE
 }
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,2*N - 1) ]
-   x_lo         =  0,  0         // lower end of computational domain
-   x_up         =  9, 18         // upper end of computational domain
-   periodic_dimension = 1,1
+   x_lo         =  0, 0          // lower end of computational domain.
+   x_up         =  9, 18         // upper end of computational domain.
+   periodic_dimension = 0, 0
 }
 
 GriddingAlgorithm {
-   max_levels = MAX_LEVELS           // maximum number of levels in hierarchy
+   allow_patches_smaller_than_ghostwidth = TRUE
+
+   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
       level_2 = REF_RATIO,REF_RATIO
       level_3 = REF_RATIO,REF_RATIO
       level_4 = REF_RATIO,REF_RATIO
       level_5 = REF_RATIO,REF_RATIO
+      level_6 = REF_RATIO,REF_RATIO
+      level_7 = REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {
@@ -216,7 +207,7 @@ GriddingAlgorithm {
    }
 
    smallest_patch_size {
-      level_0 = 16, 16 // smallest patch allowed in hierarchy
+      level_0 =  8,  8 // smallest patch allowed in hierarchy
                        // all finer levels will use same values as level_0...
    }
 
