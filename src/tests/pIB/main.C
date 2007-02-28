@@ -247,8 +247,8 @@ int main(int argc, char* argv[])
          */
         solv::LocationIndexRobinBcCoefs<NDIM> u0_bc_coef(
             "u0_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        u0_bc_coef.setBoundarySlope(0, 0.0);  // x lower boundary
-        u0_bc_coef.setBoundarySlope(1, 0.0);  // x upper boundary
+        u0_bc_coef.setBoundaryValue(0, 0.0);  // x lower boundary
+        u0_bc_coef.setBoundaryValue(1, 0.0);  // x upper boundary
         u0_bc_coef.setBoundarySlope(2, 0.0);  // y lower boundary
         u0_bc_coef.setBoundaryValue(3, 0.0);  // y upper boundary
 
@@ -259,13 +259,13 @@ int main(int argc, char* argv[])
             u1_bc_coef.setBoundaryTimeConstant(i,2.5e-3);
         }
 
-        u1_bc_coef.setBoundaryInitialValue(0, 0.0);  // x lower boundary
-        u1_bc_coef.setBoundaryInitialValue(1, 0.0);  // x upper boundary
+        u1_bc_coef.setBoundaryInitialSlope(0, 0.0);  // x lower boundary
+        u1_bc_coef.setBoundaryInitialSlope(1, 0.0);  // x upper boundary
         u1_bc_coef.setBoundaryInitialSlope(2, 0.0);  // y lower boundary
         u1_bc_coef.setBoundaryInitialValue(3, 0.0);  // y upper boundary
 
-        u1_bc_coef.setBoundaryFinalValue(0,   0.0);  // x lower boundary
-        u1_bc_coef.setBoundaryFinalValue(1,   0.0);  // x upper boundary
+        u1_bc_coef.setBoundaryFinalSlope(0,   0.0);  // x lower boundary
+        u1_bc_coef.setBoundaryFinalSlope(1,   0.0);  // x upper boundary
         u1_bc_coef.setBoundaryFinalSlope(2,   0.0);  // y lower boundary
         u1_bc_coef.setBoundaryFinalValue(3,-280.0);  // y upper boundary
 
