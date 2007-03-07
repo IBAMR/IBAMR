@@ -2,12 +2,21 @@
 
 % Problem parameters
 
+L = 16.0;
 NFINEST = 256;
-num_nodes = 61*NFINEST/256;
-X_center = [1.85 4.0];
-radius = 0.15;
+dx = L/NFINEST;
 
+% choose num_nodes so that ds = 2*PI*R/num_nodes = 0.5*dx (approximately)
+radius = 0.5;
+num_nodes = 0.375*NFINEST;
+ds = 2*pi*radius/num_nodes;
+
+X_center = [0.0 0.0];
 stiffness = 0.0;
+
+printf("dx = %f\n",dx);
+printf("ds = %f\n",ds);
+printf("dx/ds = %f\n",dx/ds);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

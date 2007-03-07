@@ -249,7 +249,7 @@ int main(int argc, char* argv[])
             "u0_bc_coef", tbox::Pointer<tbox::Database>(NULL));
         for (int i = 0; i < 2*NDIM; ++i)
         {
-            u0_bc_coef.setBoundaryTimeConstant(i,1.0);
+            u0_bc_coef.setBoundaryTimeConstant(i,1.6);
         }
         u0_bc_coef.setBoundaryInitialValue(0,0.0);  // x lower boundary
         u0_bc_coef.setBoundaryInitialSlope(1,0.0);  // x upper boundary

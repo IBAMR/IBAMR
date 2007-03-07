@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <20.Feb.2007 02:09:28 boyce@bigboy.nyconnect.com>
+// Last modified: <06.Mar.2007 18:02:34 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -416,7 +416,8 @@ IBHierarchyIntegrator::gatherAllData(
 ///      getMaxIntegratorSteps(),
 ///      stepsRemaining(),
 ///      getPatchHierarchy(),
-///      getGriddingAlgorithm()
+///      getGriddingAlgorithm(),
+///      getLDataManager()
 ///
 ///  allow the IBHierarchyIntegrator to be used as a hierarchy
 ///  integrator.
@@ -1732,6 +1733,12 @@ IBHierarchyIntegrator::getGriddingAlgorithm() const
 {
     return d_gridding_alg;
 }// getGriddingAlgorithm
+
+LDataManager*
+IBHierarchyIntegrator::getLDataManager() const
+{
+    return d_lag_data_manager;
+}// getLDataManager
 
 ///
 ///  The following routines:

@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <20.Feb.2007 02:06:39 boyce@bigboy.nyconnect.com>
+// Last modified: <06.Mar.2007 18:01:45 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -160,7 +160,8 @@ public:
     ///      getMaxIntegratorSteps(),
     ///      stepsRemaining(),
     ///      getPatchHierarchy(),
-    ///      getGriddingAlgorithm()
+    ///      getGriddingAlgorithm(),
+    ///      getLDataManager()
     ///
     ///  allow the IBHierarchyIntegrator to be used as a hierarchy
     ///  integrator.
@@ -237,6 +238,11 @@ public:
      * Return a pointer to the gridding algorithm object.
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > getGriddingAlgorithm() const;
+
+    /*!
+     * Return a pointer to the Lagrangian data manager object.
+     */
+    LDataManager* getLDataManager() const;
 
     ///
     ///  The following routines:
