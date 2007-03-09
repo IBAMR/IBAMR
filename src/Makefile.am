@@ -41,8 +41,9 @@ lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeInitStrategy.o \
 navier_stokes/fortran/navier_stokes_stabledt2d.o \
 navier_stokes/fortran/navier_stokes_divsource2d.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-IntermediateVelocityRobinBcCoefs.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.o \
 utilities/libIBAMR_utilities2d_a-StashableFactory.o \
 utilities/libIBAMR_utilities2d_a-StashableManager.o \
@@ -83,8 +84,9 @@ lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeInitStrategy.o \
 navier_stokes/fortran/navier_stokes_stabledt3d.o \
 navier_stokes/fortran/navier_stokes_divsource3d.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o \
+navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o \
+navier_stokes/libIBAMR_navier_stokes3d_a-IntermediateVelocityRobinBcCoefs.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.o \
 utilities/libIBAMR_utilities3d_a-StashableFactory.o \
 utilities/libIBAMR_utilities3d_a-StashableManager.o \
