@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <27.Feb.2007 02:54:56 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Mar.2007 21:40:54 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -66,10 +66,9 @@ namespace IBAMR
  * levels of the patch hierarchy are synchronously integrated in time.
  * In particular, subcycling in time is not employed.
  *
- * The viscous terms are treated by the
- * AdvDiffHierarchyIntegrator object supplied to the
- * constructor.  The advective terms are discretized by the supplied
- * GodunovAdvector object.
+ * The viscous terms are treated by the AdvDiffHierarchyIntegrator
+ * object supplied to the constructor.  The advective terms are
+ * discretized by the supplied GodunovAdvector object.
  *
  * \see AdvDiffHierarchyIntegrator
  * \see GodunovAdvector
@@ -1060,6 +1059,7 @@ private:
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
     std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_intermediate_U_bc_coefs;
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set, d_Q_set;
 
     /*

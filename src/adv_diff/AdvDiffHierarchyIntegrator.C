@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <26.Feb.2007 21:38:23 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Mar.2007 20:32:25 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -1274,7 +1274,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_new_data =
                         patch->getPatchData(Q_new_idx);
 
-                    Q_new_data->copyDepth(depth,     // dst_depth,
+                    Q_new_data->copyDepth(depth,     // dst_depth
                                           *sol_data, // src
                                           0);        // src_depth
                 }

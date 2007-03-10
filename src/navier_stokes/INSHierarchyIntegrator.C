@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <27.Feb.2007 02:56:03 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Mar.2007 22:41:21 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/IntermediateVelocityRobinBcCoefs.h>
 
 // STOOLS INCLUDES
 #include <stools/CartExtrapPhysBdryOp.h>
@@ -235,7 +238,9 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
         d_default_U_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_U_bc_coef->setBoundaryValue(2*d+1,0.0);
     }
-    d_U_bc_coefs = std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef);
+    registerVelocityPhysicalBcCoefs(
+        std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
+            NDIM,d_default_U_bc_coef));
 
     // Initialize object with data read from the input and restart
     // databases.
@@ -314,6 +319,13 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
         SAMRAI::tbox::RestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
 
+    for (unsigned l = 0; l < d_intermediate_U_bc_coefs.size(); ++l)
+    {
+        if (d_intermediate_U_bc_coefs[l] != NULL)
+        {
+            delete d_intermediate_U_bc_coefs[l];
+        }
+    }
     delete d_default_U_bc_coef;
     return;
 }// ~INSHierarchyIntegrator
@@ -349,6 +361,16 @@ INSHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
     }
 #endif
     d_U_bc_coefs = U_bc_coefs;
+    d_intermediate_U_bc_coefs.resize(d_U_bc_coefs.size(),NULL);
+    for (unsigned l = 0; l < U_bc_coefs.size(); ++l)
+    {
+        if (d_intermediate_U_bc_coefs[l] != NULL)
+        {
+            delete d_intermediate_U_bc_coefs[l];
+        }
+        d_intermediate_U_bc_coefs[l] = new IntermediateVelocityRobinBcCoefs(
+            l, d_U_bc_coefs[l]);
+    }
     return;
 }// registerVelocityPhysicalBcCoefs
 
@@ -690,10 +712,12 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_adv_diff_hier_integrator->registerAdvectionVelocity(
         d_u_adv_var, u_adv_is_div_free);
 
+    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> intermediate_U_bc_coefs(
+        d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
     d_adv_diff_hier_integrator->
         registerAdvectedAndDiffusedQuantityWithSourceTerm(
             d_U_var, d_nu, d_Grad_P_var, d_conservation_form,
-            d_U_init, d_U_bc_coefs,
+            d_U_init, intermediate_U_bc_coefs,
             SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>(NULL),
             d_grad_Phi_var);
 
@@ -1565,8 +1589,32 @@ INSHierarchyIntegrator::integrateAdvDiff(
     }
 
     // Solve the advection-diffusion equation for U^(*).
+    for (unsigned l = 0; l < d_intermediate_U_bc_coefs.size(); ++l)
+    {
+        IntermediateVelocityRobinBcCoefs* u_bc_coefs =
+            dynamic_cast<IntermediateVelocityRobinBcCoefs*>(
+                d_intermediate_U_bc_coefs[l]);
+        u_bc_coefs->setCurrentTime(current_time);
+        u_bc_coefs->setNewTime(new_time);
+        u_bc_coefs->setRho(d_rho);
+        u_bc_coefs->setPressureIndex(d_P_scratch_idx);
+        u_bc_coefs->setPhiIndex(d_Phi_idx);
+    }
+
     d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time);
     d_adv_diff_hier_integrator->synchronizeHierarchy();
+
+    for (unsigned l = 0; l < d_intermediate_U_bc_coefs.size(); ++l)
+    {
+        IntermediateVelocityRobinBcCoefs* u_bc_coefs =
+            dynamic_cast<IntermediateVelocityRobinBcCoefs*>(
+                d_intermediate_U_bc_coefs[l]);
+        u_bc_coefs->setCurrentTime(std::numeric_limits<double>::quiet_NaN());
+        u_bc_coefs->setNewTime(std::numeric_limits<double>::quiet_NaN());
+        u_bc_coefs->setRho(std::numeric_limits<double>::quiet_NaN());
+        u_bc_coefs->setPressureIndex(-1);
+        u_bc_coefs->setPhiIndex(-1);
+    }
 
     // Fix current data corresponding to Grad P.
     if (!d_F_set.isNull())

@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <20.Feb.2007 02:08:26 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Mar.2007 19:51:37 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -1987,7 +1987,6 @@ AdvectHypPatchOps::setOutflowBoundaryConditions(
     const double fill_time,
     const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill)
 {
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch_ptr(&patch,false);
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
     const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
@@ -1999,7 +1998,7 @@ AdvectHypPatchOps::setOutflowBoundaryConditions(
 #if (NDIM > 2)
     // Compute the codimension three boundary fill boxes.
     const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim3_boxes =
-        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch_ptr);
+        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch);
     const int n_physical_codim3_boxes = physical_codim3_boxes.size();
     for (int n = 0; n < n_physical_codim3_boxes; ++n)
     {
@@ -2015,7 +2014,7 @@ AdvectHypPatchOps::setOutflowBoundaryConditions(
 #endif
     // Compute the codimension two boundary fill boxes.
     const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim2_boxes =
-        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch_ptr);
+        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
     const int n_physical_codim2_boxes = physical_codim2_boxes.size();
     for (int n = 0; n < n_physical_codim2_boxes; ++n)
     {
@@ -2031,7 +2030,7 @@ AdvectHypPatchOps::setOutflowBoundaryConditions(
 #endif
     // Compute the codimension one boundary fill boxes.
     const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
-        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch_ptr);
+        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {

@@ -2,7 +2,7 @@
 #define included_IntermediateVelocityRobinBcCoefs
 
 // Filename: IntermediateVelocityRobinBcCoefs.h
-// Last modified: <09.Mar.2007 18:42:00 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Mar.2007 22:38:45 griffith@box221.cims.nyu.edu>
 // Created on 09 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -32,12 +32,44 @@ public:
      */
     IntermediateVelocityRobinBcCoefs(
         int velocity_depth,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
 
     /*!
      * \brief Destructor.
      */
     virtual ~IntermediateVelocityRobinBcCoefs();
+
+    /*!
+     * \brief Specify the current simulation time.
+     */
+    void setCurrentTime(
+        const double current_time);
+
+    /*!
+     * \brief Specify the new simulation time.
+     */
+    void setNewTime(
+        const double new_time);
+
+    /*!
+     * \brief Specify the (uniform) mass density.
+     */
+    void setRho(
+        const double rho);
+
+    /*!
+     * \brief Specify the pressure variable to be used to update the
+     * boundary conditions.
+     */
+    void setPressureIndex(
+        const int P_idx);
+
+    /*!
+     * \brief Specify the phi variable to be used to update the
+     * boundary conditions.
+     */
+    void setPhiIndex(
+        const int Phi_idx);
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy
@@ -194,14 +226,30 @@ private:
         const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box) const;
 
     /*
-     * The component of the velocity.
+     * The component of the velocity to correct.
      */
     const int d_velocity_depth;
 
     /*
      * We use this object to actually set the boundary values.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_bc_coef;
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_bc_coef;
+
+    /*
+     * The current and new simulation times.
+     */
+    double d_current_time, d_new_time;
+
+    /*
+     * The uniform mass density.
+     */
+    double d_rho;
+
+    /*
+     * Patch data descriptor indices indicating the data to be
+     * employed to set the boundary conditions.
+     */
+    int d_P_idx, d_Phi_idx;
 };
 }// namespace IBAMR
 
