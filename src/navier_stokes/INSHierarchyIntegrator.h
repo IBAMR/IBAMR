@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <09.Mar.2007 21:40:54 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2007 01:41:48 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -946,8 +946,18 @@ private:
     double d_Omega_max;
 
     /*
+     * This boolean value determines whether a pressure increment is
+     * employed to update the pressure (i.e., as in the
+     * Bell-Collela-Glaz algorithm).
+     *
+     * Note that the pressure increment form of the projection
+     * algorithm is generally not stable for IB computations.
+     */
+    bool d_using_pressure_increment_form;
+
+    /*
      * This boolean value determines whether the pressure update is
-     * second order accurate in time.
+     * second-order accurate in time.
      */
     bool d_second_order_pressure_update;
 
@@ -1059,7 +1069,6 @@ private:
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
     std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_intermediate_U_bc_coefs;
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set, d_Q_set;
 
     /*
