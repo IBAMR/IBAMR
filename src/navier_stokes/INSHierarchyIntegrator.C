@@ -743,8 +743,6 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         {
             d_visit_writer->registerPlotQuantity(
                 d_P_var->getName(), "SCALAR", d_P_current_idx, 0, d_P_scale);
-            d_visit_writer->registerPlotQuantity(
-                d_Phi_var->getName(), "SCALAR", d_Phi_current_idx, 0, d_P_scale);
         }
 
         if (!d_F_var.isNull() && d_output_F)
