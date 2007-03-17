@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <12.Mar.2007 01:41:48 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <16.Mar.2007 23:47:29 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1047,6 +1047,9 @@ private:
     SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> d_hier_math_ops;
     bool d_is_managing_hier_math_ops;
 
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_wgt_var;
+    double d_volume;
+
     /*
      * Communications algorithms, patch strategies, and schedules.
      */
@@ -1070,27 +1073,6 @@ private:
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
     std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set, d_Q_set;
-
-    /*
-     * Linear solvers and associated data.
-     *
-     * The cell weights are used to compute norms of data defined on
-     * the patch hierarchy.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var, d_tmp_var, d_wgt_var;
-    double d_volume;
-
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
-
-    const SAMRAI::solv::PoissonSpecifications*     d_helmholtz1_spec;
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_helmholtz1_bc_coef;
-
-    const SAMRAI::solv::PoissonSpecifications*     d_helmholtz2_spec;
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_helmholtz2_bc_coef;
-
-    const SAMRAI::solv::PoissonSpecifications*     d_helmholtz4_spec;
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_helmholtz4_bc_coef;
-    SAMRAI::tbox::Pointer<STOOLS::LinearSolver>    d_helmholtz4_solver;
 
     /*
      * SAMRAI::hier::Variable lists and
@@ -1137,6 +1119,7 @@ private:
     int d_u_current_idx, d_u_new_idx, d_u_scratch_idx;
 
     int d_P_current_idx, d_P_new_idx, d_P_scratch_idx;
+    int d_Phi_current_idx, d_Phi_new_idx, d_Phi_scratch_idx;
     int d_F_current_idx, d_F_new_idx, d_F_scratch_idx;
     int d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx;
 
@@ -1157,7 +1140,7 @@ private:
      *
      * Scratch variables have only one context.
      */
-    int d_Phi_idx, d_Grad_Phi_idx, d_grad_Phi_idx, d_G_idx, d_H_idx, d_V_idx;
+    int d_Grad_Phi_idx, d_grad_Phi_idx, d_G_idx, d_H_idx, d_V_idx;
 
     /*
      * SAMRAI::hier::Patch data descriptors for all variables managed
@@ -1173,8 +1156,6 @@ private:
     int d_u_adv_current_idx, d_u_adv_new_idx, d_u_adv_scratch_idx;
 
     int d_Grad_P_current_idx, d_Grad_P_new_idx, d_Grad_P_scratch_idx;
-
-    int d_sol_idx, d_rhs_idx, d_tmp_idx;
 
     /*
      * SAMRAI::hier::Patch data descriptors for all variables managed

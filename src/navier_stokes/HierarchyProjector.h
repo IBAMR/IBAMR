@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <25.Feb.2007 19:09:33 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <16.Mar.2007 21:38:39 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -184,8 +184,8 @@ public:
     /*!
      * Project the face centered MAC velocity w on the hierarchy.
      *
-     * Computes u = w - grad_Phi, where div u = Q.  If Q is not
-     * supplied, it is assumed that div u = 0.
+     * Computes u = w - (dt/rho)*grad_Phi, where div u = Q.  If Q is
+     * not supplied, it is assumed that div u = 0.
      *
      * Storage and communications schedules to fill ghost data for Phi
      * are required.
@@ -196,6 +196,8 @@ public:
      * synchronized when specified.
      */
     virtual void projectHierarchy(
+        const double rho,
+        const double dt,
         const int u_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >& u_var,
         const int Phi_idx,
@@ -215,8 +217,8 @@ public:
     /*!
      * Project the side centered MAC velocity w on the hierarchy.
      *
-     * Computes u = w - grad_Phi, where div u = Q.  If Q is not
-     * supplied, it is assumed that div u = 0.
+     * Computes u = w - (dt/rho)*grad_Phi, where div u = Q.  If Q is
+     * not supplied, it is assumed that div u = 0.
      *
      * Storage and communications schedules to fill ghost data for Phi
      * are required.
@@ -227,6 +229,8 @@ public:
      * synchronized when specified.
      */
     virtual void projectHierarchy(
+        const double rho,
+        const double dt,
         const int u_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >& u_var,
         const int Phi_idx,

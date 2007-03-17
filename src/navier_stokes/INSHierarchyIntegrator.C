@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <12.Mar.2007 01:32:35 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <17.Mar.2007 02:47:25 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -551,7 +551,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // INSHierarchyIntegrator.
 
     const SAMRAI::hier::IntVector<NDIM> cell_ghosts = CELLG;
-    const SAMRAI::hier::IntVector<NDIM> face_ghosts = CELLG;
+    const SAMRAI::hier::IntVector<NDIM> face_ghosts = FACEG;
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
     registerVariable(d_u_current_idx, d_u_new_idx, d_u_scratch_idx,
@@ -561,6 +561,11 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     registerVariable(d_P_current_idx, d_P_new_idx, d_P_scratch_idx,
                      d_P_var, cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "LINEAR_REFINE");
+
+    registerVariable(d_Phi_current_idx, d_Phi_new_idx, d_Phi_scratch_idx,
+                     d_Phi_var, cell_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "LINEAR_REFINE");
 
@@ -676,8 +681,6 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // Register scratch variables that are maintained by the
     // INSHierarchyIntegrator.
 
-    registerVariable(d_Phi_idx, d_Phi_var, cell_ghosts);
-
     registerVariable(d_Grad_Phi_idx, d_Grad_Phi_var, no_ghosts);
     registerVariable(d_grad_Phi_idx, d_grad_Phi_var, face_ghosts);
 
@@ -730,25 +733,6 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_Grad_P_new_idx = var_db->mapVariableAndContextToIndex(
         d_Grad_P_var, getNewContext());
 
-    // Obtain the sol, rhs, and tmp variables from the
-    // AdvDiffHierarchyIntegrator object.
-    d_sol_var = var_db->getVariable(d_adv_diff_hier_integrator->getName()+"::sol");
-    d_rhs_var = var_db->getVariable(d_adv_diff_hier_integrator->getName()+"::rhs");
-    d_tmp_var = var_db->getVariable(d_adv_diff_hier_integrator->getName()+"::tmp");
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!d_sol_var.isNull());
-    assert(!d_rhs_var.isNull());
-    assert(!d_tmp_var.isNull());
-#endif
-
-    d_sol_idx = var_db->mapVariableAndContextToIndex(
-        d_sol_var, getCurrentContext());
-    d_rhs_idx = var_db->mapVariableAndContextToIndex(
-        d_rhs_var, getCurrentContext());
-    d_tmp_idx = var_db->mapVariableAndContextToIndex(
-        d_tmp_var, getCurrentContext());
-
     // Register variables for plotting.
     //
     // Note that U is automatically registered for plotting by the
@@ -759,6 +743,8 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         {
             d_visit_writer->registerPlotQuantity(
                 d_P_var->getName(), "SCALAR", d_P_current_idx, 0, d_P_scale);
+            d_visit_writer->registerPlotQuantity(
+                d_Phi_var->getName(), "SCALAR", d_Phi_current_idx, 0, d_P_scale);
         }
 
         if (!d_F_var.isNull() && d_output_F)
@@ -845,16 +831,27 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_rstrategies["P->P::C->S::CONSTANT_REFINE"] =
         new STOOLS::CartExtrapPhysBdryOp(d_P_scratch_idx, "LINEAR");
 
-    d_ralgs["Phi->Phi::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    d_ralgs["Phi->Phi::S->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
         d_Phi_var, "CONSTANT_REFINE");
-    d_ralgs["Phi->Phi::CONSTANT_REFINE"]->
-        registerRefine(d_Phi_idx, // destination
-                       d_Phi_idx, // source
-                       d_tmp_idx, // temporary work space
+    d_ralgs["Phi->Phi::S->S::CONSTANT_REFINE"]->
+        registerRefine(d_Phi_scratch_idx, // destination
+                       d_Phi_scratch_idx, // source
+                       d_Phi_scratch_idx, // temporary work space
                        refine_operator);
-    d_rstrategies["Phi->Phi::CONSTANT_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_tmp_idx, "LINEAR");
+    d_rstrategies["Phi->Phi::S->S::CONSTANT_REFINE"] =
+        new STOOLS::CartExtrapPhysBdryOp(d_Phi_scratch_idx, "LINEAR");
+
+    d_ralgs["Phi->Phi::N->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    refine_operator = grid_geom->lookupRefineOperator(
+        d_Phi_var, "CONSTANT_REFINE");
+    d_ralgs["Phi->Phi::N->S::CONSTANT_REFINE"]->
+        registerRefine(d_Phi_scratch_idx, // destination
+                       d_Phi_new_idx,     // source
+                       d_Phi_scratch_idx, // temporary work space
+                       refine_operator);
+    d_rstrategies["Phi->Phi::N->S::CONSTANT_REFINE"] =
+        new STOOLS::CartExtrapPhysBdryOp(d_Phi_scratch_idx, "LINEAR");
 
     d_ralgs["grad_Phi->grad_Phi::CONSERVATIVE_LINEAR_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
@@ -1314,39 +1311,38 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         (d_performing_init_cycles && d_cycle == 0))
     {
         // Interpolate U(*)->u(*).
-        static const bool u_scratch_cf_bdry_synch = true;
         d_hier_math_ops->interp(
-            d_u_scratch_idx, d_u_var, // u(*)
-            u_scratch_cf_bdry_synch,  // synch u(*) coarse-fine bdry
-            d_V_idx        , d_V_var, // U(*)
+            d_u_scratch_idx, d_u_var, // u(n,*)
+            true,                     // synch u(n,*) coarse-fine bdry
+            d_V_idx        , d_V_var, // U(n,*)
             d_rscheds["U->V::C->S::CONSTANT_REFINE"],
             current_time);            // data time
 
-        // Project u^(*)->u(N) and re-use Phi to project U^(*)->U^(n).
-        d_hier_cc_data_ops->setToScalar(d_Phi_idx, 0.0);
+        // Project u^(n,*)->u(n) and re-use grad Phi to project
+        // U^(n,*)->U^(n).
+        d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
         d_hier_projector->projectHierarchy(
-            d_u_current_idx, d_u_var       , // u(n)
-            d_Phi_idx      , d_Phi_var     , // Phi
-            d_rscheds["Phi->Phi::CONSTANT_REFINE"],
-            current_time,                    // Phi data time
-            d_grad_Phi_idx , d_grad_Phi_var, // grad Phi
-            d_u_scratch_idx, d_u_var       , // u(n,*)
-            d_rscheds["NONE"],               // no fill needed
-            current_time,                    // u_scratch data time
-            false,                           // no synch needed
-            d_Q_current_idx, d_Q_var);       // div u(n)
+            d_rho, dt,
+            d_u_current_idx  , d_u_var       , // u(n)
+            d_Phi_scratch_idx, d_Phi_var     , // Phi
+            d_rscheds["Phi->Phi::S->S::CONSTANT_REFINE"],
+            current_time,                      // Phi data time
+            d_grad_Phi_idx   , d_grad_Phi_var, // grad Phi
+            d_u_scratch_idx  , d_u_var       , // u(n,*)
+            d_rscheds["NONE"],                 // no fill needed
+            current_time,                      // u_scratch data time
+            false,                             // do not synch u(n,*) coarse-fine bdry
+            d_Q_current_idx, d_Q_var);         // div u(n)
 
-        static const bool grad_Phi_cf_bdry_synch = false;
         d_hier_math_ops->interp(
-            d_Grad_Phi_idx, d_Grad_Phi_var, // dst
-            d_grad_Phi_idx, d_grad_Phi_var, // src
+            d_Grad_Phi_idx, d_Grad_Phi_var, // Grad Phi
+            d_grad_Phi_idx, d_grad_Phi_var, // grad Phi
             d_rscheds["NONE"],              // no fill needed
             current_time,                   // data time
-            grad_Phi_cf_bdry_synch);        // src_cf_bdry_synch
+            false);                         // do not synch grad Phi coarse-fine bdry
 
-        d_hier_cc_data_ops->subtract(d_U_current_idx, // dst
-                                     d_U_current_idx, // src1
-                                     d_Grad_Phi_idx); // src2
+        d_hier_cc_data_ops->subtract(
+            d_U_current_idx, d_U_current_idx, d_Grad_Phi_idx);
 
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
@@ -1403,10 +1399,8 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         computeDivSourceTerm(
             d_F_div_current_idx, d_Q_current_idx, d_u_current_idx,
             coarsest_ln, finest_ln);
-
-        d_hier_cc_data_ops->add(d_G_idx,              // dst
-                                d_G_idx,              // src1
-                                d_F_div_current_idx); // src2
+        d_hier_cc_data_ops->add(
+            d_G_idx, d_G_idx, d_F_div_current_idx);
     }
 
     SAMRAI::solv::PoissonSpecifications spec("spec");
@@ -1474,18 +1468,19 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
             d_Q_new_idx, d_Q_var, d_hierarchy, current_time+0.5*dt);
     }
 
-    d_hier_cc_data_ops->setToScalar(d_Phi_idx, 0.0);
+    d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
     d_hier_projector->projectHierarchy(
-        d_u_adv_current_idx, d_u_adv_var   , // u(n+1/2)
-        d_Phi_idx          , d_Phi_var     , // Phi
-        d_rscheds["Phi->Phi::CONSTANT_REFINE"],
+        d_rho, dt,
+        d_u_adv_current_idx, d_u_adv_var   , // u(adv)
+        d_Phi_scratch_idx  , d_Phi_var     , // Phi
+        d_rscheds["Phi->Phi::S->S::CONSTANT_REFINE"],
         current_time,                        // Phi data time
         d_grad_Phi_idx     , d_grad_Phi_var, // grad Phi
-        d_u_adv_current_idx, d_u_adv_var   , // u(n+1/2,*)
-        d_rscheds["NONE"],                   // no fill needed
+        d_u_adv_current_idx, d_u_adv_var   , // u(adv,*)
+        d_rscheds["NONE"],                   // don't need to fill u(adv,*) data
         current_time,                        // data time
-        true,                                // synch u(n+1/2,*)
-        d_Q_new_idx, d_Q_var);               // div u(n+1/2)
+        true,                                // synch u(adv,*) coarse-fine bdry
+        d_Q_new_idx, d_Q_var);               // div u(adv)
 
     if (!d_Q_set.isNull())
     {
@@ -1496,14 +1491,13 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
     if (!d_Div_u_adv_var.isNull())
     {
-        static const bool u_adv_current_cf_bdry_synch = true;
         d_hier_math_ops->div(
             d_Div_u_adv_new_idx, d_Div_u_adv_var, // dst
             1.0,                                  // alpha
             d_u_adv_current_idx, d_u_adv_var    , // src
             d_rscheds["NONE"],                    // don't need to fill u(n+1/2) data
             current_time,                         // data time
-            u_adv_current_cf_bdry_synch);         // don't re-synch u(n+1/2) coarse-fine bdry
+            true);                                // synch u(n+1/2) coarse-fine bdry
 
         if (d_do_log) SAMRAI::tbox::plog << "||Div u_adv||_oo = "
                                          << d_hier_cc_data_ops->maxNorm(d_Div_u_adv_new_idx, d_wgt_idx)
@@ -1648,10 +1642,9 @@ INSHierarchyIntegrator::projectVelocity(
             d_rscheds["U->V::C->S::CONSTANT_REFINE"][ln]);
     }
 
-    static const bool u_scratch_cf_bdry_synch = true;
     d_hier_math_ops->interp(
         d_u_scratch_idx, d_u_var, // u(*)
-        u_scratch_cf_bdry_synch,  // synch u(*) coarse-fine bdry
+        true,                     // synch u(*) coarse-fine bdry
         d_V_idx        , d_V_var, // U(*)
         d_rscheds["U->V::C->S::CONSTANT_REFINE"],
         new_time);                // data time
@@ -1662,34 +1655,41 @@ INSHierarchyIntegrator::projectVelocity(
             d_rscheds["U->V::C->S::CONSTANT_REFINE"][ln]);
     }
 
-    // Project u^(*)->u(N+1) and re-use Phi to project U^(*)->U^(n+1).
-    d_hier_cc_data_ops->scale(d_Phi_idx,        // dst
-                              dt/d_rho,         // alpha
-                              d_P_current_idx); // src
+    // Project u^(n,*)->u(n+1) and re-use grad Phi to project
+    // U^(n,*)->U^(n+1).
+    if (d_using_pressure_increment_form)
+    {
+        d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
+    }
+    else
+    {
+        d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_P_current_idx);
+    }
 
     d_hier_projector->projectHierarchy(
-        d_u_new_idx    , d_u_var       , // u(n+1)
-        d_Phi_idx      , d_Phi_var     , // Phi
-        d_rscheds["Phi->Phi::CONSTANT_REFINE"],
-        current_time,                    // Phi data time
-        d_grad_Phi_idx , d_grad_Phi_var, // grad Phi
-        d_u_scratch_idx, d_u_var       , // u(n+1,*)
-        d_rscheds["NONE"],               // no fill needed
-        current_time,                    // u_scratch data time
-        false,                           // no synch needed
-        d_Q_new_idx, d_Q_var);           // div u(n+1)
+        d_rho, dt,
+        d_u_new_idx      , d_u_var       , // u(n+1)
+        d_Phi_scratch_idx, d_Phi_var     , // Phi
+        d_rscheds["Phi->Phi::S->S::CONSTANT_REFINE"],
+        current_time,                      // Phi data time
+        d_grad_Phi_idx   , d_grad_Phi_var, // grad Phi
+        d_u_scratch_idx  , d_u_var       , // u(n+1,*)
+        d_rscheds["NONE"],                 // no fill needed
+        current_time,                      // u_scratch data time
+        false,                             // do not synch u(n+1,*) coarse-fine bdry
+        d_Q_new_idx, d_Q_var);             // div u(n+1)
 
-    static const bool grad_Phi_cf_bdry_synch = false;
     d_hier_math_ops->interp(
         d_Grad_Phi_idx, d_Grad_Phi_var, // dst
         d_grad_Phi_idx, d_grad_Phi_var, // src
         d_rscheds["NONE"],              // no fill needed
         current_time,                   // data time
-        grad_Phi_cf_bdry_synch);        // src_cf_bdry_synch
+        false);                         // do not synch grad Phi coarse-fine bdry
 
-    d_hier_cc_data_ops->subtract(d_U_new_idx,     // dst
-                                 d_U_new_idx,     // src1
-                                 d_Grad_Phi_idx); // src2
+    d_hier_cc_data_ops->subtract(
+        d_U_new_idx, d_U_new_idx, d_Grad_Phi_idx);
+    d_hier_cc_data_ops->copyData(
+        d_Phi_new_idx, d_Phi_scratch_idx);
 
     // Optionally compute some auxiliary quantities.
     if (!d_Omega_var.isNull() || !d_Div_U_var.isNull())
@@ -1774,14 +1774,13 @@ INSHierarchyIntegrator::projectVelocity(
     }
     if (!d_Div_u_var.isNull())
     {
-        static const bool u_new_cf_bdry_synch = true;
         d_hier_math_ops->div(
             d_Div_u_new_idx, d_Div_u_var, // dst
             1.0,                          // alpha
             d_u_new_idx    , d_u_var    , // src
             d_rscheds["NONE"],            // no fill needed
             new_time,                     // data time
-            u_new_cf_bdry_synch);         // don't synch src c-f bdry
+            true);                        // synch u(n+1) coarse-fine bdry
 
         if (d_do_log) SAMRAI::tbox::plog << "||Div u||_oo = "
                                          << d_hier_cc_data_ops->maxNorm(d_Div_u_new_idx, d_wgt_idx)
@@ -1809,81 +1808,70 @@ INSHierarchyIntegrator::updatePressure(
     const double dt = new_time - current_time;
 
     // The basic first-order pressure update corresponding to a
-    // discretization of the incompressible Euler equations (i.e., for
-    // the case of vanishing viscosity).
+    // discretization of the incompressible Euler equations (i.e.,
+    // corresponding to the case of vanishing viscosity).
     if (d_using_pressure_increment_form)
     {
-        d_hier_cc_data_ops->axpy(d_P_new_idx,      // dst
-                                 +d_rho/dt,        // alpha
-                                 d_Phi_idx,        // src1
-                                 d_P_current_idx); // src2
+        d_hier_cc_data_ops->add(d_P_new_idx, d_P_current_idx, d_Phi_new_idx);
     }
     else
     {
-        d_hier_cc_data_ops->scale(d_P_new_idx, // dst
-                                  d_rho/dt,    // alpha
-                                  d_Phi_idx);  // src
+        d_hier_cc_data_ops->copyData(d_P_new_idx, d_Phi_new_idx);
     }
 
     // The second-order pressure update corresponding to an implicit
     // Crank-Nicolson discretization of the viscous terms.
     if (d_second_order_pressure_update)
     {
-        if (d_using_pressure_increment_form)
+        if (!d_using_pressure_increment_form)
         {
-            SAMRAI::solv::PoissonSpecifications mu_spec("mu_spec");
-            mu_spec.setCConstant(0.0);
-            mu_spec.setDConstant(-0.5*d_mu);
-
-            d_hier_math_ops->laplace(d_P_new_idx, d_P_var,  // dst
-                                     mu_spec,               // Poisson spec
-                                     d_Phi_idx, d_Phi_var,  // src1
-                                     d_rscheds["Phi->Phi::CONSTANT_REFINE"],
-                                     new_time,              // src1_bdry_fill_time
-                                     1.0,                   // gamma
-                                     d_P_new_idx, d_P_var); // src2
+            d_hier_cc_data_ops->subtract(
+                d_Phi_new_idx, d_Phi_new_idx, d_P_current_idx);
         }
-        else
+
+        SAMRAI::solv::PoissonSpecifications nu_spec("nu_spec");
+        nu_spec.setCConstant(0.0);
+        nu_spec.setDConstant(-d_nu*dt/2.0);
+
+        d_hier_math_ops->laplace(
+            d_P_new_idx      , d_P_var  ,  // dst
+            nu_spec,                       // Poisson spec
+            d_Phi_scratch_idx, d_Phi_var,  // src1
+            d_rscheds["Phi->Phi::N->S::CONSTANT_REFINE"],
+            new_time,                      // src1_bdry_fill_time
+            1.0,                           // gamma
+            d_P_new_idx      , d_P_var);   // src2
+
+        if (!d_using_pressure_increment_form)
         {
-            d_hier_cc_data_ops->axpy(d_Phi_idx,       // dst
-                                     -dt/d_rho,       // alpha
-                                     d_P_current_idx, // src1
-                                     d_Phi_idx);      // src2
-
-            SAMRAI::solv::PoissonSpecifications mu_spec("mu_spec");
-            mu_spec.setCConstant(0.0);
-            mu_spec.setDConstant(-0.5*d_mu);
-
-            d_hier_math_ops->laplace(d_P_new_idx, d_P_var,  // dst
-                                     mu_spec,               // Poisson spec
-                                     d_Phi_idx, d_Phi_var,  // src1
-                                     d_rscheds["Phi->Phi::CONSTANT_REFINE"],
-                                     new_time,              // src1_bdry_fill_time
-                                     1.0,                   // gamma
-                                     d_P_new_idx, d_P_var); // src2
-
-            d_hier_cc_data_ops->axpy(d_Phi_idx,       // dst
-                                     +dt/d_rho,       // alpha
-                                     d_P_current_idx, // src1
-                                     d_Phi_idx);      // src2
+            d_hier_cc_data_ops->add(
+                d_Phi_new_idx, d_Phi_new_idx, d_P_current_idx);
         }
     }
 
-    // Normalize P(n+1/2) to have mean (discrete integral) zero.
+    // Normalize P(n+1/2) and Phi(n+1/2) to have mean (i.e., discrete
+    // integral) zero.
     if (d_normalize_pressure)
     {
         const double P_mean = (1.0/d_volume)*
             d_hier_cc_data_ops->integral(d_P_new_idx, d_wgt_idx);
-
         d_hier_cc_data_ops->addScalar(d_P_new_idx, // dst
                                       d_P_new_idx, // src
                                       -P_mean);    // alpha
+
+        const double Phi_mean = (1.0/d_volume)*
+            d_hier_cc_data_ops->integral(d_Phi_new_idx, d_wgt_idx);
+        d_hier_cc_data_ops->addScalar(d_Phi_new_idx, // dst
+                                      d_Phi_new_idx, // src
+                                      -Phi_mean);    // alpha
     }
 
-    // Reset the value of p(n-1/2) during the initial timestep.
+    // Reset the values of P(n-1/2) and Phi(n-1/2) during the initial
+    // timestep.
     if (override_current_pressure)
     {
         d_hier_cc_data_ops->copyData(d_P_current_idx, d_P_new_idx);
+        d_hier_cc_data_ops->setToScalar(d_Phi_current_idx, 0.0);
     }
 
     t_update_pressure->stop();
@@ -2362,6 +2350,15 @@ INSHierarchyIntegrator::initializeLevelData(
                 init_data_time, initial_time);
         }
 
+        // Initialize phi to equal zero.
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Phi_current_data =
+                patch->getPatchData(d_Phi_current_idx);
+            Phi_current_data->fillAll(0.0);
+        }
+
         // If an initialization object is provided, initialize the
         // applied force.
         if (!d_F_set.isNull())
@@ -2454,15 +2451,6 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
 
     // Get the volume of the physical domain.
     d_volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
-
-    // Reset the solution and rhs vectors.
-    d_sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-        d_object_name+"::sol_vec", d_hierarchy, 0, finest_hier_level);
-    d_sol_vec->addComponent(d_sol_var,d_sol_idx,d_wgt_idx,d_hier_cc_data_ops);
-
-    d_rhs_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-        d_object_name+"::rhs_vec", d_hierarchy, 0, finest_hier_level);
-    d_rhs_vec->addComponent(d_rhs_var,d_rhs_idx,d_wgt_idx,d_hier_cc_data_ops);
 
     // If we have added or removed a level, resize the schedule
     // vectors.

@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <25.Feb.2007 19:13:05 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <17.Mar.2007 02:04:50 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -344,6 +344,8 @@ HierarchyProjector::getPoissonSolver() const
 
 void
 HierarchyProjector::projectHierarchy(
+    const double rho,
+    const double dt,
     const int u_idx,
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >& u_var,
     const int Phi_idx,
@@ -367,24 +369,25 @@ HierarchyProjector::projectHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    // Compute div w.
+    // Allocate data used to store div w.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_div_w_idx, w_bdry_fill_time);
     }
 
+    // Compute (rho/dt)*(Q - div w).
     d_hier_math_ops->div(
         d_div_w_idx, d_div_w_var, // dst
-        -1.0,                     // alpha
+        -rho/dt,                  // alpha
         w_idx, w_var,             // src1
         w_bdry_fill,              // src1_bdry_fill
         w_bdry_fill_time,         // src1_bdry_fill_time
         w_cf_bdry_synch,          // src1_cf_bdry_synch
-        1.0,                      // beta
+        +rho/dt,                  // beta
         Q_idx, Q_var);            // src2
 
-    // Solve -div grad Phi = div u - div w.
+    // Solve -div grad Phi = (rho/dt)*(Q - div w).
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double> sol_vec(
         d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     sol_vec.addComponent(Phi_var, Phi_idx, d_wgt_idx, d_hier_cc_data_ops);
@@ -398,29 +401,22 @@ HierarchyProjector::projectHierarchy(
     if (d_do_log) SAMRAI::tbox::plog << "HierarchyProjector::projectHierarchy(): number of iterations = " << d_poisson_solver->getNumIterations() << "\n";
     if (d_do_log) SAMRAI::tbox::plog << "HierarchyProjector::projectHierarchy(): residual norm        = " << d_poisson_solver->getResidualNorm()  << "\n";
 
-    // Deallocate div w.
+    // Deallocate data used to store div w.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_div_w_idx);
     }
 
-    // Normalize Phi.
-    const double Phi_mean = d_hier_cc_data_ops->integral(
-        Phi_idx, d_wgt_idx)/d_volume;
-    d_hier_cc_data_ops->addScalar(Phi_idx, Phi_idx, -Phi_mean);
-
-    // Set u = w - grad Phi.
+    // Set u = w - (dt/rho)*grad Phi.
     const bool grad_Phi_cf_bdry_synch = true;
-
     d_hier_math_ops->grad(
         grad_Phi_idx, grad_Phi_var, // dst
         grad_Phi_cf_bdry_synch,     // dst_cf_bdry_synch
-        1.0,                        // alpha
+        dt/rho,                     // alpha
         Phi_idx, Phi_var,           // src
         Phi_bdry_fill,              // src_bdry_fill
         Phi_bdry_fill_time);        // src_bdry_fill_time
-
     d_hier_fc_data_ops->subtract(u_idx, w_idx, grad_Phi_idx);
 
     t_project_hierarchy_face->stop();
@@ -429,6 +425,8 @@ HierarchyProjector::projectHierarchy(
 
 void
 HierarchyProjector::projectHierarchy(
+    const double rho,
+    const double dt,
     const int u_idx,
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >& u_var,
     const int Phi_idx,
@@ -452,24 +450,25 @@ HierarchyProjector::projectHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    // Compute div w.
+    // Allocate data used to store div w.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_div_w_idx, w_bdry_fill_time);
     }
 
+    // Compute (rho/dt)*(Q - div w).
     d_hier_math_ops->div(
         d_div_w_idx, d_div_w_var, // dst
-        -1.0,                     // alpha
+        -rho/dt,                  // alpha
         w_idx, w_var,             // src1
         w_bdry_fill,              // src1_bdry_fill
         w_bdry_fill_time,         // src1_bdry_fill_time
         w_cf_bdry_synch,          // src1_cf_bdry_synch
-        1.0,                      // beta
+        +rho/dt,                  // beta
         Q_idx, Q_var);            // src2
 
-    // Solve -div grad Phi = div u - div w.
+    // Solve -div grad Phi = (rho/dt)*(Q - div w).
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double> sol_vec(
         d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     sol_vec.addComponent(Phi_var, Phi_idx, d_wgt_idx, d_hier_cc_data_ops);
@@ -483,30 +482,23 @@ HierarchyProjector::projectHierarchy(
     if (d_do_log) SAMRAI::tbox::plog << "HierarchyProjector::projectHierarchy(): number of iterations = " << d_poisson_solver->getNumIterations() << "\n";
     if (d_do_log) SAMRAI::tbox::plog << "HierarchyProjector::projectHierarchy(): residual norm        = " << d_poisson_solver->getResidualNorm()  << "\n";
 
-    // Deallocate div w.
+    // Deallocate data used to store div w.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_div_w_idx);
     }
 
-    // Normalize Phi.
-    const double Phi_mean = d_hier_cc_data_ops->integral(
-        Phi_idx, d_wgt_idx)/d_volume;
-    d_hier_cc_data_ops->addScalar(Phi_idx, Phi_idx, -Phi_mean);
-
-    // Set u = w - grad Phi.
+    // Set u = w - (dt/rho)*grad Phi.
     const bool grad_Phi_cf_bdry_synch = true;
-
     d_hier_math_ops->grad(
         grad_Phi_idx, grad_Phi_var, // dst
         grad_Phi_cf_bdry_synch,     // dst_cf_bdry_synch
-        1.0,                        // alpha
+        dt/rho,                     // alpha
         Phi_idx, Phi_var,           // src
         Phi_bdry_fill,              // src_bdry_fill
         Phi_bdry_fill_time);        // src_bdry_fill_time
-
-    d_hier_fc_data_ops->subtract(u_idx, w_idx, grad_Phi_idx);
+    d_hier_sc_data_ops->subtract(u_idx, w_idx, grad_Phi_idx);
 
     t_project_hierarchy_side->stop();
     return;
