@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <17.Mar.2007 02:47:25 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <17.Mar.2007 03:02:26 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1657,15 +1657,7 @@ INSHierarchyIntegrator::projectVelocity(
 
     // Project u^(n,*)->u(n+1) and re-use grad Phi to project
     // U^(n,*)->U^(n+1).
-    if (d_using_pressure_increment_form)
-    {
-        d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
-    }
-    else
-    {
-        d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_P_current_idx);
-    }
-
+    d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
     d_hier_projector->projectHierarchy(
         d_rho, dt,
         d_u_new_idx      , d_u_var       , // u(n+1)
