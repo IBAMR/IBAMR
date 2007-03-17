@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <06.Mar.2007 18:02:34 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Mar.2007 19:33:43 boyce@boyce-griffiths-powerbook-g4-15.local>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -21,6 +21,7 @@
 #include <ibamr/LNodeIndexData.h>
 
 // STOOLS INCLUDES
+#include <stools/CartExtrapPhysBdryOp.h>
 #include <stools/PETSC_SAMRAI_ERROR.h>
 #include <stools/STOOLS_Utilities.h>
 
@@ -134,11 +135,15 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_is_initialized(false),
       d_do_log(false),
       d_ralgs(),
+      d_rstrategies(),
       d_rscheds(),
       d_calgs(),
+      d_cstrategies(),
       d_cscheds(),
       d_force_ralg(),
       d_source_ralg(),
+      d_force_rstrategy(),
+      d_source_rstrategy(),
       d_force_rscheds(),
       d_source_rscheds(),
       d_hier_cc_data_ops(),
@@ -486,90 +491,85 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator;
 
-    d_ralgs["U_current->V::CONSERVATIVE_LINEAR_REFINE"] =
-        new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-
-    refine_operator = grid_geom->lookupRefineOperator(
-        d_ins_hier_integrator->getVelocityVar(),
-        "CONSERVATIVE_LINEAR_REFINE");
-
     const int U_current_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
         d_ins_hier_integrator->getCurrentContext());
 
-    d_ralgs["U_current->V::CONSERVATIVE_LINEAR_REFINE"]->
+    d_ralgs["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] =
+        new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    refine_operator = grid_geom->lookupRefineOperator(
+        d_ins_hier_integrator->getVelocityVar(),
+        "CONSERVATIVE_LINEAR_REFINE");
+    d_ralgs["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"]->
         registerRefine(d_V_idx,       // destination
                        U_current_idx, // source
                        d_V_idx,       // temporary work space
                        refine_operator);
-
-    d_ralgs["U_new->W::CONSERVATIVE_LINEAR_REFINE"] =
-        new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-
-    refine_operator = grid_geom->lookupRefineOperator(
-        d_ins_hier_integrator->getVelocityVar(),
-        "CONSERVATIVE_LINEAR_REFINE");
+    d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] =
+        new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
 
     const int U_new_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
         d_ins_hier_integrator->getNewContext());
 
-    d_ralgs["U_new->W::CONSERVATIVE_LINEAR_REFINE"]->
+    d_ralgs["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"] =
+        new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    refine_operator = grid_geom->lookupRefineOperator(
+        d_ins_hier_integrator->getVelocityVar(),
+        "CONSERVATIVE_LINEAR_REFINE");
+    d_ralgs["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"]->
         registerRefine(d_W_idx,   // destination
                        U_new_idx, // source
                        d_W_idx,   // temporary work space
                        refine_operator);
+    d_rstrategies["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"] =
+        new STOOLS::CartExtrapPhysBdryOp(d_W_idx, "LINEAR");
 
     // NOTE: When using conservative averaging to coarsen the velocity
     // from finer levels to coarser levels, the appropriate
     // prolongation operator for the force is constant refinement.
     // This choice results in IB spreading and interpolation being
     // adjoint.
-    d_force_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-
-    refine_operator = grid_geom->lookupRefineOperator(
-        d_ins_hier_integrator->getForceVar(),
-        "CONSTANT_REFINE");
-
     const int F_current_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getForceVar(),
         d_ins_hier_integrator->getCurrentContext());
 
-    d_force_ralg->
-        registerRefine(F_current_idx,     // destination
-                       F_current_idx,     // source
-                       d_F_scratch1_idx,  // temporary work space
-                       refine_operator);
-
+    d_force_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    refine_operator = grid_geom->lookupRefineOperator(
+        d_ins_hier_integrator->getForceVar(), "CONSTANT_REFINE");
+    d_force_ralg->registerRefine(F_current_idx,     // destination
+                                 F_current_idx,     // source
+                                 d_F_scratch1_idx,  // temporary work space
+                                 refine_operator);
     refine_operator = grid_geom->lookupRefineOperator(
         d_F_var, "CONSTANT_REFINE");
-
-    d_force_ralg->
-        registerRefine(d_F_idx,           // destination
-                       d_F_idx,           // source
-                       d_F_scratch2_idx,  // temporary work space
-                       refine_operator);
+    d_force_ralg->registerRefine(d_F_idx,           // destination
+                                 d_F_idx,           // source
+                                 d_F_scratch2_idx,  // temporary work space
+                                 refine_operator);
+    SAMRAI::hier::ComponentSelector F_scratch_idxs;
+    F_scratch_idxs.setFlag(d_F_scratch1_idx);
+    F_scratch_idxs.setFlag(d_F_scratch2_idx);
+    d_force_rstrategy = new STOOLS::CartExtrapPhysBdryOp(
+        F_scratch_idxs, "CONSTANT");
 
     if (!d_source_strategy.isNull())
     {
         d_source_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-
         refine_operator = grid_geom->lookupRefineOperator(
             d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
-
-        d_source_ralg->
-            registerRefine(d_Q_idx,          // destination
-                           d_Q_idx,          // source
-                           d_Q_scratch_idx,  // temporary work space
-                           refine_operator);
+        d_source_ralg->registerRefine(d_Q_idx,          // destination
+                                      d_Q_idx,          // source
+                                      d_Q_scratch_idx,  // temporary work space
+                                      refine_operator);
+        d_source_rstrategy = new STOOLS::CartExtrapPhysBdryOp(
+            d_Q_scratch_idx, "LINEAR");
     }
 
     d_calgs["V->V::CONSERVATIVE_COARSEN"] =
         new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
-
     coarsen_operator = grid_geom->lookupCoarsenOperator(
         d_V_var, "CONSERVATIVE_COARSEN");
-
     d_calgs["V->V::CONSERVATIVE_COARSEN"]->
         registerCoarsen(d_V_idx, // destination
                         d_V_idx, // source
@@ -577,10 +577,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_calgs["W->W::CONSERVATIVE_COARSEN"] =
         new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
-
     coarsen_operator = grid_geom->lookupCoarsenOperator(
         d_W_var, "CONSERVATIVE_COARSEN");
-
     d_calgs["W->W::CONSERVATIVE_COARSEN"]->
         registerCoarsen(d_W_idx, // destination
                         d_W_idx, // source
@@ -588,18 +586,14 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_calgs["F->F::CONSERVATIVE_COARSEN"] =
         new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
-
     coarsen_operator = grid_geom->lookupCoarsenOperator(
         d_ins_hier_integrator->getForceVar(), "CONSERVATIVE_COARSEN");
-
     d_calgs["F->F::CONSERVATIVE_COARSEN"]->
         registerCoarsen(F_current_idx, // destination
                         F_current_idx, // source
                         coarsen_operator);
-
     coarsen_operator = grid_geom->lookupCoarsenOperator(
         d_F_var, "CONSERVATIVE_COARSEN");
-
     d_calgs["F->F::CONSERVATIVE_COARSEN"]->
         registerCoarsen(d_F_idx, // destination
                         d_F_idx, // source
@@ -609,10 +603,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_calgs["Q->Q::CONSERVATIVE_COARSEN"] =
             new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
-
         coarsen_operator = grid_geom->lookupCoarsenOperator(
             d_Q_var, "CONSERVATIVE_COARSEN");
-
         d_calgs["Q->Q::CONSERVATIVE_COARSEN"]->
             registerCoarsen(d_Q_idx, // destination
                             d_Q_idx, // source
@@ -730,7 +722,7 @@ IBHierarchyIntegrator::advanceHierarchy(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_V_idx, current_time);
-        d_rscheds["U_current->V::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
+        d_rscheds["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
     }
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
@@ -1532,7 +1524,7 @@ IBHierarchyIntegrator::advanceHierarchy(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_W_idx, current_time);
-        d_rscheds["U_new->W::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
+        d_rscheds["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
     }
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
@@ -2058,7 +2050,7 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
 
             d_rscheds[(*it).first][ln] = (*it).second->
-                createSchedule(level, ln-1, hierarchy);
+                createSchedule(level, ln-1, hierarchy, d_rstrategies[(*it).first]);
         }
     }
 
@@ -2071,14 +2063,16 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
 
         d_force_rscheds[ln] = d_force_ralg->
-            createSchedule(level, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(),
-                           ln-1, hierarchy);
+            createSchedule(
+                level, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(),
+                ln-1, hierarchy, d_force_rstrategy);
 
         if (!d_source_strategy.isNull())
         {
             d_source_rscheds[ln] = d_source_ralg->
-                createSchedule(level, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(),
-                               ln-1, hierarchy);
+                createSchedule(
+                    level, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(),
+                    ln-1, hierarchy, d_source_rstrategy);
         }
     }
 
@@ -2095,7 +2089,7 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
                 hierarchy->getPatchLevel(ln-1);
 
             d_cscheds[(*it).first][ln] = (*it).second->
-                createSchedule(coarser_level, level);
+                createSchedule(coarser_level, level, d_cstrategies[(*it).first]);
         }
     }
 
