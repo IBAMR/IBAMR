@@ -1,5 +1,5 @@
 // Filename: NormalVelocityBcCoefAdapter.C
-// Last modified: <23.Feb.2007 22:10:12 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <18.Mar.2007 16:48:25 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 30 Sep 2006 by Boyce Griffith (boyce@boyce-griffiths-powerbook-g4-15.local)
 
 #include "NormalVelocityBcCoefAdapter.h"
@@ -35,7 +35,7 @@ NormalVelocityBcCoefAdapter::NormalVelocityBcCoefAdapter(
     const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     : d_bc_coefs()
 {
-    setRobinBcCoefStrategies(bc_coefs);
+    setPhysicalBcCoefs(bc_coefs);
     return;
 }// NormalVelocityBcCoefAdapter
 
@@ -46,12 +46,12 @@ NormalVelocityBcCoefAdapter::~NormalVelocityBcCoefAdapter()
 }// ~NormalVelocityBcCoefAdapter
 
 void
-NormalVelocityBcCoefAdapter::setRobinBcCoefStrategies(
+NormalVelocityBcCoefAdapter::setPhysicalBcCoefs(
     const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     if (bc_coefs.size() != NDIM)
     {
-        TBOX_ERROR("NormalVelocityBcCoefAdapter::setRobinBcCoefStrategies():\n"
+        TBOX_ERROR("NormalVelocityBcCoefAdapter::setPhysicalBcCoefs():\n"
                    << "  precisely NDIM boundary condiiton objects must be provided." << endl);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -62,7 +62,7 @@ NormalVelocityBcCoefAdapter::setRobinBcCoefStrategies(
 #endif
     d_bc_coefs = bc_coefs;
     return;
-}// setRobinBcCoefStrategies
+}// setPhysicalBcCoefs
 
 void
 NormalVelocityBcCoefAdapter::setBcCoefs(

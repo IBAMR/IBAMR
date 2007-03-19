@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <09.Mar.2007 19:49:26 griffith@box221.cims.nyu.edu>
+// Last modified: <18.Mar.2007 19:53:29 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -13,7 +13,7 @@
 
 // STOOLS INCLUDES
 #include <stools/CCLaplaceOperator.h>
-#include <stools/CCPoissonFACOperator.h>
+//#include <stools/CCPoissonFACOperator.h>
 #include <stools/CartRobinPhysBdryOp.h>
 #include <stools/HierarchyMathOps.h>
 #include <stools/KrylovLinearSolver.h>
@@ -23,7 +23,7 @@
 #include <CellVariable.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
-#include <FACPreconditioner.h>
+//#include <FACPreconditioner.h>
 #include <FaceVariable.h>
 #include <GriddingAlgorithm.h>
 #include <HierarchyCellDataOpsReal.h>
@@ -1003,30 +1003,26 @@ private:
     SAMRAI::tbox::Pointer<STOOLS::CartRobinPhysBdryOp> d_bc_op;
 
     /*
-     * Linear solvers (one set for each diffusion coefficient) and
-     * associated data including Poisson specifications, boundary
-     * conditions, and solver configuation databases.
+     * Linear solvers and associated data including Poisson
+     * specifications, boundary conditions, and solver configuation
+     * databases.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var, d_tmp_var;
-    int d_sol_idx, d_rhs_idx, d_tmp_idx;
-
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
+    std::map<unsigned,SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_sol_vecs, d_rhs_vecs;
 
     int d_max_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
 
-    std::map<double,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >           d_helmholtz_ops;
-    std::map<double,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> > d_helmholtz_specs;
+    std::map<unsigned,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >              d_helmholtz_ops;
+    std::map<unsigned,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz_specs;
+    std::map<unsigned,SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> >             d_helmholtz_solvers;
+//  std::map<unsigned,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >           d_helmholtz_fac_ops;
+//  std::map<unsigned,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > d_helmholtz_fac_pcs;
 
-    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> > >             d_helmholtz_solvers;
-    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> > >           d_helmholtz_fac_ops;
-    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > > d_helmholtz_fac_pcs;
-
-    std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,bool> > d_helmholtz_solvers_need_init;
+    std::map<unsigned,bool> d_helmholtz_solvers_need_init;
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_ops_db;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_pcs_db;
+//  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_ops_db;
+//  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_pcs_db;
 };
 }// namespace IBAMR
 

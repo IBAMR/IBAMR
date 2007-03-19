@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <09.Mar.2007 20:32:25 griffith@box221.cims.nyu.edu>
+// Last modified: <18.Mar.2007 19:58:45 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -17,7 +17,7 @@
 #endif
 
 // STOOLS INCLUDES
-#include <stools/FACPreconditionerLSWrapper.h>
+//#include <stools/FACPreconditionerLSWrapper.h>
 #include <stools/PETScKrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
@@ -118,27 +118,21 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_cstrategies(),
       d_cscheds(),
       d_bc_op(new STOOLS::CartRobinPhysBdryOp()),
-      d_sol_var(),
-      d_rhs_var(),
-      d_tmp_var(),
-      d_sol_idx(-1),
-      d_rhs_idx(-1),
-      d_tmp_idx(-1),
-      d_sol_vec(NULL),
-      d_rhs_vec(NULL),
+      d_sol_vecs(),
+      d_rhs_vecs(),
       d_max_iterations(25),
       d_abs_residual_tol(1.0e-30),
       d_rel_residual_tol(1.0e-8),
       d_helmholtz_ops(),
       d_helmholtz_specs(),
       d_helmholtz_solvers(),
-      d_helmholtz_fac_ops(),
-      d_helmholtz_fac_pcs(),
+//    d_helmholtz_fac_ops(),
+//    d_helmholtz_fac_pcs(),
       d_helmholtz_solvers_need_init(),
       d_coarsest_reset_ln(-1),
-      d_finest_reset_ln(-1),
-      d_fac_ops_db(NULL),
-      d_fac_pcs_db(NULL)
+      d_finest_reset_ln(-1)//,
+//    d_fac_ops_db(NULL),
+//    d_fac_pcs_db(NULL)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
@@ -199,14 +193,14 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
         use_time_refinement);
 
     // Get initialization data for the FAC ops and FAC preconditioners.
-    if (input_db->keyExists("FACOps"))
-    {
-        d_fac_ops_db = input_db->getDatabase("FACOps");
-    }
-    if (input_db->keyExists("FACPreconditioners"))
-    {
-        d_fac_pcs_db = input_db->getDatabase("FACPreconditioners");
-    }
+//  if (input_db->keyExists("FACOps"))
+//  {
+//      d_fac_ops_db = input_db->getDatabase("FACOps");
+//  }
+//  if (input_db->keyExists("FACPreconditioners"))
+//  {
+//      d_fac_pcs_db = input_db->getDatabase("FACPreconditioners");
+//  }
 
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =
@@ -266,8 +260,8 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     // NOTE: The following code ensures that the solver components are
     // deallocated in the correct order.
     d_helmholtz_solvers.clear();
-    d_helmholtz_fac_pcs.clear();
-    d_helmholtz_fac_ops.clear();
+//  d_helmholtz_fac_pcs.clear();
+//  d_helmholtz_fac_ops.clear();
     d_helmholtz_ops.clear();
     d_helmholtz_specs.clear();
 
@@ -604,74 +598,50 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         }
     }
 
-    // Register rhs and sol data used by the linear solvers.
-    d_sol_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
-        "AdvDiffHierarchyIntegrator::sol",1);
-    d_hyp_level_integrator->registerVariable(
-        d_sol_var, cell_ghosts,
-        SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::NO_FILL,
-        d_hierarchy->getGridGeometry(),
-        "NO_COARSEN", "NO_REFINE");
-
-    d_sol_idx = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase()->
-        mapVariableAndContextToIndex(d_sol_var, getCurrentContext());
-
-    d_rhs_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
-        "AdvDiffHierarchyIntegrator::rhs",1);
-    d_hyp_level_integrator->registerVariable(
-        d_rhs_var, cell_ghosts,
-        SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::NO_FILL,
-        d_hierarchy->getGridGeometry(),
-        "NO_COARSEN", "NO_REFINE");
-
-    d_rhs_idx = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase()->
-        mapVariableAndContextToIndex(d_rhs_var, getCurrentContext());
-
-    d_tmp_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
-        "AdvDiffHierarchyIntegrator::tmp",1);
-    d_hyp_level_integrator->registerVariable(
-        d_tmp_var, cell_ghosts,
-        SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>::NO_FILL,
-        d_hierarchy->getGridGeometry(),
-        "NO_COARSEN", "NO_REFINE");
-
-    d_tmp_idx = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase()->
-        mapVariableAndContextToIndex(d_tmp_var, getCurrentContext());
-
     // Initialize the SAMRAI::algs::HyperbolicLevelIntegrator.
     //
     // NOTE: This must be done AFTER all variables have been registered.
     d_hyp_level_integrator->initializeLevelIntegrator(d_gridding_alg);
 
-    // Create several communications schedules used in setting up the
-    // rhs terms and in synchronizing solution data.
+    // Create communications schedules used in setting up the rhs
+    // terms and in synchronizing solution data.
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator;
 
-    d_ralgs["sol->sol::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(
-        d_sol_var, "CONSTANT_REFINE");
-    d_ralgs["sol->sol::CONSTANT_REFINE"]->
-        registerRefine(d_sol_idx, // destination
-                       d_sol_idx, // source
-                       d_tmp_idx, // temporary work space
-                       refine_operator);
+    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
+    {
+        ostringstream stream;
+        stream << l;
+        const std::string& name = stream.str();
 
-    d_rstrategies["sol->sol::CONSTANT_REFINE"] = d_bc_op;
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+        const int Q_current_idx = var_db->mapVariableAndContextToIndex(
+            Q_var, getCurrentContext());
+        const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(
+            Q_var, getScratchContext());
+
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator =
+            grid_geom->lookupRefineOperator(
+                Q_var, "CONSTANT_REFINE");
+        d_ralgs[name+"::C->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+        d_ralgs[name+"::C->S::CONSTANT_REFINE"]->
+            registerRefine(Q_scratch_idx, // destination
+                           Q_current_idx, // source
+                           Q_scratch_idx, // temporary work space
+                           refine_operator);
+        d_rstrategies[name+"::C->S::CONSTANT_REFINE"] = d_bc_op;
+    }
 
     d_calgs["SYNCH_NEW_STATE_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
-
-    typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
-        coarsen_operator = grid_geom->lookupCoarsenOperator(
-            Q_var, "CONSERVATIVE_COARSEN");
-        const int Q_new_idx = var_db->
-            mapVariableAndContextToIndex(Q_var, getNewContext());
+        const int Q_new_idx = var_db->mapVariableAndContextToIndex(
+            Q_var, getNewContext());
 
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator =
+            grid_geom->lookupCoarsenOperator(
+                Q_var, "CONSERVATIVE_COARSEN");
         d_calgs["SYNCH_NEW_STATE_DATA"]->
             registerCoarsen(Q_new_idx, // destination
                             Q_new_idx, // source
@@ -687,70 +657,54 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // One set of operators/specifications is maintained for each
-    // value of mu registered with the integrator.
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    // variable registered with the integrator.
+    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
     {
-        const double mu = d_Q_mus[l];
-        if (d_helmholtz_specs[mu].isNull())
-        {
-            ostringstream stream;
-            stream << mu;
-            const std::string& name = stream.str();
+        ostringstream stream;
+        stream << l;
+        const std::string& name = stream.str();
 
-            d_helmholtz_specs[mu] = new SAMRAI::solv::PoissonSpecifications(
-                d_object_name+"::Helmholtz Specs::"+name);
-            d_helmholtz_ops[mu] = new STOOLS::CCLaplaceOperator(
-                d_object_name+"::Helmholtz Operator::"+name);
-        }
+        d_helmholtz_specs[l] = new SAMRAI::solv::PoissonSpecifications(
+            d_object_name+"::Helmholtz Specs::"+name);
+        d_helmholtz_ops[l] = new STOOLS::CCLaplaceOperator(
+            d_object_name+"::Helmholtz Operator::"+name,
+            *d_helmholtz_specs[l], d_Q_bc_coefs[l]);
     }
 
-    // One set of solvers/preconditioners is maintained for distinct
-    // pair of a value of mu and a boundary condition specification
-    // object.
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    // One set of solvers/preconditioners is maintained for each
+    // variable registered with the integrator
+    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
     {
-        const double mu = d_Q_mus[l];
+        ostringstream stream;
+        stream << l;
+        const std::string& name = stream.str();
 
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
-            d_Q_vars[l]->getPatchDataFactory();
-        const int Q_depth = Q_factory->getDefaultDepth();
-        for (int depth = 0; depth < Q_depth; ++depth)
-        {
-            const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef = d_Q_bc_coefs[l][depth];
-            if (d_helmholtz_solvers[mu][bc_coef].isNull())
-            {
-                ostringstream stream;
-                stream << mu << bc_coef;
-                const std::string& name = stream.str();
+        // Helmholtz solver/operator data.
+//      d_helmholtz_fac_ops[l] = new STOOLS::CCPoissonFACOperator(
+//          d_object_name+"::FAC Ops::"+name, d_fac_ops_db);
+//      d_helmholtz_fac_ops[l]->setPoissonSpecifications(
+//          *d_helmholtz_specs[l]);
+//      d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coefs[l]);
 
-                // Helmholtz solver/operator data.
-                d_helmholtz_fac_ops[mu][bc_coef] = new STOOLS::CCPoissonFACOperator(
-                    d_object_name+"::FAC Ops::"+name, d_fac_ops_db);
-                d_helmholtz_fac_ops[mu][bc_coef]->setPoissonSpecifications(
-                    *d_helmholtz_specs[mu]);
-                d_helmholtz_fac_ops[mu][bc_coef]->setPhysicalBcCoef(bc_coef);
+//      d_helmholtz_fac_pcs[l] = new SAMRAI::solv::FACPreconditioner<NDIM>(
+//          d_object_name+"::FAC Preconditioner::"+name,
+//          *d_helmholtz_fac_ops[l], d_fac_pcs_db);
+//      d_helmholtz_fac_ops[l]->setPreconditioner(
+//          d_helmholtz_fac_pcs[l]);
 
-                d_helmholtz_fac_pcs[mu][bc_coef] = new SAMRAI::solv::FACPreconditioner<NDIM>(
-                    d_object_name+"::FAC Preconditioner::"+name,
-                    *d_helmholtz_fac_ops[mu][bc_coef], d_fac_pcs_db);
-                d_helmholtz_fac_ops[mu][bc_coef]->setPreconditioner(
-                    d_helmholtz_fac_pcs[mu][bc_coef]);
+        d_helmholtz_solvers[l] = new STOOLS::PETScKrylovLinearSolver(
+            d_object_name+"::PETSc Krylov solver::"+name, "adv_diff_");
+        d_helmholtz_solvers[l]->setMaxIterations(d_max_iterations);
+        d_helmholtz_solvers[l]->setAbsoluteTolerance(d_abs_residual_tol);
+        d_helmholtz_solvers[l]->setRelativeTolerance(d_rel_residual_tol);
+        d_helmholtz_solvers[l]->setInitialGuessNonzero(true);
+        d_helmholtz_solvers[l]->setOperator(d_helmholtz_ops[l]);
+//      d_helmholtz_solvers[l]->setPreconditioner(
+//          new STOOLS::FACPreconditionerLSWrapper(
+//              d_helmholtz_fac_pcs[l], d_fac_pcs_db));
 
-                d_helmholtz_solvers[mu][bc_coef] = new STOOLS::PETScKrylovLinearSolver(
-                    d_object_name+"::PETSc Krylov solver::"+name, "adv_diff_");
-                d_helmholtz_solvers[mu][bc_coef]->setMaxIterations(d_max_iterations);
-                d_helmholtz_solvers[mu][bc_coef]->setAbsoluteTolerance(d_abs_residual_tol);
-                d_helmholtz_solvers[mu][bc_coef]->setRelativeTolerance(d_rel_residual_tol);
-                d_helmholtz_solvers[mu][bc_coef]->setInitialGuessNonzero(true);
-                d_helmholtz_solvers[mu][bc_coef]->setOperator(d_helmholtz_ops[mu]);
-                d_helmholtz_solvers[mu][bc_coef]->setPreconditioner(
-                    new STOOLS::FACPreconditionerLSWrapper(
-                        d_helmholtz_fac_pcs[mu][bc_coef], d_fac_pcs_db));
-
-                // Indicate the the solvers need to be initialized.
-                d_helmholtz_solvers_need_init[mu][bc_coef] = true;
-            }
-        }
+        // Indicate the the solvers need to be initialized.
+        d_helmholtz_solvers_need_init[l] = true;
     }
 
     // Set the current integration time.
@@ -1006,8 +960,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
 
-    typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var   = d_Q_vars[l];
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var   = d_F_vars[l];
@@ -1020,20 +973,29 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
 
-        const int Q_current_idx = var_db->
-            mapVariableAndContextToIndex(Q_var,  getCurrentContext());
+        const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(
+            Q_var, getScratchContext());
         const int F_current_idx =
             (F_var.isNull()
              ? -1
-             : var_db->mapVariableAndContextToIndex(F_var,getCurrentContext()));
-        const int Psi_current_idx = var_db->
-            mapVariableAndContextToIndex(Psi_var,getCurrentContext());
+             : var_db->mapVariableAndContextToIndex(
+                 F_var, getCurrentContext()));
+        const int Psi_current_idx = var_db->mapVariableAndContextToIndex(
+            Psi_var, getCurrentContext());
 
+        // Compute the time-dependent forcing term F(n).
         if (!F_set.isNull() && F_set->isTimeDependent())
         {
             F_set->setDataOnPatchHierarchy(
                 F_var, getCurrentContext(),
-                d_hierarchy, d_integrator_time);
+                d_hierarchy, current_time);
+        }
+
+        // Allocate temporary data.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(Q_scratch_idx, current_time);
         }
 
         // Setup the right hand side for the advective flux
@@ -1042,50 +1004,41 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         mu_spec.setCConstant(0.0);
         mu_spec.setDConstant(mu);
 
+        d_bc_op->setPatchDataIndex(Q_scratch_idx);
+        d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
+        d_bc_op->setHomogeneousBc(false);
+        d_bc_op->setExtrapolationType("LINEAR");
+
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            ostringstream stream;
+            stream << l;
+            const std::string& name = stream.str();
+            d_rscheds[name+"::C->S::CONSTANT_REFINE"][ln]->fillData(current_time);
+        }
+
         for (int depth = 0; depth < Q_depth; ++depth)
         {
-            const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef = Q_bc_coefs[depth];
+            d_hier_math_ops->laplace(
+                Psi_current_idx, Psi_var,  // Psi(n)
+                mu_spec,                   // Poisson spec
+                Q_scratch_idx  , Q_var  ,  // Q(n)
+                d_rscheds["NONE"],         // don't need to re-fill Q(n) data
+                current_time,              // Q(n) bdry fill time
+                1.0,                       // gamma
+                F_current_idx  , F_var  ,  // F(n)
+                depth, depth, depth);      // dst_depth, src1_depth, src2_depth
+        }
 
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > sol_data =
-                        patch->getPatchData(d_sol_idx);
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_current_data =
-                        patch->getPatchData(Q_current_idx);
-
-                    sol_data->copyDepth(0,               // dst_depth
-                                        *Q_current_data, // src
-                                        depth);          // src_depth
-                }
-            }
-
-            if (bc_coef != NULL)
-            {
-                d_bc_op->setPatchDataIndex(d_tmp_idx);
-                d_bc_op->setRobinBcCoefStrategy(bc_coef);
-                d_bc_op->setHomogeneousBc(false);
-                d_bc_op->setExtrapolationType("LINEAR");
-            }
-            d_hier_math_ops->
-                laplace(Psi_current_idx, Psi_var  ,  // dst
-                        mu_spec,                     // Poisson spec
-                        d_sol_idx      , d_sol_var,  // src1
-                        d_rscheds["sol->sol::CONSTANT_REFINE"],
-                        d_integrator_time,           // src1_bdry_fill_time
-                        1.0,                         // beta
-                        F_current_idx, F_var,        // src2
-                        depth, 0, depth);
+        // Deallocate temporary data.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(Q_scratch_idx);
         }
     }
 
     double dt_next = std::numeric_limits<double>::max();
-
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1093,7 +1046,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         const bool first_step = true;
         const bool last_step = false;
 
-        double level_dt_next = d_hyp_level_integrator->advanceLevel(
+        const double level_dt_next = d_hyp_level_integrator->advanceLevel(
             level, d_hierarchy, current_time, new_time,
             first_step, last_step);
 
@@ -1109,40 +1062,33 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
     if (finest_ln > 0)
     {
-        d_hyp_level_integrator->
-            standardLevelSynchronization(d_hierarchy,
-                                         coarsest_ln, finest_ln,
-                                         new_time, current_time);
+        d_hyp_level_integrator->standardLevelSynchronization(
+            d_hierarchy, coarsest_ln, finest_ln,
+            new_time, current_time);
     }
 
     //////////////////////////////////////////////////////////////////////
-    // Solve the one or more Helmholtz equations for Q(n+1).
+    // Solve one or more Helmholtz equations for Q(n+1).
     //////////////////////////////////////////////////////////////////////
 
     // Indicate that all solvers need to be reinitialized if the
     // current timestep size is different from the previous one.
     if (!SAMRAI::tbox::Utilities::deq(dt,d_old_dt))
     {
-        for (std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,bool> >::iterator it =
-                 d_helmholtz_solvers_need_init.begin();
+        for (std::map<unsigned,bool>::iterator it = d_helmholtz_solvers_need_init.begin();
              it != d_helmholtz_solvers_need_init.end(); ++it)
         {
-            std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,bool>& init_map = (*it).second;
-            for (std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,bool>::iterator it = init_map.begin();
-                 it != init_map.end(); ++it)
-            {
-                (*it).second = true;
-            }
+            (*it).second = true;
         }
         d_coarsest_reset_ln = 0;
         d_finest_reset_ln = finest_ln;
     }
 
-    typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var   = d_Q_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var   = d_F_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_vars[l];
         const double mu = d_Q_mus[l];
         const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs = d_Q_bc_coefs[l];
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set = d_F_sets[l];
@@ -1151,25 +1097,29 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
 
-        const int Q_current_idx = var_db->
-            mapVariableAndContextToIndex(Q_var, getCurrentContext());
-        const int Q_new_idx = var_db->
-            mapVariableAndContextToIndex(Q_var, getNewContext());
+        const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(
+            Q_var, getScratchContext());
+        const int Q_new_idx = var_db->mapVariableAndContextToIndex(
+            Q_var, getNewContext());
         const int F_current_idx =
             (F_var.isNull()
              ? -1
-             : var_db->mapVariableAndContextToIndex(F_var,getCurrentContext()));
+             : var_db->mapVariableAndContextToIndex(
+                 F_var, getCurrentContext()));
+        const int Psi_scratch_idx = var_db->mapVariableAndContextToIndex(
+            Psi_var, getScratchContext());
 
+        // Compute the time-dependent forcing term F(n+1/2).
         if (!F_set.isNull() && F_set->isTimeDependent())
         {
             F_set->setDataOnPatchHierarchy(
                 F_var, getCurrentContext(),
-                d_hierarchy, d_integrator_time+0.5*dt);
+                d_hierarchy, current_time+0.5*dt);
         }
 
         // Set problem coefficients corresponding to Crank-Nicolson.
-        SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> helmholtz_spec = d_helmholtz_specs[mu];
-        SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[mu];
+        SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> helmholtz_spec = d_helmholtz_specs[l];
+        SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
 
         helmholtz_spec->setCConstant(1.0);
         helmholtz_spec->setDConstant(-0.5*dt*mu);
@@ -1178,108 +1128,89 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         rhs_spec.setCConstant(1.0);
         rhs_spec.setDConstant(+0.5*dt*mu);
 
+        // Allocate temporary data.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(Q_scratch_idx, current_time);
+            level->allocatePatchData(Psi_scratch_idx, new_time);
+        }
+
+        // Setup the right hand side for the linear solve for Q(n+1).
+        d_bc_op->setPatchDataIndex(Q_scratch_idx);
+        d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
+        d_bc_op->setHomogeneousBc(false);
+        d_bc_op->setExtrapolationType("LINEAR");
+
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            ostringstream stream;
+            stream << l;
+            const std::string& name = stream.str();
+            d_rscheds[name+"::C->S::CONSTANT_REFINE"][ln]->fillData(current_time);
+        }
+
         if (!F_var.isNull())
         {
             d_hier_cc_data_ops->add(Q_new_idx, F_current_idx, Q_new_idx);
         }
 
-        // Solve the systems.
         for (int depth = 0; depth < Q_depth; ++depth)
         {
-            const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef = Q_bc_coefs[depth];
-
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > sol_data =
-                        patch->getPatchData(d_sol_idx);
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_current_data =
-                        patch->getPatchData(Q_current_idx);
-
-                    sol_data->copyDepth(0,               // dst_depth
-                                        *Q_current_data, // src
-                                        depth);          // src_depth
-                }
-            }
-
-
-            if (bc_coef != NULL)
-            {
-                d_bc_op->setPatchDataIndex(d_tmp_idx);
-                d_bc_op->setRobinBcCoefStrategy(bc_coef);
-                d_bc_op->setHomogeneousBc(false);
-                d_bc_op->setExtrapolationType("LINEAR");
-            }
-            d_hier_math_ops->
-                laplace(d_rhs_idx, d_rhs_var,   // dst
-                        rhs_spec,               // Poisson spec
-                        d_sol_idx, d_sol_var,   // src1
-                        d_rscheds["sol->sol::CONSTANT_REFINE"],
-                        current_time,           // src1_bdry_fill_time
-                        dt,                     // gamma
-                        Q_new_idx, Q_var,       // src2
-                        0, 0, depth);           // dst_depth, src1_depth, src2_depth
-
-            // Initialize the linear solver.
-            helmholtz_op->setPoissonSpecifications(*helmholtz_spec);
-            helmholtz_op->setPhysicalBcCoef(bc_coef);
-            helmholtz_op->setHomogeneousBc(false);
-            helmholtz_op->setTime(new_time);
-            helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
-
-            SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator>           helmholtz_fac_op = d_helmholtz_fac_ops[mu][bc_coef];
-            SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > helmholtz_fac_pc = d_helmholtz_fac_pcs[mu][bc_coef];
-            SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>             helmholtz_solver = d_helmholtz_solvers[mu][bc_coef];
-
-            if (d_helmholtz_solvers_need_init[mu][bc_coef])
-            {
-                if (d_do_log) SAMRAI::tbox::plog << d_object_name << ": "
-                                                 << "Initializing Helmholtz solvers for mu = " << mu
-                                                 << ", dt = " << dt << "\n";
-
-                helmholtz_fac_op->setPoissonSpecifications(*helmholtz_spec);
-                helmholtz_fac_op->setTime(new_time);
-                helmholtz_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
-
-                helmholtz_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
-
-                // Indicate that the solvers do not presently require
-                // re-initialization.
-                d_helmholtz_solvers_need_init[mu][bc_coef] = false;
-            }
-
-            // Solve the linear system for Q(n+1).
-            helmholtz_fac_op->setTime(new_time);
-            helmholtz_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
-
-            if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
-            if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
-
-            // Put the solution data into Q_new.
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > sol_data =
-                        patch->getPatchData(d_sol_idx);
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_new_data =
-                        patch->getPatchData(Q_new_idx);
-
-                    Q_new_data->copyDepth(depth,     // dst_depth
-                                          *sol_data, // src
-                                          0);        // src_depth
-                }
-            }
+            d_hier_math_ops->laplace(
+                Psi_scratch_idx, Psi_var,  // Psi(n+1/2)
+                rhs_spec,                  // Poisson spec
+                Q_scratch_idx  , Q_var  ,  // Q(n)
+                d_rscheds["NONE"],         // don't need to re-fill Q(n) data
+                current_time,              // Q(n) bdry fill time
+                dt,                        // gamma
+                Q_new_idx      , Q_var  ,  // N(n+1/2) = (u*grad Q)(n+1/2)
+                depth, depth, depth);      // dst_depth, src1_depth, src2_depth
         }
+
+        // Initialize the linear solver.
+        helmholtz_op->setPoissonSpecifications(*helmholtz_spec);
+        helmholtz_op->setPhysicalBcCoefs(Q_bc_coefs);
+        helmholtz_op->setHomogeneousBc(false);
+        helmholtz_op->setTime(new_time);
+        helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
+
+//      SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator>           helmholtz_fac_op = d_helmholtz_fac_ops[l];
+//      SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
+        SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>             helmholtz_solver = d_helmholtz_solvers[l];
+
+        if (d_helmholtz_solvers_need_init[l])
+        {
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << ": "
+                                             << "Initializing Helmholtz solvers for variable number " << l
+                                             << ", dt = " << dt << "\n";
+
+//          helmholtz_fac_op->setPoissonSpecifications(*helmholtz_spec);
+//          helmholtz_fac_op->setTime(new_time);
+//          helmholtz_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
+            helmholtz_solver->initializeSolverState(*d_sol_vecs[l],*d_rhs_vecs[l]);
+
+            // Indicate that the solvers do not presently require
+            // re-initialization.
+            d_helmholtz_solvers_need_init[l] = false;
+        }
+
+        // Solve for Q(n+1).
+//      helmholtz_fac_op->setTime(new_time);
+        helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
+        d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
+
+        if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
+        if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
+
+        // Deallocate temporary data.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(Q_scratch_idx);
+            level->deallocatePatchData(Psi_scratch_idx);
+        }
+
     }
 
     t_integrate_hierarchy->stop();
@@ -1426,8 +1357,7 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-        typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-        for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
+        for (unsigned l = 0; l < d_F_vars.size(); ++l)
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
 
@@ -1507,25 +1437,35 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
     d_wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
 
     // Reset the solution and rhs vectors.
-    d_sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-        d_object_name+"::sol_vec", d_hierarchy, 0, finest_hier_level);
-    d_sol_vec->addComponent(d_sol_var,d_sol_idx,d_wgt_idx,d_hier_cc_data_ops);
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
+    {
+        ostringstream stream;
+        stream << l;
+        const std::string& name = stream.str();
 
-    d_rhs_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-        d_object_name+"::rhs_vec", d_hierarchy, 0, finest_hier_level);
-    d_rhs_vec->addComponent(d_rhs_var,d_rhs_idx,d_wgt_idx,d_hier_cc_data_ops);
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+        const int Q_scratch_idx = var_db->
+            mapVariableAndContextToIndex(Q_var, getScratchContext());
+
+        d_sol_vecs[l] = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+            d_object_name+"::sol_vec::"+name, d_hierarchy, 0, finest_hier_level);
+        d_sol_vecs[l]->addComponent(Q_var,Q_scratch_idx,d_wgt_idx,d_hier_cc_data_ops);
+
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_vars[l];
+        const int Psi_scratch_idx = var_db->
+            mapVariableAndContextToIndex(Psi_var, getScratchContext());
+
+        d_rhs_vecs[l] = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+            d_object_name+"::rhs_vec::"+name, d_hierarchy, 0, finest_hier_level);
+        d_rhs_vecs[l]->addComponent(Psi_var,Psi_scratch_idx,d_wgt_idx,d_hier_cc_data_ops);
+    }
 
     // Indicate that all linear solvers must be re-initialized.
-    for (std::map<double,std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,bool> >::iterator it =
-             d_helmholtz_solvers_need_init.begin();
+    for (std::map<unsigned,bool>::iterator it = d_helmholtz_solvers_need_init.begin();
          it != d_helmholtz_solvers_need_init.end(); ++it)
     {
-        std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,bool>& init_map = (*it).second;
-        for (std::map<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,bool>::iterator it = init_map.begin();
-             it != init_map.end(); ++it)
-        {
-            (*it).second = true;
-        }
+        (*it).second = true;
     }
 
     d_coarsest_reset_ln = coarsest_level;

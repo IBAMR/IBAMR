@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <17.Mar.2007 02:04:50 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <18.Mar.2007 17:09:53 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -155,7 +155,7 @@ HierarchyProjector::HierarchyProjector(
     // Initialize the Poisson solver.
     static const bool homogeneous_bc = false;
     d_laplace_op = new STOOLS::CCLaplaceOperator(
-        d_object_name+"::Laplace Operator", &d_poisson_spec,
+        d_object_name+"::Laplace Operator", d_poisson_spec,
         d_bc_coef, homogeneous_bc);
 
     d_poisson_solver = new STOOLS::PETScKrylovLinearSolver(
