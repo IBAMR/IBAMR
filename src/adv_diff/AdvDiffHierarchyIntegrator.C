@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <19.Mar.2007 03:23:12 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <19.Mar.2007 03:57:43 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -124,7 +124,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_max_iterations(25),
       d_abs_residual_tol(1.0e-30),
       d_rel_residual_tol(1.0e-8),
-      d_using_fac(true),
+      d_using_FAC(true),
       d_helmholtz_ops(),
       d_helmholtz_specs(),
       d_helmholtz_solvers(),
@@ -195,7 +195,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
         use_time_refinement);
 
     // Get initialization data for the FAC ops and FAC preconditioners.
-    if (d_using_fac)
+    if (d_using_FAC)
     {
         if (input_db->keyExists("FACOps"))
         {
@@ -700,7 +700,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         const std::string& name = stream.str();
 
         // Helmholtz solver/operator data.
-        if (d_using_fac)
+        if (d_using_FAC)
         {
             d_helmholtz_fac_ops[l] = new STOOLS::CCPoissonFACOperator(
                 d_object_name+"::FAC Ops::"+name, d_fac_ops_db);
@@ -722,7 +722,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz_solvers[l]->setRelativeTolerance(d_rel_residual_tol);
         d_helmholtz_solvers[l]->setInitialGuessNonzero(true);
         d_helmholtz_solvers[l]->setOperator(d_helmholtz_ops[l]);
-        if (d_using_fac)
+        if (d_using_FAC)
         {
             d_helmholtz_solvers[l]->setPreconditioner(
                 new STOOLS::FACPreconditionerLSWrapper(
@@ -1210,7 +1210,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << ": "
                                              << "Initializing Helmholtz solvers for variable number " << l
                                              << ", dt = " << dt << "\n";
-            if (d_using_fac)
+            if (d_using_FAC)
             {
                 helmholtz_fac_op->setPoissonSpecifications(*helmholtz_spec);
                 helmholtz_fac_op->setTime(new_time);
@@ -1224,7 +1224,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         }
 
         // Solve for Q(n+1).
-        if (d_using_fac) helmholtz_fac_op->setTime(new_time);
+        if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
         helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_temp_idx);
 
@@ -1736,7 +1736,7 @@ AdvDiffHierarchyIntegrator::getFromInput(
     d_max_iterations = db->getIntegerWithDefault("max_iterations", d_max_iterations);
     d_abs_residual_tol = db->getDoubleWithDefault("abs_residual_tol", d_abs_residual_tol);
     d_rel_residual_tol = db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol);
-    d_using_fac = db->getBoolWithDefault("using_fac", d_using_fac);
+    d_using_FAC = db->getBoolWithDefault("using_FAC", d_using_FAC);
 
     if (!is_from_restart)
     {

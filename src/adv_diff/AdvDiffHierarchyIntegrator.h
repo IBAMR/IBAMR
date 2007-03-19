@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <19.Mar.2007 03:19:22 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <19.Mar.2007 03:57:30 boyce@boyce-griffiths-powerbook-g4-15.local>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1016,7 +1016,7 @@ private:
 
     int d_max_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
-    bool d_using_fac;
+    bool d_using_FAC;
 
     std::map<unsigned,SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >              d_helmholtz_ops;
     std::map<unsigned,SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz_specs;
