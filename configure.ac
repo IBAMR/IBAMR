@@ -153,9 +153,9 @@ AC_ARG_WITH([hdf5],
   [HDF5_DIR=/usr/local/sfw/hdf5/current])
 
 if test -d "${HDF5_DIR}/lib" ; then
-  ###if test "${USE_RPATH_FLAG}" == "yes" ; then
-  ###  LDFLAGS="${RPATH_FLAG}${HDF5_DIR}/lib $LDFLAGS"
-  ###fi
+  if test "${USE_RPATH_FLAG}" == "yes" ; then
+    LDFLAGS="${RPATH_FLAG}${HDF5_DIR}/lib $LDFLAGS"
+  fi
   LDFLAGS="-L${HDF5_DIR}/lib $LDFLAGS"
 fi
 if test -d "${HDF5_DIR}/include" ; then

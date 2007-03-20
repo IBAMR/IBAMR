@@ -188,19 +188,24 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = stools doc src
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = autogen.sh bin/includes doc/Doxyfile doc/libstdc++.tag \
+#EXTRA_DIST += include/ibamr/IntermediateVelocityRobinBcCoefs.h
+#EXTRA_DIST += include/ibamr/ParabolicLevelIntegrator.h
+EXTRA_DIST = autogen.sh bin/includes bin/scale_edge_rest_length.pl \
+	bin/scale_edge_stiffness.pl bin/set_edge_rest_length.pl \
+	bin/set_edge_stiffness.pl doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/AdvDiffHierarchyIntegrator.h \
 	include/ibamr/AdvDiffHypPatchOps.h \
-	include/ibamr/ConvergenceMonitor.h include/ibamr/get_version.h \
+	include/ibamr/AdvectHypPatchOps.h include/ibamr/get_version.h \
 	include/ibamr/GodunovAdvector.h \
-	include/ibamr/GodunovHypPatchOps.h \
 	include/ibamr/HierarchyProjector.h \
 	include/ibamr/IBEulerianForceSetter.h \
 	include/ibamr/IBEulerianSourceSetter.h \
 	include/ibamr/IBHierarchyIntegrator.h \
 	include/ibamr/IBLagrangianForceStrategy.h \
 	include/ibamr/IBLagrangianSourceStrategy.h \
-	include/ibamr/IBLogicalCartMeshInitializer.h \
+	include/ibamr/IBStandardForceGen.h \
+	include/ibamr/IBStandardForceSpecFactory.h \
+	include/ibamr/IBStandardForceSpec.h \
 	include/ibamr/IBStandardInitializer.h \
 	include/ibamr/INSHierarchyIntegrator.h \
 	include/ibamr/LagSiloDataWriter.h include/ibamr/LDataManager.h \
@@ -210,25 +215,14 @@ EXTRA_DIST = autogen.sh bin/includes doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/LNodeIndex.h include/ibamr/LNodeIndex.I \
 	include/ibamr/LNodeIndexSet.h include/ibamr/LNodeIndexSet.I \
 	include/ibamr/LNodeIndexVariable.h \
-	include/ibamr/LNodeJacobianInitStrategy.h \
+	include/ibamr/LNodeInitStrategy.h \
 	include/ibamr/LNodeLevelData.h include/ibamr/LNodeLevelData.I \
-	include/ibamr/LNodePosnInitStrategy.h \
-	include/ibamr/PhysicalBCDataStrategy.h \
-	include/ibamr/SetDataStrategy.h include/ibamr/SpringForceGen.h \
-	include/ibamr/SpringForceSpecFactory.h \
-	include/ibamr/SpringForceSpec.h \
+	include/ibamr/NormalVelocityBcCoefAdapter.h \
 	include/ibamr/StashableFactory.h include/ibamr/Stashable.h \
 	include/ibamr/StashableManager.h \
 	include/ibamr/StashableManager.I \
 	include/ibamr/StashableStream.h \
-	include/ibamr/StashableStream.I \
-	include/ibamr/TargetPointForceGen.h \
-	include/ibamr/TargetPointForceSpecFactory.h \
-	include/ibamr/TargetPointForceSpec.h \
-	include/ibamr/TargetPointInitializer.h sample/IB/input2d \
-	sample/IB/input3d sample/IB/main.C sample/IB/shell2d_64.edge \
-	sample/IB/shell2d_64.vertex sample/IB/sphere3d.edge \
-	sample/IB/sphere3d.vertex
+	include/ibamr/StashableStream.I
 all: all-recursive
 
 .SUFFIXES:

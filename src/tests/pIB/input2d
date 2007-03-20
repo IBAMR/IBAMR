@@ -6,7 +6,7 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // physical parameters
-MU  = 1.2e-5
+MU  = 1.2e-5     // corresponds to Re=21000
 RHO = 3.0e-4
 
 // grid spacing parameters
@@ -18,13 +18,13 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 IBHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 5.0e0    // final simulation time
+   end_time              = 0.2e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
 
    enable_logging = TRUE
 
-   regrid_interval = 8
+   regrid_interval = 32
    dt_max = 1.25e-04/NFINEST
    delta_fcn = "IB_6"
 }
@@ -41,12 +41,12 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 1 , 1 , 1 , 4
+   tag_buffer = 6
 
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.0125 , 0.025 , 0.05 , 0.1
+   vorticity_threshold = 0.1
 
    output_P = TRUE
    output_F = TRUE
