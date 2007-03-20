@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <19.Mar.2007 20:09:08 griffith@box221.cims.nyu.edu>
+// Last modified: <19.Mar.2007 21:36:24 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -58,10 +58,13 @@ IBStandardInitializer::IBStandardInitializer(
       d_edge_map(),
       d_edge_stiffness(),
       d_edge_rest_length(),
+      d_edge_force_fcn_idx(),
       d_use_uniform_edge_stiffness(),
       d_uniform_edge_stiffness(),
       d_use_uniform_edge_rest_length(),
       d_uniform_edge_rest_length(),
+      d_use_uniform_edge_force_fcn_idx(),
+      d_uniform_edge_force_fcn_idx(),
       d_enable_target_points(),
       d_target_stiffness(),
       d_use_uniform_target_stiffness(),
@@ -516,6 +519,7 @@ IBStandardInitializer::readEdgeFiles()
         d_edge_map[ln].resize(num_base_filename);
         d_edge_stiffness[ln].resize(num_base_filename);
         d_edge_rest_length[ln].resize(num_base_filename);
+        d_edge_force_fcn_idx[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
             const std::string edge_filename = d_base_filename[ln][j] + ".edge";
@@ -550,12 +554,14 @@ IBStandardInitializer::readEdgeFiles()
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << edge_filename << endl);
                 }
 
-                // Each successive line provides the connectivity
-                // information for each edge in the structure.
+                // Each successive line provides the connectivity and
+                // material parameter information for each edge in the
+                // structure.
                 for (int k = 0; k < num_edges; ++k)
                 {
                     Edge e;
                     double kappa, length;
+                    int force_fcn_idx;
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << edge_filename << endl);
@@ -603,6 +609,11 @@ IBStandardInitializer::readEdgeFiles()
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl
                                        << "  spring resting length is negative" << endl);
                         }
+
+                        if (!(line_stream >> force_fcn_idx))
+                        {
+                            force_fcn_idx = 0;  // default force function specification.
+                        }
                     }
 
                     // Modify kappa and length according to whether
@@ -623,6 +634,10 @@ IBStandardInitializer::readEdgeFiles()
                         if (d_use_uniform_edge_rest_length[ln][j])
                         {
                             length = d_uniform_edge_rest_length[ln][j];
+                        }
+                        if (d_use_uniform_edge_force_fcn_idx[ln][j])
+                        {
+                            force_fcn_idx = d_uniform_edge_force_fcn_idx[ln][j];
                         }
                     }
 
@@ -657,12 +672,15 @@ IBStandardInitializer::readEdgeFiles()
                             if (!SAMRAI::tbox::Utilities::deq(
                                     (*d_edge_stiffness[ln][j].find(e)).second, kappa) ||
                                 !SAMRAI::tbox::Utilities::deq(
-                                    (*d_edge_rest_length[ln][j].find(e)).second, length))
+                                    (*d_edge_rest_length[ln][j].find(e)).second, length) ||
+                                !SAMRAI::tbox::Utilities::deq(
+                                    (*d_edge_force_fcn_idx[ln][j].find(e)).second, force_fcn_idx))
                             {
                                 TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << edge_filename << endl
                                            << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << endl
                                            << "  original spring constant = " << (*d_edge_stiffness[ln][j].find(e)).second << endl
-                                           << "  original resting length = " << (*d_edge_rest_length[ln][j].find(e)).second << endl);
+                                           << "  original resting length = " << (*d_edge_rest_length[ln][j].find(e)).second << endl
+                                           << "  original force function index = " << (*d_edge_force_fcn_idx[ln][j].find(e)).second << endl);
                             }
                         }
                     }
@@ -677,6 +695,7 @@ IBStandardInitializer::readEdgeFiles()
                         d_edge_map[ln][j].insert(std::make_pair(e.first,e));
                         d_edge_stiffness[ln][j][e] = kappa;
                         d_edge_rest_length[ln][j][e] = length;
+                        d_edge_force_fcn_idx[ln][j][e] = force_fcn_idx;
                     }
                 }
 
@@ -1023,7 +1042,7 @@ IBStandardInitializer::initializeForceSpec(
     const int j = point_index.first;
     const int lag_index = getCannonicalLagrangianIndex(point_index, level_number);
 
-    std::vector<int> dst_idxs;
+    std::vector<int> dst_idxs, force_fcn_idxs;
     std::vector<double> stiffness, rest_length;
     for (std::multimap<int,Edge>::const_iterator it = d_edge_map[level_number][j].lower_bound(lag_index);
          it != d_edge_map[level_number][j].upper_bound(lag_index); ++it)
@@ -1043,15 +1062,16 @@ IBStandardInitializer::initializeForceSpec(
         }
 
         // The material properties.
-        stiffness  .push_back((*d_edge_stiffness  [level_number][j].find(e)).second);
-        rest_length.push_back((*d_edge_rest_length[level_number][j].find(e)).second);
+        force_fcn_idxs.push_back((*d_edge_force_fcn_idx[level_number][j].find(e)).second);
+        stiffness     .push_back((*d_edge_stiffness    [level_number][j].find(e)).second);
+        rest_length   .push_back((*d_edge_rest_length  [level_number][j].find(e)).second);
     }
 
     const std::vector<double> X_target = getVertexPosn(point_index, level_number);
     const double kappa_target = getVertexTargetStiffness(point_index, level_number);
 
     force_spec.push_back(new IBStandardForceSpec(
-                             dst_idxs, stiffness, rest_length,
+                             dst_idxs, force_fcn_idxs, stiffness, rest_length,
                              X_target, kappa_target));
 
     return force_spec;
@@ -1093,10 +1113,13 @@ IBStandardInitializer::getFromInput(
     d_edge_map.resize(d_max_levels);
     d_edge_stiffness.resize(d_max_levels);
     d_edge_rest_length.resize(d_max_levels);
+    d_edge_force_fcn_idx.resize(d_max_levels);
     d_use_uniform_edge_stiffness.resize(d_max_levels);
     d_uniform_edge_stiffness.resize(d_max_levels);
     d_use_uniform_edge_rest_length.resize(d_max_levels);
     d_uniform_edge_rest_length.resize(d_max_levels);
+    d_use_uniform_edge_force_fcn_idx.resize(d_max_levels);
+    d_uniform_edge_force_fcn_idx.resize(d_max_levels);
     d_enable_target_points.resize(d_max_levels);
     d_target_stiffness.resize(d_max_levels);
     d_use_uniform_target_stiffness.resize(d_max_levels);
@@ -1141,6 +1164,9 @@ IBStandardInitializer::getFromInput(
 
         d_use_uniform_edge_rest_length[ln].resize(num_base_filename,false);
         d_uniform_edge_rest_length[ln].resize(num_base_filename,-1.0);
+
+        d_use_uniform_edge_force_fcn_idx[ln].resize(num_base_filename,false);
+        d_uniform_edge_force_fcn_idx[ln].resize(num_base_filename,-1);
 
         d_enable_target_points[ln].resize(num_base_filename,true);
 
@@ -1201,6 +1227,11 @@ IBStandardInitializer::getFromInput(
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_edge_rest_length' in database " << base_filename << endl
                                    << "  spring resting length is negative" << endl);
                     }
+                }
+                if (sub_db->keyExists("uniform_edge_force_fcn_idx"))
+                {
+                    d_use_uniform_edge_force_fcn_idx[ln][j] = true;
+                    d_uniform_edge_force_fcn_idx[ln][j] = sub_db->getInteger("uniform_edge_force_fcn_idx");
                 }
 
                 if (sub_db->keyExists("uniform_target_stiffness"))
@@ -1269,6 +1300,11 @@ IBStandardInitializer::getFromInput(
                 {
                     SAMRAI::tbox::pout << "  NOTE: uniform edge resting lengths are being employed for " << base_filename << endl
                                        << "        any resting length information in file " << base_filename << ".vertex will be IGNORED" << endl;
+                }
+                if (d_use_uniform_edge_force_fcn_idx[ln][j])
+                {
+                    SAMRAI::tbox::pout << "  NOTE: uniform force functions are being employed for " << base_filename << endl
+                                       << "        any force function index information in file " << base_filename << ".vertex will be IGNORED" << endl;
                 }
             }
 

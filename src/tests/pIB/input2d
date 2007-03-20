@@ -25,7 +25,7 @@ IBHierarchyIntegrator {
    enable_logging = TRUE
 
    regrid_interval = 8
-   dt_max = 5.0e-7*512/NFINEST
+   dt_max = 1.25e-04/NFINEST
    delta_fcn = "IB_6"
 }
 
@@ -46,7 +46,7 @@ INSHierarchyIntegrator {
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.0 , 0.025 , 0.05 , 0.1
+   vorticity_threshold = 0.0125 , 0.025 , 0.05 , 0.1
 
    output_P = TRUE
    output_F = TRUE
@@ -93,30 +93,7 @@ AdvDiffHierarchyIntegrator {
    max_iterations = 25
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-8
-
-   FACOps {
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
-      coarse_solver_choice = "block_jacobi"
-      coarse_solver_tolerance = 1.0e-6
-      coarse_solver_max_iterations = 1
-      prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "LINEAR_REFINE"
-   }
-
-   FACPreconditioners {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 1
-   }
+   using_FAC = FALSE
 }
 
 HierarchyProjector {

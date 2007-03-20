@@ -2,7 +2,7 @@
 #define included_IBStandardForceSpec
 
 // Filename: IBStandardForceSpec.h
-// Last modified: <18.Jan.2007 16:43:01 boyce@bigboy.nyconnect.com>
+// Last modified: <19.Mar.2007 21:23:49 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -50,6 +50,7 @@ public:
      */
     IBStandardForceSpec(
         const std::vector<int>& dst_idxs=vector<int>(),
+        const std::vector<int>& force_fcn_idxs=vector<int>(),
         const std::vector<double>& stiffnesses=vector<double>(),
         const std::vector<double>& rest_lengths=vector<double>(),
         const std::vector<double>& X_target=vector<double>(),
@@ -76,6 +77,18 @@ public:
      * for each spring attached to the source node.
      */
     std::vector<int>& getDestinationNodeIndices();
+
+    /*!
+     * @return A const reference to the force function index of each
+     * spring attached to the source node.
+     */
+    const std::vector<int>& getForceFunctionIndices() const;
+
+    /*!
+     * @return A non-const reference to the force function index of
+     * each spring attached to the source node.
+     */
+    std::vector<int>& getForceFunctionIndices();
 
     /*!
      * @return A const reference to the stiffnesses of each spring
@@ -180,7 +193,7 @@ private:
      * Data required to define the spring forces.
      */
     int d_num_links;
-    std::vector<int> d_dst_idxs;
+    std::vector<int> d_dst_idxs, d_force_fcn_idxs;
     std::vector<double> d_stiffnesses, d_rest_lengths;
 
     /*

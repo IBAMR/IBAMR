@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <19.Mar.2007 19:31:29 griffith@box221.cims.nyu.edu>
+// Last modified: <19.Mar.2007 21:10:56 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStandardForceGen.h"
@@ -53,7 +53,8 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data_1;
 
 IBStandardForceGen::IBStandardForceGen(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
-    : d_L_mats(),
+    : d_edge_force_fcn_map(),
+      d_L_mats(),
       d_petsc_src_ids(),
       d_petsc_dst_ids(),
       d_stiffnesses(),
@@ -61,10 +62,10 @@ IBStandardForceGen::IBStandardForceGen(
       d_level_initialized()
 {
     // Initialize object with data read from the input database.
-    if (!input_db.isNull())
-    {
-        // intentionally blank
-    }
+    getFromInput(input_db);
+
+    // Setup the default force generation functions.
+    registerEdgeForceFunction(0, &IBAMR::default_linear_spring_force);
 
     // Setup Timers.
     static bool timers_need_init = true;
@@ -91,6 +92,15 @@ IBStandardForceGen::~IBStandardForceGen()
     }
     return;
 }// ~IBStandardForceGen
+
+void
+IBStandardForceGen::registerEdgeForceFunction(
+    const int force_fcn_index,
+    void (*fcn)(double F[NDIM], const double D[NDIM], const double& stf, const double& rst))
+{
+    d_edge_force_fcn_map[force_fcn_index] = fcn;
+    return;
+}// registerEdgeForceFunction
 
 void
 IBStandardForceGen::initializeLevelData(
@@ -318,106 +328,6 @@ IBStandardForceGen::computeLagrangianForce(
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-namespace
-{
-
-inline double
-norm(
-    const double* const D)
-{
-    double r_sq = 0.0;
-    for (int d = 0; d < NDIM; ++d)
-    {
-        r_sq += D[d]*D[d];
-    }
-    return sqrt(r_sq);
-}// norm
-
-inline void
-computeLinearSpringForce1(
-    double* const F,
-    const double* const D,
-    const double& stf,
-    const double& rst)
-{
-    const double r = norm(D);
-    if (r > numeric_limits<double>::epsilon())
-    {
-        const double stf_scal = stf*(1.0-rst/r);
-        for (int d = 0; d < NDIM; ++d)
-        {
-            F[d] = stf_scal*D[d];
-        }
-    }
-    return;
-}// computeLinearSpringForce1
-
-inline void
-computeLinearSpringForce2(
-    double* const F,
-    const double* const D,
-    const double& stf,
-    const double& rst)
-{
-    const double r = norm(D);
-    if (rst > numeric_limits<double>::epsilon() &&
-        r   > numeric_limits<double>::epsilon())
-    {
-        const double ratio = r/rst - 1.0;
-        const double T = stf*ratio;
-        for (int d = 0; d < NDIM; ++d)
-        {
-            F[d] = T*D[d]/r;
-        }
-    }
-    return;
-}// computeLinearSpringForce2
-
-inline void
-computeQuadraticSpringForce1(
-    double* const F,
-    const double* const D,
-    const double& stf,
-    const double& rst)
-{
-    const double r = norm(D);
-    if (rst > numeric_limits<double>::epsilon() &&
-        r   > numeric_limits<double>::epsilon())
-    {
-        const double ratio = r/rst - 1.0;
-        const double T = (r > rst ? 1.0 : -1.0)*stf*ratio*ratio;
-        for (int d = 0; d < NDIM; ++d)
-        {
-            F[d] = T*D[d]/r;
-        }
-    }
-    return;
-}// computeQuadraticSpringForce1
-
-inline void
-computeQuadraticSpringForce2(
-    double* const F,
-    const double* const D,
-    const double& stf,
-    const double& rst)
-{
-    const double r = norm(D);
-    if (r > rst &&
-        rst > numeric_limits<double>::epsilon() &&
-        r   > numeric_limits<double>::epsilon())
-    {
-        const double ratio = r/rst - 1.0;
-        const double T = stf*ratio*ratio;
-        for (int d = 0; d < NDIM; ++d)
-        {
-            F[d] = T*D[d]/r;
-        }
-    }
-    return;
-}// computeQuadraticSpringForce2
-
-}
-
 void
 IBStandardForceGen::computeElasticForce(
     SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
@@ -467,7 +377,7 @@ IBStandardForceGen::computeElasticForce(
         const double* const D = &D_arr[k*NDIM];
         const double& stf = stiffnesses[k];
         const double& rst = rest_lengths[k];
-        computeLinearSpringForce1(F_src,D,stf,rst);
+        d_edge_force_fcn_map[0](F_src,D,stf,rst);
 
         // The force acting on the node at the "destination" end of
         // the edge is the negation of the force acting on the
@@ -603,6 +513,17 @@ IBStandardForceGen::computeTargetForce(
     }
     return;
 }// computeTargetForce
+
+void
+IBStandardForceGen::getFromInput(
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(!db.isNull());
+#endif
+    // intentionally blank
+    return;
+}// getFromInput
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -348,7 +348,7 @@ int main(int argc, char* argv[])
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
         navier_stokes_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
-        tbox::Pointer<IBLagrangianForceStrategy> force_generator =
+        tbox::Pointer<IBStandardForceGen> force_generator =
             new IBStandardForceGen(
                 input_db->getDatabase("IBStandardForceGen"));
 

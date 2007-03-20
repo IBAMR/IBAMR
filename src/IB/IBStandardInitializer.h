@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <23.Jan.2007 02:55:30 boyce@bigboy.nyconnect.com>
+// Last modified: <19.Mar.2007 21:24:53 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -293,12 +293,16 @@ private:
     std::vector<std::vector<bool> > d_enable_edges;
     std::vector<std::vector<std::multimap<int,Edge> > > d_edge_map;
     std::vector<std::vector<std::map<Edge,double,EdgeComp> > > d_edge_stiffness, d_edge_rest_length;
+    std::vector<std::vector<std::map<Edge,int,EdgeComp> > > d_edge_force_fcn_idx;
 
     std::vector<std::vector<bool> > d_use_uniform_edge_stiffness;
     std::vector<std::vector<double> > d_uniform_edge_stiffness;
 
     std::vector<std::vector<bool> > d_use_uniform_edge_rest_length;
     std::vector<std::vector<double> > d_uniform_edge_rest_length;
+
+    std::vector<std::vector<bool> > d_use_uniform_edge_force_fcn_idx;
+    std::vector<std::vector<int> > d_uniform_edge_force_fcn_idx;
 
     /*
      * Target point information.

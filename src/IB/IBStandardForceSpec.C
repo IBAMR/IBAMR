@@ -1,5 +1,5 @@
 // Filename: IBStandardForceSpec.C
-// Last modified: <31.Jan.2007 14:47:22 boyce@bigboy.nyconnect.com>
+// Last modified: <19.Mar.2007 21:17:13 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStandardForceSpec.h"
@@ -67,12 +67,14 @@ IBStandardForceSpec::getIsRegisteredWithStashableManager()
 
 IBStandardForceSpec::IBStandardForceSpec(
     const std::vector<int>& dst_idxs,
+    const std::vector<int>& force_fcn_idxs,
     const std::vector<double>& stiffnesses,
     const std::vector<double>& rest_lengths,
     const std::vector<double>& X_target,
     const double kappa_target)
     : d_num_links(static_cast<int>(dst_idxs.size())),
       d_dst_idxs(dst_idxs),
+      d_force_fcn_idxs(force_fcn_idxs),
       d_stiffnesses(stiffnesses),
       d_rest_lengths(rest_lengths),
       d_X_target(X_target.empty() || SAMRAI::tbox::Utilities::deq(kappa_target,0.0)
@@ -81,6 +83,7 @@ IBStandardForceSpec::IBStandardForceSpec(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_num_links == static_cast<int>(d_dst_idxs.size()));
+    assert(d_num_links == static_cast<int>(d_force_fcn_idxs.size()));
     assert(d_num_links == static_cast<int>(d_stiffnesses.size()));
     assert(d_num_links == static_cast<int>(d_rest_lengths.size()));
     assert(d_X_target.size() == NDIM);
@@ -118,6 +121,18 @@ IBStandardForceSpec::getDestinationNodeIndices()
 {
     return d_dst_idxs;
 }// getDestinationNodeIndices
+
+const std::vector<int>&
+IBStandardForceSpec::getForceFunctionIndices() const
+{
+    return d_force_fcn_idxs;
+}// getForceFunctionIndices
+
+vector<int>&
+IBStandardForceSpec::getForceFunctionIndices()
+{
+    return d_force_fcn_idxs;
+}// getForceFunctionIndices
 
 const std::vector<double>&
 IBStandardForceSpec::getStiffnesses() const
@@ -164,8 +179,8 @@ IBStandardForceSpec::getStashableID() const
 size_t
 IBStandardForceSpec::getDataStreamSize() const
 {
-    return ((1+d_num_links)*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (2*d_num_links)*SAMRAI::tbox::AbstractStream::sizeofDouble() +
+    return ((1+2*d_num_links)*SAMRAI::tbox::AbstractStream::sizeofInt() +
+            (  2*d_num_links)*SAMRAI::tbox::AbstractStream::sizeofDouble() +
             (NDIM+1)*SAMRAI::tbox::AbstractStream::sizeofDouble());
 }// getDataStreamSize
 
@@ -175,6 +190,7 @@ IBStandardForceSpec::packStream(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_num_links == static_cast<int>(d_dst_idxs.size()));
+    assert(d_num_links == static_cast<int>(d_force_fcn_idxs.size()));
     assert(d_num_links == static_cast<int>(d_stiffnesses.size()));
     assert(d_num_links == static_cast<int>(d_rest_lengths.size()));
     assert(d_X_target.size() == NDIM);
@@ -182,6 +198,7 @@ IBStandardForceSpec::packStream(
 #endif
     stream.pack(&d_num_links,1);
     stream.pack(&d_dst_idxs[0],d_num_links);
+    stream.pack(&d_force_fcn_idxs[0],d_num_links);
     stream.pack(&d_stiffnesses[0],d_num_links);
     stream.pack(&d_rest_lengths[0],d_num_links);
     stream.pack(&d_X_target[0],NDIM);

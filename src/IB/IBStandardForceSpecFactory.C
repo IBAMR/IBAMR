@@ -1,5 +1,5 @@
 // Filename: IBStandardForceSpecFactory.C
-// Last modified: <18.Jan.2007 17:08:49 boyce@bigboy.nyconnect.com>
+// Last modified: <19.Mar.2007 21:17:51 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStandardForceSpecFactory.h"
@@ -66,16 +66,17 @@ IBStandardForceSpecFactory::unpackStream(
 {
     int num_links;
     stream.unpack(&num_links,1);
-    vector<int> dst_idxs(num_links);
+    vector<int> dst_idxs(num_links), force_fcn_idxs(num_links);
     vector<double> stiffnesses(num_links), rest_lengths(num_links);
     stream.unpack(&dst_idxs[0],num_links);
+    stream.unpack(&force_fcn_idxs[0],num_links);
     stream.unpack(&stiffnesses[0],num_links);
     stream.unpack(&rest_lengths[0],num_links);
     vector<double> X_target(NDIM);
     double kappa_target;
     stream.unpack(&X_target[0],NDIM);
     stream.unpack(&kappa_target,1);
-    return new IBStandardForceSpec(dst_idxs,stiffnesses,rest_lengths,X_target,kappa_target);
+    return new IBStandardForceSpec(dst_idxs,force_fcn_idxs,stiffnesses,rest_lengths,X_target,kappa_target);
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
