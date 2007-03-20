@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <27.Feb.2007 02:59:37 boyce@bigboy.nyconnect.com>
+// Last modified: <19.Mar.2007 19:31:29 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStandardForceGen.h"
@@ -54,7 +54,8 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data_1;
 IBStandardForceGen::IBStandardForceGen(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_L_mats(),
-      d_local_src_ids(),
+      d_petsc_src_ids(),
+      d_petsc_dst_ids(),
       d_stiffnesses(),
       d_rest_lengths(),
       d_level_initialized()
@@ -116,16 +117,19 @@ IBStandardForceGen::initializeLevelData(
         level_num+1, d_level_initialized.size());
 
     d_L_mats.resize(new_size);
-    d_local_src_ids.resize(new_size);
+    d_petsc_src_ids.resize(new_size);
+    d_petsc_dst_ids.resize(new_size);
     d_stiffnesses.resize(new_size);
     d_rest_lengths.resize(new_size);
     d_level_initialized.resize(new_size, false);
 
-    std::vector<int>& local_src_ids = d_local_src_ids[level_num];
+    std::vector<int>& petsc_src_ids = d_petsc_src_ids[level_num];
+    std::vector<int>& petsc_dst_ids = d_petsc_dst_ids[level_num];
     std::vector<double>& stiffnesses = d_stiffnesses[level_num];
     std::vector<double>& rest_lengths = d_rest_lengths[level_num];
 
-    local_src_ids.clear();
+    petsc_src_ids.clear();
+    petsc_dst_ids.clear();
     stiffnesses.clear();
     rest_lengths.clear();
 
@@ -180,9 +184,11 @@ IBStandardForceGen::initializeLevelData(
                                            dst_idxs.begin(), dst_idxs.end());
                             num_dst_ids.push_back(static_cast<int>(dst_idxs.size()));
 
-                            local_src_ids.insert(local_src_ids.end(),
-                                                 dst_idxs.size(),
-                                                 node_idx->getLocalPETScIndex());
+                            petsc_src_ids.insert(petsc_src_ids.end(),
+                                                 dst_idxs.size(), lag_idx);
+                            petsc_dst_ids.insert(petsc_dst_ids.end(),
+                                                 dst_idxs.begin(), dst_idxs.end());
+
                             stiffnesses.insert(stiffnesses.end(),
                                                stiff.begin(), stiff.end());
                             rest_lengths.insert(rest_lengths.end(),
@@ -198,6 +204,9 @@ IBStandardForceGen::initializeLevelData(
     // indices corresponding to the present data distribution.
     lag_manager->mapLagrangianToPETSc(src_ids, level_num);
     lag_manager->mapLagrangianToPETSc(dst_ids, level_num);
+
+    lag_manager->mapLagrangianToPETSc(petsc_src_ids, level_num);
+    lag_manager->mapLagrangianToPETSc(petsc_dst_ids, level_num);
 
     // Determine the global node offset and the number of local nodes.
     const int global_node_offset = lag_manager->getGlobalNodeOffset(level_num);
@@ -337,7 +346,7 @@ computeLinearSpringForce1(
         const double stf_scal = stf*(1.0-rst/r);
         for (int d = 0; d < NDIM; ++d)
         {
-            F[d] += stf_scal*D[d];
+            F[d] = stf_scal*D[d];
         }
     }
     return;
@@ -358,7 +367,7 @@ computeLinearSpringForce2(
         const double T = stf*ratio;
         for (int d = 0; d < NDIM; ++d)
         {
-            F[d] += T*D[d]/r;
+            F[d] = T*D[d]/r;
         }
     }
     return;
@@ -379,7 +388,7 @@ computeQuadraticSpringForce1(
         const double T = (r > rst ? 1.0 : -1.0)*stf*ratio*ratio;
         for (int d = 0; d < NDIM; ++d)
         {
-            F[d] += T*D[d]/r;
+            F[d] = T*D[d]/r;
         }
     }
     return;
@@ -401,7 +410,7 @@ computeQuadraticSpringForce2(
         const double T = stf*ratio*ratio;
         for (int d = 0; d < NDIM; ++d)
         {
-            F[d] += T*D[d]/r;
+            F[d] = T*D[d]/r;
         }
     }
     return;
@@ -436,27 +445,48 @@ IBStandardForceGen::computeElasticForce(
 
     // Compute the spring forces acting on each node.
     Vec F_vec = F_data->getGlobalVec();
-    double* F_arr, * D_arr;
-    ierr = VecGetArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
+
+    double* D_arr;
     ierr = VecGetArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
 
-    const std::vector<int>& local_src_ids = d_local_src_ids[level_number];
+    const std::vector<int>& petsc_src_ids = d_petsc_src_ids[level_number];
+    const std::vector<int>& petsc_dst_ids = d_petsc_dst_ids[level_number];
     const std::vector<double>& stiffnesses = d_stiffnesses[level_number];
     const std::vector<double>& rest_lengths = d_rest_lengths[level_number];
-    for (int k = 0; k < static_cast<int>(local_src_ids.size()); ++k)
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(petsc_src_ids.size() == petsc_dst_ids.size());
+#endif
+
+    std::vector<double> F_src_arr(NDIM*petsc_src_ids.size());
+    std::vector<double> F_dst_arr(NDIM*petsc_dst_ids.size());
+
+    for (int k = 0; k < static_cast<int>(petsc_src_ids.size()); ++k)
     {
-        const int& f_idx = local_src_ids[k];
-        double* const F = &F_arr[f_idx*NDIM];
+        double* const F_src = &F_src_arr[k*NDIM];
         const double* const D = &D_arr[k*NDIM];
         const double& stf = stiffnesses[k];
         const double& rst = rest_lengths[k];
+        computeLinearSpringForce1(F_src,D,stf,rst);
 
-        computeLinearSpringForce1(F,D,stf,rst);
+        // The force acting on the node at the "destination" end of
+        // the edge is the negation of the force acting on the
+        // node at the "source" end of the edge.
+        double* const F_dst = &F_dst_arr[k*NDIM];
+        for (int d = 0; d < NDIM; ++d)
+        {
+            F_dst[d] = -F_src[d];
+        }
     }
 
-    ierr = VecRestoreArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecRestoreArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecDestroy(D_vec);               PETSC_SAMRAI_ERROR(ierr);
+
+    ierr = VecSetValuesBlocked(F_vec, petsc_src_ids.size(), &petsc_src_ids[0], &F_src_arr[0], ADD_VALUES);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecSetValuesBlocked(F_vec, petsc_dst_ids.size(), &petsc_dst_ids[0], &F_dst_arr[0], ADD_VALUES);  PETSC_SAMRAI_ERROR(ierr);
+
+    ierr = VecAssemblyBegin(F_vec);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecAssemblyEnd(  F_vec);  PETSC_SAMRAI_ERROR(ierr);
 
     return;
 }// computeElasticForce

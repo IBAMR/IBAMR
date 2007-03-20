@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <01.Feb.2007 21:00:10 boyce@bigboy.nyconnect.com>
+// Last modified: <19.Mar.2007 20:07:11 griffith@box221.cims.nyu.edu>
 
 #include "LagSiloDataWriter.h"
 
@@ -365,11 +365,13 @@ void buildLocalUcdMesh(
          it != edge_map.end(); ++it)
     {
         std::pair<int,int> e = (*it).second;
+#ifdef DEBUG_CHECK_ASSERTIONS
+        assert(vertices.count(e.first ) == 1);
+        assert(vertices.count(e.second) == 1);
+#endif
         if (e.first > e.second)
         {
-            const int tmp = e.first;
-            e.first = e.second;
-            e.second = tmp;
+            std::swap<int>(e.first, e.second);
         }
         local_edge_set.insert(e);
     }
@@ -922,7 +924,8 @@ LagSiloDataWriter::registerUnstructuredMesh(
     for (std::multimap<int,std::pair<int,int> >::const_iterator it = edge_map.begin();
          it != edge_map.end(); it = edge_map.upper_bound((*it).first))
     {
-        vertices.insert((*it).first);
+        vertices.insert((*it).second.first );
+        vertices.insert((*it).second.second);
     }
 
     // Record the layout of the unstructured mesh.

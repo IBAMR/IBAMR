@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <02.Feb.2007 15:48:57 griffith@box221.cims.nyu.edu>
+// Last modified: <19.Mar.2007 20:09:08 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -140,11 +140,9 @@ IBStandardInitializer::registerLagSiloDataWriter(
     assert(!silo_writer.isNull());
 #endif
 
-    // WARNING: This code is broken if the global node offset is
+    // WARNING: This code does not work if the global node offset is
     // nonzero on any of the levels of the locally refined Cartesian
     // grid.
-    //
-    // TODO: Fix thix.
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         if (d_global_index_offset[ln] != 0)
@@ -153,11 +151,9 @@ IBStandardInitializer::registerLagSiloDataWriter(
         }
     }
 
-    // For now, we just register the data on MPI process 0.  This will
-    // fail if the structure is too large to be stored in the memory
-    // available to a single MPI process.
-    //
-    // TODO: Fix thix.
+    // WARNING: For now, we just register the visualization data on
+    // MPI process 0.  This will fail if the structure is too large to
+    // be stored in the memory available to a single MPI process.
     if (SAMRAI::tbox::MPI::getRank() == 0)
     {
         for (int ln = 0; ln < d_max_levels; ++ln)
@@ -638,9 +634,7 @@ IBStandardInitializer::readEdgeFiles()
                     // Always place the lower index first.
                     if (e.first > e.second)
                     {
-                        const int tmp = e.first;
-                        e.first = e.second;
-                        e.second = tmp;
+                        std::swap<int>(e.first, e.second);
                     }
 
                     // Check to see if the edge has already been
@@ -673,30 +667,14 @@ IBStandardInitializer::readEdgeFiles()
                         }
                     }
 
-                    if (!duplicate_edge)
-                    {
-                        for (std::multimap<int,Edge>::const_iterator it =
-                                 d_edge_map[ln][j].lower_bound(e.second);
-                             it != d_edge_map[ln][j].upper_bound(e.second); ++it)
-                        {
-                            const Edge& other_e = (*it).second;
-                            if (e.first  == other_e.first &&
-                                e.second == other_e.second)
-                            {
-                                TBOX_ERROR(d_object_name << ":\n  Edge map is inconsistent.  Please contact the IBAMR developers." << endl);
-                            }
-                        }
-                    }
-
-                    // Initialize the edge map entries corresponding
-                    // to the present edge.
+                    // Initialize the map data corresponding to the
+                    // present edge.
                     //
-                    // Note that the edge is associated with both the
-                    // first and the second vertex in the edge map.
+                    // Note that in the edge map, each edge is
+                    // associated with only the first vertex.
                     if (!duplicate_edge)
                     {
-                        d_edge_map[ln][j].insert(std::make_pair(e.first ,e));
-                        d_edge_map[ln][j].insert(std::make_pair(e.second,e));
+                        d_edge_map[ln][j].insert(std::make_pair(e.first,e));
                         d_edge_stiffness[ln][j][e] = kappa;
                         d_edge_rest_length[ln][j][e] = length;
                     }
@@ -1312,7 +1290,7 @@ IBStandardInitializer::getFromInput(
     }
 
     return;
-}// getFromDatabase
+}// getFromInput
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

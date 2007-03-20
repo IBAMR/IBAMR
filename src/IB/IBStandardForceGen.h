@@ -2,7 +2,7 @@
 #define included_IBStandardForceGen
 
 // Filename: IBStandardForceGen.h
-// Last modified: <18.Jan.2007 17:36:24 boyce@bigboy.nyconnect.com>
+// Last modified: <19.Mar.2007 18:43:15 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -121,7 +121,7 @@ private:
      * hierarchy.
      */
     std::vector<Mat> d_L_mats;
-    std::vector<std::vector<int> > d_local_src_ids;
+    std::vector<std::vector<int> > d_petsc_src_ids, d_petsc_dst_ids;
     std::vector<std::vector<double> > d_stiffnesses, d_rest_lengths;
     std::vector<bool> d_level_initialized;
 };
