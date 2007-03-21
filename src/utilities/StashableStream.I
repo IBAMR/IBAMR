@@ -191,9 +191,6 @@ StashableStream::pack(
     const dcomplex* data,
     const int n)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(sizeof(dcomplex) == 2*sizeof(double));
-#endif
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofDoubleComplex(n);
     __pack(data, bytes);
     return;
@@ -205,9 +202,6 @@ StashableStream::unpack(
     dcomplex* data,
     const int n)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(sizeof(dcomplex) == 2*sizeof(double));
-#endif
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofDoubleComplex(n);
     __unpack(data, bytes);
     return;

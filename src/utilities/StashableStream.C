@@ -16,9 +16,6 @@
 #define included_SAMRAI_config
 #endif
 
-// C++ STDLIB INCLUDES
-#include <cassert>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
