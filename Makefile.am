@@ -4,7 +4,7 @@ SUBDIRS = stools doc src
 ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST  = autogen.sh
-EXTRA_DIST += bin/includes
+EXTRA_DIST += bin/includes.pl
 EXTRA_DIST += bin/scale_edge_rest_length.pl bin/scale_edge_stiffness.pl
 EXTRA_DIST += bin/set_edge_rest_length.pl bin/set_edge_stiffness.pl
 EXTRA_DIST += doc/Doxyfile
@@ -65,10 +65,10 @@ all-local:
 ## Note that these are for developer use only.
 copy_headers:
 	cd stools && $(MAKE) relink_headers
-	cd $(top_srcdir) && bin/includes
+	cd $(top_srcdir) && bin/includes.pl
 relink_headers:
 	cd stools && $(MAKE) relink_headers
-	cd $(top_srcdir) && bin/includes --link
+	cd $(top_srcdir) && bin/includes.pl --link
 refresh_tags:
 	cd stools && $(MAKE) refresh_tags
 	cd $(top_srcdir) && find . -name "*.[ChIf]" -print | etags -
