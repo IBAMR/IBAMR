@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <21.Mar.2007 01:01:46 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2007 18:19:05 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -246,7 +246,7 @@ private:
      * Read input values, indicated above, from given database.
      *
      * When assertion checking is active, the database pointer must be
-     * non-null.  Otherwise, all your base are belong to us.
+     * non-null.
      */
     void getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
