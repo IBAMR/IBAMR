@@ -17,6 +17,7 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 GodunovAdvector {
    limiter_type = FOURTH_ORDER
+   use_full_ctu = TRUE
 }
 
 AdvDiffHierarchyIntegrator {
@@ -34,6 +35,7 @@ AdvDiffHierarchyIntegrator {
       compute_init_velocity  = TRUE
       compute_half_velocity  = TRUE
       compute_final_velocity = FALSE
+      extrap_type = "CONSTANT"
 
       Refinement_data {
          refine_criteria = "QVAL_GRADIENT"
@@ -54,6 +56,7 @@ AdvDiffHierarchyIntegrator {
    max_iterations = 50
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-10
+   using_FAC = TRUE
 
    FACOps {
       fac_max_cycles = 1
@@ -69,6 +72,7 @@ AdvDiffHierarchyIntegrator {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
+      cf_discretization = "Ewing"
    }
 
    FACPreconditioners {

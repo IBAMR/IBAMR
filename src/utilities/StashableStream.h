@@ -3,7 +3,7 @@
 
 // Filename: StashableStream.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Nov.2006 00:21:41 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Mar.2007 22:17:05 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -14,7 +14,6 @@
 
 // SAMRAI INCLUDES
 #include <tbox/AbstractStream.h>
-#include <tbox/XDRStream.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -23,14 +22,12 @@ namespace IBAMR
 /*!
  * Class StashableStream implements a message buffer of fixed size
  * used by the communication routines.  It implements the
- * SAMRAI::tbox::AbstractStream interface.  Class StashableStream
- * defines two mechanisms can be used to pack or unpack a message
- * stream: (1) XDR and (2) a straight-forward byte copy.  XDR has the
- * advantage of machine independence for heterogenous networks but is
- * much slower than a simple copy.
+ * SAMRAI::tbox::AbstractStream interface.  Class StashableStream can
+ * packs and unpacks message streams via straight-forward byte
+ * copying.
  *
- * \todo XDR support is broken and should be either fixed or removed
- * in the near future.
+ * \note This class will not work on heterogeneous machines, which
+ * require a machine-independent mechanism such as XDR.
  */
 class StashableStream
     : public SAMRAI::tbox::AbstractStream
@@ -41,61 +38,25 @@ public:
     /*!
      * Create a message stream of the specified size in bytes and the
      * stream mode (one of StashableStream::Read or
-     * StashableStream::Write).  The choice of XDR translation is
-     * based on the current value of the class-wide useXDR() flag.
+     * StashableStream::Write).
      */
     StashableStream(
-        const int bytes,
-        const StreamMode mode);
-
-    /*!
-     * Create a message stream of the specified size in bytes and the
-     * stream mode (either StashableStream::Read or
-     * StashableStream::Write).  The choice of XDR translation is
-     * based on the argument to the constructor, which is independent
-     * of the class-wide XDR flag.
-     */
-    StashableStream(
-        const int bytes,
-        const StreamMode mode,
-        const bool use_xdr);
-
-    /*!
-     * Create a message stream with the specified buffer and stream
-     * mode (one of StashableStream::Read or StashableStream::Write).
-     * The choice of XDR translation is based on the current value of
-     * the class-wide useXDR() flag.
-     */
-    StashableStream(
-        const void* const buffer,
         const int bytes,
         const StreamMode mode);
 
     /*!
      * Create a message stream with the specified buffer and stream
-     * mode (either StashableStream::Read or StashableStream::Write).
-     * The choice of XDR translation is based on the argument to the
-     * constructor, which is independent of the class-wide XDR flag.
+     * mode (one of StashableStream::Read or StashableStream::Write).
      */
     StashableStream(
         const void* const buffer,
         const int bytes,
-        const StreamMode mode,
-        const bool use_xdr);
+        const StreamMode mode);
 
     /*!
      * Virtual destructor for a message stream.
      */
     virtual ~StashableStream();
-
-    /*!
-     * Whether to use XDR translation when communicating via message
-     * streams.  XDR translation is slower but provides portability
-     * across heterogenous machine networks.  By default, XDR
-     * translation is turned on.
-     */
-    static void useXDR(
-        const bool flag);
 
     /*!
      * Return a pointer to the start of the message buffer.
@@ -255,19 +216,47 @@ private:
     StashableStream& operator=(
         const StashableStream& that);
 
-    void* getPointerAndAdvanceCursor(const int bytes);
+    /*!
+     * \brief Return a pointer to buffer space and advance internal
+     * pointers to reflect the allocated buffers space.
+     */
+    void* getPointerAndAdvanceCursor(
+        const int bytes);
 
-    int d_buffer_size;
+    /*!
+     * \brief Pack the specified data to the buffer.
+     */
+    template <typename T> void __pack(
+        const T* const m_data,
+        unsigned m_bytes);
+
+    /*!
+     * \brief Unpack the specified data to the buffer.
+     */
+    template <typename T> void __unpack(
+        T* const m_data,
+        unsigned m_bytes);
+
+    /*
+     * The size of the buffer.
+     */
+    const int d_buffer_size;
+
+    /*
+     * The current size of the buffer, i.e., the number of bytes in
+     * the buffer which are currently in use.
+     */
     int d_current_size;
-    int d_buffer_index;
-    int d_use_xdr;
-    char* d_buffer;
-#ifdef HAVE_XDR
-    XDR d_xdr_stream;
-    XDRStream d_xdr_manager;
-#endif
 
-    static bool s_use_xdr_translation;
+    /*
+     * The index of the first free element in the buffer.
+     */
+    int d_buffer_index;
+
+    /*
+     * The buffer.
+     */
+    char* const d_buffer;
 };
 }// namespace IBAMR
 

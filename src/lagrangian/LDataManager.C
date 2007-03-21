@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <09.Feb.2007 20:35:33 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Mar.2007 21:37:39 griffith@box221.cims.nyu.edu>
 
 #include "LDataManager.h"
 
@@ -66,7 +66,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_map_lagrangian_to_petsc;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_map_petsc_to_lagrangian;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_update_workload_and_node_count;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_update_workload_data;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_restore_location_pointers;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_invalidate_location_pointers;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
@@ -86,7 +86,6 @@ static const int LDATA_MANAGER_VERSION = 1;
 }
 
 const string LDataManager::COORDS_DATA_NAME   = "X";
-const string LDataManager::JACOBIAN_DATA_NAME = "J";
 map<string,LDataManager*> LDataManager::s_data_manager_instances;
 bool LDataManager::s_registered_callback;
 unsigned char LDataManager::s_shutdown_priority = 200;
@@ -223,6 +222,11 @@ LDataManager::registerVisItDataWriter(
     assert(!visit_writer.isNull());
 #endif
     d_visit_writer = visit_writer;
+    if (d_output_workload)
+    {
+        d_visit_writer->registerPlotQuantity(
+            "workload estimate", "SCALAR", d_workload_idx);
+    }
     if (d_output_node_count)
     {
         d_visit_writer->registerPlotQuantity(
@@ -1118,11 +1122,11 @@ struct BeginLNodeLevelDataNonlocalFill
 }
 
 void
-LDataManager::updateWorkloadAndNodeCount(
+LDataManager::updateWorkloadData(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    t_update_workload_and_node_count->start();
+    t_update_workload_data->start();
 
     const int coarsest_ln =
         (coarsest_ln_in == -1)
@@ -1140,9 +1144,7 @@ LDataManager::updateWorkloadAndNodeCount(
            finest_ln   <= d_finest_ln);
 #endif
 
-    // XXXX: This code is suspect.
-
-    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
@@ -1167,21 +1169,16 @@ LDataManager::updateWorkloadAndNodeCount(
                 if (patch_box.contains(i))
                 {
                     const LNodeIndexSet& node_set = *it;
-                    (*node_count_data)(i) =
-                        static_cast<double>(node_set.size());
+                    (*node_count_data)(i) = static_cast<double>(node_set.size());
                     (*workload_data)(i) += d_beta_work*(*node_count_data)(i);
                 }
             }
         }
-        if (ln > coarsest_ln)
-        {
-            d_node_count_coarsen_scheds[ln]->coarsenData();
-        }
     }
 
-    t_update_workload_and_node_count->stop();
+    t_update_workload_data->stop();
     return;
-}// updateWorkloadAndNodeCount
+}// updateWorkloadData
 
 namespace
 {
@@ -1691,8 +1688,8 @@ LDataManager::applyGradientDetector(
 
     if (initial_time)
     {
-        // Tag cells for refinement based on the initial
-        // configuration.
+        // Tag cells for refinement based on the initial configuration
+        // of the Lagrangian structure.
         d_lag_init->tagCellsForInitialRefinement(
             hierarchy, level_number, error_data_time, tag_index);
     }
@@ -1712,31 +1709,12 @@ LDataManager::applyGradientDetector(
             node_count_data->fillAll(0.0);
         }
 
-        // Determine the node count information on the finer level and
-        // coarsen that data onto the level where we wish to tag cells
-        // for refinement.
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(finer_level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = finer_level->getPatch(p());
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+        // Compute the workload and node count data on the next finer
+        // level of the patch hierarchy.
+        updateWorkloadData(level_number+1);
 
-            const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
-                patch->getPatchData(d_lag_node_index_current_idx);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > node_count_data =
-                patch->getPatchData(d_node_count_idx);
-
-            node_count_data->fillAll(0.0);
-
-            for (LNodeIndexData::Iterator it(*idx_data); it; it++)
-            {
-                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
-                if (patch_box.contains(i))
-                {
-                    const LNodeIndexSet& node_set = *it;
-                    (*node_count_data)(i) += static_cast<double>(node_set.size());
-                }
-            }
-        }
+        // Coarsen the node count data from the next finer level of
+        // the patch hierarchy.
         d_node_count_coarsen_scheds[level_number+1]->coarsenData();
 
         // Tag cells for refinement wherever there exist nodes on the
@@ -1760,6 +1738,11 @@ LDataManager::applyGradientDetector(
                 }
             }
         }
+
+        // Compute the workload and node count data on the present
+        // level of the patch hierarchy (since it was invalidated
+        // above).
+        updateWorkloadData(level_number);
     }
 
     t_apply_gradient_detector->stop();
@@ -1876,6 +1859,7 @@ LDataManager::LDataManager(
       d_beta_work(1.0),
       d_workload_var(NULL),
       d_workload_idx(-1),
+      d_output_workload(false),
       d_node_count_var(NULL),
       d_node_count_idx(-1),
       d_output_node_count(false),
@@ -2013,8 +1997,8 @@ LDataManager::LDataManager(
             getTimer("IBAMR::LDataManager::beginDataRedistribution()");
         t_end_data_redistribution = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::LDataManager::endDataRedistribution()");
-        t_update_workload_and_node_count = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::updateWorkloadAndNodeCount()");
+        t_update_workload_data = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::LDataManager::updateWorkloadData()");
         t_restore_location_pointers = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::LDataManager::restoreLocationPointers()");
         t_invalidate_location_pointers = SAMRAI::tbox::TimerManager::getManager()->

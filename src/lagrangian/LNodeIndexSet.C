@@ -1,6 +1,6 @@
 // Filename: LNodeIndexSet.C
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <25.Oct.2006 18:27:52 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Mar.2007 22:01:24 griffith@box221.cims.nyu.edu>
 
 #include "LNodeIndexSet.h"
 
@@ -137,8 +137,7 @@ LNodeIndexSet::putToDatabase(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database)
 {
     const size_t data_sz = getDataStreamSize();
-    static const bool use_xdr = false;
-    StashableStream stream(data_sz, StashableStream::Write, use_xdr);
+    StashableStream stream(data_sz, StashableStream::Write);
     packStream(stream);
     database->putInteger("data_sz", data_sz);
     database->putCharArray("data", static_cast<char*>(stream.getBufferStart()), data_sz);
@@ -155,8 +154,7 @@ LNodeIndexSet::getFromDatabase(
     const size_t data_sz = database->getInteger("data_sz");
     vector<char> data(data_sz);
     database->getCharArray("data", &data[0], data_sz);
-    static const bool use_xdr = false;
-    StashableStream stream(&data[0], data_sz, StashableStream::Read, use_xdr);
+    StashableStream stream(&data[0], data_sz, StashableStream::Read);
     unpackStream(stream, d_offset);
     return;
 }// getFromDatabase

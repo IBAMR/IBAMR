@@ -27,11 +27,21 @@ IBHierarchyIntegrator {
    regrid_interval = 32
    dt_max = 1.25e-04/NFINEST
    delta_fcn = "IB_6"
+
+   using_pIB_method = TRUE
+   g = -980.0
 }
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
    base_filenames_4 = "fila_1024"
+   fila_1024
+   {
+      ds = 3.7499624950000001e-03
+      bdry_mass_density = 0.0004
+      uniform_bdry_mass = bdry_mass_density*ds
+      uniform_bdry_mass_stiffness = 5.0e5
+   }
 }
 
 IBStandardForceGen {
@@ -41,15 +51,15 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 6
+   tag_buffer = 4 , 4 , 4 , 8
 
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.1
+   vorticity_threshold = 0.075
 
    output_P = TRUE
-   output_F = TRUE
+   output_F = FALSE
    output_Q = FALSE
 
    output_Omega = TRUE
@@ -61,7 +71,7 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   second_order_pressure_update = TRUE
+   second_order_pressure_update = FALSE
    normalize_pressure = FALSE
 
    num_cycles = 1
@@ -92,7 +102,7 @@ AdvDiffHierarchyIntegrator {
 
    max_iterations = 25
    abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-8
+   rel_residual_tol = 1.0e-6
    using_FAC = FALSE
 }
 
@@ -117,7 +127,7 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "LINEAR_REFINE"
+      cf_discretization = "Ewing"
 
       hypre_solver {
          solver_type = "PFMG"

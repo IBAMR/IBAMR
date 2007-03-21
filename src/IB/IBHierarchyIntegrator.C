@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <17.Mar.2007 19:33:43 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <21.Mar.2007 00:31:35 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -885,12 +885,32 @@ IBHierarchyIntegrator::advanceHierarchy(
                 ierr = VecGetArray(Y_vec, &Y_arr);  PETSC_SAMRAI_ERROR(ierr);
                 ierr = VecGetArray(F_K_vec, &F_K_arr);  PETSC_SAMRAI_ERROR(ierr);
 
+                static double max_displacement = 0.0;
+                double max_config_displacement = 0.0;
                 for (int i = 0; i < n_local; ++i)
                 {
+                    double displacement = 0.0;
                     for (int d = 0; d < NDIM; ++d)
                     {
                         F_K_arr[NDIM*i+d] = K_arr[i]*(Y_arr[NDIM*i+d] - X_arr[NDIM*i+d]);
+                        displacement += pow(Y_arr[NDIM*i+d]-X_arr[NDIM*i+d],2.0);
                     }
+                    displacement = sqrt(displacement);
+                    if (displacement > max_config_displacement)
+                    {
+                        max_config_displacement = displacement;
+                    }
+                }
+                max_config_displacement = SAMRAI::tbox::MPI::maxReduction(max_config_displacement);
+                if (max_config_displacement > max_displacement)
+                {
+                    max_displacement = max_config_displacement;
+                }
+                if (!SAMRAI::tbox::Utilities::deq(max_config_displacement,0.0))
+                {
+                    SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy():" << endl;
+                    SAMRAI::tbox::plog << "  maximum massive boundary point displacement [present configuration] = " << max_config_displacement << endl;
+                    SAMRAI::tbox::plog << "  maximum massive boundary point displacement [entire simulation] = " << max_displacement << endl;
                 }
 
                 ierr = VecRestoreArray(K_vec, &K_arr);  PETSC_SAMRAI_ERROR(ierr);
@@ -1752,7 +1772,7 @@ IBHierarchyIntegrator::rebalanceCoarsestLevel()
     t_rebalance_coarsest_level->start();
 
     // Update the workload for regridding.
-    d_lag_data_manager->updateWorkloadAndNodeCount(
+    d_lag_data_manager->updateWorkloadData(
         0,d_hierarchy->getFinestLevelNumber());
 
     // Before rebalancing, begin Lagrangian data movement.
@@ -1766,7 +1786,7 @@ IBHierarchyIntegrator::rebalanceCoarsestLevel()
     d_lag_data_manager->endDataRedistribution();
 
     // Update the workload post-regridding.
-    d_lag_data_manager->updateWorkloadAndNodeCount(
+    d_lag_data_manager->updateWorkloadData(
         0,d_hierarchy->getFinestLevelNumber());
 
     // Indicate that the force and source strategies need to be
@@ -1784,7 +1804,7 @@ IBHierarchyIntegrator::regridHierarchy()
     t_regrid_hierarchy->start();
 
     // Update the workload pre-regridding.
-    d_lag_data_manager->updateWorkloadAndNodeCount(
+    d_lag_data_manager->updateWorkloadData(
         0,d_hierarchy->getFinestLevelNumber());
 
     // Before regriding, begin Lagrangian data movement.
@@ -1798,7 +1818,7 @@ IBHierarchyIntegrator::regridHierarchy()
     d_lag_data_manager->endDataRedistribution();
 
     // Update the workload post-regridding.
-    d_lag_data_manager->updateWorkloadAndNodeCount(
+    d_lag_data_manager->updateWorkloadData(
         0,d_hierarchy->getFinestLevelNumber());
 
     // Indicate that the force and source strategies need to be
@@ -2390,7 +2410,7 @@ IBHierarchyIntegrator::getFromInput(
             "num_init_cycles", d_num_init_cycles);
 
         d_using_pIB_method = db->getBoolWithDefault(
-            "use_pIB_method", d_using_pIB_method);
+            "using_pIB_method", d_using_pIB_method);
 
         if (d_using_pIB_method)
         {

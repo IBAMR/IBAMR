@@ -10,7 +10,7 @@ MUSCL_LIMITED = 3
 
 // physical parameters
 R = 0.5             // the cylinder radius
-Re = 100.0          // the desired Reynolds number (Re)
+Re = 200.0          // the desired Reynolds number (Re)
 MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 RHO = 1.0
 
@@ -32,8 +32,8 @@ IBHierarchyIntegrator {
 
    enable_logging = TRUE
 
-   regrid_interval = 1
-   dt_max = 0.2*dx/1.6
+   regrid_interval = 32
+   dt_max = 0.125*dx
    delta_fcn = "IB_6"
 }
 
@@ -80,12 +80,12 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 1 , 1 , 1 , 2
+   tag_buffer = 4 , 4 , 4 , 8
 
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.00625 , 0.00625 , 0.0125 , 0.025
+   vorticity_threshold = 0.025
 
    output_P = TRUE
    output_F = FALSE
@@ -100,7 +100,7 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   second_order_pressure_update = TRUE
+   second_order_pressure_update = FALSE
    normalize_pressure = FALSE
 
    num_cycles = 1
@@ -131,31 +131,8 @@ AdvDiffHierarchyIntegrator {
 
    max_iterations = 25
    abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-8
-
-   FACOps {
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
-      coarse_solver_choice = "block_jacobi"
-      coarse_solver_tolerance = 1.0e-6
-      coarse_solver_max_iterations = 1
-      prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "LINEAR_REFINE"
-   }
-
-   FACPreconditioners {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 1
-   }
+   rel_residual_tol = 1.0e-6
+   using_FAC = FALSE
 }
 
 HierarchyProjector {
@@ -179,7 +156,7 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "LINEAR_REFINE"
+      cf_discretization = "Ewing"
 
       hypre_solver {
          solver_type = "PFMG"

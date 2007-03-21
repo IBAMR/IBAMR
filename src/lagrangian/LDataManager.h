@@ -3,7 +3,7 @@
 
 // Filename: LDataManager.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <23.Jan.2007 01:53:18 boyce@bigboy.nyconnect.com>
+// Last modified: <20.Mar.2007 21:37:34 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -71,12 +71,6 @@ public:
      * the curvilinear mesh nodes.
      */
     static const string COORDS_DATA_NAME;
-
-    /*!
-     * The name of the LNodeLevelData that specifies the Jacobian
-     * determinant of the curvilinear mesh nodes.
-     */
-    static const string JACOBIAN_DATA_NAME;
 
     /*!
      * Return a pointer to the instance of the Lagrangian data manager
@@ -317,7 +311,7 @@ public:
      * where alpha and beta are parameters that each default to the
      * value 1.
      */
-    void updateWorkloadAndNodeCount(
+    void updateWorkloadData(
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
@@ -463,8 +457,6 @@ public:
 protected:
     /*!
      * \brief Constructor.
-     *
-     * XXXX: Need mechanism for specifiying GCW!
      */
     LDataManager(
         const string& object_name,
@@ -653,6 +645,7 @@ private:
     double d_alpha_work, d_beta_work;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_workload_var;
     int d_workload_idx;
+    bool d_output_workload;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor

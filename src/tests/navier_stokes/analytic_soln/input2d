@@ -10,10 +10,10 @@ MU = 0.0001
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
+MAX_LEVELS = 2   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 256                                   // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 INSHierarchyIntegrator {
@@ -53,6 +53,7 @@ INSHierarchyIntegrator {
 
 GodunovAdvector {
    limiter_type = FOURTH_ORDER
+   use_full_ctu = TRUE
 }
 
 AdvDiffHierarchyIntegrator {
@@ -76,6 +77,7 @@ AdvDiffHierarchyIntegrator {
    max_iterations = 25
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-12
+   using_FAC = TRUE
 
    FACOps {
       fac_max_cycles = 1
@@ -91,7 +93,7 @@ AdvDiffHierarchyIntegrator {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "LINEAR_REFINE"
+      cf_discretization = "Ewing"
    }
 
    FACPreconditioners {
@@ -123,7 +125,7 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "LINEAR_REFINE"
+      cf_discretization = "Ewing"
 
       hypre_solver {
          solver_type = "PFMG"

@@ -17,6 +17,7 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 GodunovAdvector {
    limiter_type = FOURTH_ORDER
+   use_full_ctu = TRUE
 }
 
 AdvectHypPatchOps {
