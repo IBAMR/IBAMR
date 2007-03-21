@@ -156,7 +156,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/2     // zero to turn off
+   viz_dump_interval     = 2*NFINEST     // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
