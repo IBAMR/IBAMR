@@ -40,7 +40,7 @@ IBStandardInitializer {
       ds = 3.7499624950000001e-03
       bdry_mass_density = 0.0004
       uniform_bdry_mass = bdry_mass_density*ds
-      uniform_bdry_mass_stiffness = 5.0e5
+      uniform_bdry_mass_stiffness = 1.0e5
    }
 }
 
