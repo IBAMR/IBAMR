@@ -1,5 +1,5 @@
 // Filename: ParabolicLevelIntegrator.C
-// Last modified: <09.Feb.2007 20:39:19 boyce@bigboy.nyconnect.com>
+// Last modified: <21.Mar.2007 01:05:29 griffith@box221.cims.nyu.edu>
 // Created on 09 Jan 2007 by Boyce Griffith (boyce@box221.cims.nyu.edu)
 
 // NOTE: This implementation is directly derived from the SAMRAI
@@ -43,7 +43,7 @@ ParabolicLevelIntegrator::ParabolicLevelIntegrator(
     tbox::Pointer<tbox::Database> input_db,
     ParabolicPatchStrategy<NDIM>* patch_strategy,
     bool register_for_restart,
-    bool use_time_refinement)
+    bool using_time_refinement)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
@@ -52,7 +52,7 @@ ParabolicLevelIntegrator::ParabolicLevelIntegrator(
 #endif
 
     d_object_name = object_name;
-    d_use_time_refinement = use_time_refinement;
+    d_using_time_refinement = using_time_refinement;
     d_registered_for_restart = register_for_restart;
 
     if (d_registered_for_restart)
@@ -75,7 +75,7 @@ ParabolicLevelIntegrator::ParabolicLevelIntegrator(
     d_have_flux_on_level_zero = false;
 
     d_lag_dt_computation = true;
-    d_use_ghosts_for_dt = false;
+    d_using_ghosts_for_dt = false;
     d_distinguish_mpi_reduction_costs = false;
 
     d_cfl = tbox::IEEE::getSignalingNaN();
@@ -251,7 +251,7 @@ ParabolicLevelIntegrator::getLevelDt(
 
     double dt = tbox::IEEE::getDBL_MAX();
 
-    if (!d_use_ghosts_for_dt)
+    if (!d_using_ghosts_for_dt)
     {
 
         d_patch_strategy->setDataContext(d_current);
@@ -405,7 +405,7 @@ ParabolicLevelIntegrator::getMaxFinerLevelDt(
 *            data on patch. Use characteristic data corresponding       *
 *            to current time level, computed prior to flux computation, *
 *            in dt calculation.                                         *
-*            If (d_use_ghosts_for_dt == true)                           *
+*            If (d_using_ghosts_for_dt == true)                         *
 *               - Compute dt using data on patch+ghosts at time.        *
 *            Else                                                       *
 *               - Compute dt using data on patch interior ONLY.         *
@@ -419,7 +419,7 @@ ParabolicLevelIntegrator::getMaxFinerLevelDt(
 *            RECOMPUTE characteristic data after advancing data on      *
 *            patch. Use characteristic data corresponding to new time   *
 *            level in dt calculation.                                   *
-*            If (d_use_ghosts_for_dt == true)                           *
+*            If (d_using_ghosts_for_dt == true)                         *
 *               - Refill scratch space with new interior patch data     *
 *                 and ghost cell bdry data correspond to new time.      *
 *                 (NOTE: This requires a new boundary schedule.)        *
@@ -618,7 +618,7 @@ ParabolicLevelIntegrator::advanceLevel(
         if (d_lag_dt_computation)
         {
 
-            if (d_use_ghosts_for_dt)
+            if (d_using_ghosts_for_dt)
             {
                 d_patch_strategy->setDataContext(d_scratch);
                 copyTimeDependentData(patch_level, d_current, d_scratch);
@@ -631,7 +631,7 @@ ParabolicLevelIntegrator::advanceLevel(
         else
         {
 
-            if (d_use_ghosts_for_dt)
+            if (d_using_ghosts_for_dt)
             {
 
                 if (d_bdry_sched_advance_new[level_number].isNull())
@@ -1188,7 +1188,7 @@ ParabolicLevelIntegrator::resetHierarchyConfiguration(
                                                 d_patch_strategy);
         t_advance_bdry_fill_create->stop();
 
-        if (!d_lag_dt_computation && d_use_ghosts_for_dt)
+        if (!d_lag_dt_computation && d_using_ghosts_for_dt)
         {
             t_new_advance_bdry_fill_create->start();
             d_bdry_sched_advance_new[ln] =
@@ -1791,7 +1791,7 @@ ParabolicLevelIntegrator::registerVariable(
 /*
 *************************************************************************
 *                                                                       *
-* Print all class data for ParabolicLevelIntegrator object.      *
+* Print all class data for ParabolicLevelIntegrator object.             *
 *                                                                       *
 *************************************************************************
 */
@@ -1805,8 +1805,8 @@ ParabolicLevelIntegrator::printClassData(ostream& os) const
     os << "d_cfl = " << d_cfl << "\n"
        << "d_cfl_init = " << d_cfl_init << endl;
     os << "d_lag_dt_computation = " << d_lag_dt_computation << "\n"
-       << "d_use_ghosts_for_dt = "
-       << d_use_ghosts_for_dt << endl;
+       << "d_using_ghosts_for_dt = "
+       << d_using_ghosts_for_dt << endl;
     os << "d_patch_strategy = "
        << (ParabolicPatchStrategy<NDIM>*)d_patch_strategy << endl;
     os << "NOTE: Not printing variable arrays, ComponentSelectors, communication schedules, etc." << endl;
@@ -1817,7 +1817,7 @@ ParabolicLevelIntegrator::printClassData(ostream& os) const
 *************************************************************************
 *                                                                       *
 * Writes out the class version number, d_cfl, d_cfl_init, 		*
-* d_lag_dt_computation, and d_use_ghosts_for_dt to the database.	*
+* d_lag_dt_computation, and d_using_ghosts_for_dt to the database.	*
 *                                                                       *
 *************************************************************************
 */
@@ -1835,7 +1835,7 @@ ParabolicLevelIntegrator::putToDatabase(
     db->putDouble("d_cfl", d_cfl);
     db->putDouble("d_cfl_init", d_cfl_init);
     db->putBool("d_lag_dt_computation", d_lag_dt_computation);
-    db->putBool("d_use_ghosts_for_dt", d_use_ghosts_for_dt);
+    db->putBool("d_using_ghosts_for_dt", d_using_ghosts_for_dt);
     return;
 }// putToDatabase
 
@@ -1879,7 +1879,7 @@ ParabolicLevelIntegrator::getPlotContext() const
 bool
 ParabolicLevelIntegrator::usingRefinedTimestepping() const
 {
-    return d_use_time_refinement;
+    return d_using_time_refinement;
 }// usingRefinedTimestepping
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
@@ -1888,7 +1888,7 @@ ParabolicLevelIntegrator::usingRefinedTimestepping() const
 *************************************************************************
 *                                                                       *
 * Reads in cfl, cfl_init, lag_dt_computation, and 			*
-* use_ghosts_to_compute_dt from the input database.  			*
+* using_ghosts_to_compute_dt from the input database.  			*
 * Note all restart values are overriden with values from the input	*
 * database.								*
 *                                                                       *
@@ -1943,20 +1943,20 @@ ParabolicLevelIntegrator::getFromInput(
     }
 
 
-    if (db->keyExists("use_ghosts_to_compute_dt"))
+    if (db->keyExists("using_ghosts_to_compute_dt"))
     {
-        d_use_ghosts_for_dt = db->getBool("use_ghosts_to_compute_dt");
+        d_using_ghosts_for_dt = db->getBool("using_ghosts_to_compute_dt");
     }
     else
     {
         if (!is_from_restart)
         {
-            d_use_ghosts_for_dt =
-                db->getDoubleWithDefault("use_ghosts_for_dt",
-                                         d_use_ghosts_for_dt);
+            d_using_ghosts_for_dt =
+                db->getDoubleWithDefault("using_ghosts_for_dt",
+                                         d_using_ghosts_for_dt);
             TBOX_WARNING(d_object_name << ":  "
-                         << "Key data `use_ghosts_to_compute_dt' not found in input."
-                         << "  Using default value " << d_use_ghosts_for_dt << endl);
+                         << "Key data `using_ghosts_to_compute_dt' not found in input."
+                         << "  Using default value " << d_using_ghosts_for_dt << endl);
         }
     }
 
@@ -1976,7 +1976,7 @@ ParabolicLevelIntegrator::getFromInput(
 * restart file.   If this database exists, this method checks to make   *
 * sure that the version number of the class matches the version number  *
 * of the restart file.  If they match, then d_cfl, d_cfl_init,          *
-* d_lag_dt_computation, and d_use_ghosts_to_compute_dt are read from    *
+* d_lag_dt_computation, and d_using_ghosts_to_compute_dt are read from  *
 * restart database.  		                                        *
 * Note all restart values can be overriden with values from the input	*
 * database.								*
@@ -2012,7 +2012,7 @@ ParabolicLevelIntegrator::getFromRestart()
     d_cfl = db->getDouble("d_cfl");
     d_cfl_init = db->getDouble("d_cfl_init");
     d_lag_dt_computation = db->getBool("d_lag_dt_computation");
-    d_use_ghosts_for_dt = db->getBool("d_use_ghosts_for_dt");
+    d_using_ghosts_for_dt = db->getBool("d_using_ghosts_for_dt");
 
     return;
 }// getFromRestart

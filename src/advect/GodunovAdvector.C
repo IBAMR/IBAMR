@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <20.Feb.2007 22:34:59 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <21.Mar.2007 01:02:12 griffith@box221.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -281,7 +281,7 @@ GodunovAdvector::GodunovAdvector(
       d_registered_for_restart(register_for_restart),
       d_limiter_type(FOURTH_ORDER)
 #if (NDIM==3)
-    , d_use_full_ctu(true)
+    , d_using_full_ctu(true)
 #endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -690,7 +690,7 @@ GodunovAdvector::putToDatabase(
     db->putInteger("GODUNOV_ADVECTOR_VERSION",GODUNOV_ADVECTOR_VERSION);
     db->putInteger("d_limiter_type", d_limiter_type);
 #if (NDIM == 3)
-    db->putBool("d_use_full_ctu", d_use_full_ctu);
+    db->putBool("d_using_full_ctu", d_using_full_ctu);
 #endif
 
     t_put_to_database->stop();
@@ -708,7 +708,7 @@ GodunovAdvector::printClassData(
     os << "Parameters for numerical method ...\n";
     os << "   d_limiter_type = " << d_limiter_type << "\n";
 #if (NDIM == 3)
-    os << "   d_use_full_ctu = " << d_use_full_ctu << "\n";
+    os << "   d_using_full_ctu = " << d_using_full_ctu << "\n";
 #endif
     os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
@@ -786,7 +786,7 @@ GodunovAdvector::predict(
 #if (NDIM == 3)
         GODUNOV_PREDICT_F77(
             dx,dt,
-            static_cast<unsigned int>(d_use_full_ctu),
+            static_cast<unsigned int>(d_using_full_ctu),
             d_limiter_type,
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
@@ -882,7 +882,7 @@ GodunovAdvector::predictWithSourceTerm(
 #if (NDIM == 3)
         GODUNOV_PREDICTWITHSOURCE_F77(
             dx,dt,
-            static_cast<unsigned int>(d_use_full_ctu),
+            static_cast<unsigned int>(d_using_full_ctu),
             d_limiter_type,
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
@@ -912,7 +912,7 @@ GodunovAdvector::getFromInput(
     (void) is_from_restart;
     d_limiter_type = db->getIntegerWithDefault("limiter_type", d_limiter_type);
 #if (NDIM == 3)
-    d_use_full_ctu = db->getBoolWithDefault("use_full_ctu", d_use_full_ctu);
+    d_using_full_ctu = db->getBoolWithDefault("using_full_ctu", d_using_full_ctu);
 #endif
     return;
 }// getFromInput
@@ -945,7 +945,7 @@ GodunovAdvector::getFromRestart()
 
     d_limiter_type = db->getInteger("d_limiter_type");
 #if (NDIM == 3)
-    d_use_full_ctu = db->getBool("d_use_full_ctu");
+    d_using_full_ctu = db->getBool("d_using_full_ctu");
 #endif
 
     return;

@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <19.Mar.2007 03:57:43 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <21.Mar.2007 01:02:55 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -186,13 +186,13 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
         hyp_level_integrator_input_db = new SAMRAI::tbox::NullDatabase();
     }
 
-    static const bool use_time_refinement = false;
+    static const bool using_time_refinement = false;
     d_hyp_level_integrator = new SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>(
         object_name+"::HyperbolicLevelIntegrator",
         hyp_level_integrator_input_db,
         d_hyp_patch_ops,
         register_for_restart,
-        use_time_refinement);
+        using_time_refinement);
 
     // Get initialization data for the FAC ops and FAC preconditioners.
     if (d_using_FAC)

@@ -2,7 +2,7 @@
 #define included_GodunovAdvector
 
 // Filename: GodunovAdvector.h
-// Last modified: <20.Feb.2007 02:06:20 boyce@bigboy.nyconnect.com>
+// Last modified: <21.Mar.2007 01:02:25 griffith@box221.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -404,12 +404,12 @@ private:
      *
      *    d_limiter_type ........ specifies the type of slope limiting
      *                            used in computing numerical fluxes
-     *    d_use_full_ctu ........ specifies whether full corner transport
+     *    d_using_full_ctu ...... specifies whether full corner transport
      *                            upwinding is used for 3D computations
      */
     int d_limiter_type;
 #if (NDIM == 3)
-    bool d_use_full_ctu;
+    bool d_using_full_ctu;
 #endif
 };
 }// namespace IBAMR

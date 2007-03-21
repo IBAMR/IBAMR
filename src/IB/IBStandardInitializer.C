@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <19.Mar.2007 21:36:24 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2007 01:13:25 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -59,22 +59,22 @@ IBStandardInitializer::IBStandardInitializer(
       d_edge_stiffness(),
       d_edge_rest_length(),
       d_edge_force_fcn_idx(),
-      d_use_uniform_edge_stiffness(),
+      d_using_uniform_edge_stiffness(),
       d_uniform_edge_stiffness(),
-      d_use_uniform_edge_rest_length(),
+      d_using_uniform_edge_rest_length(),
       d_uniform_edge_rest_length(),
-      d_use_uniform_edge_force_fcn_idx(),
+      d_using_uniform_edge_force_fcn_idx(),
       d_uniform_edge_force_fcn_idx(),
       d_enable_target_points(),
       d_target_stiffness(),
-      d_use_uniform_target_stiffness(),
+      d_using_uniform_target_stiffness(),
       d_uniform_target_stiffness(),
       d_enable_bdry_mass(),
       d_bdry_mass(),
       d_bdry_mass_stiffness(),
-      d_use_uniform_bdry_mass(),
+      d_using_uniform_bdry_mass(),
       d_uniform_bdry_mass(),
-      d_use_uniform_bdry_mass_stiffness(),
+      d_using_uniform_bdry_mass_stiffness(),
       d_uniform_bdry_mass_stiffness(),
       d_global_index_offset()
 {
@@ -627,15 +627,15 @@ IBStandardInitializer::readEdgeFiles()
                     }
                     else
                     {
-                        if (d_use_uniform_edge_stiffness[ln][j])
+                        if (d_using_uniform_edge_stiffness[ln][j])
                         {
                             kappa = d_uniform_edge_stiffness[ln][j];
                         }
-                        if (d_use_uniform_edge_rest_length[ln][j])
+                        if (d_using_uniform_edge_rest_length[ln][j])
                         {
                             length = d_uniform_edge_rest_length[ln][j];
                         }
-                        if (d_use_uniform_edge_force_fcn_idx[ln][j])
+                        if (d_using_uniform_edge_force_fcn_idx[ln][j])
                         {
                             force_fcn_idx = d_uniform_edge_force_fcn_idx[ln][j];
                         }
@@ -809,7 +809,7 @@ IBStandardInitializer::readTargetPointFiles()
             }
             else
             {
-                if (d_use_uniform_target_stiffness[ln][j])
+                if (d_using_uniform_target_stiffness[ln][j])
                 {
                     d_target_stiffness[ln][j] = std::vector<double>(
                         d_num_vertex[ln][j],
@@ -933,13 +933,13 @@ IBStandardInitializer::readBoundaryMassFiles()
             }
             else
             {
-                if (d_use_uniform_bdry_mass[ln][j])
+                if (d_using_uniform_bdry_mass[ln][j])
                 {
                     d_bdry_mass[ln][j] = std::vector<double>(
                         d_num_vertex[ln][j],
                         d_uniform_bdry_mass[ln][j]);
                 }
-                if (d_use_uniform_bdry_mass_stiffness[ln][j])
+                if (d_using_uniform_bdry_mass_stiffness[ln][j])
                 {
                     d_bdry_mass_stiffness[ln][j] = std::vector<double>(
                         d_num_vertex[ln][j],
@@ -1114,22 +1114,22 @@ IBStandardInitializer::getFromInput(
     d_edge_stiffness.resize(d_max_levels);
     d_edge_rest_length.resize(d_max_levels);
     d_edge_force_fcn_idx.resize(d_max_levels);
-    d_use_uniform_edge_stiffness.resize(d_max_levels);
+    d_using_uniform_edge_stiffness.resize(d_max_levels);
     d_uniform_edge_stiffness.resize(d_max_levels);
-    d_use_uniform_edge_rest_length.resize(d_max_levels);
+    d_using_uniform_edge_rest_length.resize(d_max_levels);
     d_uniform_edge_rest_length.resize(d_max_levels);
-    d_use_uniform_edge_force_fcn_idx.resize(d_max_levels);
+    d_using_uniform_edge_force_fcn_idx.resize(d_max_levels);
     d_uniform_edge_force_fcn_idx.resize(d_max_levels);
     d_enable_target_points.resize(d_max_levels);
     d_target_stiffness.resize(d_max_levels);
-    d_use_uniform_target_stiffness.resize(d_max_levels);
+    d_using_uniform_target_stiffness.resize(d_max_levels);
     d_uniform_target_stiffness.resize(d_max_levels);
     d_enable_bdry_mass.resize(d_max_levels);
     d_bdry_mass.resize(d_max_levels);
     d_bdry_mass_stiffness.resize(d_max_levels);
-    d_use_uniform_bdry_mass.resize(d_max_levels);
+    d_using_uniform_bdry_mass.resize(d_max_levels);
     d_uniform_bdry_mass.resize(d_max_levels);
-    d_use_uniform_bdry_mass_stiffness.resize(d_max_levels);
+    d_using_uniform_bdry_mass_stiffness.resize(d_max_levels);
     d_uniform_bdry_mass_stiffness.resize(d_max_levels);
     d_global_index_offset.resize(d_max_levels);
 
@@ -1159,26 +1159,26 @@ IBStandardInitializer::getFromInput(
 
         d_enable_edges[ln].resize(num_base_filename,true);
 
-        d_use_uniform_edge_stiffness[ln].resize(num_base_filename,false);
+        d_using_uniform_edge_stiffness[ln].resize(num_base_filename,false);
         d_uniform_edge_stiffness[ln].resize(num_base_filename,-1.0);
 
-        d_use_uniform_edge_rest_length[ln].resize(num_base_filename,false);
+        d_using_uniform_edge_rest_length[ln].resize(num_base_filename,false);
         d_uniform_edge_rest_length[ln].resize(num_base_filename,-1.0);
 
-        d_use_uniform_edge_force_fcn_idx[ln].resize(num_base_filename,false);
+        d_using_uniform_edge_force_fcn_idx[ln].resize(num_base_filename,false);
         d_uniform_edge_force_fcn_idx[ln].resize(num_base_filename,-1);
 
         d_enable_target_points[ln].resize(num_base_filename,true);
 
-        d_use_uniform_target_stiffness[ln].resize(num_base_filename,false);
+        d_using_uniform_target_stiffness[ln].resize(num_base_filename,false);
         d_uniform_target_stiffness[ln].resize(num_base_filename,-1.0);
 
         d_enable_bdry_mass[ln].resize(num_base_filename,true);
 
-        d_use_uniform_bdry_mass[ln].resize(num_base_filename,false);
+        d_using_uniform_bdry_mass[ln].resize(num_base_filename,false);
         d_uniform_bdry_mass[ln].resize(num_base_filename,-1.0);
 
-        d_use_uniform_bdry_mass_stiffness[ln].resize(num_base_filename,false);
+        d_using_uniform_bdry_mass_stiffness[ln].resize(num_base_filename,false);
         d_uniform_bdry_mass_stiffness[ln].resize(num_base_filename,-1.0);
 
         for (int j = 0; j < num_base_filename; ++j)
@@ -1208,7 +1208,7 @@ IBStandardInitializer::getFromInput(
                 // particular structure attributes.
                 if (sub_db->keyExists("uniform_edge_stiffness"))
                 {
-                    d_use_uniform_edge_stiffness[ln][j] = true;
+                    d_using_uniform_edge_stiffness[ln][j] = true;
                     d_uniform_edge_stiffness[ln][j] = sub_db->getDouble("uniform_edge_stiffness");
 
                     if (d_uniform_edge_stiffness[ln][j] < 0.0)
@@ -1219,7 +1219,7 @@ IBStandardInitializer::getFromInput(
                 }
                 if (sub_db->keyExists("uniform_edge_rest_length"))
                 {
-                    d_use_uniform_edge_rest_length[ln][j] = true;
+                    d_using_uniform_edge_rest_length[ln][j] = true;
                     d_uniform_edge_rest_length[ln][j] = sub_db->getDouble("uniform_edge_rest_length");
 
                     if (d_uniform_edge_rest_length[ln][j] < 0.0)
@@ -1230,13 +1230,13 @@ IBStandardInitializer::getFromInput(
                 }
                 if (sub_db->keyExists("uniform_edge_force_fcn_idx"))
                 {
-                    d_use_uniform_edge_force_fcn_idx[ln][j] = true;
+                    d_using_uniform_edge_force_fcn_idx[ln][j] = true;
                     d_uniform_edge_force_fcn_idx[ln][j] = sub_db->getInteger("uniform_edge_force_fcn_idx");
                 }
 
                 if (sub_db->keyExists("uniform_target_stiffness"))
                 {
-                    d_use_uniform_target_stiffness[ln][j] = true;
+                    d_using_uniform_target_stiffness[ln][j] = true;
                     d_uniform_target_stiffness[ln][j] = sub_db->getDouble("uniform_target_stiffness");
 
                     if (d_uniform_target_stiffness[ln][j] < 0.0)
@@ -1248,7 +1248,7 @@ IBStandardInitializer::getFromInput(
 
                 if (sub_db->keyExists("uniform_bdry_mass"))
                 {
-                    d_use_uniform_bdry_mass[ln][j] = true;
+                    d_using_uniform_bdry_mass[ln][j] = true;
                     d_uniform_bdry_mass[ln][j] = sub_db->getDouble("uniform_bdry_mass");
 
                     if (d_uniform_bdry_mass[ln][j] < 0.0)
@@ -1259,7 +1259,7 @@ IBStandardInitializer::getFromInput(
                 }
                 if (sub_db->keyExists("uniform_bdry_mass_stiffness"))
                 {
-                    d_use_uniform_bdry_mass_stiffness[ln][j] = true;
+                    d_using_uniform_bdry_mass_stiffness[ln][j] = true;
                     d_uniform_bdry_mass_stiffness[ln][j] = sub_db->getDouble("uniform_bdry_mass_stiffness");
 
                     if (d_uniform_bdry_mass_stiffness[ln][j] < 0.0)
@@ -1291,17 +1291,17 @@ IBStandardInitializer::getFromInput(
             }
             else
             {
-                if (d_use_uniform_edge_stiffness[ln][j])
+                if (d_using_uniform_edge_stiffness[ln][j])
                 {
                     SAMRAI::tbox::pout << "  NOTE: uniform edge stiffnesses are being employed for " << base_filename << endl
                                        << "        any stiffness information in file " << base_filename << ".vertex will be IGNORED" << endl;
                 }
-                if (d_use_uniform_edge_rest_length[ln][j])
+                if (d_using_uniform_edge_rest_length[ln][j])
                 {
                     SAMRAI::tbox::pout << "  NOTE: uniform edge resting lengths are being employed for " << base_filename << endl
                                        << "        any resting length information in file " << base_filename << ".vertex will be IGNORED" << endl;
                 }
-                if (d_use_uniform_edge_force_fcn_idx[ln][j])
+                if (d_using_uniform_edge_force_fcn_idx[ln][j])
                 {
                     SAMRAI::tbox::pout << "  NOTE: uniform force functions are being employed for " << base_filename << endl
                                        << "        any force function index information in file " << base_filename << ".vertex will be IGNORED" << endl;
@@ -1314,10 +1314,28 @@ IBStandardInitializer::getFromInput(
             }
             else
             {
-                if (d_use_uniform_edge_stiffness[ln][j])
+                if (d_using_uniform_target_stiffness[ln][j])
                 {
                     SAMRAI::tbox::pout << "  NOTE: uniform target point stiffnesses are being employed for " << base_filename << endl
                                        << "        any target point stiffness information in file " << base_filename << ".vertex will be IGNORED" << endl;
+                }
+            }
+
+            if (!d_enable_bdry_mass[ln][j])
+            {
+                SAMRAI::tbox::pout << "  NOTE: massive boundary points are DISABLED for " << base_filename << endl;
+            }
+            else
+            {
+                if (d_using_uniform_bdry_mass[ln][j])
+                {
+                    SAMRAI::tbox::pout << "  NOTE: uniform boundary point masses are being employed for " << base_filename << endl
+                                       << "        any boundary point mass information in file " << base_filename << ".vertex will be IGNORED" << endl;
+                }
+                if (d_using_uniform_bdry_mass_stiffness[ln][j])
+                {
+                    SAMRAI::tbox::pout << "  NOTE: uniform massive boundary point stiffnesses are being employed for " << base_filename << endl
+                                       << "        any massive boundary point stiffness information in file " << base_filename << ".vertex will be IGNORED" << endl;
                 }
             }
 

@@ -298,20 +298,20 @@ int main(int argc, char *argv[])
     const bool write_restart = restart_interval > 0
         && !restart_write_dirname.empty();
 
-    bool use_refined_timestepping = false;
+    bool using_refined_timestepping = false;
     if (main_db->keyExists("timestepping"))
     {
         string timestepping_method = main_db->getString("timestepping");
         if (timestepping_method == "SYNCHRONIZED")
         {
-            use_refined_timestepping = false;
+            using_refined_timestepping = false;
         }
         else
         {
-            use_refined_timestepping = true;
+            using_refined_timestepping = true;
         }
     }
-    if (use_refined_timestepping)
+    if (using_refined_timestepping)
     {
         tbox::pout << "using subcycled timestepping.\n";
     }
@@ -402,7 +402,7 @@ int main(int argc, char *argv[])
         new algs::HyperbolicLevelIntegrator<NDIM>(
             "HyperbolicLevelIntegrator",
             input_db->getDatabase("HyperbolicLevelIntegrator"),
-            hyp_patch_ops, true, use_refined_timestepping);
+            hyp_patch_ops, true, using_refined_timestepping);
 
     tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
         new mesh::StandardTagAndInitialize<NDIM>(

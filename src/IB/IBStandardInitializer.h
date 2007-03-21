@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <19.Mar.2007 21:24:53 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2007 01:01:46 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -295,13 +295,13 @@ private:
     std::vector<std::vector<std::map<Edge,double,EdgeComp> > > d_edge_stiffness, d_edge_rest_length;
     std::vector<std::vector<std::map<Edge,int,EdgeComp> > > d_edge_force_fcn_idx;
 
-    std::vector<std::vector<bool> > d_use_uniform_edge_stiffness;
+    std::vector<std::vector<bool> > d_using_uniform_edge_stiffness;
     std::vector<std::vector<double> > d_uniform_edge_stiffness;
 
-    std::vector<std::vector<bool> > d_use_uniform_edge_rest_length;
+    std::vector<std::vector<bool> > d_using_uniform_edge_rest_length;
     std::vector<std::vector<double> > d_uniform_edge_rest_length;
 
-    std::vector<std::vector<bool> > d_use_uniform_edge_force_fcn_idx;
+    std::vector<std::vector<bool> > d_using_uniform_edge_force_fcn_idx;
     std::vector<std::vector<int> > d_uniform_edge_force_fcn_idx;
 
     /*
@@ -310,7 +310,7 @@ private:
     std::vector<std::vector<bool> > d_enable_target_points;
     std::vector<std::vector<std::vector<double> > > d_target_stiffness;
 
-    std::vector<std::vector<bool> > d_use_uniform_target_stiffness;
+    std::vector<std::vector<bool> > d_using_uniform_target_stiffness;
     std::vector<std::vector<double> > d_uniform_target_stiffness;
 
     /*
@@ -319,10 +319,10 @@ private:
     std::vector<std::vector<bool> > d_enable_bdry_mass;
     std::vector<std::vector<std::vector<double> > > d_bdry_mass, d_bdry_mass_stiffness;
 
-    std::vector<std::vector<bool> > d_use_uniform_bdry_mass;
+    std::vector<std::vector<bool> > d_using_uniform_bdry_mass;
     std::vector<std::vector<double> > d_uniform_bdry_mass;
 
-    std::vector<std::vector<bool> > d_use_uniform_bdry_mass_stiffness;
+    std::vector<std::vector<bool> > d_using_uniform_bdry_mass_stiffness;
     std::vector<std::vector<double> > d_uniform_bdry_mass_stiffness;
 
     /*

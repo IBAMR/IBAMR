@@ -2,7 +2,7 @@
 #define included_ParabolicLevelIntegrator
 
 // Filename: ParabolicLevelIntegrator.h
-// Last modified: <09.Jan.2007 16:54:23 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2007 01:04:59 griffith@box221.cims.nyu.edu>
 // Created on 09 Jan 2007 by Boyce Griffith (boyce@box221.cims.nyu.edu)
 
 // NOTE: This implementation is directly derived from the SAMRAI
@@ -64,7 +64,7 @@ public:
      * is determined by this argument.  Note that it has a default
      * state of true.  This class is used by the time refinement
      * integrator for refined timestepping when the
-     * use_time_refinement argument is true, and for synchronized
+     * using_time_refinement argument is true, and for synchronized
      * timestepping when the boolean is false.
      *
      * When assertion checking is active, passing in any null pointer
@@ -75,7 +75,7 @@ public:
         tbox::Pointer<tbox::Database> input_db,
         ParabolicPatchStrategy<NDIM>* patch_strategy,
         bool register_for_restart = true,
-        bool use_time_refinement = true);
+        bool using_time_refinement = true);
 
     /*!
      * The destructor for ParabolicLevelIntegrator unregisters the
@@ -695,7 +695,7 @@ private:
      * used to control restart file writing operations.
      */
     string d_object_name;
-    bool d_use_time_refinement;
+    bool d_using_time_refinement;
     bool d_registered_for_restart;
 
     /*
@@ -708,26 +708,27 @@ private:
     /*
      * Boolean flags for algorithm variations during time integration.
      *
-     * d_lag_dt_computation indicates when time increment is computed
-     *                      for next step on a level.  A value of true
-     *                      means that the current solution values
-     *                      will be used to compute dt.  A value of
-     *                      false means that dt will be computed after
-     *                      the current solution is advanced and the
-     *                      new solution is used to compute dt. The
-     *                      default value is true.
+     * d_lag_dt_computation   indicates when time increment is
+     *                        computed for next step on a level.  A
+     *                        value of true means that the current
+     *                        solution values will be used to compute
+     *                        dt.  A value of false means that dt will
+     *                        be computed after the current solution
+     *                        is advanced and the new solution is used
+     *                        to compute dt. The default value is
+     *                        true.
      *
-     * d_use_ghosts_for_dt  indicates whether the time increment
-     *                      computation on a patch requires ghost cell
-     *                      data (e.g., if boundary conditions are
-     *                      needed).  This value must be consistent
-     *                      with the numerical routines used in the
-     *                      parabolic patch strategy object to
-     *                      calculate the time step size.  The default
-     *                      is true.
+     * d_using_ghosts_for_dt  indicates whether the time increment
+     *                        computation on a patch requires ghost
+     *                        cell data (e.g., if boundary conditions
+     *                        are needed).  This value must be
+     *                        consistent with the numerical routines
+     *                        used in the parabolic patch strategy
+     *                        object to calculate the time step size.
+     *                        The default is true.
      */
     bool d_lag_dt_computation;
-    bool d_use_ghosts_for_dt;
+    bool d_using_ghosts_for_dt;
 
     /*
      * Boolean flags for indicated whether face or side data types are
@@ -760,13 +761,13 @@ private:
      * The "advance new" schedule can be used twice during a time
      * integration cycle. The first is when ghost cell data is
      * required during the conservative difference process (i.e.,
-     * d_use_ghosts_for_cons_diff is true).  If this is the case,
+     * d_using_ghosts_for_cons_diff is true).  If this is the case,
      * ghosts must be refilled before the conservative difference on a
      * coarser level during the refluxing process can take place.  See
      * synchronizeLevelWithCoarser in class ParabolicLevelIntegrator
      * second occurs when the dt calculation is not lagged and the
      * physical boundary conditions are needed to compute dt (i.e.,
-     * (!d_lag_dt_computation && d_use_ghosts_for_dt_computation) is
+     * (!d_lag_dt_computation && d_using_ghosts_for_dt_computation) is
      * true).  In either case, all ghosts are filled with TIME_DEP and
      * INPUT data at specified time.  TIME_DEP data in patch interiors
      * will be filled with values corresponding to NEW descriptor
