@@ -2,7 +2,7 @@
 #define included_IBStandardForceSpec
 
 // Filename: IBStandardForceSpec.h
-// Last modified: <19.Mar.2007 21:23:49 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2007 20:56:48 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,7 +21,7 @@
 namespace IBAMR
 {
 /*!
- * @brief Class IBStandardForceSpec provies a mechanism for specifying
+ * \brief Class IBStandardForceSpec provies a mechanism for specifying
  * a network of spring forces, with support for target points.
  */
 class IBStandardForceSpec
@@ -29,24 +29,24 @@ class IBStandardForceSpec
 {
 public:
     /*!
-     * @brief Register this class and its factory class with the
+     * \brief Register this class and its factory class with the
      * singleton StashableManager object.  This method must be called
      * before any IBStandardForceSpec objects are created.
      *
-     * NOTE: This method is collective on all MPI processes.  This is
+     * \note This method is collective on all MPI processes.  This is
      * done to ensure that all processes employ the same stashable ID
      * for the IBStandardForceSpec class.
      */
     static void registerWithStashableManager();
 
     /*!
-     * @brief Returns a boolean indicating whether the class has been
+     * \brief Returns a boolean indicating whether the class has been
      * registered with the singleton StashableManager object.
      */
     static bool getIsRegisteredWithStashableManager();
 
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      */
     IBStandardForceSpec(
         const std::vector<int>& dst_idxs=vector<int>(),
@@ -57,59 +57,59 @@ public:
         const double kappa_target=0.0);
 
     /*!
-     * @brief Destructor.
+     * \brief Destructor.
      */
     ~IBStandardForceSpec();
 
     /*!
-     * @return The number of links attatched to the source node.
+     * \return The number of links attatched to the source node.
      */
     int getNumberOfLinks() const;
 
     /*!
-     * @return A const refrence to the destination node indices for
+     * \return A const refrence to the destination node indices for
      * each spring attached to the source node.
      */
     const std::vector<int>& getDestinationNodeIndices() const;
 
     /*!
-     * @return A non-const refrence to the destination node indices
+     * \return A non-const refrence to the destination node indices
      * for each spring attached to the source node.
      */
     std::vector<int>& getDestinationNodeIndices();
 
     /*!
-     * @return A const reference to the force function index of each
+     * \return A const reference to the force function index of each
      * spring attached to the source node.
      */
     const std::vector<int>& getForceFunctionIndices() const;
 
     /*!
-     * @return A non-const reference to the force function index of
+     * \return A non-const reference to the force function index of
      * each spring attached to the source node.
      */
     std::vector<int>& getForceFunctionIndices();
 
     /*!
-     * @return A const reference to the stiffnesses of each spring
+     * \return A const reference to the stiffnesses of each spring
      * attached to the source node.
      */
     const std::vector<double>& getStiffnesses() const;
 
     /*!
-     * @return A non-const reference to the stiffnesses of each spring
+     * \return A non-const reference to the stiffnesses of each spring
      * attached to the source node.
      */
     std::vector<double>& getStiffnesses();
 
     /*!
-     * @return A const reference to the resting length of each spring
+     * \return A const reference to the resting length of each spring
      * attached to the source node.
      */
     const std::vector<double>& getRestingLengths() const;
 
     /*!
-     * @return A non-const reference to the resting length of each
+     * \return A non-const reference to the resting length of each
      * spring attached to the source node.
      */
     std::vector<double>& getRestingLengths();
@@ -128,75 +128,75 @@ public:
     const double& getTargetStiffness() const;
 
     /*!
-     * @brief Return the unique identifier used to specify the
+     * \brief Return the unique identifier used to specify the
      * StashableFactory object used by the StashableManager to extract
      * Stashable objects from data streams.
      */
     int getStashableID() const;
 
     /*!
-     * @brief Return an upper bound on the amount of space required to
+     * \brief Return an upper bound on the amount of space required to
      * pack the object to a buffer.
      */
     size_t getDataStreamSize() const;
 
     /*!
-     * @brief Pack data into the output stream.
+     * \brief Pack data into the output stream.
      */
     void packStream(
         SAMRAI::tbox::AbstractStream& stream);
 
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      */
     IBStandardForceSpec();
 
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     IBStandardForceSpec(
         const IBStandardForceSpec& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     IBStandardForceSpec& operator=(
         const IBStandardForceSpec& that);
 
-    /*
+    /*!
      * Indicates whether the factory has been registered with the
      * StashableManager.
      */
     static bool s_registered_factory;
 
-    /*
+    /*!
      * The stashable ID for this object type.
      */
     static int s_stashable_id;
 
-    /*
+    /*!
      * Data required to define the spring forces.
      */
     int d_num_links;
     std::vector<int> d_dst_idxs, d_force_fcn_idxs;
     std::vector<double> d_stiffnesses, d_rest_lengths;
 
-    /*
+    /*!
      * Data required to define the target penalty force.
      */
     std::vector<double> d_X_target;
