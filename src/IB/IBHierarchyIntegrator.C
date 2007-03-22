@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <21.Mar.2007 00:31:35 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2007 21:29:26 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -97,6 +97,8 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     bool register_for_restart)
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
+      d_delta_fcn("IB_4"),
+      d_ghosts(-1),
       d_hierarchy(hierarchy),
       d_gridding_alg(NULL),
       d_visit_writer(NULL),
@@ -117,8 +119,8 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_P_src(),
       d_Q_src(),
       d_n_src(),
-      d_delta_fcn("IB_4"),
-      d_ghosts(-1),
+      d_using_pIB_method(false),
+      d_g(0.0),
       d_start_time(0.0),
       d_end_time(std::numeric_limits<double>::max()),
       d_grow_dt(2.0),
@@ -159,9 +161,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_F_scratch1_idx(-1),
       d_F_scratch2_idx(-1),
       d_Q_idx(-1),
-      d_Q_scratch_idx(-1),
-      d_using_pIB_method(false),
-      d_pIB_g(0.0)
+      d_Q_scratch_idx(-1)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!object_name.empty());
@@ -320,92 +320,6 @@ IBHierarchyIntegrator::registerLoadBalancer(
     d_lag_data_manager->registerLoadBalancer(d_load_balancer);
     return;
 }// registerLoadBalancer
-
-void
-IBHierarchyIntegrator::gatherAllData(
-    const int mpi_root,
-    double* const X_structure,
-    const int struct_sz,
-    double* const X_marker,
-    const int marker_sz,
-    const int level_num_in)
-{
-    const int level_num = (level_num_in == -1
-                           ? d_hierarchy->getFinestLevelNumber()
-                           : level_num_in);
-
-    int ierr;
-
-    // Get needed MPI info.
-    const int mpi_rank = SAMRAI::tbox::MPI::getRank();
-
-    // Setup the IS data used to generate the VecScatters that
-    // redistribute the distributed data into a single local vector on
-    // the specified MPI process
-    const int total_sz = (mpi_rank == mpi_root
-                          ? struct_sz + marker_sz
-                          : 0);
-    std::vector<int> ref_is_idxs(total_sz);
-    for (int k = 0; k < total_sz; ++k)
-    {
-        ref_is_idxs[k] = k;
-    }
-    std::vector<int> dst_is_idxs = ref_is_idxs;
-
-    // Map Lagrangian indices to PETSc indices.
-    d_lag_data_manager->mapLagrangianToPETSc(ref_is_idxs, level_num);
-
-    // Setup IS indices for the appropriate data depth.
-    std::vector<int> src_is_idxs(total_sz);
-    transform(ref_is_idxs.begin(), ref_is_idxs.end(),
-              src_is_idxs.begin(),
-              bind2nd(multiplies<int>(),NDIM));
-    transform(dst_is_idxs.begin(), dst_is_idxs.end(),
-              dst_is_idxs.begin(),
-              bind2nd(multiplies<int>(),NDIM));
-
-    SAMRAI::tbox::Pointer<LNodeLevelData> X_data = d_lag_data_manager->getLNodeLevelData("X", level_num);
-    Vec& src_vec = X_data->getGlobalVec();
-
-    // Create the VecScatter to scatter data from the global
-    // PETSc Vec.
-    IS         src_is, dst_is;
-    Vec        dst_vec;
-    VecScatter vec_scatter;
-    ierr = ISCreateBlock(PETSC_COMM_WORLD, NDIM, total_sz,
-                         &src_is_idxs[0], &src_is);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = ISCreateBlock(PETSC_COMM_WORLD, NDIM, total_sz,
-                         &dst_is_idxs[0], &dst_is);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, NDIM*total_sz,
-                        PETSC_DETERMINE, &dst_vec);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecSetBlockSize(dst_vec, NDIM);           PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecScatterCreate(src_vec, src_is, dst_vec, dst_is,
-                            &vec_scatter);           PETSC_SAMRAI_ERROR(ierr);
-
-    // Scatter the data.
-    ierr = VecScatterBegin(src_vec, dst_vec, INSERT_VALUES, SCATTER_FORWARD,
-                           vec_scatter);             PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecScatterEnd(  src_vec, dst_vec, INSERT_VALUES, SCATTER_FORWARD,
-                           vec_scatter);             PETSC_SAMRAI_ERROR(ierr);
-
-    // Copy the data into the provided arrays.
-    double* X_arr;
-    ierr = VecGetArray(    dst_vec, &X_arr);         PETSC_SAMRAI_ERROR(ierr);
-    if (mpi_rank == mpi_root)
-    {
-        memcpy(static_cast<void*>(&X_structure[0]), static_cast<void*>(&X_arr[             0]), NDIM*struct_sz*sizeof(double));
-        memcpy(static_cast<void*>(&X_marker   [0]), static_cast<void*>(&X_arr[NDIM*struct_sz]), NDIM*marker_sz*sizeof(double));
-    }
-    ierr = VecRestoreArray(dst_vec, &X_arr);         PETSC_SAMRAI_ERROR(ierr);
-
-    // Destroy all workspace data.
-    ierr = ISDestroy(src_is);               PETSC_SAMRAI_ERROR(ierr);
-    ierr = ISDestroy(dst_is);               PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecDestroy(dst_vec);             PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecScatterDestroy(vec_scatter);  PETSC_SAMRAI_ERROR(ierr);
-
-    return;
-}// gatherAllData
 
 ///
 ///  The following routines:
@@ -1014,7 +928,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                         dY_dt_new_arr[NDIM*i+d] = dY_dt_arr[NDIM*i+d] - (dt/M_arr[i])*F_K_arr[NDIM*i+d];
                         if (d == (NDIM-1))
                         {
-                            dY_dt_new_arr[NDIM*i+d] -= dt*d_pIB_g;
+                            dY_dt_new_arr[NDIM*i+d] -= dt*d_g;
                         }
                     }
                 }
@@ -1620,7 +1534,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                         dY_dt_new_arr[NDIM*i+d] = dY_dt_new_arr[NDIM*i+d] - (dt/M_arr[i])*F_K_new_arr[NDIM*i+d];
                         if (d == (NDIM-1))
                         {
-                            dY_dt_new_arr[NDIM*i+d] -= dt*d_pIB_g;
+                            dY_dt_new_arr[NDIM*i+d] -= dt*d_g;
                         }
                     }
                 }
@@ -2029,7 +1943,7 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
     {
         for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
         {
-            // TODO: We should probably provide better initial values
+            // \todo We should probably provide better initial values
             // here.
             d_n_src[ln] = d_source_strategy->getNumSources(ln);
             d_X_src[ln].resize(d_n_src[ln], std::vector<double>(NDIM,0.0));
@@ -2288,7 +2202,10 @@ IBHierarchyIntegrator::putToDatabase(
 #endif
     db->putInteger("IB_HIERARCHY_INTEGRATOR_VERSION",
                    IB_HIERARCHY_INTEGRATOR_VERSION);
+
     db->putString("d_delta_fcn", d_delta_fcn);
+    db->putBool("d_using_pIB_method", d_using_pIB_method);
+    db->putDouble("d_g", d_g);
     db->putDouble("d_start_time", d_start_time);
     db->putDouble("d_end_time", d_end_time);
     db->putDouble("d_grow_dt", d_grow_dt);
@@ -2300,10 +2217,6 @@ IBHierarchyIntegrator::putToDatabase(
     db->putDouble("d_dt_max", d_dt_max);
     db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
     db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
-    db->putBool("d_using_pIB_method", d_using_pIB_method);
-    db->putDouble("d_pIB_g", d_pIB_g);
-
-    assert(false);  // add X_src, etc. XXXX
 
     t_put_to_database->stop();
     return;
@@ -2381,8 +2294,6 @@ IBHierarchyIntegrator::getFromInput(
     assert(!db.isNull());
 #endif
     // Read data members from input database.
-    d_delta_fcn = db->getStringWithDefault("delta_fcn", d_delta_fcn);
-
     d_end_time = db->getDoubleWithDefault("end_time", d_end_time);
     d_grow_dt = db->getDoubleWithDefault("grow_dt", d_grow_dt);
 
@@ -2404,6 +2315,8 @@ IBHierarchyIntegrator::getFromInput(
 
     if (!is_from_restart)
     {
+        d_delta_fcn = db->getStringWithDefault("delta_fcn", d_delta_fcn);
+
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
 
         d_num_init_cycles = db->getIntegerWithDefault(
@@ -2414,7 +2327,7 @@ IBHierarchyIntegrator::getFromInput(
 
         if (d_using_pIB_method)
         {
-            d_pIB_g = db->getDoubleWithDefault("g", d_pIB_g);
+            d_g = db->getDoubleWithDefault("g", d_g);
         }
     }
 
@@ -2446,6 +2359,8 @@ IBHierarchyIntegrator::getFromRestart()
     }
 
     d_delta_fcn = db->getString("d_delta_fcn");
+    d_using_pIB_method = db->getBool("d_using_pIB_method");
+    d_g = db->getDouble("d_g");
     d_start_time = db->getDouble("d_start_time");
     d_end_time = db->getDouble("d_end_time");
     d_grow_dt = db->getDouble("d_grow_dt");
@@ -2457,8 +2372,6 @@ IBHierarchyIntegrator::getFromRestart()
     d_dt_max = db->getDouble("d_dt_max");
     d_dt_max_time_max = db->getDouble("d_dt_max_time_max");
     d_dt_max_time_min = db->getDouble("d_dt_max_time_min");
-    d_using_pIB_method = db->getBool("d_using_pIB_method");
-    d_pIB_g = db->getDouble("d_pIB_g");
 
     return;
 }// getFromRestart

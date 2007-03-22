@@ -3,7 +3,7 @@
 
 // Filename: IBEulerianForceSetter.h
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <13.Feb.2007 03:23:44 boyce@bigboy.nyconnect.com>
+// Last modified: <21.Mar.2007 20:19:52 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -20,7 +20,7 @@
 namespace IBAMR
 {
 /*!
- * @brief Simple class to specify sources and sinks on the Eulerian
+ * \brief Simple class to specify sources and sinks on the Eulerian
  * grid during an IB computation.
  */
 class IBEulerianSourceSetter
@@ -28,64 +28,67 @@ class IBEulerianSourceSetter
 {
 public:
     /*!
-     * @brief Constructor.
+     * \brief Constructor.
      */
     IBEulerianSourceSetter(
         const std::string& object_name,
         const int Q_idx);
 
     /*!
-     * @brief Destructor.
+     * \brief Virtual destructor.
      */
-    ~IBEulerianSourceSetter();
-
-    //@{ @name Methods to set the data.
+    virtual ~IBEulerianSourceSetter();
 
     /*!
-     * This concrete SetDataStrategy class is time dependent.
+     * \name Methods to set the data.
      */
-    bool isTimeDependent() const;
+    //\{
+
+    /*!
+     * \note This concrete STOOLS::SetDataStrategy is time-dependent.
+     */
+    virtual bool isTimeDependent() const;
 
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatch(
+    virtual void setDataOnPatch(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
         SAMRAI::hier::Patch<NDIM>& patch,
         const double data_time,
         const bool initial_time=false);
 
-    //@}
+    //\}
 
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      */
     IBEulerianSourceSetter();
 
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     IBEulerianSourceSetter(
         const IBEulerianSourceSetter& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     IBEulerianSourceSetter& operator=(
         const IBEulerianSourceSetter& that);

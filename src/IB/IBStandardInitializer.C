@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <21.Mar.2007 01:13:25 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2007 22:59:06 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -17,7 +17,7 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/IBStandardForceSpec.h>
+#include <ibamr/IBSpringForceSpec.h>
 #include <ibamr/LNodeIndexData.h>
 
 // STOOLS INCLUDES
@@ -85,7 +85,7 @@ IBStandardInitializer::IBStandardInitializer(
 
     // Register the force specification object with the
     // StashableManager class.
-    IBStandardForceSpec::registerWithStashableManager();
+    IBSpringForceSpec::registerWithStashableManager();
 
     // Initialize object with data read from the input database.
     getFromInput(input_db);
@@ -1040,25 +1040,25 @@ IBStandardInitializer::initializeForceSpec(
     std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec;
 
     const int j = point_index.first;
-    const int lag_index = getCannonicalLagrangianIndex(point_index, level_number);
+    const int master_idx = getCannonicalLagrangianIndex(point_index, level_number);
 
-    std::vector<int> dst_idxs, force_fcn_idxs;
+    std::vector<int> slave_idxs, force_fcn_idxs;
     std::vector<double> stiffness, rest_length;
-    for (std::multimap<int,Edge>::const_iterator it = d_edge_map[level_number][j].lower_bound(lag_index);
-         it != d_edge_map[level_number][j].upper_bound(lag_index); ++it)
+    for (std::multimap<int,Edge>::const_iterator it = d_edge_map[level_number][j].lower_bound(master_idx);
+         it != d_edge_map[level_number][j].upper_bound(master_idx); ++it)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(lag_index == (*it).first);
+        assert(master_idx == (*it).first);
 #endif
         // The connectivity information.
         const Edge& e = (*it).second;
-        if (e.first == lag_index)
+        if (e.first == master_idx)
         {
-            dst_idxs.push_back(e.second+global_index_offset);
+            slave_idxs.push_back(e.second+global_index_offset);
         }
         else
         {
-            dst_idxs.push_back(e.first+global_index_offset);
+            slave_idxs.push_back(e.first+global_index_offset);
         }
 
         // The material properties.
@@ -1067,12 +1067,20 @@ IBStandardInitializer::initializeForceSpec(
         rest_length   .push_back((*d_edge_rest_length  [level_number][j].find(e)).second);
     }
 
+    if (slave_idxs.size() > 0)
+    {
+        force_spec.push_back(
+            new IBSpringForceSpec(
+                master_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length));
+    }
+
     const std::vector<double> X_target = getVertexPosn(point_index, level_number);
     const double kappa_target = getVertexTargetStiffness(point_index, level_number);
 
-    force_spec.push_back(new IBStandardForceSpec(
-                             dst_idxs, force_fcn_idxs, stiffness, rest_length,
-                             X_target, kappa_target));
+    if (!SAMRAI::tbox::Utilities::deq(kappa_target,0.0))
+    {
+
+    }
 
     return force_spec;
 }// initializeForceSpec

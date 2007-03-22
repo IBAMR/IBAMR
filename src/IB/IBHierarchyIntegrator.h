@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <21.Mar.2007 18:18:40 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2007 20:33:11 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -46,7 +46,9 @@
 namespace IBAMR
 {
 /*!
- * XXXX
+ * Class IBHierarchyIntegrator is an implementation of a formally
+ * second-order accurate, semi-implicit version of the immersed
+ * boundary method.
  */
 class IBHierarchyIntegrator
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
@@ -62,7 +64,7 @@ public:
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
 
     /*!
-     * XXXX
+     * Constructor.
      *
      * When assertion checking is active, passing any null pointer or
      * an empty string as an argument will result in an assertion
@@ -78,6 +80,8 @@ public:
         bool register_for_restart=true);
 
     /*!
+     * Virtual destructor.
+     *
      * The destructor for IBHierarchyIntegrator unregisters the
      * integrator object with the restart manager when so registered.
      */
@@ -91,7 +95,7 @@ public:
     /*!
      * Supply an optional cell centered body forcing term.
      *
-     * NOTE: This forcing term will be added to the Eulerian force
+     * \note This forcing term will be added to the Eulerian force
      * density.
      */
     void registerBodyForceSpecification(
@@ -108,7 +112,7 @@ public:
     /*!
      * Free the concrete initialization strategy object.
      *
-     * NOTE: Be sure to call this method only once the initialization
+     * \note Be sure to call this method only once the initialization
      * object is no longer needed.
      */
     void freeLNodeInitStrategy();
@@ -130,23 +134,10 @@ public:
         SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer);
 
     /*!
-     * @brief Register a load balancer for non-uniform load balancing.
+     * Register a load balancer for non-uniform load balancing.
      */
     void registerLoadBalancer(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
-
-    /*!
-     * @brief Gather all data to the specified root MPI process,
-     * assuming that markers have larger Lagrangian indices than
-     * material points.
-     */
-    void gatherAllData(
-        const int mpi_root,
-        double* const X_structure,
-        const int struct_sz,
-        double* const X_marker,
-        const int marker_sz,
-        const int level_num=-1);
 
     ///
     ///  The following routines:
@@ -170,13 +161,36 @@ public:
     ///
 
     /*!
-     * XXXX.
+     * Initialize the variables and communications algorithms managed
+     * and used by the integrator.
+     *
+     * This method must be called prior to any calls to
+     * initializeHierarchy() or advanceHierarchy().  Otherwise, when
+     * assertion checking is active an unrecoverable exception will
+     * occur.
      */
     virtual void initializeHierarchyIntegrator(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
-     * XXXX.
+     * Set AMR patch hierarchy configuration and data at start of
+     * simulation.  If the computation is begun from a restart file,
+     * the hierarchy and data are read from the hierarchy database.
+     * Otherwise, the hierarchy and data are initialized by the
+     * gridding algorithm data member.  In this case, the coarsest
+     * level is constructed and initialized.  Then, error estimation
+     * is performed to determine if and where it should be refined.
+     * Successively finer levels are created and initialized until the
+     * maximum allowable number of levels is achieved or no further
+     * refinement is needed.  The double return value is the time
+     * increment for the first data advance step.
+     *
+     * This function assumes that the hierarchy exists, but that it
+     * contains no patch levels, when it is called.  On return from
+     * this function, the initial hierarchy configuration and
+     * simulation data is set properly for the advanceHierarchy()
+     * function to be called.  In particular, on each level
+     * constructed only the data needed for initialization exists.
      */
     virtual double initializeHierarchy();
 
@@ -516,32 +530,32 @@ public:
 
 private:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      */
     IBHierarchyIntegrator();
 
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     IBHierarchyIntegrator(
         const IBHierarchyIntegrator& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     IBHierarchyIntegrator& operator=(
         const IBHierarchyIntegrator& that);
@@ -598,6 +612,13 @@ private:
      */
     std::string d_object_name;
     bool d_registered_for_restart;
+
+    /*
+     * The name of the discrete delta function to employ for
+     * interpolation and spreading.
+     */
+    std::string d_delta_fcn;
+    SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
     /*
      * Pointers to the patch hierarchy and gridding algorithm objects
@@ -658,11 +679,11 @@ private:
     std::vector<int> d_n_src;
 
     /*
-     * The name of the discrete delta function to employ for
-     * interpolation and spreading.
+     * Parameters for the penalty IB method for boundaries with
+     * additional boundary mass.
      */
-    std::string d_delta_fcn;
-    SAMRAI::hier::IntVector<NDIM> d_ghosts;
+    bool d_using_pIB_method;
+    double d_g;
 
     /*
      * Integrator data read from input or set at initialization.
@@ -744,13 +765,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
     int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_Q_idx, d_Q_scratch_idx;
-
-    /*
-     * Parameters for the (optional) penalty IB method for boundaries
-     * with additional boundary mass.
-     */
-    bool d_using_pIB_method;
-    double d_pIB_kappa, d_pIB_M, d_pIB_g;
 };
 }// namespace IBAMR
 

@@ -2,7 +2,7 @@
 #define included_IBLagrangianSourceStrategy
 
 // Filename: IBLagrangianSourceStrategy.h
-// Last modified: <23.Jan.2007 21:23:10 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2007 20:55:37 griffith@box221.cims.nyu.edu>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -24,7 +24,7 @@
 namespace IBAMR
 {
 /*!
- * @brief Class IBLagrangianSourceStrategy provides a mechanism for
+ * \brief Class IBLagrangianSourceStrategy provides a mechanism for
  * specifying fluid source/sinks at arbitrary point locations.
  */
 class IBLagrangianSourceStrategy
@@ -32,18 +32,49 @@ class IBLagrangianSourceStrategy
 {
 public:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      */
     IBLagrangianSourceStrategy();
 
     /*!
-     * @brief Destructor.
+     * \brief Virtual destructor.
      */
     virtual ~IBLagrangianSourceStrategy();
 
+    /*!
+     * \brief Setup the data needed to compute source/sink data on the
+     * specified level of the patch hierarchy.
+     *
+     * \note A default empty implementation is provided.
+     */
+    virtual void initializeLevelData(
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double init_data_time,
+        const bool initial_time,
+        const LDataManager* const lag_manager);
+
+    /*!
+     * \brief Specify the number of distributed internal sources or
+     * sinks.
+     *
+     * \note The return value must be the \em total number of internal
+     * sources/sinks in the \em entire computational domain.  This
+     * implies that the return value must be \em identical on each MPI
+     * process.
+     */
     virtual int getNumSources(
         const int level_number) const = 0;
 
+    /*!
+     * \brief Compute the source locations for each of the distributed
+     * internal sources or sinks.
+     *
+     * \note Implementations of this method \em must compute the same
+     * values for \a X_src on \em each MPI process.  That is to say,
+     * \a X_src must provide the location of all of the distributed
+     * sources/sinks.
+     */
     virtual void getSourceLocations(
         std::vector<std::vector<double> >& X_src,
         vector<double>& r_src,
@@ -53,6 +84,15 @@ public:
         const double data_time,
         const LDataManager* const lag_manager) = 0;
 
+    /*!
+     * \brief Compute the source strengths for each of the distributed
+     * internal sources or sinks.
+     *
+     * \note Implementations of this method \em must compute the same
+     * values for \a Q_src on \em each MPI process.  That is to say,
+     * \a Q_src must provide the strengths of all of the distributed
+     * sources/sinks.
+     */
     virtual void computeSourceStrengths(
         std::vector<double>& Q_src,
         const std::vector<double>& P_src,
@@ -61,39 +101,26 @@ public:
         const int level_number,
         const double data_time) = 0;
 
-    /*!
-     * @brief Setup the data needed to compute source/sink data on the
-     * specified level of the patch hierarchy.
-     *
-     * NOTE: A default empty implementation is provided.
-     */
-    virtual void initializeLevelData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool initial_time,
-        const LDataManager* const lag_manager);
-
 private:
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
+     * \note This constructor is not implemented and should not be
      * used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     IBLagrangianSourceStrategy(
         const IBLagrangianSourceStrategy& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     IBLagrangianSourceStrategy& operator=(
         const IBLagrangianSourceStrategy& that);
