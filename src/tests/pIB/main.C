@@ -51,8 +51,14 @@ linear_spring_force(
     double F[NDIM],
     const double D[NDIM],
     const double& stf,
-    const double& rst)
+    const double& rst,
+    const int& lag_idx)
 {
+    (void) lag_idx;
+
+    /*
+     * Compute the distance between the "master" and "slave" nodes.
+     */
     double r_sq = 0.0;
     for (int d = 0; d < NDIM; ++d)
     {
@@ -60,6 +66,9 @@ linear_spring_force(
     }
     const double r = sqrt(r_sq);
 
+    /*
+     * Compute the force applied to the "master" node.
+     */
     if (rst > numeric_limits<double>::epsilon() &&
         r   > numeric_limits<double>::epsilon())
     {
@@ -353,10 +362,15 @@ int main(int argc, char* argv[])
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
         navier_stokes_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
+        tbox::Pointer<IBSpringForceGen> spring_force_generator =
+            new IBSpringForceGen();
+        spring_force_generator->registerSpringForceFunction(0,&linear_spring_force);
+        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator =
+            new IBTargetPointForceGen();
+
         tbox::Pointer<IBStandardForceGen> force_generator =
             new IBStandardForceGen(
-                input_db->getDatabase("IBStandardForceGen"));
-        force_generator->registerEdgeForceFunction(0,&linear_spring_force);
+                spring_force_generator, target_point_force_generator);
 
         tbox::Pointer<IBHierarchyIntegrator> time_integrator =
             new IBHierarchyIntegrator(

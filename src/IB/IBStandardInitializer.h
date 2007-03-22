@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <21.Mar.2007 18:19:05 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Mar.2007 00:04:39 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -168,9 +168,9 @@ private:
     void readVertexFiles();
 
     /*!
-     * \brief Read the edge data from one or more input files.
+     * \brief Read the spring data from one or more input files.
      */
-    void readEdgeFiles();
+    void readSpringFiles();
 
     /*!
      * \brief Read the target point data from one or more input files.
@@ -276,7 +276,7 @@ private:
     std::vector<std::vector<std::vector<double> > > d_vertex_posn;
 
     /*
-     * Edge information.
+     * Spring information.
      */
     typedef std::pair<int,int> Edge;
     struct EdgeComp
@@ -290,19 +290,19 @@ private:
                 return (e1.first < e2.first) || (e1.first == e2.first && e1.second < e2.second);
             }
     };
-    std::vector<std::vector<bool> > d_enable_edges;
-    std::vector<std::vector<std::multimap<int,Edge> > > d_edge_map;
-    std::vector<std::vector<std::map<Edge,double,EdgeComp> > > d_edge_stiffness, d_edge_rest_length;
-    std::vector<std::vector<std::map<Edge,int,EdgeComp> > > d_edge_force_fcn_idx;
+    std::vector<std::vector<bool> > d_enable_springs;
+    std::vector<std::vector<std::multimap<int,Edge> > > d_spring_edge_map;
+    std::vector<std::vector<std::map<Edge,double,EdgeComp> > > d_spring_stiffness, d_spring_rest_length;
+    std::vector<std::vector<std::map<Edge,int,EdgeComp> > > d_spring_force_fcn_idx;
 
-    std::vector<std::vector<bool> > d_using_uniform_edge_stiffness;
-    std::vector<std::vector<double> > d_uniform_edge_stiffness;
+    std::vector<std::vector<bool> > d_using_uniform_spring_stiffness;
+    std::vector<std::vector<double> > d_uniform_spring_stiffness;
 
-    std::vector<std::vector<bool> > d_using_uniform_edge_rest_length;
-    std::vector<std::vector<double> > d_uniform_edge_rest_length;
+    std::vector<std::vector<bool> > d_using_uniform_spring_rest_length;
+    std::vector<std::vector<double> > d_uniform_spring_rest_length;
 
-    std::vector<std::vector<bool> > d_using_uniform_edge_force_fcn_idx;
-    std::vector<std::vector<int> > d_uniform_edge_force_fcn_idx;
+    std::vector<std::vector<bool> > d_using_uniform_spring_force_fcn_idx;
+    std::vector<std::vector<int> > d_uniform_spring_force_fcn_idx;
 
     /*
      * Target point information.

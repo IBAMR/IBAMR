@@ -2,20 +2,13 @@
 #define included_IBSpringForceGen
 
 // Filename: IBSpringForceGen.h
-// Last modified: <21.Mar.2007 22:26:51 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2007 23:39:58 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/IBLagrangianForceStrategy.h>
-#include <ibamr/LDataManager.h>
-#include <ibamr/LNodeLevelData.h>
-
-// SAMRAI INCLUDES
-#include <PatchHierarchy.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
 
 // PETSc INCLUDES
 #include <petscmat.h>
@@ -156,8 +149,7 @@ private:
     /*!
      * \brief Read input values, indicated above, from given database.
      *
-     * When assertion checking is active, the database pointer must be
-     * non-null.
+     * The database pointer may be null.
      */
     void getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);

@@ -105,6 +105,7 @@ EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
 FLIBS = @FLIBS@
+GREP = @GREP@
 HAVE_DOT = @HAVE_DOT@
 HAVE_DOXYGEN = @HAVE_DOXYGEN@
 INSTALL_DATA = @INSTALL_DATA@
@@ -141,8 +142,6 @@ VERSION = @VERSION@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
-ac_ct_RANLIB = @ac_ct_RANLIB@
-ac_ct_STRIP = @ac_ct_STRIP@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -155,19 +154,26 @@ am__untar = @am__untar@
 bindir = @bindir@
 build_alias = @build_alias@
 datadir = @datadir@
+datarootdir = @datarootdir@
+docdir = @docdir@
+dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 host_alias = @host_alias@
+htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
+localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
+pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
+psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 subdirs = @subdirs@
@@ -179,12 +185,12 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.C
 EXTRA_DIST = input2d input3d generate_mesh2d.m curve2d_64.vertex \
-	curve2d_64.edge curve2d_128.vertex curve2d_128.edge \
-	curve2d_256.vertex curve2d_256.edge curve2d_512.vertex \
-	curve2d_512.edge shell2d_64.vertex shell2d_64.edge \
-	shell2d_128.vertex shell2d_128.edge shell2d_256.vertex \
-	shell2d_256.edge shell2d_512.vertex shell2d_512.edge \
-	sphere3d.vertex sphere3d.edge
+	curve2d_64.spring curve2d_128.vertex curve2d_128.spring \
+	curve2d_256.vertex curve2d_256.spring curve2d_512.vertex \
+	curve2d_512.spring shell2d_64.vertex shell2d_64.spring \
+	shell2d_128.vertex shell2d_128.spring shell2d_256.vertex \
+	shell2d_256.spring shell2d_512.vertex shell2d_512.spring \
+	sphere3d.vertex sphere3d.spring
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/stools/src/libSTOOLS2d.a $(top_builddir)/stools/src/libSTOOLS.a
 main2d_SOURCES = $(SOURCES)
@@ -458,9 +464,9 @@ uninstall-am: uninstall-info-am
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/curve2d_{64,128,256,512}.{vertex,edge} $(PWD) ; \
-	  cp -f $(srcdir)/shell2d_{64,128,256,512}.{vertex,edge} $(PWD) ; \
-	  cp -f $(srcdir)/sphere3d.{vertex,edge} $(PWD) ; \
+	  cp -f $(srcdir)/curve2d_{64,128,256,512}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/shell2d_{64,128,256,512}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/sphere3d.{vertex,spring} $(PWD) ; \
 	fi ;
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

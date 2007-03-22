@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <21.Mar.2007 22:59:06 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Mar.2007 00:41:21 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBSpringForceSpec.h>
+#include <ibamr/IBTargetPointForceSpec.h>
 #include <ibamr/LNodeIndexData.h>
 
 // STOOLS INCLUDES
@@ -25,6 +26,7 @@
 
 // SAMRAI INCLUDES
 #include <Box.h>
+#include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
 #include <CellIterator.h>
@@ -54,17 +56,17 @@ IBStandardInitializer::IBStandardInitializer(
       d_num_vertex(),
       d_vertex_offset(),
       d_vertex_posn(),
-      d_enable_edges(),
-      d_edge_map(),
-      d_edge_stiffness(),
-      d_edge_rest_length(),
-      d_edge_force_fcn_idx(),
-      d_using_uniform_edge_stiffness(),
-      d_uniform_edge_stiffness(),
-      d_using_uniform_edge_rest_length(),
-      d_uniform_edge_rest_length(),
-      d_using_uniform_edge_force_fcn_idx(),
-      d_uniform_edge_force_fcn_idx(),
+      d_enable_springs(),
+      d_spring_edge_map(),
+      d_spring_stiffness(),
+      d_spring_rest_length(),
+      d_spring_force_fcn_idx(),
+      d_using_uniform_spring_stiffness(),
+      d_uniform_spring_stiffness(),
+      d_using_uniform_spring_rest_length(),
+      d_uniform_spring_rest_length(),
+      d_using_uniform_spring_force_fcn_idx(),
+      d_uniform_spring_force_fcn_idx(),
       d_enable_target_points(),
       d_target_stiffness(),
       d_using_uniform_target_stiffness(),
@@ -83,9 +85,10 @@ IBStandardInitializer::IBStandardInitializer(
     assert(!input_db.isNull());
 #endif
 
-    // Register the force specification object with the
+    // Register the force specification objects with the
     // StashableManager class.
     IBSpringForceSpec::registerWithStashableManager();
+    IBTargetPointForceSpec::registerWithStashableManager();
 
     // Initialize object with data read from the input database.
     getFromInput(input_db);
@@ -114,8 +117,8 @@ IBStandardInitializer::IBStandardInitializer(
                 }
             }
 
-            // Process the (optional) edge information.
-            readEdgeFiles();
+            // Process the (optional) spring information.
+            readSpringFiles();
 
             // Process the (optional) target point information.
             readTargetPointFiles();
@@ -166,11 +169,11 @@ IBStandardInitializer::registerLagSiloDataWriter(
                 silo_writer->registerMarkerCloud(
                     d_base_filename[ln][j] + "_vertices",
                     d_num_vertex[ln][j], d_vertex_offset[ln][j], ln);
-                if (d_edge_map[ln][j].size() > 0)
+                if (d_spring_edge_map[ln][j].size() > 0)
                 {
                     silo_writer->registerUnstructuredMesh(
                         d_base_filename[ln][j] + "_mesh",
-                        d_edge_map[ln][j], ln);
+                        d_spring_edge_map[ln][j], ln);
                 }
             }
         }
@@ -225,6 +228,11 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     const bool can_be_refined,
     const bool initial_time)
 {
+    // Determine the extents of the physical domain.
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    const double* const XLower = grid_geom->getXLower();
+    const double* const XUpper = grid_geom->getXUpper();
+
     // Set the global index offset.  This is equal to the number of
     // Lagrangian indices that have already been initialized on the
     // specified level.
@@ -271,6 +279,32 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             for (int d = 0; d < NDIM; ++d)
             {
                 node_X[d] = X[d];
+
+                if (SAMRAI::tbox::Utilities::deq(X[d],XLower[d]))
+                {
+                    TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
+                               << "  encountered node intersecting lower physical boundary.\n"
+                               << "  please ensure that all nodes are within the computational domain."<< endl);
+                }
+                else if (X[d] <= XLower[d])
+                {
+                    TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
+                               << "  encountered node below lower physical boundary\n"
+                               << "  please ensure that all nodes are within the computational domain."<< endl);
+                }
+
+                if (SAMRAI::tbox::Utilities::deq(X[d],XUpper[d]))
+                {
+                    TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
+                               << "  encountered node intersecting upper physical boundary.\n"
+                               << "  please ensure that all nodes are within the computational domain."<< endl);
+                }
+                else if (X[d] >= XUpper[d])
+                {
+                    TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
+                               << "  encountered node above upper physical boundary\n"
+                               << "  please ensure that all nodes are within the computational domain."<< endl);
+                }
             }
 
             // Get the index of the cell in which the present vertex
@@ -511,25 +545,25 @@ IBStandardInitializer::readVertexFiles()
 }// readVertexFiles
 
 void
-IBStandardInitializer::readEdgeFiles()
+IBStandardInitializer::readSpringFiles()
 {
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
-        d_edge_map[ln].resize(num_base_filename);
-        d_edge_stiffness[ln].resize(num_base_filename);
-        d_edge_rest_length[ln].resize(num_base_filename);
-        d_edge_force_fcn_idx[ln].resize(num_base_filename);
+        d_spring_edge_map[ln].resize(num_base_filename);
+        d_spring_stiffness[ln].resize(num_base_filename);
+        d_spring_rest_length[ln].resize(num_base_filename);
+        d_spring_force_fcn_idx[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
-            const std::string edge_filename = d_base_filename[ln][j] + ".edge";
+            const std::string spring_filename = d_base_filename[ln][j] + ".spring";
             std::ifstream file_stream;
             std::string line_string;
-            file_stream.open(edge_filename.c_str(), std::ios::in);
+            file_stream.open(spring_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
             {
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing edge data from input filename " << edge_filename << endl
+                                   << "processing spring data from input filename " << spring_filename << endl
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
                 // The first line in the file indicates the number of
@@ -537,7 +571,7 @@ IBStandardInitializer::readEdgeFiles()
                 int num_edges;
                 if (!std::getline(file_stream, line_string))
                 {
-                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << edge_filename << endl);
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << spring_filename << endl);
                 }
                 else
                 {
@@ -545,17 +579,17 @@ IBStandardInitializer::readEdgeFiles()
                     std::istringstream line_stream(line_string);
                     if (!(line_stream >> num_edges))
                     {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << edge_filename << endl);
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << spring_filename << endl);
                     }
                 }
 
                 if (num_edges <= 0)
                 {
-                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << edge_filename << endl);
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << spring_filename << endl);
                 }
 
                 // Each successive line provides the connectivity and
-                // material parameter information for each edge in the
+                // material parameter information for each spring in the
                 // structure.
                 for (int k = 0; k < num_edges; ++k)
                 {
@@ -564,7 +598,7 @@ IBStandardInitializer::readEdgeFiles()
                     int force_fcn_idx;
                     if (!std::getline(file_stream, line_string))
                     {
-                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << edge_filename << endl);
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << spring_filename << endl);
                     }
                     else
                     {
@@ -572,41 +606,41 @@ IBStandardInitializer::readEdgeFiles()
                         std::istringstream line_stream(line_string);
                         if (!(line_stream >> e.first))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl);
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
                         }
                         else if ((e.first < 0) || (e.first >= d_num_vertex[ln][j]))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
                                        << "  vertex index " << e.first << " is out of range" << endl);
                         }
 
                         if (!(line_stream >> e.second))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl);
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
                         }
                         else if ((e.second < 0) || (e.second >= d_num_vertex[ln][j]))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
                                        << "  vertex index " << e.second << " is out of range" << endl);
                         }
 
                         if (!(line_stream >> kappa))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl);
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
                         }
                         else if (kappa < 0.0)
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
                                        << "  spring constant is negative" << endl);
                         }
 
                         if (!(line_stream >> length))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl);
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
                         }
                         else if (length < 0.0)
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << edge_filename << endl
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
                                        << "  spring resting length is negative" << endl);
                         }
 
@@ -617,27 +651,27 @@ IBStandardInitializer::readEdgeFiles()
                     }
 
                     // Modify kappa and length according to whether
-                    // edge forces are enabled, or whether uniform
+                    // spring forces are enabled, or whether uniform
                     // values are to be employed, for this particular
                     // structure.
-                    if (!d_enable_edges[ln][j])
+                    if (!d_enable_springs[ln][j])
                     {
                         kappa = 0.0;
                         length = 0.0;
                     }
                     else
                     {
-                        if (d_using_uniform_edge_stiffness[ln][j])
+                        if (d_using_uniform_spring_stiffness[ln][j])
                         {
-                            kappa = d_uniform_edge_stiffness[ln][j];
+                            kappa = d_uniform_spring_stiffness[ln][j];
                         }
-                        if (d_using_uniform_edge_rest_length[ln][j])
+                        if (d_using_uniform_spring_rest_length[ln][j])
                         {
-                            length = d_uniform_edge_rest_length[ln][j];
+                            length = d_uniform_spring_rest_length[ln][j];
                         }
-                        if (d_using_uniform_edge_force_fcn_idx[ln][j])
+                        if (d_using_uniform_spring_force_fcn_idx[ln][j])
                         {
-                            force_fcn_idx = d_uniform_edge_force_fcn_idx[ln][j];
+                            force_fcn_idx = d_uniform_spring_force_fcn_idx[ln][j];
                         }
                     }
 
@@ -656,8 +690,8 @@ IBStandardInitializer::readEdgeFiles()
                     // inserted in the edge map.
                     bool duplicate_edge = false;
                     for (std::multimap<int,Edge>::const_iterator it =
-                             d_edge_map[ln][j].lower_bound(e.first);
-                         it != d_edge_map[ln][j].upper_bound(e.first); ++it)
+                             d_spring_edge_map[ln][j].lower_bound(e.first);
+                         it != d_spring_edge_map[ln][j].upper_bound(e.first); ++it)
                     {
                         const Edge& other_e = (*it).second;
                         if (e.first  == other_e.first &&
@@ -670,17 +704,17 @@ IBStandardInitializer::readEdgeFiles()
                             // Ensure that the stiffness and rest
                             // length information is consistent.
                             if (!SAMRAI::tbox::Utilities::deq(
-                                    (*d_edge_stiffness[ln][j].find(e)).second, kappa) ||
+                                    (*d_spring_stiffness[ln][j].find(e)).second, kappa) ||
                                 !SAMRAI::tbox::Utilities::deq(
-                                    (*d_edge_rest_length[ln][j].find(e)).second, length) ||
+                                    (*d_spring_rest_length[ln][j].find(e)).second, length) ||
                                 !SAMRAI::tbox::Utilities::deq(
-                                    (*d_edge_force_fcn_idx[ln][j].find(e)).second, force_fcn_idx))
+                                    (*d_spring_force_fcn_idx[ln][j].find(e)).second, force_fcn_idx))
                             {
-                                TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << edge_filename << endl
+                                TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << spring_filename << endl
                                            << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << endl
-                                           << "  original spring constant = " << (*d_edge_stiffness[ln][j].find(e)).second << endl
-                                           << "  original resting length = " << (*d_edge_rest_length[ln][j].find(e)).second << endl
-                                           << "  original force function index = " << (*d_edge_force_fcn_idx[ln][j].find(e)).second << endl);
+                                           << "  original spring constant = " << (*d_spring_stiffness[ln][j].find(e)).second << endl
+                                           << "  original resting length = " << (*d_spring_rest_length[ln][j].find(e)).second << endl
+                                           << "  original force function index = " << (*d_spring_force_fcn_idx[ln][j].find(e)).second << endl);
                             }
                         }
                     }
@@ -692,10 +726,10 @@ IBStandardInitializer::readEdgeFiles()
                     // associated with only the first vertex.
                     if (!duplicate_edge)
                     {
-                        d_edge_map[ln][j].insert(std::make_pair(e.first,e));
-                        d_edge_stiffness[ln][j][e] = kappa;
-                        d_edge_rest_length[ln][j][e] = length;
-                        d_edge_force_fcn_idx[ln][j][e] = force_fcn_idx;
+                        d_spring_edge_map[ln][j].insert(std::make_pair(e.first,e));
+                        d_spring_stiffness[ln][j][e] = kappa;
+                        d_spring_rest_length[ln][j][e] = length;
+                        d_spring_force_fcn_idx[ln][j][e] = force_fcn_idx;
                     }
                 }
 
@@ -703,13 +737,13 @@ IBStandardInitializer::readEdgeFiles()
                 file_stream.close();
 
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_edges << " edges from input filename " << edge_filename << endl
+                                   << "read " << num_edges << " edges from input filename " << spring_filename << endl
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
             }
         }
     }
     return;
-}// readEdgeFiles
+}// readSpringFiles
 
 void
 IBStandardInitializer::readTargetPointFiles()
@@ -722,7 +756,7 @@ IBStandardInitializer::readTargetPointFiles()
         {
             d_target_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
 
-            const std::string target_point_stiffness_filename = d_base_filename[ln][j] + ".target_stiff";
+            const std::string target_point_stiffness_filename = d_base_filename[ln][j] + ".target";
             std::ifstream file_stream;
             std::string line_string;
             file_stream.open(target_point_stiffness_filename.c_str(), std::ios::in);
@@ -834,7 +868,7 @@ IBStandardInitializer::readBoundaryMassFiles()
             d_bdry_mass[ln][j].resize(d_num_vertex[ln][j], 0.0);
             d_bdry_mass_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
 
-            const std::string bdry_mass_filename = d_base_filename[ln][j] + ".bdry_mass";
+            const std::string bdry_mass_filename = d_base_filename[ln][j] + ".mass";
             std::ifstream file_stream;
             std::string line_string;
             file_stream.open(bdry_mass_filename.c_str(), std::ios::in);
@@ -1044,8 +1078,8 @@ IBStandardInitializer::initializeForceSpec(
 
     std::vector<int> slave_idxs, force_fcn_idxs;
     std::vector<double> stiffness, rest_length;
-    for (std::multimap<int,Edge>::const_iterator it = d_edge_map[level_number][j].lower_bound(master_idx);
-         it != d_edge_map[level_number][j].upper_bound(master_idx); ++it)
+    for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(master_idx);
+         it != d_spring_edge_map[level_number][j].upper_bound(master_idx); ++it)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         assert(master_idx == (*it).first);
@@ -1062,9 +1096,9 @@ IBStandardInitializer::initializeForceSpec(
         }
 
         // The material properties.
-        force_fcn_idxs.push_back((*d_edge_force_fcn_idx[level_number][j].find(e)).second);
-        stiffness     .push_back((*d_edge_stiffness    [level_number][j].find(e)).second);
-        rest_length   .push_back((*d_edge_rest_length  [level_number][j].find(e)).second);
+        force_fcn_idxs.push_back((*d_spring_force_fcn_idx[level_number][j].find(e)).second);
+        stiffness     .push_back((*d_spring_stiffness    [level_number][j].find(e)).second);
+        rest_length   .push_back((*d_spring_rest_length  [level_number][j].find(e)).second);
     }
 
     if (slave_idxs.size() > 0)
@@ -1074,12 +1108,14 @@ IBStandardInitializer::initializeForceSpec(
                 master_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length));
     }
 
-    const std::vector<double> X_target = getVertexPosn(point_index, level_number);
     const double kappa_target = getVertexTargetStiffness(point_index, level_number);
+    const std::vector<double> X_target = getVertexPosn(point_index, level_number);
 
     if (!SAMRAI::tbox::Utilities::deq(kappa_target,0.0))
     {
-
+        force_spec.push_back(
+            new IBTargetPointForceSpec(
+                kappa_target, X_target));
     }
 
     return force_spec;
@@ -1117,17 +1153,17 @@ IBStandardInitializer::getFromInput(
     d_num_vertex.resize(d_max_levels);
     d_vertex_offset.resize(d_max_levels);
     d_vertex_posn.resize(d_max_levels);
-    d_enable_edges.resize(d_max_levels);
-    d_edge_map.resize(d_max_levels);
-    d_edge_stiffness.resize(d_max_levels);
-    d_edge_rest_length.resize(d_max_levels);
-    d_edge_force_fcn_idx.resize(d_max_levels);
-    d_using_uniform_edge_stiffness.resize(d_max_levels);
-    d_uniform_edge_stiffness.resize(d_max_levels);
-    d_using_uniform_edge_rest_length.resize(d_max_levels);
-    d_uniform_edge_rest_length.resize(d_max_levels);
-    d_using_uniform_edge_force_fcn_idx.resize(d_max_levels);
-    d_uniform_edge_force_fcn_idx.resize(d_max_levels);
+    d_enable_springs.resize(d_max_levels);
+    d_spring_edge_map.resize(d_max_levels);
+    d_spring_stiffness.resize(d_max_levels);
+    d_spring_rest_length.resize(d_max_levels);
+    d_spring_force_fcn_idx.resize(d_max_levels);
+    d_using_uniform_spring_stiffness.resize(d_max_levels);
+    d_uniform_spring_stiffness.resize(d_max_levels);
+    d_using_uniform_spring_rest_length.resize(d_max_levels);
+    d_uniform_spring_rest_length.resize(d_max_levels);
+    d_using_uniform_spring_force_fcn_idx.resize(d_max_levels);
+    d_uniform_spring_force_fcn_idx.resize(d_max_levels);
     d_enable_target_points.resize(d_max_levels);
     d_target_stiffness.resize(d_max_levels);
     d_using_uniform_target_stiffness.resize(d_max_levels);
@@ -1165,16 +1201,16 @@ IBStandardInitializer::getFromInput(
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
 
-        d_enable_edges[ln].resize(num_base_filename,true);
+        d_enable_springs[ln].resize(num_base_filename,true);
 
-        d_using_uniform_edge_stiffness[ln].resize(num_base_filename,false);
-        d_uniform_edge_stiffness[ln].resize(num_base_filename,-1.0);
+        d_using_uniform_spring_stiffness[ln].resize(num_base_filename,false);
+        d_uniform_spring_stiffness[ln].resize(num_base_filename,-1.0);
 
-        d_using_uniform_edge_rest_length[ln].resize(num_base_filename,false);
-        d_uniform_edge_rest_length[ln].resize(num_base_filename,-1.0);
+        d_using_uniform_spring_rest_length[ln].resize(num_base_filename,false);
+        d_uniform_spring_rest_length[ln].resize(num_base_filename,-1.0);
 
-        d_using_uniform_edge_force_fcn_idx[ln].resize(num_base_filename,false);
-        d_uniform_edge_force_fcn_idx[ln].resize(num_base_filename,-1);
+        d_using_uniform_spring_force_fcn_idx[ln].resize(num_base_filename,false);
+        d_uniform_spring_force_fcn_idx[ln].resize(num_base_filename,-1);
 
         d_enable_target_points[ln].resize(num_base_filename,true);
 
@@ -1199,9 +1235,9 @@ IBStandardInitializer::getFromInput(
 
                 // Determine whether to enable or disable any
                 // particular features.
-                if (sub_db->keyExists("enable_edges"))
+                if (sub_db->keyExists("enable_springs"))
                 {
-                    d_enable_edges[ln][j] = sub_db->getBool("enable_edges");
+                    d_enable_springs[ln][j] = sub_db->getBool("enable_springs");
                 }
                 if (sub_db->keyExists("enable_target_points"))
                 {
@@ -1214,32 +1250,32 @@ IBStandardInitializer::getFromInput(
 
                 // Determine whether to use uniform values for any
                 // particular structure attributes.
-                if (sub_db->keyExists("uniform_edge_stiffness"))
+                if (sub_db->keyExists("uniform_spring_stiffness"))
                 {
-                    d_using_uniform_edge_stiffness[ln][j] = true;
-                    d_uniform_edge_stiffness[ln][j] = sub_db->getDouble("uniform_edge_stiffness");
+                    d_using_uniform_spring_stiffness[ln][j] = true;
+                    d_uniform_spring_stiffness[ln][j] = sub_db->getDouble("uniform_spring_stiffness");
 
-                    if (d_uniform_edge_stiffness[ln][j] < 0.0)
+                    if (d_uniform_spring_stiffness[ln][j] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_edge_stiffness' in database " << base_filename << endl
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_spring_stiffness' in database " << base_filename << endl
                                    << "  spring constant is negative" << endl);
                     }
                 }
-                if (sub_db->keyExists("uniform_edge_rest_length"))
+                if (sub_db->keyExists("uniform_spring_rest_length"))
                 {
-                    d_using_uniform_edge_rest_length[ln][j] = true;
-                    d_uniform_edge_rest_length[ln][j] = sub_db->getDouble("uniform_edge_rest_length");
+                    d_using_uniform_spring_rest_length[ln][j] = true;
+                    d_uniform_spring_rest_length[ln][j] = sub_db->getDouble("uniform_spring_rest_length");
 
-                    if (d_uniform_edge_rest_length[ln][j] < 0.0)
+                    if (d_uniform_spring_rest_length[ln][j] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_edge_rest_length' in database " << base_filename << endl
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_spring_rest_length' in database " << base_filename << endl
                                    << "  spring resting length is negative" << endl);
                     }
                 }
-                if (sub_db->keyExists("uniform_edge_force_fcn_idx"))
+                if (sub_db->keyExists("uniform_spring_force_fcn_idx"))
                 {
-                    d_using_uniform_edge_force_fcn_idx[ln][j] = true;
-                    d_uniform_edge_force_fcn_idx[ln][j] = sub_db->getInteger("uniform_edge_force_fcn_idx");
+                    d_using_uniform_spring_force_fcn_idx[ln][j] = true;
+                    d_uniform_spring_force_fcn_idx[ln][j] = sub_db->getInteger("uniform_spring_force_fcn_idx");
                 }
 
                 if (sub_db->keyExists("uniform_target_stiffness"))
@@ -1292,27 +1328,27 @@ IBStandardInitializer::getFromInput(
             SAMRAI::tbox::pout << "  base filename: " << base_filename << endl
                                << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << endl
                                << "     required files: " << base_filename << ".vertex" << endl
-                               << "     optional files: " << base_filename << ".edge, " << base_filename << ".target_stiff, " << base_filename << ".bdry_mass" << endl;
-            if (!d_enable_edges[ln][j])
+                               << "     optional files: " << base_filename << ".spring, " << base_filename << ".target, " << base_filename << ".mass" << endl;
+            if (!d_enable_springs[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: edge forces are DISABLED for " << base_filename << endl;
+                SAMRAI::tbox::pout << "  NOTE: spring forces are DISABLED for " << base_filename << endl;
             }
             else
             {
-                if (d_using_uniform_edge_stiffness[ln][j])
+                if (d_using_uniform_spring_stiffness[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform edge stiffnesses are being employed for " << base_filename << endl
-                                       << "        any stiffness information in file " << base_filename << ".vertex will be IGNORED" << endl;
+                    SAMRAI::tbox::pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << base_filename << endl
+                                       << "        any stiffness information in optional file " << base_filename << ".spring will be IGNORED" << endl;
                 }
-                if (d_using_uniform_edge_rest_length[ln][j])
+                if (d_using_uniform_spring_rest_length[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform edge resting lengths are being employed for " << base_filename << endl
-                                       << "        any resting length information in file " << base_filename << ".vertex will be IGNORED" << endl;
+                    SAMRAI::tbox::pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << base_filename << endl
+                                       << "        any resting length information in optional file " << base_filename << ".spring will be IGNORED" << endl;
                 }
-                if (d_using_uniform_edge_force_fcn_idx[ln][j])
+                if (d_using_uniform_spring_force_fcn_idx[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform force functions are being employed for " << base_filename << endl
-                                       << "        any force function index information in file " << base_filename << ".vertex will be IGNORED" << endl;
+                    SAMRAI::tbox::pout << "  NOTE: uniform spring force functions are being employed for the structure named " << base_filename << endl
+                                       << "        any force function index information in optional file " << base_filename << ".spring will be IGNORED" << endl;
                 }
             }
 
@@ -1324,8 +1360,8 @@ IBStandardInitializer::getFromInput(
             {
                 if (d_using_uniform_target_stiffness[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform target point stiffnesses are being employed for " << base_filename << endl
-                                       << "        any target point stiffness information in file " << base_filename << ".vertex will be IGNORED" << endl;
+                    SAMRAI::tbox::pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << base_filename << endl
+                                       << "        any target point stiffness information in optional file " << base_filename << ".target will be IGNORED" << endl;
                 }
             }
 
@@ -1337,13 +1373,13 @@ IBStandardInitializer::getFromInput(
             {
                 if (d_using_uniform_bdry_mass[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform boundary point masses are being employed for " << base_filename << endl
-                                       << "        any boundary point mass information in file " << base_filename << ".vertex will be IGNORED" << endl;
+                    SAMRAI::tbox::pout << "  NOTE: uniform boundary point masses are being employed for the structure named " << base_filename << endl
+                                       << "        any boundary point mass information in optional file " << base_filename << ".mass will be IGNORED" << endl;
                 }
                 if (d_using_uniform_bdry_mass_stiffness[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform massive boundary point stiffnesses are being employed for " << base_filename << endl
-                                       << "        any massive boundary point stiffness information in file " << base_filename << ".vertex will be IGNORED" << endl;
+                    SAMRAI::tbox::pout << "  NOTE: uniform massive boundary point stiffnesses are being employed for the structure named " << base_filename << endl
+                                       << "        any massive boundary point stiffness information in optional file " << base_filename << ".mass will be IGNORED" << endl;
                 }
             }
 

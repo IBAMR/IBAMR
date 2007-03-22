@@ -348,9 +348,14 @@ int main(int argc, char* argv[])
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
         navier_stokes_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
+        tbox::Pointer<IBSpringForceGen> spring_force_generator =
+            new IBSpringForceGen();
+        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator =
+            new IBTargetPointForceGen();
+
         tbox::Pointer<IBStandardForceGen> force_generator =
             new IBStandardForceGen(
-                input_db->getDatabase("IBStandardForceGen"));
+                spring_force_generator, target_point_force_generator);
 
         tbox::Pointer<IBHierarchyIntegrator> time_integrator =
             new IBHierarchyIntegrator(

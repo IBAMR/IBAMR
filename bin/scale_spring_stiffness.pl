@@ -1,23 +1,23 @@
 #!/usr/bin/perl -w
 #
-# filename: set_edge_stiffness.pl
+# filename: scale_spring_stiffness.pl
 # author: Boyce Griffith
-# usage: set_edge_stiffness.pl <input filename> <stiffness> <output filename>
+# usage: scale_spring_stiffness.pl <input filename> <scale factor> <output filename>
 #
-# A simple Perl script to set the edge stiffnesses in an IBAMR input
-# file by a uniform, user-specified amount.
+# A simple Perl script to scale the spring stiffnesses in an IBAMR
+# input file by a uniform, user-specified amount.
 
 if ($#ARGV != 2) {
-    die "incorrect number of command line arguments.\nusage:\n  set_edge_stiffness.pl <input filename> <stiffness> <output filename>\n";
+    die "incorrect number of command line arguments.\nusage:\n  scale_spring_stiffness.pl <input filename> <scale factor> <output filename>\n";
 }
 
 # parse the command line arguments
 $input_filename = shift @ARGV;  chomp $input_filename;
-$stiff = shift @ARGV;  chomp $stiff;
+$scale = shift @ARGV;  chomp $scale;
 $output_filename = shift @ARGV;  chomp $output_filename;
 
 print "input file: $input_filename\n";
-print "stiffness: $stiff\n";
+print "scale factor: $scale\n";
 print "output file: $output_filename\n";
 
 # open the input and output files
@@ -71,7 +71,7 @@ while (<IN>) {
 	$a = $line[$i];
 
 	if ($i == 2) {
-	    $a = $stiff; # reset the stiffness
+	    $a = $scale*$a; # rescale the stiffness
 	}
 
 	if (($i == 0 || $i == 1 || $i == 4) && ($a =~ /^[+-]?\d+$/)) {

@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <16.Mar.2007 23:47:29 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <21.Mar.2007 20:23:11 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -259,9 +259,6 @@ public:
      * simulation data is set properly for the advanceHierarchy()
      * function to be called.  In particular, on each level
      * constructed only the data needed for initialization exists.
-     *
-     * When assertion checking is active, the hierachy database
-     * pointer must be non-null.
      */
     virtual double initializeHierarchy();
 
@@ -804,7 +801,7 @@ private:
      * set to false.
      *
      * When assertion checking is active, the database pointer must be
-     * non-null.  Otherwise, all your base are belong to us.
+     * non-null.
      */
     void getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,

@@ -85,13 +85,13 @@ fclose(vertex_fid);
 % Step 2: Write out the link information (including connectivity and
 % material parameters).
 if (generate_coarse_mesh)
-  edge_fid = fopen(["shell2d_crse_" num2str(16*NFINEST) ".edge"], "w");
+  spring_fid = fopen(["shell2d_crse_" num2str(16*NFINEST) ".spring"], "w");
 else
-  edge_fid = fopen(["shell2d_fine_" num2str(16*NFINEST) ".edge"], "w");
+  spring_fid = fopen(["shell2d_fine_" num2str(16*NFINEST) ".spring"], "w");
 end %if
 
 % first line is the number of edges in the file
-fprintf(edge_fid, "%d\n", num_mesh_layers*num_nodes);
+fprintf(spring_fid, "%d\n", num_mesh_layers*num_nodes);
 
 offset = 0;
 
@@ -137,7 +137,7 @@ for r = 0:num_layers
       kappa = r_fac*stiffness*num_nodes;  % scale by 1/ds = num_nodes
       rest_length = 0.0;                  % resting length of link
 
-      fprintf(edge_fid, "%6d %6d %1.16e %1.16e\n", current_idx, next_idx, ...
+      fprintf(spring_fid, "%6d %6d %1.16e %1.16e\n", current_idx, next_idx, ...
               kappa, rest_length);
     end %for
 
@@ -145,6 +145,6 @@ for r = 0:num_layers
   end %if
 end %for
 
-fclose(edge_fid);
+fclose(spring_fid);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

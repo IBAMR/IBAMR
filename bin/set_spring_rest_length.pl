@@ -1,23 +1,23 @@
 #!/usr/bin/perl -w
 #
-# filename: scale_edge_rest_length.pl
+# filename: set_spring_rest_length.pl
 # author: Boyce Griffith
-# usage: scale_edge_rest_length.pl <input filename> <scale factor> <output filename>
+# usage: set_spring_rest_length.pl <input filename> <rest length> <output filename>
 #
-# A simple Perl script to scale the edge rest lengths in an IBAMR
-# input file by a uniform, user-specified amount.
+# A simple Perl script to set the spring rest lengths in an IBAMR input
+# file by a uniform, user-specified amount.
 
 if ($#ARGV != 2) {
-    die "incorrect number of command line arguments.\nusage:\n  scale_edge_rest_length.pl <input filename> <scale factor> <output filename>\n";
+    die "incorrect number of command line arguments.\nusage:\n  set_spring_rest_length.pl <input filename> <rest length> <output filename>\n";
 }
 
 # parse the command line arguments
 $input_filename = shift @ARGV;  chomp $input_filename;
-$scale = shift @ARGV;  chomp $scale;
+$rest_length = shift @ARGV;  chomp $rest_length;
 $output_filename = shift @ARGV;  chomp $output_filename;
 
 print "input file: $input_filename\n";
-print "scale factor: $scale\n";
+print "stiffness: $rest_length\n";
 print "output file: $output_filename\n";
 
 # open the input and output files
@@ -71,7 +71,7 @@ while (<IN>) {
 	$a = $line[$i];
 
 	if ($i == 3) {
-	    $a = $scale*$a; # rescale the rest length
+	    $a = $rest_length; # reset the rest length
 	}
 
 	if (($i == 0 || $i == 1 || $i == 4) && ($a =~ /^[+-]?\d+$/)) {

@@ -38,10 +38,10 @@ fclose(vertex_fid);
 
 % Step 2: Write out the link information (including connectivity and
 % material parameters).
-edge_fid = fopen(["shell2d_" num2str(16*NFINEST) ".edge"], "w");
+spring_fid = fopen(["shell2d_" num2str(16*NFINEST) ".spring"], "w");
 
 % first line is the number of edges in the file
-fprintf(edge_fid, "%d\n", num_layers*num_nodes);
+fprintf(spring_fid, "%d\n", num_layers*num_nodes);
 
 % remaining lines are the edges in the mesh
 for r = 0:num_layers-1
@@ -62,11 +62,11 @@ for r = 0:num_layers-1
     kappa = r_fac*stiffness*num_nodes;  % scale by 1/ds = num_nodes
     rest_length = 0.0;                  % resting length of link
 
-    fprintf(edge_fid, "%6d %6d %1.16e %1.16e\n", current_idx, next_idx, ...
+    fprintf(spring_fid, "%6d %6d %1.16e %1.16e\n", current_idx, next_idx, ...
             kappa, rest_length);
   end %for
 end %for
 
-fclose(edge_fid);
+fclose(spring_fid);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

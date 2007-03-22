@@ -1,27 +1,14 @@
-#ifndef included_IBTargetForceGen
-#define included_IBTargetForceGen
+#ifndef included_IBTargetPointForceGen
+#define included_IBTargetPointForceGen
 
-// Filename: IBTargetForceGen.h
-// Last modified: <21.Mar.2007 20:13:26 griffith@box221.cims.nyu.edu>
+// Filename: IBTargetPointForceGen.h
+// Last modified: <21.Mar.2007 23:47:44 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/IBLagrangianForceStrategy.h>
-#include <ibamr/LDataManager.h>
-#include <ibamr/LNodeLevelData.h>
-
-// SAMRAI INCLUDES
-#include <PatchHierarchy.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-// PETSc INCLUDES
-#include <petscmat.h>
-
-// C++ STDLIB INCLUDES
-#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -29,23 +16,23 @@ namespace IBAMR
 {
 
 /*!
- * \brief Class IBTargetForceGen computes the penalty forces
+ * \brief Class IBTargetPointForceGen computes the penalty forces
  * associated with a collection of target points.
  */
-class IBTargetForceGen
+class IBTargetPointForceGen
     : public IBLagrangianForceStrategy
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    IBTargetForceGen(
+    IBTargetPointForceGen(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBTargetForceGen();
+    virtual ~IBTargetPointForceGen();
 
     /*!
      * \brief Compute the penalty forces determined with the present
@@ -71,8 +58,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBTargetForceGen(
-        const IBTargetForceGen& from);
+    IBTargetPointForceGen(
+        const IBTargetPointForceGen& from);
 
     /*!
      * \brief Assignment operator.
@@ -83,14 +70,13 @@ private:
      *
      * \return A reference to this object.
      */
-    IBTargetForceGen& operator=(
-        const IBTargetForceGen& that);
+    IBTargetPointForceGen& operator=(
+        const IBTargetPointForceGen& that);
 
     /*!
      * \brief Read input values, indicated above, from given database.
      *
-     * When assertion checking is active, the database pointer must be
-     * non-null.
+     * The database pointer may be null.
      */
     void getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
@@ -99,8 +85,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBTargetForceGen.I>
+//#include <ibamr/IBTargetPointForceGen.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTargetForceGen
+#endif //#ifndef included_IBTargetPointForceGen

@@ -4,13 +4,13 @@ include $(top_srcdir)/config/Make-rules
 ## Dimension-dependent testers
 SOURCES = main.C
 EXTRA_DIST  = input2d
-EXTRA_DIST += fila_1024.vertex fila_1024.edge fila_1024.target_stiff
+EXTRA_DIST += fila_1024.vertex fila_1024.spring fila_1024.target
 
 check_PROGRAMS = main2d
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d $(PWD) ; \
-	  cp -f $(srcdir)/fila_1024.{vertex,edge,target_stiff} $(PWD) ; \
+	  cp -f $(srcdir)/fila_1024.{vertex,spring,target} $(PWD) ; \
 	fi ;
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

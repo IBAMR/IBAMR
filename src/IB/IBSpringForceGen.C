@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <21.Mar.2007 22:13:35 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2007 23:01:56 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -382,10 +382,10 @@ void
 IBSpringForceGen::getFromInput(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
-#endif
-    // intentionally blank
+    if (!db.isNull())
+    {
+        // intentionally blank
+    }
     return;
 }// getFromInput
 

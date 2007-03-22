@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <16.Mar.2007 21:38:39 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <21.Mar.2007 18:18:04 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -390,7 +390,7 @@ private:
      * set to false.
      *
      * When assertion checking is active, the database pointer must be
-     * non-null.  Otherwise, all your base are belong to us.
+     * non-null.
      */
     void getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,

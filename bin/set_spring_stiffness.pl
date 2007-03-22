@@ -1,23 +1,23 @@
 #!/usr/bin/perl -w
 #
-# filename: set_edge_rest_length.pl
+# filename: set_spring_stiffness.pl
 # author: Boyce Griffith
-# usage: set_edge_rest_length.pl <input filename> <rest length> <output filename>
+# usage: set_spring_stiffness.pl <input filename> <stiffness> <output filename>
 #
-# A simple Perl script to set the edge rest lengths in an IBAMR input
+# A simple Perl script to set the spring stiffnesses in an IBAMR input
 # file by a uniform, user-specified amount.
 
 if ($#ARGV != 2) {
-    die "incorrect number of command line arguments.\nusage:\n  set_edge_rest_length.pl <input filename> <rest length> <output filename>\n";
+    die "incorrect number of command line arguments.\nusage:\n  set_spring_stiffness.pl <input filename> <stiffness> <output filename>\n";
 }
 
 # parse the command line arguments
 $input_filename = shift @ARGV;  chomp $input_filename;
-$rest_length = shift @ARGV;  chomp $rest_length;
+$stiff = shift @ARGV;  chomp $stiff;
 $output_filename = shift @ARGV;  chomp $output_filename;
 
 print "input file: $input_filename\n";
-print "stiffness: $rest_length\n";
+print "stiffness: $stiff\n";
 print "output file: $output_filename\n";
 
 # open the input and output files
@@ -70,8 +70,8 @@ while (<IN>) {
     for ($i = 0; $i <= $#line; $i++) {
 	$a = $line[$i];
 
-	if ($i == 3) {
-	    $a = $rest_length; # reset the rest length
+	if ($i == 2) {
+	    $a = $stiff; # reset the stiffness
 	}
 
 	if (($i == 0 || $i == 1 || $i == 4) && ($a =~ /^[+-]?\d+$/)) {

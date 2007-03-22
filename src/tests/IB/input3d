@@ -34,10 +34,6 @@ IBStandardInitializer {
    base_filenames_1 = "sphere3d"
 }
 
-IBStandardForceGen {
-   // intentionally blank
-}
-
 LocationIndexRobinBcCoefs_u0 {
    boundary_0 = "value", "0.0"  // lower x boundary condition
    boundary_1 = "value", "0.0"  // upper x boundary condition

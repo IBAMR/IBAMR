@@ -5,8 +5,8 @@ ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST  = autogen.sh
 EXTRA_DIST += bin/includes.pl
-EXTRA_DIST += bin/scale_edge_rest_length.pl bin/scale_edge_stiffness.pl
-EXTRA_DIST += bin/set_edge_rest_length.pl bin/set_edge_stiffness.pl
+EXTRA_DIST += bin/scale_spring_rest_length.pl bin/scale_spring_stiffness.pl
+EXTRA_DIST += bin/set_spring_rest_length.pl bin/set_spring_stiffness.pl
 EXTRA_DIST += doc/Doxyfile
 EXTRA_DIST += doc/libstdc++.tag
 EXTRA_DIST += include/ibamr/AdvDiffHierarchyIntegrator.h
@@ -54,8 +54,8 @@ all-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(top_srcdir)/sample/IB/input[23]d $(top_builddir)/sample/IB ; \
 	  cp -f $(top_srcdir)/sample/IB/main.C $(top_builddir)/sample/IB ; \
-	  cp -f $(top_srcdir)/sample/IB/shell2d_64.{edge,vertex} $(top_builddir)/sample/IB ; \
-	  cp -f $(top_srcdir)/sample/IB/sphere3d.{edge,vertex} $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/shell2d_64.{spring,vertex} $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/sphere3d.{spring,vertex} $(top_builddir)/sample/IB ; \
 	fi ;
 
 

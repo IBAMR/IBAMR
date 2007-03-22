@@ -1,5 +1,5 @@
 // Filename: IBSpringForceSpec.C
-// Last modified: <21.Mar.2007 22:01:31 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2007 23:18:51 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceSpec.h"
@@ -147,7 +147,7 @@ IBSpringForceSpec::getStiffnesses() const
     return d_stiffnesses;
 }// getStiffnesses
 
-vector<double>&
+std::vector<double>&
 IBSpringForceSpec::getStiffnesses()
 {
     return d_stiffnesses;
@@ -159,7 +159,7 @@ IBSpringForceSpec::getRestingLengths() const
     return d_rest_lengths;
 }// getRestingLengths
 
-vector<double>&
+std::vector<double>&
 IBSpringForceSpec::getRestingLengths()
 {
     return d_rest_lengths;

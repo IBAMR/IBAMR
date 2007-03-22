@@ -1,8 +1,8 @@
-// Filename: IBSpringForceSpecFactory.C
-// Last modified: <21.Mar.2007 23:22:12 griffith@box221.cims.nyu.edu>
+// Filename: IBTargetPointForceSpecFactory.C
+// Last modified: <21.Mar.2007 23:30:26 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
-#include "IBSpringForceSpecFactory.h"
+#include "IBTargetPointForceSpecFactory.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -17,7 +17,7 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/IBSpringForceSpec.h>
+#include <ibamr/IBTargetPointForceSpec.h>
 #include <ibamr/StashableManager.h>
 
 // C++ STDLIB INCLUDES
@@ -29,30 +29,30 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-int IBSpringForceSpecFactory::s_stashable_id = -1;
+int IBTargetPointForceSpecFactory::s_stashable_id = -1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBSpringForceSpecFactory::IBSpringForceSpecFactory()
+IBTargetPointForceSpecFactory::IBTargetPointForceSpecFactory()
 {
     setStashableID(StashableManager::getUnregisteredID());
     return;
-}// IBSpringForceSpecFactory
+}// IBTargetPointForceSpecFactory
 
-IBSpringForceSpecFactory::~IBSpringForceSpecFactory()
+IBTargetPointForceSpecFactory::~IBTargetPointForceSpecFactory()
 {
     // intentionally blank
     return;
-}// ~IBSpringForceSpecFactory
+}// ~IBTargetPointForceSpecFactory
 
 int
-IBSpringForceSpecFactory::getStashableID() const
+IBTargetPointForceSpecFactory::getStashableID() const
 {
     return s_stashable_id;
 }// getStashableID
 
 void
-IBSpringForceSpecFactory::setStashableID(
+IBTargetPointForceSpecFactory::setStashableID(
     const int stashable_id)
 {
     s_stashable_id = stashable_id;
@@ -60,20 +60,15 @@ IBSpringForceSpecFactory::setStashableID(
 }// setStashableID
 
 SAMRAI::tbox::Pointer<Stashable>
-IBSpringForceSpecFactory::unpackStream(
+IBTargetPointForceSpecFactory::unpackStream(
     SAMRAI::tbox::AbstractStream& stream,
     const SAMRAI::hier::IntVector<NDIM>& offset)
 {
-    int master_idx, num_springs;
-    stream.unpack(&master_idx,1);
-    stream.unpack(&num_springs,1);
-    std::vector<int> slave_idxs(num_springs), force_fcn_idxs(num_springs);
-    std::vector<double> stiffnesses(num_springs), rest_lengths(num_springs);
-    stream.unpack(&slave_idxs[0],num_springs);
-    stream.unpack(&force_fcn_idxs[0],num_springs);
-    stream.unpack(&stiffnesses[0],num_springs);
-    stream.unpack(&rest_lengths[0],num_springs);
-    return new IBSpringForceSpec(master_idx,slave_idxs,force_fcn_idxs,stiffnesses,rest_lengths);
+    double kappa_target;
+    stream.unpack(&kappa_target,1);
+    std::vector<double> X_target(NDIM);
+    stream.unpack(&X_target[0],NDIM);
+    return new IBTargetPointForceSpec(kappa_target,X_target);
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
@@ -87,6 +82,6 @@ IBSpringForceSpecFactory::unpackStream(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBSpringForceSpecFactory>;
+template class SAMRAI::tbox::Pointer<IBAMR::IBTargetPointForceSpecFactory>;
 
 //////////////////////////////////////////////////////////////////////////////

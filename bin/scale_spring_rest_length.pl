@@ -1,14 +1,14 @@
 #!/usr/bin/perl -w
 #
-# filename: scale_edge_stiffness.pl
+# filename: scale_spring_rest_length.pl
 # author: Boyce Griffith
-# usage: scale_edge_stiffness.pl <input filename> <scale factor> <output filename>
+# usage: scale_spring_rest_length.pl <input filename> <scale factor> <output filename>
 #
-# A simple Perl script to scale the edge stiffnesses in an IBAMR
+# A simple Perl script to scale the spring rest lengths in an IBAMR
 # input file by a uniform, user-specified amount.
 
 if ($#ARGV != 2) {
-    die "incorrect number of command line arguments.\nusage:\n  scale_edge_stiffness.pl <input filename> <scale factor> <output filename>\n";
+    die "incorrect number of command line arguments.\nusage:\n  scale_spring_rest_length.pl <input filename> <scale factor> <output filename>\n";
 }
 
 # parse the command line arguments
@@ -70,8 +70,8 @@ while (<IN>) {
     for ($i = 0; $i <= $#line; $i++) {
 	$a = $line[$i];
 
-	if ($i == 2) {
-	    $a = $scale*$a; # rescale the stiffness
+	if ($i == 3) {
+	    $a = $scale*$a; # rescale the rest length
 	}
 
 	if (($i == 0 || $i == 1 || $i == 4) && ($a =~ /^[+-]?\d+$/)) {

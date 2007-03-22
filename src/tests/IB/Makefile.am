@@ -5,23 +5,23 @@ include $(top_srcdir)/config/Make-rules
 SOURCES = main.C
 EXTRA_DIST  = input2d input3d
 EXTRA_DIST += generate_mesh2d.m
-EXTRA_DIST += curve2d_64.vertex curve2d_64.edge
-EXTRA_DIST += curve2d_128.vertex curve2d_128.edge
-EXTRA_DIST += curve2d_256.vertex curve2d_256.edge
-EXTRA_DIST += curve2d_512.vertex curve2d_512.edge
-EXTRA_DIST += shell2d_64.vertex shell2d_64.edge
-EXTRA_DIST += shell2d_128.vertex shell2d_128.edge
-EXTRA_DIST += shell2d_256.vertex shell2d_256.edge
-EXTRA_DIST += shell2d_512.vertex shell2d_512.edge
-EXTRA_DIST += sphere3d.vertex sphere3d.edge
+EXTRA_DIST += curve2d_64.vertex curve2d_64.spring
+EXTRA_DIST += curve2d_128.vertex curve2d_128.spring
+EXTRA_DIST += curve2d_256.vertex curve2d_256.spring
+EXTRA_DIST += curve2d_512.vertex curve2d_512.spring
+EXTRA_DIST += shell2d_64.vertex shell2d_64.spring
+EXTRA_DIST += shell2d_128.vertex shell2d_128.spring
+EXTRA_DIST += shell2d_256.vertex shell2d_256.spring
+EXTRA_DIST += shell2d_512.vertex shell2d_512.spring
+EXTRA_DIST += sphere3d.vertex sphere3d.spring
 
 check_PROGRAMS = main2d main3d
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/curve2d_{64,128,256,512}.{vertex,edge} $(PWD) ; \
-	  cp -f $(srcdir)/shell2d_{64,128,256,512}.{vertex,edge} $(PWD) ; \
-	  cp -f $(srcdir)/sphere3d.{vertex,edge} $(PWD) ; \
+	  cp -f $(srcdir)/curve2d_{64,128,256,512}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/shell2d_{64,128,256,512}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/sphere3d.{vertex,spring} $(PWD) ; \
 	fi ;
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
