@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <22.Mar.2007 19:26:20 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Mar.2007 20:51:40 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -125,6 +125,9 @@ IBStandardInitializer::IBStandardInitializer(
 
             // Process the (optional) spring information.
             readSpringFiles();
+
+            // Process the (optional) beam information.
+            readBeamFiles();
 
             // Process the (optional) target point information.
             readTargetPointFiles();
@@ -1260,8 +1263,13 @@ IBStandardInitializer::initializeForceSpec(
     for (std::multimap<int,std::pair<Neighbors,double> >::const_iterator it = d_beam_specs[level_number][j].lower_bound(mastr_idx);
          it != d_beam_specs[level_number][j].upper_bound(mastr_idx); ++it)
     {
-        beam_neighbor_idxs.push_back((*it).second.first);
-        beam_bend_rigidity.push_back((*it).second.second);
+        const std::pair<int,int>& neighbor_idxs = (*it).second.first;
+        const double& bend_rigidity = (*it).second.second;
+        if (!SAMRAI::tbox::Utilities::deq(bend_rigidity,0.0))
+        {
+            beam_neighbor_idxs.push_back(neighbor_idxs);
+            beam_bend_rigidity.push_back(bend_rigidity);
+        }
     }
 
     if (!beam_neighbor_idxs.empty())
