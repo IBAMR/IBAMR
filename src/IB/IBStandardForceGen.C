@@ -29,6 +29,7 @@ IBStandardForceGen::IBStandardForceGen(
     SAMRAI::tbox::Pointer<IBBeamForceGen> beam_force_gen,
     SAMRAI::tbox::Pointer<IBTargetPointForceGen> target_point_force_gen)
     : d_spring_force_gen(spring_force_gen),
+      d_beam_force_gen(beam_force_gen),
       d_target_point_force_gen(target_point_force_gen)
 {
     if (d_spring_force_gen.isNull())

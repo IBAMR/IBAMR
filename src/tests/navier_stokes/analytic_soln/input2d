@@ -68,10 +68,10 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                        = 0.9975e0  // max cfl factor used in problem
-      cfl_init                   = 0.9975e0  // initial cfl factor
-      lag_dt_computation         = FALSE
-      using_ghosts_to_compute_dt = FALSE
+      cfl                      = 0.9975e0  // max cfl factor used in problem
+      cfl_init                 = 0.9975e0  // initial cfl factor
+      lag_dt_computation       = FALSE
+      use_ghosts_to_compute_dt = FALSE
    }
 
    max_iterations = 25
