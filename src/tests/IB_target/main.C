@@ -457,20 +457,24 @@ int main(int argc, char* argv[])
         ofstream drag_stream, lift_stream;
         if (tbox::MPI::getRank() == 0)
         {
-            drag_stream.open("C_D.curve", ios::out);
-            lift_stream.open("C_L.curve", ios::out);
+            drag_stream.open("C_D.curve", tbox::RestartManager::getManager()->isFromRestart() ? ios::app : ios::out);
+            lift_stream.open("C_L.curve", tbox::RestartManager::getManager()->isFromRestart() ? ios::app : ios::out);
 
             drag_stream.setf(ios_base::scientific);
             drag_stream.setf(ios_base::showpos);
             drag_stream.setf(ios_base::showpoint);
             drag_stream.width(16); drag_stream.precision(15);
-            drag_stream << 0.0 << " " << 0.0 << endl;
 
             lift_stream.setf(ios_base::scientific);
             lift_stream.setf(ios_base::showpos);
             lift_stream.setf(ios_base::showpoint);
             lift_stream.width(16); lift_stream.precision(15);
-            lift_stream << 0.0 << " " << 0.0 << endl;
+
+            if (!tbox::RestartManager::getManager()->isFromRestart())
+            {
+                drag_stream << 0.0 << " " << 0.0 << endl;
+                lift_stream << 0.0 << " " << 0.0 << endl;
+            }
         }
 #endif
 
@@ -578,6 +582,18 @@ int main(int argc, char* argv[])
                     iteration_num, loop_time);
             }
         }
+
+#if (NDIM == 2)
+        /*
+         * Close the files used to store the lift and drag
+         * coefficients.
+         */
+        if (tbox::MPI::getRank() == 0)
+        {
+            drag_stream.close();
+            lift_stream.close();
+        }
+#endif
     }// cleanup all smart Pointers prior to shutdown
 
     tbox::SAMRAIManager::shutdown();

@@ -467,6 +467,24 @@ int main(int argc, char* argv[])
         }
 
         /*
+         * Open file to output the coordinates of the end of the
+         * fillament.
+         */
+        ofstream X_stream;
+        if (tbox::MPI::getRank() == 0)
+        {
+            X_stream.open("X.coords", tbox::RestartManager::getManager()->isFromRestart() ? ios::app : ios::out);
+            X_stream.setf(ios_base::scientific);
+            X_stream.setf(ios_base::showpoint);
+            if (!tbox::RestartManager::getManager()->isFromRestart())
+            {
+                X_stream << "time            x-coord         y-coord\n";
+            }
+            X_stream.width(9);
+            X_stream.precision(8);
+        }
+
+        /*
          * Time step loop.  Note that the step count and integration
          * time are maintained by the time integrator object.
          */
@@ -495,6 +513,51 @@ int main(int argc, char* argv[])
             tbox::pout << "Simulation time is " << loop_time                 << endl;
             tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
             tbox::pout <<                                                       endl;
+
+            /*
+             * Determine the coordinates of the free end of the
+             * filament.
+             */
+            int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
+            LDataManager* lag_manager = time_integrator->getLDataManager();
+
+            vector<int> X_idx(1,-1);
+            X_idx[0] = lag_manager->getNumberOfNodes(finest_hier_level) - 1;
+            lag_manager->mapLagrangianToPETSc(X_idx, finest_hier_level);
+
+            tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData(
+                "X", finest_hier_level);
+            Vec X_vec = X_data->getGlobalVec();
+
+            int ilower, iupper;
+            int ierr = VecGetOwnershipRange(X_vec, &ilower, &iupper);  PETSC_SAMRAI_ERROR(ierr);
+            ilower /= NDIM;
+            iupper /= NDIM;
+
+            vector<double> X(NDIM,0.0);
+            if (ilower <= X_idx[0] && X_idx[0] < iupper)
+            {
+                vector<int> idxs(NDIM);
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    idxs[d] = NDIM*X_idx[0]+d;
+                }
+                ierr = VecGetValues(X_vec, NDIM, &idxs[0], &X[0]);  PETSC_SAMRAI_ERROR(ierr);
+            }
+            tbox::MPI::sumReduction(&X[0],NDIM);
+
+            /*
+             * Output the coordinates of the free end of the filament.
+             */
+            if (tbox::MPI::getRank() == 0)
+            {
+                X_stream << loop_time;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X_stream << "  " << X[d];
+                }
+                X_stream << endl;
+            }
 
             /*
              * At specified intervals, write restart and visualization files.
@@ -530,6 +593,16 @@ int main(int argc, char* argv[])
                     iteration_num, loop_time);
             }
         }
+
+        /*
+         * Close the file used to store the coordinates of the end of
+         * the filament.
+         */
+        if (tbox::MPI::getRank() == 0)
+        {
+            X_stream.close();
+        }
+
     }// cleanup all smart Pointers prior to shutdown
 
     tbox::SAMRAIManager::shutdown();
