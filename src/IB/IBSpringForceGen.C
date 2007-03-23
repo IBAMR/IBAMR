@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <21.Mar.2007 23:01:56 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Mar.2007 18:31:42 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -53,6 +53,7 @@ IBSpringForceGen::IBSpringForceGen(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_D_mats(),
       d_lag_mastr_node_idxs(),
+      d_lag_slave_node_idxs(),
       d_petsc_mastr_node_idxs(),
       d_petsc_slave_node_idxs(),
       d_force_fcn_idxs(),
@@ -82,9 +83,13 @@ IBSpringForceGen::IBSpringForceGen(
 
 IBSpringForceGen::~IBSpringForceGen()
 {
+    int ierr;
     for (std::vector<Mat>::iterator it = d_D_mats.begin(); it != d_D_mats.end(); ++it)
     {
-        if (*it) MatDestroy(*it);
+        if (*it)
+        {
+            ierr = MatDestroy(*it);  PETSC_SAMRAI_ERROR(ierr);
+        }
     }
     return;
 }// ~IBSpringForceGen
@@ -92,7 +97,7 @@ IBSpringForceGen::~IBSpringForceGen()
 void
 IBSpringForceGen::registerSpringForceFunction(
     const int force_fcn_index,
-    void (*force_fcn)(double F[NDIM], const double D[NDIM], const double& stf, const double& rst, const int& idx))
+    void (*force_fcn)(double F[NDIM], const double D[NDIM], const double& stf, const double& rst, const int& lag_mastr_idx, const int& lag_slave_idx))
 {
     d_force_fcn_map[force_fcn_index] = force_fcn;
     return;
@@ -126,6 +131,7 @@ IBSpringForceGen::initializeLevelData(
 
     d_D_mats.resize(new_size);
     d_lag_mastr_node_idxs.resize(new_size);
+    d_lag_slave_node_idxs.resize(new_size);
     d_petsc_mastr_node_idxs.resize(new_size);
     d_petsc_slave_node_idxs.resize(new_size);
     d_force_fcn_idxs.resize(new_size);
@@ -135,6 +141,7 @@ IBSpringForceGen::initializeLevelData(
 
     Mat& D_mat = d_D_mats[level_num];
     std::vector<int>& lag_mastr_node_idxs = d_lag_mastr_node_idxs[level_num];
+    std::vector<int>& lag_slave_node_idxs = d_lag_slave_node_idxs[level_num];
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_num];
     std::vector<int>& petsc_slave_node_idxs = d_petsc_slave_node_idxs[level_num];
     std::vector<int>& force_fcn_idxs = d_force_fcn_idxs[level_num];
@@ -143,10 +150,10 @@ IBSpringForceGen::initializeLevelData(
 
     if (D_mat)
     {
-        ierr = MatDestroy(D_mat);
-        PETSC_SAMRAI_ERROR(ierr);
+        ierr = MatDestroy(D_mat);  PETSC_SAMRAI_ERROR(ierr);
     }
     lag_mastr_node_idxs.clear();
+    lag_slave_node_idxs.clear();
     petsc_mastr_node_idxs.clear();
     petsc_slave_node_idxs.clear();
     force_fcn_idxs.clear();
@@ -159,7 +166,6 @@ IBSpringForceGen::initializeLevelData(
 
     // Determine the "master" and "slave" node indices for all springs
     // associated with the present MPI process.
-    std::vector<int> mastr_node_idxs, slave_node_idxs;
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -176,7 +182,7 @@ IBSpringForceGen::initializeLevelData(
                      n != node_set.end(); ++n)
                 {
                     const LNodeIndexSet::value_type& node_idx = *n;
-                    const int& lag_idx = node_idx->getLagrangianIndex();
+                    const int& mastr_idx = node_idx->getLagrangianIndex();
                     const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
                         node_idx->getStashData();
                     for (unsigned l = 0; l < stash_data.size(); ++l)
@@ -186,7 +192,7 @@ IBSpringForceGen::initializeLevelData(
                         {
                             const unsigned num_springs = force_spec->getNumberOfSprings();
 #ifdef DEBUG_CHECK_ASSERTIONS
-                            assert(lag_idx == force_spec->getMasterNodeIndex());
+                            assert(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
                             const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
                             const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
@@ -200,11 +206,11 @@ IBSpringForceGen::initializeLevelData(
 #endif
                             if (num_springs > 0)
                             {
-                                mastr_node_idxs.insert(mastr_node_idxs.end(), num_springs, lag_idx);
-                                slave_node_idxs.insert(slave_node_idxs.end(), slv.begin(), slv.end());
-                                force_fcn_idxs .insert(force_fcn_idxs .end(), fcn.begin(), fcn.end());
-                                stiffnesses    .insert(stiffnesses    .end(), stf.begin(), stf.end());
-                                rest_lengths   .insert(rest_lengths   .end(), rst.begin(), rst.end());
+                                lag_mastr_node_idxs.insert(lag_mastr_node_idxs.end(), num_springs, mastr_idx);
+                                lag_slave_node_idxs.insert(lag_slave_node_idxs.end(), slv.begin(), slv.end());
+                                force_fcn_idxs.insert(force_fcn_idxs.end(), fcn.begin(), fcn.end());
+                                stiffnesses   .insert(stiffnesses   .end(), stf.begin(), stf.end());
+                                rest_lengths  .insert(rest_lengths  .end(), rst.begin(), rst.end());
                             }
                         }
                     }
@@ -213,12 +219,10 @@ IBSpringForceGen::initializeLevelData(
         }
     }
 
-    lag_mastr_node_idxs = mastr_node_idxs;
-    petsc_mastr_node_idxs = mastr_node_idxs;
-    petsc_slave_node_idxs = slave_node_idxs;
-
     // Map the Lagrangian master/slave node indices to the PETSc
     // indices corresponding to the present data distribution.
+    petsc_mastr_node_idxs = lag_mastr_node_idxs;
+    petsc_slave_node_idxs = lag_slave_node_idxs;
     lag_manager->mapLagrangianToPETSc(petsc_mastr_node_idxs, level_num);
     lag_manager->mapLagrangianToPETSc(petsc_slave_node_idxs, level_num);
 
@@ -324,12 +328,11 @@ IBSpringForceGen::computeLagrangianForce(
 
     // Compute the spring forces acting on the nodes of the Lagrangian
     // mesh.
-    Vec F_vec = F_data->getGlobalVec();
-
     double* D_arr;
     ierr = VecGetArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
 
     std::vector<int>& lag_mastr_node_idxs = d_lag_mastr_node_idxs[level_number];
+    std::vector<int>& lag_slave_node_idxs = d_lag_slave_node_idxs[level_number];
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
     std::vector<int>& petsc_slave_node_idxs = d_petsc_slave_node_idxs[level_number];
     std::vector<int>& force_fcn_idxs = d_force_fcn_idxs[level_number];
@@ -346,11 +349,12 @@ IBSpringForceGen::computeLagrangianForce(
         // node.
         double* const F_mastr_node = &F_mastr_node_arr[k*NDIM];
         const double* const D = &D_arr[k*NDIM];
-        const int& lag_id = lag_mastr_node_idxs[k];
+        const int& lag_mastr_idx = lag_mastr_node_idxs[k];
+        const int& lag_slave_idx = lag_slave_node_idxs[k];
         const int& force_fcn_id = force_fcn_idxs[k];
         const double& stf = stiffnesses[k];
         const double& rst = rest_lengths[k];
-        d_force_fcn_map[force_fcn_id](F_mastr_node,D,stf,rst,lag_id);
+        d_force_fcn_map[force_fcn_id](F_mastr_node,D,stf,rst,lag_mastr_idx,lag_slave_idx);
 
         // Compute the force applied by the spring to the
         // corresponding "slave" node.
@@ -364,9 +368,9 @@ IBSpringForceGen::computeLagrangianForce(
     ierr = VecRestoreArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecDestroy(D_vec);               PETSC_SAMRAI_ERROR(ierr);
 
+    Vec F_vec = F_data->getGlobalVec();
     ierr = VecSetValuesBlocked(F_vec, petsc_mastr_node_idxs.size(), &petsc_mastr_node_idxs[0], &F_mastr_node_arr[0], ADD_VALUES);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecSetValuesBlocked(F_vec, petsc_slave_node_idxs.size(), &petsc_slave_node_idxs[0], &F_slave_node_arr[0], ADD_VALUES);  PETSC_SAMRAI_ERROR(ierr);
-
     ierr = VecAssemblyBegin(F_vec);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecAssemblyEnd(F_vec);    PETSC_SAMRAI_ERROR(ierr);
 

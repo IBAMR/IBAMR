@@ -1,6 +1,6 @@
 // Filename: IBTargetPointForceSpecFactory.C
-// Last modified: <21.Mar.2007 23:30:26 griffith@box221.cims.nyu.edu>
-// Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
+// Last modified: <22.Mar.2007 19:22:00 griffith@box221.cims.nyu.edu>
+// Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceSpecFactory.h"
 
@@ -64,11 +64,13 @@ IBTargetPointForceSpecFactory::unpackStream(
     SAMRAI::tbox::AbstractStream& stream,
     const SAMRAI::hier::IntVector<NDIM>& offset)
 {
+    int mastr_idx;
+    stream.unpack(&mastr_idx,1);
     double kappa_target;
     stream.unpack(&kappa_target,1);
     std::vector<double> X_target(NDIM);
     stream.unpack(&X_target[0],NDIM);
-    return new IBTargetPointForceSpec(kappa_target,X_target);
+    return new IBTargetPointForceSpec(mastr_idx,kappa_target,X_target);
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

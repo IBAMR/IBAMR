@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <22.Mar.2007 00:41:21 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Mar.2007 19:26:20 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -17,6 +17,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/IBBeamForceSpec.h>
 #include <ibamr/IBSpringForceSpec.h>
 #include <ibamr/IBTargetPointForceSpec.h>
 #include <ibamr/LNodeIndexData.h>
@@ -67,6 +68,10 @@ IBStandardInitializer::IBStandardInitializer(
       d_uniform_spring_rest_length(),
       d_using_uniform_spring_force_fcn_idx(),
       d_uniform_spring_force_fcn_idx(),
+      d_enable_beams(),
+      d_beam_specs(),
+      d_using_uniform_beam_bend_rigidity(),
+      d_uniform_beam_bend_rigidity(),
       d_enable_target_points(),
       d_target_stiffness(),
       d_using_uniform_target_stiffness(),
@@ -88,6 +93,7 @@ IBStandardInitializer::IBStandardInitializer(
     // Register the force specification objects with the
     // StashableManager class.
     IBSpringForceSpec::registerWithStashableManager();
+    IBBeamForceSpec::registerWithStashableManager();
     IBTargetPointForceSpec::registerWithStashableManager();
 
     // Initialize object with data read from the input database.
@@ -746,6 +752,147 @@ IBStandardInitializer::readSpringFiles()
 }// readSpringFiles
 
 void
+IBStandardInitializer::readBeamFiles()
+{
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        d_beam_specs[ln].resize(num_base_filename);
+        for (int j = 0; j < num_base_filename; ++j)
+        {
+            const std::string beam_filename = d_base_filename[ln][j] + ".beam";
+            std::ifstream file_stream;
+            std::string line_string;
+            file_stream.open(beam_filename.c_str(), std::ios::in);
+            if (file_stream.is_open())
+            {
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "processing beam data from input filename " << beam_filename << endl
+                                   << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+
+                // The first line in the file indicates the number of
+                // beams in the input file.
+                int num_beams;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << beam_filename << endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_beams))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << beam_filename << endl);
+                    }
+                }
+
+                if (num_beams <= 0)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << beam_filename << endl);
+                }
+
+                // Each successive line provides the connectivity and
+                // material parameter information for each beam in the
+                // structure.
+                for (int k = 0; k < num_beams; ++k)
+                {
+                    int prev_idx, curr_idx, next_idx;
+                    double kappa;
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << beam_filename << endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+                        std::istringstream line_stream(line_string);
+                        if (!(line_stream >> prev_idx))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << endl);
+                        }
+                        else if ((prev_idx < 0) || (prev_idx >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << endl
+                                       << "  vertex index " << prev_idx << " is out of range" << endl);
+                        }
+
+                        if (!(line_stream >> curr_idx))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << endl);
+                        }
+                        else if ((curr_idx < 0) || (curr_idx >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << endl
+                                       << "  vertex index " << curr_idx << " is out of range" << endl);
+                        }
+
+                        if (!(line_stream >> next_idx))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << endl);
+                        }
+                        else if ((next_idx < 0) || (next_idx >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << endl
+                                       << "  vertex index " << next_idx << " is out of range" << endl);
+                        }
+
+                        if (!(line_stream >> kappa))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << endl);
+                        }
+                        else if (kappa < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << endl
+                                       << "  beam constant is negative" << endl);
+                        }
+                    }
+
+                    // Modify kappa according to whether beam forces
+                    // are enabled, or whether uniform values are to
+                    // be employed, for this particular structure.
+                    if (!d_enable_beams[ln][j])
+                    {
+                        kappa = 0.0;
+                    }
+                    else
+                    {
+                        if (d_using_uniform_beam_bend_rigidity[ln][j])
+                        {
+                            kappa = d_uniform_beam_bend_rigidity[ln][j];
+                        }
+                    }
+
+                    // Correct the node numbers to be in the global
+                    // Lagrangian indexing scheme.
+                    prev_idx += d_vertex_offset[ln][j];
+                    curr_idx += d_vertex_offset[ln][j];
+                    next_idx += d_vertex_offset[ln][j];
+
+                    // Initialize the map data corresponding to the
+                    // present beam.
+                    //
+                    // Note that in the beam property map, each edge
+                    // is associated with only the "current" vertex.
+                    d_beam_specs[ln][j].insert(
+                        std::make_pair(
+                            curr_idx, std::make_pair(
+                                std::make_pair(next_idx,prev_idx),kappa)));
+                }
+
+                // Close the input file.
+                file_stream.close();
+
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "read " << num_beams << " beams from input filename " << beam_filename << endl
+                                   << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+            }
+        }
+    }
+    return;
+}// readBeamFiles
+
+void
 IBStandardInitializer::readTargetPointFiles()
 {
     for (int ln = 0; ln < d_max_levels; ++ln)
@@ -1074,19 +1221,19 @@ IBStandardInitializer::initializeForceSpec(
     std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec;
 
     const int j = point_index.first;
-    const int master_idx = getCannonicalLagrangianIndex(point_index, level_number);
+    const int mastr_idx = getCannonicalLagrangianIndex(point_index, level_number);
 
     std::vector<int> slave_idxs, force_fcn_idxs;
     std::vector<double> stiffness, rest_length;
-    for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(master_idx);
-         it != d_spring_edge_map[level_number][j].upper_bound(master_idx); ++it)
+    for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
+         it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(master_idx == (*it).first);
+        assert(mastr_idx == (*it).first);
 #endif
         // The connectivity information.
         const Edge& e = (*it).second;
-        if (e.first == master_idx)
+        if (e.first == mastr_idx)
         {
             slave_idxs.push_back(e.second+global_index_offset);
         }
@@ -1105,7 +1252,23 @@ IBStandardInitializer::initializeForceSpec(
     {
         force_spec.push_back(
             new IBSpringForceSpec(
-                master_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length));
+                mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length));
+    }
+
+    std::vector<std::pair<int,int> > beam_neighbor_idxs;
+    std::vector<double> beam_bend_rigidity;
+    for (std::multimap<int,std::pair<Neighbors,double> >::const_iterator it = d_beam_specs[level_number][j].lower_bound(mastr_idx);
+         it != d_beam_specs[level_number][j].upper_bound(mastr_idx); ++it)
+    {
+        beam_neighbor_idxs.push_back((*it).second.first);
+        beam_bend_rigidity.push_back((*it).second.second);
+    }
+
+    if (!beam_neighbor_idxs.empty())
+    {
+        force_spec.push_back(
+            new IBBeamForceSpec(
+                mastr_idx, beam_neighbor_idxs, beam_bend_rigidity));
     }
 
     const double kappa_target = getVertexTargetStiffness(point_index, level_number);
@@ -1115,7 +1278,7 @@ IBStandardInitializer::initializeForceSpec(
     {
         force_spec.push_back(
             new IBTargetPointForceSpec(
-                kappa_target, X_target));
+                mastr_idx, kappa_target, X_target));
     }
 
     return force_spec;
@@ -1150,9 +1313,11 @@ IBStandardInitializer::getFromInput(
 
     // Resize the vectors that are indexed by the level number.
     d_base_filename.resize(d_max_levels);
+
     d_num_vertex.resize(d_max_levels);
     d_vertex_offset.resize(d_max_levels);
     d_vertex_posn.resize(d_max_levels);
+
     d_enable_springs.resize(d_max_levels);
     d_spring_edge_map.resize(d_max_levels);
     d_spring_stiffness.resize(d_max_levels);
@@ -1164,10 +1329,17 @@ IBStandardInitializer::getFromInput(
     d_uniform_spring_rest_length.resize(d_max_levels);
     d_using_uniform_spring_force_fcn_idx.resize(d_max_levels);
     d_uniform_spring_force_fcn_idx.resize(d_max_levels);
+
+    d_enable_beams.resize(d_max_levels);
+    d_beam_specs.resize(d_max_levels);
+    d_using_uniform_beam_bend_rigidity.resize(d_max_levels);
+    d_uniform_beam_bend_rigidity.resize(d_max_levels);
+
     d_enable_target_points.resize(d_max_levels);
     d_target_stiffness.resize(d_max_levels);
     d_using_uniform_target_stiffness.resize(d_max_levels);
     d_uniform_target_stiffness.resize(d_max_levels);
+
     d_enable_bdry_mass.resize(d_max_levels);
     d_bdry_mass.resize(d_max_levels);
     d_bdry_mass_stiffness.resize(d_max_levels);
@@ -1175,6 +1347,7 @@ IBStandardInitializer::getFromInput(
     d_uniform_bdry_mass.resize(d_max_levels);
     d_using_uniform_bdry_mass_stiffness.resize(d_max_levels);
     d_uniform_bdry_mass_stiffness.resize(d_max_levels);
+
     d_global_index_offset.resize(d_max_levels);
 
     // Determine the various input file names.
@@ -1212,6 +1385,11 @@ IBStandardInitializer::getFromInput(
         d_using_uniform_spring_force_fcn_idx[ln].resize(num_base_filename,false);
         d_uniform_spring_force_fcn_idx[ln].resize(num_base_filename,-1);
 
+        d_enable_beams[ln].resize(num_base_filename,true);
+
+        d_using_uniform_beam_bend_rigidity[ln].resize(num_base_filename,false);
+        d_uniform_beam_bend_rigidity[ln].resize(num_base_filename,-1.0);
+
         d_enable_target_points[ln].resize(num_base_filename,true);
 
         d_using_uniform_target_stiffness[ln].resize(num_base_filename,false);
@@ -1238,6 +1416,10 @@ IBStandardInitializer::getFromInput(
                 if (sub_db->keyExists("enable_springs"))
                 {
                     d_enable_springs[ln][j] = sub_db->getBool("enable_springs");
+                }
+                if (sub_db->keyExists("enable_beams"))
+                {
+                    d_enable_beams[ln][j] = sub_db->getBool("enable_beams");
                 }
                 if (sub_db->keyExists("enable_target_points"))
                 {
@@ -1276,6 +1458,18 @@ IBStandardInitializer::getFromInput(
                 {
                     d_using_uniform_spring_force_fcn_idx[ln][j] = true;
                     d_uniform_spring_force_fcn_idx[ln][j] = sub_db->getInteger("uniform_spring_force_fcn_idx");
+                }
+
+                if (sub_db->keyExists("uniform_beam_bend_rigidity"))
+                {
+                    d_using_uniform_beam_bend_rigidity[ln][j] = true;
+                    d_uniform_beam_bend_rigidity[ln][j] = sub_db->getDouble("uniform_beam_bend_rigidity");
+
+                    if (d_uniform_beam_bend_rigidity[ln][j] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_beam_bend_rigidity' in database " << base_filename << endl
+                                   << "  beam bending rigidity is negative" << endl);
+                    }
                 }
 
                 if (sub_db->keyExists("uniform_target_stiffness"))
@@ -1328,7 +1522,7 @@ IBStandardInitializer::getFromInput(
             SAMRAI::tbox::pout << "  base filename: " << base_filename << endl
                                << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << endl
                                << "     required files: " << base_filename << ".vertex" << endl
-                               << "     optional files: " << base_filename << ".spring, " << base_filename << ".target, " << base_filename << ".mass" << endl;
+                               << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".target, " << base_filename << ".mass" << endl;
             if (!d_enable_springs[ln][j])
             {
                 SAMRAI::tbox::pout << "  NOTE: spring forces are DISABLED for " << base_filename << endl;
@@ -1349,6 +1543,19 @@ IBStandardInitializer::getFromInput(
                 {
                     SAMRAI::tbox::pout << "  NOTE: uniform spring force functions are being employed for the structure named " << base_filename << endl
                                        << "        any force function index information in optional file " << base_filename << ".spring will be IGNORED" << endl;
+                }
+            }
+
+            if (!d_enable_beams[ln][j])
+            {
+                SAMRAI::tbox::pout << "  NOTE: beam forces are DISABLED for " << base_filename << endl;
+            }
+            else
+            {
+                if (d_using_uniform_beam_bend_rigidity[ln][j])
+                {
+                    SAMRAI::tbox::pout << "  NOTE: uniform beam bending rigidities are being employed for the structure named " << base_filename << endl
+                                       << "        any stiffness information in optional file " << base_filename << ".beam will be IGNORED" << endl;
                 }
             }
 

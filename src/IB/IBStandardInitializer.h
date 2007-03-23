@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <22.Mar.2007 00:04:39 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Mar.2007 18:51:21 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -25,7 +25,7 @@ namespace IBAMR
  * that can intialize the initial configuration of one or more IB
  * structures from input files.
  *
- * \todo document input database entries
+ * \todo Document input database entries and input file formats.
  */
 class IBStandardInitializer
     : public LNodeInitStrategy
@@ -173,6 +173,11 @@ private:
     void readSpringFiles();
 
     /*!
+     * \brief Read the beam data from one or more input files.
+     */
+    void readBeamFiles();
+
+    /*!
      * \brief Read the target point data from one or more input files.
      */
     void readTargetPointFiles();
@@ -303,6 +308,16 @@ private:
 
     std::vector<std::vector<bool> > d_using_uniform_spring_force_fcn_idx;
     std::vector<std::vector<int> > d_uniform_spring_force_fcn_idx;
+
+    /*
+     * Beam information.
+     */
+    typedef std::pair<int,int> Neighbors;
+    std::vector<std::vector<bool> > d_enable_beams;
+    std::vector<std::vector<std::multimap<int,std::pair<Neighbors,double> > > > d_beam_specs;
+
+    std::vector<std::vector<bool> > d_using_uniform_beam_bend_rigidity;
+    std::vector<std::vector<double> > d_uniform_beam_bend_rigidity;
 
     /*
      * Target point information.

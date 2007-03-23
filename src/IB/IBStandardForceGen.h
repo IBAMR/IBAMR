@@ -3,11 +3,12 @@
 
 // Filename: IBStandardForceGen.h
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <21.Mar.2007 23:48:20 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Mar.2007 18:39:10 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
+#include <ibamr/IBBeamForceGen.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
 #include <ibamr/IBSpringForceGen.h>
 #include <ibamr/IBTargetPointForceGen.h>
@@ -38,6 +39,7 @@ public:
      */
     IBStandardForceGen(
         SAMRAI::tbox::Pointer<IBSpringForceGen> spring_force_gen,
+        SAMRAI::tbox::Pointer<IBBeamForceGen> beam_force_gen,
         SAMRAI::tbox::Pointer<IBTargetPointForceGen> target_point_force_gen);
 
     /*!
@@ -107,6 +109,11 @@ private:
      * The object used to compute the spring forces.
      */
     SAMRAI::tbox::Pointer<IBSpringForceGen> d_spring_force_gen;
+
+    /*!
+     * The object used to compute the beam forces.
+     */
+    SAMRAI::tbox::Pointer<IBBeamForceGen> d_beam_force_gen;
 
     /*!
      * The object used to compute the target point penalty forces.

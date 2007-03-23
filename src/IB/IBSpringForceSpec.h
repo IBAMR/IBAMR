@@ -2,7 +2,7 @@
 #define included_IBSpringForceSpec
 
 // Filename: IBSpringForceSpec.h
-// Last modified: <21.Mar.2007 22:01:19 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Mar.2007 17:38:38 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -63,10 +63,10 @@ public:
      */
     IBSpringForceSpec(
         const int master_idx=-1,
-        const std::vector<int>& slave_idxs=vector<int>(),
-        const std::vector<int>& force_fcn_idxs=vector<int>(),
-        const std::vector<double>& stiffnesses=vector<double>(),
-        const std::vector<double>& rest_lengths=vector<double>());
+        const std::vector<int>& slave_idxs=std::vector<int>(),
+        const std::vector<int>& force_fcn_idxs=std::vector<int>(),
+        const std::vector<double>& stiffnesses=std::vector<double>(),
+        const std::vector<double>& rest_lengths=std::vector<double>());
 
     /*!
      * \brief Virtual destructor.

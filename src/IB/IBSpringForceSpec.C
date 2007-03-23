@@ -1,5 +1,5 @@
 // Filename: IBSpringForceSpec.C
-// Last modified: <21.Mar.2007 23:18:51 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Mar.2007 19:20:51 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceSpec.h"
@@ -102,6 +102,12 @@ IBSpringForceSpec::~IBSpringForceSpec()
 unsigned
 IBSpringForceSpec::getNumberOfSprings() const
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(d_num_springs == static_cast<int>(d_slave_idxs.size()));
+    assert(d_num_springs == static_cast<int>(d_force_fcn_idxs.size()));
+    assert(d_num_springs == static_cast<int>(d_stiffnesses.size()));
+    assert(d_num_springs == static_cast<int>(d_rest_lengths.size()));
+#endif
     return d_num_springs;
 }// getNumberOfSprings
 
@@ -188,8 +194,8 @@ IBSpringForceSpec::packStream(
     assert(d_num_springs == static_cast<int>(d_stiffnesses.size()));
     assert(d_num_springs == static_cast<int>(d_rest_lengths.size()));
 #endif
-    stream.pack(&d_master_idx,1);
     stream.pack(&d_num_springs,1);
+    stream.pack(&d_master_idx,1);
     stream.pack(&d_slave_idxs[0],d_num_springs);
     stream.pack(&d_force_fcn_idxs[0],d_num_springs);
     stream.pack(&d_stiffnesses[0],d_num_springs);

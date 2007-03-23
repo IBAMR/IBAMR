@@ -10,6 +10,9 @@ libIBAMR_a_SOURCES = # intentionally blank
 
 ## Dimension-dependent libraries
 libIBAMR2d_a_LIBADD = \
+IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
+IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
+IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
 IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
 IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
 IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
@@ -56,6 +59,9 @@ utilities/libIBAMR_utilities2d_a-get_version.o
 libIBAMR2d_a_SOURCES = # intentionally blank
 
 libIBAMR3d_a_LIBADD = \
+IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
+IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
+IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
 IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
 IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
 IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \

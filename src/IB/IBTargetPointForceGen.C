@@ -1,6 +1,6 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <21.Mar.2007 23:48:30 griffith@box221.cims.nyu.edu>
-// Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
+// Last modified: <22.Mar.2007 19:25:48 griffith@box221.cims.nyu.edu>
+// Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
 
@@ -139,6 +139,10 @@ IBTargetPointForceGen::computeLagrangianForce(
                         SAMRAI::tbox::Pointer<IBTargetPointForceSpec> force_spec = stash_data[l];
                         if (!force_spec.isNull())
                         {
+#ifdef DEBUG_CHECK_ASSERTIONS
+                            const int& mastr_idx = node_idx->getLagrangianIndex();
+                            assert(mastr_idx == force_spec->getMasterNodeIndex());
+#endif
                             const double& kappa_target = force_spec->getStiffness();
                             if (!SAMRAI::tbox::Utilities::deq(kappa_target,0.0))
                             {

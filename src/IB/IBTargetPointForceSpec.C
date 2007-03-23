@@ -1,6 +1,6 @@
 // Filename: IBTargetPointForceSpec.C
-// Last modified: <21.Mar.2007 23:30:18 griffith@box221.cims.nyu.edu>
-// Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
+// Last modified: <22.Mar.2007 19:34:50 griffith@box221.cims.nyu.edu>
+// Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceSpec.h"
 
@@ -66,9 +66,11 @@ IBTargetPointForceSpec::getIsRegisteredWithStashableManager()
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBTargetPointForceSpec::IBTargetPointForceSpec(
+    const int master_idx,
     const double& kappa_target,
     const std::vector<double>& X_target)
-    : d_kappa_target(kappa_target),
+    : d_master_idx(master_idx),
+      d_kappa_target(kappa_target),
       d_X_target(X_target)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -88,6 +90,18 @@ IBTargetPointForceSpec::~IBTargetPointForceSpec()
     // intentionally blank
     return;
 }// ~IBTargetPointForceSpec
+
+const int&
+IBTargetPointForceSpec::getMasterNodeIndex() const
+{
+    return d_master_idx;
+}// getMasterNodeIndex
+
+int&
+IBTargetPointForceSpec::getMasterNodeIndex()
+{
+    return d_master_idx;
+}// getMasterNodeIndex
 
 const double&
 IBTargetPointForceSpec::getStiffness() const
@@ -122,7 +136,8 @@ IBTargetPointForceSpec::getStashableID() const
 size_t
 IBTargetPointForceSpec::getDataStreamSize() const
 {
-    return ((1+NDIM)*SAMRAI::tbox::AbstractStream::sizeofDouble());
+    return ((1     )*SAMRAI::tbox::AbstractStream::sizeofInt() +
+            (1+NDIM)*SAMRAI::tbox::AbstractStream::sizeofDouble());
 }// getDataStreamSize
 
 void
@@ -132,6 +147,7 @@ IBTargetPointForceSpec::packStream(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(NDIM == static_cast<int>(d_X_target.size()));
 #endif
+    stream.pack(&d_master_idx,1);
     stream.pack(&d_kappa_target,1);
     stream.pack(&d_X_target[0],NDIM);
     return;

@@ -64,7 +64,9 @@ libIBAMR_a_DEPENDENCIES = advect/fortran/godunov_helpers.o \
 am_libIBAMR_a_OBJECTS =
 libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
 libIBAMR2d_a_AR = $(AR) $(ARFLAGS)
-libIBAMR2d_a_DEPENDENCIES =  \
+libIBAMR2d_a_DEPENDENCIES = IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
+	IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
+	IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
 	IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
 	IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
 	IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
@@ -111,7 +113,9 @@ libIBAMR2d_a_DEPENDENCIES =  \
 am_libIBAMR2d_a_OBJECTS =
 libIBAMR2d_a_OBJECTS = $(am_libIBAMR2d_a_OBJECTS)
 libIBAMR3d_a_AR = $(AR) $(ARFLAGS)
-libIBAMR3d_a_DEPENDENCIES =  \
+libIBAMR3d_a_DEPENDENCIES = IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
+	IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
+	IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
 	IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
 	IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
 	IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
@@ -291,6 +295,9 @@ lib_LIBRARIES = libIBAMR.a libIBAMR2d.a libIBAMR3d.a
 libIBAMR_a_LIBADD = advect/fortran/godunov_helpers.o lagrangian/fortran/lagrangian_delta.o
 libIBAMR_a_SOURCES = # intentionally blank
 libIBAMR2d_a_LIBADD = \
+IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
+IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
+IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
 IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
 IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
 IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
@@ -337,6 +344,9 @@ utilities/libIBAMR_utilities2d_a-get_version.o
 
 libIBAMR2d_a_SOURCES = # intentionally blank
 libIBAMR3d_a_LIBADD = \
+IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
+IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
+IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
 IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
 IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
 IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \

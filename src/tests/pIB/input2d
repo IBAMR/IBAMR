@@ -6,11 +6,11 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // physical parameters
-MU  = 1.2e-5     // corresponds to Re=21000
+MU  = 1.2e-4     // corresponds to Re=2100
 RHO = 3.0e-4
 
 // grid spacing parameters
-MAX_LEVELS = 5   // maximum number of levels in locally refined grid
+MAX_LEVELS = 4   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
 N = 64                                    // coarsest grid spacing
@@ -34,13 +34,17 @@ IBHierarchyIntegrator {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_4 = "fila_1024"
+   base_filenames_3 = "fila_1024"
    fila_1024
    {
       ds = 3.7499624950000001e-03
+
+      bend_rigidity = 0.1
+      uniform_beam_bend_rigidity = bend_rigidity/(ds^3)
+
       bdry_mass_density = 0.0004
       uniform_bdry_mass = bdry_mass_density*ds
-      uniform_bdry_mass_stiffness = 1.0e5
+      uniform_bdry_mass_stiffness = 1.0e4
    }
 }
 
@@ -51,12 +55,12 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 4 , 4 , 4 , 8
+   tag_buffer = 4 , 4 , 8
 
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.025
+   vorticity_threshold = 0.0125 , 0.025 , 0.05
 
    output_P = TRUE
    output_F = FALSE

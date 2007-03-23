@@ -1,9 +1,9 @@
-#ifndef included_IBTargetPointForceSpecFactory
-#define included_IBTargetPointForceSpecFactory
+#ifndef included_IBBeamForceSpecFactory
+#define included_IBBeamForceSpecFactory
 
-// Filename: IBTargetPointForceSpecFactory.h
-// Last modified: <22.Mar.2007 16:46:53 griffith@box221.cims.nyu.edu>
-// Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
+// Filename: IBBeamForceSpecFactory.h
+// Last modified: <22.Mar.2007 17:27:56 griffith@box221.cims.nyu.edu>
+// Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -23,19 +23,19 @@ namespace IBAMR
 /*!
  * \brief Description of class.
  */
-class IBTargetPointForceSpecFactory
+class IBBeamForceSpecFactory
     : public StashableFactory
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    IBTargetPointForceSpecFactory();
+    IBBeamForceSpecFactory();
 
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBTargetPointForceSpecFactory();
+    virtual ~IBBeamForceSpecFactory();
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -69,8 +69,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBTargetPointForceSpecFactory(
-        const IBTargetPointForceSpecFactory& from);
+    IBBeamForceSpecFactory(
+        const IBBeamForceSpecFactory& from);
 
     /*!
      * \brief Assignment operator.
@@ -81,8 +81,8 @@ private:
      *
      * \return A reference to this object.
      */
-    IBTargetPointForceSpecFactory& operator=(
-        const IBTargetPointForceSpecFactory& that);
+    IBBeamForceSpecFactory& operator=(
+        const IBBeamForceSpecFactory& that);
 
     /*
      * The stashable ID for this object type.
@@ -93,8 +93,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBTargetPointForceSpecFactory.I>
+//#include <ibamr/IBBeamForceSpecFactory.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTargetPointForceSpecFactory
+#endif //#ifndef included_IBBeamForceSpecFactory

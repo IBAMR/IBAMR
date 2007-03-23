@@ -1,6 +1,6 @@
 // Filename: IBStandardForceGen.C
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <21.Mar.2007 23:42:04 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Mar.2007 18:38:34 griffith@box221.cims.nyu.edu>
 
 #include "IBStandardForceGen.h"
 
@@ -26,6 +26,7 @@ namespace IBAMR
 
 IBStandardForceGen::IBStandardForceGen(
     SAMRAI::tbox::Pointer<IBSpringForceGen> spring_force_gen,
+    SAMRAI::tbox::Pointer<IBBeamForceGen> beam_force_gen,
     SAMRAI::tbox::Pointer<IBTargetPointForceGen> target_point_force_gen)
     : d_spring_force_gen(spring_force_gen),
       d_target_point_force_gen(target_point_force_gen)
@@ -34,6 +35,11 @@ IBStandardForceGen::IBStandardForceGen(
     {
         TBOX_WARNING("IBStandardForceGen::initializeLevelData():\n"
                      << "  spring forces disabled." << endl);
+    }
+    if (d_beam_force_gen.isNull())
+    {
+        TBOX_WARNING("IBStandardForceGen::initializeLevelData():\n"
+                     << "  beam forces disabled." << endl);
     }
     if (d_target_point_force_gen.isNull())
     {
@@ -64,6 +70,13 @@ IBStandardForceGen::initializeLevelData(
             hierarchy, level_number, init_data_time, initial_time, lag_manager);
     }
 
+    // Initialize the beam force generator.
+    if (!d_beam_force_gen.isNull())
+    {
+        d_beam_force_gen->initializeLevelData(
+            hierarchy, level_number, init_data_time, initial_time, lag_manager);
+    }
+
     // Initialize the target point force generator.
     if (!d_target_point_force_gen.isNull())
     {
@@ -86,6 +99,13 @@ IBStandardForceGen::computeLagrangianForce(
     if (!d_spring_force_gen.isNull())
     {
         d_spring_force_gen->computeLagrangianForce(
+            F_data, X_data, hierarchy, level_number, data_time, lag_manager);
+    }
+
+    // Compute the beam forces.
+    if (!d_beam_force_gen.isNull())
+    {
+        d_beam_force_gen->computeLagrangianForce(
             F_data, X_data, hierarchy, level_number, data_time, lag_manager);
     }
 

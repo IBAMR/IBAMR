@@ -52,9 +52,11 @@ linear_spring_force(
     const double D[NDIM],
     const double& stf,
     const double& rst,
-    const int& lag_idx)
+    const int& lag_mastr_idx,
+    const int& lag_slave_idx)
 {
-    (void) lag_idx;
+    (void) lag_mastr_idx;
+    (void) lag_slave_idx;
 
     /*
      * Compute the distance between the "master" and "slave" nodes.
@@ -365,12 +367,14 @@ int main(int argc, char* argv[])
         tbox::Pointer<IBSpringForceGen> spring_force_generator =
             new IBSpringForceGen();
         spring_force_generator->registerSpringForceFunction(0,&linear_spring_force);
+        tbox::Pointer<IBBeamForceGen> beam_force_generator =
+            new IBBeamForceGen();
         tbox::Pointer<IBTargetPointForceGen> target_point_force_generator =
             new IBTargetPointForceGen();
 
         tbox::Pointer<IBStandardForceGen> force_generator =
             new IBStandardForceGen(
-                spring_force_generator, target_point_force_generator);
+                spring_force_generator, beam_force_generator, target_point_force_generator);
 
         tbox::Pointer<IBHierarchyIntegrator> time_integrator =
             new IBHierarchyIntegrator(
