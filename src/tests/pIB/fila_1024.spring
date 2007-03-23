@@ -1,4 +1,4 @@
-   799                                                      # number of edges in file
+   800                                                      # number of edges in file
      0      1 3.6000000000000000e+04 3.7499624950000001e-03 # idx1, idx2, spring constant, resting length
      1      2 3.6000000000000000e+04 3.7499624950000001e-03
      2      3 3.6000000000000000e+04 3.7499624950000001e-03
