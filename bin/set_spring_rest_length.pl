@@ -17,7 +17,7 @@ $rest_length = shift @ARGV;  chomp $rest_length;
 $output_filename = shift @ARGV;  chomp $output_filename;
 
 print "input file: $input_filename\n";
-print "stiffness: $rest_length\n";
+print "rest length: $rest_length\n";
 print "output file: $output_filename\n";
 
 # open the input and output files

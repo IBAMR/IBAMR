@@ -25,27 +25,62 @@ IBHierarchyIntegrator {
    enable_logging = TRUE
 
    regrid_interval = 32
-   dt_max = 1.25e-04/NFINEST
+   dt_max = 0.128/(NFINEST^2)
    delta_fcn = "IB_6"
 
    using_pIB_method = TRUE
-   g = -980.0
+   gravity_vector = 0.0 , -980.0  // cm s^-2
 }
+
+spring_stiffness = 36000.0  // dyne
+bend_rigidity = 0.1         // erg cm
+bdry_mass_density = 4.0e-4  // g cm^-1
+bdry_mass_stiffness = 1.0e4 // dyne/cm
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_3 = "fila_1024"
-   fila_1024
+
+// base_filenames_2 = "fila_256"
+// fila_256
+// {
+//    ds = 1.5e-2
+//
+//    uniform_spring_stiffness = spring_stiffness
+//    uniform_spring_rest_length = ds
+//
+//    uniform_beam_bend_rigidity = bend_rigidity*ds/(ds^4)
+//
+//    uniform_bdry_mass = bdry_mass_density*ds
+//    uniform_bdry_mass_stiffness = bdry_mass_stiffness
+// }
+
+   base_filenames_3 = "fila_512"
+   fila_512
    {
-      ds = 3.7499624950000001e-03
+      ds = 7.5e-3
 
-      bend_rigidity = 0.1
-      uniform_beam_bend_rigidity = bend_rigidity/(ds^3)
+      uniform_spring_stiffness = spring_stiffness
+      uniform_spring_rest_length = ds
 
-      bdry_mass_density = 0.0004
+      uniform_beam_bend_rigidity = bend_rigidity*ds/(ds^4)
+
       uniform_bdry_mass = bdry_mass_density*ds
-      uniform_bdry_mass_stiffness = 1.0e4
+      uniform_bdry_mass_stiffness = bdry_mass_stiffness
    }
+
+// base_filenames_4 = "fila_1024"
+// fila_1024
+// {
+//    ds = 3.75e-3
+//
+//    uniform_spring_stiffness = spring_stiffness
+//    uniform_spring_rest_length = ds
+//
+//    uniform_beam_bend_rigidity = bend_rigidity*ds/(ds^4)
+//
+//    uniform_bdry_mass = bdry_mass_density*ds
+//    uniform_bdry_mass_stiffness = bdry_mass_stiffness
+// }
 }
 
 IBStandardForceGen {
@@ -60,7 +95,7 @@ INSHierarchyIntegrator {
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.0125 , 0.025 , 0.05
+   vorticity_abs_thresh = 187.5 , 375.0 , 750.0
 
    output_P = TRUE
    output_F = FALSE
@@ -160,7 +195,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 2*NFINEST     // zero to turn off
+   viz_dump_interval     = NFINEST       // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 

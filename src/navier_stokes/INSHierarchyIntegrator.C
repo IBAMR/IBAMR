@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <17.Mar.2007 03:02:26 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <26.Mar.2007 20:11:11 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -2531,17 +2531,27 @@ INSHierarchyIntegrator::applyGradientDetector(
                               uses_richardson_extrapolation_too);
 
     // Tag cells based on the magnatude of the vorticity.
+    //
+    // Note that if either the relative or absolute threshold is zero
+    // for a particular level, no tagging is performed on that level.
     if (d_using_vorticity_tagging)
     {
-        const double Omega_eps =
-            (level_number >= 0 && level_number < d_Omega_eps.getSize()
-             ? d_Omega_eps[level_number]
+        const double Omega_rel_thresh =
+            (level_number >= 0 && level_number < d_Omega_rel_thresh.getSize()
+             ? d_Omega_rel_thresh[level_number]
              : (level_number < 0
-                ? d_Omega_eps[0]
-                : d_Omega_eps[d_Omega_eps.size()-1]));
-        if (Omega_eps > 0.0)
+                ? d_Omega_rel_thresh[0]
+                : d_Omega_rel_thresh[d_Omega_rel_thresh.size()-1]));
+        const double Omega_abs_thresh =
+            (level_number >= 0 && level_number < d_Omega_abs_thresh.getSize()
+             ? d_Omega_abs_thresh[level_number]
+             : (level_number < 0
+                ? d_Omega_abs_thresh[0]
+                : d_Omega_abs_thresh[d_Omega_abs_thresh.size()-1]));
+        if (Omega_rel_thresh > 0.0 && Omega_abs_thresh > 0.0)
         {
-            const double tol = Omega_eps*d_Omega_max + sqrt(std::numeric_limits<double>::epsilon());
+            const double thresh = sqrt(std::numeric_limits<double>::epsilon()) +
+                SAMRAI::tbox::Utilities::dmin(Omega_rel_thresh*d_Omega_max, Omega_abs_thresh);
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -2556,7 +2566,7 @@ INSHierarchyIntegrator::applyGradientDetector(
                 {
                     const SAMRAI::hier::Index<NDIM>& i = ic();
 #if (NDIM == 2)
-                    if (SAMRAI::tbox::Utilities::dabs((*Omega_current_data)(i)) > tol)
+                    if (SAMRAI::tbox::Utilities::dabs((*Omega_current_data)(i)) > thresh)
                     {
                         (*tags_data)(i) = 1;
                     }
@@ -2568,7 +2578,7 @@ INSHierarchyIntegrator::applyGradientDetector(
                         norm_Omega_sq += (*Omega_current_data)(i,d)*(*Omega_current_data)(i,d);
                     }
                     const double norm_Omega = sqrt(norm_Omega_sq);
-                    if (norm_Omega > tol)
+                    if (norm_Omega > thresh)
                     {
                         (*tags_data)(i) = 1;
                     }
@@ -2705,7 +2715,8 @@ INSHierarchyIntegrator::putToDatabase(
     db->putBool("d_using_synch_projection", d_using_synch_projection);
     db->putBool("d_conservation_form", d_conservation_form);
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
-    if (d_using_vorticity_tagging) db->putDoubleArray("d_Omega_eps", d_Omega_eps);
+    db->putDoubleArray("d_Omega_rel_thresh", d_Omega_rel_thresh);
+    db->putDoubleArray("d_Omega_abs_thresh", d_Omega_abs_thresh);
     db->putDouble("d_Omega_max", d_Omega_max);
     db->putBool("d_using_pressure_increment_form", d_using_pressure_increment_form);
     db->putBool("d_second_order_pressure_update", d_second_order_pressure_update);
@@ -2995,22 +3006,47 @@ INSHierarchyIntegrator::getFromInput(
 
     if (d_using_vorticity_tagging)
     {
-        if (db->keyExists("vorticity_threshold"))
+        if (db->keyExists("vorticity_rel_thresh"))
         {
-            d_Omega_eps = db->getDoubleArray("vorticity_threshold");
+            d_Omega_rel_thresh = db->getDoubleArray("vorticity_rel_thresh");
         }
         else
         {
-            TBOX_ERROR(d_object_name << ":  "
-                       << "Key data `vorticity_threshold' not found in input.");
+            TBOX_WARNING(d_object_name << ":\n"
+                         << "  Vorticity tagging is enabled but key data `vorticity_rel_thresh' not found in input.\n"
+                         << "  Using default values for all levels in the locally refined grid.\n");
+            d_Omega_rel_thresh.resizeArray(1);
+            d_Omega_rel_thresh[0] = 1.0;
         }
 
-        for (int i = 0; i < d_Omega_eps.getSize(); ++i)
+        for (int i = 0; i < d_Omega_rel_thresh.getSize(); ++i)
         {
-            if (d_Omega_eps[i] < 0.0 || d_Omega_eps[i] > 1.0)
+            if (d_Omega_rel_thresh[i] < 0.0 || d_Omega_rel_thresh[i] > 1.0)
             {
                 TBOX_ERROR(d_object_name << ":  "
-                           << "Vorticity thesholds for each level must lie in the interval [0,1].\n");
+                           << "relative vorticity thresholds for each level must lie in the interval [0,1].\n");
+            }
+        }
+
+        if (db->keyExists("vorticity_abs_thresh"))
+        {
+            d_Omega_abs_thresh = db->getDoubleArray("vorticity_abs_thresh");
+        }
+        else
+        {
+            TBOX_WARNING(d_object_name << ":\n"
+                         << "  Vorticity tagging is enabled but key data `vorticity_abs_thresh' not found in input.\n"
+                         << "  Using default values for all levels in the locally refined grid.\n");
+            d_Omega_abs_thresh.resizeArray(1);
+            d_Omega_abs_thresh[0] = std::numeric_limits<double>::max();
+        }
+
+        for (int i = 0; i < d_Omega_abs_thresh.getSize(); ++i)
+        {
+            if (d_Omega_abs_thresh[i] < 0.0)
+            {
+                TBOX_ERROR(d_object_name << ":  "
+                           << "absolute vorticity thresholds for each level must be nonnegative.\n");
             }
         }
     }
@@ -3115,7 +3151,8 @@ INSHierarchyIntegrator::getFromRestart()
     d_using_synch_projection = db->getBool("d_using_synch_projection");
     d_conservation_form = db->getBool("d_conservation_form");
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
-    if (d_using_vorticity_tagging) d_Omega_eps = db->getDoubleArray("d_Omega_eps");
+    d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
+    d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
     d_Omega_max = db->getDouble("d_Omega_max");
     d_using_pressure_increment_form = db->getBool("d_using_pressure_increment_form");
     d_second_order_pressure_update = db->getBool("d_second_order_pressure_update");

@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <21.Mar.2007 21:29:26 griffith@box221.cims.nyu.edu>
+// Last modified: <26.Mar.2007 23:20:02 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -120,7 +120,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_Q_src(),
       d_n_src(),
       d_using_pIB_method(false),
-      d_g(0.0),
+      d_gravity_vector(NDIM,0.0),
       d_start_time(0.0),
       d_end_time(std::numeric_limits<double>::max()),
       d_grow_dt(2.0),
@@ -925,11 +925,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     for (int d = 0; d < NDIM; ++d)
                     {
                         Y_new_arr[NDIM*i+d] = Y_arr[NDIM*i+d] + dt*dY_dt_arr[NDIM*i+d];
-                        dY_dt_new_arr[NDIM*i+d] = dY_dt_arr[NDIM*i+d] - (dt/M_arr[i])*F_K_arr[NDIM*i+d];
-                        if (d == (NDIM-1))
-                        {
-                            dY_dt_new_arr[NDIM*i+d] -= dt*d_g;
-                        }
+                        dY_dt_new_arr[NDIM*i+d] = dY_dt_arr[NDIM*i+d] - (dt/M_arr[i])*F_K_arr[NDIM*i+d] + dt*d_gravity_vector[d];
                     }
                 }
 
@@ -1531,11 +1527,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     for (int d = 0; d < NDIM; ++d)
                     {
                         Y_new_arr[NDIM*i+d] = Y_new_arr[NDIM*i+d] + dt*dY_dt_new_arr[NDIM*i+d];
-                        dY_dt_new_arr[NDIM*i+d] = dY_dt_new_arr[NDIM*i+d] - (dt/M_arr[i])*F_K_new_arr[NDIM*i+d];
-                        if (d == (NDIM-1))
-                        {
-                            dY_dt_new_arr[NDIM*i+d] -= dt*d_g;
-                        }
+                        dY_dt_new_arr[NDIM*i+d] = dY_dt_new_arr[NDIM*i+d] - (dt/M_arr[i])*F_K_new_arr[NDIM*i+d] + dt*d_gravity_vector[d];
                     }
                 }
 
@@ -2205,7 +2197,7 @@ IBHierarchyIntegrator::putToDatabase(
 
     db->putString("d_delta_fcn", d_delta_fcn);
     db->putBool("d_using_pIB_method", d_using_pIB_method);
-    db->putDouble("d_g", d_g);
+    db->putDoubleArray("d_gravity_vector", &d_gravity_vector[0], NDIM);
     db->putDouble("d_start_time", d_start_time);
     db->putDouble("d_end_time", d_end_time);
     db->putDouble("d_grow_dt", d_grow_dt);
@@ -2325,9 +2317,14 @@ IBHierarchyIntegrator::getFromInput(
         d_using_pIB_method = db->getBoolWithDefault(
             "using_pIB_method", d_using_pIB_method);
 
-        if (d_using_pIB_method)
+        if (d_using_pIB_method && db->keyExists("gravity_vector"))
         {
-            d_g = db->getDoubleWithDefault("g", d_g);
+            db->getDoubleArray("gravity_vector", &d_gravity_vector[0], NDIM);
+        }
+        else
+        {
+            TBOX_ERROR(d_object_name << ":  "
+                       << "Using penalty-IB method but key data `gravity_vector' not found in input.");
         }
     }
 
@@ -2360,7 +2357,7 @@ IBHierarchyIntegrator::getFromRestart()
 
     d_delta_fcn = db->getString("d_delta_fcn");
     d_using_pIB_method = db->getBool("d_using_pIB_method");
-    d_g = db->getDouble("d_g");
+    db->getDoubleArray("d_gravity_vector", &d_gravity_vector[0], NDIM);
     d_start_time = db->getDouble("d_start_time");
     d_end_time = db->getDouble("d_end_time");
     d_grow_dt = db->getDouble("d_grow_dt");

@@ -57,7 +57,7 @@ INSHierarchyIntegrator {
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.025
+   vorticity_rel_thresh = 0.025
 
    output_P = TRUE
    output_F = FALSE

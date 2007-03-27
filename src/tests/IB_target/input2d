@@ -54,22 +54,22 @@ IBStandardInitializer {
 // base_filenames_4 = "cylinder2d_256"   // corresponds to NFINEST = 256
 // cylinder2d_256 {
 //    uniform_target_stiffness = K_s*ds
-//    uniform_edge_stiffness = 125.0
-//    uniform_edge_rest_length = ds
+//    uniform_spring_stiffness = 125.0
+//    uniform_spring_rest_length = ds
 // }
 
    base_filenames_4 = "cylinder2d_512"   // corresponds to NFINEST = 512
    cylinder2d_512 {
       uniform_target_stiffness = K_s*ds
-      uniform_edge_stiffness = 125.0
-      uniform_edge_rest_length = ds
+      uniform_spring_stiffness = 250.0
+      uniform_spring_rest_length = ds
    }
 
 // base_filenames_4 = "cylinder2d_1024"  // corresponds to NFINEST = 1024
 // cylinder2d_1024 {
 //    uniform_target_stiffness = K_s*ds
-//    uniform_edge_stiffness = 125.0
-//    uniform_edge_rest_length = ds
+//    uniform_spring_stiffness = 500.0
+//    uniform_spring_rest_length = ds
 // }
 }
 
@@ -85,7 +85,7 @@ INSHierarchyIntegrator {
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_threshold = 0.025
+   vorticity_rel_thresh = 0.025
 
    output_P = TRUE
    output_F = FALSE

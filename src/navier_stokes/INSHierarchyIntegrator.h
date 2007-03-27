@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <21.Mar.2007 20:23:11 griffith@box221.cims.nyu.edu>
+// Last modified: <26.Mar.2007 20:15:17 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -936,10 +936,11 @@ private:
     bool d_conservation_form;
 
     /*
-     * Tag cells based on the magnitude of vorticity.
+     * Tag cells based on the relative and absolute magnitudes of the
+     * local vorticity.
      */
     bool d_using_vorticity_tagging;
-    SAMRAI::tbox::Array<double> d_Omega_eps;
+    SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
     double d_Omega_max;
 
     /*
@@ -948,7 +949,8 @@ private:
      * Bell-Collela-Glaz algorithm).
      *
      * Note that the pressure increment form of the projection
-     * algorithm is generally not stable for IB computations.
+     * algorithm is generally NOT stable for IB computations.
+     * Therefore, the recommended value is `false'.
      */
     bool d_using_pressure_increment_form;
 

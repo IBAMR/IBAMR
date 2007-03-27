@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <21.Mar.2007 20:33:11 griffith@box221.cims.nyu.edu>
+// Last modified: <26.Mar.2007 22:08:47 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -683,7 +683,7 @@ private:
      * additional boundary mass.
      */
     bool d_using_pIB_method;
-    double d_g;
+    std::vector<double> d_gravity_vector;
 
     /*
      * Integrator data read from input or set at initialization.
