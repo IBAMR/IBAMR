@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <26.Mar.2007 20:11:11 griffith@box221.cims.nyu.edu>
+// Last modified: <27.Mar.2007 21:11:42 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1026,12 +1026,16 @@ INSHierarchyIntegrator::advanceHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    // Rebalance the coarsest level (when requested).
-    if (rebalance_coarsest) rebalanceCoarsestLevel();
-
     const double current_time = d_integrator_time;
     const double new_time = d_integrator_time+dt;
     const bool initial_time = SAMRAI::tbox::Utilities::deq(d_integrator_time,d_start_time);
+
+    // Rebalance the coarsest level (when requested).
+    if (rebalance_coarsest)
+    {
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): rebalancing coarsest level\n";
+        rebalanceCoarsestLevel();
+    }
 
     // The pressure at start_time is not an initial value for the
     // incompressible Navier-Stokes equations, so we solve for it by
@@ -1058,14 +1062,13 @@ INSHierarchyIntegrator::advanceHierarchy(
 
     for (d_cycle = 0; d_cycle < num_cycles; ++d_cycle)
     {
-        if (d_performing_init_cycles)
+        if (d_do_log && d_performing_init_cycles)
         {
-            if (d_do_log) SAMRAI::tbox::plog << "\n\n++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            if (d_do_log) SAMRAI::tbox::plog << "+\n";
-            if (d_do_log) SAMRAI::tbox::plog << "+ Performing cycle " << d_cycle+1 << " of "
-                                             << d_num_init_cycles << " to initialize P(n=1/2)\n";
-            if (d_do_log) SAMRAI::tbox::plog << "+\n";
-            if (d_do_log) SAMRAI::tbox::plog << "++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
+            SAMRAI::tbox::plog << "\n\n++++++++++++++++++++++++++++++++++++++++++++++++\n";
+            SAMRAI::tbox::plog << "+\n";
+            SAMRAI::tbox::plog << "+ Performing cycle " << d_cycle+1 << " of " << d_num_init_cycles << " to initialize P(n=1/2)\n";
+            SAMRAI::tbox::plog << "+\n";
+            SAMRAI::tbox::plog << "++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
         }
 
         // Solve the Navier-Stokes equations for U(n+1), u(n+1),

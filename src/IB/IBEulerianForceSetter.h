@@ -3,7 +3,7 @@
 
 // Filename: IBEulerianForceSetter.h
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <21.Mar.2007 20:18:35 griffith@box221.cims.nyu.edu>
+// Last modified: <27.Mar.2007 18:09:56 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -37,12 +37,21 @@ public:
      */
     IBEulerianForceSetter(
         const std::string& object_name,
-        const int F_idx);
+        const int F_current_idx,
+        const int F_new_idx,
+        const int F_half_idx);
 
     /*!
      * \brief Virtual destructor.
      */
     virtual ~IBEulerianForceSetter();
+
+    /*!
+     * \brief Set the current and new times for the present timestep.
+     */
+    void setTimeInterval(
+        const double current_time,
+        const double new_time);
 
     /*!
      * \name Methods to set the data.
@@ -99,9 +108,15 @@ private:
         const IBEulerianForceSetter& that);
 
     /*!
-     * Patch data descriptor index for the force data.
+     * The current and new time for the present timestep.
      */
-    const int d_F_idx;
+    double d_current_time, d_new_time;
+
+    /*!
+     * Patch data descriptor indices for the current, new, and
+     * half-time force data.
+     */
+    const int d_F_current_idx, d_F_new_idx, d_F_half_idx;
 };
 }// namespace IBAMR
 

@@ -1,6 +1,6 @@
 // Filename: IBEulerianForceSetter.C
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <13.Feb.2007 03:25:29 boyce@bigboy.nyconnect.com>
+// Last modified: <27.Mar.2007 18:18:07 griffith@box221.cims.nyu.edu>
 
 #include "IBEulerianForceSetter.h"
 
@@ -33,9 +33,15 @@ namespace IBAMR
 
 IBEulerianForceSetter::IBEulerianForceSetter(
     const string& object_name,
-    const int F_idx)
+    const int F_current_idx,
+    const int F_new_idx,
+    const int F_half_idx)
     : STOOLS::SetDataStrategy(object_name),
-      d_F_idx(F_idx)
+      d_current_time(std::numeric_limits<double>::quiet_NaN()),
+      d_new_time(std::numeric_limits<double>::quiet_NaN()),
+      d_F_current_idx(F_current_idx),
+      d_F_new_idx(F_new_idx),
+      d_F_half_idx(F_half_idx)
 {
     // intentionally blank
     return;
@@ -47,10 +53,20 @@ IBEulerianForceSetter::~IBEulerianForceSetter()
     return;
 }// ~IBEulerianForceSetter
 
+void
+IBEulerianForceSetter::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    d_current_time = current_time;
+    d_new_time = new_time;
+    return;
+}// setTimeInterval
+
 bool
 IBEulerianForceSetter::isTimeDependent() const
 {
-    return(true);
+    return true;
 }// isTimeDependent
 
 void
@@ -69,13 +85,43 @@ IBEulerianForceSetter::setDataOnPatch(
     {
         f_data->fillAll(0.0);
     }
+    else if (SAMRAI::tbox::Utilities::deq(data_time, d_current_time))
+    {
+        if (d_F_current_idx != -1)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_current_data = patch.getPatchData(d_F_current_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+            assert(!f_current_data.isNull());
+#endif
+            f_data->copy(*f_current_data);
+        }
+    }
+    else if (SAMRAI::tbox::Utilities::deq(data_time, d_new_time))
+    {
+        if (d_F_new_idx != -1)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_new_data = patch.getPatchData(d_F_new_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+            assert(!f_new_data.isNull());
+#endif
+            f_data->copy(*f_new_data);
+        }
+    }
+    else if (SAMRAI::tbox::Utilities::deq(data_time, 0.5*(d_current_time+d_new_time)))
+    {
+        if (d_F_half_idx != -1)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_half_data = patch.getPatchData(d_F_half_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+            assert(!f_half_data.isNull());
+#endif
+            f_data->copy(*f_half_data);
+        }
+    }
     else
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > my_f_data = patch.getPatchData(d_F_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        assert(!my_f_data.isNull());
-#endif
-        f_data->copy(*my_f_data);
+        TBOX_ERROR("IBEulerianForceSetter::setDataOnPatch():\n"
+                   << "  data time " << data_time << " is not the current, new, or half time." << endl);
     }
     return;
 }// setDataOnPatch
