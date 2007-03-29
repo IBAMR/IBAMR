@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <22.Mar.2007 20:51:40 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Mar.2007 11:52:42 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -106,22 +106,6 @@ IBStandardInitializer::IBStandardInitializer(
         {
             // Process the vertex information.
             readVertexFiles();
-
-            // Compute the index offsets.  Note that this must be done
-            // prior to processing all remaining input files.
-            //
-            // NOTE: A separate, independent Lagrangian numbering
-            // scheme is used on each level of the locally refined
-            // Cartesian grid.
-            for (int ln = 0; ln < d_max_levels; ++ln)
-            {
-                d_vertex_offset[ln].resize(d_num_vertex[ln].size());
-                d_vertex_offset[ln][0] = 0;
-                for (int j = 1; j < static_cast<int>(d_num_vertex[ln].size()); ++j)
-                {
-                    d_vertex_offset[ln][j] = d_vertex_offset[ln][j-1]+d_num_vertex[ln][j-1];
-                }
-            }
 
             // Process the (optional) spring information.
             readSpringFiles();
@@ -490,10 +474,20 @@ IBStandardInitializer::readVertexFiles()
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
-        d_num_vertex[ln].resize(num_base_filename);
+        d_num_vertex[ln].resize(num_base_filename,std::numeric_limits<int>::max());
+        d_vertex_offset[ln].resize(num_base_filename,std::numeric_limits<int>::max());
         d_vertex_posn[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
+            if (j == 0)
+            {
+                d_vertex_offset[ln][j] = 0;
+            }
+            else
+            {
+                d_vertex_offset[ln][j] = d_vertex_offset[ln][j-1]+d_num_vertex[ln][j-1];
+            }
+
             const std::string vertex_filename = d_base_filename[ln][j] + ".vertex";
             std::ifstream file_stream;
             std::string line_string;
@@ -517,6 +511,11 @@ IBStandardInitializer::readVertexFiles()
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << endl);
                 }
+            }
+
+            if (d_num_vertex[ln][j] <= 0)
+            {
+                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << endl);
             }
 
             // Each successive line provides the initial position of

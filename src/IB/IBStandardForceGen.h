@@ -3,7 +3,7 @@
 
 // Filename: IBStandardForceGen.h
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <22.Mar.2007 18:39:10 griffith@box221.cims.nyu.edu>
+// Last modified: <29.Mar.2007 16:18:04 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -68,6 +68,7 @@ public:
     virtual void computeLagrangianForce(
         SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
         SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
+        SAMRAI::tbox::Pointer<LNodeLevelData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,

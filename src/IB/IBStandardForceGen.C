@@ -1,6 +1,6 @@
 // Filename: IBStandardForceGen.C
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <22.Mar.2007 18:38:34 griffith@box221.cims.nyu.edu>
+// Last modified: <29.Mar.2007 16:17:33 griffith@box221.cims.nyu.edu>
 
 #include "IBStandardForceGen.h"
 
@@ -91,6 +91,7 @@ void
 IBStandardForceGen::computeLagrangianForce(
     SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
     SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<LNodeLevelData> U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -100,21 +101,21 @@ IBStandardForceGen::computeLagrangianForce(
     if (!d_spring_force_gen.isNull())
     {
         d_spring_force_gen->computeLagrangianForce(
-            F_data, X_data, hierarchy, level_number, data_time, lag_manager);
+            F_data, X_data, U_data, hierarchy, level_number, data_time, lag_manager);
     }
 
     // Compute the beam forces.
     if (!d_beam_force_gen.isNull())
     {
         d_beam_force_gen->computeLagrangianForce(
-            F_data, X_data, hierarchy, level_number, data_time, lag_manager);
+            F_data, X_data, U_data, hierarchy, level_number, data_time, lag_manager);
     }
 
     // Compute the target point forces.
     if (!d_target_point_force_gen.isNull())
     {
         d_target_point_force_gen->computeLagrangianForce(
-            F_data, X_data, hierarchy, level_number, data_time, lag_manager);
+            F_data, X_data, U_data, hierarchy, level_number, data_time, lag_manager);
     }
     return;
 }// computeLagrangianForce
