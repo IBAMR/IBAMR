@@ -520,7 +520,7 @@ int main(int argc, char* argv[])
             tbox::Pointer<LNodeLevelData> X_data = lag_data_manager->getLNodeLevelData("X",ln);
             tbox::Pointer<LNodeLevelData> F_data = lag_data_manager->createLNodeLevelData("F",ln,NDIM);
             force_generator->computeLagrangianForce(
-                F_data, X_data,
+                F_data, X_data, NULL,
                 patch_hierarchy, ln, loop_time, lag_data_manager);
 
             double F_D = 0.0;

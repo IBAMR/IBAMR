@@ -3,7 +3,7 @@
 
 // Filename: IBLagrangianForceStrategy.h
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <29.Mar.2007 16:16:21 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Mar.2007 16:02:16 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -37,6 +37,15 @@ public:
      * \brief Virtual destructor.
      */
     virtual ~IBLagrangianForceStrategy();
+
+    /*!
+     * \brief Set the current and new times for the present timestep.
+     *
+     * \note A default empty implementation is provided.
+     */
+    virtual void setTimeInterval(
+        const double current_time,
+        const double new_time);
 
     /*!
      * \brief Setup the data needed to compute the curvilinear force

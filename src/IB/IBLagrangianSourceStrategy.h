@@ -2,7 +2,7 @@
 #define included_IBLagrangianSourceStrategy
 
 // Filename: IBLagrangianSourceStrategy.h
-// Last modified: <21.Mar.2007 20:55:37 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Mar.2007 16:05:23 griffith@box221.cims.nyu.edu>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -40,6 +40,15 @@ public:
      * \brief Virtual destructor.
      */
     virtual ~IBLagrangianSourceStrategy();
+
+    /*!
+     * \brief Set the current and new times for the present timestep.
+     *
+     * \note A default empty implementation is provided.
+     */
+    virtual void setTimeInterval(
+        const double current_time,
+        const double new_time);
 
     /*!
      * \brief Setup the data needed to compute source/sink data on the

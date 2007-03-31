@@ -1,6 +1,6 @@
 // Filename: IBEulerianSourceSetter.C
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <13.Feb.2007 03:25:29 boyce@bigboy.nyconnect.com>
+// Last modified: <30.Mar.2007 16:10:23 griffith@box221.cims.nyu.edu>
 
 #include "IBEulerianSourceSetter.h"
 
@@ -32,9 +32,15 @@ namespace IBAMR
 
 IBEulerianSourceSetter::IBEulerianSourceSetter(
     const string& object_name,
-    const int Q_idx)
+    const int Q_current_idx,
+    const int Q_new_idx,
+    const int Q_half_idx)
     : STOOLS::SetDataStrategy(object_name),
-      d_Q_idx(Q_idx)
+      d_current_time(std::numeric_limits<double>::quiet_NaN()),
+      d_new_time(std::numeric_limits<double>::quiet_NaN()),
+      d_Q_current_idx(Q_current_idx),
+      d_Q_new_idx(Q_new_idx),
+      d_Q_half_idx(Q_half_idx)
 {
     // intentionally blank
     return;
@@ -45,6 +51,16 @@ IBEulerianSourceSetter::~IBEulerianSourceSetter()
     // intentionally blank
     return;
 }// ~IBEulerianSourceSetter
+
+void
+IBEulerianSourceSetter::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    d_current_time = current_time;
+    d_new_time = new_time;
+    return;
+}// setTimeInterval
 
 bool
 IBEulerianSourceSetter::isTimeDependent() const
@@ -68,13 +84,43 @@ IBEulerianSourceSetter::setDataOnPatch(
     {
         q_data->fillAll(0.0);
     }
+    else if (SAMRAI::tbox::Utilities::deq(data_time, d_current_time))
+    {
+        if (d_Q_current_idx != -1)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_current_data = patch.getPatchData(d_Q_current_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+            assert(!q_current_data.isNull());
+#endif
+            q_data->copy(*q_current_data);
+        }
+    }
+    else if (SAMRAI::tbox::Utilities::deq(data_time, d_new_time))
+    {
+        if (d_Q_new_idx != -1)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_new_data = patch.getPatchData(d_Q_new_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+            assert(!q_new_data.isNull());
+#endif
+            q_data->copy(*q_new_data);
+        }
+    }
+    else if (SAMRAI::tbox::Utilities::deq(data_time, 0.5*(d_current_time+d_new_time)))
+    {
+        if (d_Q_half_idx != -1)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_half_data = patch.getPatchData(d_Q_half_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+            assert(!q_half_data.isNull());
+#endif
+            q_data->copy(*q_half_data);
+        }
+    }
     else
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > my_q_data = patch.getPatchData(d_Q_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        assert(!my_q_data.isNull());
-#endif
-        q_data->copy(*my_q_data);
+        TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
+                   << "  data time " << data_time << " is not the current, new, or half time." << endl);
     }
     return;
 }// setDataOnPatch

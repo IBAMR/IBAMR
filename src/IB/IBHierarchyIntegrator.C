@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <29.Mar.2007 16:21:55 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Mar.2007 20:52:16 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -392,7 +392,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     if (!d_source_strategy.isNull())
     {
         d_eulerian_source_set = new IBEulerianSourceSetter(
-            d_object_name+"::IBEulerianSourceSetter",d_Q_idx);
+            d_object_name+"::IBEulerianSourceSetter",d_Q_idx,d_Q_idx,-1);
         d_ins_hier_integrator->registerDivergenceSpecification(
             d_eulerian_source_set);
     }
@@ -600,8 +600,10 @@ IBHierarchyIntegrator::advanceHierarchy(
     const double new_time     = d_integrator_time+dt;
     const bool initial_time   = SAMRAI::tbox::Utilities::deq(current_time,d_start_time);
 
-    // Set the current time interval in the IBEulerianForceSetter.
+    // Set the current time interval in the force specification objects.
     d_eulerian_force_set->setTimeInterval(current_time, new_time);
+    d_force_strategy->setTimeInterval(current_time, new_time);
+    if (!d_source_strategy.isNull()) d_source_strategy->setTimeInterval(current_time, new_time);
 
     // Rebalance the coarsest level (when requested).
     if (rebalance_coarsest)
@@ -668,14 +670,14 @@ IBHierarchyIntegrator::advanceHierarchy(
     //
     // In the following loop, we perform the following operations:
     //
-    // 1. Compute F(n) = F(X(n),n), the Lagrangian force corresponding
+    // 1. Interpolate u(n) from the Cartesian grid onto the Lagrangian
+    //    mesh.
+    //
+    // 2. Compute F(n) = F(X(n),n), the Lagrangian force corresponding
     //    to configuration X(n) at time t_{n}.
     //
-    // 2. Spread F(n) from the Lagrangian mesh onto the Cartesian
+    // 3. Spread F(n) from the Lagrangian mesh onto the Cartesian
     //    grid.
-    //
-    // 3. Interpolate u(n) from the Cartesian grid onto the Lagrangian
-    //    mesh.
     //
     // 4. Compute X~(n+1), the preliminary structure configuration at
     //    time t_{n+1}.
@@ -769,7 +771,26 @@ IBHierarchyIntegrator::advanceHierarchy(
                 F_K_new_data  [ln]->restoreLocalFormVec();
             }
 
-            // 1. Compute F(n) = F(X(n),n), the Lagrangian force
+            // 1. Interpolate u(n) from the Cartesian grid onto the
+            //    Lagrangian mesh.
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): interpolating u(n) to U(n) on level number " << ln << "\n";
+
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > v_data =
+                    patch->getPatchData(d_V_idx);
+                const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data = patch->getPatchData(
+                    d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+
+                LEInteractor::interpolate(
+                    U_data[ln], X_data[ln], idx_data, v_data,
+                    patch, patch_box,
+                    d_delta_fcn, ENFORCE_PERIODIC_BCS);
+            }
+
+            // 2. Compute F(n) = F(X(n),n), the Lagrangian force
             //    corresponding to configuration X(n) at time t_{n}.
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F(n) on level number " << ln << "\n";
 
@@ -842,7 +863,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 ierr = VecAXPY(F_vec, 1.0, F_K_vec);  PETSC_SAMRAI_ERROR(ierr);
             }
 
-            // 2. Spread F(n) from the Lagrangian mesh onto the
+            // 3. Spread F(n) from the Lagrangian mesh onto the
             //    Cartesian grid.
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): spreading F(n) to f(n) on level number " << ln << "\n";
 
@@ -864,25 +885,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                 LEInteractor::spread(
                     f_current_data, F_data[ln], X_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts),
-                    d_delta_fcn, ENFORCE_PERIODIC_BCS);
-            }
-
-            // 3. Interpolate u(n) from the Cartesian grid onto the
-            //    Lagrangian mesh.
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): interpolating u(n) to U(n) on level number " << ln << "\n";
-
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > v_data =
-                    patch->getPatchData(d_V_idx);
-                const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data = patch->getPatchData(
-                    d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-
-                LEInteractor::interpolate(
-                    U_data[ln], X_data[ln], idx_data, v_data,
-                    patch, patch_box,
                     d_delta_fcn, ENFORCE_PERIODIC_BCS);
             }
 
@@ -952,7 +954,6 @@ IBHierarchyIntegrator::advanceHierarchy(
             //    t_{n+1}.
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F~(n+1) on level number " << ln << "\n";
 
-            // QUESTION: How should we approximate U(n+1) here?
             Vec F_new_vec = F_new_data[ln]->getGlobalVec();
             ierr = VecSet(F_new_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
             d_force_strategy->computeLagrangianForce(

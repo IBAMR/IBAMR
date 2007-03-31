@@ -1,6 +1,6 @@
 // Filename: IBLagrangianForceStrategy.C
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <25.Oct.2006 18:29:53 boyce@bigboy.nyconnect.com>
+// Last modified: <30.Mar.2007 16:02:52 griffith@box221.cims.nyu.edu>
 
 #include "IBLagrangianForceStrategy.h"
 
@@ -35,6 +35,15 @@ IBLagrangianForceStrategy::~IBLagrangianForceStrategy()
     // intentionally blank
     return;
 }// ~IBLagrangianForceStrategy
+
+void
+IBLagrangianForceStrategy::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    // intentionally blank
+    return;
+}// setTimeInterval
 
 void
 IBLagrangianForceStrategy::initializeLevelData(

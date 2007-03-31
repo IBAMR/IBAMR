@@ -1,6 +1,6 @@
 // Filename: IBEulerianForceSetter.C
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <27.Mar.2007 18:18:07 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Mar.2007 16:09:49 griffith@box221.cims.nyu.edu>
 
 #include "IBEulerianForceSetter.h"
 
@@ -120,7 +120,7 @@ IBEulerianForceSetter::setDataOnPatch(
     }
     else
     {
-        TBOX_ERROR("IBEulerianForceSetter::setDataOnPatch():\n"
+        TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
                    << "  data time " << data_time << " is not the current, new, or half time." << endl);
     }
     return;

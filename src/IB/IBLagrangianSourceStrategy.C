@@ -1,6 +1,6 @@
 // Filename: IBLagrangianSourceStrategy.C
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <25.Oct.2006 18:30:00 boyce@bigboy.nyconnect.com>
+// Last modified: <30.Mar.2007 16:05:47 griffith@box221.cims.nyu.edu>
 
 #include "IBLagrangianSourceStrategy.h"
 
@@ -35,6 +35,15 @@ IBLagrangianSourceStrategy::~IBLagrangianSourceStrategy()
     // intentionally blank
     return;
 }// ~IBLagrangianSourceStrategy
+
+void
+IBLagrangianSourceStrategy::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    // intentionally blank
+    return;
+}// setTimeInterval
 
 void
 IBLagrangianSourceStrategy::initializeLevelData(

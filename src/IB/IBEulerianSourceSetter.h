@@ -3,7 +3,7 @@
 
 // Filename: IBEulerianForceSetter.h
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <21.Mar.2007 20:19:52 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Mar.2007 16:08:37 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -32,12 +32,21 @@ public:
      */
     IBEulerianSourceSetter(
         const std::string& object_name,
-        const int Q_idx);
+        const int Q_current_idx,
+        const int Q_new_idx,
+        const int Q_half_idx);
 
     /*!
      * \brief Virtual destructor.
      */
     virtual ~IBEulerianSourceSetter();
+
+    /*!
+     * \brief Set the current and new times for the present timestep.
+     */
+    void setTimeInterval(
+        const double current_time,
+        const double new_time);
 
     /*!
      * \name Methods to set the data.
@@ -93,10 +102,16 @@ private:
     IBEulerianSourceSetter& operator=(
         const IBEulerianSourceSetter& that);
 
-    /*
-     * Patch data descriptor index for the source/sink data.
+    /*!
+     * The current and new time for the present timestep.
      */
-    const int d_Q_idx;
+    double d_current_time, d_new_time;
+
+    /*!
+     * Patch data descriptor indices for the current, new, and half-time
+     * source/sink data.
+     */
+    const int d_Q_current_idx, d_Q_new_idx, d_Q_half_idx;
 };
 }// namespace IBAMR
 
