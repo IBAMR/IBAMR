@@ -1,6 +1,6 @@
 // Filename: IBLagrangianForceStrategy.C
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <30.Mar.2007 16:02:52 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Apr.2007 21:17:51 griffith@box221.cims.nyu.edu>
 
 #include "IBLagrangianForceStrategy.h"
 
@@ -51,7 +51,7 @@ IBLagrangianForceStrategy::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    const LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     // intentionally blank
     return;

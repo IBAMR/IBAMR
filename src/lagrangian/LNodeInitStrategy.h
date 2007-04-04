@@ -3,7 +3,7 @@
 
 // Filename: LNodeInitStrategy.h
 // Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <23.Jan.2007 02:55:39 boyce@bigboy.nyconnect.com>
+// Last modified: <03.Apr.2007 17:40:18 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -73,7 +73,8 @@ public:
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
-        const bool initial_time) = 0;
+        const bool initial_time,
+        LDataManager* const lag_manager) = 0;
 
     /*!
      * @brief Initialize the LNodeLevel data needed to specify the
@@ -95,7 +96,8 @@ public:
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
-        const bool initial_time);
+        const bool initial_time,
+        LDataManager* const lag_manager);
 
     /*!
      * @brief Provide cell tagging for the initial configuration of

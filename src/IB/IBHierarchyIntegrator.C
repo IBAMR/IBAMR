@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <30.Mar.2007 20:52:16 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Apr.2007 17:44:13 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -797,7 +797,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             Vec F_vec = F_data[ln]->getGlobalVec();
             ierr = VecSet(F_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
             d_force_strategy->computeLagrangianForce(
-                F_data[ln], X_data[ln], U_data[ln],
+                F_data[ln], X_data[ln],
                 d_hierarchy, ln, current_time, d_lag_data_manager);
 
             if (d_using_pIB_method)
@@ -957,7 +957,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             Vec F_new_vec = F_new_data[ln]->getGlobalVec();
             ierr = VecSet(F_new_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
             d_force_strategy->computeLagrangianForce(
-                F_new_data[ln], X_new_data[ln], U_data[ln],
+                F_new_data[ln], X_new_data[ln],
                 d_hierarchy, ln, new_time, d_lag_data_manager);
 
             if (d_using_pIB_method)
@@ -1911,7 +1911,7 @@ IBHierarchyIntegrator::initializeLevelData(
                 global_index_offset, local_index_offset,
                 M_data, K_data,
                 hierarchy, level_number,
-                init_data_time, can_be_refined, initial_time);
+                init_data_time, can_be_refined, initial_time, d_lag_data_manager);
         }
     }
 

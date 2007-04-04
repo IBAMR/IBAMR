@@ -1,6 +1,6 @@
 // Filename: IBLagrangianSourceStrategy.C
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <30.Mar.2007 16:05:47 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Apr.2007 21:18:06 griffith@box221.cims.nyu.edu>
 
 #include "IBLagrangianSourceStrategy.h"
 
@@ -51,7 +51,7 @@ IBLagrangianSourceStrategy::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    const LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     // intentionally blank
     return;

@@ -1,6 +1,6 @@
 // Filename: LNodeInitStrategy.C
 // Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <23.Jan.2007 02:55:54 boyce@bigboy.nyconnect.com>
+// Last modified: <03.Apr.2007 17:50:04 griffith@box221.cims.nyu.edu>
 
 #include "LNodeInitStrategy.h"
 
@@ -46,7 +46,8 @@ LNodeInitStrategy::initializeMassDataOnPatchLevel(
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
-    const bool initial_time)
+    const bool initial_time,
+    LDataManager* const lag_manager)
 {
     TBOX_WARNING("LNodeInitStrategy::initializeMassDataOnPatchLevel()\n"
                  << "  default implementation employed, no mass data initialized.\n");

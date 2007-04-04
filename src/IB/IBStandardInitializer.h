@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <22.Mar.2007 18:51:21 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Apr.2007 17:44:56 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -91,7 +91,8 @@ public:
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
-        const bool initial_time);
+        const bool initial_time,
+        LDataManager* const lag_manager);
 
     /*!
      * @brief Initialize the LNodeLevel data needed to specify the
@@ -110,7 +111,8 @@ public:
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
-        const bool initial_time);
+        const bool initial_time,
+        LDataManager* const lag_manager);
 
     /*!
      * \brief Tag cells for initial refinement.

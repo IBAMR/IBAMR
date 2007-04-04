@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <28.Mar.2007 11:52:42 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Apr.2007 17:45:27 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -219,8 +219,11 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
-    const bool initial_time)
+    const bool initial_time,
+    LDataManager* const lag_manager)
 {
+    (void) lag_manager;
+
     // Determine the extents of the physical domain.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const XLower = grid_geom->getXLower();
@@ -334,8 +337,11 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
-    const bool initial_time)
+    const bool initial_time,
+    LDataManager* const lag_manager)
 {
+    (void) lag_manager;
+
     // Loop over all patches in the specified level of the patch level
     // and initialize the local vertices.
     int local_idx = -1;

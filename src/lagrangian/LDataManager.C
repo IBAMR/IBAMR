@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <20.Mar.2007 21:37:39 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Apr.2007 19:03:34 griffith@box221.cims.nyu.edu>
 
 #include "LDataManager.h"
 
@@ -871,10 +871,8 @@ LDataManager::endDataRedistribution(
                                            ln);
             PETSC_SAMRAI_ERROR(ierr);
 
-            num_local_nodes   [ln] = static_cast<int>(
-                d_local_lag_indices   [ln].size());
-            num_nonlocal_nodes[ln] = static_cast<int>(
-                d_nonlocal_lag_indices[ln].size());
+            num_local_nodes   [ln] = static_cast<int>(d_local_lag_indices   [ln].size());
+            num_nonlocal_nodes[ln] = static_cast<int>(d_nonlocal_lag_indices[ln].size());
 
             map<string, SAMRAI::tbox::Pointer<LNodeLevelData> >::iterator it;
             int i;
@@ -1443,43 +1441,52 @@ LDataManager::initializeLevelData(
 
         if (d_level_contains_lag_data[level_number])
         {
-            // First, determine the number of local (on processor)
-            // nodes to be allocated on the patch level.
-            const int num_local_nodes = d_lag_init->
-                getLocalNodeCountOnPatchLevel(hierarchy, level_number,
-                                              init_data_time,
-                                              can_be_refined, initial_time);
+            // 1. Determine the number of local (on processor) nodes to be
+            //    allocated on the patch level and allocate space for the local
+            //    and non-local index data.
+            const int num_local_nodes = d_lag_init->getLocalNodeCountOnPatchLevel(
+                hierarchy, level_number,
+                init_data_time, can_be_refined, initial_time);
 
-            // Second, allocate LNodeLevelData corresponding to the
-            // curvilinear mesh node positions.
-            d_lag_quantity_data[level_number][COORDS_DATA_NAME] =
-                new LNodeLevelData(COORDS_DATA_NAME, num_local_nodes, NDIM);
+            d_local_lag_indices  [level_number].resize(num_local_nodes,-1);
+            d_local_petsc_indices[level_number].resize(num_local_nodes,-1);
 
-            // Third, initialize the Lagrangian data.
+            d_nonlocal_lag_indices  [level_number]   .clear();
+            d_nonlocal_petsc_indices[level_number]   .clear();
+            d_nonlocal_petsc_indices[level_number][1].clear();
+
             computeNodeOffsets(d_num_nodes[level_number],
-                               d_node_offset[level_number],
-                               num_local_nodes);
+                               d_node_offset[level_number], num_local_nodes);
 
-            // NOTE: If either offset is ever nonzero, note that it
-            // may be necessary to modify IBHierarchyIntegrator, in
-            // particular the code where the penalty IB method-related
-            // data are initialized.
+            // 2. Allocate LNodeLevelData corresponding to the curvilinear mesh
+            //    node positions.
+            static const bool maintain_data = true;
+            createLNodeLevelData(COORDS_DATA_NAME, level_number, NDIM, maintain_data);
+
+            // 3. Initialize the Lagrangian data.
+
+            // WARNING: If either of the following offsets is ever nonzero, note
+            // that it may be necessary to modify IBHierarchyIntegrator, in
+            // particular the code where the data related to the implementation
+            // of the penalty IB method are initialized.
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
-            d_lag_init->initializeDataOnPatchLevel(
+
+            const int num_initialized_local_nodes = d_lag_init->initializeDataOnPatchLevel(
                 d_lag_node_index_current_idx,
                 global_index_offset, local_index_offset,
                 d_lag_quantity_data[level_number][COORDS_DATA_NAME],
                 hierarchy, level_number,
-                init_data_time, can_be_refined, initial_time);
+                init_data_time, can_be_refined, initial_time, this);
 
-            // Obtain the distribution (indexing) data for the data.
-            //
-            // Collect the local Lagrangian indices.  These values
-            // were set for each LNodeIndex by the init strategy.
-            d_local_lag_indices  [level_number].resize(num_local_nodes);
-            d_local_petsc_indices[level_number].resize(num_local_nodes);
+            if (num_local_nodes != num_initialized_local_nodes)
+            {
+                TBOX_ERROR("LDataManager::initializeLevelData()"                             << "\n" <<
+                           "  num_local_nodes             = " << num_local_nodes             << "\n" <<
+                           "  num_initialized_local_nodes = " << num_initialized_local_nodes << "\n");
+            }
 
+            // 4. Compute the initial distribution (indexing) data.
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1538,12 +1545,8 @@ LDataManager::initializeLevelData(
                 }
             }
 
-            // There are currently no nonlocal Lagrangian indices.
-            d_nonlocal_lag_indices  [level_number]   .clear();
-            d_nonlocal_petsc_indices[level_number][1].clear();
-
-            // The AO (application order) is determined by the initial
-            // values of the local Lagrangian indices.
+            // 5. The AO (application order) is determined by the initial values
+            //    of the local Lagrangian indices.
             int ierr;
 
             if (d_ao[level_number])
@@ -1558,12 +1561,11 @@ LDataManager::initializeLevelData(
                                  &d_ao[level_number]);
             PETSC_SAMRAI_ERROR(ierr);
 
-            // Restore the position data pointers for the LNodeIndex
-            // objects.
+            // 6. Restore the position data pointers for the LNodeIndex objects.
             restoreLocationPointers(level_number, level_number);
 
-            // Indicate to use nonuniform workload estimate on the
-            // specified level.
+            // 7. Indicate to use nonuniform workload estimate on the specified
+            //    level.
             if (!d_load_balancer.isNull())
             {
                 d_load_balancer->setWorkloadPatchDataIndex(

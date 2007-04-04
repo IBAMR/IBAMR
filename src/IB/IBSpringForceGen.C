@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <29.Mar.2007 16:17:00 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Apr.2007 21:14:42 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -109,7 +109,7 @@ IBSpringForceGen::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    const LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     t_initialize_level_data->start();
 
@@ -298,11 +298,10 @@ void
 IBSpringForceGen::computeLagrangianForce(
     SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
     SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
-    SAMRAI::tbox::Pointer<LNodeLevelData> U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    const LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     t_compute_lagrangian_force->start();
 

@@ -2,7 +2,7 @@
 #define included_IBLagrangianSourceStrategy
 
 // Filename: IBLagrangianSourceStrategy.h
-// Last modified: <30.Mar.2007 16:05:23 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Apr.2007 21:13:31 griffith@box221.cims.nyu.edu>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -61,7 +61,7 @@ public:
         const int level_number,
         const double init_data_time,
         const bool initial_time,
-        const LDataManager* const lag_manager);
+        LDataManager* const lag_manager);
 
     /*!
      * \brief Specify the number of distributed internal sources or
@@ -91,7 +91,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        const LDataManager* const lag_manager) = 0;
+        LDataManager* const lag_manager) = 0;
 
     /*!
      * \brief Compute the source strengths for each of the distributed
