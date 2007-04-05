@@ -13,6 +13,7 @@ IBEulerianForceSetter.C \
 IBEulerianSourceSetter.C \
 IBHierarchyIntegrator.C \
 IBLagrangianForceStrategy.C \
+IBLagrangianForceStrategySet.C \
 IBLagrangianSourceStrategy.C \
 IBSpringForceGen.C \
 IBSpringForceSpec.C \
@@ -31,6 +32,7 @@ IBEulerianForceSetter.h \
 IBEulerianSourceSetter.h \
 IBHierarchyIntegrator.h \
 IBLagrangianForceStrategy.h \
+IBLagrangianForceStrategySet.h \
 IBLagrangianSourceStrategy.h \
 IBSpringForceGen.h \
 IBSpringForceSpec.h \

@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <27.Mar.2007 21:11:42 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Apr.2007 17:56:36 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -898,7 +898,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         new STOOLS::CartExtrapPhysBdryOp(d_H_idx, "LINEAR"));
 
     d_rstrategies["predictAdvectionVelocity"] =
-        new STOOLS::RefinePatchStrategySet(refine_strategy_set);
+        new STOOLS::RefinePatchStrategySet(refine_strategy_set.begin(), refine_strategy_set.end());
 
     // Create several coarsening communications algorithms, used in
     // synchronizing refined regions of coarse data with the

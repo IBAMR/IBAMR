@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <26.Mar.2007 22:08:47 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Apr.2007 17:17:27 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -659,6 +659,12 @@ private:
      * Lagrangian data used by the integrator.
      */
     SAMRAI::tbox::Pointer<LNodeInitStrategy> d_lag_init;
+
+    /*
+     * Boolean to indicate whether the hierarchy integrator should maintain the
+     * Lagragian velocity data.
+     */
+    bool d_maintain_U_data;
 
     /*
      * The force generators.

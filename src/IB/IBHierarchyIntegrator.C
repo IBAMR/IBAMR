@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <03.Apr.2007 17:44:13 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Apr.2007 20:18:56 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -107,6 +107,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_ins_hier_integrator(ins_hier_integrator),
       d_lag_data_manager(NULL),
       d_lag_init(NULL),
+      d_maintain_U_data(false),
       d_body_force_set(NULL),
       d_eulerian_force_set(NULL),
       d_force_strategy(force_strategy),
@@ -392,7 +393,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     if (!d_source_strategy.isNull())
     {
         d_eulerian_source_set = new IBEulerianSourceSetter(
-            d_object_name+"::IBEulerianSourceSetter",d_Q_idx,d_Q_idx,-1);
+            d_object_name+"::IBEulerianSourceSetter", d_Q_idx, d_Q_idx, d_Q_idx);
         d_ins_hier_integrator->registerDivergenceSpecification(
             d_eulerian_source_set);
     }
@@ -603,7 +604,11 @@ IBHierarchyIntegrator::advanceHierarchy(
     // Set the current time interval in the force specification objects.
     d_eulerian_force_set->setTimeInterval(current_time, new_time);
     d_force_strategy->setTimeInterval(current_time, new_time);
-    if (!d_source_strategy.isNull()) d_source_strategy->setTimeInterval(current_time, new_time);
+    if (!d_source_strategy.isNull())
+    {
+        d_eulerian_source_set->setTimeInterval(current_time, new_time);
+        d_source_strategy->setTimeInterval(current_time, new_time);
+    }
 
     // Rebalance the coarsest level (when requested).
     if (rebalance_coarsest)
@@ -736,7 +741,14 @@ IBHierarchyIntegrator::advanceHierarchy(
 
             X_data[ln] = d_lag_data_manager->getLNodeLevelData("X",ln);
             F_data[ln] = d_lag_data_manager->createLNodeLevelData("F",ln,NDIM);
-            U_data[ln] = d_lag_data_manager->createLNodeLevelData("U",ln,NDIM);
+            if (d_maintain_U_data)
+            {
+                U_data[ln] = d_lag_data_manager->getLNodeLevelData("U",ln);
+            }
+            else
+            {
+                U_data[ln] = d_lag_data_manager->createLNodeLevelData("U",ln,NDIM);
+            }
 
             X_data[ln]->restoreLocalFormVec();
             F_data[ln]->restoreLocalFormVec();
@@ -1187,6 +1199,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     for (int d = 0; d < NDIM; ++d)
                     {
                         r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
+                        r[d] = max(r[d],2.0*dx[d]);
                     }
 
                     // Determine the approximate source stencil box.
@@ -1294,6 +1307,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     for (int d = 0; d < NDIM; ++d)
                     {
                         r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
+                        r[d] = max(r[d],2.0*dx[d]);
                     }
 
                     // Determine the approximate source stencil box.
@@ -1355,11 +1369,7 @@ IBHierarchyIntegrator::advanceHierarchy(
         if (!SAMRAI::tbox::Utilities::deq(q_total, Q_sum))
         {
             TBOX_ERROR(d_object_name << ":  "
-                       << "Lagrangian and Eulerian source/sink strengths are inconsistent.\n"
-                       << "This can occur when the Cartesian grid spatial resolution is inadequate\n"
-                       << "to resolve the regularized ``point'' sources.  Please ensure that all\n"
-                       << "source/sink radii are at least 4 meshwidths on the appropriate level of\n"
-                       << "the locally refined Cartesian grid.");
+                       << "Lagrangian and Eulerian source/sink strengths are inconsistent.");
         }
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1485,11 +1495,13 @@ IBHierarchyIntegrator::advanceHierarchy(
 
     // In the following loop, we perform the following operations:
     //
-    // 1. Interpolate u(n+1) from the Cartesian grid onto the
-    //    Lagrangian mesh.
+    // 1. Interpolate u(n+1) from the Cartesian grid onto the Lagrangian mesh
+    //    using X~(n+1).
     //
-    // 2. Compute X(n+1), the final structure configuration at time
-    //    t_{n+1}.
+    // 2. Compute X(n+1), the final structure configuration at time t_{n+1}.
+    //
+    // 3. (optional) Interpolate u(n+1) from the Cartesian grid onto the
+    //    Lagrangian mesh using X(n+1).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -1567,6 +1579,28 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                 ierr = VecAXPBY(Y_vec, 0.5, 0.5, Y_new_vec);  PETSC_SAMRAI_ERROR(ierr);
                 ierr = VecAXPBY(dY_dt_vec, 0.5, 0.5, dY_dt_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+            }
+
+            // 3. (optional) Interpolate u(n+1) from the Cartesian grid onto the
+            //    Lagrangian mesh using X(n+1).
+            if (d_maintain_U_data)
+            {
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): re-interpolating u(n+1) to U(n+1) on level number " << ln << "\n";
+
+                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > w_data =
+                        patch->getPatchData(d_W_idx);
+                    const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data = patch->getPatchData(
+                        d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+
+                    LEInteractor::interpolate(
+                        U_data[ln], X_data[ln], idx_data, w_data,
+                        patch, patch_box,
+                        d_delta_fcn, ENFORCE_PERIODIC_BCS);
+                }
             }
         }
     }
@@ -1894,6 +1928,11 @@ IBHierarchyIntegrator::initializeLevelData(
     if (initial_time && d_lag_init->getLevelHasLagrangianData(level_number, can_be_refined))
     {
         static const bool manage_data = true;
+        if (d_maintain_U_data)
+        {
+            SAMRAI::tbox::Pointer<LNodeLevelData> U_data = d_lag_data_manager->
+                createLNodeLevelData("U",level_number,NDIM,manage_data);
+        }
         if (d_using_pIB_method)
         {
             SAMRAI::tbox::Pointer<LNodeLevelData> M_data = d_lag_data_manager->
@@ -2317,6 +2356,8 @@ IBHierarchyIntegrator::getFromInput(
     assert(!db.isNull());
 #endif
     // Read data members from input database.
+    d_maintain_U_data = db->getBoolWithDefault("maintain_U_data", d_maintain_U_data);
+
     d_end_time = db->getDoubleWithDefault("end_time", d_end_time);
     d_grow_dt = db->getDoubleWithDefault("grow_dt", d_grow_dt);
 

@@ -203,6 +203,7 @@ EXTRA_DIST = autogen.sh bin/includes.pl \
 	include/ibamr/IBEulerianSourceSetter.h \
 	include/ibamr/IBHierarchyIntegrator.h \
 	include/ibamr/IBLagrangianForceStrategy.h \
+	include/ibamr/IBLagrangianForceStrategySet.h \
 	include/ibamr/IBLagrangianSourceStrategy.h \
 	include/ibamr/IBStandardForceGen.h \
 	include/ibamr/IBStandardForceSpecFactory.h \

@@ -19,6 +19,7 @@ EXTRA_DIST += include/ibamr/IBEulerianForceSetter.h
 EXTRA_DIST += include/ibamr/IBEulerianSourceSetter.h
 EXTRA_DIST += include/ibamr/IBHierarchyIntegrator.h
 EXTRA_DIST += include/ibamr/IBLagrangianForceStrategy.h
+EXTRA_DIST += include/ibamr/IBLagrangianForceStrategySet.h
 EXTRA_DIST += include/ibamr/IBLagrangianSourceStrategy.h
 EXTRA_DIST += include/ibamr/IBStandardForceGen.h
 EXTRA_DIST += include/ibamr/IBStandardForceSpecFactory.h
