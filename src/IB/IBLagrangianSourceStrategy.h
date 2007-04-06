@@ -2,7 +2,7 @@
 #define included_IBLagrangianSourceStrategy
 
 // Filename: IBLagrangianSourceStrategy.h
-// Last modified: <03.Apr.2007 21:13:31 griffith@box221.cims.nyu.edu>
+// Last modified: <05.Apr.2007 18:44:03 griffith@box221.cims.nyu.edu>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -73,7 +73,10 @@ public:
      * process.
      */
     virtual int getNumSources(
-        const int level_number) const = 0;
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double data_time,
+        LDataManager* const lag_manager) = 0;
 
     /*!
      * \brief Compute the source locations for each of the distributed
@@ -94,6 +97,16 @@ public:
         LDataManager* const lag_manager) = 0;
 
     /*!
+     * \brief Set the normalized pressures at the sources.
+     */
+    virtual void setSourcePressures(
+        const std::vector<double>& P_src,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double data_time,
+        LDataManager* const lag_manager) = 0;
+
+    /*!
      * \brief Compute the source strengths for each of the distributed
      * internal sources or sinks.
      *
@@ -104,11 +117,10 @@ public:
      */
     virtual void computeSourceStrengths(
         std::vector<double>& Q_src,
-        const std::vector<double>& P_src,
-        const std::vector<std::vector<double> >& X_src,
-        const vector<double>& r_src,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
-        const double data_time) = 0;
+        const double data_time,
+        LDataManager* const lag_manager) = 0;
 
 private:
     /*!

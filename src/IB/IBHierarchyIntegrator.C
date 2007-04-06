@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <04.Apr.2007 20:18:56 griffith@box221.cims.nyu.edu>
+// Last modified: <05.Apr.2007 21:27:46 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -1088,169 +1088,44 @@ IBHierarchyIntegrator::advanceHierarchy(
             level->allocatePatchData(d_Q_scratch_idx, current_time);
         }
 
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-        if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
-
-        const SAMRAI::hier::Box<NDIM>& domain_box = grid_geom->getPhysicalDomain()(0);
-        SAMRAI::hier::Box<NDIM> lower_box = domain_box;
-        SAMRAI::hier::Box<NDIM> upper_box = domain_box;
-        lower_box.upper(NDIM-1) = domain_box.lower(NDIM-1);
-        upper_box.lower(NDIM-1) = domain_box.upper(NDIM-1);
-
-        // Compute the volume of the region near the periodic boundary
-        // which is used to supply the normalization pressure.
-        const double* const ref_xLower = grid_geom->getXLower();
-        const double* const ref_xUpper = grid_geom->getXUpper();
-        const double* const ref_dx = grid_geom->getDx();
-        double vol = 1.0;
-        for (int d = 0; d < NDIM-1; ++d)
-        {
-            vol *= (ref_xUpper[d] - ref_xLower[d]);
-        }
-        vol *= 2.0*ref_dx[NDIM-1];
-
-        // Compute the mean pressure near the periodic boundary at
-        // z=z_min and z=z_max.
-        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-        const int P_current_idx = var_db->mapVariableAndContextToIndex(
-            d_ins_hier_integrator->getPressureVar(),
-            d_ins_hier_integrator->getCurrentContext());
-        const int wgt_idx = d_ins_hier_integrator->
-            getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
-        SAMRAI::math::PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
-        double p_integral = 0.0;
+        // Reset the values of Q_src.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            const SAMRAI::hier::IntVector<NDIM>& ratio = level->getRatio();
-            const SAMRAI::hier::Box<NDIM> refined_lower_box =
-                SAMRAI::hier::Box<NDIM>::refine(lower_box,ratio);
-            const SAMRAI::hier::Box<NDIM> refined_upper_box =
-                SAMRAI::hier::Box<NDIM>::refine(upper_box,ratio);
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > p_data = patch->
-                    getPatchData(P_current_idx);
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > wgt_data = patch->
-                    getPatchData(wgt_idx);
-                p_integral += patch_cc_data_ops.integral(
-                    p_data, patch_box*refined_lower_box, wgt_data);
-                p_integral += patch_cc_data_ops.integral(
-                    p_data, patch_box*refined_upper_box, wgt_data);
-            }
-        }
-
-        const double p_norm = SAMRAI::tbox::MPI::sumReduction(p_integral)/vol;
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): p_norm = " << p_norm << "\n";
-
-        // Reset the values of P_src and Q_src.
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            d_P_src[ln] = std::vector<double>(d_n_src[ln],0.0);
             d_Q_src[ln] = std::vector<double>(d_n_src[ln],0.0);
         }
 
         // Get the present source locations.
         //
-        // IMPORTANT NOTE: Here, we require that each MPI process is
-        // assigned the same source locations and radii.
+        // IMPORTANT NOTE: Here, we require that each MPI process is assigned
+        // the same source locations and radii.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing source locations on level number " << ln << "\n";
-
-            d_source_strategy->getSourceLocations(
-                d_X_src[ln], d_r_src[ln], X_data[ln],
-                d_hierarchy, ln, current_time, d_lag_data_manager);
-        }
-
-        // Compute the mean pressure at the sources/sinks associated
-        // with each level of the Cartesian grid.
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing source pressures on level number " << ln << "\n";
-
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            if (d_n_src[ln] > 0)
             {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-                const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing source locations on level number " << ln << "\n";
 
-                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-
-                const double* const xLower = pgeom->getXLower();
-                const double* const xUpper = pgeom->getXUpper();
-                const double* const dx = pgeom->getDx();
-
-                const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > p_data =
-                    patch->getPatchData(P_current_idx);
-                for (int n = 0; n < d_n_src[ln]; ++n)
-                {
-//                  LEInteractor::interpolate(
-//                      &P_src[ln][n], 1, &X_src[ln][n][0], NDIM, 1, p_data,
-//                      patch, patch_box, "IB_4");
-
-                    // The source radius must be an integer multiple
-                    // of the grid spacing.
-                    double r[NDIM];
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
-                        r[d] = max(r[d],2.0*dx[d]);
-                    }
-
-                    // Determine the approximate source stencil box.
-                    const SAMRAI::hier::Index<NDIM> i_center =
-                        STOOLS::STOOLS_Utilities::getCellIndex(
-                            d_X_src[ln][n], xLower, xUpper, dx,
-                            patch_lower, patch_upper);
-                    SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        stencil_box.grow(
-                            d, static_cast<int>(ceil(r[d]/dx[d])));
-                    }
-
-                    // Interpolate the pressure from the Cartesian
-                    // grid.
-                    for (SAMRAI::hier::Box<NDIM>::Iterator b(patch_box*stencil_box);
-                         b; b++)
-                    {
-                        const SAMRAI::hier::Index<NDIM>& i = b();
-
-                        double wgt = 1.0;
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
-                            wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d])*dx[d];
-                        }
-                        d_P_src[ln][n] += (*p_data)(i)*wgt;
-                    }
-                }
+                d_source_strategy->getSourceLocations(
+                    d_X_src[ln], d_r_src[ln], X_data[ln],
+                    d_hierarchy, ln, current_time, d_lag_data_manager);
             }
-
-            SAMRAI::tbox::MPI::sumReduction(&d_P_src[ln][0], d_P_src[ln].size());
-            transform(d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(),
-                      bind2nd(plus<double>(),-p_norm));
         }
 
         // Compute the source strengths for each of the sources/sinks.
         //
-        // IMPORTANT NOTE: Here, we require that each MPI process is
-        // assigned the same source strengths.
+        // IMPORTANT NOTE: Here, we require that each MPI process is assigned
+        // the same source strengths.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing fluid source strengths on level number " << ln << "\n";
+            if (d_n_src[ln] > 0)
+            {
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing fluid source strengths on level number " << ln << "\n";
 
-            d_source_strategy->computeSourceStrengths(
-                d_Q_src[ln], d_P_src[ln], d_X_src[ln], d_r_src[ln], ln, current_time);
+                d_source_strategy->computeSourceStrengths(
+                    d_Q_src[ln], d_hierarchy, ln, current_time, d_lag_data_manager);
+            }
         }
 
         // Spread the sources/sinks onto the Cartesian grid.
-
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1278,73 +1153,97 @@ IBHierarchyIntegrator::advanceHierarchy(
                 d_source_rscheds[ln]->fillData(current_time);
             }
 
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): spreading fluid source strengths to the Cartesian grid on level number " << ln << "\n";
-
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            if (d_n_src[ln] > 0)
             {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-                const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): spreading fluid source strengths to the Cartesian grid on level number " << ln << "\n";
 
-                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-
-                const double* const xLower = pgeom->getXLower();
-                const double* const xUpper = pgeom->getXUpper();
-                const double* const dx = pgeom->getDx();
-
-                const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data =
-                    patch->getPatchData(d_Q_idx);
-                for (int n = 0; n < d_n_src[ln]; ++n)
+                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-//                  LEInteractor::spread(
-//                      q_data, &d_Q_src[ln][n], 1, &d_X_src[ln][n][0], NDIM, 1,
-//                      patch, patch_box, "IB_4");
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                    const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+                    const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
 
-                    // The source radius must be an integer multiple
-                    // of the grid spacing.
-                    double r[NDIM];
-                    for (int d = 0; d < NDIM; ++d)
+                    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+
+                    const double* const xLower = pgeom->getXLower();
+                    const double* const xUpper = pgeom->getXUpper();
+                    const double* const dx = pgeom->getDx();
+
+                    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data =
+                        patch->getPatchData(d_Q_idx);
+                    for (int n = 0; n < d_n_src[ln]; ++n)
                     {
-                        r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
-                        r[d] = max(r[d],2.0*dx[d]);
-                    }
+//                      LEInteractor::spread(
+//                          q_data, &d_Q_src[ln][n], 1, &d_X_src[ln][n][0], NDIM, 1,
+//                          patch, patch_box, "IB_4");
 
-                    // Determine the approximate source stencil box.
-                    const SAMRAI::hier::Index<NDIM> i_center =
-                        STOOLS::STOOLS_Utilities::getCellIndex(
-                            d_X_src[ln][n], xLower, xUpper, dx,
-                            patch_lower, patch_upper);
-                    SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        stencil_box.grow(
-                            d, static_cast<int>(ceil(r[d]/dx[d])));
-                    }
-
-                    // Spread the source strength onto the Cartesian
-                    // grid.
-                    for (SAMRAI::hier::Box<NDIM>::Iterator b(patch_box*stencil_box);
-                         b; b++)
-                    {
-                        const SAMRAI::hier::Index<NDIM>& i = b();
-
-                        double wgt = 1.0;
+                        // The source radius must be an integer multiple of the
+                        // grid spacing.
+                        double r[NDIM];
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
-                            wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d]);
+                            r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
+                            r[d] = max(r[d],2.0*dx[d]);
                         }
-                        (*q_data)(i) += d_Q_src[ln][n]*wgt;
+
+                        // Determine the approximate source stencil box.
+                        const SAMRAI::hier::Index<NDIM> i_center =
+                            STOOLS::STOOLS_Utilities::getCellIndex(
+                                d_X_src[ln][n], xLower, xUpper, dx,
+                                patch_lower, patch_upper);
+                        SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            stencil_box.grow(
+                                d, static_cast<int>(ceil(r[d]/dx[d])));
+                        }
+
+                        // Spread the source strength onto the Cartesian grid.
+                        for (SAMRAI::hier::Box<NDIM>::Iterator b(patch_box*stencil_box);
+                             b; b++)
+                        {
+                            const SAMRAI::hier::Index<NDIM>& i = b();
+
+                            double wgt = 1.0;
+                            for (int d = 0; d < NDIM; ++d)
+                            {
+                                const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                                wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d]);
+                            }
+                            (*q_data)(i) += d_Q_src[ln][n]*wgt;
+                        }
                     }
                 }
             }
         }
 
-        // Normalize the Cartesian source/sink field by placing
-        // source/sink planes near the periodic boundary at z=z_min
-        // and z=z_max so that the discrete integral of the source
-        // density is zero.
+        // Normalize the Cartesian source/sink field by placing source/sink
+        // planes near the periodic boundary at z=z_min and z=z_max so that the
+        // discrete integral of the source density is zero.
+        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
+
+        const SAMRAI::hier::Box<NDIM>& domain_box = grid_geom->getPhysicalDomain()(0);
+        SAMRAI::hier::Box<NDIM> lower_box = domain_box;
+        SAMRAI::hier::Box<NDIM> upper_box = domain_box;
+        lower_box.upper(NDIM-1) = domain_box.lower(NDIM-1);
+        upper_box.lower(NDIM-1) = domain_box.upper(NDIM-1);
+
+        const double* const ref_xLower = grid_geom->getXLower();
+        const double* const ref_xUpper = grid_geom->getXUpper();
+        const double* const ref_dx = grid_geom->getDx();
+        double vol = 1.0;
+        for (int d = 0; d < NDIM-1; ++d)
+        {
+            vol *= (ref_xUpper[d] - ref_xLower[d]);
+        }
+        vol *= 2.0*ref_dx[NDIM-1];
+
+        // Compute the net inflow into the computational domain.
+        const int wgt_idx = d_ins_hier_integrator->
+            getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
+        SAMRAI::math::PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
         double Q_sum = 0.0;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -1404,8 +1303,7 @@ IBHierarchyIntegrator::advanceHierarchy(
 #endif
         }
 
-        // Synchronize the Cartesian grid source density on the patch
-        // hierarchy.
+        // Synchronize the Cartesian grid source density on the patch hierarchy.
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
             d_cscheds["Q->Q::CONSERVATIVE_COARSEN"][ln]->coarsenData();
@@ -1601,6 +1499,168 @@ IBHierarchyIntegrator::advanceHierarchy(
                         patch, patch_box,
                         d_delta_fcn, ENFORCE_PERIODIC_BCS);
                 }
+            }
+        }
+    }
+
+    // Compute the normalized pressure at the updated locations of any
+    // distributed internal fluid sources or sinks.
+    if (!d_source_strategy.isNull())
+    {
+        // Reset the values of P_src.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            d_P_src[ln] = std::vector<double>(d_n_src[ln],0.0);
+        }
+
+        // Get the present source locations.
+        //
+        // IMPORTANT NOTE: Here, we require that each MPI process is assigned
+        // the same source locations and radii.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_n_src[ln] > 0)
+            {
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing source locations on level number " << ln << "\n";
+
+                d_source_strategy->getSourceLocations(
+                    d_X_src[ln], d_r_src[ln], X_data[ln],
+                    d_hierarchy, ln, new_time, d_lag_data_manager);
+            }
+        }
+
+        // Compute the volume of the region near the periodic boundary which is
+        // used to supply the normalization pressure.
+        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
+
+        const SAMRAI::hier::Box<NDIM>& domain_box = grid_geom->getPhysicalDomain()(0);
+        SAMRAI::hier::Box<NDIM> lower_box = domain_box;
+        SAMRAI::hier::Box<NDIM> upper_box = domain_box;
+        lower_box.upper(NDIM-1) = domain_box.lower(NDIM-1);
+        upper_box.lower(NDIM-1) = domain_box.upper(NDIM-1);
+
+        const double* const ref_xLower = grid_geom->getXLower();
+        const double* const ref_xUpper = grid_geom->getXUpper();
+        const double* const ref_dx = grid_geom->getDx();
+        double vol = 1.0;
+        for (int d = 0; d < NDIM-1; ++d)
+        {
+            vol *= (ref_xUpper[d] - ref_xLower[d]);
+        }
+        vol *= 2.0*ref_dx[NDIM-1];
+
+        // Compute the mean pressure near the periodic boundary at z=z_min and
+        // z=z_max.
+        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+        const int P_new_idx = var_db->mapVariableAndContextToIndex(
+            d_ins_hier_integrator->getPressureVar(),
+            d_ins_hier_integrator->getNewContext());
+        const int wgt_idx = d_ins_hier_integrator->
+            getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
+        SAMRAI::math::PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
+        double p_integral = 0.0;
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            const SAMRAI::hier::IntVector<NDIM>& ratio = level->getRatio();
+            const SAMRAI::hier::Box<NDIM> refined_lower_box =
+                SAMRAI::hier::Box<NDIM>::refine(lower_box,ratio);
+            const SAMRAI::hier::Box<NDIM> refined_upper_box =
+                SAMRAI::hier::Box<NDIM>::refine(upper_box,ratio);
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > p_data = patch->
+                    getPatchData(P_new_idx);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > wgt_data = patch->
+                    getPatchData(wgt_idx);
+                p_integral += patch_cc_data_ops.integral(
+                    p_data, patch_box*refined_lower_box, wgt_data);
+                p_integral += patch_cc_data_ops.integral(
+                    p_data, patch_box*refined_upper_box, wgt_data);
+            }
+        }
+
+        const double p_norm = SAMRAI::tbox::MPI::sumReduction(p_integral)/vol;
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): p_norm = " << p_norm << "\n";
+
+        // Compute the mean pressure at the sources/sinks associated with each
+        // level of the Cartesian grid.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_n_src[ln] > 0)
+            {
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing source pressures on level number " << ln << "\n";
+
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                    const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+                    const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+
+                    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+
+                    const double* const xLower = pgeom->getXLower();
+                    const double* const xUpper = pgeom->getXUpper();
+                    const double* const dx = pgeom->getDx();
+
+                    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > p_data =
+                        patch->getPatchData(P_new_idx);
+                    for (int n = 0; n < d_n_src[ln]; ++n)
+                    {
+//                      LEInteractor::interpolate(
+//                          &P_src[ln][n], 1, &X_src[ln][n][0], NDIM, 1, p_data,
+//                          patch, patch_box, "IB_4");
+
+                        // The source radius must be an integer multiple of the
+                        // grid spacing.
+                        double r[NDIM];
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
+                            r[d] = max(r[d],2.0*dx[d]);
+                        }
+
+                        // Determine the approximate source stencil box.
+                        const SAMRAI::hier::Index<NDIM> i_center =
+                            STOOLS::STOOLS_Utilities::getCellIndex(
+                                d_X_src[ln][n], xLower, xUpper, dx,
+                                patch_lower, patch_upper);
+                        SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            stencil_box.grow(
+                                d, static_cast<int>(ceil(r[d]/dx[d])));
+                        }
+
+                        // Interpolate the pressure from the Cartesian grid.
+                        for (SAMRAI::hier::Box<NDIM>::Iterator b(patch_box*stencil_box);
+                             b; b++)
+                        {
+                            const SAMRAI::hier::Index<NDIM>& i = b();
+
+                            double wgt = 1.0;
+                            for (int d = 0; d < NDIM; ++d)
+                            {
+                                const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                                wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d])*dx[d];
+                            }
+                            d_P_src[ln][n] += (*p_data)(i)*wgt;
+                        }
+                    }
+                }
+
+                SAMRAI::tbox::MPI::sumReduction(&d_P_src[ln][0], d_P_src[ln].size());
+                transform(d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(),
+                          bind2nd(plus<double>(),-p_norm));
+
+                // Set the pressures for the Lagrangian source strategy.
+                d_source_strategy->setSourcePressures(
+                    d_P_src[ln], d_hierarchy, ln, current_time, d_lag_data_manager);
             }
         }
     }
@@ -1954,6 +2014,31 @@ IBHierarchyIntegrator::initializeLevelData(
         }
     }
 
+    // Determine the initial source/sink locations.
+    if (initial_time && !d_source_strategy.isNull())
+    {
+        d_X_src.resize(max(static_cast<int>(d_X_src.size()),level_number+1));
+        d_r_src.resize(max(static_cast<int>(d_r_src.size()),level_number+1));
+        d_P_src.resize(max(static_cast<int>(d_P_src.size()),level_number+1));
+        d_Q_src.resize(max(static_cast<int>(d_Q_src.size()),level_number+1));
+        d_n_src.resize(max(static_cast<int>(d_n_src.size()),level_number+1));
+
+        d_n_src[level_number] = d_source_strategy->
+            getNumSources(hierarchy, level_number, d_integrator_time, d_lag_data_manager);
+
+        d_X_src[level_number].resize(d_n_src[level_number], std::vector<double>(NDIM,std::numeric_limits<double>::quiet_NaN()));
+        d_r_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+        d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+        d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+
+        if (d_n_src[level_number] > 0)
+        {
+            d_source_strategy->getSourceLocations(
+                d_X_src[level_number], d_r_src[level_number], d_lag_data_manager->getLNodeLevelData("X",level_number),
+                hierarchy, level_number, d_integrator_time, d_lag_data_manager);
+        }
+    }
+
     t_initialize_level_data->stop();
     return;
 }// initializeLevelData
@@ -2000,20 +2085,6 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
     d_P_src.resize(finest_hier_level+1);
     d_Q_src.resize(finest_hier_level+1);
     d_n_src.resize(finest_hier_level+1);
-
-    if (!d_source_strategy.isNull())
-    {
-        for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
-        {
-            // \todo We should probably provide better initial values
-            // here.
-            d_n_src[ln] = d_source_strategy->getNumSources(ln);
-            d_X_src[ln].resize(d_n_src[ln], std::vector<double>(NDIM,0.0));
-            d_r_src[ln].resize(d_n_src[ln], 0.0);
-            d_P_src[ln].resize(d_n_src[ln], 0.0);
-            d_Q_src[ln].resize(d_n_src[ln], 0.0);
-        }
-    }
 
     // If we have added or removed a level, resize the schedule
     // vectors.
@@ -2159,12 +2230,13 @@ IBHierarchyIntegrator::applyGradientDetector(
                 dx_finer[d] = dx[d]/static_cast<double>(finer_level->getRatio()(d));
             }
 
-            // The source radius must be an integer multiple of the
-            // grid spacing.
+            // The source radius must be an integer multiple of the grid
+            // spacing.
             double r[NDIM];
             for (int d = 0; d < NDIM; ++d)
             {
                 r[d] = floor(d_r_src[finer_level_number][n]/dx_finer[d])*dx_finer[d];
+                r[d] = max(r[d],2.0*dx_finer[d]);
             }
 
             // Determine the approximate source stencil box.
@@ -2279,6 +2351,8 @@ IBHierarchyIntegrator::putToDatabase(
     db->putDouble("d_dt_max", d_dt_max);
     db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
     db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
+
+    assert(false);  // XXXX: need to include source/sink data!
 
     t_put_to_database->stop();
     return;
