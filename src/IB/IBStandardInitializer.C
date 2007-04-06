@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <03.Apr.2007 17:45:27 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Apr.2007 16:44:56 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -45,6 +45,36 @@
 namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+inline std::string
+discard_comments(
+    const std::string& input_string)
+{
+    // Create a copy of the input string, but without any text
+    // following a '!', '#', or '%' character.
+    std::string output_string = input_string;
+    std::istringstream string_stream;
+
+    // Discard any text following a '!' character.
+    string_stream.str(output_string);
+    std::getline(string_stream, output_string, '!');
+    string_stream.clear();
+
+    // Discard any text following a '#' character.
+    string_stream.str(output_string);
+    std::getline(string_stream, output_string, '#');
+    string_stream.clear();
+
+    // Discard any text following a '%' character.
+    string_stream.str(output_string);
+    std::getline(string_stream, output_string, '%');
+    string_stream.clear();
+
+    return output_string;
+}// discard_comments
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -441,38 +471,6 @@ IBStandardInitializer::tagCellsForInitialRefinement(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
-namespace
-{
-
-inline std::string
-discard_comments(
-    const std::string& input_string)
-{
-    // Create a copy of the input string, but without any text
-    // following a '!', '#', or '%' character.
-    std::string output_string = input_string;
-    std::istringstream string_stream;
-
-    // Discard any text following a '!' character.
-    string_stream.str(output_string);
-    std::getline(string_stream, output_string, '!');
-    string_stream.clear();
-
-    // Discard any text following a '#' character.
-    string_stream.str(output_string);
-    std::getline(string_stream, output_string, '#');
-    string_stream.clear();
-
-    // Discard any text following a '%' character.
-    string_stream.str(output_string);
-    std::getline(string_stream, output_string, '%');
-    string_stream.clear();
-
-    return output_string;
-}// discard_comments
-
-}
 
 void
 IBStandardInitializer::readVertexFiles()

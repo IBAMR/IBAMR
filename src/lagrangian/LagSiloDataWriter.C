@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <19.Mar.2007 20:07:11 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Apr.2007 16:50:51 griffith@box221.cims.nyu.edu>
 
 #include "LagSiloDataWriter.h"
 
@@ -56,7 +56,6 @@ static const string SILO_PROCESSOR_FILE_PREFIX = "lag_data.proc_";
 static const string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
 
 #if HAVE_LIBSILO
-
 /*!
  * @brief Build a local mesh database entry corresponding to a cloud
  * of marker points.
@@ -492,9 +491,7 @@ void buildLocalUcdMesh(
     }
     return;
 }// buildLocalUcdMesh
-
 #endif //if HAVE_LIBSILO
-
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

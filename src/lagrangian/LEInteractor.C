@@ -1,6 +1,6 @@
 // Filename: LEInteractor.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <25.Oct.2006 18:27:13 boyce@bigboy.nyconnect.com>
+// Last modified: <06.Apr.2007 16:49:42 griffith@box221.cims.nyu.edu>
 
 #include "LEInteractor.h"
 
@@ -211,6 +211,17 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_interpolate;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_interpolate_f77;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_spread;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_spread_f77;
+
+struct GetLocalPETScIndex
+    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
+{
+    inline
+    int operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
+        {
+            return index->getLocalPETScIndex();
+        }
+};
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -234,19 +245,6 @@ LEInteractor::initializeTimers()
     }
     return;
 }// initializeTimers
-
-namespace
-{
-struct GetLocalPETScIndex
-    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
-{
-    int operator()(
-        const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
-        {
-            return index->getLocalPETScIndex();
-        }
-};
-}
 
 int
 LEInteractor::getStencilSize(

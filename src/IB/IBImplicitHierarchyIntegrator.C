@@ -1,6 +1,6 @@
 // Filename: IBImplicitHierarchyIntegrator.C
 // Created on 30 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
-// Last modified: <30.Mar.2007 20:43:22 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Apr.2007 16:43:57 griffith@box221.cims.nyu.edu>
 
 #include "IBImplicitHierarchyIntegrator.h"
 
@@ -80,6 +80,15 @@ static const bool ENFORCE_PERIODIC_BCS = true;
 
 // Version of IBImplicitHierarchyIntegrator restart file data.
 static const int IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION = 1;
+
+// Global variables are evil.
+double dt;
+std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > X_data;
+std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > F_data;
+std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > U_data;
+std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > X_new_data;
+std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > F_new_data;
+std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > U_new_data;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -488,18 +497,6 @@ IBImplicitHierarchyIntegrator::initializeHierarchy()
     t_initialize_hierarchy->stop();
     return dt_next;
 }// initializeHierarchy
-
-// XXXX: global variables are evil.
-namespace
-{
-double dt;
-std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > X_data;
-std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > F_data;
-std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > U_data;
-std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > X_new_data;
-std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > F_new_data;
-std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > U_new_data;
-}
 
 double
 IBImplicitHierarchyIntegrator::advanceHierarchy(

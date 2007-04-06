@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <18.Mar.2007 17:09:53 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <06.Apr.2007 16:49:06 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -51,7 +51,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuration;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 
-// Version of HierarchyProjector restart file data
+// Version of HierarchyProjector restart file data.
 static const int HIERARCHY_PROJECTOR_VERSION = 1;
 }
 

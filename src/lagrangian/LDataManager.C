@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <03.Apr.2007 19:03:34 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Apr.2007 16:49:34 griffith@box221.cims.nyu.edu>
 
 #include "LDataManager.h"
 
@@ -83,6 +83,159 @@ static const int CFL_WIDTH = 1;
 
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;
+
+struct CellIndexFortranOrder
+    : binary_function<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::pdat::CellIndex<NDIM>,bool>
+{
+    inline
+    bool operator()(
+        const SAMRAI::pdat::CellIndex<NDIM>& lhs,
+        const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
+        {
+            return (lhs(0) < rhs(0)
+#if (NDIM>1)
+                    || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+#if (NDIM>2)
+                    || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+#endif
+#endif
+                    );
+        }
+};
+
+struct BeginLNodeLevelDataNonlocalFill
+    : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
+{
+    inline
+    void operator()(
+        const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
+        {
+            data.second->beginGhostUpdate();
+            return;
+        }
+};
+
+class RestoreLNodeIndexLocationPointers
+    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
+{
+public:
+    inline
+    RestoreLNodeIndexLocationPointers(
+        double* const X_arr)
+        : d_X_arr(X_arr)
+        {
+            return;
+        }
+
+    inline
+    void operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& data) const
+        {
+            data->setNodeLocation(
+                &(d_X_arr[NDIM*data->getLocalPETScIndex()]));
+            return;
+        }
+
+private:
+    double* const d_X_arr;
+};
+
+struct InvalidateLNodeIndexLocationPointers
+    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
+{
+    inline
+    void operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& data) const
+        {
+            data->setNodeLocation(NULL);
+            return;
+        }
+};
+
+struct EndLNodeLevelDataNonlocalFill
+    : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
+{
+    inline
+    void operator()(
+        const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
+        {
+            data.second->endGhostUpdate();
+            return;
+        }
+};
+
+struct GetLagrangianIndex
+    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
+{
+    inline
+    int operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
+        {
+            return index->getLagrangianIndex();
+        }
+};
+
+class SetLocalPETScIndex
+    : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
+      public unary_function<void,int>
+{
+public:
+    inline
+    SetLocalPETScIndex(
+        const int offset)
+        : d_current_index(offset)
+        {
+            return;
+        }
+
+    inline
+    void operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& index)
+        {
+            index->setLocalPETScIndex(d_current_index++);
+            return;
+        }
+
+    inline
+    int operator()()
+        {
+            return d_current_index++;
+        }
+
+private:
+    int d_current_index;
+};
+
+class GetLocalPETScIndexFromIDSet
+    : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
+      public unary_function<void,int>
+{
+public:
+    inline
+    GetLocalPETScIndexFromIDSet(
+        const LNodeIndexSet::const_iterator& begin)
+        : d_index(begin)
+        {
+            return;
+        }
+
+    inline
+    void operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& index)
+        {
+            index->setLocalPETScIndex((*(d_index++))->getLocalPETScIndex());
+            return;
+        }
+
+    inline
+    int operator()()
+        {
+            return (*(d_index++))->getLocalPETScIndex();
+        }
+
+private:
+    LNodeIndexSet::const_iterator d_index;
+};
 }
 
 const string LDataManager::COORDS_DATA_NAME   = "X";
@@ -451,27 +604,6 @@ LDataManager::mapPETScToLagrangian(
     t_map_petsc_to_lagrangian->stop();
     return;
 }// mapPETScToLagrangian
-
-namespace
-{
-struct CellIndexFortranOrder
-    : binary_function<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::pdat::CellIndex<NDIM>,bool>
-{
-    bool operator()(
-        const SAMRAI::pdat::CellIndex<NDIM>& lhs,
-        const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
-        {
-            return (lhs(0) < rhs(0)
-#if (NDIM>1)
-                    || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM>2)
-                    || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
-#endif
-#endif
-                    );
-        }
-};
-}
 
 void
 LDataManager::beginDataRedistribution(
@@ -1105,20 +1237,6 @@ LDataManager::endDataRedistribution(
     return;
 }// endDataRedistribution
 
-namespace
-{
-struct BeginLNodeLevelDataNonlocalFill
-    : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
-{
-    void operator()(
-        const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
-        {
-            data.second->beginGhostUpdate();
-            return;
-        }
-};
-}
-
 void
 LDataManager::updateWorkloadData(
     const int coarsest_ln_in,
@@ -1178,32 +1296,6 @@ LDataManager::updateWorkloadData(
     return;
 }// updateWorkloadData
 
-namespace
-{
-class RestoreLNodeIndexLocationPointers
-    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
-{
-public:
-    RestoreLNodeIndexLocationPointers(
-        double* const X_arr)
-        : d_X_arr(X_arr)
-        {
-            return;
-        }
-
-    void operator()(
-        const SAMRAI::tbox::Pointer<LNodeIndex>& data) const
-        {
-            data->setNodeLocation(
-                &(d_X_arr[NDIM*data->getLocalPETScIndex()]));
-            return;
-        }
-
-private:
-    double* const d_X_arr;
-};
-}
-
 void
 LDataManager::restoreLocationPointers(
     const int coarsest_ln_in,
@@ -1250,20 +1342,6 @@ LDataManager::restoreLocationPointers(
     t_restore_location_pointers->stop();
     return;
 }// restoreLocationPointers
-
-namespace
-{
-struct InvalidateLNodeIndexLocationPointers
-    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
-{
-    void operator()(
-        const SAMRAI::tbox::Pointer<LNodeIndex>& data) const
-        {
-            data->setNodeLocation(NULL);
-            return;
-        }
-};
-}
 
 void
 LDataManager::invalidateLocationPointers(
@@ -2079,20 +2157,6 @@ LDataManager::beginNonlocalDataFill(
     return;
 }// beginNonlocalDataFill
 
-namespace
-{
-struct EndLNodeLevelDataNonlocalFill
-    : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
-{
-    void operator()(
-        const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
-        {
-            data.second->endGhostUpdate();
-            return;
-        }
-};
-}
-
 void
 LDataManager::endNonlocalDataFill(
     const int coarsest_ln_in,
@@ -2127,75 +2191,6 @@ LDataManager::endNonlocalDataFill(
     t_end_nonlocal_data_fill->stop();
     return;
 }// endNonlocalDataFill
-
-namespace
-{
-struct GetLagrangianIndex
-    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
-{
-    int operator()(
-        const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
-        {
-            return index->getLagrangianIndex();
-        }
-};
-
-class SetLocalPETScIndex
-    : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
-      public unary_function<void,int>
-{
-public:
-    SetLocalPETScIndex(
-        const int offset)
-        : d_current_index(offset)
-        {
-            return;
-        }
-
-    void operator()(
-        const SAMRAI::tbox::Pointer<LNodeIndex>& index)
-        {
-            index->setLocalPETScIndex(d_current_index++);
-            return;
-        }
-
-    int operator()()
-        {
-            return d_current_index++;
-        }
-
-private:
-    int d_current_index;
-};
-
-class GetLocalPETScIndexFromIDSet
-    : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
-      public unary_function<void,int>
-{
-public:
-    GetLocalPETScIndexFromIDSet(
-        const LNodeIndexSet::const_iterator& begin)
-        : d_index(begin)
-        {
-            return;
-        }
-
-    void operator()(
-        const SAMRAI::tbox::Pointer<LNodeIndex>& index)
-        {
-            index->setLocalPETScIndex((*(d_index++))->getLocalPETScIndex());
-            return;
-        }
-
-    int operator()()
-        {
-            return (*(d_index++))->getLocalPETScIndex();
-        }
-
-private:
-    LNodeIndexSet::const_iterator d_index;
-};
-}
 
 int
 LDataManager::computeNodeDistribution(

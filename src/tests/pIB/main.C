@@ -433,12 +433,8 @@ int main(int argc, char* argv[])
          */
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
-
-        dynamic_cast<IBStandardInitializer*>(initializer.getPointer())->
-            registerLagSiloDataWriter(silo_data_writer);
-
+        initializer->registerLagSiloDataWriter(silo_data_writer);
         time_integrator->rebalanceCoarsestLevel();
-
         tbox::RestartManager::getManager()->closeRestartFile();
 
         /*

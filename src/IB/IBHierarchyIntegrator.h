@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <04.Apr.2007 17:17:27 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Apr.2007 16:24:21 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -203,8 +203,7 @@ public:
      * will result if the new time is not greater than the given time.
      */
     virtual double advanceHierarchy(
-        const double dt,
-        const bool rebalance_coarsest=false);
+        const double dt);
 
     /*!
      * Return true if the current step count indicates that regridding
@@ -263,7 +262,6 @@ public:
     ///
     ///  The following routines:
     ///
-    ///      rebalanceCoarsestLevel(),
     ///      regridHierarchy(),
     ///      synchronizeHierarchy(),
     ///      synchronizeNewLevels(),
@@ -273,11 +271,6 @@ public:
     ///  allow the IBHierarchyIntegrator to provide data management
     ///  for a time integrator which making use of this class.
     ///
-
-    /*!
-     * Rebalance the hierarchy.
-     */
-    virtual void rebalanceCoarsestLevel();
 
     /*!
      * Regrid the hierarchy.

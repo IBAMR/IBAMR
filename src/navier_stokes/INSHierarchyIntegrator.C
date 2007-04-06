@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <04.Apr.2007 17:56:36 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Apr.2007 16:21:40 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -109,7 +109,6 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_integra
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_advance_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_get_stable_timestep;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_rebalance_coarsest_level;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_regrid_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_predict_advection_velocity;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_integrate_adv_diff;
@@ -275,8 +274,6 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
             getTimer("IBAMR::INSHierarchyIntegrator::advanceHierarchy()");
         t_get_stable_timestep = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::INSHierarchyIntegrator::getStableTimestep()");
-        t_rebalance_coarsest_level = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::rebalanceCoarsestLevel()");
         t_regrid_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::INSHierarchyIntegrator::regridHierarchy()");
         t_predict_advection_velocity = SAMRAI::tbox::TimerManager::getManager()->
@@ -1014,8 +1011,7 @@ INSHierarchyIntegrator::initializeHierarchy()
 
 double
 INSHierarchyIntegrator::advanceHierarchy(
-    const double dt,
-    const bool rebalance_coarsest)
+    const double dt)
 {
     t_advance_hierarchy->start();
 
@@ -1029,13 +1025,6 @@ INSHierarchyIntegrator::advanceHierarchy(
     const double current_time = d_integrator_time;
     const double new_time = d_integrator_time+dt;
     const bool initial_time = SAMRAI::tbox::Utilities::deq(d_integrator_time,d_start_time);
-
-    // Rebalance the coarsest level (when requested).
-    if (rebalance_coarsest)
-    {
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): rebalancing coarsest level\n";
-        rebalanceCoarsestLevel();
-    }
 
     // The pressure at start_time is not an initial value for the
     // incompressible Navier-Stokes equations, so we solve for it by
@@ -1241,7 +1230,6 @@ INSHierarchyIntegrator::getHierarchyProjector() const
 ///
 ///  The following routines:
 ///
-///      rebalanceCoarsestLevel(),
 ///      regridHierarchy(),
 ///      predictAdvectionVelocity(),
 ///      integrateAdvDiff(),
@@ -1255,17 +1243,6 @@ INSHierarchyIntegrator::getHierarchyProjector() const
 ///  allow the INSHierarchyIntegrator to provide data management
 ///  for a time integrator which making use of this class.
 ///
-
-void
-INSHierarchyIntegrator::rebalanceCoarsestLevel()
-{
-    t_rebalance_coarsest_level->start();
-
-    d_gridding_alg->makeCoarsestLevel(d_hierarchy,d_integrator_time);
-
-    t_rebalance_coarsest_level->stop();
-    return;
-}// rebalanceCoarsestLevel
 
 void
 INSHierarchyIntegrator::regridHierarchy()

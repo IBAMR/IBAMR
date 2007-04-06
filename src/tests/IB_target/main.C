@@ -365,7 +365,7 @@ int main(int argc, char* argv[])
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
 
-        tbox::Pointer<LNodeInitStrategy> initializer =
+        tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(
                 "IBStandardInitializer",
                 input_db->getDatabase("IBStandardInitializer"));
@@ -416,12 +416,8 @@ int main(int argc, char* argv[])
          */
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
-
-        dynamic_cast<IBStandardInitializer*>(initializer.getPointer())->
-            registerLagSiloDataWriter(silo_data_writer);
-
-        time_integrator->rebalanceCoarsestLevel();
-
+        initializer->registerLagSiloDataWriter(silo_data_writer);
+        time_integrator->regridHierarchy();
         tbox::RestartManager::getManager()->closeRestartFile();
 
         /*

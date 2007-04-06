@@ -1,6 +1,6 @@
 // Filename: LNodeIndexSet.C
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <20.Mar.2007 22:01:24 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Apr.2007 16:49:59 griffith@box221.cims.nyu.edu>
 
 #include "LNodeIndexSet.h"
 
@@ -31,13 +31,12 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-/////////////////////////////// PUBLIC ///////////////////////////////////////
-
 namespace
 {
 struct LNodeIndexGetDataStreamSizeSum
     : binary_function<size_t,SAMRAI::tbox::Pointer<LNodeIndex>,size_t>
 {
+    inline
     size_t operator()(
         size_t size_so_far,
         const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
@@ -45,22 +44,12 @@ struct LNodeIndexGetDataStreamSizeSum
             return size_so_far+index->getDataStreamSize();
         }
 };
-}
 
-size_t
-LNodeIndexSet::getDataStreamSize() const
-{
-    return accumulate(d_set.begin(),d_set.end(),
-                      SAMRAI::tbox::AbstractStream::sizeofInt(),
-                      LNodeIndexGetDataStreamSizeSum());
-}// getDataStreamSize
-
-namespace
-{
 class LNodeIndexPackStream
     : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
 {
 public:
+    inline
     LNodeIndexPackStream(
         SAMRAI::tbox::AbstractStream* const stream)
         : d_stream(stream)
@@ -68,6 +57,7 @@ public:
             return;
         }
 
+    inline
     void operator()(
         const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
         {
@@ -77,24 +67,12 @@ public:
 private:
     SAMRAI::tbox::AbstractStream* const d_stream;
 };
-}
 
-void
-LNodeIndexSet::packStream(
-    SAMRAI::tbox::AbstractStream& stream)
-{
-    const int num_idx = d_set.size();
-    stream.pack(&num_idx,1);
-    for_each(d_set.begin(),d_set.end(), LNodeIndexPackStream(&stream));
-    return;
-}// packStream
-
-namespace
-{
 class LNodeIndexUnpackStream
     : public unary_function<void,SAMRAI::tbox::Pointer<LNodeIndex> >
 {
 public:
+    inline
     LNodeIndexUnpackStream(
         SAMRAI::tbox::AbstractStream* const stream,
         const SAMRAI::hier::IntVector<NDIM>& offset)
@@ -104,6 +82,7 @@ public:
             return;
         }
 
+    inline
     SAMRAI::tbox::Pointer<LNodeIndex> operator()() const
         {
             SAMRAI::tbox::Pointer<LNodeIndex> index_out = new LNodeIndex();
@@ -114,7 +93,39 @@ private:
     SAMRAI::tbox::AbstractStream* const d_stream;
     const SAMRAI::hier::IntVector<NDIM>& d_offset;
 };
+
+struct LNodeIndexLessThan
+    : binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
+{
+    inline
+    bool operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& lhs,
+        const SAMRAI::tbox::Pointer<LNodeIndex>& rhs) const
+        {
+            return *lhs < *rhs;
+        }
+};
 }
+
+/////////////////////////////// PUBLIC ///////////////////////////////////////
+
+size_t
+LNodeIndexSet::getDataStreamSize() const
+{
+    return accumulate(d_set.begin(),d_set.end(),
+                      SAMRAI::tbox::AbstractStream::sizeofInt(),
+                      LNodeIndexGetDataStreamSizeSum());
+}// getDataStreamSize
+
+void
+LNodeIndexSet::packStream(
+    SAMRAI::tbox::AbstractStream& stream)
+{
+    const int num_idx = d_set.size();
+    stream.pack(&num_idx,1);
+    for_each(d_set.begin(),d_set.end(), LNodeIndexPackStream(&stream));
+    return;
+}// packStream
 
 void
 LNodeIndexSet::unpackStream(
@@ -160,20 +171,6 @@ LNodeIndexSet::getFromDatabase(
 }// getFromDatabase
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
-namespace
-{
-struct LNodeIndexLessThan
-    : binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
-{
-    bool operator()(
-        const SAMRAI::tbox::Pointer<LNodeIndex>& lhs,
-        const SAMRAI::tbox::Pointer<LNodeIndex>& rhs) const
-        {
-            return *lhs < *rhs;
-        }
-};
-}
 
 void
 LNodeIndexSet::reorderCollection()

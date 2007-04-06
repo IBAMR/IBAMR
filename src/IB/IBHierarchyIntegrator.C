@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <05.Apr.2007 21:27:46 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Apr.2007 16:41:48 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -62,7 +62,6 @@ namespace
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_integrator;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_advance_hierarchy;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_rebalance_coarsest_level;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_regrid_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_integrate_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_hierarchy;
@@ -74,15 +73,27 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuratio
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 
-// Name of normalization output file.
-static const std::string NORM_DATA_FILE_NAME = "source_norm_data.txt";
-
 // Whether to account for periodic shifts in spreading and
 // interpolating.
 static const bool ENFORCE_PERIODIC_BCS = true;
 
 // Version of IBHierarchyIntegrator restart file data.
 static const int IB_HIERARCHY_INTEGRATOR_VERSION = 1;
+
+inline double
+cos_delta(
+    const double x,
+    const double eps)
+{
+    if (fabs(x) > eps)
+    {
+        return 0.0;
+    }
+    else
+    {
+        return 0.5*(1.0+cos(M_PI*x/eps))/eps;
+    }
+}// cos_delta
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -215,8 +226,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
             getTimer("IBAMR::IBHierarchyIntegrator::initializeHierarchy()");
         t_advance_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBHierarchyIntegrator::advanceHierarchy()");
-        t_rebalance_coarsest_level = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::IBHierarchyIntegrator::rebalanceCoarsestLevel()");
         t_regrid_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBHierarchyIntegrator::regridHierarchy()");
         t_integrate_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
@@ -563,30 +572,9 @@ IBHierarchyIntegrator::initializeHierarchy()
     return dt_next;
 }// initializeHierarchy
 
-namespace
-{
-
-inline double
-cos_delta(
-    const double x,
-    const double eps)
-{
-    if (fabs(x) > eps)
-    {
-        return 0.0;
-    }
-    else
-    {
-        return 0.5*(1.0+cos(M_PI*x/eps))/eps;
-    }
-}// cos_delta
-
-}
-
 double
 IBHierarchyIntegrator::advanceHierarchy(
-    const double dt,
-    const bool rebalance_coarsest)
+    const double dt)
 {
     t_advance_hierarchy->start();
 
@@ -608,13 +596,6 @@ IBHierarchyIntegrator::advanceHierarchy(
     {
         d_eulerian_source_set->setTimeInterval(current_time, new_time);
         d_source_strategy->setTimeInterval(current_time, new_time);
-    }
-
-    // Rebalance the coarsest level (when requested).
-    if (rebalance_coarsest)
-    {
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): rebalancing coarsest level\n";
-        rebalanceCoarsestLevel();
     }
 
     // (Re)initialize the force and source strategies.
@@ -1784,7 +1765,6 @@ IBHierarchyIntegrator::getLDataManager() const
 ///
 ///  The following routines:
 ///
-///      rebalanceCoarsestLevel(),
 ///      regridHierarchy(),
 ///      synchronizeHierarchy(),
 ///      synchronizeNewLevels(),
@@ -1794,38 +1774,6 @@ IBHierarchyIntegrator::getLDataManager() const
 ///  allow the IBHierarchyIntegrator to provide data management
 ///  for a time integrator which making use of this class.
 ///
-
-void
-IBHierarchyIntegrator::rebalanceCoarsestLevel()
-{
-    t_rebalance_coarsest_level->start();
-
-    // Update the workload for regridding.
-    d_lag_data_manager->updateWorkloadData(
-        0,d_hierarchy->getFinestLevelNumber());
-
-    // Before rebalancing, begin Lagrangian data movement.
-    d_lag_data_manager->beginDataRedistribution();
-
-    // We use the INSHierarchyIntegrator to handle as much structured
-    // data management as possible.
-    d_ins_hier_integrator->rebalanceCoarsestLevel();
-
-    // After rebalancing, finish Lagrangian data movement.
-    d_lag_data_manager->endDataRedistribution();
-
-    // Update the workload post-regridding.
-    d_lag_data_manager->updateWorkloadData(
-        0,d_hierarchy->getFinestLevelNumber());
-
-    // Indicate that the force and source strategies need to be
-    // re-initialized.
-    d_force_strategy_needs_init  = true;
-    d_source_strategy_needs_init = true;
-
-    t_rebalance_coarsest_level->stop();
-    return;
-}// rebalanceCoarsestLevel
 
 void
 IBHierarchyIntegrator::regridHierarchy()

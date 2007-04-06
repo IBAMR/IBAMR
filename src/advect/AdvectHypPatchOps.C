@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <09.Mar.2007 19:51:37 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Apr.2007 16:51:03 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -184,6 +184,26 @@ static const int FALSE_VAL = 0;
 
 // Version of AdvectHypPatchOps restart file data.
 static const int ADVECT_HYP_PATCH_OPS_VERSION = 1;
+
+inline double
+compute_linear_extrap(
+    SAMRAI::pdat::CellData<NDIM,double>& patch_data,
+    const SAMRAI::pdat::CellIndex<NDIM>& i,
+    const SAMRAI::pdat::CellIndex<NDIM>& i_intr,
+    const SAMRAI::hier::IntVector<NDIM>& i_shft,
+    const int depth)
+{
+    double ret_val = patch_data(i_intr,depth);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        SAMRAI::pdat::CellIndex<NDIM> i_intr_shft = i_intr;
+        i_intr_shft(d) += i_shft(d);
+        const double du = patch_data(i_intr,depth) - patch_data(i_intr_shft,depth);
+        const int delta = abs(i(d)-i_intr(d));
+        ret_val += du*static_cast<double>(delta);
+    }
+    return ret_val;
+}// compute_linear_extrap
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -1955,31 +1975,6 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
     }
     return;
 }// setInflowBoundaryConditions
-
-namespace
-{
-
-inline double
-compute_linear_extrap(
-    SAMRAI::pdat::CellData<NDIM,double>& patch_data,
-    const SAMRAI::pdat::CellIndex<NDIM>& i,
-    const SAMRAI::pdat::CellIndex<NDIM>& i_intr,
-    const SAMRAI::hier::IntVector<NDIM>& i_shft,
-    const int depth)
-{
-    double ret_val = patch_data(i_intr,depth);
-    for (int d = 0; d < NDIM; ++d)
-    {
-        SAMRAI::pdat::CellIndex<NDIM> i_intr_shft = i_intr;
-        i_intr_shft(d) += i_shft(d);
-        const double du = patch_data(i_intr,depth) - patch_data(i_intr_shft,depth);
-        const int delta = abs(i(d)-i_intr(d));
-        ret_val += du*static_cast<double>(delta);
-    }
-    return ret_val;
-}// compute_linear_extrap
-
-}
 
 void
 AdvectHypPatchOps::setOutflowBoundaryConditions(

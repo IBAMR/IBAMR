@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <26.Mar.2007 20:15:17 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Apr.2007 16:21:15 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -271,8 +271,7 @@ public:
      * will result if the new time is not greater than the given time.
      */
     virtual double advanceHierarchy(
-        const double dt,
-        const bool rebalance_coarsest=false);
+        const double dt);
 
     /*!
      * Returns the maximum stable timestep according to the hyperbolic
@@ -355,7 +354,6 @@ public:
     ///
     ///  The following routines:
     ///
-    ///      rebalanceCoarsestLevel(),
     ///      regridHierarchy(),
     ///      predictAdvectionVelocity(),
     ///      integrateAdvDiff(),
@@ -369,11 +367,6 @@ public:
     ///  allow the INSHierarchyIntegrator to provide data management
     ///  for a time integrator which making use of this class.
     ///
-
-    /*!
-     * Rebalance the hierarchy.
-     */
-    virtual void rebalanceCoarsestLevel();
 
     /*!
      * Regrid the hierarchy.

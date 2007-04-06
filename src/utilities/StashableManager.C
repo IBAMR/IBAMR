@@ -1,6 +1,6 @@
 // Filename: StashableManager.C
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <25.Oct.2006 18:26:31 boyce@bigboy.nyconnect.com>
+// Last modified: <06.Apr.2007 16:48:47 griffith@box221.cims.nyu.edu>
 
 #include "StashableManager.h"
 
@@ -33,6 +33,73 @@
 namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+struct StashableGetDataStreamSizeSum
+    : binary_function<size_t,SAMRAI::tbox::Pointer<Stashable>,size_t>
+{
+    inline
+    size_t operator()(
+        size_t size_so_far,
+        const SAMRAI::tbox::Pointer<Stashable>& data) const
+        {
+            return size_so_far+StashableManager::getManager()->getDataStreamSize(data);
+        }
+};
+
+class StashablePackStream
+    : public unary_function<SAMRAI::tbox::Pointer<Stashable>,void>
+{
+public:
+    inline
+    StashablePackStream(
+        SAMRAI::tbox::AbstractStream* const stream)
+        : d_stream(stream)
+        {
+            return;
+        }
+
+    inline
+    void operator()(
+        SAMRAI::tbox::Pointer<Stashable>& data) const
+        {
+            StashableManager::getManager()->packStream(*d_stream,data);
+            return;
+        }
+
+private:
+    SAMRAI::tbox::AbstractStream* const d_stream;
+};
+
+class StashableUnpackStream
+    : public unary_function<void,SAMRAI::tbox::Pointer<Stashable> >
+{
+public:
+    inline
+    StashableUnpackStream(
+        SAMRAI::tbox::AbstractStream* const stream,
+        const SAMRAI::hier::IntVector<NDIM>& offset)
+        : d_stream(stream),
+          d_offset(offset)
+        {
+            return;
+        }
+
+    inline
+    SAMRAI::tbox::Pointer<Stashable> operator()() const
+        {
+            SAMRAI::tbox::Pointer<Stashable> data_out;
+            StashableManager::getManager()->unpackStream(
+                *d_stream,d_offset,data_out);
+            return data_out;
+        }
+
+private:
+    SAMRAI::tbox::AbstractStream* const d_stream;
+    const SAMRAI::hier::IntVector<NDIM>& d_offset;
+};
+}
 
 StashableManager* StashableManager::s_data_manager_instance = NULL;
 bool StashableManager::s_registered_callback = false;
@@ -98,21 +165,6 @@ StashableManager::registerFactory(
     return factory_id;
 }// registerFactory
 
-namespace
-{
-struct StashableGetDataStreamSizeSum
-    : binary_function<size_t,SAMRAI::tbox::Pointer<Stashable>,size_t>
-{
-    size_t operator()(
-        size_t size_so_far,
-        const SAMRAI::tbox::Pointer<Stashable>& data) const
-        {
-            return size_so_far+
-                StashableManager::getManager()->getDataStreamSize(data);
-        }
-};
-}
-
 size_t
 StashableManager::getDataStreamSize(
     const vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data) const
@@ -121,30 +173,6 @@ StashableManager::getDataStreamSize(
                       SAMRAI::tbox::AbstractStream::sizeofInt(),
                       StashableGetDataStreamSizeSum());
 }//getDataStreamSize
-
-namespace
-{
-class StashablePackStream
-    : public unary_function<SAMRAI::tbox::Pointer<Stashable>,void>
-{
-public:
-    StashablePackStream(
-        SAMRAI::tbox::AbstractStream* const stream)
-        : d_stream(stream)
-        {
-            return;
-        }
-
-    void operator()(
-        SAMRAI::tbox::Pointer<Stashable>& data) const
-        {
-            StashableManager::getManager()->packStream(*d_stream,data);
-            return;
-        }
-private:
-    SAMRAI::tbox::AbstractStream* const d_stream;
-};
-}
 
 void
 StashableManager::packStream(
@@ -157,34 +185,6 @@ StashableManager::packStream(
              StashablePackStream(&stream));
     return;
 }// packStream
-
-namespace
-{
-class StashableUnpackStream
-    : public unary_function<void,SAMRAI::tbox::Pointer<Stashable> >
-{
-public:
-    StashableUnpackStream(
-        SAMRAI::tbox::AbstractStream* const stream,
-        const SAMRAI::hier::IntVector<NDIM>& offset)
-        : d_stream(stream),
-          d_offset(offset)
-        {
-            return;
-        }
-
-    SAMRAI::tbox::Pointer<Stashable> operator()() const
-        {
-            SAMRAI::tbox::Pointer<Stashable> data_out;
-            StashableManager::getManager()->unpackStream(
-                *d_stream,d_offset,data_out);
-            return data_out;
-        }
-private:
-    SAMRAI::tbox::AbstractStream* const d_stream;
-    const SAMRAI::hier::IntVector<NDIM>& d_offset;
-};
-}
 
 void
 StashableManager::unpackStream(
