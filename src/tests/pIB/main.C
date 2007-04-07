@@ -382,7 +382,7 @@ int main(int argc, char* argv[])
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
 
-        tbox::Pointer<LNodeInitStrategy> initializer =
+        tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(
                 "IBStandardInitializer",
                 input_db->getDatabase("IBStandardInitializer"));
@@ -434,7 +434,7 @@ int main(int argc, char* argv[])
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
         initializer->registerLagSiloDataWriter(silo_data_writer);
-        time_integrator->rebalanceCoarsestLevel();
+        time_integrator->regridHierarchy();
         tbox::RestartManager::getManager()->closeRestartFile();
 
         /*
@@ -452,6 +452,7 @@ int main(int argc, char* argv[])
         {
             if (uses_visit)
             {
+                tbox::pout << "\nWriting visualization files...\n\n";
                 visit_data_writer->writePlotData(
                     patch_hierarchy,
                     time_integrator->getIntegratorStep(),
@@ -560,6 +561,7 @@ int main(int argc, char* argv[])
              */
             if (write_restart && iteration_num%restart_interval == 0)
             {
+                tbox::pout << "\nWriting restart files...\n\n";
                 tbox::RestartManager::getManager()->writeRestartFile(
                     restart_write_dirname, iteration_num);
             }
@@ -568,6 +570,7 @@ int main(int argc, char* argv[])
             {
                 if (uses_visit)
                 {
+                    tbox::pout << "\nWriting visualization files...\n\n";
                     visit_data_writer->writePlotData(
                         patch_hierarchy, iteration_num, loop_time);
                     silo_data_writer->writePlotData(
@@ -583,6 +586,7 @@ int main(int argc, char* argv[])
         {
             if (uses_visit)
             {
+                tbox::pout << "\nWriting visualization files...\n\n";
                 visit_data_writer->writePlotData(
                     patch_hierarchy, iteration_num, loop_time);
                 silo_data_writer->writePlotData(

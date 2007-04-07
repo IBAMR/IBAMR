@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <06.Apr.2007 16:21:40 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Apr.2007 18:12:39 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1019,12 +1019,22 @@ INSHierarchyIntegrator::advanceHierarchy(
     assert(d_end_time >= d_integrator_time+dt);
 #endif
 
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
     const double current_time = d_integrator_time;
     const double new_time = d_integrator_time+dt;
     const bool initial_time = SAMRAI::tbox::Utilities::deq(d_integrator_time,d_start_time);
+
+    // Regrid the patch hierarchy.
+    const bool do_regrid = ((d_regrid_interval == 0)
+                            ? false
+                            : (d_integrator_step % d_regrid_interval == 0));
+    if (do_regrid)
+    {
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): regridding prior to timestep " << d_integrator_step << "\n";
+        regridHierarchy();
+    }
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // The pressure at start_time is not an initial value for the
     // incompressible Navier-Stokes equations, so we solve for it by
@@ -1095,16 +1105,6 @@ INSHierarchyIntegrator::advanceHierarchy(
     // Reset all time dependent data.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): resetting time dependent data\n";
     resetTimeDependentHierData(new_time);
-
-    // Regrid (when appropriate).
-    const bool do_regrid = ((d_regrid_interval == 0)
-                            ? false
-                            : (d_integrator_step % d_regrid_interval == 0));
-    if (do_regrid)
-    {
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): regridding\n";
-        regridHierarchy();
-    }
 
     // Determine the next stable timestep from u(n+1).
     const double dt_next = getStableTimestep();

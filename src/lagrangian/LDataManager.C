@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <06.Apr.2007 16:49:34 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Apr.2007 18:03:46 griffith@box221.cims.nyu.edu>
 
 #include "LDataManager.h"
 
@@ -1773,7 +1773,7 @@ LDataManager::applyGradientDetector(
         d_lag_init->tagCellsForInitialRefinement(
             hierarchy, level_number, error_data_time, tag_index);
     }
-    else
+    else if (hierarchy->finerLevelExists(level_number))
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
             hierarchy->getPatchLevel(level_number);

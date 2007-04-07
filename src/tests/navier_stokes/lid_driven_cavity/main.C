@@ -396,6 +396,7 @@ int main(int argc, char* argv[])
         {
             if (uses_visit)
             {
+                tbox::pout << "\nWriting visualization files...\n\n";
                 visit_data_writer->writePlotData(
                     patch_hierarchy,
                     time_integrator->getIntegratorStep(),
@@ -440,6 +441,7 @@ int main(int argc, char* argv[])
              */
             if (write_restart && iteration_num%restart_interval == 0)
             {
+                tbox::pout << "\nWriting restart files...\n\n";
                 tbox::RestartManager::getManager()->writeRestartFile(
                     restart_write_dirname, iteration_num);
             }
@@ -448,6 +450,7 @@ int main(int argc, char* argv[])
             {
                 if (uses_visit)
                 {
+                    tbox::pout << "\nWriting visualization files...\n\n";
                     visit_data_writer->writePlotData(
                         patch_hierarchy, iteration_num, loop_time);
                 }
@@ -461,6 +464,7 @@ int main(int argc, char* argv[])
         {
             if (uses_visit)
             {
+                tbox::pout << "\nWriting visualization files...\n\n";
                 visit_data_writer->writePlotData(
                     patch_hierarchy, iteration_num, loop_time);
             }

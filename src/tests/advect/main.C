@@ -465,6 +465,7 @@ int main(int argc, char *argv[])
     {
         if (uses_visit)
         {
+            tbox::pout << "\nWriting visualization files...\n\n";
             visit_data_writer->writePlotData(
                 patch_hierarchy,
                 time_integrator->getIntegratorStep(),
@@ -507,6 +508,7 @@ int main(int argc, char *argv[])
          */
         if (write_restart && iteration_num%restart_interval == 0)
         {
+            tbox::pout << "\nWriting restart files...\n\n";
             tbox::RestartManager::getManager()->writeRestartFile(
                 restart_write_dirname, iteration_num);
         }
@@ -515,9 +517,23 @@ int main(int argc, char *argv[])
         {
             if (uses_visit)
             {
+                tbox::pout << "\nWriting visualization files...\n\n";
                 visit_data_writer->writePlotData(
                     patch_hierarchy, iteration_num, loop_time);
             }
+        }
+    }
+
+    /*
+     * Ensure the last state is written out for plotting.
+     */
+    if (viz_dump_data && iteration_num%viz_dump_interval != 0)
+    {
+        if (uses_visit)
+        {
+            tbox::pout << "\nWriting visualization files...\n\n";
+            visit_data_writer->writePlotData(
+                patch_hierarchy, iteration_num, loop_time);
         }
     }
 
@@ -555,18 +571,6 @@ int main(int argc, char *argv[])
                << "  L1-norm:  " << hier_cc_data_ops.L1Norm(Q_cloned_idx,wgt_idx)  << "\n"
                << "  L2-norm:  " << hier_cc_data_ops.L2Norm(Q_cloned_idx,wgt_idx)  << "\n"
                << "  max-norm: " << hier_cc_data_ops.maxNorm(Q_cloned_idx,wgt_idx) << "\n";
-
-    /*
-     * Ensure the last state is written out for plotting.
-     */
-    if (viz_dump_data && iteration_num%viz_dump_interval != 0)
-    {
-        if (uses_visit)
-        {
-            visit_data_writer->writePlotData(
-                patch_hierarchy, iteration_num, loop_time);
-        }
-    }
 
     /*
      * At conclusion of simulation, deallocate objects.
