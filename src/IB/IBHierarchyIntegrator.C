@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <07.Apr.2007 19:39:06 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Apr.2007 20:45:44 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -884,7 +884,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 {
                     max_displacement = max_config_displacement;
                 }
-                if (!SAMRAI::tbox::Utilities::deq(max_config_displacement,0.0))
+                if (d_do_log && !SAMRAI::tbox::Utilities::deq(max_config_displacement,0.0))
                 {
                     SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy():" << "\n";
                     SAMRAI::tbox::plog << "  maximum massive boundary point displacement [present configuration] = " << max_config_displacement << "\n";
