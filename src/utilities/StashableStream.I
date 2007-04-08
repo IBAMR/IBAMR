@@ -1,6 +1,6 @@
 // Filename: StashableStream.I
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <20.Mar.2007 22:21:33 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Apr.2007 19:28:02 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -384,7 +384,7 @@ StashableStream::getPointerAndAdvanceCursor(
     return ptr;
 }// getPointerAndAdvanceCursor
 
-template <typename T>
+template<typename T>
 inline
 void
 StashableStream::__pack(
@@ -396,7 +396,7 @@ StashableStream::__pack(
     return;
 }// _pack
 
-template <typename T>
+template<typename T>
 inline
 void
 StashableStream::__unpack(

@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <06.Apr.2007 16:44:56 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Apr.2007 18:23:36 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -83,6 +83,8 @@ IBStandardInitializer::IBStandardInitializer(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_object_name(object_name),
       d_max_levels(-1),
+      d_level_is_initialized(),
+      d_silo_writer(NULL),
       d_base_filename(),
       d_num_vertex(),
       d_vertex_offset(),
@@ -169,36 +171,15 @@ IBStandardInitializer::registerLagSiloDataWriter(
     assert(!silo_writer.isNull());
 #endif
 
-    // WARNING: This code does not work if the global node offset is
-    // nonzero on any of the levels of the locally refined Cartesian
-    // grid.
+    // Cache a pointer to the data writer.
+    d_silo_writer = silo_writer;
+
+    // Initialize the Silo data writer.
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        if (d_global_index_offset[ln] != 0)
+        if (d_level_is_initialized[ln])
         {
-            TBOX_ERROR("This is broken --- please submit a bug report if you encounter this error.\n");
-        }
-    }
-
-    // WARNING: For now, we just register the visualization data on
-    // MPI process 0.  This will fail if the structure is too large to
-    // be stored in the memory available to a single MPI process.
-    if (SAMRAI::tbox::MPI::getRank() == 0)
-    {
-        for (int ln = 0; ln < d_max_levels; ++ln)
-        {
-            for (unsigned j = 0; j < d_num_vertex[ln].size(); ++j)
-            {
-                silo_writer->registerMarkerCloud(
-                    d_base_filename[ln][j] + "_vertices",
-                    d_num_vertex[ln][j], d_vertex_offset[ln][j], ln);
-                if (d_spring_edge_map[ln][j].size() > 0)
-                {
-                    silo_writer->registerUnstructuredMesh(
-                        d_base_filename[ln][j] + "_mesh",
-                        d_spring_edge_map[ln][j], ln);
-                }
-            }
+            initializeLagSiloDataWriter(ln);
         }
     }
 
@@ -354,6 +335,17 @@ IBStandardInitializer::initializeDataOnPatchLevel(
                                &(*X_data)(current_local_idx), force_spec));
         }
     }
+
+    d_level_is_initialized[level_number] = true;
+
+    // If a Lagrangian Silo data writer is registered with the initializer,
+    // setup the visualization data corresponding to the present level of the
+    // locally refined grid.
+    if (!d_silo_writer.isNull())
+    {
+        initializeLagSiloDataWriter(level_number);
+    }
+
     return local_node_count;
 }// initializeDataOnPatchLevel
 
@@ -471,6 +463,45 @@ IBStandardInitializer::tagCellsForInitialRefinement(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+IBStandardInitializer::initializeLagSiloDataWriter(
+    const int level_number)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(level_number >= 0);
+    assert(level_number < d_max_levels);
+    assert(d_level_is_initialized[level_number]);
+#endif
+
+    // WARNING: This code does not work if the global node offset is nonzero on
+    // any of the levels of the locally refined Cartesian grid.
+    if (d_global_index_offset[level_number] != 0)
+    {
+        TBOX_ERROR("This is broken --- please submit a bug report if you encounter this error.\n");
+    }
+
+    // WARNING: For now, we just register the visualization data on MPI process
+    // 0.  This will fail if the structure is too large to be stored in the
+    // memory available to a single MPI process.
+    if (SAMRAI::tbox::MPI::getRank() == 0)
+    {
+        for (unsigned j = 0; j < d_num_vertex[level_number].size(); ++j)
+        {
+            d_silo_writer->registerMarkerCloud(
+                d_base_filename[level_number][j] + "_vertices",
+                d_num_vertex[level_number][j], d_vertex_offset[level_number][j], level_number);
+            if (d_spring_edge_map[level_number][j].size() > 0)
+            {
+                d_silo_writer->registerUnstructuredMesh(
+                    d_base_filename[level_number][j] + "_mesh",
+                    d_spring_edge_map[level_number][j], level_number);
+            }
+        }
+    }
+
+    return;
+}// initializeLagSiloDataWriter
 
 void
 IBStandardInitializer::readVertexFiles()
@@ -1323,6 +1354,8 @@ IBStandardInitializer::getFromInput(
     }
 
     // Resize the vectors that are indexed by the level number.
+    d_level_is_initialized.resize(d_max_levels,false);
+
     d_base_filename.resize(d_max_levels);
 
     d_num_vertex.resize(d_max_levels);

@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <06.Apr.2007 16:50:51 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Apr.2007 18:55:05 griffith@box221.cims.nyu.edu>
 
 #include "LagSiloDataWriter.h"
 
@@ -694,6 +694,11 @@ LagSiloDataWriter::registerMarkerCloud(
     const int first_lag_idx,
     const int level_number)
 {
+    if (level_number < d_coarsest_ln || level_number > d_finest_ln)
+    {
+        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+    }
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(nmarks > 0);
     assert(d_coarsest_ln <= level_number &&
@@ -750,6 +755,11 @@ LagSiloDataWriter::registerLogicallyCartesianBlock(
     const int first_lag_idx,
     const int level_number)
 {
+    if (level_number < d_coarsest_ln || level_number > d_finest_ln)
+    {
+        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+    }
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (int d = 0; d < NDIM; ++d)
     {
@@ -811,6 +821,11 @@ LagSiloDataWriter::registerLogicallyCartesianMultiblock(
     const vector<int>& first_lag_idx,
     const int level_number)
 {
+    if (level_number < d_coarsest_ln || level_number > d_finest_ln)
+    {
+        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+    }
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(periodic     .size() == nelem.size());
     assert(first_lag_idx.size() == nelem.size());
@@ -877,6 +892,11 @@ LagSiloDataWriter::registerUnstructuredMesh(
     const std::multimap<int,std::pair<int,int> > edge_map,
     const int level_number)
 {
+    if (level_number < d_coarsest_ln || level_number > d_finest_ln)
+    {
+        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+    }
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
@@ -939,6 +959,11 @@ LagSiloDataWriter::registerCoordsData(
     SAMRAI::tbox::Pointer<LNodeLevelData> coords_data,
     const int level_number)
 {
+    if (level_number < d_coarsest_ln || level_number > d_finest_ln)
+    {
+        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+    }
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!coords_data.isNull());
     assert(coords_data->getDepth() == NDIM);
@@ -955,6 +980,11 @@ LagSiloDataWriter::registerVariableData(
     SAMRAI::tbox::Pointer<LNodeLevelData> var_data,
     const int level_number)
 {
+    if (level_number < d_coarsest_ln || level_number > d_finest_ln)
+    {
+        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+    }
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!var_name.empty());
     assert(!var_data.isNull());
@@ -977,153 +1007,177 @@ LagSiloDataWriter::registerVariableData(
 }// registerVariableData
 
 void
-LagSiloDataWriter::setLagrangianAO(
+LagSiloDataWriter::registerLagrangianAO(
+    AO& ao,
+    const int level_number)
+{
+    if (level_number < d_coarsest_ln || level_number > d_finest_ln)
+    {
+        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+    }
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(d_coarsest_ln <= level_number &&
+           d_finest_ln   >= level_number);
+#endif
+
+    if (d_coords_data[level_number].isNull()) return;
+
+    int ierr;
+
+    // Setup the IS data used to generate the VecScatters that redistribute the
+    // distributed data into local marker clouds, local logically Cartesian
+    // blocks, and local UCD meshes.
+    vector<int> ref_is_idxs;
+    for (int cloud = 0; cloud < d_nclouds[level_number]; ++cloud)
+    {
+        const int nmarks = d_cloud_nmarks[level_number][cloud];
+        const int first_lag_idx = d_cloud_first_lag_idx[level_number][cloud];
+        ref_is_idxs.reserve(ref_is_idxs.size()+nmarks);
+
+        for (int idx = first_lag_idx; idx < first_lag_idx + nmarks; ++idx)
+        {
+            ref_is_idxs.push_back(idx);
+        }
+    }
+
+    for (int block = 0; block < d_nblocks[level_number]; ++block)
+    {
+        const SAMRAI::hier::IntVector<NDIM>& nelem = d_block_nelems[level_number][block];
+        const int ntot = nelem.getProduct();
+        const int first_lag_idx = d_block_first_lag_idx[level_number][block];
+        ref_is_idxs.reserve(ref_is_idxs.size()+ntot);
+
+        for (int idx = first_lag_idx; idx < first_lag_idx + ntot; ++idx)
+        {
+            ref_is_idxs.push_back(idx);
+        }
+    }
+
+    for (int mb = 0; mb < d_nmbs[level_number]; ++mb)
+    {
+        for (int block = 0; block < d_mb_nblocks[level_number][mb]; ++block)
+        {
+            const SAMRAI::hier::IntVector<NDIM>& nelem = d_mb_nelems[level_number][mb][block];
+            const int ntot = nelem.getProduct();
+            const int first_lag_idx = d_mb_first_lag_idx[level_number][mb][block];
+            ref_is_idxs.reserve(ref_is_idxs.size()+ntot);
+
+            for (int idx = first_lag_idx; idx < first_lag_idx + ntot; ++idx)
+            {
+                ref_is_idxs.push_back(idx);
+            }
+        }
+    }
+
+    for (int mesh = 0; mesh < d_nucd_meshes[level_number]; ++mesh)
+    {
+        ref_is_idxs.insert(
+            ref_is_idxs.end(),
+            d_ucd_mesh_vertices[level_number][mesh].begin(),
+            d_ucd_mesh_vertices[level_number][mesh].end());
+    }
+
+    // Map Lagrangian indices to PETSc indices.
+    vector<int> ao_dummy(1,-1);
+    ierr = AOApplicationToPetsc(
+        ao,
+        (!ref_is_idxs.empty() ? static_cast<int>(ref_is_idxs.size()) : static_cast<int>(ao_dummy.size())),
+        (!ref_is_idxs.empty() ? &ref_is_idxs[0]                      : &ao_dummy[0]));
+    PETSC_SAMRAI_ERROR(ierr);
+
+    // Setup IS indices for all necessary data depths.
+    map<int,vector<int> > src_is_idxs;
+
+    src_is_idxs[NDIM].resize(ref_is_idxs.size());
+    transform(ref_is_idxs.begin(), ref_is_idxs.end(),
+              src_is_idxs[NDIM].begin(),
+              bind2nd(multiplies<int>(),NDIM));
+    d_src_vec[level_number][NDIM] = d_coords_data[level_number]->getGlobalVec();
+
+    for (int v = 0; v < d_nvars[level_number]; ++v)
+    {
+        const int var_depth = d_var_depths[level_number][v];
+        if (src_is_idxs.find(var_depth) == src_is_idxs.end())
+        {
+            src_is_idxs[var_depth].resize(ref_is_idxs.size());
+            transform(ref_is_idxs.begin(), ref_is_idxs.end(),
+                      src_is_idxs[var_depth].begin(),
+                      bind2nd(multiplies<int>(),var_depth));
+            d_src_vec[level_number][var_depth] = d_var_data[level_number][v]->getGlobalVec();
+        }
+    }
+
+    // Create the VecScatters to scatter data from the global PETSc Vec to
+    // contiguous local subgrids.  VecScatter objects are individually created
+    // for data depths as necessary.
+    for (map<int,vector<int> >::iterator it = src_is_idxs.begin();
+         it != src_is_idxs.end(); ++it)
+    {
+        const int depth = (*it).first;
+        const vector<int>& idxs = (*it).second;
+
+        IS src_is;
+        ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(),
+                             &idxs[0], &src_is);
+        PETSC_SAMRAI_ERROR(ierr);
+
+        Vec& src_vec = d_src_vec[level_number][depth];
+        Vec& dst_vec = d_dst_vec[level_number][depth];
+        if (dst_vec)
+        {
+            ierr = VecDestroy(dst_vec);
+            PETSC_SAMRAI_ERROR(ierr);
+        }
+        ierr = VecCreateMPI(PETSC_COMM_WORLD, depth*idxs.size(),
+                            PETSC_DETERMINE, &dst_vec);
+        PETSC_SAMRAI_ERROR(ierr);
+
+        ierr = VecSetBlockSize(dst_vec, depth);
+        PETSC_SAMRAI_ERROR(ierr);
+
+        VecScatter& vec_scatter = d_vec_scatter[level_number][depth];
+        if (vec_scatter)
+        {
+            ierr = VecScatterDestroy(vec_scatter);
+            PETSC_SAMRAI_ERROR(ierr);
+        }
+        ierr = VecScatterCreate(src_vec, src_is, dst_vec, PETSC_NULL,
+                                &vec_scatter);
+        PETSC_SAMRAI_ERROR(ierr);
+
+        ierr = ISDestroy(src_is);  PETSC_SAMRAI_ERROR(ierr);
+    }
+
+    return;
+}// registerLagrangianAO
+
+void
+LagSiloDataWriter::registerLagrangianAO(
     vector<AO>& ao,
     const int coarsest_ln,
     const int finest_ln)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(coarsest_ln <= finest_ln);
+#endif
+
+    if (coarsest_ln < d_coarsest_ln || finest_ln > d_finest_ln)
+    {
+        resetLevels(min(coarsest_ln,d_coarsest_ln),max(finest_ln,d_finest_ln));
+    }
+
+#ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_coarsest_ln <= coarsest_ln && finest_ln <= d_finest_ln);
 #endif
 
-    int ierr;
-
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (!d_coords_data[ln].isNull())
-        {
-            // Setup the IS data used to generate the VecScatters that
-            // redistribute the distributed data into local marker
-            // clouds, local logically Cartesian blocks, and local UCD
-            // meshes.
-            vector<int> ref_is_idxs;
-            for (int cloud = 0; cloud < d_nclouds[ln]; ++cloud)
-            {
-                const int nmarks = d_cloud_nmarks[ln][cloud];
-                const int first_lag_idx = d_cloud_first_lag_idx[ln][cloud];
-                ref_is_idxs.reserve(ref_is_idxs.size()+nmarks);
-
-                for (int idx = first_lag_idx; idx < first_lag_idx + nmarks;
-                     ++idx)
-                {
-                    ref_is_idxs.push_back(idx);
-                }
-            }
-
-            for (int block = 0; block < d_nblocks[ln]; ++block)
-            {
-                const SAMRAI::hier::IntVector<NDIM>& nelem = d_block_nelems[ln][block];
-                const int ntot = nelem.getProduct();
-                const int first_lag_idx = d_block_first_lag_idx[ln][block];
-                ref_is_idxs.reserve(ref_is_idxs.size()+ntot);
-
-                for (int idx = first_lag_idx; idx < first_lag_idx + ntot; ++idx)
-                {
-                    ref_is_idxs.push_back(idx);
-                }
-            }
-
-            for (int mb = 0; mb < d_nmbs[ln]; ++mb)
-            {
-                for (int block = 0; block < d_mb_nblocks[ln][mb]; ++block)
-                {
-                    const SAMRAI::hier::IntVector<NDIM>& nelem = d_mb_nelems[ln][mb][block];
-                    const int ntot = nelem.getProduct();
-                    const int first_lag_idx = d_mb_first_lag_idx[ln][mb][block];
-                    ref_is_idxs.reserve(ref_is_idxs.size()+ntot);
-
-                    for (int idx = first_lag_idx; idx < first_lag_idx + ntot; ++idx)
-                    {
-                        ref_is_idxs.push_back(idx);
-                    }
-                }
-            }
-
-            for (int mesh = 0; mesh < d_nucd_meshes[ln]; ++mesh)
-            {
-                ref_is_idxs.insert(
-                    ref_is_idxs.end(),
-                    d_ucd_mesh_vertices[ln][mesh].begin(),
-                    d_ucd_mesh_vertices[ln][mesh].end());
-            }
-
-            // Map Lagrangian indices to PETSc indices.
-            vector<int> ao_dummy(1,-1);
-            ierr = AOApplicationToPetsc(
-                ao[ln],
-                (!ref_is_idxs.empty() ? static_cast<int>(ref_is_idxs.size()) : static_cast<int>(ao_dummy.size())),
-                (!ref_is_idxs.empty() ? &ref_is_idxs[0]                      : &ao_dummy[0]));
-            PETSC_SAMRAI_ERROR(ierr);
-
-            // Setup IS indices for all necessary data depths.
-            map<int,vector<int> > src_is_idxs;
-
-            src_is_idxs[NDIM].resize(ref_is_idxs.size());
-            transform(ref_is_idxs.begin(), ref_is_idxs.end(),
-                      src_is_idxs[NDIM].begin(),
-                      bind2nd(multiplies<int>(),NDIM));
-            d_src_vec[ln][NDIM] = d_coords_data[ln]->getGlobalVec();
-
-            for (int v = 0; v < d_nvars[ln]; ++v)
-            {
-                const int var_depth = d_var_depths[ln][v];
-                if (src_is_idxs.find(var_depth) == src_is_idxs.end())
-                {
-                    src_is_idxs[var_depth].resize(ref_is_idxs.size());
-                    transform(ref_is_idxs.begin(), ref_is_idxs.end(),
-                              src_is_idxs[var_depth].begin(),
-                              bind2nd(multiplies<int>(),var_depth));
-                    d_src_vec[ln][var_depth] = d_var_data[ln][v]->getGlobalVec();
-                }
-            }
-
-            // Create the VecScatters to scatter data from the global
-            // PETSc Vec to contiguous local subgrids.  VecScatter
-            // objects are individually created for data depths as
-            // necessary.
-            for (map<int,vector<int> >::iterator it = src_is_idxs.begin();
-                 it != src_is_idxs.end(); ++it)
-            {
-                const int depth = (*it).first;
-                const vector<int>& idxs = (*it).second;
-
-                IS src_is;
-                ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(),
-                                     &idxs[0], &src_is);
-                PETSC_SAMRAI_ERROR(ierr);
-
-                Vec& src_vec = d_src_vec[ln][depth];
-                Vec& dst_vec = d_dst_vec[ln][depth];
-                if (dst_vec)
-                {
-                    ierr = VecDestroy(dst_vec);
-                    PETSC_SAMRAI_ERROR(ierr);
-                }
-                ierr = VecCreateMPI(PETSC_COMM_WORLD, depth*idxs.size(),
-                                    PETSC_DETERMINE, &dst_vec);
-                PETSC_SAMRAI_ERROR(ierr);
-
-                ierr = VecSetBlockSize(dst_vec, depth);
-                PETSC_SAMRAI_ERROR(ierr);
-
-                VecScatter& vec_scatter = d_vec_scatter[ln][depth];
-                if (vec_scatter)
-                {
-                    ierr = VecScatterDestroy(vec_scatter);
-                    PETSC_SAMRAI_ERROR(ierr);
-                }
-                ierr = VecScatterCreate(src_vec, src_is, dst_vec, PETSC_NULL,
-                                        &vec_scatter);
-                PETSC_SAMRAI_ERROR(ierr);
-
-                ierr = ISDestroy(src_is);  PETSC_SAMRAI_ERROR(ierr);
-            }
-        }
+        registerLagrangianAO(ao[ln], ln);
     }
 
     return;
-}// setLagrangianAO
+}// registerLagrangianAO
 
 void
 LagSiloDataWriter::writePlotData(

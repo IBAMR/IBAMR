@@ -422,6 +422,7 @@ int main(int argc, char* argv[])
 
         if (uses_visit)
         {
+            initializer->registerLagSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
             time_integrator->registerLagSiloDataWriter(silo_data_writer);
         }
@@ -433,9 +434,13 @@ int main(int argc, char* argv[])
          */
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
-        initializer->registerLagSiloDataWriter(silo_data_writer);
-        time_integrator->regridHierarchy();
         tbox::RestartManager::getManager()->closeRestartFile();
+
+        /*
+         * Deallocate the Lagrangian initializer, as it is no longer needed.
+         */
+        time_integrator->freeLNodeInitStrategy();
+        initializer.setNull();
 
         /*
          * After creating all objects and initializing their state, we

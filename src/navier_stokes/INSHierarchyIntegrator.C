@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <06.Apr.2007 18:12:39 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Apr.2007 16:14:12 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -314,7 +314,20 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
         SAMRAI::tbox::RestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
 
+    for (RefinePatchStrategyMap::iterator it = d_rstrategies.begin();
+         it != d_rstrategies.end(); ++it)
+    {
+        delete (*it).second;
+    }
+
+    for (CoarsenPatchStrategyMap::iterator it = d_cstrategies.begin();
+         it != d_cstrategies.end(); ++it)
+    {
+        delete (*it).second;
+    }
+
     delete d_default_U_bc_coef;
+
     return;
 }// ~INSHierarchyIntegrator
 
@@ -859,7 +872,6 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_rstrategies["grad_Phi->grad_Phi::CONSERVATIVE_LINEAR_REFINE"] =
         new STOOLS::CartExtrapPhysBdryOp(d_u_adv_scratch_idx, "LINEAR");
 
-    // WARNING: Memory leak!
     std::vector<SAMRAI::xfer::RefinePatchStrategy<NDIM>*> refine_strategy_set;
 
     d_ralgs["predictAdvectionVelocity"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();

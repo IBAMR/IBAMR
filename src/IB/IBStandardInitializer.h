@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <03.Apr.2007 17:44:56 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Apr.2007 18:18:42 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -165,6 +165,14 @@ private:
         const IBStandardInitializer& that);
 
     /*!
+     * \brief Configure the Lagrangian Silo data writer to plot the data
+     * associated with the specified level of the locally refined Cartesian
+     * grid.
+     */
+    void initializeLagSiloDataWriter(
+        const int level_number);
+
+    /*!
      * \brief Read the vertex data from one or more input files.
      */
     void readVertexFiles();
@@ -265,10 +273,17 @@ private:
     std::string d_object_name;
 
     /*
-     * The maximum number of levels in the Cartesian grid patch
-     * hierarchy.
+     * The maximum number of levels in the Cartesian grid patch hierarchy and a
+     * vector of boolean values indicating whether a particular level has been
+     * initialized yet.
      */
     int d_max_levels;
+    std::vector<bool> d_level_is_initialized;
+
+    /*
+     * An (optional) Lagrangian Silo data writer.
+     */
+    SAMRAI::tbox::Pointer<LagSiloDataWriter> d_silo_writer;
 
     /*
      * The base filenames of the structures are used to generate

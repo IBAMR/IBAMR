@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <21.Mar.2007 01:02:55 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Apr.2007 16:04:42 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -50,7 +50,6 @@ namespace
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_integrator;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_advance_hierarchy;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_rebalance_coarsest_level;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_regrid_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_integrate_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_hierarchy;
@@ -226,8 +225,6 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
             getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchy()");
         t_advance_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::AdvDiffHierarchyIntegrator::advanceHierarchy()");
-        t_rebalance_coarsest_level = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::rebalanceCoarsestLevel()");
         t_regrid_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::AdvDiffHierarchyIntegrator::regridHierarchy()");
         t_integrate_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
@@ -258,6 +255,18 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     if (d_registered_for_restart)
     {
         SAMRAI::tbox::RestartManager::getManager()->unregisterRestartItem(d_object_name);
+    }
+
+    for (RefinePatchStrategyMap::iterator it = d_rstrategies.begin();
+         it != d_rstrategies.end(); ++it)
+    {
+        if ((*it).second != d_bc_op.getPointer()) delete (*it).second;
+    }
+
+    for (CoarsenPatchStrategyMap::iterator it = d_cstrategies.begin();
+         it != d_cstrategies.end(); ++it)
+    {
+        delete (*it).second;
     }
 
     // Deallocate all solver components.
@@ -821,8 +830,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchy()
 
 double
 AdvDiffHierarchyIntegrator::advanceHierarchy(
-    const double dt,
-    const bool rebalance_coarsest)
+    const double dt)
 {
     t_advance_hierarchy->start();
 
@@ -830,8 +838,11 @@ AdvDiffHierarchyIntegrator::advanceHierarchy(
     assert(d_end_time >= d_integrator_time+dt);
 #endif
 
-    // First: rebalance the coarsest level (when requested).
-    if (rebalance_coarsest) rebalanceCoarsestLevel();
+    // First: regrid (when appropriate).
+    const bool do_regrid = ((d_regrid_interval == 0)
+                            ? false
+                            : (d_integrator_step % d_regrid_interval == 0));
+    if (do_regrid) regridHierarchy();
 
     // Second: integrate the data and synchronize the hierarchy.
     const double dt_next = integrateHierarchy(d_integrator_time, d_integrator_time+dt);
@@ -839,12 +850,6 @@ AdvDiffHierarchyIntegrator::advanceHierarchy(
 
     // Third: reset all time dependent data.
     resetTimeDependentHierData(d_integrator_time+dt);
-
-    // Fourth: regrid (when appropriate).
-    const bool do_regrid = ((d_regrid_interval == 0)
-                            ? false
-                            : (d_integrator_step % d_regrid_interval == 0));
-    if (do_regrid) regridHierarchy();
 
     t_advance_hierarchy->stop();
     return dt_next;
@@ -925,7 +930,6 @@ AdvDiffHierarchyIntegrator::getHyperbolicPatchStrategy() const
 ///
 ///  The following routines:
 ///
-///      rebalanceCoarsestLevel(),
 ///      regridHierarchy(),
 ///      integrateHierarchy(),
 ///      synchronizeHierarchy(),
@@ -936,17 +940,6 @@ AdvDiffHierarchyIntegrator::getHyperbolicPatchStrategy() const
 ///  allow the AdvDiffHierarchyIntegrator to provide data
 ///  management for a time integrator which making use of this class.
 ///
-
-void
-AdvDiffHierarchyIntegrator::rebalanceCoarsestLevel()
-{
-    t_rebalance_coarsest_level->start();
-
-    d_gridding_alg->makeCoarsestLevel(d_hierarchy,d_integrator_time);
-
-    t_rebalance_coarsest_level->stop();
-    return;
-}// rebalanceCoarsestLevel
 
 void
 AdvDiffHierarchyIntegrator::regridHierarchy()

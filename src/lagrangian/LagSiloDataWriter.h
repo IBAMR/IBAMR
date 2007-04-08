@@ -3,7 +3,7 @@
 
 // Filename: LagSiloDataWriter.h
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <27.Nov.2006 01:46:00 boyce@bigboy.nyconnect.com>
+// Last modified: <07.Apr.2007 18:43:22 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -156,15 +156,28 @@ public:
         const int level_number);
 
     /*!
-     * \brief Register a collection of Lagrangian AO (application
-     * ordering) objects with the Silo data writer.
+     * \brief Register a single Lagrangian AO (application ordering) objects
+     * with the Silo data writer.
      *
-     * These AO objects are used to map between (fixed) Lagrangian
-     * indices and (time-dependent) PETSc indices.  Each time that the
-     * AO objects are reset (e.g., during adaptive regridding), the
-     * new AO objects must be supplied to the Silo data writer.
+     * These AO objects are used to map between (fixed) Lagrangian indices and
+     * (time-dependent) PETSc indices.  Each time that the AO objects are reset
+     * (e.g., during adaptive regridding), the new AO objects must be supplied
+     * to the Silo data writer.
      */
-    void setLagrangianAO(
+    void registerLagrangianAO(
+        AO& ao,
+        const int level_number);
+
+    /*!
+     * \brief Register a collection of Lagrangian AO (application ordering)
+     * objects with the Silo data writer.
+     *
+     * These AO objects are used to map between (fixed) Lagrangian indices and
+     * (time-dependent) PETSc indices.  Each time that the AO objects are reset
+     * (e.g., during adaptive regridding), the new AO objects must be supplied
+     * to the Silo data writer.
+     */
+    void registerLagrangianAO(
         std::vector<AO>& ao,
         const int coarsest_ln,
         const int finest_ln);

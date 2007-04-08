@@ -3,7 +3,7 @@
 
 // Filename: StashableStream.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <20.Mar.2007 22:17:05 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Apr.2007 19:27:43 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -226,14 +226,16 @@ private:
     /*!
      * \brief Pack the specified data to the buffer.
      */
-    template <typename T> void __pack(
+    template<typename T>
+    void __pack(
         const T* const m_data,
         unsigned m_bytes);
 
     /*!
      * \brief Unpack the specified data to the buffer.
      */
-    template <typename T> void __unpack(
+    template<typename T>
+    void __unpack(
         T* const m_data,
         unsigned m_bytes);
 

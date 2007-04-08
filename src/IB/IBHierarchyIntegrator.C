@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <06.Apr.2007 18:46:38 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Apr.2007 19:39:06 griffith@box221.cims.nyu.edu>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -257,6 +257,19 @@ IBHierarchyIntegrator::~IBHierarchyIntegrator()
     {
         SAMRAI::tbox::RestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
+
+    for (RefinePatchStrategyMap::iterator it = d_rstrategies.begin();
+         it != d_rstrategies.end(); ++it)
+    {
+        delete (*it).second;
+    }
+
+    for (CoarsenPatchStrategyMap::iterator it = d_cstrategies.begin();
+         it != d_cstrategies.end(); ++it)
+    {
+        delete (*it).second;
+    }
+
     return;
 }// ~IBHierarchyIntegrator
 
@@ -558,8 +571,7 @@ IBHierarchyIntegrator::initializeHierarchy()
 {
     t_initialize_hierarchy->start();
 
-    // Use the INSHierarchyIntegrator to initialize the patch
-    // hierarchy.
+    // Use the INSHierarchyIntegrator to initialize the patch hierarchy.
     double dt_next = d_ins_hier_integrator->initializeHierarchy();
 
     if (d_integrator_time >= d_dt_max_time_min &&
@@ -567,6 +579,21 @@ IBHierarchyIntegrator::initializeHierarchy()
     {
         dt_next = SAMRAI::tbox::Utilities::dmin(dt_next, d_dt_max);
     }
+
+    // Begin Lagrangian data movement.
+    d_lag_data_manager->beginDataRedistribution();
+
+    // Finish Lagrangian data movement.
+    d_lag_data_manager->endDataRedistribution();
+
+    // Update the workload.
+    d_lag_data_manager->updateWorkloadData(
+        0,d_hierarchy->getFinestLevelNumber());
+
+    // Indicate that the force and source strategies need to be
+    // re-initialized.
+    d_force_strategy_needs_init  = true;
+    d_source_strategy_needs_init = true;
 
     t_initialize_hierarchy->stop();
     return dt_next;
@@ -1965,7 +1992,7 @@ IBHierarchyIntegrator::initializeLevelData(
         d_r_src.resize(max(static_cast<int>(d_r_src.size()),level_number+1));
         d_P_src.resize(max(static_cast<int>(d_P_src.size()),level_number+1));
         d_Q_src.resize(max(static_cast<int>(d_Q_src.size()),level_number+1));
-        d_n_src.resize(max(static_cast<int>(d_n_src.size()),level_number+1));
+        d_n_src.resize(max(static_cast<int>(d_n_src.size()),level_number+1),0);
 
         d_n_src[level_number] = d_source_strategy->
             getNumSources(hierarchy, level_number, d_integrator_time, d_lag_data_manager);
@@ -2028,7 +2055,7 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
     d_r_src.resize(finest_hier_level+1);
     d_P_src.resize(finest_hier_level+1);
     d_Q_src.resize(finest_hier_level+1);
-    d_n_src.resize(finest_hier_level+1);
+    d_n_src.resize(finest_hier_level+1,0);
 
     // If we have added or removed a level, resize the schedule
     // vectors.
@@ -2296,7 +2323,22 @@ IBHierarchyIntegrator::putToDatabase(
     db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
     db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
 
-    assert(false);  // XXXX: need to include source/sink data!
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+    db->putInteger("finest_hier_level", finest_hier_level);
+    db->putIntegerArray("d_n_src", &d_n_src[0], finest_hier_level+1);
+    for (int ln = 0; ln <= finest_hier_level; ++ln)
+    {
+        for (int n = 0; n < d_n_src[ln]; ++n)
+        {
+            std::ostringstream id_stream;
+            id_stream << ln << "_" << n;
+            const std::string id_string = id_stream.str();
+            db->putDoubleArray("d_X_src_"+id_string, &d_X_src[ln][n][0], NDIM);
+            db->putDouble("d_r_src_"+id_string, d_r_src[ln][n]);
+            db->putDouble("d_P_src_"+id_string, d_P_src[ln][n]);
+            db->putDouble("d_Q_src_"+id_string, d_Q_src[ln][n]);
+        }
+    }
 
     t_put_to_database->stop();
     return;
@@ -2462,6 +2504,28 @@ IBHierarchyIntegrator::getFromRestart()
     d_dt_max = db->getDouble("d_dt_max");
     d_dt_max_time_max = db->getDouble("d_dt_max_time_max");
     d_dt_max_time_min = db->getDouble("d_dt_max_time_min");
+
+    const int finest_hier_level = db->getInteger("finest_hier_level");
+    d_X_src.resize(finest_hier_level+1);
+    d_r_src.resize(finest_hier_level+1);
+    d_P_src.resize(finest_hier_level+1);
+    d_Q_src.resize(finest_hier_level+1);
+    d_n_src.resize(finest_hier_level+1,0);
+
+    db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level+1);
+    for (int ln = 0; ln <= finest_hier_level; ++ln)
+    {
+        for (int n = 0; n < d_n_src[ln]; ++n)
+        {
+            std::ostringstream id_stream;
+            id_stream << ln << "_" << n;
+            const std::string id_string = id_stream.str();
+            db->getDoubleArray("d_X_src_"+id_string, &d_X_src[ln][n][0], NDIM);
+            d_r_src[ln][n] = db->getDouble("d_r_src_"+id_string);
+            d_P_src[ln][n] = db->getDouble("d_P_src_"+id_string);
+            d_Q_src[ln][n] = db->getDouble("d_Q_src_"+id_string);
+        }
+    }
 
     return;
 }// getFromRestart

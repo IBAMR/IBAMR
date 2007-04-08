@@ -1,6 +1,6 @@
 // Filename: IBImplicitHierarchyIntegrator.C
 // Created on 30 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
-// Last modified: <06.Apr.2007 16:43:57 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Apr.2007 15:49:36 griffith@box221.cims.nyu.edu>
 
 #include "IBImplicitHierarchyIntegrator.h"
 
@@ -236,6 +236,19 @@ IBImplicitHierarchyIntegrator::~IBImplicitHierarchyIntegrator()
     {
         SAMRAI::tbox::RestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
+
+    for (RefinePatchStrategyMap::iterator it = d_rstrategies.begin();
+         it != d_rstrategies.end(); ++it)
+    {
+        delete (*it).second;
+    }
+
+    for (CoarsenPatchStrategyMap::iterator it = d_cstrategies.begin();
+         it != d_cstrategies.end(); ++it)
+    {
+        delete (*it).second;
+    }
+
     return;
 }// ~IBImplicitHierarchyIntegrator
 

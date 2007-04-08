@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <06.Apr.2007 18:03:46 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Apr.2007 19:09:50 griffith@box221.cims.nyu.edu>
 
 #include "LDataManager.h"
 
@@ -636,8 +636,11 @@ LDataManager::beginDataRedistribution(
         gridXLength[d] = gridXUpper[d] - gridXLower[d];
     }
 
-    // Update the LNodeIndexSet distribution in the specified levels
-    // in the patch hierarchy.
+    // Update the LNodeIndexSet distribution in the specified levels in the
+    // patch hierarchy.
+    SAMRAI::tbox::plog << d_object_name << "::beginDataRedistribution():\n"
+                       << "  updating LNodeIndexSet data to correspond to the present configuration of the Lagrangian mesh\n";
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_level_contains_lag_data[ln])
@@ -649,16 +652,14 @@ LDataManager::beginDataRedistribution(
                              "\tLagrangian node position data is probably invalid!\n");
             }
 
-            // Update the ghost values of the Lagrangian nodal
-            // positions.
+            // Update the ghost values of the Lagrangian nodal positions.
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->beginGhostUpdate();
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->endGhostUpdate();
 
-            // Make sure that the location pointers are properly set
-            // for each LNodeIndex.  They are directly used below to
-            // locate the Lagrangian nodes.  They are also used to
-            // re-sort the node index sets in an attempt to maximize
-            // data locality.
+            // Make sure that the location pointers are properly set for each
+            // LNodeIndex.  They are directly used below to locate the
+            // Lagrangian nodes.  They are also used to re-sort the node index
+            // sets in an attempt to maximize data locality.
             restoreLocationPointers(ln,ln);
 
             // Update the index patch data on the level.
@@ -683,37 +684,35 @@ LDataManager::beginDataRedistribution(
 
                 // We're about to move the node indices.
                 //
-                // Before doing so, we dispose of most of the indices
-                // which can't possibly wind up inside the current
-                // patch.  We assume here that the movement of the
-                // nodes is constrained by a CFL-type condition.
+                // Before doing so, we dispose of most of the indices which
+                // can't possibly wind up inside the current patch.  We assume
+                // here that the movement of the nodes is constrained by a
+                // CFL-type condition.
                 //
-                // Assuming that the movement of the nodes is
-                // constrained by a CFL number of 1 means that the
-                // only nodes which can be owned by the patch after
-                // redistribution either:
+                // Assuming that the movement of the nodes is constrained by a
+                // CFL number of 1 means that the only nodes which can be owned
+                // by the patch after redistribution either:
                 //
                 //   (1) are already owned by the patch, or,
-                //   (2) were one cell-width away from the patch before
-                //   redistribution.
                 //
-                // Correspondingly, we remove all node indices which
-                // are at least two cell-widths away from the patch
-                // before redistributing.  These nodes CANNOT lie on
-                // the patch after redistribution if the motion
-                // satisfies the CFL condition.
+                //   (2) were one cell-width away from the patch before
+                //       redistribution.
+                //
+                // Correspondingly, we remove all node indices which are at
+                // least two cell-widths away from the patch before
+                // redistributing.  These nodes CANNOT lie on the patch after
+                // redistribution if the motion satisfies the CFL condition.
                 idx_data->removeOutsideBox(
                     SAMRAI::hier::Box<NDIM>::grow(
                         patch_box, SAMRAI::hier::IntVector<NDIM>(CFL_WIDTH)));
 
-                // Create LNodeIndexSet objects for each cell index in
-                // the patch interior which will contain LNodeIndex
-                // objects AFTER redistribution.
-                //
-                // We only keep nodes whose new locations are in the
-                // patch interior.  That is to say, we only keep the
-                // nodes which the patch will own after
+                // Create LNodeIndexSet objects for each cell index in the patch
+                // interior which will contain LNodeIndex objects AFTER
                 // redistribution.
+                //
+                // We only keep nodes whose new locations are in the patch
+                // interior.  That is to say, we only keep the nodes which the
+                // patch will own after redistribution.
                 typedef map<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::tbox::Pointer<LNodeIndexSet>,CellIndexFortranOrder> CellIndexMap;
                 CellIndexMap new_node_sets;
 
@@ -752,14 +751,13 @@ LDataManager::beginDataRedistribution(
                                 STOOLS::STOOLS_Utilities::getCellIndex(
                                     shifted_X,patchXLower,patchXUpper,patchDx,patch_lower,patch_upper);
 
-                            // If new_cell_idx already belongs to the
-                            // map, update the Lagrangian index set
-                            // anchored at new_cell_idx.
+                            // If new_cell_idx already belongs to the map,
+                            // update the Lagrangian index set anchored at
+                            // new_cell_idx.
                             //
-                            // Otherwise, create a new Lagrangian
-                            // index set that is anchored to
-                            // new_cell_idx and add the index to the
-                            // new set.
+                            // Otherwise, create a new Lagrangian index set that
+                            // is anchored to new_cell_idx and add the index to
+                            // the new set.
                             CellIndexMap::iterator lb =
                                 new_node_sets.lower_bound(new_cell_idx);
 
@@ -779,19 +777,18 @@ LDataManager::beginDataRedistribution(
                         }
                         else
                         {
-                            // If a node leaves the patch via a
-                            // periodic boundary, we have to make sure
-                            // that its location is properly updated.
+                            // If a node leaves the patch via a periodic
+                            // boundary, we have to make sure that its location
+                            // is properly updated.
                             //
-                            // NOTE: The location of a node is itself
-                            // a *quantity* living on the Lagrangian
-                            // mesh.  Until the Lagrangian data is
-                            // redistributed, the patch still owns the
-                            // LNodeLevelData associated with the old
-                            // LNodeIndex distribution.  Thus it is
-                            // the responsibility of this patch to
-                            // update the location of the node if the
-                            // node leaves via a periodic boundary.
+                            // NOTE: The location of a node is itself a
+                            // *quantity* living on the Lagrangian mesh.  Until
+                            // the Lagrangian data is redistributed, the patch
+                            // still owns the LNodeLevelData associated with the
+                            // old LNodeIndex distribution.  Thus it is the
+                            // responsibility of this patch to update the
+                            // location of the node if the node leaves via a
+                            // periodic boundary.
                             //
                             // I hate periodic boundaries.
                             if (touches_periodic_bdry &&
@@ -815,15 +812,15 @@ LDataManager::beginDataRedistribution(
 
                 // Clear the patch data.
                 //
-                // Note that the new_node_sets object defined above
-                // contains pointers to everything which lies on the
-                // patch interior in the new distribution, so we don't
-                // lose any needed information by removing the items.
+                // Note that the new_node_sets object defined above contains
+                // pointers to everything which lies on the patch interior in
+                // the new distribution, so we don't lose any needed information
+                // by removing the items.
                 idx_data->removeAllItems();
 
-                // Reorder all of the new LNodeIndexSet objects (based
-                // on the locations of their nodes) and place them
-                // into the index patch data.
+                // Reorder all of the new LNodeIndexSet objects (based on the
+                // locations of their nodes) and place them into the index patch
+                // data.
                 for (CellIndexMap::const_iterator it = new_node_sets.begin();
                      it != new_node_sets.end(); ++it)
                 {
@@ -836,10 +833,11 @@ LDataManager::beginDataRedistribution(
                 new_node_sets.clear();
             }// for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
 
-            // Indicate that the LNodeLevelData on level number ln is
-            // not currently distributed according to the distribution
-            // specified by the LNodeIndexData.  I hope this isn't too
-            // confusing.
+            // Indicate that the LNodeLevelData on level number ln is not
+            // currently distributed according to the distribution specified by
+            // the LNodeIndexData.
+            //
+            // I hope this isn't too confusing.
             d_needs_synch[ln] = true;
         }// if (d_level_contains_lag_data[ln])
     }// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -882,6 +880,9 @@ LDataManager::endDataRedistribution(
     }
 
     // Fill the ghost cells of each level.
+    SAMRAI::tbox::plog << d_object_name << "::endDataRedistribution():\n"
+                       <<"  filling LNodeIndexSet ghost cells\n";
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         const double current_time = 0.0;  // time has no meaning (!)
@@ -898,8 +899,11 @@ LDataManager::endDataRedistribution(
         level->deallocatePatchData(d_scratch_data);
     }
 
-    // Define the PETSc data needed to communicate the LNodeLevelData
-    // from its old configuration to its new configuration.
+    // Define the PETSc data needed to communicate the LNodeLevelData from its
+    // old configuration to its new configuration.
+    SAMRAI::tbox::plog << d_object_name << "::endDataRedistribution():\n"
+                       << "  updating PETSc application ordering data and starting data scattering\n";
+
     int ierr;
 
     vector<AO> new_ao(finest_ln+1);
@@ -911,44 +915,41 @@ LDataManager::endDataRedistribution(
     vector<map<int,IS> > dst_IS(finest_ln+1);
     vector<map<int,VecScatter> > scatter_template(finest_ln+1);
 
-    // The number of all local (e.g., on processor) and ghost (e.g.,
-    // off processor) nodes.
+    // The number of all local (e.g., on processor) and ghost (e.g., off
+    // processor) nodes.
     //
     // NOTE:  num_local_nodes   [ln] == d_local_lag_indices   [ln].size()
     //        num_nonlocal_nodes[ln] == d_nonlocal_lag_indices[ln].size()
     vector<int> num_local_nodes   (finest_ln+1);
     vector<int> num_nonlocal_nodes(finest_ln+1);
 
-    // Setup maps from patch numbers to the nodes indexed in the patch
-    // interior and the patch ghost cell region.
+    // Setup maps from patch numbers to the nodes indexed in the patch interior
+    // and the patch ghost cell region.
     //
-    // NOTE 1: The ghost cell region used for each patch is defined by
-    // the ghost cell width of the indexing variable.
+    // NOTE 1: The ghost cell region used for each patch is defined by the ghost
+    // cell width of the indexing variable.
     //
-    // NOTE 2: These indices are in the local PETSc ordering.  Hence
-    // they can be used to access elements in the local form of
-    // ghosted parallel PETSc Vec objects.
+    // NOTE 2: These indices are in the local PETSc ordering.  Hence they can be
+    // used to access elements in the local form of ghosted parallel PETSc Vec
+    // objects.
     //
-    // NOTE 3: The PETSc ordering is maintained so that the data
-    // corresponding to patch interiors is contiguous (as long as
-    // there are no overlapping patches---but overlapping patches are
-    // the work of the devil).  Nodes in the ghost region of a patch
-    // will not in general be stored as contiguous data, and no
-    // attempt is made to do so.
+    // NOTE 3: The PETSc ordering is maintained so that the data corresponding
+    // to patch interiors is contiguous (as long as there are no overlapping
+    // patches---but overlapping patches are the work of the devil).  Nodes in
+    // the ghost region of a patch will not in general be stored as contiguous
+    // data, and no attempt is made to do so.
     vector<map<int,vector<int>*> > patch_interior_local_indices(finest_ln+1);
     vector<map<int,vector<int>*> > patch_ghost_local_indices   (finest_ln+1);
 
-    // In the following loop over patch levels, we first compute the
-    // new distribution data (e.g., all of these indices).
+    // In the following loop over patch levels, we first compute the new
+    // distribution data (e.g., all of these indices).
     //
-    // Next, we use the old and new PETSc AO (application ordering)
-    // objects to define a mapping from the old distribution to the
-    // new distribution.
+    // Next, we use the old and new PETSc AO (application ordering) objects to
+    // define a mapping from the old distribution to the new distribution.
     //
-    // Finally, we create the new PETSc Vec (vector) objects which are
-    // used to store the Lagrangian data in the new distribution and
-    // begin the process of scattering data from the old configuration
-    // into the new one.
+    // Finally, we create the new PETSc Vec (vector) objects which are used to
+    // store the Lagrangian data in the new distribution and begin the process
+    // of scattering data from the old configuration into the new one.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         // Reset the nonlocal PETSc indices.
@@ -969,8 +970,7 @@ LDataManager::endDataRedistribution(
             dst[    ln].resize(num_data);
             scatter[ln].resize(num_data);
 
-            // Obtain pointers to the patch local and ghost index
-            // sets.
+            // Obtain pointers to the patch local and ghost index sets.
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -988,9 +988,8 @@ LDataManager::endDataRedistribution(
 
             // Get the new distribution of nodes for the level.
             //
-            // NOTE: This process updates the local PETSc indices of
-            // the LNodeIndexSet objects contained in the current
-            // patch.
+            // NOTE: This process updates the local PETSc indices of the
+            // LNodeIndexSet objects contained in the current patch.
             ierr = computeNodeDistribution(d_local_lag_indices   [ln],
                                            d_nonlocal_lag_indices[ln],
                                            new_ao[ln],
@@ -1017,11 +1016,11 @@ LDataManager::endDataRedistribution(
 #endif
                 const int depth = data->getDepth();
 
-                // Determine the PETSc indices of the ghost nodes
-                // required in the destination Vec.
+                // Determine the PETSc indices of the ghost nodes required in
+                // the destination Vec.
                 //
-                // (This is only computed once for each data depth
-                // encountered, including depth==1.)
+                // (This is only computed once for each data depth encountered,
+                // including depth==1.)
                 if (d_nonlocal_petsc_indices[ln].find(depth) ==
                     d_nonlocal_petsc_indices[ln].end())
                 {
@@ -1037,12 +1036,12 @@ LDataManager::endDataRedistribution(
                               bind2nd(multiplies<int>(),depth));
                 }
 
-                // Determine the PETSc indices of the source nodes for
-                // use when scattering values from the old
-                // configuration to the new configuration.
+                // Determine the PETSc indices of the source nodes for use when
+                // scattering values from the old configuration to the new
+                // configuration.
                 //
-                // (This is only computed once for each data depth
-                // encountered, including depth==1.)
+                // (This is only computed once for each data depth encountered,
+                // including depth==1.)
                 if (src_IS[ln].find(depth) == src_IS[ln].end())
                 {
                     ierr = ISCreateStride(PETSC_COMM_WORLD,
@@ -1052,12 +1051,12 @@ LDataManager::endDataRedistribution(
                     PETSC_SAMRAI_ERROR(ierr);
                 }
 
-                // Determine the PETSc indices of the destination
-                // nodes for use when scattering values from the old
-                // configuration to the new configuration.
+                // Determine the PETSc indices of the destination nodes for use
+                // when scattering values from the old configuration to the new
+                // configuration.
                 //
-                // (This is only computed once for each data depth
-                // encountered, including depth==1.)
+                // (This is only computed once for each data depth encountered,
+                // including depth==1.)
                 if (!dst_inds_set)
                 {
                     dst_inds = d_local_petsc_indices[ln];
@@ -1101,9 +1100,8 @@ LDataManager::endDataRedistribution(
                     }
                 }
 
-                // Create the destination Vec and start scattering
-                // data from the old configuration to the new
-                // configuration.
+                // Create the destination Vec and start scattering data from the
+                // old configuration to the new configuration.
                 src[ln][i] = data->getGlobalVec();
 
                 if (depth == 1)
@@ -1158,8 +1156,11 @@ LDataManager::endDataRedistribution(
         }// if (d_level_contains_lag_data[ln])
     }// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
 
-    // Complete the data scattering process, destroy the source Vec
-    // objects, and distribute nonlocal data to the new configuration.
+    // Complete the data scattering process, destroy the source Vec objects, and
+    // distribute nonlocal data to the new configuration.
+    SAMRAI::tbox::plog << d_object_name << "::endDataRedistribution():\n"
+                       <<"  finishing data scattering\n";
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_level_contains_lag_data[ln])
@@ -1195,8 +1196,8 @@ LDataManager::endDataRedistribution(
     // Finish distributing nonlocal data to the new configuration.
     endNonlocalDataFill(coarsest_ln,finest_ln);
 
-    // Indicate that the levels have been synchronized and destroy
-    // unneeded ordering and indexing objects.
+    // Indicate that the levels have been synchronized and destroy unneeded
+    // ordering and indexing objects.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         d_needs_synch[ln] = false;
@@ -1226,11 +1227,11 @@ LDataManager::endDataRedistribution(
     // Restore the position data pointers for the LNodeIndex objects.
     restoreLocationPointers(coarsest_ln, finest_ln);
 
-    // If a Silo data writer is registered with the manager, give it
-    // access to the new application orderings.
+    // If a Silo data writer is registered with the manager, give it access to
+    // the new application orderings.
     if (!d_silo_writer.isNull())
     {
-        d_silo_writer->setLagrangianAO(d_ao, coarsest_ln, finest_ln);
+        d_silo_writer->registerLagrangianAO(d_ao, coarsest_ln, finest_ln);
     }
 
     t_end_data_redistribution->stop();
@@ -1427,8 +1428,8 @@ LDataManager::initializeLevelData(
 #ifdef DEBUG_CHECK_ASSERTIONS
     // Check for overlapping boxes on this level.
     //
-    // (This is potentially fairly expensive and hence is only done
-    // when assertion checking is active.)
+    // (This is potentially fairly expensive and hence is only done when
+    // assertion checking is active.)
     SAMRAI::hier::BoxList<NDIM> boxes(level->getBoxes());
 
     std::vector<bool> patch_overlaps(boxes.getNumberItems());
@@ -1468,11 +1469,11 @@ LDataManager::initializeLevelData(
     }
 #endif
 
-    // Allocate storage needed to initialize the level and fill data
-    // from coarser levels in AMR hierarchy, if any.
+    // Allocate storage needed to initialize the level and fill data from
+    // coarser levels in AMR hierarchy, if any.
     //
-    // Since time gets set when we allocate data, re-stamp it to
-    // current time if we don't need to allocate.
+    // Since time gets set when we allocate data, re-stamp it to current time if
+    // we don't need to allocate.
     if (allocate_data &&
         (level_number >= d_coarsest_ln) && (level_number <= d_finest_ln))
     {
@@ -1498,8 +1499,8 @@ LDataManager::initializeLevelData(
         level->deallocatePatchData(d_scratch_data);
     }
 
-    // Initialize the data on the level and, when appropriate, move
-    // data from coarser levels to finer levels.
+    // Initialize the data on the level and, when appropriate, move data from
+    // coarser levels to finer levels.
     if (initial_time)
     {
         d_level_contains_lag_data.resize(level_number+1);
@@ -1652,8 +1653,7 @@ LDataManager::initializeLevelData(
         }
         else
         {
-            // Indicate to use uniform workload estimate on the
-            // specified level.
+            // Indicate to use uniform workload estimate on the specified level.
             if (!d_load_balancer.isNull())
             {
                 d_load_balancer->setUniformWorkload(level_number);
@@ -1669,6 +1669,16 @@ LDataManager::initializeLevelData(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > mpi_proc_data =
             patch->getPatchData(d_mpi_proc_idx);
         mpi_proc_data->fillAll(mpi_process);
+    }
+
+    // If a Silo data writer is registered with the manager, give it access to
+    // the new application ordering.
+    if (!d_silo_writer.isNull() && d_level_contains_lag_data[level_number])
+    {
+        d_silo_writer->registerCoordsData(
+            d_lag_quantity_data[level_number][COORDS_DATA_NAME], level_number);
+        d_silo_writer->registerLagrangianAO(
+            d_ao[level_number], level_number);
     }
 
     t_initialize_level_data->stop();
@@ -1714,16 +1724,14 @@ LDataManager::resetHierarchyConfiguration(
         }
     }
 
-    // If we have added or removed a level, resize the schedule
-    // vectors.
+    // If we have added or removed a level, resize the schedule vectors.
     d_lag_node_index_bdry_fill_scheds.resize(finest_hier_level+1);
     d_node_count_coarsen_scheds      .resize(finest_hier_level+1);
 
-    // (Re)build refine communication schedules.  These are created
-    // for only the specified levels in the hierarchy.
+    // (Re)build refine communication schedules.  These are created for only the
+    // specified levels in the hierarchy.
     //
-    // NOTE: These schedules do not fill from coarser levels in the
-    // hierarchy.
+    // NOTE: These schedules do not fill from coarser levels in the hierarchy.
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
@@ -1731,8 +1739,8 @@ LDataManager::resetHierarchyConfiguration(
             d_lag_node_index_bdry_fill_alg->createSchedule(level);
     }
 
-    // (Re)build coarsen communication schedules.  These are set only
-    // for levels >= 1.
+    // (Re)build coarsen communication schedules.  These are set only for levels
+    // >= 1.
     for (int ln = SAMRAI::tbox::Utilities::imax(coarsest_level,1);
          ln <= finest_hier_level; ++ln)
     {
@@ -1768,8 +1776,8 @@ LDataManager::applyGradientDetector(
 
     if (initial_time)
     {
-        // Tag cells for refinement based on the initial configuration
-        // of the Lagrangian structure.
+        // Tag cells for refinement based on the initial configuration of the
+        // Lagrangian structure.
         d_lag_init->tagCellsForInitialRefinement(
             hierarchy, level_number, error_data_time, tag_index);
     }
@@ -1789,16 +1797,16 @@ LDataManager::applyGradientDetector(
             node_count_data->fillAll(0.0);
         }
 
-        // Compute the workload and node count data on the next finer
-        // level of the patch hierarchy.
+        // Compute the workload and node count data on the next finer level of
+        // the patch hierarchy.
         updateWorkloadData(level_number+1);
 
-        // Coarsen the node count data from the next finer level of
-        // the patch hierarchy.
+        // Coarsen the node count data from the next finer level of the patch
+        // hierarchy.
         d_node_count_coarsen_scheds[level_number+1]->coarsenData();
 
-        // Tag cells for refinement wherever there exist nodes on the
-        // the next finer level of the Cartesian grid.
+        // Tag cells for refinement wherever there exist nodes on the the next
+        // finer level of the Cartesian grid.
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1819,9 +1827,8 @@ LDataManager::applyGradientDetector(
             }
         }
 
-        // Compute the workload and node count data on the present
-        // level of the patch hierarchy (since it was invalidated
-        // above).
+        // Compute the workload and node count data on the present level of the
+        // patch hierarchy (since it was invalidated above).
         updateWorkloadData(level_number);
     }
 
@@ -1896,10 +1903,9 @@ LDataManager::putToDatabase(
                                           &d_local_petsc_indices[ln][0],
                                           d_local_petsc_indices [ln].size());
             }
-            // NOTE: d_nonlocal_petsc_indices[ln] is a map from the
-            // data depth to the nonlocal petsc indices for that
-            // particular depth.  We only serialize the indices
-            // corresponding to a data depth of 1.
+            // NOTE: d_nonlocal_petsc_indices[ln] is a map from the data depth
+            // to the nonlocal petsc indices for that particular depth.  We only
+            // serialize the indices corresponding to a data depth of 1.
             level_db->putInteger("n_nonlocal_petsc_indices",
                                  d_nonlocal_petsc_indices[ln][1].size());
             if (!d_nonlocal_petsc_indices[ln][1].empty())
@@ -2051,8 +2057,7 @@ LDataManager::LDataManager(
                         d_node_count_idx, // source
                         coarsen_op);
 
-    // Register the MPI process mapping variable with the
-    // VariableDatabase.
+    // Register the MPI process mapping variable with the VariableDatabase.
     d_mpi_proc_var = new SAMRAI::pdat::CellVariable<NDIM,int>(
         d_object_name+"::MPI process mapping");
 
@@ -2211,21 +2216,19 @@ LDataManager::computeNodeDistribution(
     assert(ln >= d_coarsest_ln &&
            ln <= d_finest_ln);
 #endif
-    // Collect the Lagrangian IDs of all of the Lagrangian nodes on
-    // the specified level of the patch hierarchy.
+    // Collect the Lagrangian IDs of all of the Lagrangian nodes on the
+    // specified level of the patch hierarchy.
     //
     // We differentiate between nodes which are local to the processor
-    // (i.e. nodes which live in the interior of a patch owned by the
-    // processor) and nodes which are non-local (i.e. nodes which live
-    // in the interior of a patch owned by a different processor).
+    // (i.e. nodes which live in the interior of a patch owned by the processor)
+    // and nodes which are non-local (i.e. nodes which live in the interior of a
+    // patch owned by a different processor).
     //
-    // It is important to emphasize that while a local node by
-    // definition lives on the interior of some patch on this
-    // processor, it may also live in the ghost cell regions of other
-    // patches owned by this processor.
+    // It is important to emphasize that while a local node by definition lives
+    // on the interior of some patch on this processor, it may also live in the
+    // ghost cell regions of other patches owned by this processor.
     //
-    // Non-local nodes ONLY appear in ghost cells for on processor
-    // patches.
+    // Non-local nodes ONLY appear in ghost cells for on processor patches.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
     const SAMRAI::hier::ProcessorMapping& proc_mapping = level->getProcessorMapping();
@@ -2274,11 +2277,11 @@ LDataManager::computeNodeDistribution(
 
             if (patch_box.contains(cell_idx))
             {
-                // All nodes located in this cell are owned by the
-                // patch and consequently by the processor.
+                // All nodes located in this cell are owned by the patch and
+                // consequently by the processor.
                 //
-                // We can immediately determine the local PETSc index
-                // for such nodes.
+                // We can immediately determine the local PETSc index for such
+                // nodes.
                 vector<int> cell_lag_ids(num_ids);
                 transform(id_set.begin(), id_set.end(), cell_lag_ids.begin(),
                           GetLagrangianIndex());
@@ -2299,9 +2302,8 @@ LDataManager::computeNodeDistribution(
 
                 local_offset += static_cast<int>(num_ids);
 
-                // We (may) need to be able to lookup the local
-                // indices for any nodes sufficiently close to the
-                // patch boundary.
+                // We (may) need to be able to lookup the local indices for any
+                // nodes sufficiently close to the patch boundary.
                 if (!interior_box.contains(cell_idx))
                 {
                     IndexSetMap::iterator lb = ghost_cell_local_map.lower_bound(cell_idx);
@@ -2313,8 +2315,8 @@ LDataManager::computeNodeDistribution(
 
     // Set all remaining local and nonlocal indices on the level.
     //
-    // VERY IMPORTANT NOTE: Changes to the following loop may break
-    // code in class LEInteractor!
+    // VERY IMPORTANT NOTE: Changes to the following loop may break code in
+    // class LEInteractor!
     IndexSetMap ghost_cell_nonlocal_map;
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -2343,8 +2345,8 @@ LDataManager::computeNodeDistribution(
             {
                 if (local_boxes.contains(cell_idx))
                 {
-                    // The nodes are local nodes, so we have to
-                    // look-up their local IDs.
+                    // The nodes are local nodes, so we have to look-up their
+                    // local IDs.
                     for_each(id_set.begin(), id_set.end(),
                              GetLocalPETScIndexFromIDSet(
                                  (ghost_cell_local_map[cell_idx])->begin()));
@@ -2359,8 +2361,8 @@ LDataManager::computeNodeDistribution(
                 else if (patch_touches_periodic_boundary &&
                          local_boxes.contains(shifted_cell_idx))
                 {
-                    // The nodes are periodic images of local nodes,
-                    // so we have to look-up their local IDs.
+                    // The nodes are periodic images of local nodes, so we have
+                    // to look-up their local IDs.
                     for_each(id_set.begin(), id_set.end(),
                              GetLocalPETScIndexFromIDSet(
                                  (ghost_cell_local_map[shifted_cell_idx])->begin()));
@@ -2374,8 +2376,8 @@ LDataManager::computeNodeDistribution(
                 }
                 else
                 {
-                    // The nodes are not local to the processor, so we
-                    // have to assign or lookup their local IDs.
+                    // The nodes are not local to the processor, so we have to
+                    // assign or lookup their local IDs.
                     IndexSetMap::iterator lb = ghost_cell_nonlocal_map.lower_bound(cell_idx);
 
                     if (lb != ghost_cell_nonlocal_map.end() &&
@@ -2430,12 +2432,12 @@ LDataManager::computeNodeDistribution(
         vector<int>(nonlocal_lag_indices).swap(nonlocal_lag_indices);
     }
 
-    // We now compute the new PETSc global ordering and initialize the
-    // AO object.
+    // We now compute the new PETSc global ordering and initialize the AO
+    // object.
     int ierr;
 
-    // Determine how many nodes are on each processor in order to
-    // calculate the PETSc indexing scheme.
+    // Determine how many nodes are on each processor in order to calculate the
+    // PETSc indexing scheme.
     const int num_local_nodes    = local_lag_indices.size();
     const int num_nonlocal_nodes = nonlocal_lag_indices.size();
 
@@ -2472,11 +2474,11 @@ LDataManager::computeNodeDistribution(
                          &node_indices[0], &local_petsc_indices[0], &ao);
     PETSC_SAMRAI_ERROR(ierr);
 
-    // Determine the PETSc local to global mapping (including PETSc
-    // Vec ghost indices).
+    // Determine the PETSc local to global mapping (including PETSc Vec ghost
+    // indices).
     //
-    // NOTE: After this operation, node_indices are in the global
-    // PETSc ordering.
+    // NOTE: After this operation, node_indices are in the global PETSc
+    // ordering.
     node_indices.insert(node_indices.end(),
                         nonlocal_lag_indices.begin(),
                         nonlocal_lag_indices.end());
@@ -2487,13 +2489,12 @@ LDataManager::computeNodeDistribution(
         (num_proc_nodes > 0 ? &node_indices[0] : &s_ao_dummy[0]));
     PETSC_SAMRAI_ERROR(ierr);
 
-//  If desired, we can now build an ISLocalToGlobalMapping at this
-//  point.  It is not necessary to do so, since all of the information
-//  this mapping provides is encoded in d_node_offset and the two
-//  vectors d_local_lag_indices and d_nonlocal_lag_indices.
+//  If desired, we can now build an ISLocalToGlobalMapping at this point.  It is
+//  not necessary to do so, since all of the information this mapping provides
+//  is encoded in d_node_offset and the two vectors d_local_lag_indices and
+//  d_nonlocal_lag_indices.
 //
-//  However, here is the code that you would use to build such a
-//  mapping:
+//  However, here is the code that you would use to build such a mapping:
 //
 //  // Construct a local to global mapping for the new ordering.
 //  ISLocalToGlobalMapping local_to_global_map;
@@ -2850,8 +2851,7 @@ LDataManager::getFromRestart()
                                           &d_nonlocal_petsc_indices[ln][1][0],
                                           n_nonlocal_petsc_indices);
 
-                // Rebuild the nonlocal PETSc indices for the other
-                // data depths.
+                // Rebuild the nonlocal PETSc indices for the other data depths.
                 for (set<int>::const_iterator it = data_depths.begin();
                      it != data_depths.end(); ++it)
                 {

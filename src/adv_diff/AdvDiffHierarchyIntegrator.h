@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <21.Mar.2007 20:23:26 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Apr.2007 16:05:16 griffith@box221.cims.nyu.edu>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -429,8 +429,7 @@ public:
      * will result if the new time is not greater than the given time.
      */
     virtual double advanceHierarchy(
-        const double dt,
-        const bool rebalance_coarsest=false);
+        const double dt);
 
     /*!
      * Return true if the current step count indicates that regridding
@@ -502,7 +501,6 @@ public:
     ///
     ///  The following routines:
     ///
-    ///      rebalanceCoarsestLevel(),
     ///      regridHierarchy(),
     ///      integrateHierarchy(),
     ///      synchronizeHierarchy(),
@@ -514,16 +512,6 @@ public:
     ///  management for a time integrator which making use of this
     ///  class.
     ///
-
-    /*!
-     * Load balance the coarsest hierarchy level (i.e., level 0).  In
-     * general, the problem domain (determined by the union of patches
-     * on level 0) does not change once set.  However, this function
-     * reconfigures the patches on the coarsest level which constitute
-     * this union.  This may be required depending on a dynamic change
-     * of the work load.
-     */
-    virtual void rebalanceCoarsestLevel();
 
     /*!
      * Regrid the hierarchy according to the error estimator specified
