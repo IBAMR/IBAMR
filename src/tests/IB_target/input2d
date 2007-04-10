@@ -18,7 +18,7 @@ RHO = 1.0
 MAX_LEVELS = 5   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 32                                    // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 16.0                                  // height of computational domain
 
@@ -45,7 +45,7 @@ IBHierarchyIntegrator {
 // Note that these stiffness must be modified if generate_mesh2d.m
 // is modified.
 
-K_s = 2000.0*NFINEST/Re
+K_s = 5000.0*NFINEST/Re
 ds = 2.0*PI*R/(0.375*NFINEST)
 
 IBStandardInitializer {
@@ -54,23 +54,17 @@ IBStandardInitializer {
 // base_filenames_4 = "cylinder2d_256"   // corresponds to NFINEST = 256
 // cylinder2d_256 {
 //    uniform_target_stiffness = K_s*ds
-//    uniform_spring_stiffness = 125.0
-//    uniform_spring_rest_length = ds
 // }
 
-   base_filenames_4 = "cylinder2d_512"   // corresponds to NFINEST = 512
-   cylinder2d_512 {
-      uniform_target_stiffness = K_s*ds
-      uniform_spring_stiffness = 250.0
-      uniform_spring_rest_length = ds
-   }
-
-// base_filenames_4 = "cylinder2d_1024"  // corresponds to NFINEST = 1024
-// cylinder2d_1024 {
+// base_filenames_4 = "cylinder2d_512"   // corresponds to NFINEST = 512
+// cylinder2d_512 {
 //    uniform_target_stiffness = K_s*ds
-//    uniform_spring_stiffness = 500.0
-//    uniform_spring_rest_length = ds
 // }
+
+   base_filenames_4 = "cylinder2d_1024"  // corresponds to NFINEST = 1024
+   cylinder2d_1024 {
+      uniform_target_stiffness = K_s*ds
+   }
 }
 
 IBStandardForceGen {
