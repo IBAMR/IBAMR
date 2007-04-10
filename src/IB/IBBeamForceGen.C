@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <03.Apr.2007 21:14:29 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Apr.2007 19:48:37 griffith@box221.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -369,8 +369,8 @@ IBBeamForceGen::computeLagrangianForce(
     std::vector<double>& bend_rigidities = d_bend_rigidities[level_number];
 
     const int local_sz = static_cast<int>(petsc_mastr_node_idxs.size());
-    std::vector<double> F_mastr_node_arr(NDIM*local_sz);
-    std::vector<double> F_nghbr_node_arr(NDIM*local_sz);
+    std::vector<double> F_mastr_node_arr(NDIM*local_sz,0.0);
+    std::vector<double> F_nghbr_node_arr(NDIM*local_sz,0.0);
 
     for (int k = 0; k < local_sz; ++k)
     {

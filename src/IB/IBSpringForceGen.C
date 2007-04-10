@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <03.Apr.2007 21:14:42 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Apr.2007 19:48:10 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -312,8 +312,8 @@ IBSpringForceGen::computeLagrangianForce(
 
     int ierr;
 
-    // Create an appropriately sized temporary vector to store the
-    // node displacements.
+    // Create an appropriately sized temporary vector to store the node
+    // displacements.
     int i_start, i_stop;
     ierr = MatGetOwnershipRange(d_D_mats[level_number], &i_start, &i_stop);
     PETSC_SAMRAI_ERROR(ierr);
@@ -326,8 +326,7 @@ IBSpringForceGen::computeLagrangianForce(
     ierr = MatMult(d_D_mats[level_number], X_data->getGlobalVec(), D_vec);
     PETSC_SAMRAI_ERROR(ierr);
 
-    // Compute the spring forces acting on the nodes of the Lagrangian
-    // mesh.
+    // Compute the spring forces acting on the nodes of the Lagrangian mesh.
     double* D_arr;
     ierr = VecGetArray(D_vec, &D_arr);  PETSC_SAMRAI_ERROR(ierr);
 
@@ -340,13 +339,12 @@ IBSpringForceGen::computeLagrangianForce(
     std::vector<double>& rest_lengths = d_rest_lengths[level_number];
 
     const int local_sz = static_cast<int>(petsc_mastr_node_idxs.size());
-    std::vector<double> F_mastr_node_arr(NDIM*local_sz);
-    std::vector<double> F_slave_node_arr(NDIM*local_sz);
+    std::vector<double> F_mastr_node_arr(NDIM*local_sz,0.0);
+    std::vector<double> F_slave_node_arr(NDIM*local_sz,0.0);
 
     for (int k = 0; k < local_sz; ++k)
     {
-        // Compute the force applied by the spring to the "master"
-        // node.
+        // Compute the force applied by the spring to the "master" node.
         double* const F_mastr_node = &F_mastr_node_arr[k*NDIM];
         const double* const D = &D_arr[k*NDIM];
         const int& lag_mastr_idx = lag_mastr_node_idxs[k];
@@ -356,8 +354,8 @@ IBSpringForceGen::computeLagrangianForce(
         const double& rst = rest_lengths[k];
         d_force_fcn_map[force_fcn_id](F_mastr_node,D,stf,rst,lag_mastr_idx,lag_slave_idx);
 
-        // Compute the force applied by the spring to the
-        // corresponding "slave" node.
+        // Compute the force applied by the spring to the corresponding "slave"
+        // node.
         double* const F_slave_node = &F_slave_node_arr[k*NDIM];
         for (int d = 0; d < NDIM; ++d)
         {

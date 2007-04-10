@@ -33,15 +33,16 @@ IBHierarchyIntegrator {
    enable_logging = TRUE
 
    regrid_interval = 32
-   dt_max = 0.125*dx
+   dt_max = 0.0625*dx
    delta_fcn = "IB_6"
 }
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_3 = "sphere3d"
-   sphere3d {
-      uniform_target_stiffness = 20.0
+   base_filenames_3 = "sphere3d_128"
+   sphere3d_128 {
+      uniform_target_stiffness = 2560.0/NFINEST
+      uniform_spring_stiffness = 0.0
    }
 }
 
