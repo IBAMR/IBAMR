@@ -3,7 +3,7 @@
 % Problem parameters
 
 L = 16.0;
-NFINEST = 1024;
+NFINEST = 128;
 dx = L/NFINEST;
 
 % choose num_nodes so that ds = 2*PI*R/num_nodes = 0.5*dx (approximately)
