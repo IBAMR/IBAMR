@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <06.Apr.2007 16:51:03 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 03:32:10 boyce@trasnaform2.local>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -267,8 +267,7 @@ AdvectHypPatchOps::AdvectHypPatchOps(
             registerRestartItem(d_object_name, this);
     }
 
-    // Initialize object with data read from given input/restart
-    // databases.
+    // Initialize object with data read from given input/restart databases.
     bool is_from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
     if (is_from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, is_from_restart);
@@ -327,8 +326,7 @@ AdvectHypPatchOps::getName() const
 ///      registerAdvectionVelocity(),
 ///      registerVisItDataWriter()
 ///
-///  allow the AdvectHypPatchOps to be used as a generic advection
-///  scheme.
+///  allow the AdvectHypPatchOps to be used as a generic advection scheme.
 ///
 
 void
@@ -738,8 +736,8 @@ AdvectHypPatchOps::registerModelVariables(
         "CONSERVATIVE_LINEAR_REFINE");
 
     // Note that this quantity is only required when non-conservative
-    // differencing is employed, or when the velocity field is not
-    // discretely divergence free.
+    // differencing is employed, or when the velocity field is not discretely
+    // divergence free.
     if (!d_u_integral_var.isNull())
     {
         d_integrator->registerVariable(
@@ -767,9 +765,9 @@ AdvectHypPatchOps::initializeDataOnPatch(
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
 
-        // We try to use the STOOLS::SetDataStrategy associated with
-        // each advected quantity.  If there is no strategy associated
-        // with a given quantity, initialize its value to zero.
+        // We try to use the STOOLS::SetDataStrategy associated with each
+        // advected quantity.  If there is no strategy associated with a given
+        // quantity, initialize its value to zero.
         for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
@@ -793,9 +791,9 @@ AdvectHypPatchOps::initializeDataOnPatch(
             }
         }
 
-        // We try to use the STOOLS::SetDataStrategy associated with
-        // the source term.  If there is no strategy associated with
-        // the source term, initialize its value to zero.
+        // We try to use the STOOLS::SetDataStrategy associated with the source
+        // term.  If there is no strategy associated with the source term,
+        // initialize its value to zero.
         for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
@@ -823,9 +821,9 @@ AdvectHypPatchOps::initializeDataOnPatch(
             }
         }
 
-        // We try to use the STOOLS::SetDataStrategy associated with
-        // the advection velocirt.  If there is no strategy associated
-        // with the advection velocity, initialize its value to zero.
+        // We try to use the STOOLS::SetDataStrategy associated with the
+        // advection velocirt.  If there is no strategy associated with the
+        // advection velocity, initialize its value to zero.
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, getDataContext());
 
@@ -920,9 +918,9 @@ AdvectHypPatchOps::computeFluxesOnPatch(
         }
     }
 
-    // For incompressible flow problems, we allow for the
-    // specification of an auxiliary gradient that is used to
-    // (approximately) enforce the incompressibility constraint.
+    // For incompressible flow problems, we allow for the specification of an
+    // auxiliary gradient that is used to (approximately) enforce the
+    // incompressibility constraint.
     for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
     {
         if (!d_grad_vars[l].isNull())
@@ -946,8 +944,8 @@ AdvectHypPatchOps::computeFluxesOnPatch(
         d_u_set->setDataOnPatch(u_idx, d_u_var, patch, time+0.5*dt);
     }
 
-    // Compute fluxes for those quantities that are to be
-    // conservatively differenced.
+    // Compute fluxes for those quantities that are to be conservatively
+    // differenced.
     for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
     {
         if (d_Q_conservation_form[l])
@@ -961,12 +959,11 @@ AdvectHypPatchOps::computeFluxesOnPatch(
         }
     }
 
-    // When u is not discretely divergence free or when Q is not
-    // conservatively differenced, we maintain the time integral of
-    // the predicted face values.  These values are used in computing
-    // the proper source terms to maintain consistency between the
-    // conservative and non-conservative forms of the advection
-    // equation.
+    // When u is not discretely divergence free or when Q is not conservatively
+    // differenced, we maintain the time integral of the predicted face values.
+    // These values are used in computing the proper source terms to maintain
+    // consistency between the conservative and non-conservative forms of the
+    // advection equation.
     for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
     {
         if (!d_u_is_div_free || !d_Q_conservation_form[l])
@@ -980,12 +977,11 @@ AdvectHypPatchOps::computeFluxesOnPatch(
         }
     }
 
-    // When u is not discretely divergence free or when any quantity
-    // is not conservatively differenced, we maintain the time
-    // integral of the advection velocity.  This value is used in
-    // computing the proper source terms to maintain consistency
-    // between the conservative and non-conservative forms of the
-    // advection equation.
+    // When u is not discretely divergence free or when any quantity is not
+    // conservatively differenced, we maintain the time integral of the
+    // advection velocity.  This value is used in computing the proper source
+    // terms to maintain consistency between the conservative and
+    // non-conservative forms of the advection equation.
     if (!d_u_integral_var.isNull())
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_integral_data =
@@ -1212,8 +1208,8 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
         new SAMRAI::math::PatchCellDataOpsReal<NDIM,double>();
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
 
-    // Update the values of any time-dependent source terms and add
-    // the values of all source terms to the advected quantities.
+    // Update the values of any time-dependent source terms and add the values
+    // of all source terms to the advected quantities.
     for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> new_context     = d_integrator->getNewContext();
@@ -1326,9 +1322,8 @@ AdvectHypPatchOps::tagRichardsonExtrapolationCells(
     //    QVAL_RICHARDSON
     // The criteria is specified over a time interval.
     //
-    // Loop over criteria provided and check to make sure we are in
-    // the specified time interval.  If so, apply appropriate tagging
-    // for the level.
+    // Loop over criteria provided and check to make sure we are in the
+    // specified time interval.  If so, apply appropriate tagging for the level.
     for (int ncrit = 0; ncrit < d_refinement_criteria.getSize(); ++ncrit)
     {
         std::string ref = d_refinement_criteria[ncrit];
@@ -1357,11 +1352,10 @@ AdvectHypPatchOps::tagRichardsonExtrapolationCells(
 
             if (time_allowed)
             {
-                // We tag wherever the global error > specified
-                // tolerance (i.e. d_rich_tol).  The estimated global
-                // error is the local truncation error times the
-                // approximate number of steps used in the simulation.
-                // Approximate the number of steps as:
+                // We tag wherever the global error > specified tolerance
+                // (i.e. d_rich_tol).  The estimated global error is the local
+                // truncation error times the approximate number of steps used
+                // in the simulation.  Approximate the number of steps as:
                 //
                 //       steps = L / (s*deltat)
                 //
@@ -1432,18 +1426,17 @@ AdvectHypPatchOps::tagRichardsonExtrapolationCells(
                         diff = sqrt(diff);
                         error = SAMRAI::tbox::Utilities::dabs(diff)*rnminus1*steps;
 
-                        // Tag cell if error exceeds the prescribed
-                        // threshold.  Since we are operating on the
-                        // actual tag values (not temporary ones)
-                        // distinguish here tags that were previously
-                        // set before coming into this routine and
+                        // Tag cell if error exceeds the prescribed threshold.
+                        // Since we are operating on the actual tag values (not
+                        // temporary ones) distinguish here tags that were
+                        // previously set before coming into this routine and
                         // those that are set here.
                         //
-                        //     RICHARDSON_ALREADY_TAGGED: tagged
-                        //     before coming into this method
+                        //     RICHARDSON_ALREADY_TAGGED: tagged before coming
+                        //     into this method
                         //
-                        //     RICHARDSON_NEWLY_TAGGED: newly tagged
-                        //     in this method
+                        //     RICHARDSON_NEWLY_TAGGED: newly tagged in this
+                        //     method
                         if (error > tol)
                         {
                             if ((*tags)(ic(),0))
@@ -1461,11 +1454,11 @@ AdvectHypPatchOps::tagRichardsonExtrapolationCells(
         } // if QVAL_RICHARDSON
     } // loop over refinement criteria
 
-    // If we are NOT performing gradient detector (i.e. only doing
-    // Richardson extrapolation) set tags marked in this method to
-    // TRUE_VAL and all others false.  Otherwise, leave tags set to
-    // the RICHARDSON_ALREADY_TAGGED and RICHARDSON_NEWLY_TAGGED.  We
-    // use this information in the gradient detector.
+    // If we are NOT performing gradient detector (i.e. only doing Richardson
+    // extrapolation) set tags marked in this method to TRUE_VAL and all others
+    // false.  Otherwise, leave tags set to the RICHARDSON_ALREADY_TAGGED and
+    // RICHARDSON_NEWLY_TAGGED.  We use this information in the gradient
+    // detector.
     if (!uses_gradient_detector_too)
     {
         for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
@@ -1519,9 +1512,8 @@ AdvectHypPatchOps::tagGradientDetectorCells(
     //    QVAL_DEVIATION, QVAL_GRADIENT
     // The criteria is specified over a time interval.
     //
-    // Loop over criteria provided and check to make sure we are in
-    // the specified time interval.  If so, apply appropriate tagging
-    // for the level.
+    // Loop over criteria provided and check to make sure we are in the
+    // specified time interval.  If so, apply appropriate tagging for the level.
     for (int ncrit = 0; ncrit < d_refinement_criteria.getSize(); ++ncrit)
     {
         std::string ref = d_refinement_criteria[ncrit];
@@ -1554,10 +1546,10 @@ AdvectHypPatchOps::tagGradientDetectorCells(
 
             if (time_allowed)
             {
-                // Check for tags that have already been set in a
-                // previous step.  Do NOT consider values tagged with
-                // value RICHARDSON_NEWLY_TAGGED since these were set
-                // most recently by Richardson extrapolation.
+                // Check for tags that have already been set in a previous step.
+                // Do NOT consider values tagged with value
+                // RICHARDSON_NEWLY_TAGGED since these were set most recently by
+                // Richardson extrapolation.
                 typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
                 for (CellVariableVector::size_type l = 0;
                      l < d_Q_vars.size(); ++l)
@@ -1650,9 +1642,9 @@ AdvectHypPatchOps::tagGradientDetectorCells(
         }
     } // loop over criteria
 
-    // Adjust temp_tags from those tags set in Richardson
-    // extrapolation.  Here, we just reset any tags that were set in
-    // Richardson extrapolation to be the designated "refine_tag_val".
+    // Adjust temp_tags from those tags set in Richardson extrapolation.  Here,
+    // we just reset any tags that were set in Richardson extrapolation to be
+    // the designated "refine_tag_val".
     if (uses_richardson_extrapolation_too)
     {
         for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
@@ -1697,10 +1689,9 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
 
     if (d_initialize_soln)
     {
-        // Set physical boundary conditions at all physical boundaries
-        // via linear extrapolation.  (This is equivalent to using
-        // interpolation stencils which have been "shifted" at
-        // physical boundaries.)
+        // Set physical boundary conditions at all physical boundaries via
+        // linear extrapolation.  (This is equivalent to using interpolation
+        // stencils which have been "shifted" at physical boundaries.)
         SAMRAI::hier::ComponentSelector patch_data_indices;
         for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
         {
@@ -1715,23 +1706,23 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
     }
     else
     {
-        // First, extrapolate physical boundary values for the
-        // advection velocity.
+        // First, extrapolate physical boundary values for the advection
+        // velocity.
         setAdvectionVelocityBoundaryConditions(
             patch, fill_time, ghost_width_to_fill);
 
-        // Second, at inflow boundaries, use the Robin boundary
-        // condition data to set the ghost cell values.
+        // Second, at inflow boundaries, use the Robin boundary condition data
+        // to set the ghost cell values.
         setInflowBoundaryConditions(
             patch, fill_time, ghost_width_to_fill);
 
-        // Third, at outflow boundaries, extrapolate the interior
-        // data to set the ghost cell values.
+        // Third, at outflow boundaries, extrapolate the interior data to set
+        // the ghost cell values.
         setOutflowBoundaryConditions(
             patch, fill_time, ghost_width_to_fill);
 
-        // Third, extrapolate the boundary values for any forcing
-        // terms at all physical boundaries.
+        // Fourth, extrapolate the boundary values for any forcing terms at all
+        // physical boundaries.
         SAMRAI::hier::ComponentSelector patch_data_indices;
         for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
         {
@@ -2039,8 +2030,8 @@ AdvectHypPatchOps::setOutflowBoundaryConditions(
             std::make_pair(bdry_fill_box, std::make_pair(location_index,codim)));
     }
 
-    // Loop over the boundary fill boxes and extrapolate the data at
-    // outflow boundaries only.
+    // Loop over the boundary fill boxes and extrapolate the data at outflow
+    // boundaries only.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data =
         patch.getPatchData(d_u_var, getDataContext());
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
@@ -2060,8 +2051,8 @@ AdvectHypPatchOps::setOutflowBoundaryConditions(
             const int location_index = (*it).second.first;
             const int codim = (*it).second.second;
 
-            // Loop over the boundary box indices and compute the
-            // nearest interior index.
+            // Loop over the boundary box indices and compute the nearest
+            // interior index.
             for (SAMRAI::pdat::CellIterator<NDIM> b(bdry_fill_box*ghost_box); b; b++)
             {
                 const SAMRAI::pdat::CellIndex<NDIM>& i = b();
@@ -2306,8 +2297,7 @@ AdvectHypPatchOps::getFromInput(
             }
         } // loop over refine criteria
 
-        // Check that input is found for each string identifier in key
-        // list.
+        // Check that input is found for each string identifier in key list.
         for (int k0 = 0; k0 < d_refinement_criteria.getSize(); ++k0)
         {
             std::string use_key = d_refinement_criteria[k0];

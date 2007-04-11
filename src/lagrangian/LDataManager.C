@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <07.Apr.2007 19:09:50 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 02:37:18 boyce@trasnaform2.local>
 
 #include "LDataManager.h"
 
@@ -2013,8 +2013,7 @@ LDataManager::LDataManager(
         d_lag_node_index_var, d_scratch_context, d_ghosts);
     d_scratch_data.setFlag(d_lag_node_index_scratch_idx);
 
-    // Setup a refine algorithm, used to fill LNodeIndex boundary
-    // data.
+    // Setup a refine algorithm, used to fill LNodeIndex boundary data.
     d_lag_node_index_bdry_fill_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     d_lag_node_index_bdry_fill_alg->registerRefine(
         d_lag_node_index_current_idx, // destination

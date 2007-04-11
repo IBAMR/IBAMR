@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <06.Apr.2007 18:43:01 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 02:16:28 boyce@trasnaform2.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -109,8 +109,7 @@ HierarchyProjector::HierarchyProjector(
             registerRestartItem(d_object_name, this);
     }
 
-    // Initialize object with data read from the input and restart
-    // databases.
+    // Initialize object with data read from the input and restart databases.
     bool from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
@@ -119,8 +118,8 @@ HierarchyProjector::HierarchyProjector(
     d_poisson_spec.setCZero();
     d_poisson_spec.setDConstant(-1.0);
 
-    // Setup a default bc strategy object that specifies homogeneous
-    // Neumann boundary conditions.
+    // Setup a default bc strategy object that specifies homogeneous Neumann
+    // boundary conditions.
     for (int d = 0; d < NDIM; ++d)
     {
         d_default_bc_coef->setBoundarySlope(2*d  ,0.0);
@@ -130,8 +129,8 @@ HierarchyProjector::HierarchyProjector(
     // Initialize the boundary conditions objects.
     setPhysicalBcCoef(d_default_bc_coef);
 
-    // Get initialization data for the FAC ops and FAC preconditioners
-    // and initialize them.
+    // Get initialization data for the FAC ops and FAC preconditioners and
+    // initialize them.
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> fac_op_db, fac_pc_db;
 
     if (input_db->keyExists("FACOp"))
@@ -255,8 +254,8 @@ HierarchyProjector::getName() const
 ///      setHierarchyMathOps(),
 ///      isManagingHierarchyMathOps()
 ///
-///  allow for the sharing of a single HierarchyMathOps object between
-///  mutiple HierarchyIntegrator objects.
+///  allow for the sharing of a single HierarchyMathOps object between mutiple
+///  HierarchyIntegrator objects.
 ///
 
 SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
@@ -294,8 +293,8 @@ HierarchyProjector::isManagingHierarchyMathOps() const
 ///      getPhysicalBcCoef(),
 ///      getPoissonSolver()
 ///
-///  allow other objects to access the Poisson solver and related data
-///  used by this integrator.
+///  allow other objects to access the Poisson solver and related data used by
+///  this integrator.
 ///
 
 void
@@ -563,8 +562,7 @@ HierarchyProjector::resetHierarchyConfiguration(
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
-    // Reset the Hierarchy data operations for the new hierarchy
-    // configuration.
+    // Reset the Hierarchy data operations for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_cc_data_ops->resetLevels(0, finest_hier_level);
 

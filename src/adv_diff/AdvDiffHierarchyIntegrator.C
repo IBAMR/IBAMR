@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <07.Apr.2007 16:04:42 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 03:43:36 boyce@trasnaform2.local>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -148,16 +148,14 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
             registerRestartItem(d_object_name, this);
     }
 
-    // Initialize object with data read from the input and restart
-    // databases.
+    // Initialize object with data read from the input and restart databases.
     bool from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
 
     // Initialize the SAMRAI::algs::HyperbolicPatchStrategy and
-    // SAMRAI::algs::HyperbolicLevelIntegrator objects used to provide
-    // the numerical routines for explicitly integrating the advective
-    // terms.
+    // SAMRAI::algs::HyperbolicLevelIntegrator objects used to provide the
+    // numerical routines for explicitly integrating the advective terms.
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> hyp_patch_ops_input_db;
     if (input_db->keyExists("AdvDiffHypPatchOps"))
     {
@@ -306,8 +304,7 @@ AdvDiffHierarchyIntegrator::registerVisItDataWriter(
 ///      registerAdvectedAndDiffusedQuantityWithSourceTerm(),
 ///      registerAdvectionVelocity()
 ///
-///  allow the specification of quantities to be advected and
-///  diffused.
+///  allow the specification of quantities to be advected and diffused.
 ///
 
 void
@@ -504,8 +501,8 @@ AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
 ///      setHierarchyMathOps(),
 ///      isManagingHierarchyMathOps()
 ///
-///  allow for the sharing of a single HierarchyMathOps object between
-///  mutiple HierarchyIntegrator objects.
+///  allow for the sharing of a single HierarchyMathOps object between mutiple
+///  HierarchyIntegrator objects.
 ///
 
 SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
@@ -554,8 +551,7 @@ AdvDiffHierarchyIntegrator::isManagingHierarchyMathOps() const
 ///      getHyperbolicLevelIntegrator(),
 ///      getHyperbolicPatchStrategy()
 ///
-///  allow the AdvDiffHierarchyIntegrator to be used as a
-///  hierarchy integrator.
+///  allow the AdvDiffHierarchyIntegrator to be used as a hierarchy integrator.
 ///
 
 void
@@ -591,13 +587,12 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         }
     }
 
-    // Register forcing term data with the hyperbolic level
-    // integrator.
+    // Register forcing term data with the hyperbolic level integrator.
     const SAMRAI::hier::IntVector<NDIM> cell_ghosts = CELLG;
     for (unsigned l = 0; l < d_F_vars.size(); ++l)
     {
-        // Advected and diffused quantities do not necessarily have
-        // source terms.
+        // Advected and diffused quantities do not necessarily have source
+        // terms.
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
 
         if (!F_var.isNull())
@@ -633,8 +628,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     // NOTE: This must be done AFTER all variables have been registered.
     d_hyp_level_integrator->initializeLevelIntegrator(d_gridding_alg);
 
-    // Create communications schedules used in setting up the rhs
-    // terms and in synchronizing solution data.
+    // Create communications schedules used in setting up the rhs terms and in
+    // synchronizing solution data.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
     for (unsigned l = 0; l < d_Q_vars.size(); ++l)
@@ -685,8 +680,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         d_is_managing_hier_math_ops = true;
     }
 
-    // One set of operators/specifications is maintained for each
-    // variable registered with the integrator.
+    // One set of operators/specifications is maintained for each variable
+    // registered with the integrator.
     for (unsigned l = 0; l < d_Q_vars.size(); ++l)
     {
         ostringstream stream;
@@ -700,8 +695,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
             *d_helmholtz_specs[l], d_Q_bc_coefs[l]);
     }
 
-    // One set of solvers/preconditioners is maintained for each
-    // variable registered with the integrator
+    // One set of solvers/preconditioners is maintained for each variable
+    // registered with the integrator
     for (unsigned l = 0; l < d_Q_vars.size(); ++l)
     {
         ostringstream stream;
@@ -795,10 +790,9 @@ AdvDiffHierarchyIntegrator::initializeHierarchy()
             ++level_number;
         }
 
-        // After data on each level is initialized at simulation start
-        // time, coarser levels are synchronized with finer levels
-        // that didn't exist when the coarser level initial data was
-        // set.
+        // After data on each level is initialized at simulation start time,
+        // coarser levels are synchronized with finer levels that didn't exist
+        // when the coarser level initial data was set.
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -809,8 +803,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchy()
         }
     }
 
-    // The timestep is given by the minimum allowable timestep over
-    // all levels in the patch hierarchy.
+    // The timestep is given by the minimum allowable timestep over all levels
+    // in the patch hierarchy.
     double dt_next = std::numeric_limits<double>::max();
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
@@ -937,8 +931,8 @@ AdvDiffHierarchyIntegrator::getHyperbolicPatchStrategy() const
 ///      resetTimeDependentHierData(),
 ///      resetHierDataToPreadvanceState()
 ///
-///  allow the AdvDiffHierarchyIntegrator to provide data
-///  management for a time integrator which making use of this class.
+///  allow the AdvDiffHierarchyIntegrator to provide data management for a time
+///  integrator which making use of this class.
 ///
 
 void
@@ -972,10 +966,10 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    //////////////////////////////////////////////////////////////////////
-    // Predict the advective terms and synchronize them across all
-    // levels of the patch hierarchy.
-    //////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // Predict the advective terms and synchronize them across all levels of the
+    // patch hierarchy.
+    ////////////////////////////////////////////////////////////////////////////
 
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
 
@@ -1017,8 +1011,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             level->allocatePatchData(Q_temp_idx, current_time);
         }
 
-        // Setup the right hand side for the advective flux
-        // prediction.
+        // Setup the right hand side for the advective flux prediction.
         SAMRAI::solv::PoissonSpecifications mu_spec("mu_spec");
         mu_spec.setCConstant(0.0);
         mu_spec.setDConstant(mu);
@@ -1086,9 +1079,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             new_time, current_time);
     }
 
-    //////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     // Solve one or more Helmholtz equations for Q(n+1).
-    //////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
 
     // Indicate that all solvers need to be reinitialized if the
     // current timestep size is different from the previous one.
@@ -1275,8 +1268,8 @@ AdvDiffHierarchyIntegrator::synchronizeNewLevels(
         assert(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
-    // We use the HyperbolicLevelIntegrator to handle as much data
-    // management as possible.
+    // We use the HyperbolicLevelIntegrator to handle as much data management as
+    // possible.
     d_hyp_level_integrator->
         synchronizeNewLevels(hierarchy, coarsest_level, finest_level,
                              sync_time, initial_time);
@@ -1317,8 +1310,8 @@ AdvDiffHierarchyIntegrator::resetHierDataToPreadvanceState()
 {
     t_reset_hier_data_to_preadvance_state->start();
 
-    // We use the HyperbolicLevelIntegrator to handle as much data
-    // management as possible.
+    // We use the HyperbolicLevelIntegrator to handle as much data management as
+    // possible.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -1366,8 +1359,8 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
     }
     assert(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
-    // We use the HyperbolicLevelIntegrator to handle as much data
-    // management as possible.
+    // We use the HyperbolicLevelIntegrator to handle as much data management as
+    // possible.
     d_hyp_level_integrator->
         initializeLevelData(hierarchy, level_number, init_data_time,
                             can_be_refined, initial_time, old_level,
@@ -1436,13 +1429,12 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
-    // We use the HyperbolicLevelIntegrator to handle as much data
-    // management as possible.
+    // We use the HyperbolicLevelIntegrator to handle as much data management as
+    // possible.
     d_hyp_level_integrator->
         resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
-    // Reset the Hierarchy data operations for the new hierarchy
-    // configuration.
+    // Reset the Hierarchy data operations for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_cc_data_ops->resetLevels(0, finest_hier_level);
 
@@ -1490,8 +1482,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
     d_coarsest_reset_ln = coarsest_level;
     d_finest_reset_ln = finest_level;
 
-    // If we have added or removed a level, resize the schedule
-    // vectors.
+    // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
          it != d_ralgs.end(); ++it)
     {
@@ -1504,8 +1495,8 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
         d_cscheds[(*it).first].resize(finest_hier_level+1);
     }
 
-    // (Re)build refine communication schedules.  These are created
-    // for all levels in the hierarchy.
+    // (Re)build refine communication schedules.  These are created for all
+    // levels in the hierarchy.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
          it != d_ralgs.end(); ++it)
     {
@@ -1519,8 +1510,8 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
         }
     }
 
-    // (Re)build coarsen communication schedules.  These are set only
-    // for levels >= 1.
+    // (Re)build coarsen communication schedules.  These are set only for levels
+    // >= 1.
     for (CoarsenAlgMap::const_iterator it = d_calgs.begin();
          it != d_calgs.end(); ++it)
     {
@@ -1564,8 +1555,7 @@ AdvDiffHierarchyIntegrator::applyGradientDetector(
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
-    // Due to tag buffers, it is necessary to untag all cells prior to
-    // tagging.
+    // Due to tag buffers, it is necessary to untag all cells prior to tagging.
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1573,8 +1563,8 @@ AdvDiffHierarchyIntegrator::applyGradientDetector(
         tags_data->fillAll(0);
     }
 
-    // Tag cells for refinement according to the criteria specified by
-    // the criteria specified by the SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>.
+    // Tag cells for refinement according to the criteria specified by the
+    // criteria specified by the SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>.
     d_hyp_level_integrator->
         applyGradientDetector(hierarchy, level_number, error_data_time,
                               tag_index, initial_time,
@@ -1593,13 +1583,12 @@ AdvDiffHierarchyIntegrator::applyGradientDetector(
 ///      getScratchContext(),
 ///      getPlotContext()
 ///
-///  allow access to the various variable contexts maintained by the
-///  integrator.
+///  allow access to the various variable contexts maintained by the integrator.
 ///
 
 ///
-/// We simply reuse the SAMRAI::hier::VariableContext objects defined
-/// in the SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> object.
+/// We simply reuse the SAMRAI::hier::VariableContext objects defined in the
+/// SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> object.
 ///
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>

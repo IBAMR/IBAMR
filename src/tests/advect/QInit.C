@@ -1,5 +1,5 @@
 // Filename: QInitAndSoln.C
-// Last modified: <16.Feb.2007 00:51:29 boyce@bigboy.nyconnect.com>
+// Last modified: <11.Apr.2007 02:07:44 boyce@trasnaform2.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "QInit.h"
@@ -100,8 +100,8 @@ QInit::setDataOnPatch(
         for (pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
             const hier::Index<NDIM>& i = ic();
-            // NOTE: This assumes the lattice of Gaussians is being
-            // advected in the unit square.
+            // NOTE: This assumes the lattice of Gaussians is being advected in
+            // the unit square.
             int offset[NDIM];
             for (offset[0] = -2; offset[0] <= 2; ++(offset[0]))
             {

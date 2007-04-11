@@ -2,8 +2,8 @@
 #define included_get_version
 
 // Filename: get_version.h
-// Last modified: <16.Nov.2006 00:21:55 boyce@bigboy.nyconnect.com>
-// Created on 23 Sep 2006 by Boyce Griffith (boyce@boyce-griffiths-powerbook-g4-15.local)
+// Last modified: <11.Apr.2007 02:15:44 boyce@trasnaform2.local>
+// Created on 23 Sep 2006 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

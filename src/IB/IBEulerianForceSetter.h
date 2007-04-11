@@ -3,7 +3,7 @@
 
 // Filename: IBEulerianForceSetter.h
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <27.Mar.2007 18:09:56 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 03:51:15 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -20,13 +20,12 @@
 namespace IBAMR
 {
 /*!
- * \brief Simple class to specify the body force on the Eulerian grid
- * during an IB computation.
+ * \brief Simple class to specify the body force on the Eulerian grid during an
+ * IB computation.
  *
- * Presently, this class is only used to set the appropriate
- * Lagrangian force at the end of the timestep, e.g., in an explicit
- * timestepping scheme, to set f~(n+1) = S^{*} F~(n+1), where S^{*}
- * denotes the IB spreading operator.
+ * Presently, this class is only used to set the appropriate Lagrangian force at
+ * the end of the timestep, e.g., in an explicit timestepping scheme, to set
+ * f~(n+1) = S^{*} F~(n+1), where S^{*} denotes the IB spreading operator.
  */
 class IBEulerianForceSetter
     : public STOOLS::SetDataStrategy
@@ -79,16 +78,14 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      */
     IBEulerianForceSetter();
 
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */
@@ -113,8 +110,8 @@ private:
     double d_current_time, d_new_time;
 
     /*!
-     * Patch data descriptor indices for the current, new, and
-     * half-time force data.
+     * Patch data descriptor indices for the current, new, and half-time force
+     * data.
      */
     const int d_F_current_idx, d_F_new_idx, d_F_half_idx;
 };

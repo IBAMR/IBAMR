@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <03.Apr.2007 21:15:03 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 04:10:57 boyce@trasnaform2.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
@@ -96,8 +96,8 @@ IBTargetPointForceGen::computeLagrangianForce(
     double* X_arr;
     ierr = VecGetArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
 
-    // Get the grid geometry object and determine the extents of the
-    // physical domain.
+    // Get the grid geometry object and determine the extents of the physical
+    // domain.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     if (!grid_geom->getDomainIsSingleBox())
     {
@@ -111,8 +111,7 @@ IBTargetPointForceGen::computeLagrangianForce(
     const int lag_node_index_idx = lag_manager->
         getLNodeIndexPatchDescriptorIndex();
 
-    // Compute the penalty force associated with the Lagrangian target
-    // points.
+    // Compute the penalty force associated with the Lagrangian target points.
     static double max_displacement = 0.0;
     double max_config_displacement = 0.0;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);

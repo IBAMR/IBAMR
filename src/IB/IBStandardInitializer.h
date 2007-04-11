@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <07.Apr.2007 18:18:42 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 04:10:39 boyce@trasnaform2.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,9 +21,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBStandardInitialier is a concrete LNodeInitStrategy
- * that can intialize the initial configuration of one or more IB
- * structures from input files.
+ * \brief Class IBStandardInitialier is a concrete LNodeInitStrategy that can
+ * intialize the initial configuration of one or more IB structures from input
+ * files.
  *
  * \todo Document input database entries and input file formats.
  */
@@ -44,26 +44,24 @@ public:
     virtual ~IBStandardInitializer();
 
     /*!
-     * \brief Register a Silo data writer with the IB initializer
-     * object.
+     * \brief Register a Silo data writer with the IB initializer object.
      */
     void registerLagSiloDataWriter(
         SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer);
 
     /*!
-     * \brief Determine whether there are any Lagrangian nodes on the
-     * specified patch level.
+     * \brief Determine whether there are any Lagrangian nodes on the specified
+     * patch level.
      *
-     * \return A boolean value indicating whether Lagrangian data is
-     * associated with the given level in the patch hierarchy.
+     * \return A boolean value indicating whether Lagrangian data is associated
+     * with the given level in the patch hierarchy.
      */
     virtual bool getLevelHasLagrangianData(
         const int level_number,
         const bool can_be_refined) const;
 
     /*!
-     * \brief Determine the number of local nodes on the specified
-     * patch level.
+     * \brief Determine the number of local nodes on the specified patch level.
      *
      * \return The number of local nodes on the specified level.
      */
@@ -75,12 +73,10 @@ public:
         const bool initial_time);
 
     /*!
-     * \brief Initialize the LNodeIndex and LNodeLevel data needed to
-     * specify the configuration of the curvilinear mesh on the patch
-     * level.
+     * \brief Initialize the LNodeIndex and LNodeLevel data needed to specify
+     * the configuration of the curvilinear mesh on the patch level.
      *
-     * \return The number of local nodes initialized on the patch
-     * level.
+     * \return The number of local nodes initialized on the patch level.
      */
     virtual int initializeDataOnPatchLevel(
         const int lag_node_index_idx,
@@ -95,12 +91,10 @@ public:
         LDataManager* const lag_manager);
 
     /*!
-     * @brief Initialize the LNodeLevel data needed to specify the
-     * mass and spring constant data required by the penalty IB
-     * method.
+     * \brief Initialize the LNodeLevel data needed to specify the mass and
+     * spring constant data required by the penalty IB method.
      *
-     * \return The number of local nodes initialized on the patch
-     * level.
+     * \return The number of local nodes initialized on the patch level.
      */
     virtual int initializeMassDataOnPatchLevel(
         const int global_index_offset,
@@ -117,11 +111,11 @@ public:
     /*!
      * \brief Tag cells for initial refinement.
      *
-     * When the patch hierarchy is being constructed at the initial
-     * simulation time, it is necessary to instruct the gridding
-     * algorithm where to place local refinement in order to
-     * accomodate portions of the curvilinear mesh that will reside in
-     * any yet-to-be-constructed level(s) of the patch hierarchy.
+     * When the patch hierarchy is being constructed at the initial simulation
+     * time, it is necessary to instruct the gridding algorithm where to place
+     * local refinement in order to accomodate portions of the curvilinear mesh
+     * that will reside in any yet-to-be-constructed level(s) of the patch
+     * hierarchy.
      */
     virtual void tagCellsForInitialRefinement(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -135,16 +129,14 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      */
     IBStandardInitializer();
 
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */
@@ -154,8 +146,7 @@ private:
     /*!
      * \brief Assignment operator.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param that The value to assign to this object.
      *
@@ -193,14 +184,13 @@ private:
     void readTargetPointFiles();
 
     /*!
-     * \brief Read the boundary mass data from one or more input
-     * files.
+     * \brief Read the boundary mass data from one or more input files.
      */
     void readBoundaryMassFiles();
 
     /*!
-     * \brief Determine the indices of any vertices initially located
-     * within the specified patch.
+     * \brief Determine the indices of any vertices initially located within the
+     * specified patch.
      */
     void getPatchVertices(
         std::vector<std::pair<int,int> >& point_indices,
@@ -209,8 +199,7 @@ private:
         const bool can_be_refined) const;
 
     /*!
-     * \return The cannonical Lagrangian index of the specified
-     * vertex.
+     * \return The cannonical Lagrangian index of the specified vertex.
      */
     int getCannonicalLagrangianIndex(
         const std::pair<int,int>& point_index,
@@ -224,10 +213,9 @@ private:
         const int level_number) const;
 
     /*!
-     * \return The target point penalty force spring constant
-     * associated with a particular node.  (Note that if this value is
-     * zero for any particular node, there will be no target point
-     * penalty force at that node.)
+     * \return The target point penalty force spring constant associated with a
+     * particular node.  (Note that if this value is zero for any particular
+     * node, there will be no target point penalty force at that node.)
      */
     double getVertexTargetStiffness(
         const std::pair<int,int>& point_index,
@@ -241,16 +229,15 @@ private:
         const int level_number) const;
 
     /*!
-     * \return The mass spring constant associated with a particular
-     * node.
+     * \return The mass spring constant associated with a particular node.
      */
     double getVertexMassStiffness(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
     /*!
-     * \return The force specification objects associated with the
-     * specified vertex.
+     * \return The force specification objects associated with the specified
+     * vertex.
      */
     std::vector<SAMRAI::tbox::Pointer<Stashable> > initializeForceSpec(
         const std::pair<int,int>& point_index,
@@ -260,15 +247,14 @@ private:
     /*!
      * Read input values, indicated above, from given database.
      *
-     * When assertion checking is active, the database pointer must be
-     * non-null.
+     * When assertion checking is active, the database pointer must be non-null.
      */
     void getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*
-     * The object name is used as a handle to databases stored in
-     * restart files and for error reporting purposes.
+     * The object name is used as a handle to databases stored in restart files
+     * and for error reporting purposes.
      */
     std::string d_object_name;
 
@@ -286,8 +272,8 @@ private:
     SAMRAI::tbox::Pointer<LagSiloDataWriter> d_silo_writer;
 
     /*
-     * The base filenames of the structures are used to generate
-     * unique names when registering data with the Silo data writer.
+     * The base filenames of the structures are used to generate unique names
+     * when registering data with the Silo data writer.
      */
     std::vector<std::vector<std::string> > d_base_filename;
 
@@ -358,8 +344,8 @@ private:
     std::vector<std::vector<double> > d_uniform_bdry_mass_stiffness;
 
     /*
-     * Data required to specify connectivity information for
-     * visualization purposes.
+     * Data required to specify connectivity information for visualization
+     * purposes.
      */
     std::vector<int> d_global_index_offset;
 };

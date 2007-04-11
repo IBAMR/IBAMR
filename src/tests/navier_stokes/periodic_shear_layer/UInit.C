@@ -1,5 +1,5 @@
 // Filename: UInit.C
-// Last modified: <26.Feb.2007 04:56:02 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <26.Feb.2007 04:56:02 boyce@trasnaform2.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "UInit.h"

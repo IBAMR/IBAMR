@@ -3,7 +3,7 @@
 
 // Filename: IBEulerianForceSetter.h
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <30.Mar.2007 16:08:37 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 03:51:36 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -20,8 +20,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Simple class to specify sources and sinks on the Eulerian
- * grid during an IB computation.
+ * \brief Simple class to specify sources and sinks on the Eulerian grid during
+ * an IB computation.
  */
 class IBEulerianSourceSetter
     : public STOOLS::SetDataStrategy
@@ -74,16 +74,14 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      */
     IBEulerianSourceSetter();
 
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */

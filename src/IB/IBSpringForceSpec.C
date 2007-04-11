@@ -1,5 +1,5 @@
 // Filename: IBSpringForceSpec.C
-// Last modified: <22.Mar.2007 19:20:51 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 04:02:19 boyce@trasnaform2.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceSpec.h"
@@ -40,10 +40,10 @@ int  IBSpringForceSpec::s_stashable_id = -1;
 void
 IBSpringForceSpec::registerWithStashableManager()
 {
-    // We place an MPI barrier here to ensure that all MPI processes
-    // actually register the stashable factory with the stashable
-    // manager, and to ensure that all processes employ the same
-    // stashable id for the IBSpringForceSpec object.
+    // We place an MPI barrier here to ensure that all MPI processes actually
+    // register the stashable factory with the stashable manager, and to ensure
+    // that all processes employ the same stashable id for the IBSpringForceSpec
+    // object.
     SAMRAI::tbox::MPI::barrier();
     if (!s_registered_factory)
     {

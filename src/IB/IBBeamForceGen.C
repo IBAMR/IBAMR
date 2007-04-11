@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <09.Apr.2007 19:48:37 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 03:49:08 boyce@trasnaform2.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -115,8 +115,8 @@ IBBeamForceGen::initializeLevelData(
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
-    // Resize the vectors corresponding to data individually
-    // maintained for separate levels of the patch hierarchy.
+    // Resize the vectors corresponding to data individually maintained for
+    // separate levels of the patch hierarchy.
     const int level_num = level->getLevelNumber();
     const int new_size = SAMRAI::tbox::Utilities::imax(
         level_num+1, d_is_initialized.size());
@@ -153,8 +153,8 @@ IBBeamForceGen::initializeLevelData(
     const int lag_node_index_idx = lag_manager->
         getLNodeIndexPatchDescriptorIndex();
 
-    // Determine the "next" and "prev" node indices for all beams
-    // associated with the present MPI process.
+    // Determine the "next" and "prev" node indices for all beams associated
+    // with the present MPI process.
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -203,8 +203,8 @@ IBBeamForceGen::initializeLevelData(
         }
     }
 
-    // Map the Lagrangian node indices to the PETSc indices
-    // corresponding to the present data distribution.
+    // Map the Lagrangian node indices to the PETSc indices corresponding to the
+    // present data distribution.
     lag_manager->mapLagrangianToPETSc(petsc_mastr_node_idxs, level_num);
     lag_manager->mapLagrangianToPETSc(petsc_next_node_idxs, level_num);
     lag_manager->mapLagrangianToPETSc(petsc_prev_node_idxs, level_num);
@@ -246,8 +246,8 @@ IBBeamForceGen::initializeLevelData(
         }
     }
 
-    // Create new MPI block AIJ matrices and set the values of the
-    // non-zero entries.
+    // Create new MPI block AIJ matrices and set the values of the non-zero
+    // entries.
     ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
                             NDIM, NDIM*local_sz, NDIM*num_local_nodes,
                             PETSC_DETERMINE, PETSC_DETERMINE,
@@ -337,8 +337,8 @@ IBBeamForceGen::computeLagrangianForce(
 
     int ierr;
 
-    // Create an appropriately sized temporary vector to store the
-    // node displacements.
+    // Create an appropriately sized temporary vector to store the node
+    // displacements.
     int i_start, i_stop;
     ierr = MatGetOwnershipRange(d_D_next_mats[level_number], &i_start, &i_stop);
     PETSC_SAMRAI_ERROR(ierr);
@@ -355,8 +355,7 @@ IBBeamForceGen::computeLagrangianForce(
     ierr = MatMult(d_D_next_mats[level_number], X_data->getGlobalVec(), D_next_vec);  PETSC_SAMRAI_ERROR(ierr);
     ierr = MatMult(d_D_prev_mats[level_number], X_data->getGlobalVec(), D_prev_vec);  PETSC_SAMRAI_ERROR(ierr);
 
-    // Compute the beam forces acting on the nodes of the Lagrangian
-    // mesh.
+    // Compute the beam forces acting on the nodes of the Lagrangian mesh.
     double* D_next_arr;
     ierr = VecGetArray(D_next_vec, &D_next_arr);  PETSC_SAMRAI_ERROR(ierr);
 
@@ -374,8 +373,8 @@ IBBeamForceGen::computeLagrangianForce(
 
     for (int k = 0; k < local_sz; ++k)
     {
-        // Compute the forces applied by the beam to the "master" and
-        // "slave" nodes.
+        // Compute the forces applied by the beam to the "master" and "slave"
+        // nodes.
         double* const F_mastr_node = &F_mastr_node_arr[k*NDIM];
         double* const F_nghbr_node = &F_nghbr_node_arr[k*NDIM];
         const double* const D_next = &D_next_arr[k*NDIM];

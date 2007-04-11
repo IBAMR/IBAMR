@@ -1,5 +1,5 @@
 // Filename: USet.C
-// Last modified: <19.Feb.2007 01:04:49 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <19.Feb.2007 01:04:49 boyce@trasnaform2.local>
 // Created on 23 June 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "USet.h"

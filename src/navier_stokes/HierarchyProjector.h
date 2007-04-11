@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <21.Mar.2007 18:18:04 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 02:18:28 boyce@trasnaform2.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -48,9 +48,9 @@
 namespace IBAMR
 {
 /*!
- * Class HierarchyProjector provides the functionality needed to
- * exactly enforce discrete incompressibility for face and side
- * centered MAC velocity fields defined on AMR grids.
+ * Class HierarchyProjector provides the functionality needed to exactly enforce
+ * discrete incompressibility for face and side centered MAC velocity fields
+ * defined on AMR grids.
  */
 class HierarchyProjector
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
@@ -64,13 +64,12 @@ public:
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
 
     /*!
-     * The constructor for HierarchyProjector sets some default
-     * values, reads in configuration information from input and
-     * restart databases, and registers the integrator object with the
-     * restart manager when requested.
+     * The constructor for HierarchyProjector sets some default values, reads in
+     * configuration information from input and restart databases, and registers
+     * the integrator object with the restart manager when requested.
      *
-     * When assertion checking is active, passing in any null pointer
-     * or an empty string will result in an unrecoverable exception.
+     * When assertion checking is active, passing in any null pointer or an
+     * empty string will result in an unrecoverable exception.
      */
     HierarchyProjector(
         const std::string& object_name,
@@ -79,8 +78,8 @@ public:
         bool register_for_restart=true);
 
     /*!
-     * The destructor for HierarchyProjector unregisters the
-     * integrator object with the restart manager when so registered.
+     * The destructor for HierarchyProjector unregisters the integrator object
+     * with the restart manager when so registered.
      */
     virtual ~HierarchyProjector();
 
@@ -96,29 +95,27 @@ public:
     ///      setHierarchyMathOps(),
     ///      isManagingHierarchyMathOps()
     ///
-    ///  allow for the sharing of a single HierarchyMathOps object
-    ///  between mutiple HierarchyIntegrator objects.
+    ///  allow for the sharing of a single HierarchyMathOps object between
+    ///  mutiple HierarchyIntegrator objects.
     ///
 
     /*!
-     * Return a pointer to the HierarchyMathOps object being used by
-     * this integrator.
+     * Return a pointer to the HierarchyMathOps object being used by this
+     * integrator.
      *
-     * The HierarchyMathOps object supplies discrete differential
-     * operations on the patch hierarchy as well as cell weights used
-     * in computing discrete norms of quantities defined on the patch
-     * hierarchy.
+     * The HierarchyMathOps object supplies discrete differential operations on
+     * the patch hierarchy as well as cell weights used in computing discrete
+     * norms of quantities defined on the patch hierarchy.
      */
     SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> getHierarchyMathOps() const;
 
     /*!
      * Set the HierarchyMathOps object being used by this projector.
      *
-     * When manage_ops is true, the HierarchyMathOps object is managed
-     * by the integrator.  In particular, the integrator is
-     * responsible for invoking HierarchyMathOps::setPatchHierarchy()
-     * and HierarchyMathOps::resetLevels() following any changes to
-     * the configuration of the patch hierarchy.
+     * When manage_ops is true, the HierarchyMathOps object is managed by the
+     * integrator.  In particular, the integrator is responsible for invoking
+     * HierarchyMathOps::setPatchHierarchy() and HierarchyMathOps::resetLevels()
+     * following any changes to the configuration of the patch hierarchy.
      */
     void setHierarchyMathOps(
         SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> hier_math_ops,
@@ -128,11 +125,10 @@ public:
      * Returns whether this projector is managing the state of its
      * HierarchyMathOps object.
      *
-     * When the projector is managing the state of its
-     * HierarchyMathOps object, the integrator is responsible for
-     * invoking HierarchyMathOps::setPatchHierarchy() and
-     * HierarchyMathOps::resetLevels() following any changes to the
-     * configuration of the patch hierarchy.
+     * When the projector is managing the state of its HierarchyMathOps object,
+     * the integrator is responsible for invoking
+     * HierarchyMathOps::setPatchHierarchy() and HierarchyMathOps::resetLevels()
+     * following any changes to the configuration of the patch hierarchy.
      */
     bool isManagingHierarchyMathOps() const;
 
@@ -143,33 +139,31 @@ public:
     ///      getPhysicalBcCoef(),
     ///      getPoissonSolver()
     ///
-    ///  allow other objects to access the Poisson solver and related
-    ///  data used by this integrator.
+    ///  allow other objects to access the Poisson solver and related data used
+    ///  by this integrator.
     ///
 
     /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to
-     * specify physical boundary conditions.
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
+     * physical boundary conditions.
      *
-     * \note \a bc_coef may be NULL.  In this case, homogeneous
-     * Neumann boundary conditions are employed.
+     * \note \a bc_coef may be NULL.  In this case, homogeneous Neumann boundary
+     * conditions are employed.
      *
-     * \param bc_coef pointer to an object that can set the Robin
-     *        boundary condition coefficients
+     * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients.
      */
     void setPhysicalBcCoef(
         const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
 
     /*!
-     * Returns a pointer to the SAMRAI::solv::RobinBcCoefStrategy
-     * object employed by the projector to solve the elliptic
-     * projection equation.
+     * Returns a pointer to the SAMRAI::solv::RobinBcCoefStrategy object
+     * employed by the projector to solve the elliptic projection equation.
      */
     const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPhysicalBcCoef() const;
 
     /*!
-     * Returns a pointer to the concrete linear solver object employed
-     * by the projector to solve the elliptic projection equation.
+     * Returns a pointer to the concrete linear solver object employed by the
+     * projector to solve the elliptic projection equation.
      */
     SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> getPoissonSolver() const;
 
@@ -184,16 +178,15 @@ public:
     /*!
      * Project the face centered MAC velocity w on the hierarchy.
      *
-     * Computes u = w - (dt/rho)*grad_Phi, where div u = Q.  If Q is
-     * not supplied, it is assumed that div u = 0.
+     * Computes u = w - (dt/rho)*grad_Phi, where div u = Q.  If Q is not
+     * supplied, it is assumed that div u = 0.
      *
-     * Storage and communications schedules to fill ghost data for Phi
-     * are required.
+     * Storage and communications schedules to fill ghost data for Phi are
+     * required.
      *
-     * Optional SAMRAI::xfer::RefineSchedule objects allow for the
-     * filling of ghost cells in w at the specified time.
-     * Additionally, w data along the coarse-fine interface is
-     * synchronized when specified.
+     * Optional SAMRAI::xfer::RefineSchedule objects allow for the filling of
+     * ghost cells in w at the specified time.  Additionally, w data along the
+     * coarse-fine interface is synchronized when specified.
      */
     virtual void projectHierarchy(
         const double rho,
@@ -217,16 +210,15 @@ public:
     /*!
      * Project the side centered MAC velocity w on the hierarchy.
      *
-     * Computes u = w - (dt/rho)*grad_Phi, where div u = Q.  If Q is
-     * not supplied, it is assumed that div u = 0.
+     * Computes u = w - (dt/rho)*grad_Phi, where div u = Q.  If Q is not
+     * supplied, it is assumed that div u = 0.
      *
-     * Storage and communications schedules to fill ghost data for Phi
-     * are required.
+     * Storage and communications schedules to fill ghost data for Phi are
+     * required.
      *
-     * Optional SAMRAI::xfer::RefineSchedule objects allow for the
-     * filling of ghost cells in w at the specified time.
-     * Additionally, w data along the coarse-fine interface is
-     * synchronized when specified.
+     * Optional SAMRAI::xfer::RefineSchedule objects allow for the filling of
+     * ghost cells in w at the specified time.  Additionally, w data along the
+     * coarse-fine interface is synchronized when specified.
      */
     virtual void projectHierarchy(
         const double rho,
@@ -258,32 +250,29 @@ public:
     ///
 
     /*!
-     * Initialize data on a new level after it is inserted into an AMR
-     * patch hierarchy by the gridding algorithm.  The level number
-     * indicates that of the new level.  The old_level pointer
-     * corresponds to the level that resided in the hierarchy before
-     * the level with the specified number was introduced.  If the
-     * pointer is null, there was no level in the hierarchy prior to
-     * the call and the level data is set based on the user routines
-     * and the simulation time.  Otherwise, the specified level
-     * replaces the old level and the new level receives data from the
-     * old level appropriately before it is destroyed.
+     * Initialize data on a new level after it is inserted into an AMR patch
+     * hierarchy by the gridding algorithm.  The level number indicates that of
+     * the new level.  The old_level pointer corresponds to the level that
+     * resided in the hierarchy before the level with the specified number was
+     * introduced.  If the pointer is null, there was no level in the hierarchy
+     * prior to the call and the level data is set based on the user routines
+     * and the simulation time.  Otherwise, the specified level replaces the old
+     * level and the new level receives data from the old level appropriately
+     * before it is destroyed.
      *
-     * The boolean argument initial_time indicates whether the level
-     * is being introduced for the first time (i.e., at initialization
-     * time), or after some regrid process during the calculation
-     * beyond the initial hierarchy construction.  This information is
-     * provided since the initialization of the data on a patch may be
-     * different in each of those circumstances.  The can_be_refined
-     * boolean argument indicates whether the level is the finest
-     * level allowed in the hierarchy.  This may or may not affect the
-     * data initialization process depending on the problem.
+     * The boolean argument initial_time indicates whether the level is being
+     * introduced for the first time (i.e., at initialization time), or after
+     * some regrid process during the calculation beyond the initial hierarchy
+     * construction.  This information is provided since the initialization of
+     * the data on a patch may be different in each of those circumstances.  The
+     * can_be_refined boolean argument indicates whether the level is the finest
+     * level allowed in the hierarchy.  This may or may not affect the data
+     * initialization process depending on the problem.
      *
-     * When assertion checking is active, an unrecoverable exception
-     * will result if the hierarchy pointer is null, the level number
-     * does not match any level in the hierarchy, or the old level
-     * number does not match the level number (if the old level
-     * pointer is non-null).
+     * When assertion checking is active, an unrecoverable exception will result
+     * if the hierarchy pointer is null, the level number does not match any
+     * level in the hierarchy, or the old level number does not match the level
+     * number (if the old level pointer is non-null).
      */
     virtual void initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
@@ -295,24 +284,21 @@ public:
         const bool allocate_data=true);
 
     /*!
-     * Reset cached communication schedules after the hierarchy has
-     * changed (for example, due to regidding) and the data has been
-     * initialized on the new levels.  The intent is that the cost of
-     * data movement on the hierarchy will be amortized across
-     * multiple communication cycles, if possible.  The level numbers
-     * indicate the range of levels in the hierarchy that have
-     * changed.  However, this routine updates communication schedules
-     * every level finer than and including that indexed by the
-     * coarsest level number given.  When the integrator is managing
-     * the state of its HierarchyMathOps object, the integrator also
-     * invokes HierarchyMathOps::setPatchHierarchy() and
-     * HierarchyMathOps::resetLevels().
+     * Reset cached communication schedules after the hierarchy has changed (for
+     * example, due to regidding) and the data has been initialized on the new
+     * levels.  The intent is that the cost of data movement on the hierarchy
+     * will be amortized across multiple communication cycles, if possible.  The
+     * level numbers indicate the range of levels in the hierarchy that have
+     * changed.  However, this routine updates communication schedules every
+     * level finer than and including that indexed by the coarsest level number
+     * given.  When the integrator is managing the state of its HierarchyMathOps
+     * object, the integrator also invokes HierarchyMathOps::setPatchHierarchy()
+     * and HierarchyMathOps::resetLevels().
      *
-     * When assertion checking is active, an unrecoverable exception
-     * will result if the hierarchy pointer is null, any pointer to a
-     * level in the hierarchy that is coarser than the finest level is
-     * null, or the given level numbers not specified properly; e.g.,
-     * coarsest_level > finest_level.
+     * When assertion checking is active, an unrecoverable exception will result
+     * if the hierarchy pointer is null, any pointer to a level in the hierarchy
+     * that is coarser than the finest level is null, or the given level numbers
+     * not specified properly; e.g., coarsest_level > finest_level.
      */
     virtual void resetHierarchyConfiguration(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
@@ -331,8 +317,7 @@ public:
     /*!
      * Write out object state to the given database.
      *
-     * When assertion checking is active, the database pointer must be
-     * non-null.
+     * When assertion checking is active, the database pointer must be non-null.
      */
     virtual void putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
@@ -355,16 +340,14 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      */
     HierarchyProjector();
 
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */
@@ -384,49 +367,45 @@ private:
         const HierarchyProjector& that);
 
     /*!
-     * Read input values, indicated above, from given database.  The
-     * boolean argument is_from_restart should be set to true if the
-     * simulation is beginning from restart.  Otherwise it should be
-     * set to false.
+     * Read input values, indicated above, from given database.  The boolean
+     * argument is_from_restart should be set to true if the simulation is
+     * beginning from restart.  Otherwise it should be set to false.
      *
-     * When assertion checking is active, the database pointer must be
-     * non-null.
+     * When assertion checking is active, the database pointer must be non-null.
      */
     void getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
         bool is_from_restart);
 
     /*!
-     * Read object state from the restart file and initialize class
-     * data members.  The database from which the restart data is read
-     * is determined by the object_name specified in the constructor.
+     * Read object state from the restart file and initialize class data
+     * members.  The database from which the restart data is read is determined
+     * by the object_name specified in the constructor.
      *
      * Unrecoverable Errors:
      *
-     *    -   The database corresponding to object_name is not found
-     *        in the restart file.
-     *    -   The class version number and restart version number do not
-     *        match.
+     *    -   The database corresponding to object_name is not found in the
+     *        restart file.
+     *    -   The class version number and restart version number do not match.
      */
     void getFromRestart();
 
     /*
-     * The object name is used as a handle to databases stored in
-     * restart files and for error reporting purposes.  The boolean is
-     * used to control restart file writing operations.
+     * The object name is used as a handle to databases stored in restart files
+     * and for error reporting purposes.  The boolean is used to control restart
+     * file writing operations.
      */
     std::string d_object_name;
     bool d_registered_for_restart;
 
     /*
-     * Indicates whether the integrator should output logging
-     * messages.
+     * Indicates whether the integrator should output logging messages.
      */
     bool d_do_log;
 
     /*
-     * Pointers to the patch hierarchy object associated with this
-     * projector object.
+     * Pointers to the patch hierarchy object associated with this projector
+     * object.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
@@ -445,9 +424,8 @@ private:
     double d_volume;
 
     /*
-     * The Poisson solver and associated data including Poisson
-     * specifications, boundary conditions, and the solver
-     * configuation database.
+     * The Poisson solver and associated data including Poisson specifications,
+     * boundary conditions, and the solver configuation database.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
 
@@ -469,8 +447,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_poisson_fac_pc;
 
     /*
-     * Note that data is NOT allocated for these variables.  They are
-     * only used to reset the Poisson solver.
+     * Note that data is NOT allocated for these variables.  They are only used
+     * to reset the Poisson solver.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var;
     int d_sol_idx, d_rhs_idx;

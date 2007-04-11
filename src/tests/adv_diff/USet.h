@@ -2,7 +2,7 @@
 #define included_USet
 
 // Filename: USet.h
-// Last modified: <14.Feb.2007 23:41:03 boyce@bigboy.nyconnect.com>
+// Last modified: <11.Apr.2007 02:09:36 boyce@trasnaform2.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -44,8 +44,7 @@ public:
     virtual ~USet();
 
     /*!
-     * Indicates whether the concrete SetDataStrategy object is time
-     * dependent.
+     * Indicates whether the concrete SetDataStrategy object is time dependent.
      */
     virtual bool isTimeDependent() const { return true; }
 
@@ -65,16 +64,14 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      */
     USet();
 
     /*!
      * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */
@@ -84,7 +81,7 @@ private:
     /*!
      * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
      * \param that The value to assign to this object.
      *
@@ -92,6 +89,7 @@ private:
      */
     USet& operator=(
         const USet& that);
+
     /*!
      * Read input values, indicated above, from given database.
      */
@@ -99,8 +97,8 @@ private:
         tbox::Pointer<tbox::Database> db);
 
     /*
-     * The object name is used as a handle to databases stored in
-     * restart files and for error reporting purposes.
+     * The object name is used as a handle to databases stored in restart files
+     * and for error reporting purposes.
      */
     string d_object_name;
 

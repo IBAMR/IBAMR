@@ -3,7 +3,7 @@
 
 // Filename: LNodeInitStrategy.h
 // Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <03.Apr.2007 17:40:18 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 02:49:37 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -21,33 +21,33 @@
 namespace IBAMR
 {
 /*!
- * @brief Class LNodeInitStrategy provides a mechanism for specifying
- * the initial configuration of the curvilinear mesh.
+ * \brief Class LNodeInitStrategy provides a mechanism for specifying the
+ * initial configuration of the curvilinear mesh.
  */
 class LNodeInitStrategy
     : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
-     * @brief Default constructor.
+     * \brief Default constructor.
      */
     LNodeInitStrategy();
 
     /*!
-     * @brief Destructor.
+     * \brief Destructor.
      */
     virtual ~LNodeInitStrategy();
 
     /*!
-     * @return A boolean value indicating whether Lagrangian data is
-     * associated with the given level in the patch hierarchy.
+     * \return A boolean value indicating whether Lagrangian data is associated
+     * with the given level in the patch hierarchy.
      */
     virtual bool getLevelHasLagrangianData(
         const int level_number,
         const bool can_be_refined) const = 0;
 
     /*!
-     * @return The number of local nodes on the patch level.
+     * \return The number of local nodes on the patch level.
      */
     virtual int getLocalNodeCountOnPatchLevel(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -57,12 +57,10 @@ public:
         const bool initial_time) = 0;
 
     /*!
-     * @brief Initialize the LNodeIndex and LNodeLevel data needed to
-     * specify the configuration of the curvilinear mesh on the patch
-     * level.
+     * \brief Initialize the LNodeIndex and LNodeLevel data needed to specify
+     * the configuration of the curvilinear mesh on the patch level.
      *
-     * \return The number of local nodes initialized on the patch
-     * level.
+     * \return The number of local nodes initialized on the patch level.
      */
     virtual int initializeDataOnPatchLevel(
         const int lag_node_index_idx,
@@ -77,15 +75,13 @@ public:
         LDataManager* const lag_manager) = 0;
 
     /*!
-     * @brief Initialize the LNodeLevel data needed to specify the
-     * mass and spring constant data required by the penalty IB
-     * method.
+     * \brief Initialize the LNodeLevel data needed to specify the mass and
+     * spring constant data required by the penalty IB method.
      *
-     * \return The number of local nodes initialized on the patch
-     * level.
+     * \return The number of local nodes initialized on the patch level.
      *
-     * NOTE: A default empty implementation is provided when support
-     * for massive boundaries is not required.
+     * \note A default empty implementation is provided when support for massive
+     * boundaries is not required.
      */
     virtual int initializeMassDataOnPatchLevel(
         const int global_index_offset,
@@ -100,17 +96,17 @@ public:
         LDataManager* const lag_manager);
 
     /*!
-     * @brief Provide cell tagging for the initial configuration of
-     * the Lagrangian mesh.
+     * \brief Provide cell tagging for the initial configuration of the
+     * Lagrangian mesh.
      *
-     * When the patch hierarchy is being constructed at the initial
-     * simulation time, it is necessary that the gridding algorithm be
-     * instructed where to place local refinement in order to
-     * accomodate portions of the curvilinear mesh that will reside in
-     * the yet-to-be-constructed level(s) of the patch hierarchy.
+     * When the patch hierarchy is being constructed at the initial simulation
+     * time, it is necessary that the gridding algorithm be instructed where to
+     * place local refinement in order to accomodate portions of the curvilinear
+     * mesh that will reside in the yet-to-be-constructed level(s) of the patch
+     * hierarchy.
      *
-     * NOTE: A default empty implementation is provided when support
-     * for local mesh refinement is not required.
+     * \note A default empty implementation is provided when support for local
+     * mesh refinement is not required.
      */
     virtual void tagCellsForInitialRefinement(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -120,24 +116,23 @@ public:
 
 private:
     /*!
-     * @brief Copy constructor.
+     * \brief Copy constructor.
      *
-     * NOTE: This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
-     * @param from The value to copy to this object.
+     * \param from The value to copy to this object.
      */
     LNodeInitStrategy(
         const LNodeInitStrategy& from);
 
     /*!
-     * @brief Assignment operator.
+     * \brief Assignment operator.
      *
-     * NOTE: This operator is not implemented and should not be used.
+     * \note This operator is not implemented and should not be used.
      *
-     * @param that The value to assign to this object.
+     * \param that The value to assign to this object.
      *
-     * @return A reference to this object.
+     * \return A reference to this object.
      */
     LNodeInitStrategy& operator=(
         const LNodeInitStrategy& that);

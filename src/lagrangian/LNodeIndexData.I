@@ -1,6 +1,6 @@
 // Filename: LNodeIndexData.I
 // Created on 17 Apr 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <02.Oct.2006 13:36:02 boyce@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <11.Apr.2007 02:44:24 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

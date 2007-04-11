@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <07.Apr.2007 20:45:44 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 03:56:10 boyce@trasnaform2.local>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -73,8 +73,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuratio
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 
-// Whether to account for periodic shifts in spreading and
-// interpolating.
+// Whether to account for periodic shifts in spreading and interpolating.
 static const bool ENFORCE_PERIODIC_BCS = true;
 
 // Version of IBHierarchyIntegrator restart file data.
@@ -189,8 +188,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
             registerRestartItem(d_object_name, this);
     }
 
-    // Initialize object with data read from the input and restart
-    // databases.
+    // Initialize object with data read from the input and restart databases.
     const bool from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
     if (from_restart)
     {
@@ -198,8 +196,8 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     }
     getFromInput(input_db, from_restart);
 
-    // Determine the ghost cell width required for cell-centered
-    // spreading and interpolating.
+    // Determine the ghost cell width required for cell-centered spreading and
+    // interpolating.
     const int stencil_size = LEInteractor::getStencilSize(d_delta_fcn);
     d_ghosts = static_cast<int>(floor(0.5*static_cast<double>(stencil_size))+1);
 
@@ -361,8 +359,7 @@ IBHierarchyIntegrator::registerLoadBalancer(
 ///      getGriddingAlgorithm(),
 ///      getLDataManager()
 ///
-///  allow the IBHierarchyIntegrator to be used as a hierarchy
-///  integrator.
+///  allow the IBHierarchyIntegrator to be used as a hierarchy integrator.
 ///
 
 void
@@ -402,12 +399,11 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_var, d_scratch, source_ghosts);
     }
 
-    // Initialize the objects used to manage Lagragian-Eulerian
-    // interaction.
+    // Initialize the objects used to manage Lagragian-Eulerian interaction.
     //
-    // NOTE: The IBEulerianForceSetter only has to set the new
-    // Cartesian grid force.  The current Cartesian grid force is set
-    // manually by IBHierarchyIntegrator::advanceHierarchy().
+    // NOTE: The IBEulerianForceSetter only has to set the new Cartesian grid
+    // force.  The current Cartesian grid force is set manually by
+    // IBHierarchyIntegrator::advanceHierarchy().
     d_eulerian_force_set = new IBEulerianForceSetter(
         d_object_name+"::IBEulerianForceSetter", -1, d_F_idx, -1);
     d_ins_hier_integrator->registerForceSpecification(d_eulerian_force_set);
@@ -426,8 +422,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     // IBHierarchyIntegrator class have been registered.
     d_ins_hier_integrator->initializeHierarchyIntegrator(d_gridding_alg);
 
-    // Create several communications algorithms, used in filling ghost
-    // cell data and synchronizing data on the patch hierarchy.
+    // Create several communications algorithms, used in filling ghost cell data
+    // and synchronizing data on the patch hierarchy.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator;
@@ -466,11 +462,10 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     d_rstrategies["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"] =
         new STOOLS::CartExtrapPhysBdryOp(d_W_idx, "LINEAR");
 
-    // NOTE: When using conservative averaging to coarsen the velocity
-    // from finer levels to coarser levels, the appropriate
-    // prolongation operator for the force is constant refinement.
-    // This choice results in IB spreading and interpolation being
-    // adjoint.
+    // NOTE: When using conservative averaging to coarsen the velocity from
+    // finer levels to coarser levels, the appropriate prolongation operator for
+    // the force is constant refinement.  This choice results in IB spreading
+    // and interpolation being adjoint.
     const int F_current_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getForceVar(),
         d_ins_hier_integrator->getCurrentContext());
@@ -590,8 +585,7 @@ IBHierarchyIntegrator::initializeHierarchy()
     d_lag_data_manager->updateWorkloadData(
         0,d_hierarchy->getFinestLevelNumber());
 
-    // Indicate that the force and source strategies need to be
-    // re-initialized.
+    // Indicate that the force and source strategies need to be re-initialized.
     d_force_strategy_needs_init  = true;
     d_source_strategy_needs_init = true;
 
@@ -663,8 +657,7 @@ IBHierarchyIntegrator::advanceHierarchy(
     std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > dY_dt_new_data(finest_ln+1);
     std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > F_K_new_data(finest_ln+1);
 
-    // Synchronize the Cartesian grid velocity u(n) on the patch
-    // hierarchy.
+    // Synchronize the Cartesian grid velocity u(n) on the patch hierarchy.
     //
     // NOTE: If we are maintaining the Lagrangian velocity data, then this step
     // is skipped for each timestep following the initial one.
@@ -1794,8 +1787,8 @@ IBHierarchyIntegrator::getLDataManager() const
 ///      resetTimeDependentHierData(),
 ///      resetHierDataToPreadvanceState()
 ///
-///  allow the IBHierarchyIntegrator to provide data management
-///  for a time integrator which making use of this class.
+///  allow the IBHierarchyIntegrator to provide data management for a time
+///  integrator which making use of this class.
 ///
 
 void
@@ -1810,8 +1803,8 @@ IBHierarchyIntegrator::regridHierarchy()
     // Before regriding, begin Lagrangian data movement.
     d_lag_data_manager->beginDataRedistribution();
 
-    // We use the INSHierarchyIntegrator to handle as much structured
-    // data management as possible.
+    // We use the INSHierarchyIntegrator to handle as much structured data
+    // management as possible.
     d_ins_hier_integrator->regridHierarchy();
 
     // After regridding, finish Lagrangian data movement.
@@ -1821,8 +1814,7 @@ IBHierarchyIntegrator::regridHierarchy()
     d_lag_data_manager->updateWorkloadData(
         0,d_hierarchy->getFinestLevelNumber());
 
-    // Indicate that the force and source strategies need to be
-    // re-initialized.
+    // Indicate that the force and source strategies need to be re-initialized.
     d_force_strategy_needs_init  = true;
     d_source_strategy_needs_init = true;
 
@@ -1835,8 +1827,8 @@ IBHierarchyIntegrator::synchronizeHierarchy()
 {
     t_synchronize_hierarchy->start();
 
-    // We use the INSHierarchyIntegrator to handle as much structured
-    // data management as possible.
+    // We use the INSHierarchyIntegrator to handle as much structured data
+    // management as possible.
     d_ins_hier_integrator->synchronizeHierarchy();
 
     t_synchronize_hierarchy->stop();
@@ -1863,8 +1855,8 @@ IBHierarchyIntegrator::synchronizeNewLevels(
         assert(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
-    // We use the INSHierarchyIntegrator to handle as much structured
-    // data management as possible.
+    // We use the INSHierarchyIntegrator to handle as much structured data
+    // management as possible.
     d_ins_hier_integrator->
         synchronizeNewLevels(hierarchy, coarsest_level, finest_level,
                              sync_time, initial_time);
@@ -1884,8 +1876,8 @@ IBHierarchyIntegrator::resetTimeDependentHierData(
     d_integrator_time = new_time;
     ++d_integrator_step;
 
-    // We use the INSHierarchyIntegrator to handle as much structured
-    // data management as possible.
+    // We use the INSHierarchyIntegrator to handle as much structured data
+    // management as possible.
     d_ins_hier_integrator->resetTimeDependentHierData(new_time);
 
     t_reset_time_dependent_data->stop();
@@ -1897,8 +1889,8 @@ IBHierarchyIntegrator::resetHierDataToPreadvanceState()
 {
     t_reset_data_to_preadvance_state->start();
 
-    // We use the INSHierarchyIntegrator to handle as much structured
-    // data management as possible.
+    // We use the INSHierarchyIntegrator to handle as much structured data
+    // management as possible.
     d_ins_hier_integrator->resetHierDataToPreadvanceState();
 
     t_reset_data_to_preadvance_state->stop();
@@ -1938,15 +1930,15 @@ IBHierarchyIntegrator::initializeLevelData(
     }
     assert(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
-    // We use the INSHierarchyIntegrator to handle as much structured
-    // data management as possible.
+    // We use the INSHierarchyIntegrator to handle as much structured data
+    // management as possible.
     d_ins_hier_integrator->
         initializeLevelData(hierarchy, level_number, init_data_time,
                             can_be_refined, initial_time, old_level,
                             allocate_data);
 
-    // We use the LDataManager to handle as much unstructured data
-    // management as possible.
+    // We use the LDataManager to handle as much unstructured data management as
+    // possible.
     d_lag_data_manager->setPatchHierarchy(d_hierarchy);
     d_lag_data_manager->resetLevels(0,hierarchy->getFinestLevelNumber());
 
@@ -2034,31 +2026,28 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
-    // We use the INSHierarchyIntegrator to handle as much structured
-    // data management as possible.
+    // We use the INSHierarchyIntegrator to handle as much structured data
+    // management as possible.
     d_ins_hier_integrator->
         resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
-    // We use the LDataManager to handle as much unstructured data
-    // management as possible.
+    // We use the LDataManager to handle as much unstructured data management as
+    // possible.
     d_lag_data_manager->
         resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
-    // Reset the Hierarchy data operations for the new hierarchy
-    // configuration.
+    // Reset the Hierarchy data operations for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_cc_data_ops->resetLevels(0, finest_hier_level);
 
-    // If we have added or removed a level, resize the source/sink
-    // data vectors.
+    // If we have added or removed a level, resize the source/sink data vectors.
     d_X_src.resize(finest_hier_level+1);
     d_r_src.resize(finest_hier_level+1);
     d_P_src.resize(finest_hier_level+1);
     d_Q_src.resize(finest_hier_level+1);
     d_n_src.resize(finest_hier_level+1,0);
 
-    // If we have added or removed a level, resize the schedule
-    // vectors.
+    // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
          it!= d_ralgs.end(); ++it)
     {
@@ -2078,8 +2067,8 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
         d_cscheds[(*it).first].resize(finest_hier_level+1);
     }
 
-    // (Re)build generic refine communication schedules.  These are
-    // created for all levels in the hierarchy.
+    // (Re)build generic refine communication schedules.  These are created for
+    // all levels in the hierarchy.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
          it!= d_ralgs.end(); ++it)
     {
@@ -2092,9 +2081,8 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
         }
     }
 
-    // (Re)build specialized refine communication schedules used to
-    // compute the Cartesian force density.  These are set only for
-    // levels >= 1.
+    // (Re)build specialized refine communication schedules used to compute the
+    // Cartesian force density.  These are set only for levels >= 1.
     for (int ln = SAMRAI::tbox::Utilities::imax(1,coarsest_level);
          ln <= finest_hier_level; ++ln)
     {
@@ -2114,8 +2102,8 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
         }
     }
 
-    // (Re)build coarsen communication schedules.  These are set only
-    // for levels >= 1.
+    // (Re)build coarsen communication schedules.  These are set only for levels
+    // >= 1.
     for (CoarsenAlgMap::const_iterator it = d_calgs.begin();
          it!= d_calgs.end(); ++it)
     {
@@ -2163,8 +2151,8 @@ IBHierarchyIntegrator::applyGradientDetector(
         tags_data->fillAll(0);
     }
 
-    // Tag cells for refinement according to the criteria specified by
-    // the INSHierarchyIntegrator.
+    // Tag cells for refinement according to the criteria specified by the
+    // INSHierarchyIntegrator.
     d_ins_hier_integrator->
         applyGradientDetector(hierarchy, level_number, error_data_time,
                               tag_index, initial_time,
@@ -2176,8 +2164,8 @@ IBHierarchyIntegrator::applyGradientDetector(
                               tag_index, initial_time,
                               uses_richardson_extrapolation_too);
 
-    // Tag cells for refinement where the Cartesian source/sink
-    // strength is nonzero.
+    // Tag cells for refinement where the Cartesian source/sink strength is
+    // nonzero.
     if (!d_source_strategy.isNull() && !initial_time &&
         hierarchy->finerLevelExists(level_number))
     {
@@ -2248,8 +2236,7 @@ IBHierarchyIntegrator::applyGradientDetector(
 ///      getScratchContext(),
 ///      getPlotContext()
 ///
-///  allow access to the various variable contexts maintained by the
-///  integrator.
+///  allow access to the various variable contexts maintained by the integrator.
 ///
 
 ///

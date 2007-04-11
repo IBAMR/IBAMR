@@ -2,7 +2,7 @@
 #define included_IBSpringForceSpecFactory
 
 // Filename: IBSpringForceSpecFactory.h
-// Last modified: <21.Mar.2007 21:24:47 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 04:04:08 boyce@trasnaform2.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,7 +21,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Description of class.
+ * \brief Class IBSpringForceFactory is a factory class to rebuild
+ * IBSpringForceSpec objects from a data stream.
  */
 class IBSpringForceSpecFactory
     : public StashableFactory
@@ -38,23 +39,22 @@ public:
     virtual ~IBSpringForceSpecFactory();
 
     /*!
-     * \brief Return the unique identifier used to specify the
-     * StashableFactory object used by the StashableManager to extract
-     * Stashable objects from data streams.
+     * \brief Return the unique identifier used to specify the StashableFactory
+     * object used by the StashableManager to extract Stashable objects from
+     * data streams.
      */
     virtual int getStashableID() const;
 
     /*!
-     * \brief Set the unique identifier used to specify the
-     * StashableFactory object used by the StashableManager to extract
-     * Stashable objects from data streams.
+     * \brief Set the unique identifier used to specify the StashableFactory
+     * object used by the StashableManager to extract Stashable objects from
+     * data streams.
      */
     virtual void setStashableID(
         const int stashable_id);
 
     /*!
-     * \brief Build a Stashable object by unpacking data from the
-     * input stream.
+     * \brief Build a Stashable object by unpacking data from the input stream.
      */
     virtual SAMRAI::tbox::Pointer<Stashable> unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
@@ -64,8 +64,7 @@ private:
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */

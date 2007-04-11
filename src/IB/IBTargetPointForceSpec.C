@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceSpec.C
-// Last modified: <22.Mar.2007 19:34:50 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 04:11:10 boyce@trasnaform2.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceSpec.h"
@@ -40,10 +40,10 @@ int  IBTargetPointForceSpec::s_stashable_id = -1;
 void
 IBTargetPointForceSpec::registerWithStashableManager()
 {
-    // We place an MPI barrier here to ensure that all MPI processes
-    // actually register the stashable factory with the stashable
-    // manager, and to ensure that all processes employ the same
-    // stashable id for the IBTargetPointForceSpec object.
+    // We place an MPI barrier here to ensure that all MPI processes actually
+    // register the stashable factory with the stashable manager, and to ensure
+    // that all processes employ the same stashable id for the
+    // IBTargetPointForceSpec object.
     SAMRAI::tbox::MPI::barrier();
     if (!s_registered_factory)
     {

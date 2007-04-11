@@ -3,7 +3,7 @@
 
 // Filename: IBLagrangianForceStrategySet.h
 // Created on 04 April 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
-// Last modified: <04.Apr.2007 18:13:34 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 04:00:24 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -78,16 +78,14 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      */
     IBLagrangianForceStrategySet();
 
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */

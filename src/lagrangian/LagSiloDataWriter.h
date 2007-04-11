@@ -3,7 +3,7 @@
 
 // Filename: LagSiloDataWriter.h
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <07.Apr.2007 18:43:22 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 02:56:34 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -30,13 +30,13 @@
 namespace IBAMR
 {
 /*!
- * \brief Class LagSiloDataWriter provides functionality to output
- * Lagrangian data for visualization in the Silo data format.
+ * \brief Class LagSiloDataWriter provides functionality to output Lagrangian
+ * data for visualization in the Silo data format.
  *
  * For more information about Silo, see the Silo manual <A
- * HREF="http://www.llnl.gov/bdiv/meshtv/manuals/silo.pdf">here</A>.
- * Silo data may be visualized using the <A
- * HREF="http://www.llnl.gov/visit">VisIt visualization tool</A>.
+ * HREF="http://www.llnl.gov/bdiv/meshtv/manuals/silo.pdf">here</A>.  Silo data
+ * may be visualized using the <A HREF="http://www.llnl.gov/visit">VisIt
+ * visualization tool</A>.
  */
 class LagSiloDataWriter
     : public virtual SAMRAI::tbox::DescribedClass
@@ -45,10 +45,8 @@ public:
     /*!
      * \brief Constructor.
      *
-     * \param object_name std::string used for error reporting
-     * purposes
-     * \param dump_directory_name std::string used to specify the
-     * directory where visualization data is to be written
+     * \param object_name          String used for error reporting.
+     * \param dump_directory_name  String indicating the directory where visualization data is to be written.
      */
     LagSiloDataWriter(
         const std::string& object_name,
@@ -73,8 +71,8 @@ public:
     /*!
      * \brief Reset range of patch levels over which operations occur.
      *
-     * The specified levels must exist in the hierarchy or an
-     * assertion will result.
+     * The specified levels must exist in the hierarchy or an assertion will
+     * result.
      */
     void resetLevels(
         const int coarsest_ln,
@@ -83,12 +81,11 @@ public:
     //\}
 
     /*!
-     * \brief Register a range of Lagrangian indices that are to be
-     * visualized as a cloud of marker particles.
+     * \brief Register a range of Lagrangian indices that are to be visualized
+     * as a cloud of marker particles.
      *
-     * \note This method is not collective over all MPI processes.  A
-     * particular cloud of markers must be registered on only \em one
-     * MPI process.
+     * \note This method is not collective over all MPI processes.  A particular
+     * cloud of markers must be registered on only \em one MPI process.
      */
     void registerMarkerCloud(
         const std::string& name,
@@ -97,12 +94,11 @@ public:
         const int level_number);
 
     /*!
-     * \brief Register a range of Lagrangian indices that are to be
-     * treated as a logically Cartesian block.
+     * \brief Register a range of Lagrangian indices that are to be treated as a
+     * logically Cartesian block.
      *
-     * \note This method is not collective over all MPI processes.  A
-     * particular block of indices must be registered on only \em one
-     * MPI process.
+     * \note This method is not collective over all MPI processes.  A particular
+     * block of indices must be registered on only \em one MPI process.
      */
     void registerLogicallyCartesianBlock(
         const std::string& name,
@@ -112,12 +108,11 @@ public:
         const int level_number);
 
     /*!
-     * \brief Register several ranges of Lagrangian indices that are
-     * to be treated as logically Cartesian blocks.
+     * \brief Register several ranges of Lagrangian indices that are to be
+     * treated as logically Cartesian blocks.
      *
-     * \note This method is not collective over all MPI processes.  A
-     * particular block of indices must be registered on only \em one
-     * MPI process.
+     * \note This method is not collective over all MPI processes.  A particular
+     * block of indices must be registered on only \em one MPI process.
      */
     void registerLogicallyCartesianMultiblock(
         const std::string& name,
@@ -129,9 +124,8 @@ public:
     /*!
      * \brief Register an unstructured mesh.
      *
-     * \note This method is not collective over all MPI processes.  A
-     * particular collection of indices must be registered on only \em
-     * one MPI process.
+     * \note This method is not collective over all MPI processes.  A particular
+     * collection of indices must be registered on only \em one MPI process.
      */
     void registerUnstructuredMesh(
         const std::string& name,
@@ -139,16 +133,15 @@ public:
         const int level_number);
 
     /*!
-     * \brief Register the coordinates of the curvilinear mesh with
-     * the Silo data writer.
+     * \brief Register the coordinates of the curvilinear mesh with the Silo
+     * data writer.
      */
     void registerCoordsData(
         SAMRAI::tbox::Pointer<LNodeLevelData> coords_data,
         const int level_number);
 
     /*!
-     * \brief Register a variable for plotting with the Silo data
-     * writer.
+     * \brief Register a variable for plotting with the Silo data writer.
      */
     void registerVariableData(
         const std::string& var_name,
@@ -195,16 +188,14 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      */
     LagSiloDataWriter();
 
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */
@@ -252,8 +243,7 @@ private:
     std::vector<std::vector<int> > d_cloud_nmarks, d_cloud_first_lag_idx;
 
     /*
-     * Information about the indices in the logically Cartesian
-     * subgrids.
+     * Information about the indices in the logically Cartesian subgrids.
      */
     std::vector<int> d_nblocks;
     std::vector<std::vector<string> > d_block_names;
@@ -262,8 +252,8 @@ private:
     std::vector<std::vector<int> > d_block_first_lag_idx;
 
     /*
-     * Information about the indices in the logically Cartesian
-     * multiblock subgrids.
+     * Information about the indices in the logically Cartesian multiblock
+     * subgrids.
      */
     std::vector<int> d_nmbs;
     std::vector<std::vector<string> > d_mb_names;

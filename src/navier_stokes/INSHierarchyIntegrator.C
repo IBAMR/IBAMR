@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <07.Apr.2007 16:14:12 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 02:21:55 boyce@trasnaform2.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -225,9 +225,9 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 
     d_reproject_after_regrid = true;
 
-    // Setup default boundary condition objects that specify
-    // homogeneous Dirichlet boundary conditions for the velocity and
-    // homogeneous Neumann boundary conditions for the pressure.
+    // Setup default boundary condition objects that specify homogeneous
+    // Dirichlet boundary conditions for the velocity and homogeneous Neumann
+    // boundary conditions for the pressure.
     d_default_U_bc_coef = new SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>(
         d_object_name+"::default_U_bc_coef", SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL));
     for (int d = 0; d < NDIM; ++d)
@@ -239,8 +239,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
         std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
             NDIM,d_default_U_bc_coef));
 
-    // Initialize object with data read from the input and restart
-    // databases.
+    // Initialize object with data read from the input and restart databases.
     const bool from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
     if (from_restart)
     {
@@ -408,8 +407,8 @@ INSHierarchyIntegrator::registerVisItDataWriter(
 ///      setHierarchyMathOps(),
 ///      isManagingHierarchyMathOps()
 ///
-///  allow for the sharing of a single HierarchyMathOps object between
-///  mutiple HierarchyIntegrator objects.
+///  allow for the sharing of a single HierarchyMathOps object between mutiple
+///  HierarchyIntegrator objects.
 ///
 
 SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
@@ -459,8 +458,7 @@ INSHierarchyIntegrator::isManagingHierarchyMathOps() const
 ///      getAdvDiffHierarchyIntegrator(),
 ///      getHierarchyProjector()
 ///
-///  allow the INSHierarchyIntegrator to be used as a hierarchy
-///  integrator.
+///  allow the INSHierarchyIntegrator to be used as a hierarchy integrator.
 ///
 
 void
@@ -718,8 +716,8 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // NOTE: This must be done after all variables are registered.
     d_adv_diff_hier_integrator->initializeHierarchyIntegrator(d_gridding_alg);
 
-    // Obtain the patch data descriptor indices for all variables
-    // registered with the AdvDiffHierarchyIntegrator.
+    // Obtain the patch data descriptor indices for all variables registered
+    // with the AdvDiffHierarchyIntegrator.
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
 
     d_u_adv_current_idx = var_db->mapVariableAndContextToIndex(
@@ -812,8 +810,8 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         }
     }
 
-    // Create several refinement communications algorithms, used in
-    // filling ghost cell data.
+    // Create several refinement communications algorithms, used in filling
+    // ghost cell data.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator;
 
@@ -910,8 +908,8 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         new STOOLS::RefinePatchStrategySet(refine_strategy_set.begin(), refine_strategy_set.end());
 
     // Create several coarsening communications algorithms, used in
-    // synchronizing refined regions of coarse data with the
-    // underlying fine data.
+    // synchronizing refined regions of coarse data with the underlying fine
+    // data.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator;
 
     coarsen_operator = grid_geom->lookupCoarsenOperator(
@@ -999,10 +997,9 @@ INSHierarchyIntegrator::initializeHierarchy()
             ++level_number;
         }
 
-        // After data on each level is initialized at simulation start
-        // time, coarser levels are synchronized with finer levels
-        // that didn't exist when the coarser level initial data was
-        // set.
+        // After data on each level is initialized at simulation start time,
+        // coarser levels are synchronized with finer levels that didn't exist
+        // when the coarser level initial data was set.
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -1013,8 +1010,8 @@ INSHierarchyIntegrator::initializeHierarchy()
         }
     }
 
-    // The next timestep is given by the minimum allowable timestep
-    // over all levels in the patch hierarchy.
+    // The next timestep is given by the minimum allowable timestep over all
+    // levels in the patch hierarchy.
     double dt_next = getStableTimestep();
 
     t_initialize_hierarchy->stop();
@@ -1048,16 +1045,15 @@ INSHierarchyIntegrator::advanceHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    // The pressure at start_time is not an initial value for the
-    // incompressible Navier-Stokes equations, so we solve for it by
-    // cycling the solution for the first timestep:
+    // The pressure at start_time is not an initial value for the incompressible
+    // Navier-Stokes equations, so we solve for it by cycling the solution for
+    // the first timestep:
     //
-    // Solve the Navier-Stokes equations with initial guess P(n=0)=0,
-    // solve for P(n=1/2), discard U(n=1) and u(n=1), rinse, wash,
-    // repeat.
+    // Solve the Navier-Stokes equations with initial guess P(n=0)=0, solve for
+    // P(n=1/2), discard U(n=1) and u(n=1), rinse, wash, repeat.
     //
-    // For all other timesteps, we just use the previous value of P as
-    // the guess for P(n+1/2).
+    // For all other timesteps, we just use the previous value of P as the guess
+    // for P(n+1/2).
 
     d_cycle = 0;
     d_performing_init_cycles = initial_time;
@@ -1082,9 +1078,9 @@ INSHierarchyIntegrator::advanceHierarchy(
             SAMRAI::tbox::plog << "++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
         }
 
-        // Solve the Navier-Stokes equations for U(n+1), u(n+1),
-        // P(n+1/2).  Each of the major algorithmic steps is separated
-        // into its own member function.
+        // Solve the Navier-Stokes equations for U(n+1), u(n+1), P(n+1/2).  Each
+        // of the major algorithmic steps is separated into its own member
+        // function.
         if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): predicting advection velocity\n";
         predictAdvectionVelocity(current_time, new_time);
 
@@ -1252,8 +1248,8 @@ INSHierarchyIntegrator::getHierarchyProjector() const
 ///      resetTimeDependentHierData(),
 ///      resetHierDataToPreadvanceState()
 ///
-///  allow the INSHierarchyIntegrator to provide data management
-///  for a time integrator which making use of this class.
+///  allow the INSHierarchyIntegrator to provide data management for a time
+///  integrator which making use of this class.
 ///
 
 void
@@ -1295,8 +1291,8 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         level->allocatePatchData(d_new_data, new_time);
     }
 
-    // Immediately following a regrid, we re-project the velocity.  We
-    // also project the velocity at the start time.
+    // Immediately following a regrid, we re-project the velocity.  We also
+    // project the velocity at the start time.
     if ((d_using_synch_projection && d_reproject_after_regrid) ||
         (d_performing_init_cycles && d_cycle == 0))
     {
@@ -1516,8 +1512,8 @@ INSHierarchyIntegrator::integrateAdvDiff(
 
     const double dt = new_time - current_time;
 
-    // The face-centered gradient of Phi is reused to approximately
-    // project the time-centered predicted velocity.
+    // The face-centered gradient of Phi is reused to approximately project the
+    // time-centered predicted velocity.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         d_rscheds["grad_Phi->grad_Phi::CONSERVATIVE_LINEAR_REFINE"][ln]->
@@ -1789,9 +1785,9 @@ INSHierarchyIntegrator::updatePressure(
 
     const double dt = new_time - current_time;
 
-    // The basic first-order pressure update corresponding to a
-    // discretization of the incompressible Euler equations (i.e.,
-    // corresponding to the case of vanishing viscosity).
+    // The basic first-order pressure update corresponding to a discretization
+    // of the incompressible Euler equations (i.e., corresponding to the case of
+    // vanishing viscosity).
     if (d_using_pressure_increment_form)
     {
         d_hier_cc_data_ops->add(d_P_new_idx, d_P_current_idx, d_Phi_new_idx);
@@ -1831,8 +1827,8 @@ INSHierarchyIntegrator::updatePressure(
         }
     }
 
-    // Normalize P(n+1/2) and Phi(n+1/2) to have mean (i.e., discrete
-    // integral) zero.
+    // Normalize P(n+1/2) and Phi(n+1/2) to have mean (i.e., discrete integral)
+    // zero.
     if (d_normalize_pressure)
     {
         const double P_mean = (1.0/d_volume)*
@@ -1848,8 +1844,7 @@ INSHierarchyIntegrator::updatePressure(
                                       -Phi_mean);    // alpha
     }
 
-    // Reset the values of P(n-1/2) and Phi(n-1/2) during the initial
-    // timestep.
+    // Reset the values of P(n-1/2) and Phi(n-1/2) during the initial timestep.
     if (override_current_pressure)
     {
         d_hier_cc_data_ops->copyData(d_P_current_idx, d_P_new_idx);
@@ -1897,8 +1892,8 @@ INSHierarchyIntegrator::synchronizeNewLevels(
         assert(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
-    // We use the AdvDiffHierarchyIntegrator to handle as
-    // much data management as possible.
+    // We use the AdvDiffHierarchyIntegrator to handle as much data management
+    // as possible.
     d_adv_diff_hier_integrator->
         synchronizeNewLevels(hierarchy, coarsest_level, finest_level,
                              sync_time, initial_time);
@@ -1927,8 +1922,8 @@ INSHierarchyIntegrator::resetTimeDependentHierData(
     d_integrator_time = new_time;
     ++d_integrator_step;
 
-    // We use the AdvDiffHierarchyIntegrator to handle as
-    // much data management as possible.
+    // We use the AdvDiffHierarchyIntegrator to handle as much data management
+    // as possible.
     d_adv_diff_hier_integrator->resetTimeDependentHierData(new_time);
 
     // Reset the time dependent data.
@@ -1974,8 +1969,8 @@ INSHierarchyIntegrator::resetTimeDependentHierData(
         }
     }
 
-    // Deallocate the scratch and new data and reset the time of the
-    // current data.
+    // Deallocate the scratch and new data and reset the time of the current
+    // data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1993,12 +1988,12 @@ INSHierarchyIntegrator::resetHierDataToPreadvanceState()
 {
     t_reset_data_to_preadvance_state->start();
 
-    // We use the AdvDiffHierarchyIntegrator to handle as
-    // much data management as possible.
+    // We use the AdvDiffHierarchyIntegrator to handle as much data management
+    // as possible.
     d_adv_diff_hier_integrator->resetHierDataToPreadvanceState();
 
-    // Deallocate the scratch and new data and reset the time of the
-    // current data.
+    // Deallocate the scratch and new data and reset the time of the current
+    // data.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -2048,9 +2043,8 @@ INSHierarchyIntegrator::initializeLevelData(
     }
     assert(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
-    // We use the AdvDiffHierarchyIntegrator and
-    // HierarchyProjector objects to handle as much data management as
-    // possible.
+    // We use the AdvDiffHierarchyIntegrator and HierarchyProjector objects to
+    // handle as much data management as possible.
     d_adv_diff_hier_integrator->
         initializeLevelData(hierarchy, level_number, init_data_time,
                             can_be_refined, initial_time, old_level,
@@ -2060,11 +2054,11 @@ INSHierarchyIntegrator::initializeLevelData(
                             can_be_refined, initial_time, old_level,
                             allocate_data);
 
-    // Allocate storage needed to initialize the level and fill
-    // data from coarser levels in AMR hierarchy, if any.
+    // Allocate storage needed to initialize the level and fill data from
+    // coarser levels in AMR hierarchy, if any.
     //
-    // Since time gets set when we allocate data, re-stamp it to
-    // current time if we don't need to allocate.
+    // Since time gets set when we allocate data, re-stamp it to current time if
+    // we don't need to allocate.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     if (allocate_data)
@@ -2096,11 +2090,10 @@ INSHierarchyIntegrator::initializeLevelData(
     // Initialize level data at the initial time.
     if (initial_time)
     {
-        // If no initialization object is provided, initialize the
-        // velocity, divergance, and vorticity to zero.  Otherwise,
-        // use the initialization object to set the velocity to some
-        // specified value and compute the divergance and vorticity
-        // corresponding to the initial velocity.
+        // If no initialization object is provided, initialize the velocity,
+        // divergance, and vorticity to zero.  Otherwise, use the initialization
+        // object to set the velocity to some specified value and compute the
+        // divergance and vorticity corresponding to the initial velocity.
         if (d_U_init.isNull())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2307,14 +2300,14 @@ INSHierarchyIntegrator::initializeLevelData(
             level->deallocatePatchData(d_U_scratch_idx);
         }
 
-        // If no initialization object is provided, initialize the
-        // pressure to zero.  Otherwise, use the initialization object
-        // to set the velocity to some specified value.
+        // If no initialization object is provided, initialize the pressure to
+        // zero.  Otherwise, use the initialization object to set the velocity
+        // to some specified value.
         //
-        // NOTE: This initial value for the pressure IS NOT USED by
-        // the time integrator and is only specified for visualization
-        // purposes.  The computed pressure is initialized by
-        // iterating the solution method over the initial timestep.
+        // NOTE: This initial value for the pressure IS NOT USED by the time
+        // integrator and is only specified for visualization purposes.  The
+        // computed pressure is initialized by iterating the solution method
+        // over the initial timestep.
         if (d_P_init.isNull())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2402,18 +2395,16 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
-    // We use the AdvDiffHierarchyIntegrator and
-    // HierarchyProjector objects to handle as much data management as
-    // possible.
+    // We use the AdvDiffHierarchyIntegrator and HierarchyProjector objects to
+    // handle as much data management as possible.
     d_adv_diff_hier_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     d_hier_projector          ->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
-    // Indicate that the velocity field needs to be re-projected (but
-    // only in the multi-level case).
+    // Indicate that the velocity field needs to be re-projected (but only in
+    // the multi-level case).
     d_reproject_after_regrid = d_reproject_after_regrid || (finest_level>0);
 
-    // Reset the Hierarchy data operations for the new hierarchy
-    // configuration.
+    // Reset the Hierarchy data operations for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_cc_data_ops->resetLevels(0, finest_hier_level);
 
@@ -2434,8 +2425,7 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
     // Get the volume of the physical domain.
     d_volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
 
-    // If we have added or removed a level, resize the schedule
-    // vectors.
+    // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
          it!= d_ralgs.end(); ++it)
     {
@@ -2448,8 +2438,8 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
         d_cscheds[(*it).first].resize(finest_hier_level+1);
     }
 
-    // (Re)build refine communication schedules.  These are created
-    // for all levels in the hierarchy.
+    // (Re)build refine communication schedules.  These are created for all
+    // levels in the hierarchy.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
          it!= d_ralgs.end(); ++it)
     {
@@ -2462,8 +2452,8 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
         }
     }
 
-    // (Re)build coarsen communication schedules.  These are set only
-    // for levels >= 1.
+    // (Re)build coarsen communication schedules.  These are set only for levels
+    // >= 1.
     for (CoarsenAlgMap::const_iterator it = d_calgs.begin();
          it!= d_calgs.end(); ++it)
     {
@@ -2515,8 +2505,8 @@ INSHierarchyIntegrator::applyGradientDetector(
         tags_data->fillAll(0);
     }
 
-    // Tag cells for refinement according to the criteria specified by
-    // the AdvDiffHierarchyIntegrator.
+    // Tag cells for refinement according to the criteria specified by the
+    // AdvDiffHierarchyIntegrator.
     d_adv_diff_hier_integrator->
         applyGradientDetector(hierarchy, level_number, error_data_time,
                               tag_index, initial_time,
@@ -2524,8 +2514,8 @@ INSHierarchyIntegrator::applyGradientDetector(
 
     // Tag cells based on the magnatude of the vorticity.
     //
-    // Note that if either the relative or absolute threshold is zero
-    // for a particular level, no tagging is performed on that level.
+    // Note that if either the relative or absolute threshold is zero for a
+    // particular level, no tagging is performed on that level.
     if (d_using_vorticity_tagging)
     {
         const double Omega_rel_thresh =
@@ -2593,8 +2583,7 @@ INSHierarchyIntegrator::applyGradientDetector(
 ///      getForceVar(),
 ///      getDivergenceVar()
 ///
-///  allows access to the various state variables maintained by
-///  the integrator.
+///  allows access to the various state variables maintained by the integrator.
 ///
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
@@ -2636,13 +2625,12 @@ INSHierarchyIntegrator::getDivergenceVar()
 ///      getScratchContext(),
 ///      getPlotContext()
 ///
-///  allow access to the various variable contexts maintained by the
-///  integrator.
+///  allow access to the various variable contexts maintained by the integrator.
 ///
 
 ///
-/// We simply reuse the SAMRAI::hier::VariableContext objects defined
-/// in the AdvDiffIntegrator object.
+/// We simply reuse the SAMRAI::hier::VariableContext objects defined in the
+/// AdvDiffIntegrator object.
 ///
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
@@ -2812,8 +2800,8 @@ INSHierarchyIntegrator::registerVariable(
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator =
         grid_geom->lookupCoarsenOperator(variable, coarsen_name);
 
-    // Setup the refine algorithm used to fill data in new or modified
-    // patch levels following a regrid operation.
+    // Setup the refine algorithm used to fill data in new or modified patch
+    // levels following a regrid operation.
     if (!refine_operator.isNull())
     {
         d_fill_after_regrid->
@@ -2822,9 +2810,9 @@ INSHierarchyIntegrator::registerVariable(
                            scratch_idx, // temporary work space
                            refine_operator);
 
-        // Keep track of the cell-centered scratch data indices, for
-        // use in the refinement schedule used to fill data in new or
-        // modified patch levels following a regrid operation.
+        // Keep track of the cell-centered scratch data indices, for use in the
+        // refinement schedule used to fill data in new or modified patch levels
+        // following a regrid operation.
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cc_var = variable;
         if (!cc_var.isNull())
         {
@@ -2832,8 +2820,8 @@ INSHierarchyIntegrator::registerVariable(
         }
     }
 
-    // Setup the SYNCH_CURRENT_STATE_DATA and SYNCH_NEW_STATE_DATA
-    // algorithms, used to synchronize the data on the hierarchy.
+    // Setup the SYNCH_CURRENT_STATE_DATA and SYNCH_NEW_STATE_DATA algorithms,
+    // used to synchronize the data on the hierarchy.
     if (!coarsen_operator.isNull())
     {
         d_calgs["SYNCH_CURRENT_STATE_DATA"]->

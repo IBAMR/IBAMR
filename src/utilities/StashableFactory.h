@@ -3,7 +3,7 @@
 
 // Filename: StashableFactory.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Nov.2006 00:16:44 boyce@bigboy.nyconnect.com>
+// Last modified: <11.Apr.2007 02:11:44 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -21,12 +21,11 @@
 namespace IBAMR
 {
 /*!
- * \brief Interface to facilitate object unpacking for
- * tbox::AbstractStream based communication.
+ * \brief Interface to facilitate object unpacking for tbox::AbstractStream
+ * based communication.
  *
- * \note Class StashableManager should be used for all communications
- * and storage operations.  Do not directly use StashableFactory
- * objects.
+ * \note Class StashableManager should be used for all communications and
+ * storage operations.  Do not directly use StashableFactory objects.
  *
  * \see Stashable
  * \see StashableManager
@@ -46,23 +45,22 @@ public:
     virtual ~StashableFactory();
 
     /*!
-     * \brief Return the unique identifier used to specify the
-     * StashableFactory object used by the StashableManager to extract
-     * Stashable objects from data streams.
+     * \brief Return the unique identifier used to specify the StashableFactory
+     * object used by the StashableManager to extract Stashable objects from
+     * data streams.
      */
     virtual int getStashableID() const = 0;
 
     /*!
-     * \brief Set the unique identifier used to specify the
-     * StashableFactory object used by the StashableManager to extract
-     * Stashable objects from data streams.
+     * \brief Set the unique identifier used to specify the StashableFactory
+     * object used by the StashableManager to extract Stashable objects from
+     * data streams.
      */
     virtual void setStashableID(
         const int stashable_id) = 0;
 
     /*!
-     * \brief Build a Stashable object by unpacking data from the
-     * input stream.
+     * \brief Build a Stashable object by unpacking data from the input stream.
      */
     virtual SAMRAI::tbox::Pointer<Stashable> unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
@@ -72,8 +70,7 @@ private:
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */

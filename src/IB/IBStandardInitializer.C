@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <07.Apr.2007 18:23:36 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 04:09:02 boyce@trasnaform2.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -52,8 +52,8 @@ inline std::string
 discard_comments(
     const std::string& input_string)
 {
-    // Create a copy of the input string, but without any text
-    // following a '!', '#', or '%' character.
+    // Create a copy of the input string, but without any text following a '!',
+    // '#', or '%' character.
     std::string output_string = input_string;
     std::istringstream string_stream;
 
@@ -122,8 +122,7 @@ IBStandardInitializer::IBStandardInitializer(
     assert(!input_db.isNull());
 #endif
 
-    // Register the force specification objects with the
-    // StashableManager class.
+    // Register the force specification objects with the StashableManager class.
     IBSpringForceSpec::registerWithStashableManager();
     IBBeamForceSpec::registerWithStashableManager();
     IBTargetPointForceSpec::registerWithStashableManager();
@@ -202,16 +201,16 @@ IBStandardInitializer::getLocalNodeCountOnPatchLevel(
     const bool can_be_refined,
     const bool initial_time)
 {
-    // Loop over all patches in the specified level of the patch level
-    // and count the number of local vertices.
+    // Loop over all patches in the specified level of the patch level and count
+    // the number of local vertices.
     int local_node_count = 0;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
 
-        // Count the number of vertices whose initial locations will
-        // be within the given patch.
+        // Count the number of vertices whose initial locations will be within
+        // the given patch.
         std::vector<std::pair<int,int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
@@ -240,13 +239,12 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     const double* const XLower = grid_geom->getXLower();
     const double* const XUpper = grid_geom->getXUpper();
 
-    // Set the global index offset.  This is equal to the number of
-    // Lagrangian indices that have already been initialized on the
-    // specified level.
+    // Set the global index offset.  This is equal to the number of Lagrangian
+    // indices that have already been initialized on the specified level.
     d_global_index_offset[level_number] = global_index_offset;
 
-    // Loop over all patches in the specified level of the patch level
-    // and initialize the local vertices.
+    // Loop over all patches in the specified level of the patch level and
+    // initialize the local vertices.
     int local_idx = -1;
     int local_node_count = 0;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -265,8 +263,8 @@ IBStandardInitializer::initializeDataOnPatchLevel(
         SAMRAI::tbox::Pointer<LNodeIndexData> index_data =
             patch->getPatchData(lag_node_index_idx);
 
-        // Initialize the vertices whose initial locations will be
-        // within the given patch.
+        // Initialize the vertices whose initial locations will be within the
+        // given patch.
         std::vector<std::pair<int,int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
@@ -314,13 +312,13 @@ IBStandardInitializer::initializeDataOnPatchLevel(
                 }
             }
 
-            // Get the index of the cell in which the present vertex
-            // is initially located.
+            // Get the index of the cell in which the present vertex is
+            // initially located.
             const SAMRAI::pdat::CellIndex<NDIM> idx = STOOLS::STOOLS_Utilities::getCellIndex(
                 X, xLower, xUpper, dx, patch_lower, patch_upper);
 
-            // Initialize the force specification object assocaited
-            // with the present vertex.
+            // Initialize the force specification object assocaited with the
+            // present vertex.
             std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec =
                 initializeForceSpec(
                     point_idx, global_index_offset, level_number);
@@ -364,8 +362,8 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
 {
     (void) lag_manager;
 
-    // Loop over all patches in the specified level of the patch level
-    // and initialize the local vertices.
+    // Loop over all patches in the specified level of the patch level and
+    // initialize the local vertices.
     int local_idx = -1;
     int local_node_count = 0;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -373,8 +371,8 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
 
-        // Initialize the vertices whose initial locations will be
-        // within the given patch.
+        // Initialize the vertices whose initial locations will be within the
+        // given patch.
         std::vector<std::pair<int,int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
@@ -412,9 +410,9 @@ IBStandardInitializer::tagCellsForInitialRefinement(
     const double error_data_time,
     const int tag_index)
 {
-    // Loop over all patches in the specified level of the patch level
-    // and tag cells for refinement wherever there are vertices
-    // assigned to a finer level of the Cartesian grid.
+    // Loop over all patches in the specified level of the patch level and tag
+    // cells for refinement wherever there are vertices assigned to a finer
+    // level of the Cartesian grid.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -430,10 +428,9 @@ IBStandardInitializer::tagCellsForInitialRefinement(
 
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tag_data = patch->getPatchData(tag_index);
 
-        // Tag cells for refinement whenever there are vertices whose
-        // initial locations will be within the index space of the
-        // given patch, but on the finer levels of the AMR patch
-        // hierarchy.
+        // Tag cells for refinement whenever there are vertices whose initial
+        // locations will be within the index space of the given patch, but on
+        // the finer levels of the AMR patch hierarchy.
         const bool can_be_refined = level_number+2 < d_max_levels;
         for (int ln = level_number+1; ln < d_max_levels; ++ln)
         {
@@ -447,8 +444,8 @@ IBStandardInitializer::tagCellsForInitialRefinement(
                 // Get the coordinates of the present vertex.
                 const vector<double> X = getVertexPosn(point_idx, ln);
 
-                // Get the index of the cell in which the present
-                // vertex is initially located.
+                // Get the index of the cell in which the present vertex is
+                // initially located.
                 const SAMRAI::pdat::CellIndex<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
                     X, xLower, xUpper, dx, patch_lower, patch_upper);
 
@@ -553,8 +550,8 @@ IBStandardInitializer::readVertexFiles()
                 TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << endl);
             }
 
-            // Each successive line provides the initial position of
-            // each vertex in the input file.
+            // Each successive line provides the initial position of each vertex
+            // in the input file.
             d_vertex_posn[ln][j].resize(d_num_vertex[ln][j]*NDIM);
             for (int k = 0; k < d_num_vertex[ln][j]; ++k)
             {
@@ -609,8 +606,8 @@ IBStandardInitializer::readSpringFiles()
                                    << "processing spring data from input filename " << spring_filename << endl
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
-                // The first line in the file indicates the number of
-                // edges in the input file.
+                // The first line in the file indicates the number of edges in
+                // the input file.
                 int num_edges;
                 if (!std::getline(file_stream, line_string))
                 {
@@ -631,9 +628,8 @@ IBStandardInitializer::readSpringFiles()
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << spring_filename << endl);
                 }
 
-                // Each successive line provides the connectivity and
-                // material parameter information for each spring in the
-                // structure.
+                // Each successive line provides the connectivity and material
+                // parameter information for each spring in the structure.
                 for (int k = 0; k < num_edges; ++k)
                 {
                     Edge e;
@@ -693,10 +689,9 @@ IBStandardInitializer::readSpringFiles()
                         }
                     }
 
-                    // Modify kappa and length according to whether
-                    // spring forces are enabled, or whether uniform
-                    // values are to be employed, for this particular
-                    // structure.
+                    // Modify kappa and length according to whether spring
+                    // forces are enabled, or whether uniform values are to be
+                    // employed, for this particular structure.
                     if (!d_enable_springs[ln][j])
                     {
                         kappa = 0.0;
@@ -718,8 +713,8 @@ IBStandardInitializer::readSpringFiles()
                         }
                     }
 
-                    // Correct the edge numbers to be in the global
-                    // Lagrangian indexing scheme.
+                    // Correct the edge numbers to be in the global Lagrangian
+                    // indexing scheme.
                     e.first  += d_vertex_offset[ln][j];
                     e.second += d_vertex_offset[ln][j];
 
@@ -729,8 +724,8 @@ IBStandardInitializer::readSpringFiles()
                         std::swap<int>(e.first, e.second);
                     }
 
-                    // Check to see if the edge has already been
-                    // inserted in the edge map.
+                    // Check to see if the edge has already been inserted in the
+                    // edge map.
                     bool duplicate_edge = false;
                     for (std::multimap<int,Edge>::const_iterator it =
                              d_spring_edge_map[ln][j].lower_bound(e.first);
@@ -740,12 +735,12 @@ IBStandardInitializer::readSpringFiles()
                         if (e.first  == other_e.first &&
                             e.second == other_e.second)
                         {
-                            // This is a duplicate edge and should not
-                            // be inserted into the edge map.
+                            // This is a duplicate edge and should not be
+                            // inserted into the edge map.
                             duplicate_edge = true;
 
-                            // Ensure that the stiffness and rest
-                            // length information is consistent.
+                            // Ensure that the stiffness and rest length
+                            // information is consistent.
                             if (!SAMRAI::tbox::Utilities::deq(
                                     (*d_spring_stiffness[ln][j].find(e)).second, kappa) ||
                                 !SAMRAI::tbox::Utilities::deq(
@@ -762,11 +757,11 @@ IBStandardInitializer::readSpringFiles()
                         }
                     }
 
-                    // Initialize the map data corresponding to the
-                    // present edge.
+                    // Initialize the map data corresponding to the present
+                    // edge.
                     //
-                    // Note that in the edge map, each edge is
-                    // associated with only the first vertex.
+                    // Note that in the edge map, each edge is associated with
+                    // only the first vertex.
                     if (!duplicate_edge)
                     {
                         d_spring_edge_map[ln][j].insert(std::make_pair(e.first,e));
@@ -807,8 +802,8 @@ IBStandardInitializer::readBeamFiles()
                                    << "processing beam data from input filename " << beam_filename << endl
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
-                // The first line in the file indicates the number of
-                // beams in the input file.
+                // The first line in the file indicates the number of beams in
+                // the input file.
                 int num_beams;
                 if (!std::getline(file_stream, line_string))
                 {
@@ -829,9 +824,8 @@ IBStandardInitializer::readBeamFiles()
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << beam_filename << endl);
                 }
 
-                // Each successive line provides the connectivity and
-                // material parameter information for each beam in the
-                // structure.
+                // Each successive line provides the connectivity and material
+                // parameter information for each beam in the structure.
                 for (int k = 0; k < num_beams; ++k)
                 {
                     int prev_idx, curr_idx, next_idx;
@@ -885,9 +879,9 @@ IBStandardInitializer::readBeamFiles()
                         }
                     }
 
-                    // Modify kappa according to whether beam forces
-                    // are enabled, or whether uniform values are to
-                    // be employed, for this particular structure.
+                    // Modify kappa according to whether beam forces are
+                    // enabled, or whether uniform values are to be employed,
+                    // for this particular structure.
                     if (!d_enable_beams[ln][j])
                     {
                         kappa = 0.0;
@@ -900,17 +894,17 @@ IBStandardInitializer::readBeamFiles()
                         }
                     }
 
-                    // Correct the node numbers to be in the global
-                    // Lagrangian indexing scheme.
+                    // Correct the node numbers to be in the global Lagrangian
+                    // indexing scheme.
                     prev_idx += d_vertex_offset[ln][j];
                     curr_idx += d_vertex_offset[ln][j];
                     next_idx += d_vertex_offset[ln][j];
 
-                    // Initialize the map data corresponding to the
-                    // present beam.
+                    // Initialize the map data corresponding to the present
+                    // beam.
                     //
-                    // Note that in the beam property map, each edge
-                    // is associated with only the "current" vertex.
+                    // Note that in the beam property map, each edge is
+                    // associated with only the "current" vertex.
                     d_beam_specs[ln][j].insert(
                         std::make_pair(
                             curr_idx, std::make_pair(
@@ -950,8 +944,8 @@ IBStandardInitializer::readTargetPointFiles()
                                    << "processing target point data from input filename " << target_point_stiffness_filename << endl
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
-                // The first line in the file indicates the number of
-                // target point stiffnesses in the input file.
+                // The first line in the file indicates the number of target
+                // point stiffnesses in the input file.
                 int num_target_stiffness;
                 if (!std::getline(file_stream, line_string))
                 {
@@ -972,9 +966,8 @@ IBStandardInitializer::readTargetPointFiles()
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << target_point_stiffness_filename << endl);
                 }
 
-                // Each successive line indicates the vertex number
-                // and spring constant associated with any target
-                // points.
+                // Each successive line indicates the vertex number and spring
+                // constant associated with any target points.
                 for (int k = 0; k < num_target_stiffness; ++k)
                 {
                     int n;
@@ -1016,10 +1009,9 @@ IBStandardInitializer::readTargetPointFiles()
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
             }
 
-            // Modify the target point stiffness constant according to
-            // whether target point penalty forces are enabled, or
-            // whether uniform values are to be employed, for this
-            // particular structure.
+            // Modify the target point stiffness constant according to whether
+            // target point penalty forces are enabled, or whether uniform
+            // values are to be employed, for this particular structure.
             if (!d_enable_target_points[ln][j])
             {
                 d_target_stiffness[ln][j] = std::vector<double>(
@@ -1062,8 +1054,8 @@ IBStandardInitializer::readBoundaryMassFiles()
                                    << "processing boundary mass data from input filename " << bdry_mass_filename << endl
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
-                // The first line in the file indicates the number of
-                // massive IB points in the input file.
+                // The first line in the file indicates the number of massive IB
+                // points in the input file.
                 int num_bdry_mass_pts;
                 if (!std::getline(file_stream, line_string))
                 {
@@ -1084,9 +1076,8 @@ IBStandardInitializer::readBoundaryMassFiles()
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << bdry_mass_filename << endl);
                 }
 
-                // Each successive line indicates the vertex number
-                // and spring constant associated with any massive IB
-                // points.
+                // Each successive line indicates the vertex number and spring
+                // constant associated with any massive IB points.
                 for (int k = 0; k < num_bdry_mass_pts; ++k)
                 {
                     int n;
@@ -1138,10 +1129,9 @@ IBStandardInitializer::readBoundaryMassFiles()
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
             }
 
-            // Modify the boundary mass and boundary mass stiffness
-            // constant according to whether boundary mass is enabled,
-            // or whether uniform values are to be employed, for this
-            // particular structure.
+            // Modify the boundary mass and boundary mass stiffness constant
+            // according to whether boundary mass is enabled, or whether uniform
+            // values are to be employed, for this particular structure.
             if (!d_enable_bdry_mass[ln][j])
             {
                 d_bdry_mass[ln][j] = std::vector<double>(
@@ -1176,11 +1166,11 @@ IBStandardInitializer::getPatchVertices(
     const int level_number,
     const bool can_be_refined) const
 {
-    // Loop over all of the vertices to determine the indices of those
-    // vertices within the present patch.
+    // Loop over all of the vertices to determine the indices of those vertices
+    // within the present patch.
     //
-    // NOTE: This is clearly not the best way to do this, but it will
-    // work for now.
+    // NOTE: This is clearly not the best way to do this, but it will work for
+    // now.
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
         patch->getPatchGeometry();
     const double* const xLower = patch_geom->getXLower();
@@ -1334,9 +1324,9 @@ IBStandardInitializer::getFromInput(
     assert(!db.isNull());
 #endif
 
-    // Determine the (maximum) number of levels in the locally refined
-    // grid.  Note that each piece of the Lagrangian structure must be
-    // assigned to a particular level of the grid.
+    // Determine the (maximum) number of levels in the locally refined grid.
+    // Note that each piece of the Lagrangian structure must be assigned to a
+    // particular level of the grid.
     if (db->keyExists("max_levels"))
     {
         d_max_levels = db->getInteger("max_levels");
@@ -1455,8 +1445,8 @@ IBStandardInitializer::getFromInput(
                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> sub_db =
                     db->getDatabase(base_filename);
 
-                // Determine whether to enable or disable any
-                // particular features.
+                // Determine whether to enable or disable any particular
+                // features.
                 if (sub_db->keyExists("enable_springs"))
                 {
                     d_enable_springs[ln][j] = sub_db->getBool("enable_springs");
@@ -1474,8 +1464,8 @@ IBStandardInitializer::getFromInput(
                     d_enable_bdry_mass[ln][j] = sub_db->getBool("enable_bdry_mass");
                 }
 
-                // Determine whether to use uniform values for any
-                // particular structure attributes.
+                // Determine whether to use uniform values for any particular
+                // structure attributes.
                 if (sub_db->keyExists("uniform_spring_stiffness"))
                 {
                     d_using_uniform_spring_stiffness[ln][j] = true;
@@ -1554,8 +1544,8 @@ IBStandardInitializer::getFromInput(
         }
     }
 
-    // Output the names of the input files to be read along with
-    // additional debugging information.
+    // Output the names of the input files to be read along with additional
+    // debugging information.
     SAMRAI::tbox::pout << d_object_name << ":  Reading from input files: " << endl;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {

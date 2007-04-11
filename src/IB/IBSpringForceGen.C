@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <09.Apr.2007 19:48:10 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 04:01:27 boyce@trasnaform2.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -123,8 +123,8 @@ IBSpringForceGen::initializeLevelData(
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
-    // Resize the vectors corresponding to data individually
-    // maintained for separate levels of the patch hierarchy.
+    // Resize the vectors corresponding to data individually maintained for
+    // separate levels of the patch hierarchy.
     const int level_num = level->getLevelNumber();
     const int new_size = SAMRAI::tbox::Utilities::imax(
         level_num+1, d_is_initialized.size());
@@ -219,8 +219,8 @@ IBSpringForceGen::initializeLevelData(
         }
     }
 
-    // Map the Lagrangian master/slave node indices to the PETSc
-    // indices corresponding to the present data distribution.
+    // Map the Lagrangian master/slave node indices to the PETSc indices
+    // corresponding to the present data distribution.
     petsc_mastr_node_idxs = lag_mastr_node_idxs;
     petsc_slave_node_idxs = lag_slave_node_idxs;
     lag_manager->mapLagrangianToPETSc(petsc_mastr_node_idxs, level_num);
@@ -248,8 +248,8 @@ IBSpringForceGen::initializeLevelData(
         }
     }
 
-    // Create a new MPI block AIJ matrix and set the values of the
-    // non-zero entries.
+    // Create a new MPI block AIJ matrix and set the values of the non-zero
+    // entries.
     ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
                             NDIM, NDIM*local_sz, NDIM*num_local_nodes,
                             PETSC_DETERMINE, PETSC_DETERMINE,

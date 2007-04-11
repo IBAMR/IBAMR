@@ -1,6 +1,6 @@
 // Filename: LNodeLevelData.C
 // Created on 17 Apr 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <25.Oct.2006 18:28:19 boyce@bigboy.nyconnect.com>
+// Last modified: <11.Apr.2007 02:49:54 boyce@trasnaform2.local>
 
 #include "LNodeLevelData.h"
 
@@ -109,8 +109,8 @@ LNodeLevelData::LNodeLevelData(
     assert(num_local_nodes >= 0);
     assert(depth > 0);
 #endif
-    // Create the PETSc Vec which actually provides the storage for
-    // the Lagrangian data.
+    // Create the PETSc Vec which actually provides the storage for the
+    // Lagrangian data.
     int ierr;
     if (d_depth == 1)
     {
@@ -155,8 +155,8 @@ LNodeLevelData::LNodeLevelData(
                             &d_nonlocal_petsc_indices[0], n_nonlocal_indices);
     }
 
-    // Create the PETSc Vec which actually provides the storage for
-    // the Lagrangian data.
+    // Create the PETSc Vec which actually provides the storage for the
+    // Lagrangian data.
     int ierr;
 
     if (d_depth == 1)

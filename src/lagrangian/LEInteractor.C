@@ -1,6 +1,6 @@
 // Filename: LEInteractor.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <06.Apr.2007 16:49:42 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 02:41:12 boyce@trasnaform2.local>
 
 #include "LEInteractor.h"
 
@@ -329,8 +329,7 @@ LEInteractor::interpolate(
 
     const int depth = q_data->getDepth();
 
-    // Generate a list of local indices which lie in the specified
-    // box.
+    // Generate a list of local indices which lie in the specified box.
     vector<int> local_indices;
 
     if (box == patch_box)
@@ -537,8 +536,7 @@ LEInteractor::interpolate(
 
     const int depth = q_data->getDepth();
 
-    // Generate a list of local indices which lie in the specified
-    // box.
+    // Generate a list of local indices which lie in the specified box.
     vector<int> local_indices;
     for (int l = 0; l < num_vals; ++l)
     {
@@ -548,8 +546,7 @@ LEInteractor::interpolate(
         if (box.contains(idx)) local_indices.push_back(l);
     }
 
-    // This routine does not have enough data to generate periodic
-    // offsets.
+    // This routine does not have enough data to generate periodic offsets.
     vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
 
     // Interpolate.
@@ -910,8 +907,7 @@ LEInteractor::spread(
 
     const int depth = q_data->getDepth();
 
-    // Generate a list of local indices which lie in the specified
-    // box.
+    // Generate a list of local indices which lie in the specified box.
     vector<int> local_indices;
     for (int l = 0; l < num_vals; ++l)
     {
@@ -921,8 +917,7 @@ LEInteractor::spread(
         if (box.contains(idx)) local_indices.push_back(l);
     }
 
-    // This routine does not have enough data to generate periodic
-    // offsets.
+    // This routine does not have enough data to generate periodic offsets.
     vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
 
     // Spread.

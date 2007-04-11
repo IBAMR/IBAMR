@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpec.C
-// Last modified: <22.Mar.2007 19:23:22 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 03:49:49 boyce@trasnaform2.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceSpec.h"
@@ -40,10 +40,10 @@ int  IBBeamForceSpec::s_stashable_id = -1;
 void
 IBBeamForceSpec::registerWithStashableManager()
 {
-    // We place an MPI barrier here to ensure that all MPI processes
-    // actually register the stashable factory with the stashable
-    // manager, and to ensure that all processes employ the same
-    // stashable id for the IBBeamForceSpec object.
+    // We place an MPI barrier here to ensure that all MPI processes actually
+    // register the stashable factory with the stashable manager, and to ensure
+    // that all processes employ the same stashable id for the IBBeamForceSpec
+    // object.
     SAMRAI::tbox::MPI::barrier();
     if (!s_registered_factory)
     {

@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndex.h
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Nov.2006 00:35:20 boyce@bigboy.nyconnect.com>
+// Last modified: <11.Apr.2007 02:43:20 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -25,8 +25,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Class LNodeIndex provides index information about a single
- * node of a Lagrangian mesh.
+ * \brief Class LNodeIndex provides index information about a single node of a
+ * Lagrangian mesh.
  */
 class LNodeIndex
     : public SAMRAI::tbox::DescribedClass
@@ -92,42 +92,40 @@ public:
     int getLocalPETScIndex() const;
 
     /*!
-     * \brief Reset the local PETSc index refrenced by this
-     * LNodeIndex.
+     * \brief Reset the local PETSc index refrenced by this LNodeIndex.
      */
     void setLocalPETScIndex(
         const int local_petsc_nidx);
 
     /*!
-     * \return A pointer to the physical location of the node
-     * refrenced by this LNodeIndex.
+     * \return A pointer to the physical location of the node refrenced by this
+     * LNodeIndex.
      */
     double* getNodeLocation() const;
 
     /*!
-     * \brief Reset the pointer to the physical location of the node
-     * refrenced by this LNodeIndex.
+     * \brief Reset the pointer to the physical location of the node refrenced
+     * by this LNodeIndex.
      */
     void setNodeLocation(
         double* const X_ptr);
 
     /*!
-     * \return A constant refrence to any additional data associated
-     * with the node refrenced by this LNodeIndex.
+     * \return A constant refrence to any additional data associated with the
+     * node refrenced by this LNodeIndex.
      */
     const std::vector<SAMRAI::tbox::Pointer<Stashable> >& getStashData() const;
 
     /*!
-     * \return A non-constant refrence to any additional data
-     * associated with the node refrenced by this LNodeIndex.
+     * \return A non-constant refrence to any additional data associated with
+     * the node refrenced by this LNodeIndex.
      */
     std::vector<SAMRAI::tbox::Pointer<Stashable> >& getStashData();
 
     /*!
      * \brief Copy data from the source.
      *
-     * NOTE: The cell index of the destination object is src_index +
-     * src_offset.
+     * \note The cell index of the destination object is src_index + src_offset.
      */
     void copySourceItem(
         const SAMRAI::hier::Index<NDIM>& src_index,
@@ -135,8 +133,8 @@ public:
         const LNodeIndex& src_item);
 
     /*!
-     * \brief Return an upper bound on the amount of space required to
-     * pack the object to a buffer.
+     * \brief Return an upper bound on the amount of space required to pack the
+     * object to a buffer.
      */
     size_t getDataStreamSize() const;
 
@@ -167,22 +165,22 @@ private:
     double* d_X_ptr;        // a pointer to the physical location of
                             // the node
 
-    // a (possibly empty) collection of objects which are associated
-    // with the node
+    // a (possibly empty) collection of objects which are associated with the
+    // node
     std::vector<SAMRAI::tbox::Pointer<Stashable> > d_stash_data;
 };
 
 /*!
  * \brief Less-than comparison operator.
  *
- * \param lhs The left-hand-side of the < operator.
- * \param rhs The right-hand-side of the < operator.
+ * \param lhs  The left-hand-side of the < operator.
+ * \param rhs  The right-hand-side of the < operator.
  *
  * \return Whether lhs < rhs.
  *
- * The ordering is determined on the physical locations of the nodes.
- * When a set of indices is sorted according to operator<(), the nodes
- * are in the "Fortan" ordering according to their physical location.
+ * The ordering is determined on the physical locations of the nodes.  When a
+ * set of indices is sorted according to operator<(), the nodes are in the
+ * "Fortan" ordering according to their physical location.
  */
 bool operator<(
     const LNodeIndex& lhs,

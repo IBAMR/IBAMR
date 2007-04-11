@@ -2,7 +2,7 @@
 #define included_IBTargetPointForceGen
 
 // Filename: IBTargetPointForceGen.h
-// Last modified: <03.Apr.2007 21:14:09 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 04:06:01 boyce@trasnaform2.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -16,8 +16,8 @@ namespace IBAMR
 {
 
 /*!
- * \brief Class IBTargetPointForceGen computes the penalty forces
- * associated with a collection of target points.
+ * \brief Class IBTargetPointForceGen computes the penalty forces associated
+ * with a collection of target points.
  */
 class IBTargetPointForceGen
     : public IBLagrangianForceStrategy
@@ -38,8 +38,8 @@ public:
      * \brief Compute the penalty forces determined with the present
      * configuration of the Lagrangian mesh.
      *
-     * \note Nodal forces computed by this method are \em added to the
-     * force vector.
+     * \note Nodal forces computed by this method are \em added to the force
+     * vector.
      */
     virtual void computeLagrangianForce(
         SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
@@ -53,8 +53,7 @@ private:
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */

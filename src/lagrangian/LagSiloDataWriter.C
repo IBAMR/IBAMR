@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <07.Apr.2007 18:55:05 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 02:54:49 boyce@trasnaform2.local>
 
 #include "LagSiloDataWriter.h"
 
@@ -57,10 +57,10 @@ static const string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
 
 #if HAVE_LIBSILO
 /*!
- * @brief Build a local mesh database entry corresponding to a cloud
- * of marker points.
+ * \brief Build a local mesh database entry corresponding to a cloud of marker
+ * points.
  */
-void buildLocalMarkerCloud(
+void build_local_marker_cloud(
     DBfile* dbfile,
     string& dirname,
     const int nmarks,
@@ -82,7 +82,7 @@ void buildLocalMarkerCloud(
     // Set the working directory in the Silo database.
     if (DBSetDir(dbfile, dirname.c_str()) == -1)
     {
-        TBOX_ERROR("LagSiloDataWriter::buildLocalMarkerCloud()\n"
+        TBOX_ERROR("LagSiloDataWriter::build_local_marker_cloud()\n"
                    << "  Could not set directory " << dirname << endl);
     }
 
@@ -114,17 +114,17 @@ void buildLocalMarkerCloud(
     // Reset the working directory in the Silo database.
     if (DBSetDir(dbfile, "..") == -1)
     {
-        TBOX_ERROR("LagSiloDataWriter::buildLocalMarkerCloud()\n"
+        TBOX_ERROR("LagSiloDataWriter::build_local_marker_cloud()\n"
                    << "  Could not return to the base directory from subdirectory " << dirname << endl);
     }
     return;
-}// buildLocalMarkerCloud
+}// build_local_marker_cloud
 
 /*!
- * @brief Build a local mesh database entry corresponding to a
- * quadrilateral curvilinear block.
+ * \brief Build a local mesh database entry corresponding to a quadrilateral
+ * curvilinear block.
  */
-void buildLocalCurvBlock(
+void build_local_curv_block(
     DBfile* dbfile,
     string& dirname,
     const SAMRAI::hier::IntVector<NDIM>& nelem_in,
@@ -222,7 +222,7 @@ void buildLocalCurvBlock(
     // Set the working directory in the Silo database.
     if (DBSetDir(dbfile, dirname.c_str()) == -1)
     {
-        TBOX_ERROR("LagSiloDataWriter::buildLocalCurvBlock()\n"
+        TBOX_ERROR("LagSiloDataWriter::build_local_curv_block()\n"
                    << "  Could not set directory " << dirname << endl);
     }
 
@@ -296,17 +296,17 @@ void buildLocalCurvBlock(
     // Reset the working directory in the Silo database.
     if (DBSetDir(dbfile, "..") == -1)
     {
-        TBOX_ERROR("LagSiloDataWriter::buildLocalCurvBlock()\n"
+        TBOX_ERROR("LagSiloDataWriter::build_local_curv_block()\n"
                    << "  Could not return to the base directory from subdirectory " << dirname << endl);
     }
     return;
-}// buildLocalCurvBlock
+}// build_local_curv_block
 
 /*!
- * @brief Build a local mesh database entry corresponding to a
- * quadrilateral curvilinear block.
+ * \brief Build a local mesh database entry corresponding to an unstructured
+ * mesh.
  */
-void buildLocalUcdMesh(
+void build_local_ucd_mesh(
     DBfile* dbfile,
     string& dirname,
     const std::set<int>& vertices,
@@ -388,7 +388,7 @@ void buildLocalUcdMesh(
     // Set the working directory in the Silo database.
     if (DBSetDir(dbfile, dirname.c_str()) == -1)
     {
-        TBOX_ERROR("LagSiloDataWriter::buildLocalUcdMesh()\n"
+        TBOX_ERROR("LagSiloDataWriter::build_local_ucd_mesh()\n"
                    << "  Could not set directory " << dirname << endl);
     }
 
@@ -486,11 +486,11 @@ void buildLocalUcdMesh(
     // Reset the working directory in the Silo database.
     if (DBSetDir(dbfile, "..") == -1)
     {
-        TBOX_ERROR("LagSiloDataWriter::buildLocalUcdMesh()\n"
+        TBOX_ERROR("LagSiloDataWriter::build_local_ucd_mesh()\n"
                    << "  Could not return to the base directory from subdirectory " << dirname << endl);
     }
     return;
-}// buildLocalUcdMesh
+}// build_local_ucd_mesh
 #endif //if HAVE_LIBSILO
 }
 
@@ -902,8 +902,7 @@ LagSiloDataWriter::registerUnstructuredMesh(
            d_finest_ln   >= level_number);
 #endif
 
-    // Check to see if the unstructured mesh name has already been
-    // registered.
+    // Check to see if the unstructured mesh name has already been registered.
     if (find(d_cloud_names[level_number].begin(), d_cloud_names[level_number].end(),
              name) != d_cloud_names[level_number].end())
     {
@@ -1305,8 +1304,8 @@ LagSiloDataWriter::writePlotData(
                 }
 
                 const double* const X = local_X_arr + NDIM*offset;
-                buildLocalMarkerCloud(dbfile, dirname, nmarks, X,
-                                      time_step_number, simulation_time);
+                build_local_marker_cloud(dbfile, dirname, nmarks, X,
+                                         time_step_number, simulation_time);
 
                 offset += nmarks;
             }
@@ -1336,9 +1335,9 @@ LagSiloDataWriter::writePlotData(
                     var_vals[v] = local_v_arrs[v] + d_var_depths[ln][v]*offset;
                 }
 
-                buildLocalCurvBlock(dbfile, dirname, nelem, periodic, X,
-                                    d_nvars[ln], d_var_names[ln], d_var_depths[ln], var_vals,
-                                    time_step_number, simulation_time);
+                build_local_curv_block(dbfile, dirname, nelem, periodic, X,
+                                       d_nvars[ln], d_var_names[ln], d_var_depths[ln], var_vals,
+                                       time_step_number, simulation_time);
                 meshtype[ln].push_back(DB_QUAD_CURV);
                 vartype [ln].push_back(DB_QUADVAR);
 
@@ -1374,9 +1373,9 @@ LagSiloDataWriter::writePlotData(
                         var_vals[v] = local_v_arrs[v] + d_var_depths[ln][v]*offset;
                     }
 
-                    buildLocalCurvBlock(dbfile, dirname, nelem, periodic, X,
-                                        d_nvars[ln], d_var_names[ln], d_var_depths[ln], var_vals,
-                                        time_step_number, simulation_time);
+                    build_local_curv_block(dbfile, dirname, nelem, periodic, X,
+                                           d_nvars[ln], d_var_names[ln], d_var_depths[ln], var_vals,
+                                           time_step_number, simulation_time);
                     multimeshtype[ln][mb].push_back(DB_QUAD_CURV);
                     multivartype [ln][mb].push_back(DB_QUADVAR);
 
@@ -1409,9 +1408,9 @@ LagSiloDataWriter::writePlotData(
                     var_vals[v] = local_v_arrs[v] + d_var_depths[ln][v]*offset;
                 }
 
-                buildLocalUcdMesh(dbfile, dirname, vertices, edge_map, X,
-                                  d_nvars[ln], d_var_names[ln], d_var_depths[ln], var_vals,
-                                  time_step_number, simulation_time);
+                build_local_ucd_mesh(dbfile, dirname, vertices, edge_map, X,
+                                     d_nvars[ln], d_var_names[ln], d_var_depths[ln], var_vals,
+                                     time_step_number, simulation_time);
 
                 offset += ntot;
             }
@@ -1433,8 +1432,8 @@ LagSiloDataWriter::writePlotData(
 
     DBClose(dbfile);
 
-    // Send data to the root MPI process required to create the
-    // multimesh and multivar objects.
+    // Send data to the root MPI process required to create the multimesh and
+    // multivar objects.
     vector<vector<int> > nclouds_per_proc, nblocks_per_proc, nmbs_per_proc, nucd_meshes_per_proc;
     vector<vector<vector<int> > > meshtypes_per_proc, vartypes_per_proc, mb_nblocks_per_proc;
     vector<vector<vector<vector<int> > > > multimeshtypes_per_proc, multivartypes_per_proc;
@@ -1690,8 +1689,8 @@ LagSiloDataWriter::writePlotData(
 
     if (mpi_rank == SILO_MPI_ROOT)
     {
-        // Create and initialize the multimesh Silo database on the
-        // root MPI process.
+        // Create and initialize the multimesh Silo database on the root MPI
+        // process.
         sprintf(temp_buf, "%06d", d_time_step_number);
         string summary_file_name = dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
         if ((dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB))

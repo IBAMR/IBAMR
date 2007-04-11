@@ -1,6 +1,6 @@
 // Filename: StashableManager.C
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <06.Apr.2007 16:48:47 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 01:52:07 boyce@trasnaform2.local>
 
 #include "StashableManager.h"
 
@@ -161,7 +161,7 @@ StashableManager::registerFactory(
                                    // for the registered class
     const int factory_id = getUniqueID();
     factory->setStashableID(factory_id);
-    STOOLS::efficientAddOrUpdate(d_factory_map, factory_id, factory);
+    STOOLS::efficient_add_or_update(d_factory_map, factory_id, factory);
     return factory_id;
 }// registerFactory
 

@@ -2,7 +2,7 @@
 #define included_IBLagrangianSourceStrategy
 
 // Filename: IBLagrangianSourceStrategy.h
-// Last modified: <05.Apr.2007 18:44:03 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 04:00:56 boyce@trasnaform2.local>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -24,8 +24,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBLagrangianSourceStrategy provides a mechanism for
- * specifying fluid source/sinks at arbitrary point locations.
+ * \brief Class IBLagrangianSourceStrategy provides a mechanism for specifying
+ * fluid source/sinks at arbitrary point locations.
  */
 class IBLagrangianSourceStrategy
     : public virtual SAMRAI::tbox::DescribedClass
@@ -51,8 +51,8 @@ public:
         const double new_time);
 
     /*!
-     * \brief Setup the data needed to compute source/sink data on the
-     * specified level of the patch hierarchy.
+     * \brief Setup the data needed to compute source/sink data on the specified
+     * level of the patch hierarchy.
      *
      * \note A default empty implementation is provided.
      */
@@ -64,13 +64,11 @@ public:
         LDataManager* const lag_manager);
 
     /*!
-     * \brief Specify the number of distributed internal sources or
-     * sinks.
+     * \brief Specify the number of distributed internal sources or sinks.
      *
      * \note The return value must be the \em total number of internal
-     * sources/sinks in the \em entire computational domain.  This
-     * implies that the return value must be \em identical on each MPI
-     * process.
+     * sources/sinks in the \em entire computational domain.  This implies that
+     * the return value must be \em identical on each MPI process.
      */
     virtual int getNumSources(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -79,13 +77,12 @@ public:
         LDataManager* const lag_manager) = 0;
 
     /*!
-     * \brief Compute the source locations for each of the distributed
-     * internal sources or sinks.
+     * \brief Compute the source locations for each of the distributed internal
+     * sources or sinks.
      *
-     * \note Implementations of this method \em must compute the same
-     * values for \a X_src on \em each MPI process.  That is to say,
-     * \a X_src must provide the location of all of the distributed
-     * sources/sinks.
+     * \note Implementations of this method \em must compute the same values for
+     * \a X_src on \em each MPI process.  That is to say, \a X_src must provide
+     * the location of all of the distributed sources/sinks.
      */
     virtual void getSourceLocations(
         std::vector<std::vector<double> >& X_src,
@@ -107,13 +104,12 @@ public:
         LDataManager* const lag_manager) = 0;
 
     /*!
-     * \brief Compute the source strengths for each of the distributed
-     * internal sources or sinks.
+     * \brief Compute the source strengths for each of the distributed internal
+     * sources or sinks.
      *
-     * \note Implementations of this method \em must compute the same
-     * values for \a Q_src on \em each MPI process.  That is to say,
-     * \a Q_src must provide the strengths of all of the distributed
-     * sources/sinks.
+     * \note Implementations of this method \em must compute the same values for
+     * \a Q_src on \em each MPI process.  That is to say, \a Q_src must provide
+     * the strengths of all of the distributed sources/sinks.
      */
     virtual void computeSourceStrengths(
         std::vector<double>& Q_src,
@@ -126,8 +122,7 @@ private:
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */

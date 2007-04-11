@@ -1,6 +1,6 @@
 // Filename: IntermediateVelocityRobinBcCoefs.C
-// Last modified: <09.Mar.2007 22:43:47 griffith@box221.cims.nyu.edu>
-// Created on 30 Sep 2006 by Boyce Griffith (boyce@boyce-griffiths-powerbook-g4-15.local)
+// Last modified: <11.Apr.2007 02:26:51 boyce@trasnaform2.local>
+// Created on 30 Sep 2006 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IntermediateVelocityRobinBcCoefs.h"
 
@@ -177,12 +177,12 @@ IntermediateVelocityRobinBcCoefs::correctBcCoefs(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Phi_data =
         patch.getPatchData(d_Phi_idx);
 
-    // IMPORTANT NOTE: This is a clumsy and kludgey mechanism to
-    // detect when homogeneous boundary conditions are being employed.
+    // IMPORTANT NOTE: This is a clumsy and kludgey mechanism to detect when
+    // homogeneous boundary conditions are being employed.
     if (P_data.isNull()) return;
 
-    // NOTE: At this point, presumably inhomogeneous boundary
-    // conditions are being employed.
+    // NOTE: At this point, presumably inhomogeneous boundary conditions are
+    // being employed.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double dt = d_new_time - d_current_time;
@@ -206,11 +206,11 @@ IntermediateVelocityRobinBcCoefs::correctBcCoefs(
 
         // i_s_bdry: side index located on physical boundary
         //
-        // i_c_intr: cell index located adjacent to physical boundary
-        // in the patch interior
+        // i_c_intr: cell index located adjacent to physical boundary in the
+        // patch interior
         //
-        // i_c_bdry: cell index located adjacent to physical boundary
-        // in the patch exterior
+        // i_c_bdry: cell index located adjacent to physical boundary in the
+        // patch exterior
         SAMRAI::pdat::CellIndex<NDIM> i_c_intr = i_s_bdry;
         SAMRAI::pdat::CellIndex<NDIM> i_c_bdry = i_c_intr;
         if (bdry_upper_side)

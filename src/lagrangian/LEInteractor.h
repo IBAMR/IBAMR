@@ -3,7 +3,7 @@
 
 // Filename: LEInteractor.h
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <16.Nov.2006 00:34:39 boyce@bigboy.nyconnect.com>
+// Last modified: <11.Apr.2007 02:42:22 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -23,26 +23,25 @@
 namespace IBAMR
 {
 /*!
- * \brief Class LEInteractor is a Lagrangian--Eulerian utilities class
- * that defines several functions to interpolate data from Eulerian
- * grid patches onto Lagrangian meshes and to spread densities from
- * Lagrangian meshes to Eulerian grid patches.
+ * \brief Class LEInteractor is a Lagrangian--Eulerian utilities class that
+ * defines several functions to interpolate data from Eulerian grid patches onto
+ * Lagrangian meshes and to spread densities from Lagrangian meshes to Eulerian
+ * grid patches.
  */
 class LEInteractor
 {
 public:
     /*!
-     * \brief Initialize the Timer objects employed by the
-     * LEInteractor class.
+     * \brief Initialize the Timer objects employed by the LEInteractor class.
      *
-     * \note It is necessary to initialize the Timer objects prior to
-     * using any of the functionality provided by this class.
+     * \note It is necessary to initialize the Timer objects prior to using any
+     * of the functionality provided by this class.
      */
     static void initializeTimers();
 
     /*!
-     * \brief Returns the interpolation/spreading stencil
-     * corresponding to the specified weighting function.
+     * \brief Returns the interpolation/spreading stencil corresponding to the
+     * specified weighting function.
      *
      * The return value is -1 for any unknown weighting function type.
      */
@@ -50,21 +49,19 @@ public:
         const string& weighting_fcn);
 
     /*!
-     * \brief Interpolate data from an Eulerian grid to a Lagrangian
-     * mesh.  The positions of the nodes of the Lagrangian mesh are
-     * specified by X_data.
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where
-     * appropriate and when requested.  X_data must provide the
-     * cannonical location of the node---i.e., each node location must
-     * lie within the extents of the physical domain.
+     * \note This method employs periodic boundary conditions where appropriate
+     * and when requested.  X_data must provide the cannonical location of the
+     * node---i.e., each node location must lie within the extents of the
+     * physical domain.
      *
      * \note The interpolation operator implements the operation
      *
      *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
      *
-     * This is the standard regularized delta function interpolation
-     * operation.
+     * This is the standard regularized delta function interpolation operation.
      */
     static void interpolate(
         SAMRAI::tbox::Pointer<LNodeLevelData>& Q_data,
@@ -77,21 +74,19 @@ public:
         const bool enforce_periodic_bcs=false);
 
     /*!
-     * \brief Interpolate data from an Eulerian grid to a Lagrangian
-     * mesh.  The positions of the nodes of the Lagrangian mesh are
-     * specified by X_data.
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where
-     * appropriate and when requested.  X_data must provide the
-     * cannonical location of the node---i.e., each node location must
-     * lie within the extents of the physical domain.
+     * \note This method employs periodic boundary conditions where appropriate
+     * and when requested.  X_data must provide the cannonical location of the
+     * node---i.e., each node location must lie within the extents of the
+     * physical domain.
      *
      * \note The interpolation operator implements the operation
      *
      *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
      *
-     * This is the standard regularized delta function interpolation
-     * operation.
+     * This is the standard regularized delta function interpolation operation.
      */
     static void interpolate(
         double* const Q_data,
@@ -106,19 +101,16 @@ public:
         const bool enforce_periodic_bcs=false);
 
     /*!
-     * \brief Interpolate data from an Eulerian grid to a Lagrangian
-     * mesh.  The positions of the nodes of the Lagrangian mesh are
-     * specified by X_data.
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method does not implement periodic boundary
-     * conditions!
+     * \note This method does not implement periodic boundary conditions!
      *
      * \note The interpolation operator implements the operation
      *
      *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
      *
-     * This is the standard regularized delta function interpolation
-     * operation.
+     * This is the standard regularized delta function interpolation operation.
      */
     static void interpolate(
         double* const Q_data,
@@ -132,24 +124,22 @@ public:
         const string& interp_fcn="IB_4");
 
     /*!
-     * \brief Spread data from a Lagrangian mesh to an Eulerian grid.
-     * The positions of the nodes of the Lagrangian mesh are specified
-     * by X_data.
+     * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where
-     * appropriate and when requested.  X_data must provide the
-     * cannonical location of the node---i.e., each node location must
-     * lie within the extents of the physical domain.
+     * \note This method employs periodic boundary conditions where appropriate
+     * and when requested.  X_data must provide the cannonical location of the
+     * node---i.e., each node location must lie within the extents of the
+     * physical domain.
      *
      * \note The spreading operation DOES NOT include the scale factor
-     * corresponding to the curvilinear volume element (dq dr ds).
-     * The spreading formula is
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
      *
      *     q(i,j,k) = Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
-     * Unlike the standard regularized delta function spreading
-     * operation, the implemented operations spreads values, NOT
-     * densities.
+     * Unlike the standard regularized delta function spreading operation, the
+     * implemented operations spreads values, NOT densities.
      */
     static void spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
@@ -162,24 +152,22 @@ public:
         const bool enforce_periodic_bcs=false);
 
     /*!
-     * \brief Spread data from a Lagrangian mesh to an Eulerian grid.
-     * The positions of the nodes of the Lagrangian mesh are specified
-     * by X_data.
+     * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where
-     * appropriate and when requested.  X_data must provide the
-     * cannonical location of the node---i.e., each node location must
-     * lie within the extents of the physical domain.
+     * \note This method employs periodic boundary conditions where appropriate
+     * and when requested.  X_data must provide the cannonical location of the
+     * node---i.e., each node location must lie within the extents of the
+     * physical domain.
      *
      * \note The spreading operation DOES NOT include the scale factor
-     * corresponding to the curvilinear volume element (dq dr ds).
-     * The spreading formula is
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
      *
      *     q(i,j,k) = Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
-     * Unlike the standard regularized delta function spreading
-     * operation, the implemented operations spreads values, NOT
-     * densities.
+     * Unlike the standard regularized delta function spreading operation, the
+     * implemented operations spreads values, NOT densities.
      */
     static void spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
@@ -194,22 +182,19 @@ public:
         const bool enforce_periodic_bcs=false);
 
     /*!
-     * \brief Spread data from a Lagrangian mesh to an Eulerian grid.
-     * The positions of the nodes of the Lagrangian mesh are specified
-     * by X_data.
+     * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method does not implement periodic boundary
-     * conditions!
+     * \note This method does not implement periodic boundary conditions!
      *
      * \note The spreading operation DOES NOT include the scale factor
-     * corresponding to the curvilinear volume element (dq dr ds).
-     * The spreading formula is
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
      *
      *     q(i,j,k) = Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
-     * Unlike the standard regularized delta function spreading
-     * operation, the implemented operations spreads values, NOT
-     * densities.
+     * Unlike the standard regularized delta function spreading operation, the
+     * implemented operations spreads values, NOT densities.
      */
     static void spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
@@ -226,24 +211,21 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      */
     LEInteractor();
 
     /*!
      * \brief Default destructor constructor.
      *
-     * \note This destructor is not implemented and should not be
-     * used.
+     * \note This destructor is not implemented and should not be used.
      */
     ~LEInteractor();
 
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */

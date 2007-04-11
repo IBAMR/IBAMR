@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <21.Mar.2007 01:02:12 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2007 03:37:34 boyce@trasnaform2.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -295,8 +295,7 @@ GodunovAdvector::GodunovAdvector(
             registerRestartItem(d_object_name, this);
     }
 
-    // Initialize object with data read from given input/restart
-    // databases.
+    // Initialize object with data read from given input/restart databases.
     bool is_from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
     if (is_from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, is_from_restart);

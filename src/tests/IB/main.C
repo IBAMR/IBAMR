@@ -118,11 +118,10 @@ int main(int argc, char* argv[])
         tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
         /*
-         * Retrieve "Main" section of the input database.  First, read
-         * dump information, which is used for writing plot files.
-         * Second, if proper restart information was given on command
-         * line, and the restart interval is non-zero, create a restart
-         * database.
+         * Retrieve "Main" section of the input database.  First, read dump
+         * information, which is used for writing plot files.  Second, if proper
+         * restart information was given on command line, and the restart
+         * interval is non-zero, create a restart database.
          */
         tbox::Pointer<tbox::Database> main_db = input_db->getDatabase("Main");
 
@@ -229,8 +228,8 @@ int main(int argc, char* argv[])
             && !restart_write_dirname.empty();
 
         /*
-         * Get the restart manager and root restart database.  If run is
-         * from restart, open the restart file.
+         * Get the restart manager and root restart database.  If run is from
+         * restart, open the restart file.
          */
         tbox::RestartManager* restart_manager = tbox::RestartManager::getManager();
         if (is_from_restart)
@@ -262,11 +261,11 @@ int main(int argc, char* argv[])
             "phi_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_phi"));
 
         /*
-         * Create major algorithm and data objects which comprise application.
-         * Each object will be initialized either from input data or restart
-         * files, or a combination of both.  Refer to each class constructor
-         * for details.  For more information on the composition of objects
-         * for this application, see comments at top of file.
+         * Create major algorithm and data objects which comprise the
+         * application.  Each object will be initialized either from input data
+         * or restart files, or a combination of both.  Refer to each class
+         * constructor for details.  For more information on the composition of
+         * objects for this application, see comments at top of file.
          */
         tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
             new geom::CartesianGridGeometry<NDIM>(
@@ -366,9 +365,8 @@ int main(int argc, char* argv[])
         }
 
         /*
-         * Initialize hierarchy configuration and data on all patches.
-         * Then, close restart file and write initial state for
-         * visualization.
+         * Initialize hierarchy configuration and data on all patches.  Then,
+         * close restart file and write initial state for visualization.
          */
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
@@ -381,8 +379,8 @@ int main(int argc, char* argv[])
         initializer.setNull();
 
         /*
-         * After creating all objects and initializing their state, we
-         * print the input database contents to the log file.
+         * After creating all objects and initializing their state, we print the
+         * input database contents to the log file.
          */
         tbox::plog << "\nCheck input data before simulation:" << endl;
         tbox::plog << "Input database..." << endl;
@@ -407,8 +405,8 @@ int main(int argc, char* argv[])
         }
 
         /*
-         * Time step loop.  Note that the step count and integration
-         * time are maintained by the time integrator object.
+         * Time step loop.  Note that the step count and integration time are
+         * maintained by the time integrator object.
          */
         double loop_time = time_integrator->getIntegratorTime();
         double loop_time_end = time_integrator->getEndTime();

@@ -3,7 +3,7 @@
 
 // Filename: Stashable.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Nov.2006 00:19:13 boyce@bigboy.nyconnect.com>
+// Last modified: <11.Apr.2007 02:11:25 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -17,11 +17,11 @@
 namespace IBAMR
 {
 /*!
- * \brief Interface to facilitate object packing for
- * tbox::AbstractStream based communication.
+ * \brief Interface to facilitate object packing for tbox::AbstractStream based
+ * communication.
  *
- * \note Class StashableManager should be used for all communications
- * and storage operations.  Do not directly use Stashable objects.
+ * \note Class StashableManager should be used for all communications and
+ * storage operations.  Do not directly use Stashable objects.
  *
  * \see StashableFactory
  * \see StashableManager
@@ -41,15 +41,15 @@ public:
     virtual ~Stashable();
 
     /*!
-     * \brief Return the unique identifier used to specify the
-     * StashableFactory object used by the StashableManager to extract
-     * Stashable objects from data streams.
+     * \brief Return the unique identifier used to specify the StashableFactory
+     * object used by the StashableManager to extract Stashable objects from
+     * data streams.
      */
     virtual int getStashableID() const = 0;
 
     /*!
-     * \brief Return an upper bound on the amount of space required to
-     * pack the object to a buffer.
+     * \brief Return an upper bound on the amount of space required to pack the
+     * object to a buffer.
      */
     virtual size_t getDataStreamSize() const = 0;
 
@@ -63,8 +63,7 @@ private:
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be
-     * used.
+     * \note This constructor is not implemented and should not be used.
      *
      * \param from The value to copy to this object.
      */
