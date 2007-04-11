@@ -15,10 +15,10 @@ MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 5   // maximum number of levels in locally refined grid
+MAX_LEVELS = 4   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 64                                    // coarsest grid spacing
+N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 16.0                                  // width of computational domain
 
@@ -32,7 +32,7 @@ IBHierarchyIntegrator {
 
    enable_logging = TRUE
 
-   regrid_interval = 32
+   regrid_interval = 16
    dt_max = 0.125*dx
    delta_fcn = "IB_6"
 }
@@ -45,26 +45,26 @@ IBHierarchyIntegrator {
 // Note that these stiffness must be modified if generate_mesh2d.m
 // is modified.
 
-K_s = 5000.0*NFINEST/Re
+K_s = 2000.0*NFINEST/Re
 ds = 2.0*PI*R/(0.375*NFINEST)
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
 
-// base_filenames_4 = "cylinder2d_256"   // corresponds to NFINEST = 256
-// cylinder2d_256 {
-//    uniform_target_stiffness = K_s*ds
-// }
+   base_filenames_3 = "cylinder2d_256"   // corresponds to NFINEST = 256
+   cylinder2d_256 {
+      uniform_target_stiffness = K_s*ds
+   }
 
 // base_filenames_4 = "cylinder2d_512"   // corresponds to NFINEST = 512
 // cylinder2d_512 {
 //    uniform_target_stiffness = K_s*ds
 // }
 
-   base_filenames_4 = "cylinder2d_1024"  // corresponds to NFINEST = 1024
-   cylinder2d_1024 {
-      uniform_target_stiffness = K_s*ds
-   }
+// base_filenames_4 = "cylinder2d_1024"  // corresponds to NFINEST = 1024
+// cylinder2d_1024 {
+//    uniform_target_stiffness = K_s*ds
+// }
 }
 
 IBStandardForceGen {
@@ -74,12 +74,12 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 4 , 4 , 4 , 8
+   tag_buffer = 2 , 3 , 4
 
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_rel_thresh = 0.025
+   vorticity_rel_thresh = 0.05
 
    output_P = TRUE
    output_F = FALSE
