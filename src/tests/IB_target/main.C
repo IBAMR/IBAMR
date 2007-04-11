@@ -509,9 +509,9 @@ int main(int argc, char* argv[])
             tbox::pout <<                                                       endl;
 
             /*
-             * Compute the drag and lift coefficients by integrating
-             * the components of the Lagrangian force field over the
-             * computational domain.
+             * Compute the drag and lift coefficients by integrating the
+             * components of the Lagrangian force field over the computational
+             * domain.
              */
             const int ln = patch_hierarchy->getFinestLevelNumber();
             LDataManager* lag_manager = time_integrator->getLDataManager();
