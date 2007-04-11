@@ -72,6 +72,7 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
+   using_synch_projection = FALSE
    second_order_pressure_update = FALSE
    normalize_pressure = FALSE
 
@@ -162,7 +163,7 @@ Main {
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval      = 0           // zero to turn off
+   restart_interval      = 2048        // zero to turn off
    restart_write_dirname = "restart_IB3d"
 
 // timer dump parameters

@@ -70,13 +70,13 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 2          // zero to turn off
+   viz_dump_interval     = 2           // zero to turn off
    viz_dump_dirname      = "viz_advect3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval        = 0        // zero to turn off
-   restart_write_dirname   = "restart_advect3d"
+   restart_interval      = 0           // zero to turn off
+   restart_write_dirname = "restart_advect3d"
 
 // application parameters
    timestepping = "REFINED"

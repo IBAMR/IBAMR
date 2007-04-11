@@ -106,13 +106,13 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/8  // zero to turn off
+   viz_dump_interval     = NFINEST/8   // zero to turn off
    viz_dump_dirname      = "viz_adv_diff2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval        = 0        // zero to turn off
-   restart_write_dirname   = "restart_adv_diff2d"
+   restart_interval      = 0           // zero to turn off
+   restart_write_dirname = "restart_adv_diff2d"
 }
 
 CartesianGeometry {

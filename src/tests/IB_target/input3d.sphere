@@ -73,6 +73,7 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
+   using_synch_projection = FALSE
    second_order_pressure_update = FALSE
    normalize_pressure = FALSE
 
