@@ -96,8 +96,8 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.2475e0 // max cfl factor used in problem
-      cfl_init                 = 0.2475e0 // initial cfl factor
+      cfl                      = 0.2475e0  // max cfl factor used in problem
+      cfl_init                 = 0.2475e0  // initial cfl factor
       lag_dt_computation       = FALSE
       use_ghosts_to_compute_dt = FALSE
    }
@@ -158,16 +158,16 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/2     // zero to turn off
+   viz_dump_interval     = NFINEST/2   // zero to turn off
    viz_dump_dirname      = "viz_IB3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval        =  0          // zero to turn off
-   restart_write_dirname   = "restart_IB3d"
+   restart_interval      = 0           // zero to turn off
+   restart_write_dirname = "restart_IB3d"
 
 // timer dump parameters
-   timer_dump_interval     = 0           // zero to turn off
+   timer_dump_interval   = 0           // zero to turn off
 }
 
 CartesianGeometry {

@@ -18,7 +18,7 @@ RHO = 1.0
 MAX_LEVELS = 5   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 32                                    // coarsest grid spacing
+N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 16.0                                  // width of computational domain
 
@@ -32,15 +32,15 @@ IBHierarchyIntegrator {
 
    enable_logging = TRUE
 
-   regrid_interval = 32
+   regrid_interval = 16
    dt_max = 0.125*dx
    delta_fcn = "IB_6"
 }
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_4 = "cylinder3d_256"
-   cylinder3d_256 {
+   base_filenames_4 = "cylinder3d_128"
+   cylinder3d_128 {
       uniform_target_stiffness = 2560.0/NFINEST
    }
 }
@@ -52,7 +52,7 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 2 , 2 , 4
+   tag_buffer = 2 , 2 , 2 , 4
 
    conservation_form = FALSE
 
@@ -95,8 +95,8 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.2475e0 // max cfl factor used in problem
-      cfl_init                 = 0.2475e0 // initial cfl factor
+      cfl                      = 0.2475e0  // max cfl factor used in problem
+      cfl_init                 = 0.2475e0  // initial cfl factor
       lag_dt_computation       = FALSE
       use_ghosts_to_compute_dt = FALSE
    }

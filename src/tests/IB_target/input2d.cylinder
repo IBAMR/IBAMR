@@ -20,7 +20,7 @@ REF_RATIO  = 2   // refinement ratio between levels
 
 N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
-L = 16.0                                  // height of computational domain
+L = 16.0                                  // width of computational domain
 
 dx = L/NFINEST
 
@@ -179,16 +179,16 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/2     // zero to turn off
+   viz_dump_interval     = NFINEST/2   // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval        =  0          // zero to turn off
-   restart_write_dirname   = "restart_IB2d"
+   restart_interval      = 0           // zero to turn off
+   restart_write_dirname = "restart_IB2d"
 
 // timer dump parameters
-   timer_dump_interval     = 0           // zero to turn off
+   timer_dump_interval   = 0           // zero to turn off
 }
 
 CartesianGeometry {
