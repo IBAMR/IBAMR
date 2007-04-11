@@ -133,10 +133,10 @@ HierarchyProjector {
 
       hypre_solver {
          solver_type = "PFMG"
-         rap_type = 1
-         relax_type = 3
-         num_pre_relax_steps   = 2
-         num_post_relax_steps  = 2
+         rap_type = 0
+         relax_type = 1
+         num_pre_relax_steps   = 3
+         num_post_relax_steps  = 3
          max_iterations        = 1
          relative_residual_tol = 1.0e-12
          enable_logging = FALSE
@@ -147,7 +147,7 @@ HierarchyProjector {
       max_cycles = 1
       residual_tol = 1.0e-12
       num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 3
+      num_post_sweeps = 2
    }
 }
 
@@ -185,6 +185,10 @@ GriddingAlgorithm {
       level_1 = REF_RATIO,REF_RATIO,REF_RATIO  // vector ratio to next coarser level
       level_2 = REF_RATIO,REF_RATIO,REF_RATIO
       level_3 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_6 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_7 = REF_RATIO,REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {

@@ -191,8 +191,8 @@ EXTRA_DIST = input2d.cylinder input3d.cylinder input3d.sphere \
 	cylinder3d_128.vertex cylinder3d_256.vertex \
 	cylinder3d_512.vertex sphere3d_64.vertex sphere3d_128.vertex \
 	sphere3d_256.vertex sphere3d_64.spring sphere3d_128.spring \
-	sphere3d_256.spring generate_cylinder2d.m compute_St.m \
-	mesh_sphere.C
+	sphere3d_256.spring generate_cylinder2d.m \
+	generate_cylinder3d.m compute_St.m generate_sphere3d.C
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/stools/src/libSTOOLS2d.a $(top_builddir)/stools/src/libSTOOLS.a
 main2d_SOURCES = $(SOURCES)

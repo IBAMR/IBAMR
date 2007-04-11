@@ -15,7 +15,7 @@ MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 4   // maximum number of levels in locally refined grid
+MAX_LEVELS = 5   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
 N = 32                                    // coarsest grid spacing
@@ -39,8 +39,8 @@ IBHierarchyIntegrator {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_3 = "cylinder3d_128"
-   cylinder3d_128 {
+   base_filenames_4 = "cylinder3d_256"
+   cylinder3d_256 {
       uniform_target_stiffness = 2560.0/NFINEST
    }
 }
@@ -131,9 +131,11 @@ HierarchyProjector {
       cf_discretization = "Ewing"
 
       hypre_solver {
-         solver_type = "SMG"
-         num_pre_relax_steps   = 1
-         num_post_relax_steps  = 1
+         solver_type = "PFMG"
+         rap_type = 0
+         relax_type = 1
+         num_pre_relax_steps   = 3
+         num_post_relax_steps  = 3
          max_iterations        = 1
          relative_residual_tol = 1.0e-12
          enable_logging = FALSE
@@ -182,6 +184,10 @@ GriddingAlgorithm {
       level_1 = REF_RATIO,REF_RATIO,REF_RATIO  // vector ratio to next coarser level
       level_2 = REF_RATIO,REF_RATIO,REF_RATIO
       level_3 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_6 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_7 = REF_RATIO,REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {

@@ -16,10 +16,10 @@ stiffness = 1.0/num_layers;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Step 1: Write out the vertex information
-vertex_fid = fopen(["shell2d_" num2str(16*NFINEST) ".vertex"], "w");
+vertex_fid = fopen(['shell2d_' num2str(16*NFINEST) '.vertex'], 'w');
 
 % first line is the number of vertices in the file
-fprintf(vertex_fid, "%d\n", num_layers*num_nodes);
+fprintf(vertex_fid, '%d\n', num_layers*num_nodes);
 
 % remaining lines are the initial coordinates of each vertex
 for r = 0:num_layers-1
@@ -28,7 +28,7 @@ for r = 0:num_layers-1
     delta_r = width*((r+0.5)/num_layers - 0.5);
     X(1) = 0.5 + (alpha+delta_r)*cos(theta);
     X(2) = 0.5 + (beta +delta_r)*sin(theta);
-    fprintf(vertex_fid, "%1.16e %1.16e\n", X(1), X(2));
+    fprintf(vertex_fid, '%1.16e %1.16e\n', X(1), X(2));
   end %for
 end %for
 
@@ -38,10 +38,10 @@ fclose(vertex_fid);
 
 % Step 2: Write out the link information (including connectivity and
 % material parameters).
-spring_fid = fopen(["shell2d_" num2str(16*NFINEST) ".spring"], "w");
+spring_fid = fopen(['shell2d_' num2str(16*NFINEST) '.spring'], 'w');
 
 % first line is the number of edges in the file
-fprintf(spring_fid, "%d\n", num_layers*num_nodes);
+fprintf(spring_fid, '%d\n', num_layers*num_nodes);
 
 % remaining lines are the edges in the mesh
 for r = 0:num_layers-1
@@ -62,7 +62,7 @@ for r = 0:num_layers-1
     kappa = r_fac*stiffness*num_nodes;  % scale by 1/ds = num_nodes
     rest_length = 0.0;                  % resting length of link
 
-    fprintf(spring_fid, "%6d %6d %1.16e %1.16e\n", current_idx, next_idx, ...
+    fprintf(spring_fid, '%6d %6d %1.16e %1.16e\n', current_idx, next_idx, ...
             kappa, rest_length);
   end %for
 end %for

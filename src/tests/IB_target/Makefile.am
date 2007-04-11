@@ -9,7 +9,7 @@ EXTRA_DIST += cylinder2d_256.spring cylinder2d_512.spring cylinder2d_1024.spring
 EXTRA_DIST += cylinder3d_128.vertex cylinder3d_256.vertex cylinder3d_512.vertex
 EXTRA_DIST += sphere3d_64.vertex sphere3d_128.vertex sphere3d_256.vertex
 EXTRA_DIST += sphere3d_64.spring sphere3d_128.spring sphere3d_256.spring
-EXTRA_DIST += generate_cylinder2d.m compute_St.m mesh_sphere.C
+EXTRA_DIST += generate_cylinder2d.m generate_cylinder3d.m compute_St.m generate_sphere3d.C
 
 check_PROGRAMS = main2d main3d
 check-local:

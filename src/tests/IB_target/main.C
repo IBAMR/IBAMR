@@ -451,7 +451,6 @@ int main(int argc, char* argv[])
             }
         }
 
-#if (NDIM == 2)
         /*
          * Open files to output the lift and drag coefficients.
          */
@@ -478,7 +477,6 @@ int main(int argc, char* argv[])
                 lift_stream << 0.0 << " " << 0.0 << endl;
             }
         }
-#endif
 
         /*
          * Time step loop.  Note that the step count and integration
@@ -510,20 +508,18 @@ int main(int argc, char* argv[])
             tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
             tbox::pout <<                                                       endl;
 
-#if (NDIM == 2)
             /*
              * Compute the drag and lift coefficients by integrating
              * the components of the Lagrangian force field over the
              * computational domain.
              */
             const int ln = patch_hierarchy->getFinestLevelNumber();
-            LDataManager* lag_data_manager = LDataManager::getManager(
-                "IBHierarchyIntegrator::LDataManager");
-            tbox::Pointer<LNodeLevelData> X_data = lag_data_manager->getLNodeLevelData("X",ln);
-            tbox::Pointer<LNodeLevelData> F_data = lag_data_manager->createLNodeLevelData("F",ln,NDIM);
+            LDataManager* lag_manager = time_integrator->getLDataManager();
+            tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X",ln);
+            tbox::Pointer<LNodeLevelData> F_data = lag_manager->createLNodeLevelData("F",ln,NDIM);
             force_generator->computeLagrangianForce(
                 F_data, X_data,
-                patch_hierarchy, ln, loop_time, lag_data_manager);
+                patch_hierarchy, ln, loop_time, lag_manager);
 
             double F_D = 0.0;
             double F_L = 0.0;
@@ -548,7 +544,6 @@ int main(int argc, char* argv[])
                 drag_stream << loop_time << " " << F_D/radius << endl;
                 lift_stream << loop_time << " " << F_L/radius << endl;
             }
-#endif
 
             /*
              * At specified intervals, write restart and visualization files.
@@ -588,7 +583,6 @@ int main(int argc, char* argv[])
             }
         }
 
-#if (NDIM == 2)
         /*
          * Close the files used to store the lift and drag
          * coefficients.
@@ -598,7 +592,6 @@ int main(int argc, char* argv[])
             drag_stream.close();
             lift_stream.close();
         }
-#endif
     }// cleanup all smart Pointers prior to shutdown
 
     tbox::SAMRAIManager::shutdown();
