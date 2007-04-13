@@ -10,7 +10,7 @@ MUSCL_LIMITED = 3
 
 // physical parameters
 R = 0.5             // the cylinder radius
-Re = 200.0          // the desired Reynolds number (Re)
+Re = 100.0          // the desired Reynolds number (Re)
 MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 RHO = 1.0
 
