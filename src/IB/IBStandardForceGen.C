@@ -1,6 +1,6 @@
 // Filename: IBStandardForceGen.C
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <03.Apr.2007 21:14:56 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Apr.2007 03:40:43 boyce@bigboy.nyconnect.com>
 
 #include "IBStandardForceGen.h"
 
@@ -28,25 +28,43 @@ IBStandardForceGen::IBStandardForceGen(
     SAMRAI::tbox::Pointer<IBSpringForceGen> spring_force_gen,
     SAMRAI::tbox::Pointer<IBBeamForceGen> beam_force_gen,
     SAMRAI::tbox::Pointer<IBTargetPointForceGen> target_point_force_gen)
-    : d_spring_force_gen(spring_force_gen),
-      d_beam_force_gen(beam_force_gen),
-      d_target_point_force_gen(target_point_force_gen)
+    : d_force_strategy_set(NULL)
 {
-    if (d_spring_force_gen.isNull())
+    std::vector<SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> > strategy_set;
+
+    if (spring_force_gen.isNull())
     {
         TBOX_WARNING("IBStandardForceGen::initializeLevelData():\n"
                      << "  spring forces disabled." << endl);
     }
-    if (d_beam_force_gen.isNull())
+    else
+    {
+        strategy_set.push_back(spring_force_gen);
+    }
+
+    if (beam_force_gen.isNull())
     {
         TBOX_WARNING("IBStandardForceGen::initializeLevelData():\n"
                      << "  beam forces disabled." << endl);
     }
-    if (d_target_point_force_gen.isNull())
+    else
+    {
+        strategy_set.push_back(beam_force_gen);
+    }
+
+    if (target_point_force_gen.isNull())
     {
         TBOX_WARNING("IBStandardForceGen::initializeLevelData():\n"
                      << "  target point forces disabled." << endl);
     }
+    else
+    {
+        strategy_set.push_back(target_point_force_gen);
+    }
+
+    d_force_strategy_set = new IBLagrangianForceStrategySet(
+        strategy_set.begin(), strategy_set.end());
+
     return;
 }// IBStandardForceGen
 
@@ -64,26 +82,8 @@ IBStandardForceGen::initializeLevelData(
     const bool initial_time,
     LDataManager* const lag_manager)
 {
-    // Initialize the spring force generator.
-    if (!d_spring_force_gen.isNull())
-    {
-        d_spring_force_gen->initializeLevelData(
-            hierarchy, level_number, init_data_time, initial_time, lag_manager);
-    }
-
-    // Initialize the beam force generator.
-    if (!d_beam_force_gen.isNull())
-    {
-        d_beam_force_gen->initializeLevelData(
-            hierarchy, level_number, init_data_time, initial_time, lag_manager);
-    }
-
-    // Initialize the target point force generator.
-    if (!d_target_point_force_gen.isNull())
-    {
-        d_target_point_force_gen->initializeLevelData(
-            hierarchy, level_number, init_data_time, initial_time, lag_manager);
-    }
+    d_force_strategy_set->initializeLevelData(
+        hierarchy, level_number, init_data_time, initial_time, lag_manager);
     return;
 }// initializeLevelData
 
@@ -96,26 +96,8 @@ IBStandardForceGen::computeLagrangianForce(
     const double data_time,
     LDataManager* const lag_manager)
 {
-    // Compute the spring forces.
-    if (!d_spring_force_gen.isNull())
-    {
-        d_spring_force_gen->computeLagrangianForce(
-            F_data, X_data, hierarchy, level_number, data_time, lag_manager);
-    }
-
-    // Compute the beam forces.
-    if (!d_beam_force_gen.isNull())
-    {
-        d_beam_force_gen->computeLagrangianForce(
-            F_data, X_data, hierarchy, level_number, data_time, lag_manager);
-    }
-
-    // Compute the target point forces.
-    if (!d_target_point_force_gen.isNull())
-    {
-        d_target_point_force_gen->computeLagrangianForce(
-            F_data, X_data, hierarchy, level_number, data_time, lag_manager);
-    }
+    d_force_strategy_set->computeLagrangianForce(
+        F_data, X_data, hierarchy, level_number, data_time, lag_manager);
     return;
 }// computeLagrangianForce
 

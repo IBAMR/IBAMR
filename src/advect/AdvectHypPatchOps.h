@@ -2,7 +2,7 @@
 #define included_AdvectHypPatchOps
 
 // Filename: AdvectHypPatchOps.h
-// Last modified: <11.Apr.2007 03:37:03 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 02:33:34 boyce@bigboy.nyconnect.com>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -44,8 +44,9 @@
 namespace IBAMR
 {
 /*!
- * \brief SAMRAI::algs::HyperbolicPatchStrategy interface for the
- * GodunovAdvector class.
+ * \brief Class AdvectHypPatchOps is a concrete
+ * SAMRAI::algs::HyperbolicPatchStrategy that makes use of class GodunovAdvector
+ * to solve the linear advection equation.
  *
  * Class AdvectHypPatchOps provides numerical routines for solving the advection
  * equation in conservative form, \f[

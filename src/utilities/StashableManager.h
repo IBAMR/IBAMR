@@ -3,7 +3,7 @@
 
 // Filename: StashableManager.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <11.Apr.2007 02:12:44 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 04:11:52 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -23,9 +23,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Singleton manager class to handle object packing and unpacking for
- * SAMRAI::tbox::AbstractStream based communication using the Stashable and
- * StashableFactory interfaces.
+ * \brief Class StashableManager is a singleton manager class that handles
+ * object packing and unpacking for SAMRAI::tbox::AbstractStream based
+ * communication via the Stashable and StashableFactory interfaces.
  *
  * \see Stashable
  * \see StashableFactory

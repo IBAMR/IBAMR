@@ -3,7 +3,7 @@
 
 // Filename: StashableFactory.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <11.Apr.2007 02:11:44 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 04:12:04 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -21,11 +21,14 @@
 namespace IBAMR
 {
 /*!
- * \brief Interface to facilitate object unpacking for tbox::AbstractStream
- * based communication.
+ * \brief Class StashableFactory is an abstract interface for unpacking
+ * Stashable objects from SAMRAI::tbox::AbstractStream data streams.
+ *
+ * \note Each concrete Stashable class must have a corresponding concrete
+ * StashableFactory class.
  *
  * \note Class StashableManager should be used for all communications and
- * storage operations.  Do not directly use StashableFactory objects.
+ * storage operations.
  *
  * \see Stashable
  * \see StashableManager

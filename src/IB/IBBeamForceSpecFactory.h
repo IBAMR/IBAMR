@@ -2,7 +2,7 @@
 #define included_IBBeamForceSpecFactory
 
 // Filename: IBBeamForceSpecFactory.h
-// Last modified: <11.Apr.2007 04:05:32 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 03:20:42 boyce@bigboy.nyconnect.com>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,8 +21,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBBeamForceFactory is a factory class to rebuild IBBeamForceSpec
- * objects from a data stream.
+ * \brief Class IBBeamForceSpecFactory is a factory class to rebuild
+ * IBBeamForceSpec objects from SAMRAI::tbox::AbstractStream data streams.
  */
 class IBBeamForceSpecFactory
     : public StashableFactory

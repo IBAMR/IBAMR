@@ -3,7 +3,7 @@
 
 // Filename: IBLagrangianForceStrategy.h
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <11.Apr.2007 03:59:41 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 03:33:14 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -21,8 +21,18 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBLagrangianForceStrategy provides a mechanism for specifying
- * forces on the curvilinear mesh.
+ * \brief Class IBLagrangianForceStrategy provides a generic interface for
+ * specifying forces (\em not force densities!) on the Lagrangian curvilinear
+ * mesh.
+ *
+ * \note Implementations of class IBLagrangianForceStrategy must compute the
+ * total \em force and \em not the force density.
+ *
+ * \see IBBeamForceGen
+ * \see IBLagrangianForceStrategySet
+ * \see IBSpringForceGen
+ * \see IBStandardForceGen
+ * \see IBTargetPointForceGen
  */
 class IBLagrangianForceStrategy
     : public virtual SAMRAI::tbox::DescribedClass

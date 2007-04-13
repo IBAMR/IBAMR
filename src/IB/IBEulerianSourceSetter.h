@@ -3,7 +3,7 @@
 
 // Filename: IBEulerianForceSetter.h
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <11.Apr.2007 03:51:36 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 03:09:14 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -20,8 +20,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Simple class to specify sources and sinks on the Eulerian grid during
- * an IB computation.
+ * \brief Class IBEulerianForceSetter is used to communicate the Eulerian fluid
+ * source/sink distribution computed by class IBHierarchyIntegrator to the
+ * incompressible Navier-Stokes solver.
  */
 class IBEulerianSourceSetter
     : public STOOLS::SetDataStrategy

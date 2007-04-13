@@ -3,7 +3,7 @@
 
 // Filename: Stashable.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <11.Apr.2007 02:11:25 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 04:12:15 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -17,11 +17,14 @@
 namespace IBAMR
 {
 /*!
- * \brief Interface to facilitate object packing for tbox::AbstractStream based
- * communication.
+ * \brief Class Stashable is an abstract interface for objects that can be
+ * packed into SAMRAI::tbox::AbstractStream data streams.
+ *
+ * \note Each concrete Stashable class must have a corresponding concrete
+ * StashableFactory class.
  *
  * \note Class StashableManager should be used for all communications and
- * storage operations.  Do not directly use Stashable objects.
+ * storage operations.
  *
  * \see StashableFactory
  * \see StashableManager

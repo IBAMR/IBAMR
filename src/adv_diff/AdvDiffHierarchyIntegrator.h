@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <11.Apr.2007 03:47:36 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 02:44:26 boyce@bigboy.nyconnect.com>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -53,22 +53,25 @@
 namespace IBAMR
 {
 /*!
- * Class AdvDiffHierarchyIntegrator manages the spatial discretization and time
- * integration of quantities, Q, whose dynamics are specified by the
- * advection-diffusion equation.  Each quantity managed by the integrator may
- * have a unique diffusion coefficient, mu, and may optionally have a forcing
- * term, F.  Only one advection velocity, u, may be registered with the
- * integrator.
+ * \brief Class AdvDiffHierarchyIntegrator manages the spatial discretization
+ * and time integration of scalar- and vector-valued quantities whose dynamics
+ * are specified by the advection-diffusion equation.
+ *
+ * Each quantity \f$ Q \f$ managed by the integrator may have a unique diffusion
+ * coefficient \f$ \mu \f$ and may optionally have a forcing term \f$ F \f$.
+ * Only one advection velocity \f$ \vec{u}^{\mbox{\scriptsize ADV}} \f$ may be
+ * registered with the integrator.
  *
  * This integrator employs adaptive local spatial refinement.  All levels of the
  * patch hierarchy are synchronously integrated in time.  In particular,
- * subcycling in time is not employed.
+ * subcycling in time is \em not performed.
  *
  * The trapezoidal rule is employed for the implicit treatment of the diffusive
  * terms.  The advective terms are discretized by the GodunovAdvector object
  * supplied to the constructor.
  *
  * \see GodunovAdvector
+ * \see AdvDiffHypPatchOps
  * \see SAMRAI::algs::HyperbolicLevelIntegrator
  * \see SAMRAI::mesh::StandardTagAndInitStrategy
  * \see SAMRAI::algs::TimeRefinementIntegrator
@@ -79,14 +82,6 @@ class AdvDiffHierarchyIntegrator
       public virtual SAMRAI::tbox::Serializable
 {
 public:
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;
-    typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* >                                 RefinePatchStrategyMap;
-    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineSchedMap;
-
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;
-    typedef std::map<std::string,SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* >                                 CoarsenPatchStrategyMap;
-    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
-
     /*!
      * The constructor for AdvDiffHierarchyIntegrator sets some default values,
      * reads in configuration information from input and restart databases, and
@@ -784,6 +779,14 @@ protected:
     bool d_u_is_div_free;
 
 private:
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;
+    typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* >                                 RefinePatchStrategyMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineSchedMap;
+
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;
+    typedef std::map<std::string,SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* >                                 CoarsenPatchStrategyMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
+
     /*!
      * \brief Default constructor.
      *

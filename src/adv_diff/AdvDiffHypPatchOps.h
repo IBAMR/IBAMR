@@ -2,7 +2,7 @@
 #define included_AdvDiffHypPatchOps
 
 // Filename: AdvDiffHypPatchOps.h
-// Last modified: <11.Apr.2007 03:48:27 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 03:30:54 boyce@bigboy.nyconnect.com>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -25,9 +25,11 @@
 namespace IBAMR
 {
 /*!
- * \brief A specialized version of the AdvectHypPatchOps class for use with an
- * implicit time integrator for the advection-diffusion equation.
+ * \brief Class AdvDiffHypPatchOps is a version of class AdvectHypPatchOps that
+ * has been specialized for use with an implicit time integrator for the
+ * advection-diffusion equation.
  *
+ * \see AdvDiffHierarchyIntegrator
  * \see AdvectHypPatchOps
  */
 class AdvDiffHypPatchOps

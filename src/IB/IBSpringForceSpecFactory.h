@@ -2,7 +2,7 @@
 #define included_IBSpringForceSpecFactory
 
 // Filename: IBSpringForceSpecFactory.h
-// Last modified: <11.Apr.2007 04:04:08 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 03:20:53 boyce@bigboy.nyconnect.com>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,8 +21,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBSpringForceFactory is a factory class to rebuild
- * IBSpringForceSpec objects from a data stream.
+ * \brief Class IBSpringForceSpecFactory is a factory class to rebuild
+ * IBSpringForceSpec objects from SAMRAI::tbox::AbstractStream data streams.
  */
 class IBSpringForceSpecFactory
     : public StashableFactory

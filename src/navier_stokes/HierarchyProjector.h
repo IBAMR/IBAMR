@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <11.Apr.2007 02:18:28 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 03:11:27 boyce@bigboy.nyconnect.com>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -48,21 +48,14 @@
 namespace IBAMR
 {
 /*!
- * Class HierarchyProjector provides the functionality needed to exactly enforce
- * discrete incompressibility for face and side centered MAC velocity fields
- * defined on AMR grids.
+ * \brief Class HierarchyProjector provides MAC projection functionality for
+ * face- and side-centered vector fields on AMR grids.
  */
 class HierarchyProjector
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
       public virtual SAMRAI::tbox::Serializable
 {
 public:
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >               RefineAlgMap;
-    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > >  RefineSchedMap;
-
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;
-    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
-
     /*!
      * The constructor for HierarchyProjector sets some default values, reads in
      * configuration information from input and restart databases, and registers
@@ -337,6 +330,12 @@ public:
         std::ostream& os) const;
 
 private:
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >               RefineAlgMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > >  RefineSchedMap;
+
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
+
     /*!
      * \brief Default constructor.
      *

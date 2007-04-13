@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <11.Apr.2007 04:10:39 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 03:26:57 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,9 +21,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBStandardInitialier is a concrete LNodeInitStrategy that can
- * intialize the initial configuration of one or more IB structures from input
- * files.
+ * \brief Class IBStandardInitializer is a concrete LNodeInitStrategy that
+ * initializes the configuration of one or more IB structures from input files.
  *
  * \todo Document input database entries and input file formats.
  */

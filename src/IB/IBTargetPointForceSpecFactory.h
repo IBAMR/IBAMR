@@ -2,7 +2,7 @@
 #define included_IBTargetPointForceSpecFactory
 
 // Filename: IBTargetPointForceSpecFactory.h
-// Last modified: <11.Apr.2007 04:05:45 boyce@trasnaform2.local>
+// Last modified: <13.Apr.2007 03:21:13 boyce@bigboy.nyconnect.com>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,8 +21,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBTargetPointForceFactory is a factory class to rebuild
- * IBTargetPointForceSpec objects from a data stream.
+ * \brief Class IBTargetPointForceSpecFactory is a factory class to rebuild
+ * IBTargetPointForceSpec objects from SAMRAI::tbox::AbstractStream data
+ * streams.
  */
 class IBTargetPointForceSpecFactory
     : public StashableFactory
