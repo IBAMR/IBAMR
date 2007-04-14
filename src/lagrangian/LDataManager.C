@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <11.Apr.2007 02:37:18 boyce@trasnaform2.local>
+// Last modified: <14.Apr.2007 03:06:54 boyce@trasnaform2.local>
 
 #include "LDataManager.h"
 
@@ -83,6 +83,31 @@ static const int CFL_WIDTH = 1;
 
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;
+
+inline
+SAMRAI::pdat::CellIndex<NDIM>
+get_canonical_cell_index(
+    const SAMRAI::pdat::CellIndex<NDIM>& cell_idx,
+    const SAMRAI::hier::Box<NDIM>& domain_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift)
+{
+    if (periodic_shift == SAMRAI::hier::IntVector<NDIM>(0)) return cell_idx;
+
+    if (domain_box.contains(cell_idx)) return cell_idx;
+
+    SAMRAI::pdat::CellIndex<NDIM> shifted_idx = cell_idx;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        if (shifted_idx(d) <  domain_box.lower()(d)) shifted_idx(d) += periodic_shift(d);
+        if (shifted_idx(d) >= domain_box.upper()(d)) shifted_idx(d) -= periodic_shift(d);
+    }
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(domain_box.contains(shifted_idx));
+#endif
+
+    return shifted_idx;
+}// get_canonical_cell_index
 
 struct CellIndexFortranOrder
     : binary_function<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::pdat::CellIndex<NDIM>,bool>
@@ -2215,6 +2240,9 @@ LDataManager::computeNodeDistribution(
     assert(ln >= d_coarsest_ln &&
            ln <= d_finest_ln);
 #endif
+
+    typedef std::map<SAMRAI::pdat::CellIndex<NDIM>,const LNodeIndexSet*,CellIndexFortranOrder> IndexSetMap;
+
     // Collect the Lagrangian IDs of all of the Lagrangian nodes on the
     // specified level of the patch hierarchy.
     //
@@ -2247,12 +2275,11 @@ LDataManager::computeNodeDistribution(
     local_lag_indices.clear();
     nonlocal_lag_indices.clear();
 
-    // Set all patch interior local indices on the level.
+    // Keep track of the number of local indices we've encountered so far.
     int local_offset = 0;
 
-    typedef map<SAMRAI::pdat::CellIndex<NDIM>,const LNodeIndexSet* const,CellIndexFortranOrder> IndexSetMap;
+    // Set all patch interior local indices on the level.
     IndexSetMap ghost_cell_local_map;
-
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -2261,18 +2288,14 @@ LDataManager::computeNodeDistribution(
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
         const int& patch_num = patch->getPatchNumber();
 
-        vector<int>& patch_interior_indices =
-            *patch_interior_local_indices[patch_num];
+        vector<int>& patch_interior_indices = *patch_interior_local_indices[patch_num];
         patch_interior_indices.clear();
-
-        SAMRAI::hier::Box<NDIM> interior_box = patch_box;
-        interior_box.grow(-(lag_node_index_data->getGhostCellWidth()));
 
         for (LNodeIndexData::Iterator it(*lag_node_index_data); it; it++)
         {
-            const LNodeIndexSet& id_set = it.getItem();
+            const LNodeIndexSet* const id_set = &(it.getItem());
             const SAMRAI::pdat::CellIndex<NDIM>& cell_idx = it.getIndex();
-            const LNodeIndexSet::size_type& num_ids = id_set.size();
+            const LNodeIndexSet::size_type& num_ids = id_set->size();
 
             if (patch_box.contains(cell_idx))
             {
@@ -2282,40 +2305,39 @@ LDataManager::computeNodeDistribution(
                 // We can immediately determine the local PETSc index for such
                 // nodes.
                 vector<int> cell_lag_ids(num_ids);
-                transform(id_set.begin(), id_set.end(), cell_lag_ids.begin(),
+                transform(id_set->begin(), id_set->end(), cell_lag_ids.begin(),
                           GetLagrangianIndex());
 
-                local_lag_indices.reserve(local_lag_indices.size()+num_ids);
+                local_lag_indices.reserve(
+                    local_lag_indices.size()+num_ids);
                 local_lag_indices.insert(
                     local_lag_indices.end(),
                     cell_lag_ids.begin(), cell_lag_ids.end());
 
-                for_each(id_set.begin(), id_set.end(),
+                for_each(id_set->begin(), id_set->end(),
                          SetLocalPETScIndex(local_offset));
 
-                patch_interior_indices.
-                    resize(patch_interior_indices.size()+num_ids);
+                patch_interior_indices.resize(
+                    patch_interior_indices.size()+num_ids);
                 generate(patch_interior_indices.end()-num_ids,
                          patch_interior_indices.end(),
                          SetLocalPETScIndex(local_offset));
 
                 local_offset += static_cast<int>(num_ids);
 
-                // We (may) need to be able to lookup the local indices for any
-                // nodes sufficiently close to the patch boundary.
-                if (!interior_box.contains(cell_idx))
-                {
-                    IndexSetMap::iterator lb = ghost_cell_local_map.lower_bound(cell_idx);
-                    ghost_cell_local_map.insert(lb, IndexSetMap::value_type(cell_idx,&id_set));
-                }
+                ghost_cell_local_map[cell_idx] = id_set;
             }
         }
     }
 
+    // Get the periodic shift vector and the refined domain box.
+    const SAMRAI::hier::IntVector<NDIM>& ratio = level->getRatio();
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift(ratio);
+    if (periodic_shift != SAMRAI::hier::IntVector<NDIM>(0)) assert(d_grid_geom->getDomainIsSingleBox());
+    const SAMRAI::hier::Box<NDIM> domain_box =
+        SAMRAI::hier::Box<NDIM>::refine(d_grid_geom->getPhysicalDomain()(0),ratio);
+
     // Set all remaining local and nonlocal indices on the level.
-    //
-    // VERY IMPORTANT NOTE: Changes to the following loop may break code in
-    // class LEInteractor!
     IndexSetMap ghost_cell_nonlocal_map;
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -2324,77 +2346,47 @@ LDataManager::computeNodeDistribution(
             patch->getPatchData(d_lag_node_index_current_idx);
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
         const int& patch_num = patch->getPatchNumber();
-        const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom =
-            patch->getPatchGeometry();
-        const bool patch_touches_periodic_boundary = pgeom->
-            getTouchesPeriodicBoundary();
 
         vector<int>& patch_ghost_indices = *patch_ghost_local_indices[patch_num];
         patch_ghost_indices.clear();
 
         for (LNodeIndexData::Iterator it(*lag_node_index_data); it; it++)
         {
-            const LNodeIndexSet& id_set = it.getItem();
+            const LNodeIndexSet* const id_set = &(it.getItem());
             const SAMRAI::pdat::CellIndex<NDIM>& cell_idx = it.getIndex();
-            const SAMRAI::pdat::CellIndex<NDIM>& shifted_cell_idx =
-                cell_idx - id_set.getPeriodicOffset();
-            const LNodeIndexSet::size_type& num_ids = id_set.size();
+            const LNodeIndexSet::size_type& num_ids = id_set->size();
 
             if (!patch_box.contains(cell_idx))
             {
-                if (local_boxes.contains(cell_idx))
+                const SAMRAI::pdat::CellIndex<NDIM> canonical_cell_idx =
+                    get_canonical_cell_index(cell_idx, domain_box, periodic_shift);
+                if (local_boxes.contains(canonical_cell_idx))
                 {
-                    // The nodes are local nodes, so we have to look-up their
-                    // local IDs.
-                    for_each(id_set.begin(), id_set.end(),
-                             GetLocalPETScIndexFromIDSet(
-                                 (ghost_cell_local_map[cell_idx])->begin()));
+                    assert(ghost_cell_local_map.count(canonical_cell_idx) == 1);
 
-                    patch_ghost_indices.
-                        resize(patch_ghost_indices.size()+num_ids);
+                    // The nodes are local nodes, so we just look-up their local
+                    // IDs.
+                    for_each(id_set->begin(), id_set->end(),
+                             GetLocalPETScIndexFromIDSet(
+                                 (ghost_cell_local_map[canonical_cell_idx])->begin()));
+
+                    patch_ghost_indices.resize(
+                        patch_ghost_indices.size()+num_ids);
                     generate(patch_ghost_indices.end()-num_ids,
                              patch_ghost_indices.end(),
                              GetLocalPETScIndexFromIDSet(
-                                 (ghost_cell_local_map[cell_idx])->begin()));
-                }
-                else if (patch_touches_periodic_boundary &&
-                         local_boxes.contains(shifted_cell_idx))
-                {
-                    // The nodes are periodic images of local nodes, so we have
-                    // to look-up their local IDs.
-                    for_each(id_set.begin(), id_set.end(),
-                             GetLocalPETScIndexFromIDSet(
-                                 (ghost_cell_local_map[shifted_cell_idx])->begin()));
-
-                    patch_ghost_indices.
-                        resize(patch_ghost_indices.size()+num_ids);
-                    generate(patch_ghost_indices.end()-num_ids,
-                             patch_ghost_indices.end(),
-                             GetLocalPETScIndexFromIDSet(
-                                 (ghost_cell_local_map[shifted_cell_idx])->begin()));
+                                 (ghost_cell_local_map[canonical_cell_idx])->begin()));
                 }
                 else
                 {
-                    // The nodes are not local to the processor, so we have to
-                    // assign or lookup their local IDs.
-                    IndexSetMap::iterator lb = ghost_cell_nonlocal_map.lower_bound(cell_idx);
-
-                    if (lb != ghost_cell_nonlocal_map.end() &&
-                        cell_idx == lb->first)
+                    // The nodes are not local to the processor, so we must
+                    // either assign or lookup their local IDs.
+                    if (ghost_cell_nonlocal_map.count(canonical_cell_idx) == 0)
                     {
-                        for_each(id_set.begin(), id_set.end(),
-                                 GetLocalPETScIndexFromIDSet(((*lb).second)->begin()));
-
-                        patch_ghost_indices.
-                            resize(patch_ghost_indices.size()+num_ids);
-                        generate(patch_ghost_indices.end()-num_ids,
-                                 patch_ghost_indices.end(),
-                                 GetLocalPETScIndexFromIDSet(((*lb).second)->begin()));
-                    }
-                    else
-                    {
+                        // We have not set the local IDs for this cell index, so
+                        // we must assign them.
                         vector<int> cell_lag_ids(num_ids);
-                        transform(id_set.begin(), id_set.end(), cell_lag_ids.begin(),
+                        transform(id_set->begin(), id_set->end(), cell_lag_ids.begin(),
                                   GetLagrangianIndex());
 
                         nonlocal_lag_indices.reserve(
@@ -2403,18 +2395,33 @@ LDataManager::computeNodeDistribution(
                             nonlocal_lag_indices.end(),
                             cell_lag_ids.begin(), cell_lag_ids.end());
 
-                        for_each(id_set.begin(), id_set.end(),
+                        for_each(id_set->begin(), id_set->end(),
                                  SetLocalPETScIndex(local_offset));
 
                         local_offset += static_cast<int>(num_ids);
 
-                        ghost_cell_nonlocal_map.insert(lb, IndexSetMap::value_type(cell_idx,&id_set));
+                        ghost_cell_nonlocal_map[canonical_cell_idx] = id_set;
 
-                        patch_ghost_indices.
-                            resize(patch_ghost_indices.size()+num_ids);
+                        patch_ghost_indices.resize(
+                            patch_ghost_indices.size()+num_ids);
                         generate(patch_ghost_indices.end()-num_ids,
                                  patch_ghost_indices.end(),
-                                 GetLocalPETScIndexFromIDSet(id_set.begin()));
+                                 GetLocalPETScIndexFromIDSet(id_set->begin()));
+                    }
+                    else
+                    {
+                        // We have already set the local IDs for this cell
+                        // index, so we just look-up their local IDs.
+                        for_each(id_set->begin(), id_set->end(),
+                                 GetLocalPETScIndexFromIDSet(
+                                     (ghost_cell_nonlocal_map[canonical_cell_idx])->begin()));
+
+                        patch_ghost_indices.resize(
+                            patch_ghost_indices.size()+num_ids);
+                        generate(patch_ghost_indices.end()-num_ids,
+                                 patch_ghost_indices.end(),
+                                 GetLocalPETScIndexFromIDSet(
+                                     (ghost_cell_nonlocal_map[canonical_cell_idx])->begin()));
                     }
                 }
             }
@@ -2435,9 +2442,9 @@ LDataManager::computeNodeDistribution(
     // object.
     int ierr;
 
-    // Determine how many nodes are on each processor in order to calculate the
-    // PETSc indexing scheme.
-    const int num_local_nodes    = local_lag_indices.size();
+    // Determine how many nodes are on each processor to calculate the PETSc
+    // indexing scheme.
+    const int    num_local_nodes =    local_lag_indices.size();
     const int num_nonlocal_nodes = nonlocal_lag_indices.size();
 
     if (local_offset != (num_local_nodes+num_nonlocal_nodes))
@@ -2488,9 +2495,9 @@ LDataManager::computeNodeDistribution(
         (num_proc_nodes > 0 ? &node_indices[0] : &s_ao_dummy[0]));
     PETSC_SAMRAI_ERROR(ierr);
 
-//  If desired, we can now build an ISLocalToGlobalMapping at this point.  It is
-//  not necessary to do so, since all of the information this mapping provides
-//  is encoded in d_node_offset and the two vectors d_local_lag_indices and
+//  If desired, we can build an ISLocalToGlobalMapping at this point.  It is not
+//  necessary to do so, since all of the information this mapping provides is
+//  encoded in d_node_offset and the two vectors d_local_lag_indices and
 //  d_nonlocal_lag_indices.
 //
 //  However, here is the code that you would use to build such a mapping:
