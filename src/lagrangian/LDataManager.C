@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <14.Apr.2007 03:06:54 boyce@trasnaform2.local>
+// Last modified: <14.Apr.2007 03:21:28 boyce@trasnaform2.local>
 
 #include "LDataManager.h"
 
@@ -98,8 +98,8 @@ get_canonical_cell_index(
     SAMRAI::pdat::CellIndex<NDIM> shifted_idx = cell_idx;
     for (int d = 0; d < NDIM; ++d)
     {
-        if (shifted_idx(d) <  domain_box.lower()(d)) shifted_idx(d) += periodic_shift(d);
-        if (shifted_idx(d) >= domain_box.upper()(d)) shifted_idx(d) -= periodic_shift(d);
+        if (shifted_idx(d) < domain_box.lower()(d)) shifted_idx(d) += periodic_shift(d);
+        if (shifted_idx(d) > domain_box.upper()(d)) shifted_idx(d) -= periodic_shift(d);
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2362,8 +2362,9 @@ LDataManager::computeNodeDistribution(
                     get_canonical_cell_index(cell_idx, domain_box, periodic_shift);
                 if (local_boxes.contains(canonical_cell_idx))
                 {
+#ifdef DEBUG_CHECK_ASSERTIONS
                     assert(ghost_cell_local_map.count(canonical_cell_idx) == 1);
-
+#endif
                     // The nodes are local nodes, so we just look-up their local
                     // IDs.
                     for_each(id_set->begin(), id_set->end(),
