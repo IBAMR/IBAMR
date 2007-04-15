@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <14.Apr.2007 03:21:28 boyce@trasnaform2.local>
+// Last modified: <15.Apr.2007 02:11:24 griffith@box221.cims.nyu.edu>
 
 #include "LDataManager.h"
 
@@ -98,8 +98,8 @@ get_canonical_cell_index(
     SAMRAI::pdat::CellIndex<NDIM> shifted_idx = cell_idx;
     for (int d = 0; d < NDIM; ++d)
     {
-        if (shifted_idx(d) < domain_box.lower()(d)) shifted_idx(d) += periodic_shift(d);
-        if (shifted_idx(d) > domain_box.upper()(d)) shifted_idx(d) -= periodic_shift(d);
+        if      (shifted_idx(d) < domain_box.lower()(d)) shifted_idx(d) += periodic_shift(d);
+        else if (shifted_idx(d) > domain_box.upper()(d)) shifted_idx(d) -= periodic_shift(d);
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -910,18 +910,20 @@ LDataManager::endDataRedistribution(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        const double current_time = 0.0;  // time has no meaning (!)
+        if (d_level_contains_lag_data[ln])
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(d_scratch_data);
 
-        level->allocatePatchData(d_scratch_data);
+            const double current_time = 0.0;
+            level->setTime(current_time, d_current_data);
+            level->setTime(current_time, d_scratch_data);
 
-        level->setTime(current_time, d_current_data);
-        level->setTime(current_time, d_scratch_data);
+            d_lag_node_index_bdry_fill_scheds[ln]->fillData(current_time);
 
-        d_lag_node_index_bdry_fill_scheds[ln]->fillData(current_time);
-
-        level->deallocatePatchData(d_scratch_data);
+            level->deallocatePatchData(d_scratch_data);
+        }
     }
 
     // Define the PETSc data needed to communicate the LNodeLevelData from its
@@ -1516,12 +1518,17 @@ LDataManager::initializeLevelData(
 #ifdef DEBUG_CHECK_ASSERTIONS
         assert(old_level->getLevelNumber() == level_number);
 #endif
-        level->allocatePatchData(d_scratch_data, init_data_time);
+        if (d_level_contains_lag_data[level_number])
+        {
+            level->allocatePatchData(d_scratch_data, init_data_time);
 
-        d_lag_node_index_bdry_fill_alg->
-            createSchedule(level, old_level)->fillData(init_data_time);
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > _old_level = old_level;
 
-        level->deallocatePatchData(d_scratch_data);
+            d_lag_node_index_bdry_fill_alg->
+                createSchedule(level, old_level)->fillData(init_data_time);
+
+            level->deallocatePatchData(d_scratch_data);
+        }
     }
 
     // Initialize the data on the level and, when appropriate, move data from

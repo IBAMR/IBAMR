@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <11.Apr.2007 02:54:49 boyce@trasnaform2.local>
+// Last modified: <14.Apr.2007 19:05:31 griffith@box221.cims.nyu.edu>
 
 #include "LagSiloDataWriter.h"
 
@@ -503,35 +503,35 @@ LagSiloDataWriter::LagSiloDataWriter(
       d_dump_directory_name(dump_directory_name),
       d_time_step_number(-1),
       d_hierarchy(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_nclouds(),
-      d_cloud_names(),
-      d_cloud_nmarks(),
-      d_cloud_first_lag_idx(),
-      d_nblocks(),
-      d_block_names(),
-      d_block_nelems(),
-      d_block_periodic(),
-      d_block_first_lag_idx(),
-      d_nmbs(),
-      d_mb_names(),
-      d_mb_nblocks(),
-      d_mb_nelems(),
-      d_mb_periodic(),
-      d_mb_first_lag_idx(),
-      d_nucd_meshes(),
-      d_ucd_mesh_names(),
-      d_ucd_mesh_vertices(),
-      d_ucd_mesh_edge_maps(),
-      d_coords_data(),
-      d_nvars(),
-      d_var_names(),
-      d_var_depths(),
-      d_var_data(),
-      d_src_vec(),
-      d_dst_vec(),
-      d_vec_scatter()
+      d_coarsest_ln(0),
+      d_finest_ln(0),
+      d_nclouds(d_finest_ln+1,0),
+      d_cloud_names(d_finest_ln+1),
+      d_cloud_nmarks(d_finest_ln+1),
+      d_cloud_first_lag_idx(d_finest_ln+1),
+      d_nblocks(d_finest_ln+1,0),
+      d_block_names(d_finest_ln+1),
+      d_block_nelems(d_finest_ln+1),
+      d_block_periodic(d_finest_ln+1),
+      d_block_first_lag_idx(d_finest_ln+1),
+      d_nmbs(d_finest_ln+1,0),
+      d_mb_names(d_finest_ln+1),
+      d_mb_nblocks(d_finest_ln+1),
+      d_mb_nelems(d_finest_ln+1),
+      d_mb_periodic(d_finest_ln+1),
+      d_mb_first_lag_idx(d_finest_ln+1),
+      d_nucd_meshes(d_finest_ln+1,0),
+      d_ucd_mesh_names(d_finest_ln+1),
+      d_ucd_mesh_vertices(d_finest_ln+1),
+      d_ucd_mesh_edge_maps(d_finest_ln+1),
+      d_coords_data(d_finest_ln+1,NULL),
+      d_nvars(d_finest_ln+1,0),
+      d_var_names(d_finest_ln+1),
+      d_var_depths(d_finest_ln+1),
+      d_var_data(d_finest_ln+1),
+      d_src_vec(d_finest_ln+1),
+      d_dst_vec(d_finest_ln+1),
+      d_vec_scatter(d_finest_ln+1)
 {
 #if HAVE_LIBSILO
     // intentionally blank
@@ -577,6 +577,7 @@ LagSiloDataWriter::setPatchHierarchy(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!hierarchy.isNull());
+    assert(hierarchy->getFinestLevelNumber() >= d_finest_ln);
 #endif
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
@@ -590,10 +591,11 @@ LagSiloDataWriter::resetLevels(
     const int finest_ln)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!d_hierarchy.isNull());
-    assert((coarsest_ln >= 0) &&
-           (finest_ln >= coarsest_ln) &&
-           (finest_ln <= d_hierarchy->getFinestLevelNumber()));
+    assert((coarsest_ln >= 0) && (finest_ln >= coarsest_ln));
+    if (!d_hierarchy.isNull())
+    {
+        assert(finest_ln <= d_hierarchy->getFinestLevelNumber());
+    }
 #endif
     // Destroy any un-needed PETSc objects.
     int ierr;
@@ -604,20 +606,18 @@ LagSiloDataWriter::resetLevels(
              it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = (*it).second;
-            if (v)
+            if (v != static_cast<Vec>(NULL))
             {
-                ierr = VecDestroy(v);
-                PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecDestroy(v);  PETSC_SAMRAI_ERROR(ierr);
             }
         }
         for (map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
              it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = (*it).second;
-            if (vs)
+            if (vs != static_cast<VecScatter>(NULL))
             {
-                ierr = VecScatterDestroy(vs);
-                PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecScatterDestroy(vs);  PETSC_SAMRAI_ERROR(ierr);
             }
         }
     }
@@ -628,20 +628,18 @@ LagSiloDataWriter::resetLevels(
              it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = (*it).second;
-            if (v)
+            if (v != static_cast<Vec>(NULL))
             {
-                ierr = VecDestroy(v);
-                PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecDestroy(v);  PETSC_SAMRAI_ERROR(ierr);
             }
         }
         for (map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
              it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = (*it).second;
-            if (vs)
+            if (vs != static_cast<VecScatter>(NULL))
             {
-                ierr = VecScatterDestroy(vs);
-                PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecScatterDestroy(vs);  PETSC_SAMRAI_ERROR(ierr);
             }
         }
     }
@@ -674,8 +672,8 @@ LagSiloDataWriter::resetLevels(
     d_ucd_mesh_vertices .resize(d_finest_ln+1);
     d_ucd_mesh_edge_maps.resize(d_finest_ln+1);
 
-    d_coords_data.resize(d_finest_ln+1);
-    d_nvars      .resize(d_finest_ln+1);
+    d_coords_data.resize(d_finest_ln+1,NULL);
+    d_nvars      .resize(d_finest_ln+1,0);
     d_var_names  .resize(d_finest_ln+1);
     d_var_depths .resize(d_finest_ln+1);
     d_var_data   .resize(d_finest_ln+1);

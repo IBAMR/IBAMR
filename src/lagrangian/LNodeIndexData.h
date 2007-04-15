@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndexData.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <11.Apr.2007 02:45:52 boyce@trasnaform2.local>
+// Last modified: <14.Apr.2007 21:04:56 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -62,11 +62,31 @@ public:
     virtual ~LNodeIndexData();
 
     /*!
+     * A fast copy between the source and destination.  All data is copied from
+     * the source into the destination where there is overlap in the index
+     * space.
+     */
+    virtual void copy(
+        const SAMRAI:: hier::PatchData<NDIM>& src);
+    virtual void copy2(
+        SAMRAI::hier::PatchData<NDIM>& dst) const;
+
+    /*!
+     * Copy data from the source into the destination using the designated
+     * overlap descriptor.  The overlap description should have been computed
+     * previously from computeIntersection().
+     */
+    virtual void copy(
+        const SAMRAI::hier::PatchData<NDIM>& src,
+        const SAMRAI::hier::BoxOverlap<NDIM>& overlap);
+    virtual void copy2(
+        SAMRAI::hier::PatchData<NDIM>& dst,
+        const SAMRAI::hier::BoxOverlap<NDIM>& overlap) const;
+
+    /*!
      * The SAMRAI::hier::PatchData<NDIM> functionality of LNodeIndexData is
      * provided by the SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet> class.
      */
-    using SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet>::copy;
-    using SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet>::copy2;
     using SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet>::canEstimateStreamSizeFromBox;
     using SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet>::getDataStreamSize;
     using SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet>::packStream;

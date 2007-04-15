@@ -1,6 +1,6 @@
 // Filename: LNodeIndexSet.I
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <25.Oct.2006 18:27:56 boyce@bigboy.nyconnect.com>
+// Last modified: <14.Apr.2007 21:31:17 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
