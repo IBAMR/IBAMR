@@ -1,5 +1,5 @@
 // Filename: NormalVelocityBcCoefAdapter.C
-// Last modified: <11.Apr.2007 02:30:03 boyce@trasnaform2.local>
+// Last modified: <15.Apr.2007 15:54:28 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "NormalVelocityBcCoefAdapter.h"

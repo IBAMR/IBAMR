@@ -38,7 +38,7 @@ DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(top_srcdir)/config/Make-rules \
 	$(top_srcdir)/config/make.inc.in $(top_srcdir)/configure \
 	$(top_srcdir)/sample/IB/Makefile.in \
-	$(top_srcdir)/sample/blank_slate/Makefile.in config/depcomp \
+	$(top_srcdir)/sample/empty_project/Makefile.in config/depcomp \
 	config/install-sh config/missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -53,7 +53,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES = config/make.inc sample/IB/Makefile \
-	sample/blank_slate/Makefile
+	sample/empty_project/Makefile
 SOURCES =
 DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -283,7 +283,7 @@ config/make.inc: $(top_builddir)/config.status $(top_srcdir)/config/make.inc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 sample/IB/Makefile: $(top_builddir)/config.status $(top_srcdir)/sample/IB/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
-sample/blank_slate/Makefile: $(top_builddir)/config.status $(top_srcdir)/sample/blank_slate/Makefile.in
+sample/empty_project/Makefile: $(top_builddir)/config.status $(top_srcdir)/sample/empty_project/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 uninstall-info-am:
 
@@ -422,7 +422,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/bin $(distdir)/config $(distdir)/doc $(distdir)/include/ibamr $(distdir)/m4 $(distdir)/sample/IB $(distdir)/sample/blank_slate $(distdir)/src/utilities
+	$(mkdir_p) $(distdir)/bin $(distdir)/config $(distdir)/doc $(distdir)/include/ibamr $(distdir)/m4 $(distdir)/sample/IB $(distdir)/sample/empty_project $(distdir)/src/utilities
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

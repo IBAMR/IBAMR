@@ -3,10 +3,63 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <set>
 #include <vector>
 
 using namespace std;
+
+void
+construct_initial_triangulation(
+    vector<vector<int> >& tri,
+    const vector<vector<double> >& vertex,
+    const double& L)
+{
+    // Find all vertices that are the specified distance L from each other.
+    map<int,set<int> > vertex_map;
+    for (size_t k = 0; k < vertex.size(); ++k)
+    {
+        vertex_map[k].clear();
+        const vector<double>& X0 = vertex[k];
+        for (size_t j = k+1; j < vertex.size(); ++j)
+        {
+            const vector<double>& X1 = vertex[j];
+
+            double r = 0.0;
+            for (int d = 0; d < 3; ++d)
+            {
+                r += pow(X0[d]-X1[d],2.0);
+            }
+            r = sqrt(r);
+
+            if (abs(r-L) < sqrt(numeric_limits<double>::epsilon()))
+            {
+                vertex_map[k].insert(j);
+            }
+        }
+    }
+
+    // Use the vertex map to construct the initial triangulation.
+    for (size_t i = 0; i < vertex.size(); ++i)
+    {
+        for (set<int>::const_iterator i_it = vertex_map[i].begin();
+             i_it != vertex_map[i].end(); ++i_it)
+        {
+            const int j = (*i_it);
+            for (set<int>::const_iterator j_it = vertex_map[j].begin();
+                 j_it != vertex_map[j].end(); ++j_it)
+            {
+                const int k = (*j_it);
+                if (vertex_map[i].count(k) == 1)
+                {
+                    int T[3] = {i , j , k};
+                    tri.push_back(vector<int>(T,T+3));
+                }
+            }
+        }
+    }
+    return;
+}// construct_initial_triangulation
 
 void
 project(
@@ -104,14 +157,14 @@ main(
     static const double R = 0.5;
 
     // The desired edge length.
-    static const double target_edge_len = 0.0625;
+    static const double target_edge_len = 0.03125;
 
 #if 0
-    // Setup the initial mesh to correspond to a trapezoid.
-    double X0[3] = {-1.0 , +1.0 , +1.0};
-    double X1[3] = {+1.0 , -1.0 , +1.0};
-    double X2[3] = {-1.0 , -1.0 , -1.0};
-    double X3[3] = {+1.0 , +1.0 , -1.0};
+    // Setup the initial mesh to correspond to a tetrahedron.
+    double X0[3] = {+1.0 , +1.0 , +1.0};
+    double X1[3] = {-1.0 , -1.0 , +1.0};
+    double X2[3] = {-1.0 , +1.0 , -1.0};
+    double X3[3] = {+1.0 , -1.0 , -1.0};
 
     vector<vector<double> > vertex;
     vertex.push_back(vector<double>(X0,X0+3));
@@ -119,24 +172,18 @@ main(
     vertex.push_back(vector<double>(X2,X2+3));
     vertex.push_back(vector<double>(X3,X3+3));
 
-    const int T0[3] = {0 , 2 , 1};
-    const int T1[3] = {0 , 1 , 3};
-    const int T2[3] = {1 , 2 , 3};
-    const int T3[3] = {0 , 2 , 3};
-
     vector<vector<int> > tri;
-    tri.push_back(vector<int>(T0,T0+3));
-    tri.push_back(vector<int>(T1,T1+3));
-    tri.push_back(vector<int>(T2,T2+3));
-    tri.push_back(vector<int>(T3,T3+3));
+    construct_initial_triangulation(tri, vertex, sqrt(8.0));
+    assert(tri.size() == 4);
 #endif
 
-    // Setup the initial mesh to correspond to an octagon.
-    double X0[3] = { 0.0 ,  0.0 , -1.0};
-    double X1[3] = {-1.0 , -1.0 ,  0.0};
-    double X2[3] = {+1.0 , -1.0 ,  0.0};
-    double X3[3] = {+1.0 , +1.0 ,  0.0};
-    double X4[3] = {-1.0 , +1.0 ,  0.0};
+#if 0
+    // Setup the initial mesh to correspond to an octahedron.
+    double X0[3] = {-1.0 ,  0.0 ,  0.0};
+    double X1[3] = {+1.0 ,  0.0 ,  0.0};
+    double X2[3] = { 0.0 , -1.0 ,  0.0};
+    double X3[3] = { 0.0 , +1.0 ,  0.0};
+    double X4[3] = { 0.0 ,  0.0 , -1.0};
     double X5[3] = { 0.0 ,  0.0 , +1.0};
 
     vector<vector<double> > vertex;
@@ -147,24 +194,46 @@ main(
     vertex.push_back(vector<double>(X4,X4+3));
     vertex.push_back(vector<double>(X5,X5+3));
 
-    const int T0[3] = {0 , 2 , 1};
-    const int T1[3] = {0 , 3 , 2};
-    const int T2[3] = {0 , 4 , 3};
-    const int T3[3] = {0 , 1 , 4};
-    const int T4[3] = {5 , 1 , 2};
-    const int T5[3] = {5 , 2 , 3};
-    const int T6[3] = {5 , 3 , 4};
-    const int T7[3] = {5 , 4 , 1};
+    vector<vector<int> > tri;
+    construct_initial_triangulation(tri, vertex, sqrt(2.0));
+    assert(tri.size() == 8);
+#endif
+
+#if 1
+    // Setup the initial mesh to correspond to an icosohedron.
+    static const double phi = (1.0+sqrt(5.0))/2.0;  // the golden ratio
+
+    double  X0[3] = { 0.0 , -1.0 , -phi};
+    double  X1[3] = { 0.0 , +1.0 , -phi};
+    double  X2[3] = { 0.0 , -1.0 , +phi};
+    double  X3[3] = { 0.0 , +1.0 , +phi};
+    double  X4[3] = {-1.0 , -phi ,  0.0};
+    double  X5[3] = {+1.0 , -phi ,  0.0};
+    double  X6[3] = {-1.0 , +phi ,  0.0};
+    double  X7[3] = {+1.0 , +phi ,  0.0};
+    double  X8[3] = {-phi ,  0.0 , -1.0};
+    double  X9[3] = {+phi ,  0.0 , -1.0};
+    double X10[3] = {-phi ,  0.0 , +1.0};
+    double X11[3] = {+phi ,  0.0 , +1.0};
+
+    vector<vector<double> > vertex;
+    vertex.push_back(vector<double>( X0, X0+3));
+    vertex.push_back(vector<double>( X1, X1+3));
+    vertex.push_back(vector<double>( X2, X2+3));
+    vertex.push_back(vector<double>( X3, X3+3));
+    vertex.push_back(vector<double>( X4, X4+3));
+    vertex.push_back(vector<double>( X5, X5+3));
+    vertex.push_back(vector<double>( X6, X6+3));
+    vertex.push_back(vector<double>( X7, X7+3));
+    vertex.push_back(vector<double>( X8, X8+3));
+    vertex.push_back(vector<double>( X9, X9+3));
+    vertex.push_back(vector<double>(X10,X10+3));
+    vertex.push_back(vector<double>(X11,X11+3));
 
     vector<vector<int> > tri;
-    tri.push_back(vector<int>(T0,T0+3));
-    tri.push_back(vector<int>(T1,T1+3));
-    tri.push_back(vector<int>(T2,T2+3));
-    tri.push_back(vector<int>(T3,T3+3));
-    tri.push_back(vector<int>(T4,T4+3));
-    tri.push_back(vector<int>(T5,T5+3));
-    tri.push_back(vector<int>(T6,T6+3));
-    tri.push_back(vector<int>(T7,T7+3));
+    construct_initial_triangulation(tri, vertex, 2.0);
+    assert(tri.size() == 20);
+#endif
 
     // Project the initial vertices onto the sphere of the desired radius.
     project(vertex, R);

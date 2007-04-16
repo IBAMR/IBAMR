@@ -1,7 +1,7 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_INIT([IBAMR],[0.2-061128],[griffith AT cims DOT nyu DOT edu])
+AC_INIT([IBAMR],[070415],[griffith AT cims DOT nyu DOT edu])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config/IBAMR_config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 foreign])
@@ -311,6 +311,49 @@ else
   AC_MSG_WARN([configuring without the three-dimensional SAMRAI library])
 fi
 
+# Determine how to use the RobinBcCoefStrategy class.
+
+AC_COMPILE_IFELSE(
+  [
+#include <ArrayData.h>
+#include <BoundaryBox.h>
+#include <Box.h>
+#include <RobinBcCoefStrategy.h>
+#include <Patch.h>
+#include <Variable.h>
+
+#define NDIM 2
+
+using namespace SAMRAI;
+using namespace SAMRAI::hier;
+using namespace SAMRAI::pdat;
+using namespace SAMRAI::solv;
+using namespace SAMRAI::tbox;
+
+void foo()
+{
+    Pointer<ArrayData<NDIM,double> > acoef_data = NULL;
+    Pointer<ArrayData<NDIM,double> > bcoef_data = NULL;
+    Pointer<ArrayData<NDIM,double> > gcoef_data = NULL;
+    Pointer<Variable<NDIM> > var = NULL;
+    Box<NDIM> patch_box;
+    Patch<NDIM> patch(patch_box, NULL);
+    BoundaryBox<NDIM> bdry_box;
+    double fill_time = 0.0;
+
+    Pointer<RobinBcCoefStrategy<NDIM> > bc_coef;
+    bc_coef->setBcCoefs(
+        acoef_data, bcoef_data, gcoef_data, var,
+        patch, bdry_box, fill_time);
+
+    return;
+}
+  ],
+  [AC_DEFINE([USING_OLD_ROBIN_BC_INTERFACE],[0],
+             [Flag indicating whether we are using the RobinBcCoefStrategy interface from SAMRAI 2.1])],
+  [AC_DEFINE([USING_OLD_ROBIN_BC_INTERFACE],[1],
+             [Flag indicating whether we are using the RobinBcCoefStrategy interface from SAMRAI 2.1])])
+
 # Check for PETSc library and configure PETSc options.
 echo
 echo "=================================="
@@ -515,7 +558,7 @@ AC_CONFIG_FILES([
   Makefile
   config/make.inc
   doc/Makefile doc/Doxyfile
-  sample/IB/Makefile sample/blank_slate/Makefile
+  sample/IB/Makefile sample/empty_project/Makefile
   src/Makefile src/fortran/Makefile
   src/IB/Makefile
   src/adv_diff/Makefile src/adv_diff/fortran/Makefile

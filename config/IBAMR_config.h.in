@@ -311,5 +311,9 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
+/* Flag indicating whether we are using the RobinBcCoefStrategy interface from
+   SAMRAI 2.1 */
+#undef USING_OLD_ROBIN_BC_INTERFACE
+
 /* Version number of package */
 #undef VERSION
