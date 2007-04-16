@@ -524,7 +524,7 @@ LagSiloDataWriter::LagSiloDataWriter(
       d_ucd_mesh_names(d_finest_ln+1),
       d_ucd_mesh_vertices(d_finest_ln+1),
       d_ucd_mesh_edge_maps(d_finest_ln+1),
-      d_coords_data(d_finest_ln+1,NULL),
+      d_coords_data(d_finest_ln+1,SAMRAI::tbox::Pointer<LNodeLevelData>(NULL)),
       d_nvars(d_finest_ln+1,0),
       d_var_names(d_finest_ln+1),
       d_var_depths(d_finest_ln+1),
