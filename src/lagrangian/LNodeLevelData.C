@@ -1,6 +1,6 @@
 // Filename: LNodeLevelData.C
 // Created on 17 Apr 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <11.Apr.2007 02:49:54 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:54:05 boyce@bigboy.nyconnect.com>
 
 #include "LNodeLevelData.h"
 
@@ -91,10 +91,10 @@ LNodeLevelData::putToDatabase(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 LNodeLevelData::LNodeLevelData(
-    const string& name,
+    const std::string& name,
     const int num_local_nodes,
     const int depth,
-    const vector<int>& nonlocal_petsc_indices)
+    const std::vector<int>& nonlocal_petsc_indices)
     : d_name(name),
       d_depth(depth),
       d_nonlocal_petsc_indices(nonlocal_petsc_indices),
@@ -218,7 +218,7 @@ LNodeLevelData::LNodeLevelData(
 void
 LNodeLevelData::resetData(
     Vec& new_global_vec,
-    const vector<int>& new_nonlocal_petsc_indices)
+    const std::vector<int>& new_nonlocal_petsc_indices)
 {
     if (d_in_local_form)
     {

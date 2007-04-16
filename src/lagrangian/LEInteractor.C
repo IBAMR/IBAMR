@@ -1,6 +1,6 @@
 // Filename: LEInteractor.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <16.Apr.2007 02:52:16 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:59:30 boyce@bigboy.nyconnect.com>
 
 #include "LEInteractor.h"
 
@@ -213,7 +213,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_spread;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_spread_f77;
 
 struct GetLocalPETScIndex
-    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
+    : std::unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
 {
     inline int
     operator()(
@@ -248,7 +248,7 @@ LEInteractor::initializeTimers()
 
 int
 LEInteractor::getStencilSize(
-    const string& weighting_fcn)
+    const std::string& weighting_fcn)
 {
     if (weighting_fcn == "PIECEWISE_CUBIC") return 4;
     if (weighting_fcn == "IB_4") return 4;
@@ -270,7 +270,7 @@ LEInteractor::interpolate(
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
-    const string& interp_fcn,
+    const std::string& interp_fcn,
     const bool enforce_periodic_bcs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -302,7 +302,7 @@ LEInteractor::interpolate(
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
-    const string& interp_fcn,
+    const std::string& interp_fcn,
     const bool enforce_periodic_bcs)
 {
     t_interpolate->start();
@@ -330,7 +330,7 @@ LEInteractor::interpolate(
     const int depth = q_data->getDepth();
 
     // Generate a list of local indices which lie in the specified box.
-    vector<int> local_indices;
+    std::vector<int> local_indices;
 
     if (box == patch_box)
     {
@@ -356,15 +356,15 @@ LEInteractor::interpolate(
                 const LNodeIndexSet::size_type& num_ids = node_set.size();
 
                 local_indices.resize(local_indices.size()+num_ids);
-                transform(node_set.begin(), node_set.end(),
-                          local_indices.end()-num_ids,
-                          GetLocalPETScIndex());
+                std::transform(node_set.begin(), node_set.end(),
+                               local_indices.end()-num_ids,
+                               GetLocalPETScIndex());
             }
         }
     }
 
     // Generate the periodic offsets when necessary.
-    vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
+    std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
 
     if (enforce_periodic_bcs)
     {
@@ -511,7 +511,7 @@ LEInteractor::interpolate(
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
-    const string& interp_fcn)
+    const std::string& interp_fcn)
 {
     t_interpolate->start();
 
@@ -537,7 +537,7 @@ LEInteractor::interpolate(
     const int depth = q_data->getDepth();
 
     // Generate a list of local indices which lie in the specified box.
-    vector<int> local_indices;
+    std::vector<int> local_indices;
     for (int l = 0; l < num_vals; ++l)
     {
         const SAMRAI::pdat::CellIndex<NDIM> idx =
@@ -547,7 +547,7 @@ LEInteractor::interpolate(
     }
 
     // This routine does not have enough data to generate periodic offsets.
-    vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
+    std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
 
     // Interpolate.
     t_interpolate_f77->start();
@@ -640,7 +640,7 @@ LEInteractor::spread(
     const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
-    const string& spread_fcn,
+    const std::string& spread_fcn,
     const bool enforce_periodic_bcs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -672,7 +672,7 @@ LEInteractor::spread(
     const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
-    const string& spread_fcn,
+    const std::string& spread_fcn,
     const bool enforce_periodic_bcs)
 {
     t_spread->start();
@@ -701,7 +701,7 @@ LEInteractor::spread(
 
     // Generate a list of local indices which lie in the specified
     // box.
-    vector<int> local_indices;
+    std::vector<int> local_indices;
 
     if (box == patch_box)
     {
@@ -727,15 +727,15 @@ LEInteractor::spread(
                 const LNodeIndexSet::size_type& num_ids = node_set.size();
 
                 local_indices.resize(local_indices.size()+num_ids);
-                transform(node_set.begin(), node_set.end(),
-                          local_indices.end()-num_ids,
-                          GetLocalPETScIndex());
+                std::transform(node_set.begin(), node_set.end(),
+                               local_indices.end()-num_ids,
+                               GetLocalPETScIndex());
             }
         }
     }
 
     // Generate the periodic offsets when necessary.
-    vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
+    std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
 
     if (enforce_periodic_bcs)
     {
@@ -882,7 +882,7 @@ LEInteractor::spread(
     const int num_vals,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
-    const string& spread_fcn)
+    const std::string& spread_fcn)
 {
     t_spread->start();
 
@@ -908,7 +908,7 @@ LEInteractor::spread(
     const int depth = q_data->getDepth();
 
     // Generate a list of local indices which lie in the specified box.
-    vector<int> local_indices;
+    std::vector<int> local_indices;
     for (int l = 0; l < num_vals; ++l)
     {
         const SAMRAI::pdat::CellIndex<NDIM> idx =
@@ -918,7 +918,7 @@ LEInteractor::spread(
     }
 
     // This routine does not have enough data to generate periodic offsets.
-    vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
+    std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
 
     // Spread.
     t_spread_f77->start();

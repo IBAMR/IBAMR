@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <11.Apr.2007 02:21:55 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:59:03 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -760,7 +760,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
             for (int d = 0; d < NDIM; ++d)
             {
-                ostringstream stream;
+                std::ostringstream stream;
                 stream << d;
                 d_visit_writer->registerPlotQuantity(
                     d_F_var->getName()+stream.str(), "SCALAR",
@@ -782,7 +782,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 #if (NDIM == 3)
             for (int d = 0; d < NDIM; ++d)
             {
-                ostringstream stream;
+                std::ostringstream stream;
                 stream << d;
                 d_visit_writer->registerPlotQuantity(
                     d_Omega_var->getName()+stream.str(), "SCALAR",
@@ -2470,8 +2470,8 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
     }
 
     // Reset the "empty" schedule vectors.
-    d_rscheds["NONE"]=vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(finest_hier_level+1);
-    d_cscheds["NONE"]=vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(finest_hier_level+1);
+    d_rscheds["NONE"] = std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(finest_hier_level+1);
+    d_cscheds["NONE"] = std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(finest_hier_level+1);
 
     t_reset_hierarchy_configuration->stop();
     return;

@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <16.Apr.2007 02:35:14 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:07:10 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -522,7 +522,7 @@ public:
      */
     virtual void
     printClassData(
-        ostream& os) const;
+        std::ostream& os) const;
 
 private:
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;

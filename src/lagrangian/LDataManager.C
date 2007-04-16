@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 02:52:03 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:48:39 boyce@bigboy.nyconnect.com>
 
 #include "LDataManager.h"
 
@@ -109,7 +109,7 @@ get_canonical_cell_index(
 }// get_canonical_cell_index
 
 struct CellIndexFortranOrder
-    : binary_function<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::pdat::CellIndex<NDIM>,bool>
+    : std::binary_function<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::pdat::CellIndex<NDIM>,bool>
 {
     inline bool
     operator()(
@@ -128,11 +128,11 @@ struct CellIndexFortranOrder
 };
 
 struct BeginLNodeLevelDataNonlocalFill
-    : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
+    : std::unary_function<pair<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
 {
     inline void
     operator()(
-        const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
+        const pair<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
         {
             data.second->beginGhostUpdate();
             return;
@@ -140,7 +140,7 @@ struct BeginLNodeLevelDataNonlocalFill
 };
 
 class RestoreLNodeIndexLocationPointers
-    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
+    : std::unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
 {
 public:
     inline
@@ -165,7 +165,7 @@ private:
 };
 
 struct InvalidateLNodeIndexLocationPointers
-    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
+    : std::unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
 {
     inline void
     operator()(
@@ -177,11 +177,11 @@ struct InvalidateLNodeIndexLocationPointers
 };
 
 struct EndLNodeLevelDataNonlocalFill
-    : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
+    : std::unary_function<pair<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
 {
     inline void
     operator()(
-        const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
+        const pair<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
         {
             data.second->endGhostUpdate();
             return;
@@ -189,7 +189,7 @@ struct EndLNodeLevelDataNonlocalFill
 };
 
 struct GetLagrangianIndex
-    : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
+    : std::unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
 {
     inline int
     operator()(
@@ -200,8 +200,8 @@ struct GetLagrangianIndex
 };
 
 class SetLocalPETScIndex
-    : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
-      public unary_function<void,int>
+    : public std::unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
+      public std::unary_function<void,int>
 {
 public:
     inline
@@ -231,8 +231,8 @@ private:
 };
 
 class GetLocalPETScIndexFromIDSet
-    : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
-      public unary_function<void,int>
+    : public std::unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>,
+      public std::unary_function<void,int>
 {
 public:
     inline
@@ -262,15 +262,15 @@ private:
 };
 }
 
-const string LDataManager::COORDS_DATA_NAME   = "X";
-map<string,LDataManager*> LDataManager::s_data_manager_instances;
+const std::string LDataManager::COORDS_DATA_NAME   = "X";
+std::map<std::string,LDataManager*> LDataManager::s_data_manager_instances;
 bool LDataManager::s_registered_callback;
 unsigned char LDataManager::s_shutdown_priority = 200;
-vector<int> LDataManager::s_ao_dummy(1,-1);
+std::vector<int> LDataManager::s_ao_dummy(1,-1);
 
 LDataManager*
 LDataManager::getManager(
-    const string& name,
+    const std::string& name,
     const SAMRAI::hier::IntVector<NDIM>& ghosts,
     bool register_for_restart)
 {
@@ -292,7 +292,7 @@ LDataManager::getManager(
 void
 LDataManager::freeAllManagers()
 {
-    for (map<string,LDataManager*>::iterator it =
+    for (std::map<std::string,LDataManager*>::iterator it =
              s_data_manager_instances.begin();
          it != s_data_manager_instances.end();
          ++it)
@@ -495,7 +495,7 @@ LDataManager::getGlobalNodeOffset(
 
 SAMRAI::tbox::Pointer<LNodeLevelData>
 LDataManager::getLNodeLevelData(
-    const string& quantity_name,
+    const std::string& quantity_name,
     const int level_number)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -510,7 +510,7 @@ LDataManager::getLNodeLevelData(
 
 SAMRAI::tbox::Pointer<LNodeLevelData>
 LDataManager::createLNodeLevelData(
-    const string& quantity_name,
+    const std::string& quantity_name,
     const int level_number,
     const int depth,
     const bool maintain_data)
@@ -536,10 +536,10 @@ LDataManager::createLNodeLevelData(
         d_nonlocal_petsc_indices[level_number][depth].resize(
             d_nonlocal_petsc_indices[level_number][1].size());
 
-        transform(d_nonlocal_petsc_indices[level_number][    1].begin(),
-                  d_nonlocal_petsc_indices[level_number][    1].end(),
-                  d_nonlocal_petsc_indices[level_number][depth].begin(),
-                  bind2nd(multiplies<int>(),depth));
+        std::transform(d_nonlocal_petsc_indices[level_number][    1].begin(),
+                       d_nonlocal_petsc_indices[level_number][    1].end(),
+                       d_nonlocal_petsc_indices[level_number][depth].begin(),
+                       std::bind2nd(std::multiplies<int>(),depth));
 
         created_nonlocal_petsc_indices = true;
     }
@@ -587,7 +587,7 @@ LDataManager::getProcMappingPatchDescriptorIndex() const
 
 void
 LDataManager::mapLagrangianToPETSc(
-    vector<int>& inds,
+    std::vector<int>& inds,
     const int level_number) const
 {
     t_map_lagrangian_to_petsc->start();
@@ -609,7 +609,7 @@ LDataManager::mapLagrangianToPETSc(
 
 void
 LDataManager::mapPETScToLagrangian(
-    vector<int>& inds,
+    std::vector<int>& inds,
     const int level_number) const
 {
     t_map_petsc_to_lagrangian->start();
@@ -628,6 +628,26 @@ LDataManager::mapPETScToLagrangian(
     t_map_petsc_to_lagrangian->stop();
     return;
 }// mapPETScToLagrangian
+
+void
+LDataManager::scatterLagrangianToPETSc(
+    Vec& lagrangian_vec,
+    Vec& petsc_vec,
+    const int level_number) const
+{
+    scatterData(lagrangian_vec,petsc_vec,level_number,SCATTER_FORWARD);
+    return;
+}// scatterLagrangianToPETSc
+
+void
+LDataManager::scatterPETScToLagrangian(
+    Vec& petsc_vec,
+    Vec& lagrangian_vec,
+    const int level_number) const
+{
+    scatterData(lagrangian_vec,petsc_vec,level_number,SCATTER_REVERSE);
+    return;
+}// scatterPETScToLagrangian
 
 void
 LDataManager::beginDataRedistribution(
@@ -737,7 +757,7 @@ LDataManager::beginDataRedistribution(
                 // We only keep nodes whose new locations are in the patch
                 // interior.  That is to say, we only keep the nodes which the
                 // patch will own after redistribution.
-                typedef map<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::tbox::Pointer<LNodeIndexSet>,CellIndexFortranOrder> CellIndexMap;
+                typedef std::map<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::tbox::Pointer<LNodeIndexSet>,CellIndexFortranOrder> CellIndexMap;
                 CellIndexMap new_node_sets;
 
                 for (LNodeIndexData::Iterator it(*idx_data); it; it++)
@@ -932,22 +952,22 @@ LDataManager::endDataRedistribution(
 
     int ierr;
 
-    vector<AO> new_ao(finest_ln+1);
+    std::vector<AO> new_ao(finest_ln+1);
 
-    vector<vector<Vec> > src(finest_ln+1);
-    vector<vector<Vec> > dst(finest_ln+1);
-    vector<vector<VecScatter> > scatter(finest_ln+1);
-    vector<map<int,IS> > src_IS(finest_ln+1);
-    vector<map<int,IS> > dst_IS(finest_ln+1);
-    vector<map<int,VecScatter> > scatter_template(finest_ln+1);
+    std::vector<std::vector<Vec> > src(finest_ln+1);
+    std::vector<std::vector<Vec> > dst(finest_ln+1);
+    std::vector<std::vector<VecScatter> > scatter(finest_ln+1);
+    std::vector<std::map<int,IS> > src_IS(finest_ln+1);
+    std::vector<std::map<int,IS> > dst_IS(finest_ln+1);
+    std::vector<std::map<int,VecScatter> > scatter_template(finest_ln+1);
 
     // The number of all local (e.g., on processor) and ghost (e.g., off
     // processor) nodes.
     //
     // NOTE:  num_local_nodes   [ln] == d_local_lag_indices   [ln].size()
     //        num_nonlocal_nodes[ln] == d_nonlocal_lag_indices[ln].size()
-    vector<int> num_local_nodes   (finest_ln+1);
-    vector<int> num_nonlocal_nodes(finest_ln+1);
+    std::vector<int> num_local_nodes   (finest_ln+1);
+    std::vector<int> num_nonlocal_nodes(finest_ln+1);
 
     // Setup maps from patch numbers to the nodes indexed in the patch interior
     // and the patch ghost cell region.
@@ -964,8 +984,8 @@ LDataManager::endDataRedistribution(
     // patches---but overlapping patches are the work of the devil).  Nodes in
     // the ghost region of a patch will not in general be stored as contiguous
     // data, and no attempt is made to do so.
-    vector<map<int,vector<int>*> > patch_interior_local_indices(finest_ln+1);
-    vector<map<int,vector<int>*> > patch_ghost_local_indices   (finest_ln+1);
+    std::vector<std::map<int,std::vector<int>*> > patch_interior_local_indices(finest_ln+1);
+    std::vector<std::map<int,std::vector<int>*> > patch_ghost_local_indices   (finest_ln+1);
 
     // In the following loop over patch levels, we first compute the new
     // distribution data (e.g., all of these indices).
@@ -982,15 +1002,15 @@ LDataManager::endDataRedistribution(
         d_nonlocal_petsc_indices[ln].clear();
 
         // The destination indices.
-        vector<int> dst_inds;
+        std::vector<int> dst_inds;
         bool dst_inds_set = false;
 
         // Compute the new data distribution and start scattering.
         if (d_level_contains_lag_data[ln])
         {
-            map<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& level_data =
+            std::map<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >& level_data =
                 d_lag_quantity_data[ln];
-            const vector<int>::size_type num_data = level_data.size();
+            const std::vector<int>::size_type num_data = level_data.size();
 
             src[    ln].resize(num_data);
             dst[    ln].resize(num_data);
@@ -1031,7 +1051,7 @@ LDataManager::endDataRedistribution(
             num_local_nodes   [ln] = static_cast<int>(d_local_lag_indices   [ln].size());
             num_nonlocal_nodes[ln] = static_cast<int>(d_nonlocal_lag_indices[ln].size());
 
-            map<string, SAMRAI::tbox::Pointer<LNodeLevelData> >::iterator it;
+            std::map<std::string, SAMRAI::tbox::Pointer<LNodeLevelData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end();
                  ++it, ++i)
@@ -1056,10 +1076,10 @@ LDataManager::endDataRedistribution(
                     d_nonlocal_petsc_indices[ln][depth].
                         resize(num_nonlocal_nodes[ln]);
 
-                    transform(d_nonlocal_petsc_indices[ln][    1].begin(),
-                              d_nonlocal_petsc_indices[ln][    1].end(),
-                              d_nonlocal_petsc_indices[ln][depth].begin(),
-                              bind2nd(multiplies<int>(),depth));
+                    std::transform(d_nonlocal_petsc_indices[ln][    1].begin(),
+                                   d_nonlocal_petsc_indices[ln][    1].end(),
+                                   d_nonlocal_petsc_indices[ln][depth].begin(),
+                                   std::bind2nd(std::multiplies<int>(),depth));
                 }
 
                 // Determine the PETSc indices of the source nodes for use when
@@ -1113,10 +1133,10 @@ LDataManager::endDataRedistribution(
                     }
                     else
                     {
-                        vector<int> scaled_dst_inds(dst_inds.size());
-                        transform(dst_inds.begin(), dst_inds.end(),
-                                  scaled_dst_inds.begin(),
-                                  bind2nd(multiplies<int>(),depth));
+                        std::vector<int> scaled_dst_inds(dst_inds.size());
+                        std::transform(dst_inds.begin(), dst_inds.end(),
+                                       scaled_dst_inds.begin(),
+                                       std::bind2nd(std::multiplies<int>(),depth));
 
                         ierr = ISCreateBlock(PETSC_COMM_WORLD,
                                              depth, num_local_nodes[ln],
@@ -1191,10 +1211,10 @@ LDataManager::endDataRedistribution(
     {
         if (d_level_contains_lag_data[ln])
         {
-            map<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& level_data =
+            std::map<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >& level_data =
                 d_lag_quantity_data[ln];
 
-            map<string,SAMRAI::tbox::Pointer<LNodeLevelData> >::iterator it;
+            std::map<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end();
                  ++it, ++i)
@@ -1235,14 +1255,14 @@ LDataManager::endDataRedistribution(
         }
         d_ao[ln] = new_ao[ln];
 
-        for (map<int,IS>::iterator it = src_IS[ln].begin();
+        for (std::map<int,IS>::iterator it = src_IS[ln].begin();
              it != src_IS[ln].end(); ++it)
         {
             ierr = ISDestroy((*it).second);
             PETSC_SAMRAI_ERROR(ierr);
         }
 
-        for (map<int,IS>::iterator it = dst_IS[ln].begin();
+        for (std::map<int,IS>::iterator it = dst_IS[ln].begin();
              it != dst_IS[ln].end(); ++it)
         {
             ierr = ISDestroy((*it).second);
@@ -1886,17 +1906,17 @@ LDataManager::putToDatabase(
     // Write out data that is stored on a level-by-level basis.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        ostringstream stream;
+        std::ostringstream stream;
         stream << "level_" << ln;
-        const string level_db_name = stream.str();
+        const std::string level_db_name = stream.str();
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> level_db = db->putDatabase(level_db_name);
 
         level_db->putBool("d_level_contains_lag_data", d_level_contains_lag_data[ln]);
 
         if (d_level_contains_lag_data[ln])
         {
-            vector<string> ldata_names;
-            for (map<string,SAMRAI::tbox::Pointer<LNodeLevelData> >::iterator it =
+            std::vector<std::string> ldata_names;
+            for (std::map<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >::iterator it =
                      d_lag_quantity_data[ln].begin();
                  it != d_lag_quantity_data[ln].end(); ++it)
             {
@@ -1955,7 +1975,7 @@ LDataManager::putToDatabase(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 LDataManager::LDataManager(
-    const string& object_name,
+    const std::string& object_name,
     const SAMRAI::hier::IntVector<NDIM>& ghosts,
     bool register_for_restart)
     : d_object_name(object_name),
@@ -2158,6 +2178,75 @@ LDataManager::~LDataManager()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
+LDataManager::scatterData(
+    Vec& lagrangian_vec,
+    Vec& petsc_vec,
+    const int level_number,
+    ScatterMode mode) const
+{
+    int ierr;
+
+    // Get the vector sizes.
+    int petsc_size, lagrangian_size;
+    ierr = VecGetSize(petsc_vec, &petsc_size);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecGetSize(lagrangian_vec, &lagrangian_size);  PETSC_SAMRAI_ERROR(ierr);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(petsc_size == lagrangian_size);
+#endif
+    int petsc_bs, lagrangian_bs;
+    ierr = VecGetBlockSize(petsc_vec, &petsc_bs);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecGetBlockSize(lagrangian_vec, &lagrangian_bs);  PETSC_SAMRAI_ERROR(ierr);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(petsc_bs == lagrangian_bs);
+#endif
+    const int depth = petsc_bs;
+
+    int lagrangian_lo, lagrangian_hi;
+    ierr = VecGetOwnershipRange(lagrangian_vec, &lagrangian_lo, &lagrangian_hi);  PETSC_SAMRAI_ERROR(ierr);
+
+    // Setup the IS data used to generate the VecScatters that redistribute the
+    // data into the Lagrangian indexing scheme.
+    std::vector<int> ref_is_idxs(lagrangian_hi-lagrangian_lo);
+    for (size_t k = 0; k < ref_is_idxs.size(); ++k)
+    {
+        ref_is_idxs[k] = lagrangian_lo+k;
+    }
+
+    // Map Lagrangian indices to PETSc indices.
+    std::vector<int> ao_dummy(1,-1);
+    ierr = AOApplicationToPetsc(
+        d_ao[level_number],
+        (!ref_is_idxs.empty() ? static_cast<int>(ref_is_idxs.size()) : static_cast<int>(ao_dummy.size())),
+        (!ref_is_idxs.empty() ? &ref_is_idxs[0]                      : &ao_dummy[0]));  PETSC_SAMRAI_ERROR(ierr);
+
+    // Create the VecScatter object.
+    std::vector<int> petsc_is_idxs(ref_is_idxs.size());
+    std::transform(ref_is_idxs.begin(), ref_is_idxs.end(),
+                   petsc_is_idxs.begin(),
+                   std::bind2nd(std::multiplies<int>(),depth));
+
+    IS petsc_is;
+    ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, petsc_is_idxs.size(),
+                         &petsc_is_idxs[0], &petsc_is);  PETSC_SAMRAI_ERROR(ierr);
+
+    VecScatter vec_scatter;
+    ierr = VecScatterCreate(petsc_vec, petsc_is, lagrangian_vec,
+                            PETSC_NULL, &vec_scatter);  PETSC_SAMRAI_ERROR(ierr);
+
+    // Scatter the values.
+    ierr = VecScatterBegin(petsc_vec, lagrangian_vec, INSERT_VALUES,
+                           mode, vec_scatter);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecScatterEnd(petsc_vec, lagrangian_vec, INSERT_VALUES,
+                         mode, vec_scatter);  PETSC_SAMRAI_ERROR(ierr);
+
+    // Cleanup allocated data.
+    ierr = ISDestroy(petsc_is);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecScatterDestroy(vec_scatter);  PETSC_SAMRAI_ERROR(ierr);
+
+    return;
+}// scatterData
+
+void
 LDataManager::beginNonlocalDataFill(
     const int coarsest_ln_in,
     const int finest_ln_in)
@@ -2182,7 +2271,7 @@ LDataManager::beginNonlocalDataFill(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        map<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& level_data =
+        std::map<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >& level_data =
             d_lag_quantity_data[ln];
         for_each(level_data.begin(), level_data.end(),
                  BeginLNodeLevelDataNonlocalFill());
@@ -2217,7 +2306,7 @@ LDataManager::endNonlocalDataFill(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        map<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& level_data =
+        std::map<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >& level_data =
             d_lag_quantity_data[ln];
         for_each(level_data.begin(), level_data.end(),
                  EndLNodeLevelDataNonlocalFill());
@@ -2229,15 +2318,15 @@ LDataManager::endNonlocalDataFill(
 
 int
 LDataManager::computeNodeDistribution(
-    vector<int>& local_lag_indices,
-    vector<int>& nonlocal_lag_indices,
+    std::vector<int>& local_lag_indices,
+    std::vector<int>& nonlocal_lag_indices,
     AO& ao,
-    vector<int>& local_petsc_indices,
-    vector<int>& nonlocal_petsc_indices,
+    std::vector<int>& local_petsc_indices,
+    std::vector<int>& nonlocal_petsc_indices,
     int& num_nodes,
     int& node_offset,
-    map<int,vector<int>*>& patch_interior_local_indices,
-    map<int,vector<int>*>& patch_ghost_local_indices,
+    std::map<int,std::vector<int>*>& patch_interior_local_indices,
+    std::map<int,std::vector<int>*>& patch_ghost_local_indices,
     const int ln)
 {
     t_compute_node_distribution->start();
@@ -2294,7 +2383,7 @@ LDataManager::computeNodeDistribution(
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
         const int& patch_num = patch->getPatchNumber();
 
-        vector<int>& patch_interior_indices = *patch_interior_local_indices[patch_num];
+        std::vector<int>& patch_interior_indices = *patch_interior_local_indices[patch_num];
         patch_interior_indices.clear();
 
         for (LNodeIndexData::Iterator it(*lag_node_index_data); it; it++)
@@ -2310,9 +2399,9 @@ LDataManager::computeNodeDistribution(
                 //
                 // We can immediately determine the local PETSc index for such
                 // nodes.
-                vector<int> cell_lag_ids(num_ids);
-                transform(id_set->begin(), id_set->end(), cell_lag_ids.begin(),
-                          GetLagrangianIndex());
+                std::vector<int> cell_lag_ids(num_ids);
+                std::transform(id_set->begin(), id_set->end(), cell_lag_ids.begin(),
+                               GetLagrangianIndex());
 
                 local_lag_indices.reserve(
                     local_lag_indices.size()+num_ids);
@@ -2353,7 +2442,7 @@ LDataManager::computeNodeDistribution(
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
         const int& patch_num = patch->getPatchNumber();
 
-        vector<int>& patch_ghost_indices = *patch_ghost_local_indices[patch_num];
+        std::vector<int>& patch_ghost_indices = *patch_ghost_local_indices[patch_num];
         patch_ghost_indices.clear();
 
         for (LNodeIndexData::Iterator it(*lag_node_index_data); it; it++)
@@ -2392,9 +2481,9 @@ LDataManager::computeNodeDistribution(
                     {
                         // We have not set the local IDs for this cell index, so
                         // we must assign them.
-                        vector<int> cell_lag_ids(num_ids);
-                        transform(id_set->begin(), id_set->end(), cell_lag_ids.begin(),
-                                  GetLagrangianIndex());
+                        std::vector<int> cell_lag_ids(num_ids);
+                        std::transform(id_set->begin(), id_set->end(), cell_lag_ids.begin(),
+                                       GetLagrangianIndex());
 
                         nonlocal_lag_indices.reserve(
                             nonlocal_lag_indices.size()+num_ids);
@@ -2438,11 +2527,11 @@ LDataManager::computeNodeDistribution(
     // Trim-to-fit vectors to get rid of any excess capacity.
     if (local_lag_indices.size() != local_lag_indices.capacity())
     {
-        vector<int>(local_lag_indices).swap(local_lag_indices);
+        std::vector<int>(local_lag_indices).swap(local_lag_indices);
     }
     if (nonlocal_lag_indices.size() != nonlocal_lag_indices.capacity())
     {
-        vector<int>(nonlocal_lag_indices).swap(nonlocal_lag_indices);
+        std::vector<int>(nonlocal_lag_indices).swap(nonlocal_lag_indices);
     }
 
     // We now compute the new PETSc global ordering and initialize the AO
@@ -2467,7 +2556,7 @@ LDataManager::computeNodeDistribution(
     // Determine the PETSc ordering and setup the new AO object.
     const int num_proc_nodes = num_local_nodes + num_nonlocal_nodes;
 
-    vector<int> node_indices;
+    std::vector<int> node_indices;
     node_indices.reserve(num_proc_nodes);
     node_indices.insert(node_indices.end(),
                         local_lag_indices.begin(),
@@ -2545,15 +2634,15 @@ LDataManager::computeNodeOffsets(
     const int mpi_size = SAMRAI::tbox::MPI::getNodes();
     const int mpi_rank = SAMRAI::tbox::MPI::getRank();
 
-    vector<int> num_nodes_proc(mpi_size,0);
+    std::vector<int> num_nodes_proc(mpi_size,0);
 
     SAMRAI::tbox::MPI::allGather(num_local_nodes, &num_nodes_proc[0]);
 
-    node_offset = accumulate(num_nodes_proc.begin(),
-                             num_nodes_proc.begin()+mpi_rank, 0);
+    node_offset = std::accumulate(num_nodes_proc.begin(),
+                                  num_nodes_proc.begin()+mpi_rank, 0);
 
-    num_nodes = accumulate(num_nodes_proc.begin()+mpi_rank,
-                           num_nodes_proc.end(), node_offset);
+    num_nodes = std::accumulate(num_nodes_proc.begin()+mpi_rank,
+                                num_nodes_proc.end(), node_offset);
 
     t_compute_node_offsets->stop();
     return;
@@ -2805,9 +2894,9 @@ LDataManager::getFromRestart()
     // Read in data that is stored on a level-by-level basis.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        ostringstream stream;
+        std::ostringstream stream;
         stream << "level_" << ln;
-        const string level_db_name = stream.str();
+        const std::string level_db_name = stream.str();
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> level_db = db->getDatabase(level_db_name);
 
         d_level_contains_lag_data[ln] = level_db->getBool("d_level_contains_lag_data");
@@ -2815,14 +2904,14 @@ LDataManager::getFromRestart()
         if (d_level_contains_lag_data[ln])
         {
             const int n_ldata_names = level_db->getInteger("n_ldata_names");
-            vector<string> ldata_names(n_ldata_names);
+            std::vector<std::string> ldata_names(n_ldata_names);
             level_db->getStringArray("ldata_names", &ldata_names[0], n_ldata_names);
 
-            set<int> data_depths;
-            for (vector<string>::iterator it = ldata_names.begin();
+            std::set<int> data_depths;
+            for (std::vector<std::string>::iterator it = ldata_names.begin();
                  it != ldata_names.end(); ++it)
             {
-                const string& ldata_name = *it;
+                const std::string& ldata_name = *it;
                 d_lag_quantity_data[ln][ldata_name] =
                     new LNodeLevelData(level_db->getDatabase(ldata_name));
                 data_depths.insert(
@@ -2865,7 +2954,7 @@ LDataManager::getFromRestart()
                                           n_nonlocal_petsc_indices);
 
                 // Rebuild the nonlocal PETSc indices for the other data depths.
-                for (set<int>::const_iterator it = data_depths.begin();
+                for (std::set<int>::const_iterator it = data_depths.begin();
                      it != data_depths.end(); ++it)
                 {
                     const int depth = *it;
@@ -2873,10 +2962,10 @@ LDataManager::getFromRestart()
                     d_nonlocal_petsc_indices[ln][depth].
                         resize(d_nonlocal_petsc_indices[ln][1].size());
 
-                    transform(d_nonlocal_petsc_indices[ln][    1].begin(),
-                              d_nonlocal_petsc_indices[ln][    1].end  (),
-                              d_nonlocal_petsc_indices[ln][depth].begin(),
-                              bind2nd(multiplies<int>(),depth));
+                    std::transform(d_nonlocal_petsc_indices[ln][    1].begin(),
+                                   d_nonlocal_petsc_indices[ln][    1].end  (),
+                                   d_nonlocal_petsc_indices[ln][depth].begin(),
+                                   std::bind2nd(std::multiplies<int>(),depth));
                 }
             }
 
@@ -2897,9 +2986,5 @@ LDataManager::getFromRestart()
 } // namespace IBAMR
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <IntVector.h>
-#include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<SAMRAI::hier::IntVector<NDIM> >;
 
 //////////////////////////////////////////////////////////////////////////////

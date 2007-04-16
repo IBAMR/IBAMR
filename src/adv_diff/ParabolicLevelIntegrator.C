@@ -1,5 +1,5 @@
 // Filename: ParabolicLevelIntegrator.C
-// Last modified: <21.Mar.2007 01:05:29 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Apr.2007 05:55:31 boyce@bigboy.nyconnect.com>
 // Created on 09 Jan 2007 by Boyce Griffith (boyce@box221.cims.nyu.edu)
 
 // NOTE: This implementation is directly derived from the SAMRAI
@@ -39,7 +39,7 @@ namespace IBAMR
 *************************************************************************
 */
 ParabolicLevelIntegrator::ParabolicLevelIntegrator(
-    const string& object_name,
+    const std::string& object_name,
     tbox::Pointer<tbox::Database> input_db,
     ParabolicPatchStrategy<NDIM>* patch_strategy,
     bool register_for_restart,
@@ -1478,8 +1478,8 @@ ParabolicLevelIntegrator::registerVariable(
     const hier::IntVector<NDIM> ghosts,
     const PAR_VAR_TYPE h_v_type,
     const tbox::Pointer<xfer::Geometry<NDIM> > transfer_geom,
-    const string& coarsen_name,
-    const string& refine_name)
+    const std::string& coarsen_name,
+    const std::string& refine_name)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!var.isNull());
@@ -1730,9 +1730,9 @@ ParabolicLevelIntegrator::registerVariable(
 
             d_flux_var_data.setFlag(scr_id);
 
-            string var_name = var->getName();
-            string fs_suffix = "_fluxsum";
-            string fsum_name = var_name;
+            std::string var_name = var->getName();
+            std::string fs_suffix = "_fluxsum";
+            std::string fsum_name = var_name;
             fsum_name += fs_suffix;
 
             tbox::Pointer<hier::Variable<NDIM> > fluxsum;

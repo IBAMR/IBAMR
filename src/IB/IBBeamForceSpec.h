@@ -2,7 +2,7 @@
 #define included_IBBeamForceSpec
 
 // Filename: IBBeamForceSpec.h
-// Last modified: <16.Apr.2007 02:29:53 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:04:24 boyce@bigboy.nyconnect.com>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -35,8 +35,8 @@ class IBBeamForceSpec
 {
 public:
     /*!
-     * \note Use of the following typedef is needed in order to get g++ to
-     * compiler to parse the default parameters in the class constructor.
+     * \note Use of the following typedef is needed in order to get g++ to parse
+     * the default parameters in the class constructor.
      */
     typedef std::pair<int,int> pair_int_int;
 

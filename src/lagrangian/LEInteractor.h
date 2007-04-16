@@ -3,7 +3,7 @@
 
 // Filename: LEInteractor.h
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <16.Apr.2007 02:02:40 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:53:29 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -48,7 +48,7 @@ public:
      */
     static int
     getStencilSize(
-        const string& weighting_fcn);
+        const std::string& weighting_fcn);
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -73,7 +73,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
-        const string& interp_fcn="IB_4",
+        const std::string& interp_fcn="IB_4",
         const bool enforce_periodic_bcs=false);
 
     /*!
@@ -101,7 +101,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
-        const string& interp_fcn="IB_4",
+        const std::string& interp_fcn="IB_4",
         const bool enforce_periodic_bcs=false);
 
     /*!
@@ -126,7 +126,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
-        const string& interp_fcn="IB_4");
+        const std::string& interp_fcn="IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -154,7 +154,7 @@ public:
         const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
-        const string& spread_fcn="IB_4",
+        const std::string& spread_fcn="IB_4",
         const bool enforce_periodic_bcs=false);
 
     /*!
@@ -185,7 +185,7 @@ public:
         const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
-        const string& spread_fcn="IB_4",
+        const std::string& spread_fcn="IB_4",
         const bool enforce_periodic_bcs=false);
 
     /*!
@@ -213,7 +213,7 @@ public:
         const int num_vals,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
-        const string& spread_fcn="IB_4");
+        const std::string& spread_fcn="IB_4");
 
 private:
     /*!

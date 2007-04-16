@@ -1,6 +1,6 @@
 // Filename: LNodeIndexSet.C
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 02:52:54 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:40:33 boyce@bigboy.nyconnect.com>
 
 #include "LNodeIndexSet.h"
 
@@ -34,7 +34,7 @@ namespace IBAMR
 namespace
 {
 struct LNodeIndexGetDataStreamSizeSum
-    : binary_function<size_t,SAMRAI::tbox::Pointer<LNodeIndex>,size_t>
+    : std::binary_function<size_t,SAMRAI::tbox::Pointer<LNodeIndex>,size_t>
 {
     inline size_t
     operator()(
@@ -46,7 +46,7 @@ struct LNodeIndexGetDataStreamSizeSum
 };
 
 class LNodeIndexPackStream
-    : public unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
+    : public std::unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
 {
 public:
     inline
@@ -69,7 +69,7 @@ private:
 };
 
 class LNodeIndexUnpackStream
-    : public unary_function<void,SAMRAI::tbox::Pointer<LNodeIndex> >
+    : public std::unary_function<void,SAMRAI::tbox::Pointer<LNodeIndex> >
 {
 public:
     inline
@@ -95,7 +95,7 @@ private:
 };
 
 struct LNodeIndexLessThan
-    : binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
+    : std::binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
 {
     inline bool
     operator()(
@@ -112,9 +112,9 @@ struct LNodeIndexLessThan
 size_t
 LNodeIndexSet::getDataStreamSize() const
 {
-    return accumulate(d_set.begin(),d_set.end(),
-                      SAMRAI::tbox::AbstractStream::sizeofInt(),
-                      LNodeIndexGetDataStreamSizeSum());
+    return std::accumulate(d_set.begin(),d_set.end(),
+                           SAMRAI::tbox::AbstractStream::sizeofInt(),
+                           LNodeIndexGetDataStreamSizeSum());
 }// getDataStreamSize
 
 void
@@ -163,7 +163,7 @@ LNodeIndexSet::getFromDatabase(
     database->getIntegerArray("d_offset", d_offset, NDIM);
 
     const size_t data_sz = database->getInteger("data_sz");
-    vector<char> data(data_sz);
+    std::vector<char> data(data_sz);
     database->getCharArray("data", &data[0], data_sz);
     StashableStream stream(&data[0], data_sz, StashableStream::Read);
     unpackStream(stream, d_offset);

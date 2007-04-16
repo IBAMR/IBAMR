@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <11.Apr.2007 04:10:57 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:39:35 boyce@bigboy.nyconnect.com>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
@@ -147,7 +147,7 @@ IBTargetPointForceGen::computeLagrangianForce(
                             {
                                 const int& petsc_idx = node_idx->getLocalPETScIndex();
                                 const double* const X = &X_arr[NDIM*petsc_idx];
-                                const vector<double>& X_target = force_spec->getTargetPointPosition();
+                                const std::vector<double>& X_target = force_spec->getTargetPointPosition();
 
                                 double* const F = &F_arr[NDIM*petsc_idx];
                                 double displacement = 0.0;

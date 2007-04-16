@@ -1,6 +1,6 @@
 // Filename: StashableManager.C
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 02:53:29 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:33:25 boyce@bigboy.nyconnect.com>
 
 #include "StashableManager.h"
 
@@ -37,7 +37,7 @@ namespace IBAMR
 namespace
 {
 struct StashableGetDataStreamSizeSum
-    : binary_function<size_t,SAMRAI::tbox::Pointer<Stashable>,size_t>
+    : std::binary_function<size_t,SAMRAI::tbox::Pointer<Stashable>,size_t>
 {
     inline size_t
     operator()(
@@ -49,7 +49,7 @@ struct StashableGetDataStreamSizeSum
 };
 
 class StashablePackStream
-    : public unary_function<SAMRAI::tbox::Pointer<Stashable>,void>
+    : public std::unary_function<SAMRAI::tbox::Pointer<Stashable>,void>
 {
 public:
     inline
@@ -73,7 +73,7 @@ private:
 };
 
 class StashableUnpackStream
-    : public unary_function<void,SAMRAI::tbox::Pointer<Stashable> >
+    : public std::unary_function<void,SAMRAI::tbox::Pointer<Stashable> >
 {
 public:
     inline
@@ -167,17 +167,17 @@ StashableManager::registerFactory(
 
 size_t
 StashableManager::getDataStreamSize(
-    const vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data) const
+    const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data) const
 {
-    return accumulate(stash_data.begin(), stash_data.end(),
-                      SAMRAI::tbox::AbstractStream::sizeofInt(),
-                      StashableGetDataStreamSizeSum());
+    return std::accumulate(stash_data.begin(), stash_data.end(),
+                           SAMRAI::tbox::AbstractStream::sizeofInt(),
+                           StashableGetDataStreamSizeSum());
 }//getDataStreamSize
 
 void
 StashableManager::packStream(
     SAMRAI::tbox::AbstractStream& stream,
-    vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data)
+    std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data)
 {
     const int num_data = stash_data.size();
     stream.pack(&num_data,1);
@@ -190,14 +190,14 @@ void
 StashableManager::unpackStream(
     SAMRAI::tbox::AbstractStream& stream,
     const SAMRAI::hier::IntVector<NDIM>& offset,
-    vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data)
+    std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data)
 {
     int num_data;
     stream.unpack(&num_data,1);
     stash_data.resize(num_data);
     generate(stash_data.begin(),stash_data.end(),
              StashableUnpackStream(&stream,offset));
-    vector<SAMRAI::tbox::Pointer<Stashable> >(stash_data).swap(stash_data); // trim-to-fit
+    std::vector<SAMRAI::tbox::Pointer<Stashable> >(stash_data).swap(stash_data); // trim-to-fit
     return;
 }// unpackStream
 

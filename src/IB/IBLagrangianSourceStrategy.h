@@ -2,7 +2,7 @@
 #define included_IBLagrangianSourceStrategy
 
 // Filename: IBLagrangianSourceStrategy.h
-// Last modified: <16.Apr.2007 02:41:29 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:38:20 boyce@bigboy.nyconnect.com>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -92,7 +92,7 @@ public:
     virtual void
     getSourceLocations(
         std::vector<std::vector<double> >& X_src,
-        vector<double>& r_src,
+        std::vector<double>& r_src,
         SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

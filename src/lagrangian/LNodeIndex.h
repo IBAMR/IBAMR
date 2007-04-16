@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndex.h
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 02:05:40 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:24:53 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -187,9 +187,6 @@ private:
 
 /*!
  * \brief Less-than comparison operator.
- *
- * \param lhs  The left-hand-side of the < operator.
- * \param rhs  The right-hand-side of the < operator.
  *
  * \return Whether lhs < rhs.
  *

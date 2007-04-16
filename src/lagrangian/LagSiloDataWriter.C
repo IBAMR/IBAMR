@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <14.Apr.2007 19:05:31 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Apr.2007 05:49:18 boyce@bigboy.nyconnect.com>
 
 #include "LagSiloDataWriter.h"
 
@@ -48,12 +48,12 @@ static const int SILO_MPI_TAG  = 0;
 
 // The name of the Silo dumps and database filenames.
 static const int SILO_NAME_BUFSIZE = 128;
-static const string VISIT_DUMPS_FILENAME = "lag_data.visit";
-static const string SILO_DUMP_DIR_PREFIX = "lag_data.cycle_";
-static const string SILO_SUMMARY_FILE_PREFIX= "lag_data.cycle_";
-static const string SILO_SUMMARY_FILE_POSTFIX = ".summary.silo";
-static const string SILO_PROCESSOR_FILE_PREFIX = "lag_data.proc_";
-static const string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
+static const std::string VISIT_DUMPS_FILENAME = "lag_data.visit";
+static const std::string SILO_DUMP_DIR_PREFIX = "lag_data.cycle_";
+static const std::string SILO_SUMMARY_FILE_PREFIX= "lag_data.cycle_";
+static const std::string SILO_SUMMARY_FILE_POSTFIX = ".summary.silo";
+static const std::string SILO_PROCESSOR_FILE_PREFIX = "lag_data.proc_";
+static const std::string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
 
 #if HAVE_LIBSILO
 /*!
@@ -62,13 +62,13 @@ static const string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
  */
 void build_local_marker_cloud(
     DBfile* dbfile,
-    string& dirname,
+    std::string& dirname,
     const int nmarks,
     const double* const X,
     const int time_step,
     const double simulation_time)
 {
-    vector<float> block_X(NDIM*nmarks);
+    std::vector<float> block_X(NDIM*nmarks);
 
     for (int i = 0; i < nmarks; ++i)
     {
@@ -98,7 +98,7 @@ void build_local_marker_cloud(
     DBAddOption(optlist, DBOPT_DTIME, &dtime);
 
     const char* meshname = "mesh";
-    vector<float*> coords(NDIM);
+    std::vector<float*> coords(NDIM);
     for (int d = 0; d < NDIM; ++d)
     {
         coords[d] = &block_X[d*nmarks];
@@ -126,14 +126,14 @@ void build_local_marker_cloud(
  */
 void build_local_curv_block(
     DBfile* dbfile,
-    string& dirname,
+    std::string& dirname,
     const SAMRAI::hier::IntVector<NDIM>& nelem_in,
     const SAMRAI::hier::IntVector<NDIM>& periodic,
     const double* const X,
     const int nvars,
-    const vector<string>& varnames,
-    const vector<int>& vardepths,
-    const vector<const double*> varvals,
+    const std::vector<std::string>& varnames,
+    const std::vector<int>& vardepths,
+    const std::vector<const double*> varvals,
     const int time_step,
     const double simulation_time)
 {
@@ -164,8 +164,8 @@ void build_local_curv_block(
 #endif
         ;
 
-    vector<float> block_X(NDIM*ntot);
-    vector<vector<float> > block_varvals(nvars);
+    std::vector<float> block_X(NDIM*ntot);
+    std::vector<std::vector<float> > block_varvals(nvars);
     for (int v = 0; v < nvars; ++v)
     {
         const int vardepth = vardepths[v];
@@ -239,14 +239,14 @@ void build_local_curv_block(
 
     const char* meshname = "mesh";
     const char* coordnames[3]  = { "xcoords" , "ycoords" , "zcoords" };
-    vector<float*> coords(NDIM);
+    std::vector<float*> coords(NDIM);
     for (int d = 0; d < NDIM; ++d)
     {
         coords[d] = &block_X[d*ntot];
     }
 
     int ndims = NDIM;
-    vector<int> dims(NDIM);
+    std::vector<int> dims(NDIM);
     for (int d = 0; d < NDIM; ++d)
     {
         dims[d] = nelem(d) + (periodic(d) ? 1 : 0);
@@ -259,16 +259,16 @@ void build_local_curv_block(
     {
         const char* varname = varnames[v].c_str();
         const int vardepth = vardepths[v];
-        vector<char*> compnames(vardepth);
+        std::vector<char*> compnames(vardepth);
         for (int d = 0; d < vardepth; ++d)
         {
-            ostringstream stream;
+            std::ostringstream stream;
             stream << "_" << d;
-            const string compname = varnames[v] + stream.str();
+            const std::string compname = varnames[v] + stream.str();
             compnames[d] = strdup(compname.c_str());
         }
 
-        vector<float*> vars(vardepth);
+        std::vector<float*> vars(vardepth);
         for (int d = 0; d < vardepth; ++d)
         {
             vars[d] = &block_varvals[v][d*ntot];
@@ -308,22 +308,22 @@ void build_local_curv_block(
  */
 void build_local_ucd_mesh(
     DBfile* dbfile,
-    string& dirname,
+    std::string& dirname,
     const std::set<int>& vertices,
     const std::multimap<int,std::pair<int,int> >& edge_map,
     const double* const X,
     const int nvars,
-    const vector<string>& varnames,
-    const vector<int>& vardepths,
-    const vector<const double*> varvals,
+    const std::vector<std::string>& varnames,
+    const std::vector<int>& vardepths,
+    const std::vector<const double*> varvals,
     const int time_step,
     const double simulation_time)
 {
     // Rearrange the data into the format required by Silo.
     const int ntot = vertices.size();
 
-    vector<float> block_X(NDIM*ntot);
-    vector<vector<float> > block_varvals(nvars);
+    std::vector<float> block_X(NDIM*ntot);
+    std::vector<std::vector<float> > block_varvals(nvars);
     for (int v = 0; v < nvars; ++v)
     {
         const int vardepth = vardepths[v];
@@ -407,7 +407,7 @@ void build_local_ucd_mesh(
 
     const char* meshname = "mesh";
     const char* coordnames[3]  = { "xcoords" , "ycoords" , "zcoords" };
-    vector<float*> coords(NDIM);
+    std::vector<float*> coords(NDIM);
     for (int d = 0; d < NDIM; ++d)
     {
         coords[d] = &block_X[d*ntot];
@@ -449,16 +449,16 @@ void build_local_ucd_mesh(
     {
         const char* varname = varnames[v].c_str();
         const int vardepth = vardepths[v];
-        vector<char*> compnames(vardepth);
+        std::vector<char*> compnames(vardepth);
         for (int d = 0; d < vardepth; ++d)
         {
-            ostringstream stream;
+            std::ostringstream stream;
             stream << "_" << d;
-            const string compname = varnames[v] + stream.str();
+            const std::string compname = varnames[v] + stream.str();
             compnames[d] = strdup(compname.c_str());
         }
 
-        vector<float*> vars(vardepth);
+        std::vector<float*> vars(vardepth);
         for (int d = 0; d < vardepth; ++d)
         {
             vars[d] = &block_varvals[v][d*ntot];
@@ -497,8 +497,8 @@ void build_local_ucd_mesh(
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LagSiloDataWriter::LagSiloDataWriter(
-    const string& object_name,
-    const string& dump_directory_name)
+    const std::string& object_name,
+    const std::string& dump_directory_name)
     : d_object_name(object_name),
       d_dump_directory_name(dump_directory_name),
       d_time_step_number(-1),
@@ -547,7 +547,7 @@ LagSiloDataWriter::~LagSiloDataWriter()
     int ierr;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        for (map<int,Vec>::iterator it = d_dst_vec[ln].begin();
+        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = (*it).second;
@@ -557,7 +557,7 @@ LagSiloDataWriter::~LagSiloDataWriter()
                 PETSC_SAMRAI_ERROR(ierr);
             }
         }
-        for (map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
+        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
              it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = (*it).second;
@@ -602,7 +602,7 @@ LagSiloDataWriter::resetLevels(
     for (int ln = SAMRAI::tbox::Utilities::imax(d_coarsest_ln,0);
          (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
     {
-        for (map<int,Vec>::iterator it = d_dst_vec[ln].begin();
+        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = (*it).second;
@@ -611,7 +611,7 @@ LagSiloDataWriter::resetLevels(
                 ierr = VecDestroy(v);  PETSC_SAMRAI_ERROR(ierr);
             }
         }
-        for (map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
+        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
              it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = (*it).second;
@@ -624,7 +624,7 @@ LagSiloDataWriter::resetLevels(
 
     for (int ln = finest_ln+1; ln <= d_finest_ln; ++ln)
     {
-        for (map<int,Vec>::iterator it = d_dst_vec[ln].begin();
+        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = (*it).second;
@@ -633,7 +633,7 @@ LagSiloDataWriter::resetLevels(
                 ierr = VecDestroy(v);  PETSC_SAMRAI_ERROR(ierr);
             }
         }
-        for (map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
+        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
              it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = (*it).second;
@@ -687,7 +687,7 @@ LagSiloDataWriter::resetLevels(
 
 void
 LagSiloDataWriter::registerMarkerCloud(
-    const string& name,
+    const std::string& name,
     const int nmarks,
     const int first_lag_idx,
     const int level_number)
@@ -747,7 +747,7 @@ LagSiloDataWriter::registerMarkerCloud(
 
 void
 LagSiloDataWriter::registerLogicallyCartesianBlock(
-    const string& name,
+    const std::string& name,
     const SAMRAI::hier::IntVector<NDIM>& nelem,
     const SAMRAI::hier::IntVector<NDIM>& periodic,
     const int first_lag_idx,
@@ -813,10 +813,10 @@ LagSiloDataWriter::registerLogicallyCartesianBlock(
 
 void
 LagSiloDataWriter::registerLogicallyCartesianMultiblock(
-    const string& name,
-    const vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
-    const vector<SAMRAI::hier::IntVector<NDIM> >& periodic,
-    const vector<int>& first_lag_idx,
+    const std::string& name,
+    const std::vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
+    const std::vector<SAMRAI::hier::IntVector<NDIM> >& periodic,
+    const std::vector<int>& first_lag_idx,
     const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
@@ -886,7 +886,7 @@ LagSiloDataWriter::registerLogicallyCartesianMultiblock(
 
 void
 LagSiloDataWriter::registerUnstructuredMesh(
-    const string& name,
+    const std::string& name,
     const std::multimap<int,std::pair<int,int> > edge_map,
     const int level_number)
 {
@@ -973,7 +973,7 @@ LagSiloDataWriter::registerCoordsData(
 
 void
 LagSiloDataWriter::registerVariableData(
-    const string& var_name,
+    const std::string& var_name,
     SAMRAI::tbox::Pointer<LNodeLevelData> var_data,
     const int level_number)
 {
@@ -1025,7 +1025,7 @@ LagSiloDataWriter::registerLagrangianAO(
     // Setup the IS data used to generate the VecScatters that redistribute the
     // distributed data into local marker clouds, local logically Cartesian
     // blocks, and local UCD meshes.
-    vector<int> ref_is_idxs;
+    std::vector<int> ref_is_idxs;
     for (int cloud = 0; cloud < d_nclouds[level_number]; ++cloud)
     {
         const int nmarks = d_cloud_nmarks[level_number][cloud];
@@ -1076,7 +1076,7 @@ LagSiloDataWriter::registerLagrangianAO(
     }
 
     // Map Lagrangian indices to PETSc indices.
-    vector<int> ao_dummy(1,-1);
+    std::vector<int> ao_dummy(1,-1);
     ierr = AOApplicationToPetsc(
         ao,
         (!ref_is_idxs.empty() ? static_cast<int>(ref_is_idxs.size()) : static_cast<int>(ao_dummy.size())),
@@ -1084,12 +1084,12 @@ LagSiloDataWriter::registerLagrangianAO(
     PETSC_SAMRAI_ERROR(ierr);
 
     // Setup IS indices for all necessary data depths.
-    map<int,vector<int> > src_is_idxs;
+    std::map<int,std::vector<int> > src_is_idxs;
 
     src_is_idxs[NDIM].resize(ref_is_idxs.size());
-    transform(ref_is_idxs.begin(), ref_is_idxs.end(),
-              src_is_idxs[NDIM].begin(),
-              bind2nd(multiplies<int>(),NDIM));
+    std::transform(ref_is_idxs.begin(), ref_is_idxs.end(),
+                   src_is_idxs[NDIM].begin(),
+                   std::bind2nd(std::multiplies<int>(),NDIM));
     d_src_vec[level_number][NDIM] = d_coords_data[level_number]->getGlobalVec();
 
     for (int v = 0; v < d_nvars[level_number]; ++v)
@@ -1098,9 +1098,9 @@ LagSiloDataWriter::registerLagrangianAO(
         if (src_is_idxs.find(var_depth) == src_is_idxs.end())
         {
             src_is_idxs[var_depth].resize(ref_is_idxs.size());
-            transform(ref_is_idxs.begin(), ref_is_idxs.end(),
-                      src_is_idxs[var_depth].begin(),
-                      bind2nd(multiplies<int>(),var_depth));
+            std::transform(ref_is_idxs.begin(), ref_is_idxs.end(),
+                           src_is_idxs[var_depth].begin(),
+                           std::bind2nd(std::multiplies<int>(),var_depth));
             d_src_vec[level_number][var_depth] = d_var_data[level_number][v]->getGlobalVec();
         }
     }
@@ -1108,11 +1108,11 @@ LagSiloDataWriter::registerLagrangianAO(
     // Create the VecScatters to scatter data from the global PETSc Vec to
     // contiguous local subgrids.  VecScatter objects are individually created
     // for data depths as necessary.
-    for (map<int,vector<int> >::iterator it = src_is_idxs.begin();
+    for (std::map<int,std::vector<int> >::iterator it = src_is_idxs.begin();
          it != src_is_idxs.end(); ++it)
     {
         const int depth = (*it).first;
-        const vector<int>& idxs = (*it).second;
+        const std::vector<int>& idxs = (*it).second;
 
         IS src_is;
         ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(),
@@ -1151,7 +1151,7 @@ LagSiloDataWriter::registerLagrangianAO(
 
 void
 LagSiloDataWriter::registerLagrangianAO(
-    vector<AO>& ao,
+    std::vector<AO>& ao,
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -1206,15 +1206,15 @@ LagSiloDataWriter::writePlotData(
 
     int ierr;
     char temp_buf[SILO_NAME_BUFSIZE];
-    string current_file_name;
+    std::string current_file_name;
     DBfile* dbfile;
     const int mpi_rank  = SAMRAI::tbox::MPI::getRank();
     const int mpi_nodes = SAMRAI::tbox::MPI::getNodes();
 
     // Create the working directory.
     sprintf(temp_buf, "%06d", d_time_step_number);
-    string current_dump_directory_name = SILO_DUMP_DIR_PREFIX + temp_buf;
-    string dump_dirname = d_dump_directory_name + "/" + current_dump_directory_name;
+    std::string current_dump_directory_name = SILO_DUMP_DIR_PREFIX + temp_buf;
+    std::string dump_dirname = d_dump_directory_name + "/" + current_dump_directory_name;
 
     SAMRAI::tbox::Utilities::recursiveMkdir(dump_dirname);
 
@@ -1231,8 +1231,8 @@ LagSiloDataWriter::writePlotData(
                    << "  Could not create DBfile named " << current_file_name << endl);
     }
 
-    vector<vector<int> > meshtype(d_finest_ln+1), vartype(d_finest_ln+1);
-    vector<vector<vector<int> > > multimeshtype(d_finest_ln+1), multivartype(d_finest_ln+1);
+    std::vector<std::vector<int> > meshtype(d_finest_ln+1), vartype(d_finest_ln+1);
+    std::vector<std::vector<std::vector<int> > > multimeshtype(d_finest_ln+1), multivartype(d_finest_ln+1);
 
     // Set the local data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -1256,8 +1256,8 @@ LagSiloDataWriter::writePlotData(
             ierr = VecGetArray(local_X_vec, &local_X_arr);
             PETSC_SAMRAI_ERROR(ierr);
 
-            vector<Vec> local_v_vecs;
-            vector<double*> local_v_arrs;
+            std::vector<Vec> local_v_vecs;
+            std::vector<double*> local_v_arrs;
 
             for (int v = 0; v < d_nvars[ln]; ++v)
             {
@@ -1290,9 +1290,9 @@ LagSiloDataWriter::writePlotData(
             {
                 const int nmarks = d_cloud_nmarks[ln][cloud];
 
-                ostringstream stream;
+                std::ostringstream stream;
                 stream << "level_" << ln << "_cloud_" << cloud;
-                string dirname = stream.str();
+                std::string dirname = stream.str();
 
                 if (DBMkDir(dbfile, dirname.c_str()) == -1)
                 {
@@ -1315,9 +1315,9 @@ LagSiloDataWriter::writePlotData(
                 const SAMRAI::hier::IntVector<NDIM>& periodic = d_block_periodic[ln][block];
                 const int ntot = nelem.getProduct();
 
-                ostringstream stream;
+                std::ostringstream stream;
                 stream << "level_" << ln << "_block_" << block;
-                string dirname = stream.str();
+                std::string dirname = stream.str();
 
                 if (DBMkDir(dbfile, dirname.c_str()) == -1)
                 {
@@ -1327,7 +1327,7 @@ LagSiloDataWriter::writePlotData(
                 }
 
                 const double* const X = local_X_arr + NDIM*offset;
-                vector<const double*> var_vals(d_nvars[ln]);
+                std::vector<const double*> var_vals(d_nvars[ln]);
                 for (int v = 0; v < d_nvars[ln]; ++v)
                 {
                     var_vals[v] = local_v_arrs[v] + d_var_depths[ln][v]*offset;
@@ -1353,9 +1353,9 @@ LagSiloDataWriter::writePlotData(
                     const SAMRAI::hier::IntVector<NDIM>& periodic = d_mb_periodic[ln][mb][block];
                     const int ntot = nelem.getProduct();
 
-                    ostringstream stream;
+                    std::ostringstream stream;
                     stream << "level_" << ln << "_mb_" << mb << "_block_" << block;
-                    string dirname = stream.str();
+                    std::string dirname = stream.str();
 
                     if (DBMkDir(dbfile, dirname.c_str()) == -1)
                     {
@@ -1365,7 +1365,7 @@ LagSiloDataWriter::writePlotData(
                     }
 
                     const double* const X = local_X_arr + NDIM*offset;
-                    vector<const double*> var_vals(d_nvars[ln]);
+                    std::vector<const double*> var_vals(d_nvars[ln]);
                     for (int v = 0; v < d_nvars[ln]; ++v)
                     {
                         var_vals[v] = local_v_arrs[v] + d_var_depths[ln][v]*offset;
@@ -1388,9 +1388,9 @@ LagSiloDataWriter::writePlotData(
                 const std::multimap<int,std::pair<int,int> >& edge_map = d_ucd_mesh_edge_maps[ln][mesh];
                 const int ntot = vertices.size();
 
-                ostringstream stream;
+                std::ostringstream stream;
                 stream << "level_" << ln << "_mesh_" << mesh;
-                string dirname = stream.str();
+                std::string dirname = stream.str();
 
                 if (DBMkDir(dbfile, dirname.c_str()) == -1)
                 {
@@ -1400,7 +1400,7 @@ LagSiloDataWriter::writePlotData(
                 }
 
                 const double* const X = local_X_arr + NDIM*offset;
-                vector<const double*> var_vals(d_nvars[ln]);
+                std::vector<const double*> var_vals(d_nvars[ln]);
                 for (int v = 0; v < d_nvars[ln]; ++v)
                 {
                     var_vals[v] = local_v_arrs[v] + d_var_depths[ln][v]*offset;
@@ -1432,10 +1432,10 @@ LagSiloDataWriter::writePlotData(
 
     // Send data to the root MPI process required to create the multimesh and
     // multivar objects.
-    vector<vector<int> > nclouds_per_proc, nblocks_per_proc, nmbs_per_proc, nucd_meshes_per_proc;
-    vector<vector<vector<int> > > meshtypes_per_proc, vartypes_per_proc, mb_nblocks_per_proc;
-    vector<vector<vector<vector<int> > > > multimeshtypes_per_proc, multivartypes_per_proc;
-    vector<vector<vector<string> > > cloud_names_per_proc, block_names_per_proc, mb_names_per_proc, ucd_mesh_names_per_proc;
+    std::vector<std::vector<int> > nclouds_per_proc, nblocks_per_proc, nmbs_per_proc, nucd_meshes_per_proc;
+    std::vector<std::vector<std::vector<int> > > meshtypes_per_proc, vartypes_per_proc, mb_nblocks_per_proc;
+    std::vector<std::vector<std::vector<std::vector<int> > > > multimeshtypes_per_proc, multivartypes_per_proc;
+    std::vector<std::vector<std::vector<std::string> > > cloud_names_per_proc, block_names_per_proc, mb_names_per_proc, ucd_mesh_names_per_proc;
 
     if (mpi_rank == SILO_MPI_ROOT)
     {
@@ -1690,7 +1690,7 @@ LagSiloDataWriter::writePlotData(
         // Create and initialize the multimesh Silo database on the root MPI
         // process.
         sprintf(temp_buf, "%06d", d_time_step_number);
-        string summary_file_name = dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
+        std::string summary_file_name = dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
         if ((dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB))
             == NULL)
         {
@@ -1719,13 +1719,13 @@ LagSiloDataWriter::writePlotData(
                     current_file_name += temp_buf;
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-                    ostringstream stream;
+                    std::ostringstream stream;
                     stream << current_file_name << ":level_" << ln << "_cloud_" << cloud << "/mesh";
-                    string meshname = stream.str();
+                    std::string meshname = stream.str();
                     char* meshname_ptr = const_cast<char*>(meshname.c_str());
                     int meshtype = DB_POINTMESH;
 
-                    string& cloud_name = cloud_names_per_proc[ln][proc][cloud];
+                    std::string& cloud_name = cloud_names_per_proc[ln][proc][cloud];
 
                     DBPutMultimesh(dbfile, cloud_name.c_str(), 1, &meshname_ptr, &meshtype, optlist);
 
@@ -1744,13 +1744,13 @@ LagSiloDataWriter::writePlotData(
                     current_file_name += temp_buf;
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-                    ostringstream stream;
+                    std::ostringstream stream;
                     stream << current_file_name << ":level_" << ln << "_block_" << block << "/mesh";
-                    string meshname = stream.str();
+                    std::string meshname = stream.str();
                     char* meshname_ptr = const_cast<char*>(meshname.c_str());
                     int meshtype = meshtypes_per_proc[ln][proc][block];
 
-                    string& block_name = block_names_per_proc[ln][proc][block];
+                    std::string& block_name = block_names_per_proc[ln][proc][block];
 
                     DBPutMultimesh(dbfile, block_name.c_str(), 1, &meshname_ptr, &meshtype, optlist);
 
@@ -1774,12 +1774,12 @@ LagSiloDataWriter::writePlotData(
 
                     for (int block = 0; block < nblocks; ++block)
                     {
-                        ostringstream stream;
+                        std::ostringstream stream;
                         stream << current_file_name << ":level_" << ln << "_mb_" << mb << "_block_" << block << "/mesh";
                         meshnames[block] = strdup(stream.str().c_str());
                     }
 
-                    string& mb_name = mb_names_per_proc[ln][proc][mb];
+                    std::string& mb_name = mb_names_per_proc[ln][proc][mb];
 
                     DBPutMultimesh(dbfile, mb_name.c_str(), nblocks, meshnames, &multimeshtypes_per_proc[ln][proc][mb][0], optlist);
 
@@ -1804,13 +1804,13 @@ LagSiloDataWriter::writePlotData(
                     current_file_name += temp_buf;
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-                    ostringstream stream;
+                    std::ostringstream stream;
                     stream << current_file_name << ":level_" << ln << "_mesh_" << mesh << "/mesh";
-                    string meshname = stream.str();
+                    std::string meshname = stream.str();
                     char* meshname_ptr = const_cast<char*>(meshname.c_str());
                     int meshtype = DB_UCDMESH;
 
-                    string& mesh_name = ucd_mesh_names_per_proc[ln][proc][mesh];
+                    std::string& mesh_name = ucd_mesh_names_per_proc[ln][proc][mesh];
 
                     DBPutMultimesh(dbfile, mesh_name.c_str(), 1, &meshname_ptr, &meshtype, optlist);
 
@@ -1831,17 +1831,17 @@ LagSiloDataWriter::writePlotData(
                         current_file_name += temp_buf;
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-                        ostringstream varname_stream;
+                        std::ostringstream varname_stream;
                         varname_stream << current_file_name << ":level_" << ln << "_block_" << block << "/" << d_var_names[ln][v];
-                        string varname = varname_stream.str();
+                        std::string varname = varname_stream.str();
                         char* varname_ptr = const_cast<char*>(varname.c_str());
                         int vartype = vartypes_per_proc[ln][proc][block];
 
-                        string& block_name = block_names_per_proc[ln][proc][block];
+                        std::string& block_name = block_names_per_proc[ln][proc][block];
 
-                        ostringstream stream;
+                        std::ostringstream stream;
                         stream << block_name << "/" << d_var_names[ln][v];
-                        string var_name = stream.str();
+                        std::string var_name = stream.str();
 
                         DBPutMultivar(dbfile, var_name.c_str(), 1, &varname_ptr, &vartype, optlist);
                     }
@@ -1858,16 +1858,16 @@ LagSiloDataWriter::writePlotData(
 
                         for (int block = 0; block < nblocks; ++block)
                         {
-                            ostringstream varname_stream;
+                            std::ostringstream varname_stream;
                             varname_stream << current_file_name << ":level_" << ln << "_mb_" << mb << "_block_" << block << d_var_names[ln][v];
                             varnames[block] = strdup(varname_stream.str().c_str());
                         }
 
-                        string& mb_name = mb_names_per_proc[ln][proc][mb];
+                        std::string& mb_name = mb_names_per_proc[ln][proc][mb];
 
-                        ostringstream stream;
+                        std::ostringstream stream;
                         stream << mb_name << "/" << d_var_names[ln][v];
-                        string var_name = stream.str();
+                        std::string var_name = stream.str();
 
                         DBPutMultivar(dbfile, var_name.c_str(), nblocks, varnames, &multivartypes_per_proc[ln][proc][mb][0], optlist);
 
@@ -1885,17 +1885,17 @@ LagSiloDataWriter::writePlotData(
                         current_file_name += temp_buf;
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-                        ostringstream varname_stream;
+                        std::ostringstream varname_stream;
                         varname_stream << current_file_name << ":level_" << ln << "_mesh_" << mesh << "/" << d_var_names[ln][v];
-                        string varname = varname_stream.str();
+                        std::string varname = varname_stream.str();
                         char* varname_ptr = const_cast<char*>(varname.c_str());
                         int vartype = DB_UCDVAR;
 
-                        string& mesh_name = ucd_mesh_names_per_proc[ln][proc][mesh];
+                        std::string& mesh_name = ucd_mesh_names_per_proc[ln][proc][mesh];
 
-                        ostringstream stream;
+                        std::ostringstream stream;
                         stream << mesh_name << "/" << d_var_names[ln][v];
-                        string var_name = stream.str();
+                        std::string var_name = stream.str();
 
                         DBPutMultivar(dbfile, var_name.c_str(), 1, &varname_ptr, &vartype, optlist);
                     }
@@ -1907,19 +1907,19 @@ LagSiloDataWriter::writePlotData(
 
         // Create or update the dumps file on the root MPI process.
         static bool summary_file_opened = false;
-        string path = d_dump_directory_name + "/" + VISIT_DUMPS_FILENAME;
+        std::string path = d_dump_directory_name + "/" + VISIT_DUMPS_FILENAME;
         sprintf(temp_buf, "%06d", d_time_step_number);
-        string file = current_dump_directory_name + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
+        std::string file = current_dump_directory_name + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
         if (!summary_file_opened)
         {
             summary_file_opened = true;
-            ofstream sfile(path.c_str(), ios::out);
+            std::ofstream sfile(path.c_str(), ios::out);
             sfile << file << endl;
             sfile.close();
         }
         else
         {
-            ofstream sfile(path.c_str(), ios::app);
+            std::ofstream sfile(path.c_str(), ios::app);
             sfile << file << endl;
             sfile.close();
         }

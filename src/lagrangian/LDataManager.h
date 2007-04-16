@@ -3,7 +3,7 @@
 
 // Filename: LDataManager.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 02:01:53 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:53:03 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -70,7 +70,7 @@ public:
      * The name of the LNodeLevelData that specifies the location of the
      * curvilinear mesh nodes.
      */
-    static const string COORDS_DATA_NAME;
+    static const std::string COORDS_DATA_NAME;
 
     /*!
      * Return a pointer to the instance of the Lagrangian data manager
@@ -89,7 +89,7 @@ public:
      */
     static LDataManager*
     getManager(
-        const string& name,
+        const std::string& name,
         const SAMRAI::hier::IntVector<NDIM>& ghosts=3,
         bool register_for_restart=true);
 
@@ -209,7 +209,7 @@ public:
      */
     SAMRAI::tbox::Pointer<LNodeLevelData>
     getLNodeLevelData(
-        const string& quantity_name,
+        const std::string& quantity_name,
         const int level_number);
 
     /*!
@@ -222,7 +222,7 @@ public:
      */
     SAMRAI::tbox::Pointer<LNodeLevelData>
     createLNodeLevelData(
-        const string& quantity_name,
+        const std::string& quantity_name,
         const int level_number,
         const int depth=1,
         const bool maintain_data=false);
@@ -269,6 +269,30 @@ public:
     void
     mapPETScToLagrangian(
         std::vector<int>& inds,
+        const int level_number) const;
+
+    /*!
+     * \brief Scatter data from the Lagrangian ordering to the global PETSc
+     * ordering.
+     *
+     * \todo Optimize the implementation of this method.
+     */
+    void
+    scatterLagrangianToPETSc(
+        Vec& lagrangian_vec,
+        Vec& petsc_vec,
+        const int level_number) const;
+
+    /*!
+     * \brief Scatter data from the global PETSc ordering to the Lagrangian
+     * ordering.
+     *
+     * \todo Optimize the implementation of this method.
+     */
+    void
+    scatterPETScToLagrangian(
+        Vec& petsc_vec,
+        Vec& lagrangian_vec,
         const int level_number) const;
 
     /*!
@@ -469,7 +493,7 @@ protected:
      * \brief Constructor.
      */
     LDataManager(
-        const string& object_name,
+        const std::string& object_name,
         const SAMRAI::hier::IntVector<NDIM>& ghosts=3,
         bool register_for_restart=true);
 
@@ -509,6 +533,17 @@ private:
     LDataManager&
     operator=(
         const LDataManager& that);
+
+    /*!
+     * \brief Common implementation of scatterPETScToLagrangian() and
+     * scatterLagrangianToPetsc().
+     */
+    void
+    scatterData(
+        Vec& lagrangian_vec,
+        Vec& petsc_vec,
+        const int level_number,
+        ScatterMode mode) const;
 
     /*!
      * \brief Begin the process of refilling nonlocal Lagrangian quantites over
@@ -599,7 +634,7 @@ private:
      * Static data members used to control access to and destruction of
      * singleton data manager instance.
      */
-    static std::map<string,LDataManager*> s_data_manager_instances;
+    static std::map<std::string,LDataManager*> s_data_manager_instances;
     static bool s_registered_callback;
     static unsigned char s_shutdown_priority;
 
@@ -608,7 +643,7 @@ private:
      * and for error reporting purposes.  The boolean is used to control restart
      * file writing operations.
      */
-    string d_object_name;
+    std::string d_object_name;
     bool d_registered_for_restart;
 
     /*
@@ -707,7 +742,7 @@ private:
     /*!
      * The Lagrangian quantity data owned by the manager object.
      */
-    std::vector<std::map<string,SAMRAI::tbox::Pointer<LNodeLevelData> > > d_lag_quantity_data;
+    std::vector<std::map<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> > > d_lag_quantity_data;
 
     /*!
      * Indicates whether the LNodeLevelData is in synch with the LNodeIndexData.

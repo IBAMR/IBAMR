@@ -1,5 +1,5 @@
 // Filename: IBSpringForceSpec.C
-// Last modified: <11.Apr.2007 04:02:19 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:38:43 boyce@bigboy.nyconnect.com>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceSpec.h"
@@ -129,7 +129,7 @@ IBSpringForceSpec::getSlaveNodeIndices() const
     return d_slave_idxs;
 }// getSlaveNodeIndices
 
-vector<int>&
+std::vector<int>&
 IBSpringForceSpec::getSlaveNodeIndices()
 {
     return d_slave_idxs;
@@ -141,7 +141,7 @@ IBSpringForceSpec::getForceFunctionIndices() const
     return d_force_fcn_idxs;
 }// getForceFunctionIndices
 
-vector<int>&
+std::vector<int>&
 IBSpringForceSpec::getForceFunctionIndices()
 {
     return d_force_fcn_idxs;

@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndexVariable.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 02:09:57 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:21:06 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -29,7 +29,7 @@ public:
      * Create an LNodeIndexVariable object with the specified name.
      */
     LNodeIndexVariable(
-        const string& name);
+        const std::string& name);
 
     /*!
      * Virtual destructor for LNodeIndexVariable objects.

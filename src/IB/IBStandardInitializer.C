@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <11.Apr.2007 04:09:02 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:39:19 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -442,7 +442,7 @@ IBStandardInitializer::tagCellsForInitialRefinement(
                 const std::pair<int,int>& point_idx = (*it);
 
                 // Get the coordinates of the present vertex.
-                const vector<double> X = getVertexPosn(point_idx, ln);
+                const std::vector<double> X = getVertexPosn(point_idx, ln);
 
                 // Get the index of the cell in which the present vertex is
                 // initially located.

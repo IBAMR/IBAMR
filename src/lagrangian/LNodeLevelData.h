@@ -3,7 +3,7 @@
 
 // Filename: LNodeLevelData.h
 // Created on 08 Mar 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <16.Apr.2007 02:14:06 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:53:45 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -160,10 +160,10 @@ protected:
      * \brief Constructor.
      */
     LNodeLevelData(
-        const string& name,
+        const std::string& name,
         const int num_local_nodes,
         const int depth,
-        const vector<int>& nonlocal_petsc_indices=vector<int>(0));
+        const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0));
 
     /*!
      * \brief Constructor.
@@ -185,7 +185,7 @@ protected:
     void
     resetData(
         Vec& new_global_vec,
-        const vector<int>& new_nonlocal_petsc_indices);
+        const std::vector<int>& new_nonlocal_petsc_indices);
 
 private:
     /*!
@@ -205,7 +205,7 @@ private:
     /*
      * The name of the LNodeLevelData.
      */
-    string d_name;
+    std::string d_name;
 
     /*
      * The depth (i.e. number of components per node) of the LNodeLevelData.
@@ -215,7 +215,7 @@ private:
     /*
      * The nonlocal PETSc indices available in the ghosted local form.
      */
-    vector<int> d_nonlocal_petsc_indices;
+    std::vector<int> d_nonlocal_petsc_indices;
 
     /*
      * The global PETSc Vec object which contains the level data and its ghosted

@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <11.Apr.2007 03:43:36 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:55:17 boyce@bigboy.nyconnect.com>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -634,7 +634,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
 
     for (unsigned l = 0; l < d_Q_vars.size(); ++l)
     {
-        ostringstream stream;
+        std::ostringstream stream;
         stream << l;
         const std::string& name = stream.str();
 
@@ -684,7 +684,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     // registered with the integrator.
     for (unsigned l = 0; l < d_Q_vars.size(); ++l)
     {
-        ostringstream stream;
+        std::ostringstream stream;
         stream << l;
         const std::string& name = stream.str();
 
@@ -699,7 +699,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     // registered with the integrator
     for (unsigned l = 0; l < d_Q_vars.size(); ++l)
     {
-        ostringstream stream;
+        std::ostringstream stream;
         stream << l;
         const std::string& name = stream.str();
 
@@ -1023,7 +1023,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            ostringstream stream;
+            std::ostringstream stream;
             stream << l;
             const std::string& name = stream.str();
             d_rscheds[name+"::C->T::CONSTANT_REFINE"][ln]->fillData(current_time);
@@ -1156,7 +1156,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            ostringstream stream;
+            std::ostringstream stream;
             stream << l;
             const std::string& name = stream.str();
             d_rscheds[name+"::C->T::CONSTANT_REFINE"][ln]->fillData(current_time);
@@ -1453,7 +1453,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
     for (unsigned l = 0; l < d_Q_vars.size(); ++l)
     {
-        ostringstream stream;
+        std::ostringstream stream;
         stream << l;
         const std::string& name = stream.str();
 

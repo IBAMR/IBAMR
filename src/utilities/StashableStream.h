@@ -3,7 +3,7 @@
 
 // Filename: StashableStream.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 01:51:08 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 04:17:25 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -100,6 +100,7 @@ public:
      * Pack and unpack booleans into and out of the message stream.
      */
     //\{
+
     /*!
      * Pack a single bool into the message stream.
      */
@@ -129,6 +130,7 @@ public:
     unpack(
         bool* data,
         const int n=1);
+
     //\}
 
     /*!
@@ -137,6 +139,7 @@ public:
      * Pack and unpack chars into and out of the message stream.
      */
     //\{
+
     /*!
      * Pack a single char into the message stream.
      */
@@ -166,6 +169,7 @@ public:
     unpack(
         char* data,
         const int n=1);
+
     //\}
 
     /*!
@@ -174,6 +178,7 @@ public:
      * Pack and unpack double complex into and out of the message stream.
      */
     //\{
+
     /*!
      * Pack a single double complex into the message stream.
      */
@@ -203,6 +208,7 @@ public:
     unpack(
         dcomplex* data,
         const int n=1);
+
     //\}
 
     /*!
@@ -211,6 +217,7 @@ public:
      * Pack and unpack doubles into and out of the message stream.
      */
     //\{
+
     /*!
      * Pack a single double into the message stream.
      */
@@ -240,6 +247,7 @@ public:
     unpack(
         double* data,
         const int n=1);
+
     //\}
 
     /*!
@@ -248,6 +256,7 @@ public:
      * Pack and unpack floats into and out of the message stream.
      */
     //\{
+
     /*!
      * Pack a single float into the message stream.
      */
@@ -277,6 +286,7 @@ public:
     unpack(
         float* data,
         const int n=1);
+
     //\}
 
     /*!
@@ -285,6 +295,7 @@ public:
      * Pack and unpack integers into and out of the message stream.
      */
     //\{
+
     /*!
      * Pack a single integer into the message stream.
      */
@@ -314,6 +325,7 @@ public:
     unpack(
         int* data,
         const int n=1);
+
     //\}
 
     /*!

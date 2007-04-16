@@ -1,6 +1,6 @@
 // Filename: LNodeIndex.I
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 02:03:27 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:40:19 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -118,7 +118,7 @@ LNodeIndex::getStashData() const
     return d_stash_data;
 }// getStashData
 
-inline vector<SAMRAI::tbox::Pointer<Stashable> >&
+inline std::vector<SAMRAI::tbox::Pointer<Stashable> >&
 LNodeIndex::getStashData()
 {
     return d_stash_data;

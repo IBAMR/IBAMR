@@ -1,6 +1,6 @@
 // Filename: IBHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <11.Apr.2007 03:56:10 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:27:13 boyce@bigboy.nyconnect.com>
 
 #include "IBHierarchyIntegrator.h"
 
@@ -1662,8 +1662,8 @@ IBHierarchyIntegrator::advanceHierarchy(
                 }
 
                 SAMRAI::tbox::MPI::sumReduction(&d_P_src[ln][0], d_P_src[ln].size());
-                transform(d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(),
-                          bind2nd(plus<double>(),-p_norm));
+                std::transform(d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(),
+                               std::bind2nd(std::plus<double>(),-p_norm));
 
                 // Set the pressures for the Lagrangian source strategy.
                 d_source_strategy->setSourcePressures(

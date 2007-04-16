@@ -1,6 +1,6 @@
 // Filename: IBEulerianSourceSetter.C
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <30.Mar.2007 16:10:23 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Apr.2007 05:06:43 boyce@bigboy.nyconnect.com>
 
 #include "IBEulerianSourceSetter.h"
 
@@ -31,7 +31,7 @@ namespace IBAMR
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBEulerianSourceSetter::IBEulerianSourceSetter(
-    const string& object_name,
+    const std::string& object_name,
     const int Q_current_idx,
     const int Q_new_idx,
     const int Q_half_idx)

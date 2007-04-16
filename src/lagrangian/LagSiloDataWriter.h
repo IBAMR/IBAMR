@@ -3,7 +3,7 @@
 
 // Filename: LagSiloDataWriter.h
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <16.Apr.2007 02:15:08 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:52:44 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -248,14 +248,14 @@ private:
      * Information about the indices in the local marker clouds.
      */
     std::vector<int> d_nclouds;
-    std::vector<std::vector<string> > d_cloud_names;
+    std::vector<std::vector<std::string> > d_cloud_names;
     std::vector<std::vector<int> > d_cloud_nmarks, d_cloud_first_lag_idx;
 
     /*
      * Information about the indices in the logically Cartesian subgrids.
      */
     std::vector<int> d_nblocks;
-    std::vector<std::vector<string> > d_block_names;
+    std::vector<std::vector<std::string> > d_block_names;
     std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > d_block_nelems;
     std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > d_block_periodic;
     std::vector<std::vector<int> > d_block_first_lag_idx;
@@ -265,7 +265,7 @@ private:
      * subgrids.
      */
     std::vector<int> d_nmbs;
-    std::vector<std::vector<string> > d_mb_names;
+    std::vector<std::vector<std::string> > d_mb_names;
     std::vector<std::vector<int> > d_mb_nblocks;
     std::vector<std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > > d_mb_nelems;
     std::vector<std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > > d_mb_periodic;
@@ -275,7 +275,7 @@ private:
      * Information about the indices in the unstructured meshes.
      */
     std::vector<int> d_nucd_meshes;
-    std::vector<std::vector<string> > d_ucd_mesh_names;
+    std::vector<std::vector<std::string> > d_ucd_mesh_names;
     std::vector<std::vector<std::set<int> > > d_ucd_mesh_vertices;
     std::vector<std::vector<std::multimap<int,std::pair<int,int> > > > d_ucd_mesh_edge_maps;
 
@@ -285,7 +285,7 @@ private:
     std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > d_coords_data;
 
     std::vector<int> d_nvars;
-    std::vector<std::vector<string > > d_var_names;
+    std::vector<std::vector<std::string > > d_var_names;
     std::vector<std::vector<int> > d_var_depths;
     std::vector<std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > > d_var_data;
 

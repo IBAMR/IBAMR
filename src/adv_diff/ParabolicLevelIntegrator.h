@@ -2,7 +2,7 @@
 #define included_ParabolicLevelIntegrator
 
 // Filename: ParabolicLevelIntegrator.h
-// Last modified: <16.Apr.2007 02:28:12 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 05:54:42 boyce@bigboy.nyconnect.com>
 // Created on 09 Jan 2007 by Boyce Griffith (boyce@box221.cims.nyu.edu)
 
 // NOTE: This implementation is directly derived from the SAMRAI
@@ -71,7 +71,7 @@ public:
      * or an empty string will result in an unrecoverable exception.
      */
     ParabolicLevelIntegrator(
-        const string& object_name,
+        const std::string& object_name,
         tbox::Pointer<tbox::Database> input_db,
         ParabolicPatchStrategy<NDIM>* patch_strategy,
         bool register_for_restart = true,
@@ -522,8 +522,8 @@ public:
         const hier::IntVector<NDIM> ghosts,
         const PAR_VAR_TYPE h_v_type,
         const tbox::Pointer<xfer::Geometry<NDIM> > transfer_geom,
-        const string& coarsen_name = string(),
-        const string& refine_name = string());
+        const std::string& coarsen_name = std::string(),
+        const std::string& refine_name = std::string());
 
     /*!
      * Print class data representation for parabolic level integrator
@@ -722,7 +722,7 @@ private:
      * restart files and for error reporting purposes.  The boolean is
      * used to control restart file writing operations.
      */
-    string d_object_name;
+    std::string d_object_name;
     bool d_using_time_refinement;
     bool d_registered_for_restart;
 
