@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndexSet.h
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <11.Apr.2007 02:48:12 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:09:27 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -127,43 +127,51 @@ public:
      *
      * \return A reference to this object.
      */
-    LNodeIndexSet& operator=(
+    LNodeIndexSet&
+    operator=(
         const LNodeIndexSet& that);
 
     /*!
      * \return A const_iterator pointing to the beginning of the set of indices.
      */
-    const_iterator begin() const;
+    const_iterator
+    begin() const;
 
     /*!
      * \return An iterator pointing to the beginning of the set of indices.
      */
-    iterator begin();
+    iterator
+    begin();
 
     /*!
      * \return A const_iterator pointing to the end of the set of indices.
      */
-    const_iterator end() const;
+    const_iterator
+    end() const;
 
     /*!
      * \return An iterator pointing to the end of the set of indices.
      */
-    iterator end();
+    iterator
+    end();
 
     /*!
      * \return The size of the set.
      */
-    size_type size() const;
+    size_type
+    size() const;
 
     /*!
      * \return Whether the set is empty.
      */
-    bool empty() const;
+    bool
+    empty() const;
 
     /*!
      * \brief Insert a new element at the end (of the set).
      */
-    void push_back(
+    void
+    push_back(
         const value_type& value);
 
     /*!
@@ -172,7 +180,8 @@ public:
      * \note If the LNodeIndexSet lives in cell i, the index of the source
      * object is src_index = i - offset.
      */
-    const SAMRAI::hier::IntVector<NDIM>& getPeriodicOffset() const;
+    const SAMRAI::hier::IntVector<NDIM>&
+    getPeriodicOffset() const;
 
     /*!
      * \brief Set the value of the periodic offset.
@@ -180,7 +189,8 @@ public:
      * \note If the LNodeIndexSet lives in cell i, the index of the source
      * object is src_index = i - offset.
      */
-    void setPeriodicOffset(
+    void
+    setPeriodicOffset(
         const SAMRAI::hier::IntVector<NDIM>& offset);
 
     /*!
@@ -188,7 +198,8 @@ public:
      *
      * \note The index of the destination object is src_index + src_offset.
      */
-    void copySourceItem(
+    void
+    copySourceItem(
         const SAMRAI::hier::Index<NDIM>& src_index,
         const SAMRAI::hier::IntVector<NDIM>& src_offset,
         const LNodeIndexSet& src_item);
@@ -197,49 +208,57 @@ public:
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    size_t getDataStreamSize() const;
+    size_t
+    getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    void packStream(
+    void
+    packStream(
         SAMRAI::tbox::AbstractStream& stream);
 
     /*!
      * \brief Unpack data from the input stream.
      */
-    void unpackStream(
+    void
+    unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);
 
     /*!
      * \brief Unpack data from a database.
      */
-    void getFromDatabase(
+    void
+    getFromDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database);
 
     /*!
      * \brief Pack data into a database.
      */
-    void putToDatabase(
+    void
+    putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database);
 
 private:
     /*!
      * \brief Assign that to this.
      */
-    void assignThatToThis(
+    void
+    assignThatToThis(
         const LNodeIndexSet& that);
 
     /*!
      * \brief Reorder the collection of indices.
      */
-    void reorderCollection();
+    void
+    reorderCollection();
 
     /*!
      * \brief Get rid of any excess capacity in the collection.
      */
-    void trimToFit();
+    void
+    trimToFit();
 
     /*!
      * \brief The collection of indices.

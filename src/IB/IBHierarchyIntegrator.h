@@ -3,7 +3,7 @@
 
 // Filename: IBHierarchyIntegrator.h
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <13.Apr.2007 03:12:18 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:35:14 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -75,26 +75,30 @@ public:
      * The destructor for IBHierarchyIntegrator unregisters the integrator
      * object with the restart manager when so registered.
      */
-    virtual ~IBHierarchyIntegrator();
+    virtual
+    ~IBHierarchyIntegrator();
 
     /*!
      * Return the name of the hierarchy integrator object.
      */
-    const std::string& getName() const;
+    const std::string&
+    getName() const;
 
     /*!
      * Supply an optional cell centered body forcing term.
      *
      * \note This forcing term will be added to the Eulerian force density.
      */
-    void registerBodyForceSpecification(
+    void
+    registerBodyForceSpecification(
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> body_force_set);
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
      * the initial configuration of the curvilinear mesh nodes.
      */
-    void registerLNodeInitStrategy(
+    void
+    registerLNodeInitStrategy(
         SAMRAI::tbox::Pointer<LNodeInitStrategy> lag_init);
 
     /*!
@@ -103,26 +107,30 @@ public:
      * \note Be sure to call this method only once the initialization object is
      * no longer needed.
      */
-    void freeLNodeInitStrategy();
+    void
+    freeLNodeInitStrategy();
 
     /*!
      * Register a VisIt data writer so this class will write plot files that may
      * be postprocessed with the VisIt visualization tool.
      */
-    void registerVisItDataWriter(
+    void
+    registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
 
     /*!
      * Register a Lagrangian Silo data writer so this class will write plot
      * files that may be postprocessed with the VisIt visualization tool.
      */
-    void registerLagSiloDataWriter(
+    void
+    registerLagSiloDataWriter(
         SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer);
 
     /*!
      * Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(
+    void
+    registerLoadBalancer(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
 
     ///
@@ -153,7 +161,8 @@ public:
      * advanceHierarchy().  Otherwise, when assertion checking is active an
      * unrecoverable exception will occur.
      */
-    virtual void initializeHierarchyIntegrator(
+    virtual void
+    initializeHierarchyIntegrator(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
@@ -174,7 +183,8 @@ public:
      * the advanceHierarchy() function to be called.  In particular, on each
      * level constructed only the data needed for initialization exists.
      */
-    virtual double initializeHierarchy();
+    virtual double
+    initializeHierarchy();
 
     /*!
      * Integrate data on all patches on all levels of the patch hierarchy from
@@ -183,61 +193,72 @@ public:
      * When assertion checking is active, an unrecoverable exception will result
      * if the new time is not greater than the given time.
      */
-    virtual double advanceHierarchy(
+    virtual double
+    advanceHierarchy(
         const double dt);
 
     /*!
      * Return true if the current step count indicates that regridding should
      * occur.
      */
-    bool atRegridPoint() const;
+    bool
+    atRegridPoint() const;
 
     /*!
      * Return the current integration time for coarsest hierarchy level.
      */
-    double getIntegratorTime() const;
+    double
+    getIntegratorTime() const;
 
     /*!
      * Return the initial integration time.
      */
-    double getStartTime() const;
+    double
+    getStartTime() const;
 
     /*!
      * Return the final integration time.
      */
-    double getEndTime() const;
+    double
+    getEndTime() const;
 
     /*!
      * Return the integration step count for entire hierarchy (i.e., number of
      * steps taken on the coarsest level).
      */
-    int getIntegratorStep() const;
+    int
+    getIntegratorStep() const;
 
     /*!
      * Return the maximum number of integration steps allowed for entire
      * hierarchy (i.e., steps allowed on coarsest level).
      */
-    int getMaxIntegratorSteps() const;
+    int
+    getMaxIntegratorSteps() const;
 
     /*!
      * Return true if any integration steps remain, false otherwise.
      */
-    bool stepsRemaining() const;
+    bool
+    stepsRemaining() const;
 
     /*!
      * Return a const pointer to the patch hierarchy managed by integrator.
      */
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+    getPatchHierarchy() const;
 
     /*!
      * Return a pointer to the gridding algorithm object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > getGriddingAlgorithm() const;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
+    getGriddingAlgorithm() const;
 
     /*!
      * Return a pointer to the Lagrangian data manager object.
      */
-    LDataManager* getLDataManager() const;
+    LDataManager*
+    getLDataManager() const;
 
     ///
     ///  The following routines:
@@ -255,12 +276,14 @@ public:
     /*!
      * Regrid the hierarchy.
      */
-    virtual void regridHierarchy();
+    virtual void
+    regridHierarchy();
 
     /*!
      * Synchronize the hierarchy.
      */
-    virtual void synchronizeHierarchy();
+    virtual void
+    synchronizeHierarchy();
 
     /*!
      * Coarsen current solution data from finest hierarchy level specified down
@@ -283,7 +306,8 @@ public:
      * existing levels in the hierarchy (either coarsest_level > finest_level or
      * some level is null).
      */
-    virtual void synchronizeNewLevels(
+    virtual void
+    synchronizeNewLevels(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level,
@@ -293,13 +317,15 @@ public:
     /*!
      * Reset time dependent data.
      */
-    virtual void resetTimeDependentHierData(
+    virtual void
+    resetTimeDependentHierData(
         const double new_time);
 
     /*!
      * Deallocate all new simulation data.
      */
-    virtual void resetHierDataToPreadvanceState();
+    virtual void
+    resetHierDataToPreadvanceState();
 
     ///
     ///  The following routines:
@@ -346,7 +372,8 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    virtual void initializeLevelData(
+    virtual void
+    initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -370,7 +397,8 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_level > finest_level.
      */
-    virtual void resetHierarchyConfiguration(
+    virtual void
+    resetHierarchyConfiguration(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level);
@@ -395,7 +423,8 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    virtual void applyGradientDetector(
+    virtual void
+    applyGradientDetector(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double error_data_time,
@@ -421,14 +450,16 @@ public:
      * data corresponds to state data at the beginning of a timestep, or when a
      * new level is initialized.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getCurrentContext() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
+    getCurrentContext() const;
 
     /*!
      * Return pointer to "new" variable context used by integrator.  New data
      * corresponds to advanced state data at the end of a timestep.  The data is
      * one timestep later than the "current" data.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getNewContext() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
+    getNewContext() const;
 
     /*!
      * Return pointer to "old" variable context used by integrator.  Old data
@@ -440,7 +471,8 @@ public:
      * estimation, such as Richardson extrapolation, is the returned pointer
      * will non-null.  See contructor for more information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getOldContext() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
+    getOldContext() const;
 
     /*!
      * Return pointer to "scratch" variable context used by integrator.  Scratch
@@ -448,14 +480,16 @@ public:
      * GodunovAdvector object manipulate; in particular, scratch data contains
      * ghost cells.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getScratchContext() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
+    getScratchContext() const;
 
     /*!
      * Return pointer to variable context used for plotting.  This context
      * corresponds to the data storage that should be written to plot files.
      * Typically, this is the same as the "current" context.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getPlotContext() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
+    getPlotContext() const;
 
     ///
     ///  The following routines:
@@ -471,7 +505,8 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    virtual void putToDatabase(
+    virtual void
+    putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     ///
@@ -485,7 +520,8 @@ public:
     /*!
      * Print all data members for IBHierarchyIntegrator class.
      */
-    virtual void printClassData(
+    virtual void
+    printClassData(
         ostream& os) const;
 
 private:
@@ -523,14 +559,16 @@ private:
      *
      * \return A reference to this object.
      */
-    IBHierarchyIntegrator& operator=(
+    IBHierarchyIntegrator&
+    operator=(
         const IBHierarchyIntegrator& that);
 
     /*!
      * Initialize the IBLagrangianForceStrategy object for the current
      * configuration of the curvilinear mesh.
      */
-    void resetLagrangianForceStrategy(
+    void
+    resetLagrangianForceStrategy(
         const double init_data_time,
         const bool initial_time);
 
@@ -538,7 +576,8 @@ private:
      * Initialize the IBLagrangianSourceStrategy object for the current
      * configuration of the curvilinear mesh.
      */
-    void resetLagrangianSourceStrategy(
+    void
+    resetLagrangianSourceStrategy(
         const double init_data_time,
         const bool initial_time);
 
@@ -549,7 +588,8 @@ private:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void getFromInput(
+    void
+    getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
         bool is_from_restart);
 
@@ -566,7 +606,8 @@ private:
      *    -   The class version number and restart version number do not match.
      *
      */
-    void getFromRestart();
+    void
+    getFromRestart();
 
     /*
      * The object name is used as a handle to databases stored in restart files

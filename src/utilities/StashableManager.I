@@ -1,6 +1,6 @@
 // Filename: StashableManager.I
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <25.Oct.2006 18:26:36 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 01:39:04 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -18,16 +18,14 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline
-size_t
+inline size_t
 StashableManager::getDataStreamSize(
     const SAMRAI::tbox::Pointer<Stashable>& stash_data) const
 {
     return SAMRAI::tbox::AbstractStream::sizeofInt() + stash_data->getDataStreamSize();
 }//getDataStreamSize
 
-inline
-void
+inline void
 StashableManager::packStream(
     SAMRAI::tbox::AbstractStream& stream,
     SAMRAI::tbox::Pointer<Stashable>& stash_data)
@@ -41,8 +39,7 @@ StashableManager::packStream(
     return;
 }// packStream
 
-inline
-void
+inline void
 StashableManager::unpackStream(
     SAMRAI::tbox::AbstractStream& stream,
     const SAMRAI::hier::IntVector<NDIM>& offset,

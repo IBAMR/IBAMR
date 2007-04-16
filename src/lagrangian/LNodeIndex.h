@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndex.h
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <11.Apr.2007 02:43:20 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:05:40 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -36,7 +36,8 @@ public:
      * \name Friend declarations.
      */
     //\{
-    friend bool operator<(
+    friend bool
+    operator<(
         const LNodeIndex&,
         const LNodeIndex&);
     //\}
@@ -72,62 +73,72 @@ public:
      *
      * \return A reference to this object.
      */
-    LNodeIndex& operator=(
+    LNodeIndex&
+    operator=(
         const LNodeIndex& that);
 
     /*!
      * \return The Lagrangian index refrenced by this LNodeIndex.
      */
-    int getLagrangianIndex() const;
+    int
+    getLagrangianIndex() const;
 
     /*!
      * \brief Reset the Lagrangian index refrenced by this LNodeIndex.
      */
-    void setLagrangianIndex(
+    void
+    setLagrangianIndex(
         const int lagrangian_nidx);
 
     /*!
      * \return The local PETSc index refrenced by this LNodeIndex.
      */
-    int getLocalPETScIndex() const;
+    int
+    getLocalPETScIndex() const;
 
     /*!
      * \brief Reset the local PETSc index refrenced by this LNodeIndex.
      */
-    void setLocalPETScIndex(
+    void
+    setLocalPETScIndex(
         const int local_petsc_nidx);
 
     /*!
      * \return A pointer to the physical location of the node refrenced by this
      * LNodeIndex.
      */
-    double* getNodeLocation() const;
+    double*
+    getNodeLocation() const;
 
     /*!
      * \brief Reset the pointer to the physical location of the node refrenced
      * by this LNodeIndex.
      */
-    void setNodeLocation(
+    void
+    setNodeLocation(
         double* const X_ptr);
 
     /*!
      * \return A constant refrence to any additional data associated with the
      * node refrenced by this LNodeIndex.
      */
-    const std::vector<SAMRAI::tbox::Pointer<Stashable> >& getStashData() const;
+    const std::vector<SAMRAI::tbox::Pointer<Stashable> >&
+    getStashData() const;
 
     /*!
      * \return A non-constant refrence to any additional data associated with
      * the node refrenced by this LNodeIndex.
      */
-    std::vector<SAMRAI::tbox::Pointer<Stashable> >& getStashData();
+    std::vector<SAMRAI::tbox::Pointer<Stashable> >&
+    getStashData();
 
     /*!
      * \brief Copy data from the source.
      *
      * \note The cell index of the destination object is src_index + src_offset.
      */
-    void copySourceItem(
+    void
+    copySourceItem(
         const SAMRAI::hier::Index<NDIM>& src_index,
         const SAMRAI::hier::IntVector<NDIM>& src_offset,
         const LNodeIndex& src_item);
@@ -136,18 +147,21 @@ public:
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    size_t getDataStreamSize() const;
+    size_t
+    getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    void packStream(
+    void
+    packStream(
         SAMRAI::tbox::AbstractStream& stream);
 
     /*!
      * \brief Unpack data from the input stream.
      */
-    void unpackStream(
+    void
+    unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);
 
@@ -155,7 +169,8 @@ private:
     /*!
      * Assign that to this.
      */
-    void assignThatToThis(
+    void
+    assignThatToThis(
         const LNodeIndex& that);
 
     int d_lagrangian_nidx;  // the fixed global Lagrangian index
@@ -182,7 +197,8 @@ private:
  * set of indices is sorted according to operator<(), the nodes are in the
  * "Fortan" ordering according to their physical location.
  */
-bool operator<(
+bool
+operator<(
     const LNodeIndex& lhs,
     const LNodeIndex& rhs);
 

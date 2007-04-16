@@ -2,7 +2,7 @@
 #define included_ParabolicLevelIntegrator
 
 // Filename: ParabolicLevelIntegrator.h
-// Last modified: <21.Mar.2007 01:04:59 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Apr.2007 02:28:12 boyce@trasnaform2.local>
 // Created on 09 Jan 2007 by Boyce Griffith (boyce@box221.cims.nyu.edu)
 
 // NOTE: This implementation is directly derived from the SAMRAI
@@ -81,7 +81,8 @@ public:
      * The destructor for ParabolicLevelIntegrator unregisters the
      * integrator object with the restart manager when so registered.
      */
-    virtual ~ParabolicLevelIntegrator();
+    virtual
+    ~ParabolicLevelIntegrator();
 
     /*!
      * Initialize level integrator by by setting the number of time
@@ -94,7 +95,8 @@ public:
      * Assertion checking will throw unrecoverable exceptions if
      * either pointer is null.
      */
-    virtual void initializeLevelIntegrator(
+    virtual void
+    initializeLevelIntegrator(
         tbox::Pointer<mesh::BaseGriddingAlgorithm<NDIM> > base_gridding_alg);
 
     /*!
@@ -111,7 +113,8 @@ public:
      * When assertion checking is active, an unrecoverable exception
      * will result if the level pointer is null.
      */
-    virtual double getLevelDt(
+    virtual double
+    getLevelDt(
         const tbox::Pointer<hier::BasePatchLevel<NDIM> > level,
         const double dt_time,
         const bool initial_time);
@@ -129,7 +132,8 @@ public:
      * will result if the ratio vector is not acceptable (i.e., all
      * values > 0).
      */
-    virtual double getMaxFinerLevelDt(
+    virtual double
+    getMaxFinerLevelDt(
         const int finer_level_number,
         const double coarse_dt,
         const hier::IntVector<NDIM>& ratio_to_coarser);
@@ -231,7 +235,8 @@ public:
      * will result if either the level or hierarchy pointer is null,
      * or the new time is not greater than the given time.
      */
-    virtual double advanceLevel(
+    virtual double
+    advanceLevel(
         const tbox::Pointer<hier::BasePatchLevel<NDIM> > level,
         const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
         const double current_time,
@@ -254,7 +259,8 @@ public:
      * coarsest_level > finest_level or some level is null), or all of
      * the old time values are less than the value of sync_time.
      */
-    virtual void standardLevelSynchronization(
+    virtual void
+    standardLevelSynchronization(
         const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level,
@@ -267,7 +273,8 @@ public:
      * a single value for the old time is needed, since all levels
      * would have the same old time.
      */
-    virtual void standardLevelSynchronization(
+    virtual void
+    standardLevelSynchronization(
         const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level,
@@ -297,7 +304,8 @@ public:
      * do not properly match existing levels in the hierarchy (either
      * coarsest_level > finest_level or some level is null).
      */
-    virtual void synchronizeNewLevels(
+    virtual void
+    synchronizeNewLevels(
         const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level,
@@ -311,7 +319,8 @@ public:
      * When assertion checking is active, an unrecoverable exception
      * will result if the level pointer is null.
      */
-    virtual void resetTimeDependentData(
+    virtual void
+    resetTimeDependentData(
         const tbox::Pointer<hier::BasePatchLevel<NDIM> > level,
         const double new_time,
         const bool can_be_refined);
@@ -324,7 +333,8 @@ public:
      * When assertion checking is active, an unrecoverable exception
      * will result if the level pointer is null.
      */
-    virtual void resetDataToPreadvanceState(
+    virtual void
+    resetDataToPreadvanceState(
         const tbox::Pointer<hier::BasePatchLevel<NDIM> > level);
 
     /*!
@@ -365,7 +375,8 @@ public:
      * number does not match the level number (if the old level
      * pointer is non-null).
      */
-    virtual void initializeLevelData(
+    virtual void
+    initializeLevelData(
         const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -392,7 +403,8 @@ public:
      * null, or the given level numbers not specified properly; e.g.,
      * coarsest_level > finest_level.
      */
-    virtual void resetHierarchyConfiguration(
+    virtual void
+    resetHierarchyConfiguration(
         const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level);
@@ -420,7 +432,8 @@ public:
      * will result if the hierarchy pointer is null or the level
      * number does not match any existing level in the hierarchy.
      */
-    virtual void applyGradientDetector(
+    virtual void
+    applyGradientDetector(
         const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double error_data_time,
@@ -459,7 +472,8 @@ public:
      * When assertion checking is active, an unrecoverable exception
      * will result if the level pointer is null.
      */
-    virtual void applyRichardsonExtrapolation(
+    virtual void
+    applyRichardsonExtrapolation(
         const tbox::Pointer<hier::PatchLevel<NDIM> > level,
         const double error_data_time,
         const int tag_index,
@@ -481,7 +495,8 @@ public:
      * When assertion checking is active, an unrecoverable exception
      * will result if either level pointer is null.
      */
-    virtual void coarsenDataForRichardsonExtrapolation(
+    virtual void
+    coarsenDataForRichardsonExtrapolation(
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const tbox::Pointer<hier::PatchLevel<NDIM> > coarse_level,
@@ -501,7 +516,8 @@ public:
      * will result if the variable pointer or geometry pointer is
      * null.
      */
-    virtual void registerVariable(
+    virtual void
+    registerVariable(
         const tbox::Pointer<hier::Variable<NDIM> > var,
         const hier::IntVector<NDIM> ghosts,
         const PAR_VAR_TYPE h_v_type,
@@ -530,7 +546,8 @@ public:
      * integrator.  Current data corresponds to state data at the
      * beginning of a timestep, or when a new level is initialized.
      */
-    tbox::Pointer<hier::VariableContext> getCurrentContext() const;
+    tbox::Pointer<hier::VariableContext>
+    getCurrentContext() const;
 
     /*!
      * Return pointer to "new" variable context used by integrator.
@@ -538,7 +555,8 @@ public:
      * timestep.  The data is one timestep later than the "current"
      * data.
      */
-    tbox::Pointer<hier::VariableContext> getNewContext() const;
+    tbox::Pointer<hier::VariableContext>
+    getNewContext() const;
 
     /*!
      * Return pointer to "old" variable context used by integrator.
@@ -550,7 +568,8 @@ public:
      * estimation, such as Richardson extrapolation, is the returned
      * pointer will non-null.  See contructor for more information.
      */
-    tbox::Pointer<hier::VariableContext> getOldContext() const;
+    tbox::Pointer<hier::VariableContext>
+    getOldContext() const;
 
     /*!
      * Return pointer to "scratch" variable context used by
@@ -558,7 +577,8 @@ public:
      * user-routines in the concrete ParabolicPatchStrategy object
      * manipulate; in particular, scratch data contains ghost cells.
      */
-    tbox::Pointer<hier::VariableContext> getScratchContext() const;
+    tbox::Pointer<hier::VariableContext>
+    getScratchContext() const;
 
     /*!
      * Return pointer to variable context used for plotting.  This
@@ -566,14 +586,16 @@ public:
      * to plot files.  Typically, this is the same as the "current"
      * context.
      */
-    tbox::Pointer<hier::VariableContext> getPlotContext() const;
+    tbox::Pointer<hier::VariableContext>
+    getPlotContext() const;
 
     /*!
      * Return true if this class has been constructed to use refined
      * timestepping and false if it has been constructed to use
      * synchronized timestepping.
      */
-    bool usingRefinedTimestepping() const;
+    bool
+    usingRefinedTimestepping() const;
 
 protected:
     /*!
@@ -585,7 +607,8 @@ protected:
      * When assertion checking is active, the database pointer must be
      * non-null.
      */
-    virtual void getFromInput(
+    virtual void
+    getFromInput(
         tbox::Pointer<tbox::Database> db,
         bool is_from_restart);
 
@@ -609,7 +632,8 @@ protected:
 
      *
      */
-    virtual void getFromRestart();
+    virtual void
+    getFromRestart();
 
     /*
      * Pre-process flux storage before advancing solution on level
@@ -623,7 +647,8 @@ protected:
      * pointers must be non-null and the current time must be less
      * than the new time.
      */
-    virtual void preprocessFluxData(
+    virtual void
+    preprocessFluxData(
         const tbox::Pointer<hier::PatchLevel<NDIM> > level,
         const double cur_time,
         const double new_time,
@@ -641,7 +666,8 @@ protected:
      * When assertion checking is active, the level pointer must be
      * non-null.
      */
-    virtual void postprocessFluxData(
+    virtual void
+    postprocessFluxData(
         const tbox::Pointer<hier::PatchLevel<NDIM> > level,
         const bool regrid_advance,
         const bool first_step,
@@ -654,7 +680,8 @@ protected:
      * When assertion checking is active, the level and context
      * pointers must be non-null.
      */
-    virtual void copyTimeDependentData(
+    virtual void
+    copyTimeDependentData(
         const tbox::Pointer<hier::PatchLevel<NDIM> > level,
         const tbox::Pointer<hier::VariableContext> src_context,
         const tbox::Pointer<hier::VariableContext> dst_context);
@@ -676,7 +703,8 @@ protected:
      * levels are not consecutive in the AMR hierarchy, or the coarse
      * sim time is not less than the sync time.
      */
-    virtual void synchronizeLevelWithCoarser(
+    virtual void
+    synchronizeLevelWithCoarser(
         const tbox::Pointer<hier::PatchLevel<NDIM> > fine,
         const tbox::Pointer<hier::PatchLevel<NDIM> > coarse,
         const double sync_time,

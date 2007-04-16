@@ -2,7 +2,7 @@
 #define included_AdvDiffHypPatchOps
 
 // Filename: AdvDiffHypPatchOps.h
-// Last modified: <13.Apr.2007 03:30:54 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:25:42 boyce@trasnaform2.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -57,12 +57,14 @@ public:
      * The destructor for AdvDiffHypPatchOps unregisters the patch strategy
      * object with the restart manager when so registered.
      */
-    virtual ~AdvDiffHypPatchOps();
+    virtual
+    ~AdvDiffHypPatchOps();
 
     /*!
      * Return the name of the patch operations object.
      */
-    const std::string& getName() const;
+    const std::string&
+    getName() const;
 
     ///
     ///  The following routines:
@@ -78,7 +80,8 @@ public:
      * Update solution variables by performing a conservative difference using
      * the fluxes calculated in computeFluxesOnPatch().
      */
-    virtual void conservativeDifferenceOnPatch(
+    virtual void
+    conservativeDifferenceOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double time,
         const double dt,
@@ -96,7 +99,8 @@ public:
      * level data on all patch interiors.  That is, both scratch and current
      * data correspond to current_time.
      */
-    virtual void preprocessAdvanceLevelState(
+    virtual void
+    preprocessAdvanceLevelState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
         double current_time,
         double dt,
@@ -116,7 +120,8 @@ public:
      * correspond to current_time + dt on patch interiors.  The current data and
      * ghost values correspond to the current_time.
      */
-    virtual void postprocessAdvanceLevelState(
+    virtual void
+    postprocessAdvanceLevelState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
         double current_time,
         double dt,
@@ -152,7 +157,8 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffHypPatchOps& operator=(
+    AdvDiffHypPatchOps&
+    operator=(
         const AdvDiffHypPatchOps& that);
 };
 }// namespace IBAMR

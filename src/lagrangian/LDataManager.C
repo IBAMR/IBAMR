@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <15.Apr.2007 02:11:24 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Apr.2007 02:52:03 boyce@trasnaform2.local>
 
 #include "LDataManager.h"
 
@@ -84,8 +84,7 @@ static const int CFL_WIDTH = 1;
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;
 
-inline
-SAMRAI::pdat::CellIndex<NDIM>
+inline SAMRAI::pdat::CellIndex<NDIM>
 get_canonical_cell_index(
     const SAMRAI::pdat::CellIndex<NDIM>& cell_idx,
     const SAMRAI::hier::Box<NDIM>& domain_box,
@@ -112,8 +111,8 @@ get_canonical_cell_index(
 struct CellIndexFortranOrder
     : binary_function<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::pdat::CellIndex<NDIM>,bool>
 {
-    inline
-    bool operator()(
+    inline bool
+    operator()(
         const SAMRAI::pdat::CellIndex<NDIM>& lhs,
         const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
         {
@@ -131,8 +130,8 @@ struct CellIndexFortranOrder
 struct BeginLNodeLevelDataNonlocalFill
     : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
 {
-    inline
-    void operator()(
+    inline void
+    operator()(
         const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
         {
             data.second->beginGhostUpdate();
@@ -152,8 +151,8 @@ public:
             return;
         }
 
-    inline
-    void operator()(
+    inline void
+    operator()(
         const SAMRAI::tbox::Pointer<LNodeIndex>& data) const
         {
             data->setNodeLocation(
@@ -168,8 +167,8 @@ private:
 struct InvalidateLNodeIndexLocationPointers
     : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
 {
-    inline
-    void operator()(
+    inline void
+    operator()(
         const SAMRAI::tbox::Pointer<LNodeIndex>& data) const
         {
             data->setNodeLocation(NULL);
@@ -180,8 +179,8 @@ struct InvalidateLNodeIndexLocationPointers
 struct EndLNodeLevelDataNonlocalFill
     : unary_function<pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
 {
-    inline
-    void operator()(
+    inline void
+    operator()(
         const pair<string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
         {
             data.second->endGhostUpdate();
@@ -192,8 +191,8 @@ struct EndLNodeLevelDataNonlocalFill
 struct GetLagrangianIndex
     : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
 {
-    inline
-    int operator()(
+    inline int
+    operator()(
         const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
         {
             return index->getLagrangianIndex();
@@ -213,16 +212,16 @@ public:
             return;
         }
 
-    inline
-    void operator()(
+    inline void
+    operator()(
         const SAMRAI::tbox::Pointer<LNodeIndex>& index)
         {
             index->setLocalPETScIndex(d_current_index++);
             return;
         }
 
-    inline
-    int operator()()
+    inline int
+    operator()()
         {
             return d_current_index++;
         }
@@ -244,16 +243,16 @@ public:
             return;
         }
 
-    inline
-    void operator()(
+    inline void
+    operator()(
         const SAMRAI::tbox::Pointer<LNodeIndex>& index)
         {
             index->setLocalPETScIndex((*(d_index++))->getLocalPETScIndex());
             return;
         }
 
-    inline
-    int operator()()
+    inline int
+    operator()()
         {
             return (*(d_index++))->getLocalPETScIndex();
         }

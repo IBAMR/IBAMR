@@ -3,7 +3,7 @@
 
 // Filename: IBEulerianForceSetter.h
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <13.Apr.2007 03:08:34 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:30:58 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -40,12 +40,14 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBEulerianForceSetter();
+    virtual
+    ~IBEulerianForceSetter();
 
     /*!
      * \brief Set the current and new times for the present timestep.
      */
-    void setTimeInterval(
+    void
+    setTimeInterval(
         const double current_time,
         const double new_time);
 
@@ -57,12 +59,14 @@ public:
     /*!
      * \note This concrete STOOLS::SetDataStrategy is time-dependent.
      */
-    virtual bool isTimeDependent() const;
+    virtual bool
+    isTimeDependent() const;
 
     /*!
      * Set the data on the patch interior.
      */
-    virtual void setDataOnPatch(
+    virtual void
+    setDataOnPatch(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
         SAMRAI::hier::Patch<NDIM>& patch,
@@ -98,7 +102,8 @@ private:
      *
      * \return A reference to this object.
      */
-    IBEulerianForceSetter& operator=(
+    IBEulerianForceSetter&
+    operator=(
         const IBEulerianForceSetter& that);
 
     /*!

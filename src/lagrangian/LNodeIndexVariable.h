@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndexVariable.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <11.Apr.2007 02:48:47 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:09:57 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -34,14 +34,16 @@ public:
     /*!
      * Virtual destructor for LNodeIndexVariable objects.
      */
-    virtual ~LNodeIndexVariable();
+    virtual
+    ~LNodeIndexVariable();
 
     /*!
      * Return false since the LNodeIndex data index space matches the
      * cell-centered index space for AMR patches.  Thus, LNodeIndex data does
      * not live on patch borders.
      */
-    bool dataLivesOnPatchBorder() const;
+    bool
+    dataLivesOnPatchBorder() const;
 
     /*!
      * Return true so that the LNodeIndex data quantities will always be treated
@@ -51,7 +53,8 @@ public:
      * data does not live on patch borders and so there is no ambiguity
      * reagrding coarse-fine interface values.
      */
-    bool fineBoundaryRepresentsVariable() const;
+    bool
+    fineBoundaryRepresentsVariable() const;
 
 private:
     /*!
@@ -80,7 +83,8 @@ private:
      *
      * \return A reference to this object.
      */
-    LNodeIndexVariable& operator=(
+    LNodeIndexVariable&
+    operator=(
         const LNodeIndexVariable& that);
 };
 }// namespace IBAMR

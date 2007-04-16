@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <13.Apr.2007 02:35:21 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 01:57:40 boyce@trasnaform2.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -102,23 +102,27 @@ public:
      * The destructor for INSHierarchyIntegrator unregisters the integrator
      * object with the restart manager when so registered.
      */
-    virtual ~INSHierarchyIntegrator();
+    virtual
+    ~INSHierarchyIntegrator();
 
     /*!
      * Return the name of the hierarchy integrator object.
      */
-    const std::string& getName() const;
+    const std::string&
+    getName() const;
 
     /*!
      * Supply initial conditions for the (cell centered) velocity.
      */
-    void registerVelocityInitialConditions(
+    void
+    registerVelocityInitialConditions(
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> U_init);
 
     /*!
      * Supply physical boundary conditions for the (cell centered) velocity.
      */
-    void registerVelocityPhysicalBcCoefs(
+    void
+    registerVelocityPhysicalBcCoefs(
         const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
 
     /*!
@@ -127,27 +131,31 @@ public:
      * \note These initial conditions are used for output purposes only.  They
      * are not actually used in the computation.
      */
-    void registerPressureInitialConditions(
+    void
+    registerPressureInitialConditions(
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init);
 
     /*!
      * Supply a (possibly time dependent) cell centered forcing term.
      */
-    void registerForceSpecification(
+    void
+    registerForceSpecification(
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set);
 
     /*!
      * Supply a (possibly time dependent) cell centered divergence
      * specification.
      */
-    void registerDivergenceSpecification(
+    void
+    registerDivergenceSpecification(
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_set);
 
     /*!
      * Register a VisIt data writer so this object will write plot files that
      * may be postprocessed with the VisIt visualization tool.
      */
-    void registerVisItDataWriter(
+    void
+    registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
 
     ///
@@ -165,7 +173,8 @@ public:
      * Return a pointer to the HierarchyMathOps object being used by this
      * integrator.
      */
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> getHierarchyMathOps() const;
+    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
+    getHierarchyMathOps() const;
 
     /*!
      * Set the HierarchyMathOps object being used by this integrator.
@@ -175,7 +184,8 @@ public:
      * HierarchyMathOps::setPatchHierarchy() and HierarchyMathOps::resetLevels()
      * following any changes to the configuration of the patch hierarchy.
      */
-    void setHierarchyMathOps(
+    void
+    setHierarchyMathOps(
         SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> hier_math_ops,
         const bool manage_ops=false);
 
@@ -188,7 +198,8 @@ public:
      * HierarchyMathOps::setPatchHierarchy() and HierarchyMathOps::resetLevels()
      * following any changes to the configuration of the patch hierarchy.
      */
-    bool isManagingHierarchyMathOps() const;
+    bool
+    isManagingHierarchyMathOps() const;
 
     ///
     ///  The following routines:
@@ -221,7 +232,8 @@ public:
      * advanceHierarchy().  Otherwise, when assertion checking is active an
      * unrecoverable exception will occur.
      */
-    virtual void initializeHierarchyIntegrator(
+    virtual void
+    initializeHierarchyIntegrator(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
@@ -242,7 +254,8 @@ public:
      * the advanceHierarchy() function to be called.  In particular, on each
      * level constructed only the data needed for initialization exists.
      */
-    virtual double initializeHierarchy();
+    virtual double
+    initializeHierarchy();
 
     /*!
      * Integrate data on all patches on all levels of the patch hierarchy from
@@ -251,7 +264,8 @@ public:
      * When assertion checking is active, an unrecoverable exception will result
      * if the new time is not greater than the given time.
      */
-    virtual double advanceHierarchy(
+    virtual double
+    advanceHierarchy(
         const double dt);
 
     /*!
@@ -260,73 +274,86 @@ public:
      * prevent excessive changes in the maximum stable timestep as the
      * computation progresses.
      */
-    virtual double getStableTimestep();
+    virtual double
+    getStableTimestep();
 
     /*!
      * Return true if the current step count indicates that regridding should
      * occur.
      */
-    bool atRegridPoint() const;
+    bool
+    atRegridPoint() const;
 
     /*!
      * Return the current integration time for coarsest hierarchy level.
      */
-    double getIntegratorTime() const;
+    double
+    getIntegratorTime() const;
 
     /*!
      * Return the initial integration time.
      */
-    double getStartTime() const;
+    double
+    getStartTime() const;
 
     /*!
      * Return the final integration time.
      */
-    double getEndTime() const;
+    double
+    getEndTime() const;
 
     /*!
      * Return the integration step count for entire hierarchy (i.e., number of
      * steps taken on the coarsest level).
      */
-    int getIntegratorStep() const;
+    int
+    getIntegratorStep() const;
 
     /*!
      * Return the maximum number of integration steps allowed for entire
      * hierarchy (i.e., steps allowed on coarsest level).
      */
-    int getMaxIntegratorSteps() const;
+    int
+    getMaxIntegratorSteps() const;
 
     /*!
      * Return true if any integration steps remain, false otherwise.
      */
-    bool stepsRemaining() const;
+    bool
+    stepsRemaining() const;
 
     /*!
      * Return a const pointer to the patch hierarchy managed by integrator.
      */
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+    getPatchHierarchy() const;
 
     /*!
      * Return a pointer to the gridding algorithm object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > getGriddingAlgorithm() const;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
+    getGriddingAlgorithm() const;
 
     /*!
      * Return a pointer to the Godunov advector being used to predict the
      * advection velocities.
      */
-    SAMRAI::tbox::Pointer<GodunovAdvector> getGodunovAdvector() const;
+    SAMRAI::tbox::Pointer<GodunovAdvector>
+    getGodunovAdvector() const;
 
     /*!
      * Return a pointer to the AdvDiffHierarchyIntegrator being used to
      * integrate the advection-diffusion equation.
      */
-    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> getAdvDiffHierarchyIntegrator() const;
+    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator>
+    getAdvDiffHierarchyIntegrator() const;
 
     /*!
      * Return a pointer to the HierarchyProjector being used to inforce
      * incompressibility.
      */
-    SAMRAI::tbox::Pointer<HierarchyProjector> getHierarchyProjector() const;
+    SAMRAI::tbox::Pointer<HierarchyProjector>
+    getHierarchyProjector() const;
 
     ///
     ///  The following routines:
@@ -348,7 +375,8 @@ public:
     /*!
      * Regrid the hierarchy.
      */
-    virtual void regridHierarchy();
+    virtual void
+    regridHierarchy();
 
     /*!
      * This routine predicts a time-centered advection velocity using an
@@ -359,7 +387,8 @@ public:
      * This method is additionally responsible for performing a "synchronization
      * projection" following any regridding operation.
      */
-    virtual void predictAdvectionVelocity(
+    virtual void
+    predictAdvectionVelocity(
         const double current_time,
         const double new_time);
 
@@ -367,7 +396,8 @@ public:
      * This routine integrates the advection-diffusion equation for the cell
      * centered intermediate, unprojected velocity field.
      */
-    virtual void integrateAdvDiff(
+    virtual void
+    integrateAdvDiff(
         const double current_time,
         const double new_time);
 
@@ -376,7 +406,8 @@ public:
      * velocity field, approximately enforcing the specified divergence
      * condition.
      */
-    virtual void projectVelocity(
+    virtual void
+    projectVelocity(
         const double current_time,
         const double new_time);
 
@@ -385,7 +416,8 @@ public:
      * update may require the solution to additional systems of linear
      * equations.
      */
-    virtual void updatePressure(
+    virtual void
+    updatePressure(
         const double current_time,
         const double new_time,
         const bool override_current_pressure=false);
@@ -393,7 +425,8 @@ public:
     /*!
      * Synchronize the hierarchy.
      */
-    virtual void synchronizeHierarchy();
+    virtual void
+    synchronizeHierarchy();
 
     /*!
      * Coarsen current solution data from finest hierarchy level specified down
@@ -416,7 +449,8 @@ public:
      * existing levels in the hierarchy (either coarsest_level > finest_level or
      * some level is null).
      */
-    virtual void synchronizeNewLevels(
+    virtual void
+    synchronizeNewLevels(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level,
@@ -426,13 +460,15 @@ public:
     /*!
      * Reset time dependent data.
      */
-    virtual void resetTimeDependentHierData(
+    virtual void
+    resetTimeDependentHierData(
         const double new_time);
 
     /*!
      * Deallocate all new simulation data.
      */
-    virtual void resetHierDataToPreadvanceState();
+    virtual void
+    resetHierDataToPreadvanceState();
 
     ///
     ///  The following routines:
@@ -479,7 +515,8 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    virtual void initializeLevelData(
+    virtual void
+    initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -503,7 +540,8 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_level > finest_level.
      */
-    virtual void resetHierarchyConfiguration(
+    virtual void
+    resetHierarchyConfiguration(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level);
@@ -528,7 +566,8 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    virtual void applyGradientDetector(
+    virtual void
+    applyGradientDetector(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double error_data_time,
@@ -552,27 +591,32 @@ public:
     /*!
      * Return a pointer to the fluid velocity state variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > getVelocityVar();
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
+    getVelocityVar();
 
     /*!
      * Return a pointer to the fluid pressure state variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > getPressureVar();
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
+    getPressureVar();
 
     /*!
      * Return a pointer to the advection velocity variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > getAdvectionVelocityVar();
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >
+    getAdvectionVelocityVar();
 
     /*!
      * Return a pointer to the body force variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > getForceVar();
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
+    getForceVar();
 
     /*!
      * Return a pointer to the specified divergence variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > getDivergenceVar();
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
+    getDivergenceVar();
 
     ///
     ///  The following routines:
@@ -592,14 +636,16 @@ public:
      * data corresponds to state data at the beginning of a timestep, or when a
      * new level is initialized.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getCurrentContext() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
+    getCurrentContext() const;
 
     /*!
      * Return pointer to "new" variable context used by integrator.  New data
      * corresponds to advanced state data at the end of a timestep.  The data is
      * one timestep later than the "current" data.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getNewContext() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
+    getNewContext() const;
 
     /*!
      * Return pointer to "old" variable context used by integrator.  Old data
@@ -611,7 +657,8 @@ public:
      * estimation, such as Richardson extrapolation, is the returned pointer
      * will non-null.  See contructor for more information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getOldContext() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
+    getOldContext() const;
 
     /*!
      * Return pointer to "scratch" variable context used by integrator.  Scratch
@@ -619,14 +666,16 @@ public:
      * GodunovAdvector object manipulate; in particular, scratch data contains
      * ghost cells.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getScratchContext() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
+    getScratchContext() const;
 
     /*!
      * Return pointer to variable context used for plotting.  This context
      * corresponds to the data storage that should be written to plot files.
      * Typically, this is the same as the "current" context.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getPlotContext() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
+    getPlotContext() const;
 
     ///
     ///  The following routines:
@@ -642,7 +691,8 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    virtual void putToDatabase(
+    virtual void
+    putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     ///
@@ -656,7 +706,8 @@ public:
     /*!
      * Print all data members for INSHierarchyIntegrator class.
      */
-    virtual void printClassData(
+    virtual void
+    printClassData(
         std::ostream& os) const;
 
 protected:
@@ -679,7 +730,8 @@ protected:
      *
      * \todo Add variable registration to a HierarchyIntegrator base class.
      */
-    void registerVariable(
+    void
+    registerVariable(
         int& current_idx,
         int& new_idx,
         int& scratch_idx,
@@ -696,7 +748,8 @@ protected:
      *
      * \todo Add variable registration to a HierarchyIntegrator base class.
      */
-    void registerVariable(
+    void
+    registerVariable(
         int& scratch_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
         const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0));
@@ -736,14 +789,16 @@ private:
      *
      * \return A reference to this object.
      */
-    INSHierarchyIntegrator& operator=(
+    INSHierarchyIntegrator&
+    operator=(
         const INSHierarchyIntegrator& that);
 
     /*!
      * Compute the appropriate source term which must be added to the momentum
      * equation when the fluid contains sources and sinks.
      */
-    void computeDivSourceTerm(
+    void
+    computeDivSourceTerm(
         const int F_idx,
         const int Q_idx,
         const int u_idx,
@@ -757,7 +812,8 @@ private:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void getFromInput(
+    void
+    getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
         bool is_from_restart);
 
@@ -774,7 +830,8 @@ private:
      *    -   The class version number and restart version number do not match.
      *
      */
-    void getFromRestart();
+    void
+    getFromRestart();
 
     /*
      * The object name is used as a handle to databases stored in restart files

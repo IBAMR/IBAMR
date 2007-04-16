@@ -1,6 +1,6 @@
 // Filename: LNodeIndexSet.I
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <14.Apr.2007 21:31:17 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Apr.2007 02:08:06 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -44,8 +44,7 @@ LNodeIndexSet::~LNodeIndexSet()
     return;
 }// ~LNodeIndexSet
 
-inline
-LNodeIndexSet&
+inline LNodeIndexSet&
 LNodeIndexSet::operator=(
     const LNodeIndexSet& that)
 {
@@ -56,50 +55,43 @@ LNodeIndexSet::operator=(
     return *this;
 }// operator=
 
-inline
-LNodeIndexSet::const_iterator
+inline LNodeIndexSet::const_iterator
 LNodeIndexSet::begin() const
 {
     return d_set.begin();
 }// begin
 
-inline
-LNodeIndexSet::iterator
+inline LNodeIndexSet::iterator
 LNodeIndexSet::begin()
 {
     return d_set.begin();
 }// begin
 
-inline
-LNodeIndexSet::const_iterator
+inline LNodeIndexSet::const_iterator
 LNodeIndexSet::end() const
 {
     return d_set.end();
 }// end
 
-inline
-LNodeIndexSet::iterator
+inline LNodeIndexSet::iterator
 LNodeIndexSet::end()
 {
     return d_set.end();
 }// end
 
-inline
-LNodeIndexSet::size_type
+inline LNodeIndexSet::size_type
 LNodeIndexSet::size() const
 {
     return d_set.size();
 }// size
 
-inline
-bool
+inline bool
 LNodeIndexSet::empty() const
 {
     return d_set.empty();
 }// empty
 
-inline
-void
+inline void
 LNodeIndexSet::push_back(
     const LNodeIndexSet::value_type& value)
 {
@@ -107,15 +99,13 @@ LNodeIndexSet::push_back(
     return;
 }// push_back
 
-inline
-const SAMRAI::hier::IntVector<NDIM>&
+inline const SAMRAI::hier::IntVector<NDIM>&
 LNodeIndexSet::getPeriodicOffset() const
 {
     return d_offset;
 }// getPeriodicOffset
 
-inline
-void
+inline void
 LNodeIndexSet::setPeriodicOffset(
     const SAMRAI::hier::IntVector<NDIM>& offset)
 {
@@ -123,8 +113,7 @@ LNodeIndexSet::setPeriodicOffset(
     return;
 }// setPeriodicOffset
 
-inline
-void
+inline void
 LNodeIndexSet::copySourceItem(
     const SAMRAI::hier::Index<NDIM>& src_index,
     const SAMRAI::hier::IntVector<NDIM>& src_offset,
@@ -137,8 +126,7 @@ LNodeIndexSet::copySourceItem(
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-inline
-void
+inline void
 LNodeIndexSet::trimToFit()
 {
     if (d_set.size() < d_set.capacity())

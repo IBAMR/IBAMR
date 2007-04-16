@@ -2,7 +2,7 @@
 #define included_IBSpringForceGen
 
 // Filename: IBSpringForceGen.h
-// Last modified: <13.Apr.2007 04:31:25 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:42:24 boyce@trasnaform2.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -106,7 +106,8 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBSpringForceGen();
+    virtual
+    ~IBSpringForceGen();
 
     /*!
      * \brief Register a spring force specification function with the force
@@ -119,7 +120,8 @@ public:
      * \note By default, function default_linear_spring_force() is associated
      * with \a force_fcn_idx 0.
      */
-    void registerSpringForceFunction(
+    void
+    registerSpringForceFunction(
         const int force_fcn_index,
         void (*force_fcn)(double F[NDIM], const double D[NDIM], const double& stf, const double& rst, const int& lag_mastr_idx, const int& lag_slave_idx));
 
@@ -127,7 +129,8 @@ public:
      * \brief Setup the data needed to compute the spring forces on the
      * specified level of the patch hierarchy.
      */
-    virtual void initializeLevelData(
+    virtual void
+    initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -141,7 +144,8 @@ public:
      * \note Nodal forces computed by this method are \em added to the force
      * vector.
      */
-    virtual void computeLagrangianForce(
+    virtual void
+    computeLagrangianForce(
         SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
         SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -169,7 +173,8 @@ private:
      *
      * \return A reference to this object.
      */
-    IBSpringForceGen& operator=(
+    IBSpringForceGen&
+    operator=(
         const IBSpringForceGen& that);
 
     /*!
@@ -177,7 +182,8 @@ private:
      *
      * The database pointer may be null.
      */
-    void getFromInput(
+    void
+    getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!

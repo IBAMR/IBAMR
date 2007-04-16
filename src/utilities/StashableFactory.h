@@ -3,7 +3,7 @@
 
 // Filename: StashableFactory.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <13.Apr.2007 04:12:04 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 01:38:54 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -45,27 +45,31 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~StashableFactory();
+    virtual
+    ~StashableFactory();
 
     /*!
      * \brief Return the unique identifier used to specify the StashableFactory
      * object used by the StashableManager to extract Stashable objects from
      * data streams.
      */
-    virtual int getStashableID() const = 0;
+    virtual int
+    getStashableID() const = 0;
 
     /*!
      * \brief Set the unique identifier used to specify the StashableFactory
      * object used by the StashableManager to extract Stashable objects from
      * data streams.
      */
-    virtual void setStashableID(
+    virtual void
+    setStashableID(
         const int stashable_id) = 0;
 
     /*!
      * \brief Build a Stashable object by unpacking data from the input stream.
      */
-    virtual SAMRAI::tbox::Pointer<Stashable> unpackStream(
+    virtual SAMRAI::tbox::Pointer<Stashable>
+    unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset) = 0;
 
@@ -89,7 +93,8 @@ private:
      *
      * \return A reference to this object.
      */
-    StashableFactory& operator=(
+    StashableFactory&
+    operator=(
         const StashableFactory& that);
 };
 }// namespace IBAMR

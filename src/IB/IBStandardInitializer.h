@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <13.Apr.2007 03:26:57 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:48:18 boyce@trasnaform2.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -40,12 +40,14 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~IBStandardInitializer();
+    virtual
+    ~IBStandardInitializer();
 
     /*!
      * \brief Register a Silo data writer with the IB initializer object.
      */
-    void registerLagSiloDataWriter(
+    void
+    registerLagSiloDataWriter(
         SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer);
 
     /*!
@@ -55,7 +57,8 @@ public:
      * \return A boolean value indicating whether Lagrangian data is associated
      * with the given level in the patch hierarchy.
      */
-    virtual bool getLevelHasLagrangianData(
+    virtual bool
+    getLevelHasLagrangianData(
         const int level_number,
         const bool can_be_refined) const;
 
@@ -64,7 +67,8 @@ public:
      *
      * \return The number of local nodes on the specified level.
      */
-    virtual int getLocalNodeCountOnPatchLevel(
+    virtual int
+    getLocalNodeCountOnPatchLevel(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -77,7 +81,8 @@ public:
      *
      * \return The number of local nodes initialized on the patch level.
      */
-    virtual int initializeDataOnPatchLevel(
+    virtual int
+    initializeDataOnPatchLevel(
         const int lag_node_index_idx,
         const int global_index_offset,
         const int local_index_offset,
@@ -95,7 +100,8 @@ public:
      *
      * \return The number of local nodes initialized on the patch level.
      */
-    virtual int initializeMassDataOnPatchLevel(
+    virtual int
+    initializeMassDataOnPatchLevel(
         const int global_index_offset,
         const int local_index_offset,
         SAMRAI::tbox::Pointer<LNodeLevelData>& M_data,
@@ -116,7 +122,8 @@ public:
      * that will reside in any yet-to-be-constructed level(s) of the patch
      * hierarchy.
      */
-    virtual void tagCellsForInitialRefinement(
+    virtual void
+    tagCellsForInitialRefinement(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double error_data_time,
@@ -151,7 +158,8 @@ private:
      *
      * \return A reference to this object.
      */
-    IBStandardInitializer& operator=(
+    IBStandardInitializer&
+    operator=(
         const IBStandardInitializer& that);
 
     /*!
@@ -159,39 +167,46 @@ private:
      * associated with the specified level of the locally refined Cartesian
      * grid.
      */
-    void initializeLagSiloDataWriter(
+    void
+    initializeLagSiloDataWriter(
         const int level_number);
 
     /*!
      * \brief Read the vertex data from one or more input files.
      */
-    void readVertexFiles();
+    void
+    readVertexFiles();
 
     /*!
      * \brief Read the spring data from one or more input files.
      */
-    void readSpringFiles();
+    void
+    readSpringFiles();
 
     /*!
      * \brief Read the beam data from one or more input files.
      */
-    void readBeamFiles();
+    void
+    readBeamFiles();
 
     /*!
      * \brief Read the target point data from one or more input files.
      */
-    void readTargetPointFiles();
+    void
+    readTargetPointFiles();
 
     /*!
      * \brief Read the boundary mass data from one or more input files.
      */
-    void readBoundaryMassFiles();
+    void
+    readBoundaryMassFiles();
 
     /*!
      * \brief Determine the indices of any vertices initially located within the
      * specified patch.
      */
-    void getPatchVertices(
+    void
+    getPatchVertices(
         std::vector<std::pair<int,int> >& point_indices,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const int level_number,
@@ -200,14 +215,16 @@ private:
     /*!
      * \return The cannonical Lagrangian index of the specified vertex.
      */
-    int getCannonicalLagrangianIndex(
+    int
+    getCannonicalLagrangianIndex(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
     /*!
      * \return The initial position of the specified vertex.
      */
-    std::vector<double> getVertexPosn(
+    std::vector<double>
+    getVertexPosn(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
@@ -216,21 +233,24 @@ private:
      * particular node.  (Note that if this value is zero for any particular
      * node, there will be no target point penalty force at that node.)
      */
-    double getVertexTargetStiffness(
+    double
+    getVertexTargetStiffness(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
     /*!
      * \return The mass associated with a particular node.
      */
-    double getVertexMass(
+    double
+    getVertexMass(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
     /*!
      * \return The mass spring constant associated with a particular node.
      */
-    double getVertexMassStiffness(
+    double
+    getVertexMassStiffness(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
@@ -238,7 +258,8 @@ private:
      * \return The force specification objects associated with the specified
      * vertex.
      */
-    std::vector<SAMRAI::tbox::Pointer<Stashable> > initializeForceSpec(
+    std::vector<SAMRAI::tbox::Pointer<Stashable> >
+    initializeForceSpec(
         const std::pair<int,int>& point_index,
         const int global_index_offset,
         const int level_number) const;
@@ -248,7 +269,8 @@ private:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void getFromInput(
+    void
+    getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*
@@ -289,7 +311,7 @@ private:
     struct EdgeComp
         : public std::binary_function<Edge,Edge,bool>
     {
-        bool
+        inline bool
         operator()(
             const Edge& e1,
             const Edge& e2) const

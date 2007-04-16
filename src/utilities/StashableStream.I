@@ -1,6 +1,6 @@
 // Filename: StashableStream.I
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <07.Apr.2007 19:28:02 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Apr.2007 01:41:23 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -13,29 +13,25 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline
-void*
+inline void*
 StashableStream::getBufferStart()
 {
     return static_cast<void*>(d_buffer);
 }// getBufferStart
 
-inline
-int
+inline int
 StashableStream::getCurrentSize() const
 {
     return d_current_size;
 }// getCurrentSize
 
-inline
-int
+inline int
 StashableStream::getCurrentIndex() const
 {
     return d_buffer_index;
 }// getCurrentIndex
 
-inline
-void
+inline void
 StashableStream::setCurrentIndex(
     const int index)
 {
@@ -43,8 +39,7 @@ StashableStream::setCurrentIndex(
     return;
 }// setCurrentIndex
 
-inline
-void
+inline void
 StashableStream::resetIndex()
 {
     setCurrentIndex(0);
@@ -61,8 +56,7 @@ StashableStream::resetIndex()
 *************************************************************************
 */
 
-inline
-SAMRAI::tbox::AbstractStream&
+inline SAMRAI::tbox::AbstractStream&
 StashableStream::operator<<(
     const bool& data)
 {
@@ -70,8 +64,7 @@ StashableStream::operator<<(
     return *this;
 }// operator<<
 
-inline
-SAMRAI::tbox::AbstractStream&
+inline SAMRAI::tbox::AbstractStream&
 StashableStream::operator>>(
     bool& data)
 {
@@ -79,8 +72,7 @@ StashableStream::operator>>(
     return *this;
 }// operator>>
 
-inline
-void
+inline void
 StashableStream::pack(
     const bool* data,
     const int n)
@@ -95,8 +87,7 @@ StashableStream::pack(
     return;
 }// pack
 
-inline
-void
+inline void
 StashableStream::unpack(
     bool* data,
     const int n)
@@ -119,8 +110,7 @@ StashableStream::unpack(
 *************************************************************************
 */
 
-inline
-SAMRAI::tbox::AbstractStream&
+inline SAMRAI::tbox::AbstractStream&
 StashableStream::operator<<(
     const char& data)
 {
@@ -128,8 +118,7 @@ StashableStream::operator<<(
     return *this;
 }// operator<<
 
-inline
-SAMRAI::tbox::AbstractStream&
+inline SAMRAI::tbox::AbstractStream&
 StashableStream::operator>>(
     char& data)
 {
@@ -137,8 +126,7 @@ StashableStream::operator>>(
     return *this;
 }// operator>>
 
-inline
-void
+inline void
 StashableStream::pack(
     const char* data,
     const int n)
@@ -148,8 +136,7 @@ StashableStream::pack(
     return;
 }// pack
 
-inline
-void
+inline void
 StashableStream::unpack(
     char* data,
     const int n)
@@ -167,8 +154,7 @@ StashableStream::unpack(
 *************************************************************************
 */
 
-inline
-SAMRAI::tbox::AbstractStream&
+inline SAMRAI::tbox::AbstractStream&
 StashableStream::operator<<(
     const dcomplex& data)
 {
@@ -176,8 +162,7 @@ StashableStream::operator<<(
     return *this;
 }// operator<<
 
-inline
-SAMRAI::tbox::AbstractStream&
+inline SAMRAI::tbox::AbstractStream&
 StashableStream::operator>>(
     dcomplex& data)
 {
@@ -185,8 +170,7 @@ StashableStream::operator>>(
     return *this;
 }// operator>>
 
-inline
-void
+inline void
 StashableStream::pack(
     const dcomplex* data,
     const int n)
@@ -196,8 +180,7 @@ StashableStream::pack(
     return;
 }// pack
 
-inline
-void
+inline void
 StashableStream::unpack(
     dcomplex* data,
     const int n)
@@ -215,8 +198,7 @@ StashableStream::unpack(
 *************************************************************************
 */
 
-inline
-SAMRAI::tbox::AbstractStream&
+inline SAMRAI::tbox::AbstractStream&
 StashableStream::operator<<(
     const double& data)
 {
@@ -224,8 +206,7 @@ StashableStream::operator<<(
     return *this;
 }// operator<<
 
-inline
-SAMRAI::tbox::AbstractStream&
+inline SAMRAI::tbox::AbstractStream&
 StashableStream::operator>>(
     double& data)
 {
@@ -233,8 +214,7 @@ StashableStream::operator>>(
     return *this;
 }// operator>>
 
-inline
-void
+inline void
 StashableStream::pack(
     const double* data,
     const int n)
@@ -244,8 +224,7 @@ StashableStream::pack(
     return;
 }// pack
 
-inline
-void
+inline void
 StashableStream::unpack(
     double* data,
     const int n)
@@ -263,8 +242,7 @@ StashableStream::unpack(
 *************************************************************************
 */
 
-inline
-SAMRAI::tbox::AbstractStream&
+inline SAMRAI::tbox::AbstractStream&
 StashableStream::operator<<(
     const float& data)
 {
@@ -272,8 +250,7 @@ StashableStream::operator<<(
     return *this;
 }// operator<<
 
-inline
-SAMRAI::tbox::AbstractStream&
+inline SAMRAI::tbox::AbstractStream&
 StashableStream::operator>>(
     float& data)
 {
@@ -281,8 +258,7 @@ StashableStream::operator>>(
     return *this;
 }// operator>>
 
-inline
-void
+inline void
 StashableStream::pack(
     const float* data,
     const int n)
@@ -292,8 +268,7 @@ StashableStream::pack(
     return;
 }// pack
 
-inline
-void
+inline void
 StashableStream::unpack(
     float* data,
     const int n)
@@ -311,8 +286,7 @@ StashableStream::unpack(
 *************************************************************************
 */
 
-inline
-SAMRAI::tbox::AbstractStream&
+inline SAMRAI::tbox::AbstractStream&
 StashableStream::operator<<(
     const int& data)
 {
@@ -320,8 +294,7 @@ StashableStream::operator<<(
     return *this;
 }// operator<<
 
-inline
-SAMRAI::tbox::AbstractStream&
+inline SAMRAI::tbox::AbstractStream&
 StashableStream::operator>>(
     int& data)
 {
@@ -329,8 +302,7 @@ StashableStream::operator>>(
     return *this;
 }// operator>>
 
-inline
-void
+inline void
 StashableStream::pack(
     const int* data,
     const int n)
@@ -340,8 +312,7 @@ StashableStream::pack(
     return;
 }// pack
 
-inline
-void
+inline void
 StashableStream::unpack(
     int* data,
     const int n)
@@ -365,8 +336,7 @@ StashableStream::unpack(
 *************************************************************************
 */
 
-inline
-void*
+inline void*
 StashableStream::getPointerAndAdvanceCursor(
     const int bytes)
 {
@@ -385,8 +355,7 @@ StashableStream::getPointerAndAdvanceCursor(
 }// getPointerAndAdvanceCursor
 
 template<typename T>
-inline
-void
+inline void
 StashableStream::__pack(
     const T* const m_data,
     unsigned m_bytes)
@@ -397,8 +366,7 @@ StashableStream::__pack(
 }// _pack
 
 template<typename T>
-inline
-void
+inline void
 StashableStream::__unpack(
     T* const m_data,
     unsigned m_bytes)

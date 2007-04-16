@@ -1,6 +1,6 @@
 // Filename: LNodeLevelData.I
 // Created on 17 Apr 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <25.Oct.2006 18:28:25 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:11:09 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -24,8 +24,7 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline
-double&
+inline double&
 LNodeLevelData::operator()(
     const int i,
     const int depth)
@@ -36,8 +35,7 @@ LNodeLevelData::operator()(
     return getLocalFormArray()[d_depth*i+depth];
 }// operator()
 
-inline
-int
+inline int
 LNodeLevelData::getGlobalNodeCount()
 {
     int ret_val;
@@ -45,8 +43,7 @@ LNodeLevelData::getGlobalNodeCount()
     return ret_val/d_depth;
 }// getGlobalNodeCount
 
-inline
-int
+inline int
 LNodeLevelData::getLocalNodeCount()
 {
     int ret_val;
@@ -54,15 +51,13 @@ LNodeLevelData::getLocalNodeCount()
     return ret_val/d_depth;
 }// getLocalNodeCount
 
-inline
-int
+inline int
 LNodeLevelData::getDepth() const
 {
     return d_depth;
 }// getDepth
 
-inline
-void
+inline void
 LNodeLevelData::beginGhostUpdate()
 {
     const int ierr = VecGhostUpdateBegin(
@@ -70,8 +65,7 @@ LNodeLevelData::beginGhostUpdate()
     return;
 }// beginGhostUpdate
 
-inline
-void
+inline void
 LNodeLevelData::endGhostUpdate()
 {
     const int ierr = VecGhostUpdateEnd(
@@ -81,8 +75,7 @@ LNodeLevelData::endGhostUpdate()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-inline
-Vec&
+inline Vec&
 LNodeLevelData::getGlobalVec()
 {
     if (d_in_local_form)
@@ -92,8 +85,7 @@ LNodeLevelData::getGlobalVec()
     return d_global_vec;
 }// getGlobalVec
 
-inline
-Vec&
+inline Vec&
 LNodeLevelData::getLocalFormVec()
 {
     if (!d_in_local_form)
@@ -108,8 +100,7 @@ LNodeLevelData::getLocalFormVec()
     return d_local_vec;
 }// getLocalFormVec
 
-inline
-void
+inline void
 LNodeLevelData::restoreLocalFormVec()
 {
     if (d_in_local_form)
@@ -124,8 +115,7 @@ LNodeLevelData::restoreLocalFormVec()
     return;
 }// restoreLocalFormVec
 
-inline
-PetscScalar*
+inline PetscScalar*
 LNodeLevelData::getLocalFormArray()
 {
     if (!d_extracted_local_array)
@@ -140,8 +130,7 @@ LNodeLevelData::getLocalFormArray()
     return d_local_vec_array;
 }// getLocalFormArray
 
-inline
-void
+inline void
 LNodeLevelData::restoreLocalFormArray()
 {
     if (!d_in_local_form || !d_extracted_local_array) return;

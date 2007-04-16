@@ -3,7 +3,7 @@
 
 // Filename: Stashable.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <13.Apr.2007 04:12:15 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 01:38:27 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -41,25 +41,29 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~Stashable();
+    virtual
+    ~Stashable();
 
     /*!
      * \brief Return the unique identifier used to specify the StashableFactory
      * object used by the StashableManager to extract Stashable objects from
      * data streams.
      */
-    virtual int getStashableID() const = 0;
+    virtual int
+    getStashableID() const = 0;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    virtual size_t getDataStreamSize() const = 0;
+    virtual size_t
+    getDataStreamSize() const = 0;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    virtual void packStream(
+    virtual void
+    packStream(
         SAMRAI::tbox::AbstractStream& stream) = 0;
 
 private:
@@ -82,7 +86,8 @@ private:
      *
      * \return A reference to this object.
      */
-    Stashable& operator=(
+    Stashable&
+    operator=(
         const Stashable& that);
 };
 }// namespace IBAMR

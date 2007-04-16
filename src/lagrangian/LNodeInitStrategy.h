@@ -3,7 +3,7 @@
 
 // Filename: LNodeInitStrategy.h
 // Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <11.Apr.2007 02:49:37 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:10:45 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -36,20 +36,23 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~LNodeInitStrategy();
+    virtual
+    ~LNodeInitStrategy();
 
     /*!
      * \return A boolean value indicating whether Lagrangian data is associated
      * with the given level in the patch hierarchy.
      */
-    virtual bool getLevelHasLagrangianData(
+    virtual bool
+    getLevelHasLagrangianData(
         const int level_number,
         const bool can_be_refined) const = 0;
 
     /*!
      * \return The number of local nodes on the patch level.
      */
-    virtual int getLocalNodeCountOnPatchLevel(
+    virtual int
+    getLocalNodeCountOnPatchLevel(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -62,7 +65,8 @@ public:
      *
      * \return The number of local nodes initialized on the patch level.
      */
-    virtual int initializeDataOnPatchLevel(
+    virtual int
+    initializeDataOnPatchLevel(
         const int lag_node_index_idx,
         const int global_index_offset,
         const int local_index_offset,
@@ -83,7 +87,8 @@ public:
      * \note A default empty implementation is provided when support for massive
      * boundaries is not required.
      */
-    virtual int initializeMassDataOnPatchLevel(
+    virtual int
+    initializeMassDataOnPatchLevel(
         const int global_index_offset,
         const int local_index_offset,
         SAMRAI::tbox::Pointer<LNodeLevelData>& M_data,
@@ -108,7 +113,8 @@ public:
      * \note A default empty implementation is provided when support for local
      * mesh refinement is not required.
      */
-    virtual void tagCellsForInitialRefinement(
+    virtual void
+    tagCellsForInitialRefinement(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double error_data_time,
@@ -134,7 +140,8 @@ private:
      *
      * \return A reference to this object.
      */
-    LNodeInitStrategy& operator=(
+    LNodeInitStrategy&
+    operator=(
         const LNodeInitStrategy& that);
 };
 }// namespace IBAMR

@@ -3,7 +3,7 @@
 
 // Filename: LNodeLevelData.h
 // Created on 08 Mar 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <11.Apr.2007 02:51:12 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:14:06 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -49,7 +49,8 @@ public:
      *
      * \return A reference to this object.
      */
-    LNodeLevelData& operator=(
+    LNodeLevelData&
+    operator=(
         const LNodeLevelData& that);
 
     /*!
@@ -59,14 +60,16 @@ public:
      * \return A non-const refrence to the Lagrangian nodal quantity at local
      * index i at the specified depth.
      */
-    double& operator()(
+    double&
+    operator()(
         const int i,
         const int depth=0);
 
     /*!
      * \return The total number of nodes of the Lagrangian data.
      */
-    int getGlobalNodeCount();
+    int
+    getGlobalNodeCount();
 
     /*!
      * \return The number of local (i.e., on processor) nodes of the Lagrangian
@@ -74,51 +77,60 @@ public:
      *
      * \note This count does not include ghost nodes.
      */
-    int getLocalNodeCount();
+    int
+    getLocalNodeCount();
 
     /*!
      * \return The depth (i.e., number of components per node) of the Lagrangian
      * data.
      */
-    int getDepth() const;
+    int
+    getDepth() const;
 
     /*!
      * \brief Begin updating the ghost nodes.
      */
-    void beginGhostUpdate();
+    void
+    beginGhostUpdate();
 
     /*!
      * \brief End updating the ghost nodes.
      */
-    void endGhostUpdate();
+    void
+    endGhostUpdate();
 
     /*!
      * \return The global PETSc Vec object which contains the level data.
      */
-    Vec& getGlobalVec();
+    Vec&
+    getGlobalVec();
 
     /*!
      * \return The ghosted local form of the global PETSc Vec object which
      * contains the level data.
      */
-    Vec& getLocalFormVec();
+    Vec&
+    getLocalFormVec();
 
     /*!
      * \brief Restore the ghosted local form of the global PETSc Vec object.
      */
-    void restoreLocalFormVec();
+    void
+    restoreLocalFormVec();
 
     /*!
      * \return The array corresponding to the PETSc Vec object in ghosted local
      * form.
      */
-    PetscScalar* getLocalFormArray();
+    PetscScalar*
+    getLocalFormArray();
 
     /*!
      * \brief Restore the array to the ghosted local form of the global PETSc
      * Vec object.
      */
-    void restoreLocalFormArray();
+    void
+    restoreLocalFormArray();
 
     ///
     ///  The following routines:
@@ -132,7 +144,8 @@ public:
     /*!
      * Store the contents of the class in a database.
      */
-    void putToDatabase(
+    void
+    putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
@@ -169,7 +182,8 @@ protected:
     /*!
      * \brief Reset the PETSc Vec and related data.
      */
-    void resetData(
+    void
+    resetData(
         Vec& new_global_vec,
         const vector<int>& new_nonlocal_petsc_indices);
 
@@ -184,7 +198,8 @@ private:
     /*!
      * \brief Assign that to this.
      */
-    void assignThatToThis(
+    void
+    assignThatToThis(
         const LNodeLevelData& that);
 
     /*

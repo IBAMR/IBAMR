@@ -2,7 +2,7 @@
 #define included_IBBeamForceGen
 
 // Filename: IBBeamForceGen.h
-// Last modified: <13.Apr.2007 03:29:13 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:28:43 boyce@trasnaform2.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -40,13 +40,15 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBBeamForceGen();
+    virtual
+    ~IBBeamForceGen();
 
     /*!
      * \brief Setup the data needed to compute the beam forces on the specified
      * level of the patch hierarchy.
      */
-    virtual void initializeLevelData(
+    virtual void
+    initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -60,7 +62,8 @@ public:
      * \note Nodal forces computed by this method are \em added to the force
      * vector.
      */
-    virtual void computeLagrangianForce(
+    virtual void
+    computeLagrangianForce(
         SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
         SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -88,7 +91,8 @@ private:
      *
      * \return A reference to this object.
      */
-    IBBeamForceGen& operator=(
+    IBBeamForceGen&
+    operator=(
         const IBBeamForceGen& that);
 
     /*!
@@ -96,7 +100,8 @@ private:
      *
      * The database pointer may be null.
      */
-    void getFromInput(
+    void
+    getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!

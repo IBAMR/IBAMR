@@ -1,6 +1,6 @@
 // Filename: LNodeIndexSet.C
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <06.Apr.2007 16:49:59 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Apr.2007 02:52:54 boyce@trasnaform2.local>
 
 #include "LNodeIndexSet.h"
 
@@ -36,8 +36,8 @@ namespace
 struct LNodeIndexGetDataStreamSizeSum
     : binary_function<size_t,SAMRAI::tbox::Pointer<LNodeIndex>,size_t>
 {
-    inline
-    size_t operator()(
+    inline size_t
+    operator()(
         size_t size_so_far,
         const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
         {
@@ -57,8 +57,8 @@ public:
             return;
         }
 
-    inline
-    void operator()(
+    inline void
+    operator()(
         const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
         {
             index->packStream(*d_stream);
@@ -82,8 +82,8 @@ public:
             return;
         }
 
-    inline
-    SAMRAI::tbox::Pointer<LNodeIndex> operator()() const
+    inline SAMRAI::tbox::Pointer<LNodeIndex>
+    operator()() const
         {
             SAMRAI::tbox::Pointer<LNodeIndex> index_out = new LNodeIndex();
             index_out->unpackStream(*d_stream,d_offset);
@@ -97,8 +97,8 @@ private:
 struct LNodeIndexLessThan
     : binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
 {
-    inline
-    bool operator()(
+    inline bool
+    operator()(
         const SAMRAI::tbox::Pointer<LNodeIndex>& lhs,
         const SAMRAI::tbox::Pointer<LNodeIndex>& rhs) const
         {

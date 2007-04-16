@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <13.Apr.2007 03:11:27 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 01:53:01 boyce@trasnaform2.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -74,12 +74,14 @@ public:
      * The destructor for HierarchyProjector unregisters the integrator object
      * with the restart manager when so registered.
      */
-    virtual ~HierarchyProjector();
+    virtual
+    ~HierarchyProjector();
 
     /*!
      * Return the name of the hierarchy projector object.
      */
-    const std::string& getName() const;
+    const std::string&
+    getName() const;
 
     ///
     ///  The following routines:
@@ -100,7 +102,8 @@ public:
      * the patch hierarchy as well as cell weights used in computing discrete
      * norms of quantities defined on the patch hierarchy.
      */
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> getHierarchyMathOps() const;
+    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
+    getHierarchyMathOps() const;
 
     /*!
      * Set the HierarchyMathOps object being used by this projector.
@@ -110,7 +113,8 @@ public:
      * HierarchyMathOps::setPatchHierarchy() and HierarchyMathOps::resetLevels()
      * following any changes to the configuration of the patch hierarchy.
      */
-    void setHierarchyMathOps(
+    void
+    setHierarchyMathOps(
         SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> hier_math_ops,
         const bool manage_ops=false);
 
@@ -123,7 +127,8 @@ public:
      * HierarchyMathOps::setPatchHierarchy() and HierarchyMathOps::resetLevels()
      * following any changes to the configuration of the patch hierarchy.
      */
-    bool isManagingHierarchyMathOps() const;
+    bool
+    isManagingHierarchyMathOps() const;
 
     ///
     ///  The following routines:
@@ -145,20 +150,23 @@ public:
      *
      * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients.
      */
-    void setPhysicalBcCoef(
+    void
+    setPhysicalBcCoef(
         const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
 
     /*!
      * Returns a pointer to the SAMRAI::solv::RobinBcCoefStrategy object
      * employed by the projector to solve the elliptic projection equation.
      */
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPhysicalBcCoef() const;
+    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
+    getPhysicalBcCoef() const;
 
     /*!
      * Returns a pointer to the concrete linear solver object employed by the
      * projector to solve the elliptic projection equation.
      */
-    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> getPoissonSolver() const;
+    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>
+    getPoissonSolver() const;
 
     ///
     ///  The following routines:
@@ -181,7 +189,8 @@ public:
      * ghost cells in w at the specified time.  Additionally, w data along the
      * coarse-fine interface is synchronized when specified.
      */
-    virtual void projectHierarchy(
+    virtual void
+    projectHierarchy(
         const double rho,
         const double dt,
         const int u_idx,
@@ -213,7 +222,8 @@ public:
      * ghost cells in w at the specified time.  Additionally, w data along the
      * coarse-fine interface is synchronized when specified.
      */
-    virtual void projectHierarchy(
+    virtual void
+    projectHierarchy(
         const double rho,
         const double dt,
         const int u_idx,
@@ -267,7 +277,8 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    virtual void initializeLevelData(
+    virtual void
+    initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -293,7 +304,8 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_level > finest_level.
      */
-    virtual void resetHierarchyConfiguration(
+    virtual void
+    resetHierarchyConfiguration(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level);
@@ -312,7 +324,8 @@ public:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    virtual void putToDatabase(
+    virtual void
+    putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     ///
@@ -326,7 +339,8 @@ public:
     /*!
      * Print all data members for the HierarchyProjector class.
      */
-    virtual void printClassData(
+    virtual void
+    printClassData(
         std::ostream& os) const;
 
 private:
@@ -362,7 +376,8 @@ private:
      *
      * \return A reference to this object.
      */
-    HierarchyProjector& operator=(
+    HierarchyProjector&
+    operator=(
         const HierarchyProjector& that);
 
     /*!
@@ -372,7 +387,8 @@ private:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void getFromInput(
+    void
+    getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
         bool is_from_restart);
 
@@ -387,7 +403,8 @@ private:
      *        restart file.
      *    -   The class version number and restart version number do not match.
      */
-    void getFromRestart();
+    void
+    getFromRestart();
 
     /*
      * The object name is used as a handle to databases stored in restart files

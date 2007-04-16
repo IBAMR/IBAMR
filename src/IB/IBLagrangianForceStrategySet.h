@@ -3,7 +3,7 @@
 
 // Filename: IBLagrangianForceStrategySet.h
 // Created on 04 April 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
-// Last modified: <11.Apr.2007 04:00:24 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:40:46 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -39,12 +39,14 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBLagrangianForceStrategySet();
+    virtual
+    ~IBLagrangianForceStrategySet();
 
     /*!
      * \brief Set the current and new times for the present timestep.
      */
-    virtual void setTimeInterval(
+    virtual void
+    setTimeInterval(
         const double current_time,
         const double new_time);
 
@@ -52,7 +54,8 @@ public:
      * \brief Setup the data needed to compute the forces on the specified level
      * of the patch hierarchy.
      */
-    virtual void initializeLevelData(
+    virtual void
+    initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -66,7 +69,8 @@ public:
      * \note Nodal forces computed by this method are \em added to the force
      * vector.
      */
-    virtual void computeLagrangianForce(
+    virtual void
+    computeLagrangianForce(
         SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
         SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -101,7 +105,8 @@ private:
      *
      * \return A reference to this object.
      */
-    IBLagrangianForceStrategySet& operator=(
+    IBLagrangianForceStrategySet&
+    operator=(
         const IBLagrangianForceStrategySet& that);
 
     /*!

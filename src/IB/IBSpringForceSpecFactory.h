@@ -2,7 +2,7 @@
 #define included_IBSpringForceSpecFactory
 
 // Filename: IBSpringForceSpecFactory.h
-// Last modified: <13.Apr.2007 03:20:53 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:44:10 boyce@trasnaform2.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -36,27 +36,31 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBSpringForceSpecFactory();
+    virtual
+    ~IBSpringForceSpecFactory();
 
     /*!
      * \brief Return the unique identifier used to specify the StashableFactory
      * object used by the StashableManager to extract Stashable objects from
      * data streams.
      */
-    virtual int getStashableID() const;
+    virtual int
+    getStashableID() const;
 
     /*!
      * \brief Set the unique identifier used to specify the StashableFactory
      * object used by the StashableManager to extract Stashable objects from
      * data streams.
      */
-    virtual void setStashableID(
+    virtual void
+    setStashableID(
         const int stashable_id);
 
     /*!
      * \brief Build a Stashable object by unpacking data from the input stream.
      */
-    virtual SAMRAI::tbox::Pointer<Stashable> unpackStream(
+    virtual SAMRAI::tbox::Pointer<Stashable>
+    unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);
 
@@ -80,7 +84,8 @@ private:
      *
      * \return A reference to this object.
      */
-    IBSpringForceSpecFactory& operator=(
+    IBSpringForceSpecFactory&
+    operator=(
         const IBSpringForceSpecFactory& that);
 
     /*

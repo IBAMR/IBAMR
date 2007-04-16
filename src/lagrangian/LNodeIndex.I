@@ -1,6 +1,6 @@
 // Filename: LNodeIndex.I
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <25.Oct.2006 18:27:26 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:03:27 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -56,8 +56,7 @@ LNodeIndex::~LNodeIndex()
     return;
 }// ~LNodeIndex
 
-inline
-LNodeIndex&
+inline LNodeIndex&
 LNodeIndex::operator=(
     const LNodeIndex& that)
 {
@@ -68,15 +67,13 @@ LNodeIndex::operator=(
     return *this;
 }// operator=
 
-inline
-int
+inline int
 LNodeIndex::getLagrangianIndex() const
 {
     return d_lagrangian_nidx;
 }// getLagrangianIndex
 
-inline
-void
+inline void
 LNodeIndex::setLagrangianIndex(
     const int lagrangian_nidx)
 {
@@ -84,15 +81,13 @@ LNodeIndex::setLagrangianIndex(
     return;
 }// setLagrangianIndex
 
-inline
-int
+inline int
 LNodeIndex::getLocalPETScIndex() const
 {
     return d_local_petsc_nidx;
 }// getLocalPETScIndex
 
-inline
-void
+inline void
 LNodeIndex::setLocalPETScIndex(
     const int local_petsc_nidx)
 {
@@ -100,8 +95,7 @@ LNodeIndex::setLocalPETScIndex(
     return;
 }// setLocalPETScIndex
 
-inline
-double*
+inline double*
 LNodeIndex::getNodeLocation() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -110,8 +104,7 @@ LNodeIndex::getNodeLocation() const
     return d_X_ptr;
 }// getNodeLocation
 
-inline
-void
+inline void
 LNodeIndex::setNodeLocation(
     double* const X_ptr)
 {
@@ -119,22 +112,19 @@ LNodeIndex::setNodeLocation(
     return;
 }// setNodeLocation
 
-inline
-const std::vector<SAMRAI::tbox::Pointer<Stashable> >&
+inline const std::vector<SAMRAI::tbox::Pointer<Stashable> >&
 LNodeIndex::getStashData() const
 {
     return d_stash_data;
 }// getStashData
 
-inline
-vector<SAMRAI::tbox::Pointer<Stashable> >&
+inline vector<SAMRAI::tbox::Pointer<Stashable> >&
 LNodeIndex::getStashData()
 {
     return d_stash_data;
 }// getStashData
 
-inline
-void
+inline void
 LNodeIndex::copySourceItem(
     const SAMRAI::hier::Index<NDIM>& src_index,
     const SAMRAI::hier::IntVector<NDIM>& src_offset,
@@ -144,16 +134,14 @@ LNodeIndex::copySourceItem(
     return;
 }// copySourceItem
 
-inline
-size_t
+inline size_t
 LNodeIndex::getDataStreamSize() const
 {
     return 2*SAMRAI::tbox::AbstractStream::sizeofInt()
         + StashableManager::getManager()->getDataStreamSize(d_stash_data);
 }// getDataStreamSize
 
-inline
-void
+inline void
 LNodeIndex::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
@@ -164,8 +152,7 @@ LNodeIndex::packStream(
     return;
 }// packStream
 
-inline
-void
+inline void
 LNodeIndex::unpackStream(
     SAMRAI::tbox::AbstractStream& stream,
     const SAMRAI::hier::IntVector<NDIM>& offset)
@@ -181,8 +168,7 @@ LNodeIndex::unpackStream(
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-inline
-void
+inline void
 LNodeIndex::assignThatToThis(
     const LNodeIndex& that)
 {
@@ -195,8 +181,8 @@ LNodeIndex::assignThatToThis(
 
 //////////////////////////////////////////////////////////////////////////////
 
-inline
-bool operator<(
+inline bool
+operator<(
     const LNodeIndex& lhs,
     const LNodeIndex& rhs)
 {

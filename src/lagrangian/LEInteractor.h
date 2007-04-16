@@ -3,7 +3,7 @@
 
 // Filename: LEInteractor.h
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <11.Apr.2007 02:42:22 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:02:40 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -37,7 +37,8 @@ public:
      * \note It is necessary to initialize the Timer objects prior to using any
      * of the functionality provided by this class.
      */
-    static void initializeTimers();
+    static void
+    initializeTimers();
 
     /*!
      * \brief Returns the interpolation/spreading stencil corresponding to the
@@ -45,7 +46,8 @@ public:
      *
      * The return value is -1 for any unknown weighting function type.
      */
-    static int getStencilSize(
+    static int
+    getStencilSize(
         const string& weighting_fcn);
 
     /*!
@@ -63,7 +65,8 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
-    static void interpolate(
+    static void
+    interpolate(
         SAMRAI::tbox::Pointer<LNodeLevelData>& Q_data,
         const SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
         const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
@@ -88,7 +91,8 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
-    static void interpolate(
+    static void
+    interpolate(
         double* const Q_data,
         const int Q_depth,
         const double* const X_data,
@@ -112,7 +116,8 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
-    static void interpolate(
+    static void
+    interpolate(
         double* const Q_data,
         const int Q_depth,
         const double* const X_data,
@@ -141,7 +146,8 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
-    static void spread(
+    static void
+    spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<LNodeLevelData>& Q_data,
         const SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
@@ -169,7 +175,8 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
-    static void spread(
+    static void
+    spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const double* const Q_data,
         const int Q_depth,
@@ -196,7 +203,8 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
-    static void spread(
+    static void
+    spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const double* const Q_data,
         const int Q_depth,
@@ -241,7 +249,8 @@ private:
      *
      * \return A reference to this object.
      */
-    LEInteractor& operator=(
+    LEInteractor&
+    operator=(
         const LEInteractor& that);
 };
 }// namespace IBAMR

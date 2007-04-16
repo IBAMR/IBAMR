@@ -1,6 +1,6 @@
 // Filename: LNodeIndexData.I
 // Created on 17 Apr 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <11.Apr.2007 02:44:24 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:05:47 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -10,15 +10,13 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline
-const std::vector<int>&
+inline const std::vector<int>&
 LNodeIndexData::getInteriorLocalIndices() const
 {
     return d_interior_local_indices;
 }// getInteriorLocalIndices
 
-inline
-const std::vector<int>&
+inline const std::vector<int>&
 LNodeIndexData::getGhostLocalIndices() const
 {
     return d_ghost_local_indices;

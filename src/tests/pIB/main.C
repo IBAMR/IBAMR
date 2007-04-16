@@ -98,7 +98,10 @@ linear_spring_force(
  ************************************************************************
  */
 
-int main(int argc, char* argv[])
+int
+main(
+    int argc,
+    char* argv[])
 {
     /*
      * Initialize PETSc, MPI, and SAMRAI.

@@ -2,7 +2,7 @@
 #define included_QInit
 
 // Filename: QInit.h
-// Last modified: <11.Apr.2007 02:08:04 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 01:36:13 boyce@trasnaform2.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -41,18 +41,22 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~QInit();
+    virtual
+    ~QInit();
 
     /*!
      * Indicates whether the concrete SetDataStrategy object is time
      * dependent.
      */
-    virtual bool isTimeDependent() const { return false; }
+    virtual bool
+    isTimeDependent() const
+        { return false; }
 
     /*!
      * Set the data on the patch interior to the exact answer.
      */
-    virtual void setDataOnPatch(
+    virtual void
+    setDataOnPatch(
         const int data_idx,
         tbox::Pointer<hier::Variable<NDIM> > var,
         hier::Patch<NDIM>& patch,
@@ -88,13 +92,15 @@ private:
      *
      * \return A reference to this object.
      */
-    QInit& operator=(
+    QInit&
+    operator=(
         const QInit& that);
 
     /*!
      * Read input values, indicated above, from given database.
      */
-    void getFromInput(
+    void
+    getFromInput(
         tbox::Pointer<tbox::Database> db);
 
     /*

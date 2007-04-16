@@ -1,6 +1,6 @@
 // Filename: LEInteractor.C
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <11.Apr.2007 02:41:12 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:52:16 boyce@trasnaform2.local>
 
 #include "LEInteractor.h"
 
@@ -215,8 +215,8 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_spread_f77;
 struct GetLocalPETScIndex
     : unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,int>
 {
-    inline
-    int operator()(
+    inline int
+    operator()(
         const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
         {
             return index->getLocalPETScIndex();

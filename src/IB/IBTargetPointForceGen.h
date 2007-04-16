@@ -2,7 +2,7 @@
 #define included_IBTargetPointForceGen
 
 // Filename: IBTargetPointForceGen.h
-// Last modified: <13.Apr.2007 03:28:10 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:48:48 boyce@trasnaform2.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -33,7 +33,8 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBTargetPointForceGen();
+    virtual
+    ~IBTargetPointForceGen();
 
     /*!
      * \brief Compute the penalty forces determined with the present
@@ -42,7 +43,8 @@ public:
      * \note Nodal forces computed by this method are \em added to the force
      * vector.
      */
-    virtual void computeLagrangianForce(
+    virtual void
+    computeLagrangianForce(
         SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
         SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -70,7 +72,8 @@ private:
      *
      * \return A reference to this object.
      */
-    IBTargetPointForceGen& operator=(
+    IBTargetPointForceGen&
+    operator=(
         const IBTargetPointForceGen& that);
 
     /*!
@@ -78,7 +81,8 @@ private:
      *
      * The database pointer may be null.
      */
-    void getFromInput(
+    void
+    getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 };
 }// namespace IBAMR

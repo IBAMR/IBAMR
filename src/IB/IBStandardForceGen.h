@@ -3,7 +3,7 @@
 
 // Filename: IBStandardForceGen.h
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <13.Apr.2007 04:04:00 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:46:27 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -45,13 +45,15 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBStandardForceGen();
+    virtual
+    ~IBStandardForceGen();
 
     /*!
      * \brief Setup the data needed to compute the forces on the specified level
      * of the patch hierarchy.
      */
-    virtual void initializeLevelData(
+    virtual void
+    initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -65,7 +67,8 @@ public:
      * \note Nodal forces computed by this method are \em added to the force
      * vector.
      */
-    virtual void computeLagrangianForce(
+    virtual void
+    computeLagrangianForce(
         SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
         SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -100,7 +103,8 @@ private:
      *
      * \return A reference to this object.
      */
-    IBStandardForceGen& operator=(
+    IBStandardForceGen&
+    operator=(
         const IBStandardForceGen& that);
 
     /*!

@@ -2,7 +2,7 @@
 #define included_IntermediateVelocityRobinBcCoefs
 
 // Filename: IntermediateVelocityRobinBcCoefs.h
-// Last modified: <11.Apr.2007 02:32:07 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 01:58:39 boyce@trasnaform2.local>
 // Created on 09 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -37,38 +37,44 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~IntermediateVelocityRobinBcCoefs();
+    virtual
+    ~IntermediateVelocityRobinBcCoefs();
 
     /*!
      * \brief Specify the current simulation time.
      */
-    void setCurrentTime(
+    void
+    setCurrentTime(
         const double current_time);
 
     /*!
      * \brief Specify the new simulation time.
      */
-    void setNewTime(
+    void
+    setNewTime(
         const double new_time);
 
     /*!
      * \brief Specify the (uniform) mass density.
      */
-    void setRho(
+    void
+    setRho(
         const double rho);
 
     /*!
      * \brief Specify the pressure variable to be used to update the boundary
      * conditions.
      */
-    void setPressureIndex(
+    void
+    setPressureIndex(
         const int P_idx);
 
     /*!
      * \brief Specify the phi variable to be used to update the boundary
      * conditions.
      */
-    void setPhiIndex(
+    void
+    setPhiIndex(
         const int Phi_idx);
 
     /*!
@@ -108,7 +114,8 @@ public:
      * \note An unrecoverable exception will occur if this method is called when
      * IBAMR is compiled with SAMRAI version 2.1.
      */
-    virtual void setBcCoefs(
+    virtual void
+    setBcCoefs(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
@@ -146,7 +153,8 @@ public:
      * \note An unrecoverable exception will occur if this method is called when
      * IBAMR is compiled with SAMRAI versions after version 2.1.
      */
-    virtual void setBcCoefs(
+    virtual void
+    setBcCoefs(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
@@ -169,7 +177,8 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    virtual SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const;
+    virtual SAMRAI::hier::IntVector<NDIM>
+    numberOfExtensionsFillable() const;
 
     //\}
 
@@ -200,13 +209,15 @@ private:
      *
      * \return A reference to this object.
      */
-    IntermediateVelocityRobinBcCoefs& operator=(
+    IntermediateVelocityRobinBcCoefs&
+    operator=(
         const IntermediateVelocityRobinBcCoefs& that);
 
     /*!
      * \brief Correct the boundary coefficients using p(n-1/2) and phi(n-1/2).
      */
-    void correctBcCoefs(
+    void
+    correctBcCoefs(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,

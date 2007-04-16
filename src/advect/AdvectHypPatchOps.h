@@ -2,7 +2,7 @@
 #define included_AdvectHypPatchOps
 
 // Filename: AdvectHypPatchOps.h
-// Last modified: <13.Apr.2007 02:33:34 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:18:06 boyce@trasnaform2.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -105,12 +105,14 @@ public:
      * The destructor for AdvectHypPatchOps unregisters the patch strategy
      * object with the restart manager when so registered.
      */
-    virtual ~AdvectHypPatchOps();
+    virtual
+    ~AdvectHypPatchOps();
 
     /*!
      * Return the name of the patch operations object.
      */
-    const std::string& getName() const;
+    const std::string&
+    getName() const;
 
     ///
     ///  The following routines:
@@ -147,7 +149,8 @@ public:
      * \note The advection velocity must be registered with the patch strategy
      * prior to the registration of advected quantities.
      */
-    void registerAdvectedQuantity(
+    void
+    registerAdvectedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
@@ -178,7 +181,8 @@ public:
      * \note The advection velocity must be registered with the patch strategy
      * prior to the registration of advected quantities.
      */
-    void registerAdvectedQuantity(
+    void
+    registerAdvectedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
@@ -215,7 +219,8 @@ public:
      * \note The advection velocity must be registered with the patch strategy
      * prior to the registration of advected quantities.
      */
-    void registerAdvectedQuantityWithSourceTerm(
+    void
+    registerAdvectedQuantityWithSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
@@ -254,7 +259,8 @@ public:
      * \note The advection velocity must be registered with the patch strategy
      * prior to the registration of advected quantities.
      */
-    void registerAdvectedQuantityWithSourceTerm(
+    void
+    registerAdvectedQuantityWithSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
@@ -278,7 +284,8 @@ public:
      * \note The advection velocity must be registered with the patch strategy
      * prior to the registration of advected quantities.
      */
-    void registerAdvectionVelocity(
+    void
+    registerAdvectionVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
         const bool u_is_div_free,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> u_set=NULL);
@@ -288,7 +295,8 @@ public:
      * Register a VisIt data writer so this class will write plot files that may
      * be postprocessed with the VisIt visualization tool.
      */
-    void registerVisItDataWriter(
+    void
+    registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
 #endif
 
@@ -324,7 +332,8 @@ public:
      * linear extrapolation is employed to set physical boundary ghost cell
      * values.
      */
-    virtual void setupAdvancePatchState(
+    virtual void
+    setupAdvancePatchState(
         const double current_time,
         const double new_time,
         const bool first_step,
@@ -342,7 +351,8 @@ public:
      * employed to physical boundary ghost cell values at all physical
      * boundaries.
      */
-    virtual void setupInitializePatchState(
+    virtual void
+    setupInitializePatchState(
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time);
@@ -352,7 +362,8 @@ public:
      * advance the solution data forward in time, or to initialize data on the
      * patch hierarchy.
      */
-    virtual void clearPatchState();
+    virtual void
+    clearPatchState();
 
     /*!
      * \brief Register AdvectHypPatchOps model variables with the
@@ -363,7 +374,8 @@ public:
      * integration process (e.g. time-dependent, flux, etc.).  This routine also
      * registers variables for plotting with the VisIt writer.
      */
-    virtual void registerModelVariables(
+    virtual void
+    registerModelVariables(
         SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* integrator);
 
     /*!
@@ -371,7 +383,8 @@ public:
      * concrete SetDataStrategy objects registered with the patch strategy when
      * provided.  Otherwise, initialize data to zero.
      */
-    virtual void initializeDataOnPatch(
+    virtual void
+    initializeDataOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double data_time,
         const bool initial_time);
@@ -380,7 +393,8 @@ public:
      * \brief Compute a stable time increment for patch using an explicit CFL
      * condition and return the computed dt.
      */
-    virtual double computeStableDtOnPatch(
+    virtual double
+    computeStableDtOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
         const bool initial_time,
         const double dt_time);
@@ -392,7 +406,8 @@ public:
      * The conservative difference used to update the integrated quantities is
      * implemented in conservativeDifferenceOnPatch().
      */
-    virtual void computeFluxesOnPatch(
+    virtual void
+    computeFluxesOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double time,
         const double dt);
@@ -401,7 +416,8 @@ public:
      * \brief Update solution variables by performing a conservative difference
      * using the fluxes calculated by computeFluxesOnPatch().
      */
-    virtual void conservativeDifferenceOnPatch(
+    virtual void
+    conservativeDifferenceOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double time,
         const double dt,
@@ -419,7 +435,8 @@ public:
      * level data on all patch interiors.  That is, both scratch and current
      * data correspond to current_time.
      */
-    virtual void preprocessAdvanceLevelState(
+    virtual void
+    preprocessAdvanceLevelState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
         double current_time,
         double dt,
@@ -439,7 +456,8 @@ public:
      * correspond to current_time + dt on patch interiors.  The current data and
      * ghost values correspond to the current_time.
      */
-    virtual void postprocessAdvanceLevelState(
+    virtual void
+    postprocessAdvanceLevelState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
         double current_time,
         double dt,
@@ -450,7 +468,8 @@ public:
     /*!
      * \brief Tag cells for refinement using Richardson extrapolation.
      */
-    virtual void tagRichardsonExtrapolationCells(
+    virtual void
+    tagRichardsonExtrapolationCells(
         SAMRAI::hier::Patch<NDIM>& patch,
         const int error_level_number,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> coarsened_fine,
@@ -465,7 +484,8 @@ public:
     /*!
      * \brief Tag cells for refinement using a gradient detector.
      */
-    virtual void tagGradientDetectorCells(
+    virtual void
+    tagGradientDetectorCells(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double regrid_time,
         const bool initial_error,
@@ -485,7 +505,8 @@ public:
      * \brief Set the data in ghost cells corresponding to physical boundary
      * conditions.
      */
-    virtual void setPhysicalBoundaryConditions(
+    virtual void
+    setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
@@ -506,7 +527,8 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    virtual void putToDatabase(
+    virtual void
+    putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     ///
@@ -520,7 +542,8 @@ public:
     /*!
      * \brief Print all data members for AdvectHypPatchOps class.
      */
-    virtual void printClassData(
+    virtual void
+    printClassData(
         std::ostream& os) const;
 
 protected:
@@ -528,7 +551,8 @@ protected:
      * \brief Get a pointer to the requested flux integral patch data on the
      * specified patch.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > getFluxIntegralData(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> >
+    getFluxIntegralData(
         const size_t l,
         SAMRAI::hier::Patch<NDIM>& patch,
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context);
@@ -537,7 +561,8 @@ protected:
      * \brief Get a pointer to the requested q integral patch data on the
      * specified patch.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > getQIntegralData(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> >
+    getQIntegralData(
         const size_t l,
         SAMRAI::hier::Patch<NDIM>& patch,
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context);
@@ -546,7 +571,8 @@ protected:
      * \brief Set the advection velocity data in ghost cells via constant or
      * linear extrapolation at all physical boundaries.
      */
-    virtual void setAdvectionVelocityBoundaryConditions(
+    virtual void
+    setAdvectionVelocityBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
@@ -555,7 +581,8 @@ protected:
      * \brief Set the data in ghost cells via constant or linear extrapolation
      * at inflow boundaries.
      */
-    virtual void setInflowBoundaryConditions(
+    virtual void
+    setInflowBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
@@ -564,7 +591,8 @@ protected:
      * \brief Set the data in ghost cells via constant or linear extrapolation
      * at outflow boundaries.
      */
-    virtual void setOutflowBoundaryConditions(
+    virtual void
+    setOutflowBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
@@ -661,7 +689,8 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvectHypPatchOps& operator=(
+    AdvectHypPatchOps&
+    operator=(
         const AdvectHypPatchOps& that);
 
     /*
@@ -672,11 +701,12 @@ private:
      *
      * An assertion results if the database pointer is null.
      */
-    void getFromInput(
+    void
+    getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
         bool is_from_restart);
-
-    void getFromRestart();
+    void
+    getFromRestart();
 
     /*
      * The object name is used as a handle to databases stored in restart files

@@ -3,7 +3,7 @@
 
 // Filename: LDataManager.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <11.Apr.2007 02:40:29 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:01:53 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -87,7 +87,8 @@ public:
      *
      * \todo fix this interface
      */
-    static LDataManager* getManager(
+    static LDataManager*
+    getManager(
         const string& name,
         const SAMRAI::hier::IntVector<NDIM>& ghosts=3,
         bool register_for_restart=true);
@@ -98,7 +99,8 @@ public:
      * It is not necessary to call this function at program termination since it
      * is automatically called by the ShutdownRegistry class.
      */
-    static void freeAllManagers();
+    static void
+    freeAllManagers();
 
     /*!
      * \name Methods to set the hierarchy and range of levels.
@@ -108,7 +110,8 @@ public:
     /*!
      * \brief Reset patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(
+    void
+    setPatchHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
@@ -117,7 +120,8 @@ public:
      * The levels must exist in the hierarchy or an assertion failure will
      * result.
      */
-    void resetLevels(
+    void
+    resetLevels(
         const int coarsest_ln,
         const int finest_ln);
 
@@ -127,7 +131,8 @@ public:
      * Register a concrete strategy object with the integrator that specifies
      * the initial configuration of the curvilinear mesh nodes.
      */
-    void registerLNodeInitStrategy(
+    void
+    registerLNodeInitStrategy(
         SAMRAI::tbox::Pointer<LNodeInitStrategy> lag_init);
 
     /*!
@@ -136,38 +141,44 @@ public:
      * \note Be sure to call this method only once the initialization object is
      * no longer needed.
      */
-    void freeLNodeInitStrategy();
+    void
+    freeLNodeInitStrategy();
 
     /*!
      * \brief Register a VisIt data writer with the manager.
      */
-    void registerVisItDataWriter(
+    void
+    registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
 
     /*!
      * \brief Register a Silo data writer with the manager.
      */
-    void registerLagSiloDataWriter(
+    void
+    registerLagSiloDataWriter(
         SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer);
 
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(
+    void
+    registerLoadBalancer(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
 
     /*!
      * \brief Indicates whether there is Lagrangian data on the given patch
      * hierarchy level.
      */
-    bool levelContainsLagrangianData(
+    bool
+    levelContainsLagrangianData(
         const int level_number) const;
 
     /*!
      * \return The number of total nodes of the Lagrangian data for the
      * specified level of the patch hierarchy.
      */
-    int getNumberOfNodes(
+    int
+    getNumberOfNodes(
         const int level_number) const;
 
     /*!
@@ -177,7 +188,8 @@ public:
      * \note This count does not include nodes which only lie in ghost cells for
      * the current process.
      */
-    int getNumberOfLocalNodes(
+    int
+    getNumberOfLocalNodes(
         const int level_number) const;
 
     /*!
@@ -187,14 +199,16 @@ public:
      * \note This count does not include nodes which only lie in ghost cells for
      * the current process.
      */
-    int getGlobalNodeOffset(
+    int
+    getGlobalNodeOffset(
         const int level_number) const;
 
     /*!
      * \brief Get the specified Lagrangian quantity data on the given patch
      * hierarchy level.
      */
-    SAMRAI::tbox::Pointer<LNodeLevelData> getLNodeLevelData(
+    SAMRAI::tbox::Pointer<LNodeLevelData>
+    getLNodeLevelData(
         const string& quantity_name,
         const int level_number);
 
@@ -206,7 +220,8 @@ public:
      * \note Quantities maintained by the LDataManager must have unique names.
      * The name "X" is reserved for the nodal coordinates.
      */
-    SAMRAI::tbox::Pointer<LNodeLevelData> createLNodeLevelData(
+    SAMRAI::tbox::Pointer<LNodeLevelData>
+    createLNodeLevelData(
         const string& quantity_name,
         const int level_number,
         const int depth=1,
@@ -215,30 +230,35 @@ public:
     /*!
      * \brief Get the patch data descriptor index for the Lagrangian index data.
      */
-    int getLNodeIndexPatchDescriptorIndex() const;
+    int
+    getLNodeIndexPatchDescriptorIndex() const;
 
     /*!
      * \brief Get the patch data descriptor index for the workload cell data.
      */
-    int getWorkloadPatchDescriptorIndex() const;
+    int
+    getWorkloadPatchDescriptorIndex() const;
 
     /*!
      * \brief Get the patch data descriptor index for the Lagrangian node count
      * cell data.
      */
-    int getNodeCountPatchDescriptorIndex() const;
+    int
+    getNodeCountPatchDescriptorIndex() const;
 
     /*!
      * \brief Get the patch data descriptor index for the MPI process mapping
      * cell data.
      */
-    int getProcMappingPatchDescriptorIndex() const;
+    int
+    getProcMappingPatchDescriptorIndex() const;
 
     /*!
      * \brief Map the collection of Lagrangian indices to the corresponding
      * global PETSc indices.
      */
-    void mapLagrangianToPETSc(
+    void
+    mapLagrangianToPETSc(
         std::vector<int>& inds,
         const int level_number) const;
 
@@ -246,7 +266,8 @@ public:
      * \brief Map the collection of global PETSc indices to the corresponding
      * Lagrangian indices.
      */
-    void mapPETScToLagrangian(
+    void
+    mapPETScToLagrangian(
         std::vector<int>& inds,
         const int level_number) const;
 
@@ -263,7 +284,8 @@ public:
      *
      * \see endDataRedistribution
      */
-    void beginDataRedistribution(
+    void
+    beginDataRedistribution(
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
@@ -283,7 +305,8 @@ public:
      *
      * \see beginDataRedistribution
      */
-    void endDataRedistribution(
+    void
+    endDataRedistribution(
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
@@ -300,7 +323,8 @@ public:
      *
      * where alpha and beta are parameters that each default to the value 1.
      */
-    void updateWorkloadData(
+    void
+    updateWorkloadData(
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
@@ -313,7 +337,8 @@ public:
      * which results in the restoration of the local form of the underlying
      * PETSc Vec object potentially invalidates these pointers.
      */
-    void restoreLocationPointers(
+    void
+    restoreLocationPointers(
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
@@ -322,7 +347,8 @@ public:
      * routine invalidates these pointers (an action which is mainly useful for
      * debugging purposes).
      */
-    void invalidateLocationPointers(
+    void
+    invalidateLocationPointers(
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
@@ -362,7 +388,8 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    void initializeLevelData(
+    void
+    initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -386,7 +413,8 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_level > finest_level.
      */
-    void resetHierarchyConfiguration(
+    void
+    resetHierarchyConfiguration(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level);
@@ -409,7 +437,8 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    virtual void applyGradientDetector(
+    virtual void
+    applyGradientDetector(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double error_data_time,
@@ -431,7 +460,8 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(
+    void
+    putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
@@ -476,7 +506,8 @@ private:
      *
      * \return A reference to this object.
      */
-    LDataManager& operator=(
+    LDataManager&
+    operator=(
         const LDataManager& that);
 
     /*!
@@ -486,7 +517,8 @@ private:
      * The operation is essentially equivalent to refilling ghost cells for
      * structured (SAMRAI native) data.
      */
-    void beginNonlocalDataFill(
+    void
+    beginNonlocalDataFill(
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
@@ -497,7 +529,8 @@ private:
      * The operation is essentially equivalent to refilling ghost cells for
      * structured (SAMRAI native) data.
      */
-    void endNonlocalDataFill(
+    void
+    endNonlocalDataFill(
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
@@ -523,7 +556,8 @@ private:
      * appearing in the ghost cell region of a patch may or may not be owned by
      * this processor.
      */
-    int computeNodeDistribution(
+    int
+    computeNodeDistribution(
         std::vector<int>& local_lag_indices,
         std::vector<int>& nonlocal_lag_indices,
         AO& ao,
@@ -539,7 +573,8 @@ private:
      * Determine the number of local Lagrangian nodes on all MPI processes with
      * rank less than the rank of the current MPI process.
      */
-    static void computeNodeOffsets(
+    static void
+    computeNodeOffsets(
         int& num_nodes,
         int& node_offset,
         const int& num_local_nodes);
@@ -557,7 +592,8 @@ private:
      *    -   The class version number and restart version number do not match.
      *
      */
-    void getFromRestart();
+    void
+    getFromRestart();
 
     /*!
      * Static data members used to control access to and destruction of

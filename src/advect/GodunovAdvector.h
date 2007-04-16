@@ -2,7 +2,7 @@
 #define included_GodunovAdvector
 
 // Filename: GodunovAdvector.h
-// Last modified: <13.Apr.2007 03:02:53 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:19:38 boyce@trasnaform2.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -97,7 +97,8 @@ public:
     /*!
      * Return the name of the patch operations object.
      */
-    const std::string& getName() const;
+    const std::string&
+    getName() const;
 
     ///
     ///  The following routines:
@@ -119,7 +120,8 @@ public:
      *
      * \return The maximum stable timestep.
      */
-    double computeStableDtOnPatch(
+    double
+    computeStableDtOnPatch(
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::hier::Patch<NDIM>& patch) const;
 
@@ -129,7 +131,8 @@ public:
      * q^{n+\frac{1}{2}} \f$ using the specified advection velocity and
      * predicted face-centered values.
      */
-    void computeAdvectiveDerivative(
+    void
+    computeAdvectiveDerivative(
         SAMRAI::pdat::CellData<NDIM,double>& N,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::FaceData<NDIM,double>& q_half,
@@ -152,7 +155,8 @@ public:
      * MAC advection velocity.  Analogous forulae hold in other spatial
      * dimensions.
      */
-    void computeFlux(
+    void
+    computeFlux(
         SAMRAI::pdat::FaceData<NDIM,double>& flux,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::FaceData<NDIM,double>& q_half,
@@ -180,7 +184,8 @@ public:
      *
      * \see predictValueWithSourceTerm
      */
-    void predictValue(
+    void
+    predictValue(
         SAMRAI::pdat::FaceData<NDIM,double>& q_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::CellData<NDIM,double>& Q,
@@ -208,7 +213,8 @@ public:
      *
      * \see predictValue
      */
-    void predictValueWithSourceTerm(
+    void
+    predictValueWithSourceTerm(
         SAMRAI::pdat::FaceData<NDIM,double>& q_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::CellData<NDIM,double>& Q,
@@ -237,7 +243,8 @@ public:
      *
      * \see predictNormalVelocityWithSourceTerm
      */
-    void predictNormalVelocity(
+    void
+    predictNormalVelocity(
         SAMRAI::pdat::FaceData<NDIM,double>& v_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::CellData<NDIM,double>& V,
@@ -265,7 +272,8 @@ public:
      *
      * \see predictNormalVelocity
      */
-    void predictNormalVelocityWithSourceTerm(
+    void
+    predictNormalVelocityWithSourceTerm(
         SAMRAI::pdat::FaceData<NDIM,double>& v_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::CellData<NDIM,double>& V,
@@ -282,7 +290,8 @@ public:
      * and transverse velocity components at each cell face, i.e., \p v_half
      * must \em NOT be a MAC velocity field.
      */
-    void enforceIncompressibility(
+    void
+    enforceIncompressibility(
         SAMRAI::pdat::FaceData<NDIM,double>& v_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::FaceData<NDIM,double>& grad_phi,
@@ -304,7 +313,8 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    virtual void putToDatabase(
+    virtual void
+    putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     ///
@@ -318,7 +328,8 @@ public:
     /*!
      * \brief Print all data members for GodunovAdvector class.
      */
-    virtual void printClassData(
+    virtual void
+    printClassData(
         std::ostream& os) const;
 
 private:
@@ -348,20 +359,22 @@ private:
      *
      * \return A reference to this object.
      */
-    GodunovAdvector& operator=(
+    GodunovAdvector&
+    operator=(
         const GodunovAdvector& that);
 
     /*
      * Private functions used to compute the predicted values/fluxes.
      */
-    void predict(
+    void
+    predict(
         SAMRAI::pdat::FaceData<NDIM,double>& q_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::CellData<NDIM,double>& Q,
         const SAMRAI::hier::Patch<NDIM>& patch,
         const double dt) const;
-
-    void predictWithSourceTerm(
+    void
+    predictWithSourceTerm(
         SAMRAI::pdat::FaceData<NDIM,double>& q_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::CellData<NDIM,double>& Q,
@@ -377,11 +390,12 @@ private:
      *
      * An assertion results if the database pointer is null.
      */
-    void getFromInput(
+    void
+    getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
         bool is_from_restart);
-
-    void getFromRestart();
+    void
+    getFromRestart();
 
     /*
      * The object name is used as a handle to databases stored in restart files

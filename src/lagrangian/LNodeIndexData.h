@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndexData.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <14.Apr.2007 21:04:56 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Apr.2007 02:06:54 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -59,16 +59,19 @@ public:
     /*!
      * The virtual destructor for an LNodeIndexData object.
      */
-    virtual ~LNodeIndexData();
+    virtual
+    ~LNodeIndexData();
 
     /*!
      * A fast copy between the source and destination.  All data is copied from
      * the source into the destination where there is overlap in the index
      * space.
      */
-    virtual void copy(
+    virtual void
+    copy(
         const SAMRAI:: hier::PatchData<NDIM>& src);
-    virtual void copy2(
+    virtual void
+    copy2(
         SAMRAI::hier::PatchData<NDIM>& dst) const;
 
     /*!
@@ -76,10 +79,12 @@ public:
      * overlap descriptor.  The overlap description should have been computed
      * previously from computeIntersection().
      */
-    virtual void copy(
+    virtual void
+    copy(
         const SAMRAI::hier::PatchData<NDIM>& src,
         const SAMRAI::hier::BoxOverlap<NDIM>& overlap);
-    virtual void copy2(
+    virtual void
+    copy2(
         SAMRAI::hier::PatchData<NDIM>& dst,
         const SAMRAI::hier::BoxOverlap<NDIM>& overlap) const;
 
@@ -109,14 +114,16 @@ public:
      *
      * \note This should be an ordered, contiguous set of indices.
      */
-    const std::vector<int>& getInteriorLocalIndices() const;
+    const std::vector<int>&
+    getInteriorLocalIndices() const;
 
     /*!
      * \return A constant refrence to the set of local PETSc indices to
      * Lagrangian nodes which lie in ghost cell region of this
      * SAMRAI::hier::PatchData<NDIM> object.
      */
-    const std::vector<int>& getGhostLocalIndices() const;
+    const std::vector<int>&
+    getGhostLocalIndices() const;
 
 private:
     /*!
@@ -145,7 +152,8 @@ private:
      *
      * \return A reference to this object.
      */
-    LNodeIndexData& operator=(
+    LNodeIndexData&
+    operator=(
         const LNodeIndexData& that);
 
     /*!

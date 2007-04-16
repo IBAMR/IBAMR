@@ -2,7 +2,7 @@
 #define included_IBBeamForceSpec
 
 // Filename: IBBeamForceSpec.h
-// Last modified: <13.Apr.2007 03:17:39 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:29:53 boyce@trasnaform2.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -49,13 +49,15 @@ public:
      * ensure that all processes employ the same stashable ID for the
      * IBBeamForceSpec class.
      */
-    static void registerWithStashableManager();
+    static void
+    registerWithStashableManager();
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
      * with the singleton StashableManager object.
      */
-    static bool getIsRegisteredWithStashableManager();
+    static bool
+    getIsRegisteredWithStashableManager();
 
     /*!
      * \brief Default constructor.
@@ -68,64 +70,75 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBBeamForceSpec();
+    virtual
+    ~IBBeamForceSpec();
 
     /*!
      * \return The number of beams attatched to the master node.
      */
-    unsigned getNumberOfBeams() const;
+    unsigned
+    getNumberOfBeams() const;
 
     /*!
      * \return A const refernce to the master node index.
      */
-    const int& getMasterNodeIndex() const;
+    const int&
+    getMasterNodeIndex() const;
 
     /*!
      * \return A non-const reference to the master node index.
      */
-    int& getMasterNodeIndex();
+    int&
+    getMasterNodeIndex();
 
     /*!
      * \return A const refrence to the neighbor node indices for the beams
      * attached to the master node.
      */
-    const std::vector<pair_int_int>& getNeighborNodeIndices() const;
+    const std::vector<pair_int_int>&
+    getNeighborNodeIndices() const;
 
     /*!
      * \return A non-const refrence to the neighbor node indices for the beams
      * attached to the master node.
      */
-    std::vector<pair_int_int>& getNeighborNodeIndices();
+    std::vector<pair_int_int>&
+    getNeighborNodeIndices();
 
     /*!
      * \return A const reference to the bending rigidities of the beams attached
      * to the master node.
      */
-    const std::vector<double>& getBendingRigidities() const;
+    const std::vector<double>&
+    getBendingRigidities() const;
 
     /*!
      * \return A non-const reference to the bending rigidities of the beams
      * attached to the master node.
      */
-    std::vector<double>& getBendingRigidities();
+    std::vector<double>&
+    getBendingRigidities();
 
     /*!
      * \brief Return the unique identifier used to specify the StashableFactory
      * object used by the StashableManager to extract Stashable objects from
      * data streams.
      */
-    virtual int getStashableID() const;
+    virtual int
+    getStashableID() const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    virtual size_t getDataStreamSize() const;
+    virtual size_t
+    getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    virtual void packStream(
+    virtual void
+    packStream(
         SAMRAI::tbox::AbstractStream& stream);
 
 private:
@@ -155,7 +168,8 @@ private:
      *
      * \return A reference to this object.
      */
-    IBBeamForceSpec& operator=(
+    IBBeamForceSpec&
+    operator=(
         const IBBeamForceSpec& that);
 
     /*!

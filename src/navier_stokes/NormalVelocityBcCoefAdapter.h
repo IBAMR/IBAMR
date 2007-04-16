@@ -2,7 +2,7 @@
 #define included_NormalVelocityBcCoefAdapter
 
 // Filename: NormalVelocityBcCoefAdapter.h
-// Last modified: <13.Apr.2007 04:06:47 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 01:59:20 boyce@trasnaform2.local>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -41,7 +41,8 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~NormalVelocityBcCoefAdapter();
+    virtual
+    ~NormalVelocityBcCoefAdapter();
 
     /*!
      * \brief Reset the Robin boundary condition specification object employed
@@ -52,7 +53,8 @@ public:
      * \note Precisely NDIM boundary condition objects must be provided to this
      * member function.
      */
-    void setPhysicalBcCoefs(
+    void
+    setPhysicalBcCoefs(
         const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
@@ -92,7 +94,8 @@ public:
      * \note An unrecoverable exception will occur if this method is called when
      * IBAMR is compiled with SAMRAI version 2.1.
      */
-    virtual void setBcCoefs(
+    virtual void
+    setBcCoefs(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
@@ -130,7 +133,8 @@ public:
      * \note An unrecoverable exception will occur if this method is called when
      * IBAMR is compiled with SAMRAI versions after version 2.1.
      */
-    virtual void setBcCoefs(
+    virtual void
+    setBcCoefs(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
@@ -153,7 +157,8 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    virtual SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const;
+    virtual SAMRAI::hier::IntVector<NDIM>
+    numberOfExtensionsFillable() const;
 
     //\}
 
@@ -186,7 +191,8 @@ private:
      *
      * \return A reference to this object.
      */
-    NormalVelocityBcCoefAdapter& operator=(
+    NormalVelocityBcCoefAdapter&
+    operator=(
         const NormalVelocityBcCoefAdapter& that);
 
     /*

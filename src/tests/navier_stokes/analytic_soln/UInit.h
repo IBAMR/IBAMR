@@ -2,7 +2,7 @@
 #define included_UInit
 
 // Filename: UInit.h
-// Last modified: <11.Apr.2007 01:57:54 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 01:35:41 boyce@trasnaform2.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -37,17 +37,21 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~UInit();
+    virtual
+    ~UInit();
 
     /*!
      * Indicates whether the concrete SetDataStrategy object is time dependent.
      */
-    virtual bool isTimeDependent() const { return true; }
+    virtual bool
+    isTimeDependent() const
+        { return true; }
 
     /*!
      * Set the data on the patch interior to the exact answer.
      */
-    virtual void setDataOnPatch(
+    virtual void
+    setDataOnPatch(
         const int data_idx,
         tbox::Pointer<hier::Variable<NDIM> > var,
         hier::Patch<NDIM>& patch,
@@ -83,7 +87,8 @@ private:
      *
      * \return A reference to this object.
      */
-    UInit& operator=(
+    UInit&
+    operator=(
         const UInit& that);
 
     /*

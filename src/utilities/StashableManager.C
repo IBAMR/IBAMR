@@ -1,6 +1,6 @@
 // Filename: StashableManager.C
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <11.Apr.2007 01:52:07 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:53:29 boyce@trasnaform2.local>
 
 #include "StashableManager.h"
 
@@ -39,8 +39,8 @@ namespace
 struct StashableGetDataStreamSizeSum
     : binary_function<size_t,SAMRAI::tbox::Pointer<Stashable>,size_t>
 {
-    inline
-    size_t operator()(
+    inline size_t
+    operator()(
         size_t size_so_far,
         const SAMRAI::tbox::Pointer<Stashable>& data) const
         {
@@ -60,8 +60,8 @@ public:
             return;
         }
 
-    inline
-    void operator()(
+    inline void
+    operator()(
         SAMRAI::tbox::Pointer<Stashable>& data) const
         {
             StashableManager::getManager()->packStream(*d_stream,data);
@@ -86,8 +86,8 @@ public:
             return;
         }
 
-    inline
-    SAMRAI::tbox::Pointer<Stashable> operator()() const
+    inline SAMRAI::tbox::Pointer<Stashable>
+    operator()() const
         {
             SAMRAI::tbox::Pointer<Stashable> data_out;
             StashableManager::getManager()->unpackStream(

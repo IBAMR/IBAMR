@@ -139,7 +139,10 @@ using namespace std;
  ************************************************************************
  */
 
-int main(int argc, char *argv[])
+int
+main(
+    int argc,
+    char *argv[])
 {
     /*
      * Initialize MPI and SAMRAI, enable logging, and process command line.

@@ -2,7 +2,7 @@
 #define included_IBTargetPointForceSpecFactory
 
 // Filename: IBTargetPointForceSpecFactory.h
-// Last modified: <13.Apr.2007 03:21:13 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:50:14 boyce@trasnaform2.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -37,27 +37,31 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBTargetPointForceSpecFactory();
+    virtual
+    ~IBTargetPointForceSpecFactory();
 
     /*!
      * \brief Return the unique identifier used to specify the StashableFactory
      * object used by the StashableManager to extract Stashable objects from
      * data streams.
      */
-    virtual int getStashableID() const;
+    virtual int
+    getStashableID() const;
 
     /*!
      * \brief Set the unique identifier used to specify the StashableFactory
      * object used by the StashableManager to extract Stashable objects from
      * data streams.
      */
-    virtual void setStashableID(
+    virtual void
+    setStashableID(
         const int stashable_id);
 
     /*!
      * \brief Build a Stashable object by unpacking data from the input stream.
      */
-    virtual SAMRAI::tbox::Pointer<Stashable> unpackStream(
+    virtual SAMRAI::tbox::Pointer<Stashable>
+    unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);
 
@@ -81,7 +85,8 @@ private:
      *
      * \return A reference to this object.
      */
-    IBTargetPointForceSpecFactory& operator=(
+    IBTargetPointForceSpecFactory&
+    operator=(
         const IBTargetPointForceSpecFactory& that);
 
     /*

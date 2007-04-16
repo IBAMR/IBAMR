@@ -3,7 +3,7 @@
 
 // Filename: LagSiloDataWriter.h
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <11.Apr.2007 02:56:34 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:15:08 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -65,16 +65,15 @@ public:
     /*!
      * \brief Reset the patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(
+    void
+    setPatchHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
-     *
-     * The specified levels must exist in the hierarchy or an assertion will
-     * result.
      */
-    void resetLevels(
+    void
+    resetLevels(
         const int coarsest_ln,
         const int finest_ln);
 
@@ -87,7 +86,8 @@ public:
      * \note This method is not collective over all MPI processes.  A particular
      * cloud of markers must be registered on only \em one MPI process.
      */
-    void registerMarkerCloud(
+    void
+    registerMarkerCloud(
         const std::string& name,
         const int nmarks,
         const int first_lag_idx,
@@ -100,7 +100,8 @@ public:
      * \note This method is not collective over all MPI processes.  A particular
      * block of indices must be registered on only \em one MPI process.
      */
-    void registerLogicallyCartesianBlock(
+    void
+    registerLogicallyCartesianBlock(
         const std::string& name,
         const SAMRAI::hier::IntVector<NDIM>& nelem,
         const SAMRAI::hier::IntVector<NDIM>& periodic,
@@ -114,7 +115,8 @@ public:
      * \note This method is not collective over all MPI processes.  A particular
      * block of indices must be registered on only \em one MPI process.
      */
-    void registerLogicallyCartesianMultiblock(
+    void
+    registerLogicallyCartesianMultiblock(
         const std::string& name,
         const std::vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
         const std::vector<SAMRAI::hier::IntVector<NDIM> >& periodic,
@@ -127,7 +129,8 @@ public:
      * \note This method is not collective over all MPI processes.  A particular
      * collection of indices must be registered on only \em one MPI process.
      */
-    void registerUnstructuredMesh(
+    void
+    registerUnstructuredMesh(
         const std::string& name,
         const std::multimap<int,std::pair<int,int> > edge_map,
         const int level_number);
@@ -136,14 +139,16 @@ public:
      * \brief Register the coordinates of the curvilinear mesh with the Silo
      * data writer.
      */
-    void registerCoordsData(
+    void
+    registerCoordsData(
         SAMRAI::tbox::Pointer<LNodeLevelData> coords_data,
         const int level_number);
 
     /*!
      * \brief Register a variable for plotting with the Silo data writer.
      */
-    void registerVariableData(
+    void
+    registerVariableData(
         const std::string& var_name,
         SAMRAI::tbox::Pointer<LNodeLevelData> var_data,
         const int level_number);
@@ -157,7 +162,8 @@ public:
      * (e.g., during adaptive regridding), the new AO objects must be supplied
      * to the Silo data writer.
      */
-    void registerLagrangianAO(
+    void
+    registerLagrangianAO(
         AO& ao,
         const int level_number);
 
@@ -170,7 +176,8 @@ public:
      * (e.g., during adaptive regridding), the new AO objects must be supplied
      * to the Silo data writer.
      */
-    void registerLagrangianAO(
+    void
+    registerLagrangianAO(
         std::vector<AO>& ao,
         const int coarsest_ln,
         const int finest_ln);
@@ -178,7 +185,8 @@ public:
     /*!
      * \brief Write the plot data to disk.
      */
-    void writePlotData(
+    void
+    writePlotData(
         const int time_step_number,
         const double simulation_time);
 
@@ -211,7 +219,8 @@ private:
      *
      * \return A reference to this object.
      */
-    LagSiloDataWriter& operator=(
+    LagSiloDataWriter&
+    operator=(
         const LagSiloDataWriter& that);
 
     /*

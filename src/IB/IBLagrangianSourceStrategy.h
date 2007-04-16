@@ -2,7 +2,7 @@
 #define included_IBLagrangianSourceStrategy
 
 // Filename: IBLagrangianSourceStrategy.h
-// Last modified: <13.Apr.2007 03:15:57 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 02:41:29 boyce@trasnaform2.local>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -40,14 +40,16 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBLagrangianSourceStrategy();
+    virtual
+    ~IBLagrangianSourceStrategy();
 
     /*!
      * \brief Set the current and new times for the present timestep.
      *
      * \note A default empty implementation is provided.
      */
-    virtual void setTimeInterval(
+    virtual void
+    setTimeInterval(
         const double current_time,
         const double new_time);
 
@@ -57,7 +59,8 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void initializeLevelData(
+    virtual void
+    initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -71,7 +74,8 @@ public:
      * sources/sinks in the \em entire computational domain.  This implies that
      * the return value must be \em identical on each MPI process.
      */
-    virtual int getNumSources(
+    virtual int
+    getNumSources(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
@@ -85,7 +89,8 @@ public:
      * \a X_src on \em each MPI process.  That is to say, \a X_src must provide
      * the location of all of the distributed sources/sinks.
      */
-    virtual void getSourceLocations(
+    virtual void
+    getSourceLocations(
         std::vector<std::vector<double> >& X_src,
         vector<double>& r_src,
         SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
@@ -97,7 +102,8 @@ public:
     /*!
      * \brief Set the normalized pressures at the sources.
      */
-    virtual void setSourcePressures(
+    virtual void
+    setSourcePressures(
         const std::vector<double>& P_src,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -112,7 +118,8 @@ public:
      * \a Q_src on \em each MPI process.  That is to say, \a Q_src must provide
      * the strengths of all of the distributed sources/sinks.
      */
-    virtual void computeSourceStrengths(
+    virtual void
+    computeSourceStrengths(
         std::vector<double>& Q_src,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -139,7 +146,8 @@ private:
      *
      * \return A reference to this object.
      */
-    IBLagrangianSourceStrategy& operator=(
+    IBLagrangianSourceStrategy&
+    operator=(
         const IBLagrangianSourceStrategy& that);
 };
 }// namespace IBAMR

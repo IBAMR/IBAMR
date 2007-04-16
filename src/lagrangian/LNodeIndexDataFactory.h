@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndexDataFactory.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <11.Apr.2007 02:46:35 boyce@trasnaform2.local>
+// Last modified: <16.Apr.2007 02:07:37 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -41,7 +41,8 @@ public:
     /*!
      * Virtual destructor for the irregular data factory class.
      */
-    virtual ~LNodeIndexDataFactory();
+    virtual
+    ~LNodeIndexDataFactory();
 
     /*!
      * Virtual function to clone the irregular data factory.  This will return a
@@ -50,7 +51,8 @@ public:
      * changed (e.g., change the ghost cell width) without modifying the
      * original.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> > cloneFactory();
+    virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >
+    cloneFactory();
 
     /*!
      * Virtual factory function to allocate a concrete irregular data object.
@@ -58,7 +60,8 @@ public:
      * taken from the factory.  If no memory pool is provided, the allocation
      * routine assumes some default memory pool.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > allocate(
+    virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
+    allocate(
         const SAMRAI::hier::Box<NDIM>& box,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool=NULL) const;
 
@@ -69,7 +72,8 @@ public:
      * estimate the necessary amount of memory.  Instead, dynamic data is
      * allocated via the standard new/free mechanisms.
      */
-    virtual size_t getSizeOfMemory(
+    virtual size_t
+    getSizeOfMemory(
         const SAMRAI::hier::Box<NDIM>& box) const;
 
     /*!
@@ -108,7 +112,8 @@ private:
      *
      * \return A reference to this object.
      */
-    LNodeIndexDataFactory& operator=(
+    LNodeIndexDataFactory&
+    operator=(
         const LNodeIndexDataFactory& that);
 };
 }// namespace IBAMR

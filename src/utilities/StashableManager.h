@@ -3,7 +3,7 @@
 
 // Filename: StashableManager.h
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <13.Apr.2007 04:11:52 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Apr.2007 01:40:20 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -33,8 +33,6 @@ namespace IBAMR
 class StashableManager
 {
 public:
-    typedef std::map<int,SAMRAI::tbox::Pointer<StashableFactory> > StashableFactoryMap;
-
     /*!
      * Return a pointer to the instance of the Stashable manager.  All access to
      * the singleton StashableManager object is through the getManager()
@@ -48,7 +46,8 @@ public:
      *
      * \return A pointer to the data manager instance.
      */
-    static StashableManager* getManager();
+    static StashableManager*
+    getManager();
 
     /*!
      * Deallocate the StashableManager instance.
@@ -56,14 +55,16 @@ public:
      * It is not necessary to call this function at program termination, since
      * it is automatically called by the ShutdownRegistry class.
      */
-    static void freeManager();
+    static void
+    freeManager();
 
     /*!
      * \return A integer value reserved for unregistered StashableFactory
      * objects.  A concrete StashableFactory object must use this as its initial
      * stashable ID.
      */
-    static int getUnregisteredID();
+    static int
+    getUnregisteredID();
 
     /*!
      * Check to see if a StashableFactory has been registered with the manager.
@@ -74,7 +75,8 @@ public:
      * same Stashable ID has been registered with the manager.  Every different
      * Stashable/StashableFactory type \em must have a unique ID.
      */
-    bool checkFactoryRegistration(
+    bool
+    checkFactoryRegistration(
         SAMRAI::tbox::Pointer<StashableFactory> factory);
 
     /*!
@@ -87,41 +89,47 @@ public:
      * stashable class registered with the manager, this method is collective on
      * all MPI processes!
      */
-    int registerFactory(
+    int
+    registerFactory(
         SAMRAI::tbox::Pointer<StashableFactory> factory);
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack a
      * Stashable object to a buffer.
      */
-    size_t getDataStreamSize(
+    size_t
+    getDataStreamSize(
         const SAMRAI::tbox::Pointer<Stashable>& stash_data) const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack a
      * vector of Stashable objects to a buffer.
      */
-    size_t getDataStreamSize(
+    size_t
+    getDataStreamSize(
         const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data) const;
 
     /*!
      * \brief Pack a Stashable object into the output stream.
      */
-    void packStream(
+    void
+    packStream(
         SAMRAI::tbox::AbstractStream& stream,
         SAMRAI::tbox::Pointer<Stashable>& stash_data);
 
     /*!
      * \brief Pack a vector of Stashable objects into the output stream.
      */
-    void packStream(
+    void
+    packStream(
         SAMRAI::tbox::AbstractStream& stream,
         std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data);
 
     /*!
      * \brief Unpack a Stashable object from the input stream.
      */
-    void unpackStream(
+    void
+    unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset,
         SAMRAI::tbox::Pointer<Stashable>& stash_data);
@@ -129,7 +137,8 @@ public:
     /*!
      * \brief Unpack a vector of Stashable objects from the input stream.
      */
-    void unpackStream(
+    void
+    unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset,
         std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data);
@@ -151,9 +160,12 @@ protected:
      * Every call to getUniqueID() returns a different integer, simplifying the
      * task of generating ID numbers for StashableFactory objects.
      */
-    static int getUniqueID();
+    static int
+    getUniqueID();
 
 private:
+    typedef std::map<int,SAMRAI::tbox::Pointer<StashableFactory> > StashableFactoryMap;
+
     /*!
      * \brief Copy constructor.
      *
@@ -173,7 +185,8 @@ private:
      *
      * \return A reference to this object.
      */
-    StashableManager& operator=(
+    StashableManager&
+    operator=(
         const StashableManager& that);
 
     /*!
