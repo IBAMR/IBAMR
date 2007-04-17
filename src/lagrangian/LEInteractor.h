@@ -2,8 +2,8 @@
 #define included_LEInteractor
 
 // Filename: LEInteractor.h
+// Last modified: <17.Apr.2007 18:31:13 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <16.Apr.2007 05:53:29 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

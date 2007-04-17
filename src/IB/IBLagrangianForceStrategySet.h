@@ -2,8 +2,8 @@
 #define included_IBLagrangianForceStrategySet
 
 // Filename: IBLagrangianForceStrategySet.h
+// Last modified: <17.Apr.2007 18:30:21 griffith@box221.cims.nyu.edu>
 // Created on 04 April 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
-// Last modified: <16.Apr.2007 02:40:46 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

@@ -1,6 +1,6 @@
 // Filename: StashableManager.I
+// Last modified: <17.Apr.2007 18:25:07 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 01:39:04 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

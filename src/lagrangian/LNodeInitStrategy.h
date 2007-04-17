@@ -2,8 +2,8 @@
 #define included_LNodeInitStrategy
 
 // Filename: LNodeInitStrategy.h
+// Last modified: <17.Apr.2007 18:32:03 griffith@box221.cims.nyu.edu>
 // Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <16.Apr.2007 02:10:45 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

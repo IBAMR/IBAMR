@@ -1,6 +1,6 @@
 // Filename: LNodeIndexVariable.C
+// Last modified: <17.Apr.2007 18:23:58 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <25.Oct.2006 18:28:03 boyce@bigboy.nyconnect.com>
 
 #include "LNodeIndexVariable.h"
 

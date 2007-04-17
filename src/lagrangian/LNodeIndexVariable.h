@@ -2,8 +2,8 @@
 #define included_LNodeIndexVariable
 
 // Filename: LNodeIndexVariable.h
+// Last modified: <17.Apr.2007 18:31:54 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 05:21:06 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

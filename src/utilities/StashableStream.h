@@ -2,8 +2,8 @@
 #define included_StashableStream
 
 // Filename: StashableStream.h
+// Last modified: <17.Apr.2007 18:32:33 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 04:17:25 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

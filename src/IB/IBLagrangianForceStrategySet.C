@@ -1,6 +1,6 @@
 // Filename: IBLagrangianForceStrategySet.C
+// Last modified: <17.Apr.2007 18:18:10 griffith@box221.cims.nyu.edu>
 // Created on 04 April 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
-// Last modified: <04.Apr.2007 18:14:02 griffith@box221.cims.nyu.edu>
 
 #include "IBLagrangianForceStrategySet.h"
 

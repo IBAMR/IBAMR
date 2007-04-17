@@ -1,6 +1,6 @@
 // Filename: LNodeIndex.I
+// Last modified: <17.Apr.2007 18:25:15 griffith@box221.cims.nyu.edu>
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 05:40:19 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

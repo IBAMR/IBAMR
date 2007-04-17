@@ -1,6 +1,6 @@
 // Filename: LNodeIndexSet.C
+// Last modified: <17.Apr.2007 18:20:20 griffith@box221.cims.nyu.edu>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 05:40:33 boyce@bigboy.nyconnect.com>
 
 #include "LNodeIndexSet.h"
 

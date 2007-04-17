@@ -2,8 +2,8 @@
 #define included_StashableFactory
 
 // Filename: StashableFactory.h
+// Last modified: <17.Apr.2007 18:32:16 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 01:38:54 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

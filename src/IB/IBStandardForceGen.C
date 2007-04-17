@@ -1,6 +1,6 @@
 // Filename: IBStandardForceGen.C
+// Last modified: <17.Apr.2007 18:18:39 griffith@box221.cims.nyu.edu>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <13.Apr.2007 03:40:43 boyce@bigboy.nyconnect.com>
 
 #include "IBStandardForceGen.h"
 

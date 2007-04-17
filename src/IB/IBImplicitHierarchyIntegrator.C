@@ -1,6 +1,6 @@
 // Filename: IBImplicitHierarchyIntegrator.C
+// Last modified: <17.Apr.2007 18:17:33 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
-// Last modified: <07.Apr.2007 15:49:36 griffith@box221.cims.nyu.edu>
 
 #include "IBImplicitHierarchyIntegrator.h"
 

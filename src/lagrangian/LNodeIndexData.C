@@ -1,6 +1,6 @@
 // Filename: LNodeIndexData.C
+// Last modified: <17.Apr.2007 18:19:51 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <14.Apr.2007 21:41:15 griffith@box221.cims.nyu.edu>
 
 #include "LNodeIndexData.h"
 

@@ -1,6 +1,6 @@
 // Filename: LDataManager.C
+// Last modified: <17.Apr.2007 18:19:17 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 05:48:39 boyce@bigboy.nyconnect.com>
 
 #include "LDataManager.h"
 

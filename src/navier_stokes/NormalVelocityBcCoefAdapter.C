@@ -1,5 +1,5 @@
 // Filename: NormalVelocityBcCoefAdapter.C
-// Last modified: <15.Apr.2007 15:54:28 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 17:52:24 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "NormalVelocityBcCoefAdapter.h"
@@ -66,13 +66,13 @@ NormalVelocityBcCoefAdapter::setPhysicalBcCoefs(
 
 void
 NormalVelocityBcCoefAdapter::setBcCoefs(
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-     const SAMRAI::hier::Patch<NDIM>& patch,
-     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-     double fill_time) const
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
+    const SAMRAI::hier::Patch<NDIM>& patch,
+    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+    double fill_time) const
 {
 #if USING_OLD_ROBIN_BC_INTERFACE
     TBOX_ERROR("NormalVelocityBcCoefAdapter::setBcCoefs():\n"
@@ -87,12 +87,12 @@ NormalVelocityBcCoefAdapter::setBcCoefs(
 
 void
 NormalVelocityBcCoefAdapter::setBcCoefs(
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-     const SAMRAI::hier::Patch<NDIM>& patch,
-     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-     double fill_time) const
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
+    const SAMRAI::hier::Patch<NDIM>& patch,
+    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+    double fill_time) const
 {
 #if USING_OLD_ROBIN_BC_INTERFACE
     const int depth = bdry_box.getLocationIndex()/2;

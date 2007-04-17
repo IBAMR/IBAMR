@@ -1,6 +1,6 @@
 // Filename: StashableManager.C
+// Last modified: <17.Apr.2007 18:22:23 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 05:33:25 boyce@bigboy.nyconnect.com>
 
 #include "StashableManager.h"
 

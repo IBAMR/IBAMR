@@ -1,11 +1,11 @@
 // Filename: ParabolicLevelIntegrator.C
-// Last modified: <16.Apr.2007 05:55:31 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Apr.2007 18:05:05 griffith@box221.cims.nyu.edu>
 // Created on 09 Jan 2007 by Boyce Griffith (boyce@box221.cims.nyu.edu)
+
+#include "ParabolicLevelIntegrator.h"
 
 // NOTE: This implementation is directly derived from the SAMRAI
 // HyperbolicLevelIntegrator source code.
-
-#include "ParabolicLevelIntegrator.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -745,8 +745,8 @@ ParabolicLevelIntegrator::standardLevelSynchronization(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!hierarchy.isNull());
     assert((coarsest_level >= 0)
-            && (coarsest_level < finest_level)
-            && (finest_level <= hierarchy->getFinestLevelNumber()));
+           && (coarsest_level < finest_level)
+           && (finest_level <= hierarchy->getFinestLevelNumber()));
     assert(old_times.getSize() >= finest_level);
     for (int ln = coarsest_level; ln < finest_level; ln++)
     {
@@ -827,8 +827,8 @@ ParabolicLevelIntegrator::synchronizeNewLevels(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!hierarchy.isNull());
     assert((coarsest_level >= 0)
-            && (coarsest_level < finest_level)
-            && (finest_level <= hierarchy->getFinestLevelNumber()));
+           && (coarsest_level < finest_level)
+           && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = coarsest_level; ln <= finest_level; ln++)
     {
         assert(!(hierarchy->getPatchLevel(ln)).isNull());
@@ -1038,7 +1038,7 @@ ParabolicLevelIntegrator::initializeLevelData(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!hierarchy.isNull());
     assert((level_number >= 0)
-            && (level_number <= hierarchy->getFinestLevelNumber()));
+           && (level_number <= hierarchy->getFinestLevelNumber()));
     if (!old_level.isNull())
     {
         assert(level_number == old_level->getLevelNumber());
@@ -1164,8 +1164,8 @@ ParabolicLevelIntegrator::resetHierarchyConfiguration(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!hierarchy.isNull());
     assert((coarsest_level >= 0)
-            && (coarsest_level <= finest_level)
-            && (finest_level <= hierarchy->getFinestLevelNumber()));
+           && (coarsest_level <= finest_level)
+           && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
     {
         assert(!(hierarchy->getPatchLevel(ln)).isNull());
@@ -1223,7 +1223,7 @@ ParabolicLevelIntegrator::applyGradientDetector(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!hierarchy.isNull());
     assert((level_number >= 0)
-            && (level_number <= hierarchy->getFinestLevelNumber()));
+           && (level_number <= hierarchy->getFinestLevelNumber()));
     assert(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
 
@@ -1352,7 +1352,7 @@ ParabolicLevelIntegrator::coarsenDataForRichardsonExtrapolation(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!hierarchy.isNull());
     assert((level_number >= 0)
-            && (level_number <= hierarchy->getFinestLevelNumber()));
+           && (level_number <= hierarchy->getFinestLevelNumber()));
     assert(!(hierarchy->getPatchLevel(level_number)).isNull());
     assert(!coarse_level.isNull());
 #endif
@@ -2051,7 +2051,7 @@ ParabolicLevelIntegrator::preprocessFluxData(
     if (!regrid_advance)
     {
         if (((level_number > 0) && first_step) ||
-             ((level_number == 0) && !d_have_flux_on_level_zero))
+            ((level_number == 0) && !d_have_flux_on_level_zero))
         {
             level->allocatePatchData(d_flux_var_data, new_time);
             if (level_number == 0)

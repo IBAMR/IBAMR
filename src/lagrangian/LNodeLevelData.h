@@ -2,8 +2,8 @@
 #define included_LNodeLevelData
 
 // Filename: LNodeLevelData.h
-// Created on 08 Mar 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <16.Apr.2007 05:53:45 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Apr.2007 18:27:18 griffith@box221.cims.nyu.edu>
+// Created on 08 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

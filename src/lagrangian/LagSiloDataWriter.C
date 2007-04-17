@@ -1,6 +1,6 @@
 // Filename: LagSiloDataWriter.C
+// Last modified: <17.Apr.2007 18:19:04 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <16.Apr.2007 05:49:18 boyce@bigboy.nyconnect.com>
 
 #include "LagSiloDataWriter.h"
 

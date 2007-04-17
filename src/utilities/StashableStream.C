@@ -1,6 +1,6 @@
 // Filename: StashableStream.C
+// Last modified: <17.Apr.2007 18:22:32 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <20.Mar.2007 22:20:01 griffith@box221.cims.nyu.edu>
 
 #include "StashableStream.h"
 

@@ -1,5 +1,5 @@
 // Filename: IntermediateVelocityRobinBcCoefs.C
-// Last modified: <11.Apr.2007 02:26:51 boyce@trasnaform2.local>
+// Last modified: <17.Apr.2007 17:51:53 griffith@box221.cims.nyu.edu>
 // Created on 30 Sep 2006 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IntermediateVelocityRobinBcCoefs.h"
@@ -100,13 +100,13 @@ IntermediateVelocityRobinBcCoefs::setPhiIndex(
 
 void
 IntermediateVelocityRobinBcCoefs::setBcCoefs(
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-     const SAMRAI::hier::Patch<NDIM>& patch,
-     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-     double fill_time) const
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
+    const SAMRAI::hier::Patch<NDIM>& patch,
+    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+    double fill_time) const
 {
 #if USING_OLD_ROBIN_BC_INTERFACE
     TBOX_ERROR("IntermediateVelocityRobinBcCoefs::setBcCoefs():\n"
@@ -125,12 +125,12 @@ IntermediateVelocityRobinBcCoefs::setBcCoefs(
 
 void
 IntermediateVelocityRobinBcCoefs::setBcCoefs(
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-     const SAMRAI::hier::Patch<NDIM>& patch,
-     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-     double fill_time) const
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
+    const SAMRAI::hier::Patch<NDIM>& patch,
+    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+    double fill_time) const
 {
 #if USING_OLD_ROBIN_BC_INTERFACE
     d_bc_coef->setBcCoefs(
@@ -166,11 +166,11 @@ IntermediateVelocityRobinBcCoefs::numberOfExtensionsFillable() const
 
 void
 IntermediateVelocityRobinBcCoefs::correctBcCoefs(
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-     const SAMRAI::hier::Patch<NDIM>& patch,
-     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box) const
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
+    const SAMRAI::hier::Patch<NDIM>& patch,
+    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box) const
 {
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > P_data =
         patch.getPatchData(d_P_idx);
@@ -257,7 +257,6 @@ IntermediateVelocityRobinBcCoefs::correctBcCoefs(
             g -= a*(dt/d_rho)*dP_dt;
         }
     }
-
     return;
 }// correctBcCoefs
 

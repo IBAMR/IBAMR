@@ -1,6 +1,6 @@
 // Filename: IBLagrangianSourceStrategy.C
+// Last modified: <17.Apr.2007 18:18:24 griffith@box221.cims.nyu.edu>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <03.Apr.2007 21:18:06 griffith@box221.cims.nyu.edu>
 
 #include "IBLagrangianSourceStrategy.h"
 

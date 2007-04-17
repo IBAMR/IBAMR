@@ -2,8 +2,8 @@
 #define included_IBImplicitHierarchyIntegrator
 
 // Filename: IBImplicitHierarchyIntegrator.h
+// Last modified: <17.Apr.2007 18:29:40 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
-// Last modified: <16.Apr.2007 05:07:23 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

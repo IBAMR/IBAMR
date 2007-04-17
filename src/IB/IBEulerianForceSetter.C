@@ -1,6 +1,6 @@
 // Filename: IBEulerianForceSetter.C
+// Last modified: <17.Apr.2007 18:16:11 griffith@box221.cims.nyu.edu>
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
-// Last modified: <16.Apr.2007 05:06:18 boyce@bigboy.nyconnect.com>
 
 #include "IBEulerianForceSetter.h"
 

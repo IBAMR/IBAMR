@@ -2,8 +2,8 @@
 #define included_LDataManager
 
 // Filename: LDataManager.h
+// Last modified: <17.Apr.2007 18:31:05 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 05:53:03 boyce@bigboy.nyconnect.com>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

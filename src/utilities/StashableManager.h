@@ -2,8 +2,8 @@
 #define included_StashableManager
 
 // Filename: StashableManager.h
+// Last modified: <17.Apr.2007 18:32:25 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 01:40:20 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

@@ -2,8 +2,8 @@
 #define included_IBEulerianSourceSetter
 
 // Filename: IBEulerianForceSetter.h
+// Last modified: <17.Apr.2007 18:29:07 griffith@box221.cims.nyu.edu>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
-// Last modified: <16.Apr.2007 02:31:51 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

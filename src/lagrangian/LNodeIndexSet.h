@@ -2,8 +2,8 @@
 #define included_LNodeIndexSet
 
 // Filename: LNodeIndexSet.h
+// Last modified: <17.Apr.2007 18:31:45 griffith@box221.cims.nyu.edu>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 02:09:27 boyce@trasnaform2.local>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

@@ -1,6 +1,6 @@
 // Filename: LNodeLevelData.I
-// Created on 17 Apr 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <16.Apr.2007 02:11:09 boyce@trasnaform2.local>
+// Last modified: <17.Apr.2007 18:27:27 griffith@box221.cims.nyu.edu>
+// Created on 17 Apr 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

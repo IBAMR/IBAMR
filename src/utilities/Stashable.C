@@ -1,6 +1,6 @@
 // Filename: Stashable.C
+// Last modified: <17.Apr.2007 18:21:52 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <25.Oct.2006 18:26:16 boyce@bigboy.nyconnect.com>
 
 #include "Stashable.h"
 

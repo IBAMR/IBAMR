@@ -1,6 +1,6 @@
 // Filename: LNodeLevelData.C
-// Created on 17 Apr 2004 by Boyce E. Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <16.Apr.2007 05:54:05 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Apr.2007 18:21:26 griffith@box221.cims.nyu.edu>
+// Created on 17 Apr 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "LNodeLevelData.h"
 

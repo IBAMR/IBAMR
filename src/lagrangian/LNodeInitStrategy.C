@@ -1,6 +1,6 @@
 // Filename: LNodeInitStrategy.C
+// Last modified: <17.Apr.2007 18:24:18 griffith@box221.cims.nyu.edu>
 // Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
-// Last modified: <03.Apr.2007 17:50:04 griffith@box221.cims.nyu.edu>
 
 #include "LNodeInitStrategy.h"
 
