@@ -57,6 +57,13 @@ EXTRA_DIST += include/ibamr/StashableManager.h
 EXTRA_DIST += include/ibamr/StashableManager.I
 EXTRA_DIST += include/ibamr/StashableStream.h
 EXTRA_DIST += include/ibamr/StashableStream.I
+EXTRA_DIST += sample/IB/input2d
+EXTRA_DIST += sample/IB/input3d
+EXTRA_DIST += sample/IB/main.C
+EXTRA_DIST += sample/IB/shell2d_64.spring
+EXTRA_DIST += sample/IB/shell2d_64.vertex
+EXTRA_DIST += sample/IB/sphere3d.spring
+EXTRA_DIST += sample/IB/sphere3d.vertex
 
 ## Copy the sample sources to the build directory.
 all-local:
