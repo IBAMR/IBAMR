@@ -15,7 +15,7 @@ MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 4   // maximum number of levels in locally refined grid
+MAX_LEVELS = 5   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
 N = 16                                    // coarsest grid spacing
@@ -39,8 +39,8 @@ IBHierarchyIntegrator {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_3 = "sphere3d_128"
-   sphere3d_128 {
+   base_filenames_4 = "sphere3d_256"
+   sphere3d_256 {
       uniform_target_stiffness = 2560.0/NFINEST
       uniform_spring_stiffness = 0.0
    }
@@ -53,12 +53,12 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 2 , 2 , 4
+   tag_buffer = 1 , 2 , 3 , 4
 
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_rel_thresh = 0.025
+   vorticity_rel_thresh = 0.05
 
    output_P = TRUE
    output_F = FALSE

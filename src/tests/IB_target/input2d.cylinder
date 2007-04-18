@@ -15,7 +15,7 @@ MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 4   // maximum number of levels in locally refined grid
+MAX_LEVELS = 5   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
 N = 32                                    // coarsest grid spacing
@@ -51,15 +51,15 @@ ds = 2.0*PI*R/(0.375*NFINEST)
 IBStandardInitializer {
    max_levels = MAX_LEVELS
 
-   base_filenames_3 = "cylinder2d_256"   // corresponds to NFINEST = 256
-   cylinder2d_256 {
-      uniform_target_stiffness = K_s*ds
-   }
-
-// base_filenames_4 = "cylinder2d_512"   // corresponds to NFINEST = 512
-// cylinder2d_512 {
+// base_filenames_3 = "cylinder2d_256"   // corresponds to NFINEST = 256
+// cylinder2d_256 {
 //    uniform_target_stiffness = K_s*ds
 // }
+
+   base_filenames_4 = "cylinder2d_512"   // corresponds to NFINEST = 512
+   cylinder2d_512 {
+      uniform_target_stiffness = K_s*ds
+   }
 
 // base_filenames_4 = "cylinder2d_1024"  // corresponds to NFINEST = 1024
 // cylinder2d_1024 {
@@ -74,12 +74,12 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 2 , 3 , 4
+   tag_buffer = 1 , 2 , 3 , 4
 
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_rel_thresh = 0.05
+   vorticity_abs_thresh = 0.0625 , 0.125 , 0.25 , 0.5
 
    output_P = TRUE
    output_F = FALSE
