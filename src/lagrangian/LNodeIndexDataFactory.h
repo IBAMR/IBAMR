@@ -3,7 +3,7 @@
 
 // Filename: LNodeIndexDataFactory.h
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <16.Apr.2007 02:07:37 boyce@trasnaform2.local>
+// Last modified: <17.Apr.2007 19:30:54 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -22,9 +22,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Class LNodeIndexDataFactory is a specialization of the templated
- * SAMRAI::pdat::IndexDataFactory class.  It is used to construct objects of
- * type LNodeIndexData.
+ * \brief Class LNodeIndexDataFactory is a specialization of the templated class
+ * SAMRAI::pdat::IndexDataFactory used to construct objects of type
+ * LNodeIndexData.
  */
 class LNodeIndexDataFactory
     : public SAMRAI::pdat::IndexDataFactory<NDIM,LNodeIndexSet>

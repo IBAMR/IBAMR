@@ -2,7 +2,7 @@
 #define included_IBLagrangianSourceStrategy
 
 // Filename: IBLagrangianSourceStrategy.h
-// Last modified: <16.Apr.2007 05:38:20 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Apr.2007 19:45:32 griffith@box221.cims.nyu.edu>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -26,7 +26,7 @@ namespace IBAMR
 /*!
  * \brief Class IBLagrangianForceStrategy provides a generic interface for
  * specifying the positions and magnitudes of distributed internal fluid
- * source/sinks.
+ * source-sinks.
  */
 class IBLagrangianSourceStrategy
     : public virtual SAMRAI::tbox::DescribedClass

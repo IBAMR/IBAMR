@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <16.Apr.2007 02:24:32 boyce@trasnaform2.local>
+// Last modified: <17.Apr.2007 18:54:45 griffith@box221.cims.nyu.edu>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -55,7 +55,7 @@ namespace IBAMR
 /*!
  * \brief Class AdvDiffHierarchyIntegrator manages the spatial discretization
  * and time integration of scalar- and vector-valued quantities whose dynamics
- * are specified by the advection-diffusion equation.
+ * are governed by the advection-diffusion equation.
  *
  * Each quantity \f$ Q \f$ managed by the integrator may have a unique diffusion
  * coefficient \f$ \mu \f$ and may optionally have a forcing term \f$ F \f$.

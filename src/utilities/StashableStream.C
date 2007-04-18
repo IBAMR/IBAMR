@@ -1,5 +1,5 @@
 // Filename: StashableStream.C
-// Last modified: <17.Apr.2007 18:22:32 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 21:27:10 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "StashableStream.h"
@@ -65,12 +65,14 @@ StashableStream::~StashableStream()
 
 void
 StashableStream::printClassData(
-    ostream& os) const
+    std::ostream& os) const
 {
-    os << "maximum buffer size = " << d_buffer_size << endl;
-    os << "current buffer size = " << d_current_size << endl;
-    os << "current buffer index = " << d_buffer_index << endl;
-    os << "pointer to buffer data = " << static_cast<void*>(d_buffer) << endl;
+    os << "\nStashableStream::printClassData..." << endl;
+    os << "this = " << const_cast<StashableStream*>(this) << endl;
+    os << "d_buffer_size = " << d_buffer_size << endl;
+    os << "d_current_size = " << d_current_size << endl;
+    os << "d_buffer_index = " << d_buffer_index << endl;
+    os << "d_buffer = " << static_cast<void*>(d_buffer) << endl;
     return;
 }// printClassData
 

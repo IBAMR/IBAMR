@@ -2,7 +2,7 @@
 #define included_NormalVelocityBcCoefAdapter
 
 // Filename: NormalVelocityBcCoefAdapter.h
-// Last modified: <16.Apr.2007 01:59:20 boyce@trasnaform2.local>
+// Last modified: <17.Apr.2007 20:07:44 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -19,9 +19,10 @@ namespace IBAMR
 {
 /*!
  * \brief Class NormalVelocityBcCoefAdapter is a concrete
- * SAMRAI::solv::RobinBcCoefStrategy that converts boundary conditions for the
- * individual components of a co-located velocity field to boundary conditions
- * for a face- or side-centered MAC velocity field.
+ * SAMRAI::solv::RobinBcCoefStrategy that converts a std::vector containing
+ * boundary condition specification objects for the individual components of a
+ * co-located velocity field into a single boundary condition specification
+ * object for a face- or side-centered MAC velocity field.
  */
 class NormalVelocityBcCoefAdapter
     : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>

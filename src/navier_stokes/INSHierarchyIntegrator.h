@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <16.Apr.2007 01:57:40 boyce@trasnaform2.local>
+// Last modified: <17.Apr.2007 20:34:14 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -56,18 +56,23 @@
 namespace IBAMR
 {
 /*!
- * Class INSHierarchyIntegrator manages the data required to approximately solve
- * the incompressible Navier-Stokes equations via an approximate cell centered
- * projection method.  Optional time dependent forcing terms and divergence
- * specifications may be registered with the integrator.
+ * \brief Class INSHierarchyIntegrator manages the spatial discretization and
+ * time integration of the incompressible Navier-Stokes equations, as well as
+ * any scalar- and vector-valued quantities whose dynamics are specified by the
+ * associated advection-diffusion equation.
+ *
+ * This class integrates the incompressible Navier-Stokes equations in time via
+ * an second-order accurate cell-centered approximate projection method.
+ * Optional time dependent forcing terms and divergence specifications may be
+ * registered with the integrator.
  *
  * This integrator employs adaptive local spatial refinement.  All levels of the
  * patch hierarchy are synchronously integrated in time.  In particular,
  * subcycling in time is not employed.
  *
  * The viscous terms are treated by the AdvDiffHierarchyIntegrator object
- * supplied to the constructor.  The advective terms are discretized by the
- * supplied GodunovAdvector object.
+ * supplied to the class constructor, and the advective terms are discretized by
+ * the GodunovAdvector object suppled to the class constructor.
  *
  * \see AdvDiffHierarchyIntegrator
  * \see GodunovAdvector
@@ -704,7 +709,7 @@ public:
     ///
 
     /*!
-     * Print all data members for INSHierarchyIntegrator class.
+     * Print out internal class data for debugging.
      */
     virtual void
     printClassData(

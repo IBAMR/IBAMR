@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <17.Apr.2007 18:17:24 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 21:38:28 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -47,6 +47,7 @@
 // C++ STDLIB INCLUDES
 #include <algorithm>
 #include <cassert>
+#include <iterator>
 #include <limits>
 #include <numeric>
 
@@ -147,6 +148,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_dt_max_time_min(-(d_dt_max_time_max-std::numeric_limits<double>::epsilon())),
       d_is_initialized(false),
       d_do_log(false),
+      d_hier_cc_data_ops(),
       d_ralgs(),
       d_rstrategies(),
       d_rscheds(),
@@ -159,7 +161,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_source_rstrategy(),
       d_force_rscheds(),
       d_source_rscheds(),
-      d_hier_cc_data_ops(),
       d_V_var(NULL),
       d_W_var(NULL),
       d_F_var(NULL),
@@ -2343,16 +2344,63 @@ void
 IBHierarchyIntegrator::printClassData(
     std::ostream& os) const
 {
-    os << "\nIBHierarchyIntegrator::printClassData..." << "\n";
-    os << "\nIBHierarchyIntegrator: this = "
-       << const_cast<IBHierarchyIntegrator*>(this) << "\n";
-    os << "d_object_name = " << d_object_name << "\n";
-    os << "d_integrator_time = " << d_integrator_time << "\n"
-       << "d_start_time = " << d_start_time << "\n"
+    os << "\nIBHierarchyIntegrator::printClassData..." << endl;
+    os << "this = " << const_cast<IBHierarchyIntegrator*>(this) << endl;
+    os << "d_object_name = " << d_object_name << "\n"
+       << "d_registered_for_restart = " << d_registered_for_restart << endl;
+    os << "d_delta_fcn = " << d_delta_fcn << "\n"
+       << "d_ghosts = " << d_ghosts << endl;
+    os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
+       << "d_gridding_alg = " << d_gridding_alg.getPointer() << endl;
+    os << "d_visit_writer = " << d_visit_writer.getPointer() << "\n"
+       << "d_silo_writer = " << d_silo_writer.getPointer() << endl;
+    os << "d_load_balancer = " << d_load_balancer.getPointer() << endl;
+    os << "d_ins_hier_integrator = " << d_ins_hier_integrator.getPointer() << endl;
+    os << "d_lag_data_manager = " << d_lag_data_manager << endl;
+    os << "d_lag_init = " << d_lag_init.getPointer() << endl;
+    os << "d_maintain_U_data = " << d_maintain_U_data << endl;
+    os << "d_body_force_set = " << d_body_force_set.getPointer() << "\n"
+       << "d_eluerian_force_set = " << d_eulerian_force_set.getPointer() << "\n"
+       << "d_force_strategy = " << d_force_strategy.getPointer() << "\n"
+       << "d_force_strategy_needs_init = " << d_force_strategy_needs_init << endl;
+    os << "d_eluerian_source_set = " << d_eulerian_source_set.getPointer() << "\n"
+       << "d_source_strategy = " << d_source_strategy.getPointer() << "\n"
+       << "d_source_strategy_needs_init = " << d_source_strategy_needs_init << "\n";
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+    for (int ln = 0; ln <= finest_hier_level; ++ln)
+    {
+        for (int n = 0; n < d_n_src[ln]; ++n)
+        {
+            os << "d_X_src_" << ln << "_" << n << " = ";
+            std::copy(d_X_src[ln][n].begin(), d_X_src[ln][n].end(), std::ostream_iterator<double>(os," , "));
+            os << " ]\n"
+               << "d_r_src_" << ln << "_" << n << d_r_src[ln][n] << "\n"
+               << "d_P_src_" << ln << "_" << n << d_P_src[ln][n] << "\n"
+               << "d_Q_src_" << ln << "_" << n << d_Q_src[ln][n] << endl;
+        }
+        os << "d_n_src_" << ln << " = " << d_n_src[ln] << endl;
+    }
+    os << "d_using_pIB_method = " << d_using_pIB_method << "\n"
+       << "d_gravity_vector = [ ";
+    std::copy(d_gravity_vector.begin(), d_gravity_vector.end(), std::ostream_iterator<double>(os," , "));
+    os << " ]\n";
+    os << "d_start_time = " << d_start_time << "\n"
        << "d_end_time = " << d_end_time << "\n"
-       << "d_integrator_step = " << d_integrator_step << "\n"
-       << "d_grow_dt = " << d_grow_dt << "\n";
-    os << "I AM INCOMPLETE!!!!!!!!!" << "\n";
+       << "d_grow_dt = " << d_grow_dt << "\n"
+       << "d_max_integrator_steps = " << d_max_integrator_steps << endl;
+    os << "d_num_cycles = " << d_num_cycles << endl;
+    os << "d_num_init_cycles = " << d_num_init_cycles << endl;
+    os << "d_regrid_interval = " << d_regrid_interval << endl;
+    os << "d_old_dt = " << d_old_dt << "\n"
+       << "d_integrator_time = " << d_integrator_time << "\n"
+       << "d_integrator_step = " << d_integrator_step << endl;
+    os << "d_dt_max = " << d_dt_max << "\n"
+       << "d_dt_max_time_max = " << d_dt_max_time_max << "\n"
+       << "d_dt_max_time_min = " << d_dt_max_time_min << endl;
+    os << "d_is_initialized = " << d_is_initialized << endl;
+    os << "d_do_log = " << d_do_log << endl;
+    os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << endl;
+    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << endl;
     return;
 }// printClassData
 

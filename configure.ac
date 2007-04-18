@@ -1,7 +1,7 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_INIT([IBAMR],[070415],[griffith AT cims DOT nyu DOT edu])
+AC_INIT([IBAMR],[070418],[griffith AT cims DOT nyu DOT edu])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config/IBAMR_config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 foreign])

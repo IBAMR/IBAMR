@@ -2,7 +2,7 @@
 #define included_LEInteractor
 
 // Filename: LEInteractor.h
-// Last modified: <17.Apr.2007 18:31:13 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 19:14:26 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -23,10 +23,10 @@
 namespace IBAMR
 {
 /*!
- * \brief Class LEInteractor is a Lagrangian--Eulerian utilities class that
- * defines several functions to interpolate data from Eulerian grid patches onto
- * Lagrangian meshes and to spread densities from Lagrangian meshes to Eulerian
- * grid patches.
+ * \brief Class LEInteractor is a utility class that defines several functions
+ * to interpolate data from Eulerian grid patches onto Lagrangian meshes and to
+ * spread values (\em not densities!) from Lagrangian meshes to Eulerian grid
+ * patches.
  */
 class LEInteractor
 {

@@ -2,7 +2,7 @@
 #define included_IBLagrangianForceStrategy
 
 // Filename: IBLagrangianForceStrategy.h
-// Last modified: <17.Apr.2007 18:29:56 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 19:56:36 griffith@box221.cims.nyu.edu>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -22,11 +22,12 @@ namespace IBAMR
 {
 /*!
  * \brief Class IBLagrangianForceStrategy provides a generic interface for
- * specifying forces (\em not force densities!) on the Lagrangian curvilinear
- * mesh.
+ * specifying nodal forces (\em not force densities!) on the Lagrangian
+ * curvilinear mesh.
  *
  * \note Implementations of class IBLagrangianForceStrategy must compute the
- * total \em force and \em not the force density.
+ * total nodal forces.  In particular, they \em must \em not compute the nodal
+ * force densities.
  *
  * \see IBBeamForceGen
  * \see IBLagrangianForceStrategySet

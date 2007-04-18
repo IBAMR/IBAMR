@@ -2,7 +2,7 @@
 #define included_StashableStream
 
 // Filename: StashableStream.h
-// Last modified: <17.Apr.2007 18:32:33 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 20:32:48 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -20,13 +20,17 @@
 namespace IBAMR
 {
 /*!
- * Class StashableStream implements a message buffer of fixed size used by the
- * communication routines.  It implements the SAMRAI::tbox::AbstractStream
- * interface.  Class StashableStream can packs and unpacks message streams via
- * straight-forward byte copying.
+ * \brief Class StashableStream provies a fixed-size message buffer used by
+ * various communication routines.
  *
- * \note This class will not work on heterogeneous machines, which require a
- * machine-independent mechanism such as XDR.
+ * This class implements the SAMRAI::tbox::AbstractStream interface.  Class
+ * StashableStream can packs and unpacks message streams via straight-forward
+ * byte copying.
+ *
+ * \warning This class stores and communicates values in the native binary
+ * machine format.  Consequently, this implementation is not suitable for
+ * heterogeneous networks, which require a machine-independent storage format
+ * such as XDR.
  */
 class StashableStream
     : public SAMRAI::tbox::AbstractStream
@@ -333,7 +337,7 @@ public:
      */
     virtual void
     printClassData(
-        ostream& os) const;
+        std::ostream& os) const;
 
 private:
     /*!

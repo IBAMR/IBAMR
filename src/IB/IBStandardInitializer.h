@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <16.Apr.2007 02:48:18 boyce@trasnaform2.local>
+// Last modified: <18.Apr.2007 00:46:18 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -22,9 +22,141 @@ namespace IBAMR
 {
 /*!
  * \brief Class IBStandardInitializer is a concrete LNodeInitStrategy that
- * initializes the configuration of one or more IB structures from input files.
+ * initializes the configuration of one or more Lagrangian structures from input
+ * files.
  *
- * \todo Document input database entries and input file formats.
+ * \todo Document input database entries.
+ *
+ * \note "C-style" indices are used for all input files.
+ *
+ * <HR>
+ *
+ * <B>Vertex file format</B>
+ *
+ * Vertex input files end with the extension <TT>".vertex"</TT> and have the
+ * following format for two spatial dimensions: \verbatim
+
+ N                   # number of vertices in the file
+ x_0       y_0       # (x,y)-coordinates of vertex 0
+ x_1       y_1       # (x,y)-coordinates of vertex 1
+ ...
+ x_{N-1}   y_{N-1}   # (x,y)-coordinates of vertex N-1
+ \endverbatim
+ *
+ * Vertex input files end with the extension <TT>".vertex"</TT> and have the
+ * following format for three spatial dimensions: \verbatim
+
+ N                             # number of vertices in the file
+ x_0       y_0       z_0       # (x,y,z)-coordinates of vertex 0
+ x_1       y_1       z_1       # (x,y,z)-coordinates of vertex 1
+ ...
+ x_{N-1}   y_{N-1}   z_{N-1}   # (x,y,z)-coordinates of vertex N-1
+ \endverbatim
+ *
+ * <HR>
+ *
+ * <B>Spring file format</B>
+ *
+ * Spring input files end with the extension <TT>".spring"</TT> and have the
+ * following format: \verbatim
+
+ M                                            # number of links in the file
+ i_0   j_0   kappa_0   length_0   fcn_idx_0   # first vertex index, second vertex index, spring constant, rest length, spring function index
+ i_1   j_1   kappa_1   length_1   fcn_idx_1
+ i_2   j_2   kappa_2   length_2   fcn_idx_2
+ ...
+ \endverbatim
+ *
+ * \note There is no restriction on the number of springs that may be associated
+ * with any particular node of the Lagrangian mesh.
+ *
+ * \note The rest length and force function indices are \em optional values.  If
+ * they are not provided, by default the rest length will be set to the value \a
+ * 0.0 and the force function index will be set to \a 0.  This corresponds to a
+ * linear spring with zero rest length.
+ *
+ * \note Spring specifications are used by class LagSiloDataWriter to construct
+ * unstructured mesh representations of the Lagrangian structures.
+ * Consequently, even if your structure does not have any springs, it may be
+ * worthwhile to generate a spring input file with all spring constants set to
+ * \a 0.0.
+ *
+ * \note \a min(i,j) is always used as the "master" node index when constructing
+ * the corresponding IBSpringForceSpec object.
+ *
+ * \see IBSpringForceGen
+ * \see IBSpringForceSpec
+ *
+ * <HR>
+ *
+ * <B> Beam file format</B>
+ *
+ * Beam input files end with the extension <TT>".beam"</TT> and have the
+ * following format: \verbatim
+
+ M                           # number of beams in the file
+ i_0   j_0   k_0   kappa_0   # first vertex index, second vertex index, third vertex index, bending rigidity
+ i_1   j_1   k_1   kappa_1   # first vertex index, second vertex index, third vertex index, bending rigidity
+ i_2   j_2   k_2   kappa_2   # first vertex index, second vertex index, third vertex index, bending rigidity
+ ...
+ \endverbatim
+ *
+ * \note There is no restriction on the number of beams that may be associated
+ * with any particular node of the Lagrangian mesh.
+ *
+ * \note For each bending-resistant triple \a(i,j,k), it is neccessary that
+ * vertex \a j correspond to an "interior" node, i.e., a node that is not the
+ * first or last node in the beam.
+ *
+ * \note The second vertex index is always used as the "master" node index when
+ * constructing the corresponding IBBeamForceSpec object.
+ *
+ * \see IBBeamForceGen
+ * \see IBBeamForceSpec
+ *
+ * <HR>
+ *
+ * <B>Target point file format</B>
+ *
+ * Target point input files end with the extension <TT>".target"</TT> and have
+ * the following format: \verbatim
+
+ M               # number of target points in the file
+ i_0   kappa_0   # vertex index, penalty spring constant
+ i_1   kappa_1
+ i_2   kappa_2
+ ...
+ \endverbatim
+ *
+ * \note Target points are anchored to their \em initial positions by linear
+ * springs with the specified spring constants and with zero resting lengths.
+ * Consequently, target points approximately enforce internal Dirichlet boundary
+ * conditions.  The penalty parameter provides control over the energetic
+ * penalty imposed when the position of the Lagrangian immersed boundary point
+ * deviates from that of its specified fixed location.
+ *
+ * \see IBTargetPointForceGen
+ * \see IBTargetPointForceSpec
+ *
+ * <HR>
+ *
+ * <B>Mass point file format</B>
+ *
+ * Mass point input files end with the extension <TT>".mass"</TT> and have the
+ * following format: \verbatim
+
+ M                           # number of mass points in the file
+ i_0   mass_0   kappa_0      # vertex index, point mass, penalty spring constant
+ i_1   mass_1   kappa_1
+ i_2   mass_2   kappa_2
+ ...
+ \endverbatim
+ * \note Mass points are anchored to "ghost" massive particles by linear springs
+ * with the specified spring constants and with zero resting lengths.  The
+ * massive particles are "isolated" and simply move according to Newton's laws.
+ * The penalty parameter provides control over the energetic penalty imposed
+ * when the position of the Lagrangian immersed boundary point deviates from
+ * that of its massive copy.
  */
 class IBStandardInitializer
     : public LNodeInitStrategy

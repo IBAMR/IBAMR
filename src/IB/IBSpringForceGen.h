@@ -2,7 +2,7 @@
 #define included_IBSpringForceGen
 
 // Filename: IBSpringForceGen.h
-// Last modified: <16.Apr.2007 02:42:24 boyce@trasnaform2.local>
+// Last modified: <17.Apr.2007 19:59:59 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -45,7 +45,9 @@ namespace IBAMR
  * \param lag_slave_idx  The Lagrangian index of the "slave" node associated with the spring.
  *
  * \note This is the default force generation function employed by class
- * IBSpringForceGen.  It is associated with \a force_fcn_idx 0.
+ * IBSpringForceGen.  It is associated with \a force_fcn_idx 0.  Users may
+ * override this default value with any function that implements the interface
+ * required by IBSpringForceGen::registerSpringForceFunction().
  */
 inline void
 default_linear_spring_force(
@@ -89,7 +91,9 @@ default_linear_spring_force(
  * (i.e., structures that resist extension and/or compression).
  *
  * \note By default, function default_linear_spring_force() is associated with
- * \a force_fcn_idx 0.  This is the default force function index.
+ * \a force_fcn_idx 0.  This is the default force function index.  Users may
+ * override this default value with any function that implements the interface
+ * required by registerSpringForceFunction().
  *
  * \see IBSpringForceSpec
  */

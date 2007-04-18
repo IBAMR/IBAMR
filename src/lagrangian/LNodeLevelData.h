@@ -2,7 +2,7 @@
 #define included_LNodeLevelData
 
 // Filename: LNodeLevelData.h
-// Last modified: <17.Apr.2007 18:27:18 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 19:35:44 griffith@box221.cims.nyu.edu>
 // Created on 08 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -31,7 +31,8 @@ class LDataManager;
 namespace IBAMR
 {
 /*!
- * \brief Lagrangian data on a patch level.
+ * \brief Class LNodeLevelData provides storage for a single variable defined at
+ * the nodes of the Lagrangian mesh.
  */
 class LNodeLevelData
     : public SAMRAI::tbox::Serializable
@@ -149,12 +150,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
-    /*!
-     * \name Friend declarations.
-     */
-    //\{
     friend class LDataManager;
-    //\}
 
     /*!
      * \brief Constructor.

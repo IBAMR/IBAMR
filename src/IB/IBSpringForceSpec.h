@@ -2,7 +2,7 @@
 #define included_IBSpringForceSpec
 
 // Filename: IBSpringForceSpec.h
-// Last modified: <16.Apr.2007 02:43:45 boyce@trasnaform2.local>
+// Last modified: <17.Apr.2007 20:02:27 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -36,6 +36,13 @@ namespace IBAMR
  *
  * IBSpringForceSpec objects are stored as Stashable data associated with only
  * the master nodes in the mesh.
+ *
+ * \note Different spring force functions may be speficied for each link in the
+ * mesh.  This data is speficied as \a force_fcn_idxs in the class constructor.
+ * By default, function default_linear_spring_force() is associated with \a
+ * force_fcn_idx 0.  Users may override this default value with any function
+ * that implements the interface required by
+ * IBSpringForceGen::registerSpringForceFunction().
  */
 class IBSpringForceSpec
     : public Stashable
@@ -62,6 +69,13 @@ public:
 
     /*!
      * \brief Default constructor.
+     *
+     * \note Different spring force functions may be speficied for each link in
+     * the mesh.  This data is speficied as \a force_fcn_idxs in the class
+     * constructor.  By default, function default_linear_spring_force() is
+     * associated with \a force_fcn_idx 0.  Users may override this default
+     * value with any function that implements the interface required by
+     * IBSpringForceGen::registerSpringForceFunction().
      */
     IBSpringForceSpec(
         const int master_idx=-1,

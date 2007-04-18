@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <17.Apr.2007 18:29:29 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 21:15:58 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -518,7 +518,7 @@ public:
     ///
 
     /*!
-     * Print all data members for IBHierarchyIntegrator class.
+     * Print out internal class data for debugging.
      */
     virtual void
     printClassData(
@@ -746,6 +746,11 @@ private:
     bool d_do_log;
 
     /*
+     * Hierarchy operations objects.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
+
+    /*
      * Communications algorithms and schedules.
      */
     RefineAlgMap           d_ralgs;
@@ -759,11 +764,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_force_ralg, d_source_ralg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_force_rstrategy, d_source_rstrategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_force_rscheds, d_source_rscheds;
-
-    /*
-     * Hierarchy operations objects.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
 
     /*
      * Variables and variable contexts.

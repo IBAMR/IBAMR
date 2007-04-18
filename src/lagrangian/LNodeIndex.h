@@ -2,7 +2,7 @@
 #define included_LNodeIndex
 
 // Filename: LNodeIndex.h
-// Last modified: <17.Apr.2007 18:31:35 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 20:05:11 griffith@box221.cims.nyu.edu>
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -25,22 +25,17 @@
 namespace IBAMR
 {
 /*!
- * \brief Class LNodeIndex provides index information about a single node of a
- * Lagrangian mesh.
+ * \brief Class LNodeIndex provides Lagrangian and PETSc indexing information
+ * and Stashable data storage for a single node of a Lagrangian mesh.
  */
 class LNodeIndex
     : public SAMRAI::tbox::DescribedClass
 {
 public:
-    /*!
-     * \name Friend declarations.
-     */
-    //\{
     friend bool
     operator<(
-        const LNodeIndex&,
-        const LNodeIndex&);
-    //\}
+        const LNodeIndex& lhs,
+        const LNodeIndex& rhs);
 
     /*!
      * \brief Default constructor.

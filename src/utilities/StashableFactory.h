@@ -2,7 +2,7 @@
 #define included_StashableFactory
 
 // Filename: StashableFactory.h
-// Last modified: <17.Apr.2007 18:32:16 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 19:37:40 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,8 +21,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Class StashableFactory is an abstract interface for unpacking
- * Stashable objects from SAMRAI::tbox::AbstractStream data streams.
+ * \brief Class StashableFactory is an abstract interface for classes that can
+ * unpack particular concrete Stashable objects from
+ * SAMRAI::tbox::AbstractStream data streams.
  *
  * \note Each concrete Stashable class must have a corresponding concrete
  * StashableFactory class.

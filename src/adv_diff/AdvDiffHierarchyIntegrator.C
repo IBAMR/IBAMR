@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <16.Apr.2007 05:55:17 boyce@bigboy.nyconnect.com>
+// Last modified: <17.Apr.2007 21:41:53 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -35,6 +35,7 @@
 
 // C++ STDLIB INCLUDES
 #include <cassert>
+#include <iterator>
 #include <limits>
 #include <set>
 
@@ -1669,14 +1670,33 @@ AdvDiffHierarchyIntegrator::printClassData(
     std::ostream& os) const
 {
     os << "\nAdvDiffHierarchyIntegrator::printClassData..." << endl;
-    os << "\nAdvDiffHierarchyIntegrator: this = " << const_cast<AdvDiffHierarchyIntegrator*>(this) << endl;
-    os << "d_object_name = " << d_object_name << endl;
-    os << "d_integrator_time = " << d_integrator_time << "\n"
-       << "d_start_time = " << d_start_time << "\n"
+    os << "this = " << const_cast<AdvDiffHierarchyIntegrator*>(this) << endl;
+    os << "d_object_name = " << d_object_name << "\n"
+       << "d_registered_for_restart = " << d_registered_for_restart << endl;
+    os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
+       << "d_gridding_alg = " << d_gridding_alg.getPointer() << endl;
+    os << "d_hyp_level_integrator = " << d_hyp_level_integrator.getPointer() << endl;
+    os << "d_hyp_patch_ops = " << d_hyp_patch_ops.getPointer() << endl;
+    os << "d_start_time = " << d_start_time << "\n"
        << "d_end_time = " << d_end_time << "\n"
-       << "d_integrator_step = " << d_integrator_step << "\n"
-       << "d_grow_dt = " << d_grow_dt << endl;
-    os << "I AM INCOMPLETE!!!!!!!!!" << endl;
+       << "d_grow_dt = " << d_grow_dt << "\n"
+       << "d_max_integrator_steps = " << d_max_integrator_steps << endl;
+    os << "d_regrid_interval = " << d_regrid_interval << endl;
+    os << "d_using_default_tag_buffer = " << d_using_default_tag_buffer << "\n"
+       << "d_tag_buffer = [ ";
+    std::copy(d_tag_buffer.getPointer(), d_tag_buffer.getPointer()+d_tag_buffer.size(), std::ostream_iterator<int>(os, " , "));
+    os << " ]" << endl;
+    os << "d_old_dt = " << d_old_dt << "\n"
+       << "d_integrator_time = " << d_integrator_time << "\n"
+       << "d_integrator_step = " << d_integrator_step << endl;
+    os << "d_is_initialized = " << d_is_initialized << endl;
+    os << "d_do_log = " << d_do_log << endl;
+    os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n"
+       << "d_hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
+       << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << endl;
+    os << "d_wgt_var = " << d_wgt_var.getPointer() << "\n"
+       << "d_wgt_idx = " << d_wgt_idx << endl;
+    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << endl;
     return;
 }// printClassData
 

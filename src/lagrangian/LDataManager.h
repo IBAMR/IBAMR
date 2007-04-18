@@ -2,7 +2,7 @@
 #define included_LDataManager
 
 // Filename: LDataManager.h
-// Last modified: <17.Apr.2007 18:31:05 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 19:13:22 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -56,10 +56,14 @@ class LagSiloDataWriter;
 namespace IBAMR
 {
 /*!
- * Class LDataManager coordinates the irregular distribution of LNodeIndexData
- * and LNodeLevelData on the patch hierarchy.  The manager class is responsible
- * for maintaining this data distribution and for all interprocessor
- * communications.
+ * \brief Class LDataManager coordinates the irregular distribution of
+ * LNodeIndexData and LNodeLevelData on the patch hierarchy.
+ *
+ * The manager class is responsible for maintaining this data distribution and
+ * for all interprocessor communications.  All access to instantiated
+ * LDataManager objects is via the static method getManager().
+ *
+ * \note Multiple LDataManager objects may be instantiated simultaneously.
  */
 class LDataManager
     : public SAMRAI::tbox::Serializable,

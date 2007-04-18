@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <11.Apr.2007 03:37:34 boyce@trasnaform2.local>
+// Last modified: <17.Apr.2007 22:25:58 griffith@box221.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -700,21 +700,19 @@ void
 GodunovAdvector::printClassData(
     std::ostream &os) const
 {
-    os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
-    os << "\nGodunovAdvector::printClassData...\n";
+    os << "\nGodunovAdvector::printClassData..." << endl;
     os << "GodunovAdvector: this = " << const_cast<GodunovAdvector*>(this) << "\n";
-    os << "d_object_name = " << d_object_name << "\n";
-    os << "Parameters for numerical method ...\n";
-    os << "   d_limiter_type = " << d_limiter_type << "\n";
+    os << "d_object_name = " << d_object_name << "\n"
+       << "d_registered_for_restart = " << d_registered_for_restart << endl;
+    os << "d_limiter_type = "<< d_limiter_type << "\n";
 #if (NDIM == 3)
-    os << "   d_using_full_ctu = " << d_using_full_ctu << "\n";
+    os << "d_using_full_ctu = " << d_using_full_ctu << endl;
 #endif
-    os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
     return;
 }// printClassData
 
-/////////////////////////////// PRIVATE    ///////////////////////////////////
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
 GodunovAdvector::predict(

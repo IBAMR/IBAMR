@@ -2,7 +2,7 @@
 #define included_GodunovAdvector
 
 // Filename: GodunovAdvector.h
-// Last modified: <16.Apr.2007 02:19:38 boyce@trasnaform2.local>
+// Last modified: <17.Apr.2007 21:29:53 griffith@box221.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -25,7 +25,7 @@ namespace IBAMR
 {
 /*!
  * \brief Class GodunovAdvector provides patch-based operations required to
- * implement a second-order Godunov method for the advection equation in
+ * implement a second-order Godunov method for the linear advection equation in
  * conservative and non-conservative forms.
  *
  * Class GodunovAdvector implements the predictors required to use an explicit
@@ -326,7 +326,7 @@ public:
     ///
 
     /*!
-     * \brief Print all data members for GodunovAdvector class.
+     * Print out internal class data for debugging.
      */
     virtual void
     printClassData(

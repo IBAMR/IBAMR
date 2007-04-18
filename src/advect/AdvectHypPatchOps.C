@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <11.Apr.2007 03:32:10 boyce@trasnaform2.local>
+// Last modified: <17.Apr.2007 22:26:08 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -1811,88 +1811,87 @@ void
 AdvectHypPatchOps::printClassData(
     std::ostream &os) const
 {
-    os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
-    os << "\nAdvectHypPatchOps::printClassData...\n";
-    os << "AdvectHypPatchOps: this = " << const_cast<AdvectHypPatchOps*>(this) << "\n";
-    os << "d_object_name = " << d_object_name << "\n";
-    os << "d_grid_geometry = " << static_cast<SAMRAI::geom::CartesianGridGeometry<NDIM>*>(d_grid_geometry) << "\n";
-
-    os << "Parameters for numerical method ...\n";
-    os << "   d_ghosts = " << d_ghosts << "\n";
-    os << "   d_flux_ghosts = " << d_flux_ghosts << "\n";
-
-    os << "   Refinement criteria parameters \n";
+    os << "\nAdvectHypPatchOps::printClassData..." << endl;
+    os << "this = " << const_cast<AdvectHypPatchOps*>(this) << endl;
+    os << "d_object_name = " << d_object_name << "\n"
+       << "d_registered_for_restart = " << d_registered_for_restart << endl;
+    os << "d_grid_geometry = " << d_grid_geometry.getPointer() << endl;
+#if (NDIM>1)
+    os << "d_visit_writer = " << d_visit_writer.getPointer() << endl;
+#endif
+    os << "d_ghosts = " << d_ghosts << "\n"
+       << "d_flux_ghosts = " << d_flux_ghosts << "\n"
+       << "d_extrap_type = " << d_extrap_type << endl;
     for (int j = 0; j < d_refinement_criteria.getSize(); ++j)
     {
-        os << "       d_refinement_criteria[" << j << "] = "
-           << d_refinement_criteria[j] << "\n";
+        os << "d_refinement_criteria[" << j << "] = "
+           << d_refinement_criteria[j] << endl;
     }
-    os << "\n";
+    os << endl;
     for (int j = 0; j < d_dev_tol.getSize(); ++j)
     {
-        os << "       d_dev_tol[" << j << "] = "
-           << d_dev_tol[j] << "\n";
+        os << "d_dev_tol[" << j << "] = "
+           << d_dev_tol[j] << endl;
     }
     for (int j = 0; j < d_dev.getSize(); ++j)
     {
-        os << "       d_dev[" << j << "] = "
-           << d_dev[j] << "\n";
+        os << "d_dev[" << j << "] = "
+           << d_dev[j] << endl;
     }
-    if (d_dev.getSize()) os << "\n";
+    if (d_dev.getSize()) os << endl;
     for (int j = 0; j < d_dev_time_max.getSize(); ++j)
     {
-        os << "       d_dev_time_max[" << j << "] = "
-           << d_dev_time_max[j] << "\n";
+        os << "d_dev_time_max[" << j << "] = "
+           << d_dev_time_max[j] << endl;
     }
-    if (d_dev_time_max.getSize()) os << "\n";
+    if (d_dev_time_max.getSize()) os << endl;
     for (int j = 0; j < d_dev_time_min.getSize(); ++j)
     {
-        os << "       d_dev_time_min[" << j << "] = "
-           << d_dev_time_min[j] << "\n";
+        os << "d_dev_time_min[" << j << "] = "
+           << d_dev_time_min[j] << endl;
     }
-    if (d_dev_time_min.getSize()) os << "\n";
+    if (d_dev_time_min.getSize()) os << endl;
     for (int j = 0; j < d_grad_tol.getSize(); ++j)
     {
-        os << "       d_grad_tol[" << j << "] = "
-           << d_grad_tol[j] << "\n";
+        os << "d_grad_tol[" << j << "] = "
+           << d_grad_tol[j] << endl;
     }
-    if (d_grad_tol.getSize()) os << "\n";
+    if (d_grad_tol.getSize()) os << endl;
     for (int j = 0; j < d_grad_time_max.getSize(); ++j)
     {
-        os << "       d_grad_time_max[" << j << "] = "
-           << d_grad_time_max[j] << "\n";
+        os << "d_grad_time_max[" << j << "] = "
+           << d_grad_time_max[j] << endl;
     }
-    if (d_grad_time_max.getSize()) os << "\n";
+    if (d_grad_time_max.getSize()) os << endl;
     for (int j = 0; j < d_grad_time_min.getSize(); ++j)
     {
-        os << "       d_grad_time_min[" << j << "] = "
-           << d_grad_time_min[j] << "\n";
+        os << "d_grad_time_min[" << j << "] = "
+           << d_grad_time_min[j] << endl;
     }
-    if (d_grad_time_min.getSize()) os << "\n";
+    if (d_grad_time_min.getSize()) os << endl;
     for (int j = 0; j < d_rich_tol.getSize(); ++j)
     {
-        os << "       d_rich_tol[" << j << "] = "
-           << d_rich_tol[j] << "\n";
+        os << "d_rich_tol[" << j << "] = "
+           << d_rich_tol[j] << endl;
     }
-    if (d_rich_tol.getSize()) os << "\n";
+    if (d_rich_tol.getSize()) os << endl;
     for (int j = 0; j < d_rich_time_max.getSize(); ++j)
     {
-        os << "       d_rich_time_max[" << j << "] = "
-           << d_rich_time_max[j] << "\n";
+        os << "d_rich_time_max[" << j << "] = "
+           << d_rich_time_max[j] << endl;
     }
-    if (d_rich_time_max.getSize()) os << "\n";
+    if (d_rich_time_max.getSize()) os << endl;
     for (int j = 0; j < d_rich_time_min.getSize(); ++j)
     {
-        os << "       d_rich_time_min[" << j << "] = "
-           << d_rich_time_min[j] << "\n";
+        os << "d_rich_time_min[" << j << "] = "
+           << d_rich_time_min[j] << endl;
     }
-    if (d_rich_time_min.getSize()) os << "\n";
-    os << "++++++++++++++++++++++++++++++++++++++++++++++++\n";
+    if (d_rich_time_min.getSize()) os << endl;
 
     return;
 }// printClassData
 
-/////////////////////////////// PROTECTED  ///////////////////////////////////
+/////////////////////////////// PROTECTED ////////////////////////////////////
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> >
 AdvectHypPatchOps::getFluxIntegralData(
@@ -2110,7 +2109,7 @@ AdvectHypPatchOps::setOutflowBoundaryConditions(
     return;
 }// setOutflowBoundaryConditions
 
-/////////////////////////////// PRIVATE    ///////////////////////////////////
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
 AdvectHypPatchOps::getFromInput(

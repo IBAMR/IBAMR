@@ -2,7 +2,7 @@
 #define included_LagSiloDataWriter
 
 // Filename: LagSiloDataWriter.h
-// Last modified: <17.Apr.2007 18:30:57 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 19:27:42 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -31,12 +31,11 @@ namespace IBAMR
 {
 /*!
  * \brief Class LagSiloDataWriter provides functionality to output Lagrangian
- * data for visualization in the Silo data format.
+ * data for visualization via the <A HREF="http://www.llnl.gov/visit">VisIt
+ * visualization tool</A> in the Silo data format.
  *
  * For more information about Silo, see the Silo manual <A
- * HREF="http://www.llnl.gov/bdiv/meshtv/manuals/silo.pdf">here</A>.  Silo data
- * may be visualized using the <A HREF="http://www.llnl.gov/visit">VisIt
- * visualization tool</A>.
+ * HREF="http://www.llnl.gov/bdiv/meshtv/manuals/silo.pdf">here</A>.
  */
 class LagSiloDataWriter
     : public virtual SAMRAI::tbox::DescribedClass

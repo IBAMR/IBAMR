@@ -2,7 +2,7 @@
 #define included_LNodeIndexData
 
 // Filename: LNodeIndexData.h
-// Last modified: <17.Apr.2007 18:31:26 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 20:05:31 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -30,22 +30,17 @@ class LDataManager;
 namespace IBAMR
 {
 /*!
- * \brief Class LNodeIndexData is a specialization of the templated
- * SAMRAI::pdat::IndexData<NDIM> class.  It extends the SAMRAI::pdat::IndexData
- * class by providing the IDs of the Lagrangian nodes in the patch interior and
- * in the ghost cell region of the patch.
+ * \brief Class LNodeIndexData is a specialization of the templated class
+ * SAMRAI::pdat::IndexData that provides access to the Lagrangian and PETSc
+ * index information and any Stashable data associated with the the Lagrangian
+ * nodes in the interior and ghost cell region of a Cartesian grid patch.
  */
 class LNodeIndexData
     : public SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet>
 {
 public:
-    /*!
-     * \name Friend declarations.
-     */
-    //\{
     friend class SAMRAI::pdat::IndexIterator<NDIM,LNodeIndexSet>;
     friend class LDataManager;
-    //\}
 
     /*!
      * The constructor for an SAMRAI::pdat::IndexData<NDIM> object.  The box

@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <16.Apr.2007 01:53:01 boyce@trasnaform2.local>
+// Last modified: <17.Apr.2007 21:21:41 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -337,7 +337,7 @@ public:
     ///
 
     /*!
-     * Print all data members for the HierarchyProjector class.
+     * Print out internal class data for debugging.
      */
     virtual void
     printClassData(

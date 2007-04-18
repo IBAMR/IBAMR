@@ -2,7 +2,7 @@
 #define included_LNodeIndexSet
 
 // Filename: LNodeIndexSet.h
-// Last modified: <17.Apr.2007 18:31:45 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Apr.2007 19:32:16 griffith@box221.cims.nyu.edu>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -34,18 +34,16 @@ namespace IBAMR
 {
 /*!
  * \brief Class LNodeIndexSet provides interprocessor communications and
- * database access funtionality to a collection of LNodexIndex objects.  This
- * class meets the required specification for use with the templated
- * pdat::IndexData<NDIM> class.
+ * database access funtionality to a collection of LNodexIndex objects.
+ *
+ * \note This class meets the required specification for use with the templated
+ * class SAMRAI::pdat::IndexData.
  */
 class LNodeIndexSet
     : public SAMRAI::tbox::DescribedClass
 {
 public:
-    /*!
-     * \name Class typedefs.
-     */
-    //\{
+    friend class LDataManager;
 
     /*!
      * \brief The type of the collection.
@@ -91,16 +89,6 @@ public:
      * \brief Const iterator used to iterate through the collection.
      */
     typedef IndexSet::const_iterator const_iterator;
-
-    //\}
-
-
-    /*!
-     * \name Friend declarations.
-     */
-    //\{
-    friend class LDataManager;
-    //\}
 
     /*!
      * \brief Default constructor.

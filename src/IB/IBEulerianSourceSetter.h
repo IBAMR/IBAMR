@@ -1,8 +1,8 @@
 #ifndef included_IBEulerianSourceSetter
 #define included_IBEulerianSourceSetter
 
-// Filename: IBEulerianForceSetter.h
-// Last modified: <17.Apr.2007 18:29:07 griffith@box221.cims.nyu.edu>
+// Filename: IBEulerianSourceSetter.h
+// Last modified: <17.Apr.2007 19:45:22 griffith@box221.cims.nyu.edu>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -20,8 +20,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBEulerianForceSetter is used to communicate the Eulerian fluid
- * source/sink distribution computed by class IBHierarchyIntegrator to the
+ * \brief Class IBEulerianSourceSetter is used to communicate the Eulerian fluid
+ * source-sink distribution computed by class IBHierarchyIntegrator to the
  * incompressible Navier-Stokes solver.
  */
 class IBEulerianSourceSetter
