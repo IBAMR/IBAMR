@@ -230,6 +230,15 @@ main(
         const bool write_restart = restart_interval > 0
             && !restart_write_dirname.empty();
 
+        bool stop_after_writing_restart = false;
+        if (write_restart)
+        {
+            if (main_db->keyExists("stop_after_writing_restart"))
+            {
+                stop_after_writing_restart = main_db->getBool("stop_after_writing_restart");
+            }
+        }
+
         /*
          * Get the restart manager and root restart database.  If run is from
          * restart, open the restart file.
@@ -438,15 +447,8 @@ main(
             tbox::pout <<                                                       endl;
 
             /*
-             * At specified intervals, write restart and visualization files.
+             * At specified intervals, write visualization and restart files.
              */
-            if (write_restart && iteration_num%restart_interval == 0)
-            {
-                tbox::pout << "\nWriting restart files...\n\n";
-                tbox::RestartManager::getManager()->writeRestartFile(
-                    restart_write_dirname, iteration_num);
-            }
-
             if (viz_dump_data && iteration_num%viz_dump_interval == 0)
             {
                 if (uses_visit)
@@ -457,6 +459,15 @@ main(
                     silo_data_writer->writePlotData(
                         iteration_num, loop_time);
                 }
+            }
+
+            if (write_restart && iteration_num%restart_interval == 0)
+            {
+                tbox::pout << "\nWriting restart files...\n\n";
+                tbox::RestartManager::getManager()->writeRestartFile(
+                    restart_write_dirname, iteration_num);
+
+                if (stop_after_writing_restart) break;
             }
         }
 
