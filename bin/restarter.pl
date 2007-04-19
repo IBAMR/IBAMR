@@ -4,7 +4,6 @@ use File::Copy;
 
 # import all possible environment variables.
 Env::import();
-print "using mpiexec command: $MPIEXEC\n";
 print "using executable: $EXEC\n";
 print "using options: $OPTIONS\n";
 print "using vizualization directory: $VIZ_DIR\n";
@@ -84,9 +83,9 @@ if ($from_restart)
 
 # execute the command.
 if ($from_restart) {
-    $command = "$MPIEXEC $EXEC $RESTART_DIR $restart_num $OPTIONS";
+    $command = "$EXEC $RESTART_DIR $restart_num $OPTIONS";
 } else {
-    $command = "$MPIEXEC $EXEC $OPTIONS";
+    $command = "$EXEC $OPTIONS";
 }
 $command =~ s/\s+/ /g; # remove any extra spaces
 
