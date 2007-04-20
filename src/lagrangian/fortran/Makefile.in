@@ -36,6 +36,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
+@SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBAMR_lagrangian_fortran2d.a
+@SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBAMR_lagrangian_fortran3d.a
 subdir = src/lagrangian/fortran
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -57,18 +59,14 @@ libIBAMR_lagrangian_fortran_a_OBJECTS =  \
 	$(am_libIBAMR_lagrangian_fortran_a_OBJECTS)
 libIBAMR_lagrangian_fortran2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_lagrangian_fortran2d_a_LIBADD =
-am__libIBAMR_lagrangian_fortran2d_a_SOURCES_DIST =  \
-	lagrangian_interaction2d.f
-@SAMRAI2D_ENABLED_TRUE@am_libIBAMR_lagrangian_fortran2d_a_OBJECTS =  \
-@SAMRAI2D_ENABLED_TRUE@	lagrangian_interaction2d.$(OBJEXT)
+am_libIBAMR_lagrangian_fortran2d_a_OBJECTS =  \
+	lagrangian_interaction2d.$(OBJEXT)
 libIBAMR_lagrangian_fortran2d_a_OBJECTS =  \
 	$(am_libIBAMR_lagrangian_fortran2d_a_OBJECTS)
 libIBAMR_lagrangian_fortran3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_lagrangian_fortran3d_a_LIBADD =
-am__libIBAMR_lagrangian_fortran3d_a_SOURCES_DIST =  \
-	lagrangian_interaction3d.f
-@SAMRAI3D_ENABLED_TRUE@am_libIBAMR_lagrangian_fortran3d_a_OBJECTS =  \
-@SAMRAI3D_ENABLED_TRUE@	lagrangian_interaction3d.$(OBJEXT)
+am_libIBAMR_lagrangian_fortran3d_a_OBJECTS =  \
+	lagrangian_interaction3d.$(OBJEXT)
 libIBAMR_lagrangian_fortran3d_a_OBJECTS =  \
 	$(am_libIBAMR_lagrangian_fortran3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
@@ -80,8 +78,8 @@ SOURCES = $(libIBAMR_lagrangian_fortran_a_SOURCES) \
 	$(libIBAMR_lagrangian_fortran2d_a_SOURCES) \
 	$(libIBAMR_lagrangian_fortran3d_a_SOURCES)
 DIST_SOURCES = $(libIBAMR_lagrangian_fortran_a_SOURCES) \
-	$(am__libIBAMR_lagrangian_fortran2d_a_SOURCES_DIST) \
-	$(am__libIBAMR_lagrangian_fortran3d_a_SOURCES_DIST)
+	$(libIBAMR_lagrangian_fortran2d_a_SOURCES) \
+	$(libIBAMR_lagrangian_fortran3d_a_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -202,15 +200,14 @@ SUFFIXES = .f.m4
 EXTRA_DIST = lagrangian_delta.f.m4 lagrangian_interaction2d.f.m4 lagrangian_interaction3d.f.m4
 BUILT_SOURCES = lagrangian_delta.f lagrangian_interaction2d.f lagrangian_interaction3d.f
 CLEANFILES = ${BUILT_SOURCES}
-noinst_LIBRARIES = libIBAMR_lagrangian_fortran.a libIBAMR_lagrangian_fortran2d.a libIBAMR_lagrangian_fortran3d.a
+noinst_LIBRARIES = libIBAMR_lagrangian_fortran.a $(am__append_1) \
+	$(am__append_2)
 libIBAMR_lagrangian_fortran_a_F77FLAGS = $(AM_F77FLAGS)
 libIBAMR_lagrangian_fortran_a_SOURCES = lagrangian_delta.f
 libIBAMR_lagrangian_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
-@SAMRAI2D_ENABLED_FALSE@libIBAMR_lagrangian_fortran2d_a_SOURCES = # intentionally blank
-@SAMRAI2D_ENABLED_TRUE@libIBAMR_lagrangian_fortran2d_a_SOURCES = lagrangian_interaction2d.f
+libIBAMR_lagrangian_fortran2d_a_SOURCES = lagrangian_interaction2d.f
 libIBAMR_lagrangian_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
-@SAMRAI3D_ENABLED_FALSE@libIBAMR_lagrangian_fortran3d_a_SOURCES = # intentionally blank
-@SAMRAI3D_ENABLED_TRUE@libIBAMR_lagrangian_fortran3d_a_SOURCES = lagrangian_interaction3d.f
+libIBAMR_lagrangian_fortran3d_a_SOURCES = lagrangian_interaction3d.f
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

@@ -2,7 +2,13 @@
 include $(top_srcdir)/config/Make-rules
 SUBDIRS = fortran .
 
-noinst_LIBRARIES = libIBAMR_lagrangian2d.a libIBAMR_lagrangian3d.a
+noinst_LIBRARIES =
+if SAMRAI2D_ENABLED
+noinst_LIBRARIES += libIBAMR_lagrangian2d.a
+endif
+if SAMRAI3D_ENABLED
+noinst_LIBRARIES += libIBAMR_lagrangian3d.a
+endif
 
 ## Dimension-dependent libraries
 SOURCES = \
@@ -34,15 +40,7 @@ LNodeInitStrategy.h \
 LagSiloDataWriter.h
 
 libIBAMR_lagrangian2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-if SAMRAI2D_ENABLED
 libIBAMR_lagrangian2d_a_SOURCES = $(SOURCES)
-else
-libIBAMR_lagrangian2d_a_SOURCES = # intentionally blank
-endif
 
 libIBAMR_lagrangian3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-if SAMRAI3D_ENABLED
 libIBAMR_lagrangian3d_a_SOURCES = $(SOURCES)
-else
-libIBAMR_lagrangian3d_a_SOURCES = # intentionally blank
-endif

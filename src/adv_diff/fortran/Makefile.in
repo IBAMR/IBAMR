@@ -36,6 +36,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
+@SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBAMR_adv_diff_fortran2d.a
+@SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBAMR_adv_diff_fortran3d.a
 subdir = src/adv_diff/fortran
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -52,18 +54,14 @@ AR = ar
 ARFLAGS = cru
 libIBAMR_adv_diff_fortran2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_adv_diff_fortran2d_a_LIBADD =
-am__libIBAMR_adv_diff_fortran2d_a_SOURCES_DIST =  \
-	adv_diff_consdiff2d.f
-@SAMRAI2D_ENABLED_TRUE@am_libIBAMR_adv_diff_fortran2d_a_OBJECTS =  \
-@SAMRAI2D_ENABLED_TRUE@	adv_diff_consdiff2d.$(OBJEXT)
+am_libIBAMR_adv_diff_fortran2d_a_OBJECTS =  \
+	adv_diff_consdiff2d.$(OBJEXT)
 libIBAMR_adv_diff_fortran2d_a_OBJECTS =  \
 	$(am_libIBAMR_adv_diff_fortran2d_a_OBJECTS)
 libIBAMR_adv_diff_fortran3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_adv_diff_fortran3d_a_LIBADD =
-am__libIBAMR_adv_diff_fortran3d_a_SOURCES_DIST =  \
-	adv_diff_consdiff3d.f
-@SAMRAI3D_ENABLED_TRUE@am_libIBAMR_adv_diff_fortran3d_a_OBJECTS =  \
-@SAMRAI3D_ENABLED_TRUE@	adv_diff_consdiff3d.$(OBJEXT)
+am_libIBAMR_adv_diff_fortran3d_a_OBJECTS =  \
+	adv_diff_consdiff3d.$(OBJEXT)
 libIBAMR_adv_diff_fortran3d_a_OBJECTS =  \
 	$(am_libIBAMR_adv_diff_fortran3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
@@ -73,8 +71,8 @@ F77LINK = $(F77LD) $(AM_FFLAGS) $(FFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
 	$@
 SOURCES = $(libIBAMR_adv_diff_fortran2d_a_SOURCES) \
 	$(libIBAMR_adv_diff_fortran3d_a_SOURCES)
-DIST_SOURCES = $(am__libIBAMR_adv_diff_fortran2d_a_SOURCES_DIST) \
-	$(am__libIBAMR_adv_diff_fortran3d_a_SOURCES_DIST)
+DIST_SOURCES = $(libIBAMR_adv_diff_fortran2d_a_SOURCES) \
+	$(libIBAMR_adv_diff_fortran3d_a_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -192,16 +190,14 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXTRA_DIST = adv_diff_consdiff1d.f.m4 adv_diff_consdiff2d.f.m4 adv_diff_consdiff3d.f.m4
-BUILT_SOURCES = adv_diff_consdiff1d.f adv_diff_consdiff2d.f adv_diff_consdiff3d.f
+EXTRA_DIST = adv_diff_consdiff2d.f.m4 adv_diff_consdiff3d.f.m4
+BUILT_SOURCES = adv_diff_consdiff2d.f adv_diff_consdiff3d.f
 CLEANFILES = ${BUILT_SOURCES}
-noinst_LIBRARIES = libIBAMR_adv_diff_fortran2d.a libIBAMR_adv_diff_fortran3d.a
+noinst_LIBRARIES = $(am__append_1) $(am__append_2)
 libIBAMR_adv_diff_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
-@SAMRAI2D_ENABLED_FALSE@libIBAMR_adv_diff_fortran2d_a_SOURCES = # intentionally blank
-@SAMRAI2D_ENABLED_TRUE@libIBAMR_adv_diff_fortran2d_a_SOURCES = adv_diff_consdiff2d.f
+libIBAMR_adv_diff_fortran2d_a_SOURCES = adv_diff_consdiff2d.f
 libIBAMR_adv_diff_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
-@SAMRAI3D_ENABLED_FALSE@libIBAMR_adv_diff_fortran3d_a_SOURCES = # intentionally blank
-@SAMRAI3D_ENABLED_TRUE@libIBAMR_adv_diff_fortran3d_a_SOURCES = adv_diff_consdiff3d.f
+libIBAMR_adv_diff_fortran3d_a_SOURCES = adv_diff_consdiff3d.f
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

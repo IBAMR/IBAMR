@@ -37,6 +37,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 DIST_COMMON = $(pkg_include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/config/Make-rules
+@SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBAMR_advect2d.a
+@SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBAMR_advect3d.a
 subdir = src/advect
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -53,21 +55,15 @@ AR = ar
 ARFLAGS = cru
 libIBAMR_advect2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_advect2d_a_LIBADD =
-am__libIBAMR_advect2d_a_SOURCES_DIST = AdvectHypPatchOps.C \
-	GodunovAdvector.C
 am__objects_1 = libIBAMR_advect2d_a-AdvectHypPatchOps.$(OBJEXT) \
 	libIBAMR_advect2d_a-GodunovAdvector.$(OBJEXT)
-@SAMRAI2D_ENABLED_TRUE@am_libIBAMR_advect2d_a_OBJECTS =  \
-@SAMRAI2D_ENABLED_TRUE@	$(am__objects_1)
+am_libIBAMR_advect2d_a_OBJECTS = $(am__objects_1)
 libIBAMR_advect2d_a_OBJECTS = $(am_libIBAMR_advect2d_a_OBJECTS)
 libIBAMR_advect3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_advect3d_a_LIBADD =
-am__libIBAMR_advect3d_a_SOURCES_DIST = AdvectHypPatchOps.C \
-	GodunovAdvector.C
 am__objects_2 = libIBAMR_advect3d_a-AdvectHypPatchOps.$(OBJEXT) \
 	libIBAMR_advect3d_a-GodunovAdvector.$(OBJEXT)
-@SAMRAI3D_ENABLED_TRUE@am_libIBAMR_advect3d_a_OBJECTS =  \
-@SAMRAI3D_ENABLED_TRUE@	$(am__objects_2)
+am_libIBAMR_advect3d_a_OBJECTS = $(am__objects_2)
 libIBAMR_advect3d_a_OBJECTS = $(am_libIBAMR_advect3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -77,8 +73,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-DIST_SOURCES = $(am__libIBAMR_advect2d_a_SOURCES_DIST) \
-	$(am__libIBAMR_advect3d_a_SOURCES_DIST)
+DIST_SOURCES = $(libIBAMR_advect2d_a_SOURCES) \
+	$(libIBAMR_advect3d_a_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -213,15 +209,13 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = fortran .
-noinst_LIBRARIES = libIBAMR_advect2d.a libIBAMR_advect3d.a
+noinst_LIBRARIES = $(am__append_1) $(am__append_2)
 SOURCES = AdvectHypPatchOps.C GodunovAdvector.C
 pkg_include_HEADERS = AdvectHypPatchOps.h GodunovAdvector.h
 libIBAMR_advect2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-@SAMRAI2D_ENABLED_FALSE@libIBAMR_advect2d_a_SOURCES = # intentionally blank
-@SAMRAI2D_ENABLED_TRUE@libIBAMR_advect2d_a_SOURCES = $(SOURCES)
+libIBAMR_advect2d_a_SOURCES = $(SOURCES)
 libIBAMR_advect3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-@SAMRAI3D_ENABLED_FALSE@libIBAMR_advect3d_a_SOURCES = # intentionally blank
-@SAMRAI3D_ENABLED_TRUE@libIBAMR_advect3d_a_SOURCES = $(SOURCES)
+libIBAMR_advect3d_a_SOURCES = $(SOURCES)
 all: all-recursive
 
 .SUFFIXES:

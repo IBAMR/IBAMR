@@ -37,6 +37,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 DIST_COMMON = $(pkg_include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/config/Make-rules
+@SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBAMR_lagrangian2d.a
+@SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBAMR_lagrangian3d.a
 subdir = src/lagrangian
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -53,10 +55,6 @@ AR = ar
 ARFLAGS = cru
 libIBAMR_lagrangian2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_lagrangian2d_a_LIBADD =
-am__libIBAMR_lagrangian2d_a_SOURCES_DIST = LDataManager.C \
-	LEInteractor.C LNodeIndex.C LNodeIndexData.C \
-	LNodeIndexDataFactory.C LNodeIndexSet.C LNodeIndexVariable.C \
-	LNodeLevelData.C LNodeInitStrategy.C LagSiloDataWriter.C
 am__objects_1 = libIBAMR_lagrangian2d_a-LDataManager.$(OBJEXT) \
 	libIBAMR_lagrangian2d_a-LEInteractor.$(OBJEXT) \
 	libIBAMR_lagrangian2d_a-LNodeIndex.$(OBJEXT) \
@@ -67,16 +65,11 @@ am__objects_1 = libIBAMR_lagrangian2d_a-LDataManager.$(OBJEXT) \
 	libIBAMR_lagrangian2d_a-LNodeLevelData.$(OBJEXT) \
 	libIBAMR_lagrangian2d_a-LNodeInitStrategy.$(OBJEXT) \
 	libIBAMR_lagrangian2d_a-LagSiloDataWriter.$(OBJEXT)
-@SAMRAI2D_ENABLED_TRUE@am_libIBAMR_lagrangian2d_a_OBJECTS =  \
-@SAMRAI2D_ENABLED_TRUE@	$(am__objects_1)
+am_libIBAMR_lagrangian2d_a_OBJECTS = $(am__objects_1)
 libIBAMR_lagrangian2d_a_OBJECTS =  \
 	$(am_libIBAMR_lagrangian2d_a_OBJECTS)
 libIBAMR_lagrangian3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_lagrangian3d_a_LIBADD =
-am__libIBAMR_lagrangian3d_a_SOURCES_DIST = LDataManager.C \
-	LEInteractor.C LNodeIndex.C LNodeIndexData.C \
-	LNodeIndexDataFactory.C LNodeIndexSet.C LNodeIndexVariable.C \
-	LNodeLevelData.C LNodeInitStrategy.C LagSiloDataWriter.C
 am__objects_2 = libIBAMR_lagrangian3d_a-LDataManager.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LEInteractor.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LNodeIndex.$(OBJEXT) \
@@ -87,8 +80,7 @@ am__objects_2 = libIBAMR_lagrangian3d_a-LDataManager.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LNodeLevelData.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LNodeInitStrategy.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LagSiloDataWriter.$(OBJEXT)
-@SAMRAI3D_ENABLED_TRUE@am_libIBAMR_lagrangian3d_a_OBJECTS =  \
-@SAMRAI3D_ENABLED_TRUE@	$(am__objects_2)
+am_libIBAMR_lagrangian3d_a_OBJECTS = $(am__objects_2)
 libIBAMR_lagrangian3d_a_OBJECTS =  \
 	$(am_libIBAMR_lagrangian3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
@@ -99,8 +91,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-DIST_SOURCES = $(am__libIBAMR_lagrangian2d_a_SOURCES_DIST) \
-	$(am__libIBAMR_lagrangian3d_a_SOURCES_DIST)
+DIST_SOURCES = $(libIBAMR_lagrangian2d_a_SOURCES) \
+	$(libIBAMR_lagrangian3d_a_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -235,7 +227,7 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = fortran .
-noinst_LIBRARIES = libIBAMR_lagrangian2d.a libIBAMR_lagrangian3d.a
+noinst_LIBRARIES = $(am__append_1) $(am__append_2)
 SOURCES = \
 LDataManager.C \
 LEInteractor.C \
@@ -265,11 +257,9 @@ LNodeInitStrategy.h \
 LagSiloDataWriter.h
 
 libIBAMR_lagrangian2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-@SAMRAI2D_ENABLED_FALSE@libIBAMR_lagrangian2d_a_SOURCES = # intentionally blank
-@SAMRAI2D_ENABLED_TRUE@libIBAMR_lagrangian2d_a_SOURCES = $(SOURCES)
+libIBAMR_lagrangian2d_a_SOURCES = $(SOURCES)
 libIBAMR_lagrangian3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-@SAMRAI3D_ENABLED_FALSE@libIBAMR_lagrangian3d_a_SOURCES = # intentionally blank
-@SAMRAI3D_ENABLED_TRUE@libIBAMR_lagrangian3d_a_SOURCES = $(SOURCES)
+libIBAMR_lagrangian3d_a_SOURCES = $(SOURCES)
 all: all-recursive
 
 .SUFFIXES:

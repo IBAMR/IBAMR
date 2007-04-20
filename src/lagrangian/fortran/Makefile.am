@@ -5,7 +5,13 @@ EXTRA_DIST = lagrangian_delta.f.m4 lagrangian_interaction2d.f.m4 lagrangian_inte
 BUILT_SOURCES = lagrangian_delta.f lagrangian_interaction2d.f lagrangian_interaction3d.f
 CLEANFILES = ${BUILT_SOURCES}
 
-noinst_LIBRARIES = libIBAMR_lagrangian_fortran.a libIBAMR_lagrangian_fortran2d.a libIBAMR_lagrangian_fortran3d.a
+noinst_LIBRARIES = libIBAMR_lagrangian_fortran.a
+if SAMRAI2D_ENABLED
+noinst_LIBRARIES += libIBAMR_lagrangian_fortran2d.a
+endif
+if SAMRAI3D_ENABLED
+noinst_LIBRARIES += libIBAMR_lagrangian_fortran3d.a
+endif
 
 ## Dimension-independent library
 libIBAMR_lagrangian_fortran_a_F77FLAGS = $(AM_F77FLAGS)
@@ -13,15 +19,7 @@ libIBAMR_lagrangian_fortran_a_SOURCES = lagrangian_delta.f
 
 ## Dimension-dependent libraries
 libIBAMR_lagrangian_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
-if SAMRAI2D_ENABLED
 libIBAMR_lagrangian_fortran2d_a_SOURCES = lagrangian_interaction2d.f
-else
-libIBAMR_lagrangian_fortran2d_a_SOURCES = # intentionally blank
-endif
 
 libIBAMR_lagrangian_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
-if SAMRAI3D_ENABLED
 libIBAMR_lagrangian_fortran3d_a_SOURCES = lagrangian_interaction3d.f
-else
-libIBAMR_lagrangian_fortran3d_a_SOURCES = # intentionally blank
-endif

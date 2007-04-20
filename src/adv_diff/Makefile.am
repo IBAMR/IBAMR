@@ -2,22 +2,20 @@
 include $(top_srcdir)/config/Make-rules
 SUBDIRS = fortran .
 
-noinst_LIBRARIES = libIBAMR_adv_diff2d.a libIBAMR_adv_diff3d.a
+noinst_LIBRARIES =
+if SAMRAI2D_ENABLED
+noinst_LIBRARIES += libIBAMR_adv_diff2d.a
+endif
+if SAMRAI3D_ENABLED
+noinst_LIBRARIES += libIBAMR_adv_diff3d.a
+endif
 
 ## Dimension-dependent libraries
 SOURCES              = AdvDiffHierarchyIntegrator.C AdvDiffHypPatchOps.C
 pkg_include_HEADERS  = AdvDiffHierarchyIntegrator.h AdvDiffHypPatchOps.h
 
 libIBAMR_adv_diff2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-if SAMRAI2D_ENABLED
 libIBAMR_adv_diff2d_a_SOURCES = $(SOURCES)
-else
-libIBAMR_adv_diff2d_a_SOURCES = # intentionally blank
-endif
 
 libIBAMR_adv_diff3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-if SAMRAI3D_ENABLED
 libIBAMR_adv_diff3d_a_SOURCES = $(SOURCES)
-else
-libIBAMR_adv_diff3d_a_SOURCES = # intentionally blank
-endif

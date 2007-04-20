@@ -36,6 +36,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
+@SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBAMR2d.a
+@SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBAMR3d.a
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -64,105 +66,103 @@ libIBAMR_a_DEPENDENCIES = advect/fortran/godunov_helpers.o \
 am_libIBAMR_a_OBJECTS =
 libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
 libIBAMR2d_a_AR = $(AR) $(ARFLAGS)
-@SAMRAI2D_ENABLED_TRUE@libIBAMR2d_a_DEPENDENCIES =  \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBLagrangianForceStrategy.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBLagrangianForceStrategySet.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBSpringForceGen.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBSpringForceSpecFactory.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBSpringForceSpec.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBStandardForceGen.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBStandardInitializer.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBTargetPointForceGen.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBTargetPointForceSpecFactory.o \
-@SAMRAI2D_ENABLED_TRUE@	IB/libIBAMR_IB2d_a-IBTargetPointForceSpec.o \
-@SAMRAI2D_ENABLED_TRUE@	adv_diff/fortran/adv_diff_consdiff2d.o \
-@SAMRAI2D_ENABLED_TRUE@	adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o \
-@SAMRAI2D_ENABLED_TRUE@	adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o \
-@SAMRAI2D_ENABLED_TRUE@	advect/fortran/godunov_predictors2d.o \
-@SAMRAI2D_ENABLED_TRUE@	advect/fortran/advect_diff2d.o \
-@SAMRAI2D_ENABLED_TRUE@	advect/fortran/advect_stable2d.o \
-@SAMRAI2D_ENABLED_TRUE@	advect/fortran/advect_detect2d.o \
-@SAMRAI2D_ENABLED_TRUE@	advect/libIBAMR_advect2d_a-AdvectHypPatchOps.o \
-@SAMRAI2D_ENABLED_TRUE@	advect/libIBAMR_advect2d_a-GodunovAdvector.o \
-@SAMRAI2D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
-@SAMRAI2D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o \
-@SAMRAI2D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
-@SAMRAI2D_ENABLED_TRUE@	lagrangian/fortran/lagrangian_interaction2d.o \
-@SAMRAI2D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexSet.o \
-@SAMRAI2D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory.o \
-@SAMRAI2D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian2d_a-LDataManager.o \
-@SAMRAI2D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable.o \
-@SAMRAI2D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian2d_a-LagSiloDataWriter.o \
-@SAMRAI2D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o \
-@SAMRAI2D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian2d_a-LNodeInitStrategy.o \
-@SAMRAI2D_ENABLED_TRUE@	navier_stokes/fortran/navier_stokes_stabledt2d.o \
-@SAMRAI2D_ENABLED_TRUE@	navier_stokes/fortran/navier_stokes_divsource2d.o \
-@SAMRAI2D_ENABLED_TRUE@	navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
-@SAMRAI2D_ENABLED_TRUE@	navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
-@SAMRAI2D_ENABLED_TRUE@	navier_stokes/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.o \
-@SAMRAI2D_ENABLED_TRUE@	utilities/libIBAMR_utilities2d_a-StashableFactory.o \
-@SAMRAI2D_ENABLED_TRUE@	utilities/libIBAMR_utilities2d_a-StashableManager.o \
-@SAMRAI2D_ENABLED_TRUE@	utilities/libIBAMR_utilities2d_a-Stashable.o \
-@SAMRAI2D_ENABLED_TRUE@	utilities/libIBAMR_utilities2d_a-StashableStream.o \
-@SAMRAI2D_ENABLED_TRUE@	utilities/libIBAMR_utilities2d_a-get_version.o
+libIBAMR2d_a_DEPENDENCIES = IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
+	IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
+	IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
+	IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
+	IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
+	IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
+	IB/libIBAMR_IB2d_a-IBLagrangianForceStrategy.o \
+	IB/libIBAMR_IB2d_a-IBLagrangianForceStrategySet.o \
+	IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o \
+	IB/libIBAMR_IB2d_a-IBSpringForceGen.o \
+	IB/libIBAMR_IB2d_a-IBSpringForceSpecFactory.o \
+	IB/libIBAMR_IB2d_a-IBSpringForceSpec.o \
+	IB/libIBAMR_IB2d_a-IBStandardForceGen.o \
+	IB/libIBAMR_IB2d_a-IBStandardInitializer.o \
+	IB/libIBAMR_IB2d_a-IBTargetPointForceGen.o \
+	IB/libIBAMR_IB2d_a-IBTargetPointForceSpecFactory.o \
+	IB/libIBAMR_IB2d_a-IBTargetPointForceSpec.o \
+	adv_diff/fortran/adv_diff_consdiff2d.o \
+	adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o \
+	adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o \
+	advect/fortran/godunov_predictors2d.o \
+	advect/fortran/advect_diff2d.o \
+	advect/fortran/advect_stable2d.o \
+	advect/fortran/advect_detect2d.o \
+	advect/libIBAMR_advect2d_a-AdvectHypPatchOps.o \
+	advect/libIBAMR_advect2d_a-GodunovAdvector.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
+	lagrangian/fortran/lagrangian_interaction2d.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexSet.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LDataManager.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LagSiloDataWriter.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeInitStrategy.o \
+	navier_stokes/fortran/navier_stokes_stabledt2d.o \
+	navier_stokes/fortran/navier_stokes_divsource2d.o \
+	navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
+	navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
+	navier_stokes/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.o \
+	utilities/libIBAMR_utilities2d_a-StashableFactory.o \
+	utilities/libIBAMR_utilities2d_a-StashableManager.o \
+	utilities/libIBAMR_utilities2d_a-Stashable.o \
+	utilities/libIBAMR_utilities2d_a-StashableStream.o \
+	utilities/libIBAMR_utilities2d_a-get_version.o
 am_libIBAMR2d_a_OBJECTS =
 libIBAMR2d_a_OBJECTS = $(am_libIBAMR2d_a_OBJECTS)
 libIBAMR3d_a_AR = $(AR) $(ARFLAGS)
-@SAMRAI3D_ENABLED_TRUE@libIBAMR3d_a_DEPENDENCIES =  \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBLagrangianForceStrategy.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBLagrangianForceStrategySet.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBSpringForceGen.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBSpringForceSpecFactory.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBSpringForceSpec.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBStandardForceGen.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBStandardInitializer.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBTargetPointForceGen.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBTargetPointForceSpecFactory.o \
-@SAMRAI3D_ENABLED_TRUE@	IB/libIBAMR_IB3d_a-IBTargetPointForceSpec.o \
-@SAMRAI3D_ENABLED_TRUE@	adv_diff/fortran/adv_diff_consdiff3d.o \
-@SAMRAI3D_ENABLED_TRUE@	adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o \
-@SAMRAI3D_ENABLED_TRUE@	adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o \
-@SAMRAI3D_ENABLED_TRUE@	advect/fortran/godunov_predictors3d.o \
-@SAMRAI3D_ENABLED_TRUE@	advect/fortran/advect_diff3d.o \
-@SAMRAI3D_ENABLED_TRUE@	advect/fortran/advect_stable3d.o \
-@SAMRAI3D_ENABLED_TRUE@	advect/fortran/advect_detect3d.o \
-@SAMRAI3D_ENABLED_TRUE@	advect/libIBAMR_advect3d_a-AdvectHypPatchOps.o \
-@SAMRAI3D_ENABLED_TRUE@	advect/libIBAMR_advect3d_a-GodunovAdvector.o \
-@SAMRAI3D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
-@SAMRAI3D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
-@SAMRAI3D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o \
-@SAMRAI3D_ENABLED_TRUE@	lagrangian/fortran/lagrangian_interaction3d.o \
-@SAMRAI3D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexSet.o \
-@SAMRAI3D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.o \
-@SAMRAI3D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian3d_a-LDataManager.o \
-@SAMRAI3D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable.o \
-@SAMRAI3D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o \
-@SAMRAI3D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
-@SAMRAI3D_ENABLED_TRUE@	lagrangian/libIBAMR_lagrangian3d_a-LNodeInitStrategy.o \
-@SAMRAI3D_ENABLED_TRUE@	navier_stokes/fortran/navier_stokes_stabledt3d.o \
-@SAMRAI3D_ENABLED_TRUE@	navier_stokes/fortran/navier_stokes_divsource3d.o \
-@SAMRAI3D_ENABLED_TRUE@	navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o \
-@SAMRAI3D_ENABLED_TRUE@	navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o \
-@SAMRAI3D_ENABLED_TRUE@	navier_stokes/libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.o \
-@SAMRAI3D_ENABLED_TRUE@	utilities/libIBAMR_utilities3d_a-StashableFactory.o \
-@SAMRAI3D_ENABLED_TRUE@	utilities/libIBAMR_utilities3d_a-StashableManager.o \
-@SAMRAI3D_ENABLED_TRUE@	utilities/libIBAMR_utilities3d_a-Stashable.o \
-@SAMRAI3D_ENABLED_TRUE@	utilities/libIBAMR_utilities3d_a-StashableStream.o \
-@SAMRAI3D_ENABLED_TRUE@	utilities/libIBAMR_utilities3d_a-get_version.o
+libIBAMR3d_a_DEPENDENCIES = IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
+	IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
+	IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
+	IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
+	IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
+	IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
+	IB/libIBAMR_IB3d_a-IBLagrangianForceStrategy.o \
+	IB/libIBAMR_IB3d_a-IBLagrangianForceStrategySet.o \
+	IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o \
+	IB/libIBAMR_IB3d_a-IBSpringForceGen.o \
+	IB/libIBAMR_IB3d_a-IBSpringForceSpecFactory.o \
+	IB/libIBAMR_IB3d_a-IBSpringForceSpec.o \
+	IB/libIBAMR_IB3d_a-IBStandardForceGen.o \
+	IB/libIBAMR_IB3d_a-IBStandardInitializer.o \
+	IB/libIBAMR_IB3d_a-IBTargetPointForceGen.o \
+	IB/libIBAMR_IB3d_a-IBTargetPointForceSpecFactory.o \
+	IB/libIBAMR_IB3d_a-IBTargetPointForceSpec.o \
+	adv_diff/fortran/adv_diff_consdiff3d.o \
+	adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o \
+	adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o \
+	advect/fortran/godunov_predictors3d.o \
+	advect/fortran/advect_diff3d.o \
+	advect/fortran/advect_stable3d.o \
+	advect/fortran/advect_detect3d.o \
+	advect/libIBAMR_advect3d_a-AdvectHypPatchOps.o \
+	advect/libIBAMR_advect3d_a-GodunovAdvector.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o \
+	lagrangian/fortran/lagrangian_interaction3d.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexSet.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LDataManager.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeInitStrategy.o \
+	navier_stokes/fortran/navier_stokes_stabledt3d.o \
+	navier_stokes/fortran/navier_stokes_divsource3d.o \
+	navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o \
+	navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o \
+	navier_stokes/libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.o \
+	utilities/libIBAMR_utilities3d_a-StashableFactory.o \
+	utilities/libIBAMR_utilities3d_a-StashableManager.o \
+	utilities/libIBAMR_utilities3d_a-Stashable.o \
+	utilities/libIBAMR_utilities3d_a-StashableStream.o \
+	utilities/libIBAMR_utilities3d_a-get_version.o
 am_libIBAMR3d_a_OBJECTS =
 libIBAMR3d_a_OBJECTS = $(am_libIBAMR3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
@@ -299,109 +299,107 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = IB fortran adv_diff advect lagrangian navier_stokes utilities . tests
-lib_LIBRARIES = libIBAMR.a libIBAMR2d.a libIBAMR3d.a
+lib_LIBRARIES = libIBAMR.a $(am__append_1) $(am__append_2)
 libIBAMR_a_LIBADD = advect/fortran/godunov_helpers.o lagrangian/fortran/lagrangian_delta.o
 libIBAMR_a_SOURCES = # intentionally blank
-@SAMRAI2D_ENABLED_FALSE@libIBAMR2d_a_LIBADD = # intentionally blank
-@SAMRAI2D_ENABLED_TRUE@libIBAMR2d_a_LIBADD = \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBLagrangianForceStrategy.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBLagrangianForceStrategySet.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBSpringForceGen.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBSpringForceSpecFactory.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBSpringForceSpec.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBStandardForceGen.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBStandardInitializer.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBTargetPointForceGen.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBTargetPointForceSpecFactory.o \
-@SAMRAI2D_ENABLED_TRUE@IB/libIBAMR_IB2d_a-IBTargetPointForceSpec.o \
-@SAMRAI2D_ENABLED_TRUE@adv_diff/fortran/adv_diff_consdiff2d.o \
-@SAMRAI2D_ENABLED_TRUE@adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o \
-@SAMRAI2D_ENABLED_TRUE@adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o \
-@SAMRAI2D_ENABLED_TRUE@advect/fortran/godunov_predictors2d.o \
-@SAMRAI2D_ENABLED_TRUE@advect/fortran/advect_diff2d.o \
-@SAMRAI2D_ENABLED_TRUE@advect/fortran/advect_stable2d.o \
-@SAMRAI2D_ENABLED_TRUE@advect/fortran/advect_detect2d.o \
-@SAMRAI2D_ENABLED_TRUE@advect/libIBAMR_advect2d_a-AdvectHypPatchOps.o \
-@SAMRAI2D_ENABLED_TRUE@advect/libIBAMR_advect2d_a-GodunovAdvector.o \
-@SAMRAI2D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
-@SAMRAI2D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o \
-@SAMRAI2D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
-@SAMRAI2D_ENABLED_TRUE@lagrangian/fortran/lagrangian_interaction2d.o \
-@SAMRAI2D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexSet.o \
-@SAMRAI2D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory.o \
-@SAMRAI2D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian2d_a-LDataManager.o \
-@SAMRAI2D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable.o \
-@SAMRAI2D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian2d_a-LagSiloDataWriter.o \
-@SAMRAI2D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o \
-@SAMRAI2D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian2d_a-LNodeInitStrategy.o \
-@SAMRAI2D_ENABLED_TRUE@navier_stokes/fortran/navier_stokes_stabledt2d.o \
-@SAMRAI2D_ENABLED_TRUE@navier_stokes/fortran/navier_stokes_divsource2d.o \
-@SAMRAI2D_ENABLED_TRUE@navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
-@SAMRAI2D_ENABLED_TRUE@navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
-@SAMRAI2D_ENABLED_TRUE@navier_stokes/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.o \
-@SAMRAI2D_ENABLED_TRUE@utilities/libIBAMR_utilities2d_a-StashableFactory.o \
-@SAMRAI2D_ENABLED_TRUE@utilities/libIBAMR_utilities2d_a-StashableManager.o \
-@SAMRAI2D_ENABLED_TRUE@utilities/libIBAMR_utilities2d_a-Stashable.o \
-@SAMRAI2D_ENABLED_TRUE@utilities/libIBAMR_utilities2d_a-StashableStream.o \
-@SAMRAI2D_ENABLED_TRUE@utilities/libIBAMR_utilities2d_a-get_version.o
+libIBAMR2d_a_LIBADD = \
+IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
+IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
+IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
+IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
+IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
+IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
+IB/libIBAMR_IB2d_a-IBLagrangianForceStrategy.o \
+IB/libIBAMR_IB2d_a-IBLagrangianForceStrategySet.o \
+IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o \
+IB/libIBAMR_IB2d_a-IBSpringForceGen.o \
+IB/libIBAMR_IB2d_a-IBSpringForceSpecFactory.o \
+IB/libIBAMR_IB2d_a-IBSpringForceSpec.o \
+IB/libIBAMR_IB2d_a-IBStandardForceGen.o \
+IB/libIBAMR_IB2d_a-IBStandardInitializer.o \
+IB/libIBAMR_IB2d_a-IBTargetPointForceGen.o \
+IB/libIBAMR_IB2d_a-IBTargetPointForceSpecFactory.o \
+IB/libIBAMR_IB2d_a-IBTargetPointForceSpec.o \
+adv_diff/fortran/adv_diff_consdiff2d.o \
+adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o \
+adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o \
+advect/fortran/godunov_predictors2d.o \
+advect/fortran/advect_diff2d.o \
+advect/fortran/advect_stable2d.o \
+advect/fortran/advect_detect2d.o \
+advect/libIBAMR_advect2d_a-AdvectHypPatchOps.o \
+advect/libIBAMR_advect2d_a-GodunovAdvector.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
+lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
+lagrangian/fortran/lagrangian_interaction2d.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexSet.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory.o \
+lagrangian/libIBAMR_lagrangian2d_a-LDataManager.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable.o \
+lagrangian/libIBAMR_lagrangian2d_a-LagSiloDataWriter.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeInitStrategy.o \
+navier_stokes/fortran/navier_stokes_stabledt2d.o \
+navier_stokes/fortran/navier_stokes_divsource2d.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.o \
+utilities/libIBAMR_utilities2d_a-StashableFactory.o \
+utilities/libIBAMR_utilities2d_a-StashableManager.o \
+utilities/libIBAMR_utilities2d_a-Stashable.o \
+utilities/libIBAMR_utilities2d_a-StashableStream.o \
+utilities/libIBAMR_utilities2d_a-get_version.o
 
 libIBAMR2d_a_SOURCES = # intentionally blank
-@SAMRAI3D_ENABLED_FALSE@libIBAMR3d_a_LIBADD = # intentionally blank
-@SAMRAI3D_ENABLED_TRUE@libIBAMR3d_a_LIBADD = \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBLagrangianForceStrategy.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBLagrangianForceStrategySet.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBSpringForceGen.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBSpringForceSpecFactory.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBSpringForceSpec.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBStandardForceGen.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBStandardInitializer.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBTargetPointForceGen.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBTargetPointForceSpecFactory.o \
-@SAMRAI3D_ENABLED_TRUE@IB/libIBAMR_IB3d_a-IBTargetPointForceSpec.o \
-@SAMRAI3D_ENABLED_TRUE@adv_diff/fortran/adv_diff_consdiff3d.o \
-@SAMRAI3D_ENABLED_TRUE@adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o \
-@SAMRAI3D_ENABLED_TRUE@adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o \
-@SAMRAI3D_ENABLED_TRUE@advect/fortran/godunov_predictors3d.o \
-@SAMRAI3D_ENABLED_TRUE@advect/fortran/advect_diff3d.o \
-@SAMRAI3D_ENABLED_TRUE@advect/fortran/advect_stable3d.o \
-@SAMRAI3D_ENABLED_TRUE@advect/fortran/advect_detect3d.o \
-@SAMRAI3D_ENABLED_TRUE@advect/libIBAMR_advect3d_a-AdvectHypPatchOps.o \
-@SAMRAI3D_ENABLED_TRUE@advect/libIBAMR_advect3d_a-GodunovAdvector.o \
-@SAMRAI3D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
-@SAMRAI3D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
-@SAMRAI3D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o \
-@SAMRAI3D_ENABLED_TRUE@lagrangian/fortran/lagrangian_interaction3d.o \
-@SAMRAI3D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexSet.o \
-@SAMRAI3D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.o \
-@SAMRAI3D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian3d_a-LDataManager.o \
-@SAMRAI3D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable.o \
-@SAMRAI3D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o \
-@SAMRAI3D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
-@SAMRAI3D_ENABLED_TRUE@lagrangian/libIBAMR_lagrangian3d_a-LNodeInitStrategy.o \
-@SAMRAI3D_ENABLED_TRUE@navier_stokes/fortran/navier_stokes_stabledt3d.o \
-@SAMRAI3D_ENABLED_TRUE@navier_stokes/fortran/navier_stokes_divsource3d.o \
-@SAMRAI3D_ENABLED_TRUE@navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o \
-@SAMRAI3D_ENABLED_TRUE@navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o \
-@SAMRAI3D_ENABLED_TRUE@navier_stokes/libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.o \
-@SAMRAI3D_ENABLED_TRUE@utilities/libIBAMR_utilities3d_a-StashableFactory.o \
-@SAMRAI3D_ENABLED_TRUE@utilities/libIBAMR_utilities3d_a-StashableManager.o \
-@SAMRAI3D_ENABLED_TRUE@utilities/libIBAMR_utilities3d_a-Stashable.o \
-@SAMRAI3D_ENABLED_TRUE@utilities/libIBAMR_utilities3d_a-StashableStream.o \
-@SAMRAI3D_ENABLED_TRUE@utilities/libIBAMR_utilities3d_a-get_version.o
+libIBAMR3d_a_LIBADD = \
+IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
+IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
+IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
+IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
+IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
+IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
+IB/libIBAMR_IB3d_a-IBLagrangianForceStrategy.o \
+IB/libIBAMR_IB3d_a-IBLagrangianForceStrategySet.o \
+IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o \
+IB/libIBAMR_IB3d_a-IBSpringForceGen.o \
+IB/libIBAMR_IB3d_a-IBSpringForceSpecFactory.o \
+IB/libIBAMR_IB3d_a-IBSpringForceSpec.o \
+IB/libIBAMR_IB3d_a-IBStandardForceGen.o \
+IB/libIBAMR_IB3d_a-IBStandardInitializer.o \
+IB/libIBAMR_IB3d_a-IBTargetPointForceGen.o \
+IB/libIBAMR_IB3d_a-IBTargetPointForceSpecFactory.o \
+IB/libIBAMR_IB3d_a-IBTargetPointForceSpec.o \
+adv_diff/fortran/adv_diff_consdiff3d.o \
+adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o \
+adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o \
+advect/fortran/godunov_predictors3d.o \
+advect/fortran/advect_diff3d.o \
+advect/fortran/advect_stable3d.o \
+advect/fortran/advect_detect3d.o \
+advect/libIBAMR_advect3d_a-AdvectHypPatchOps.o \
+advect/libIBAMR_advect3d_a-GodunovAdvector.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
+lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o \
+lagrangian/fortran/lagrangian_interaction3d.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexSet.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.o \
+lagrangian/libIBAMR_lagrangian3d_a-LDataManager.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable.o \
+lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeInitStrategy.o \
+navier_stokes/fortran/navier_stokes_stabledt3d.o \
+navier_stokes/fortran/navier_stokes_divsource3d.o \
+navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o \
+navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o \
+navier_stokes/libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.o \
+utilities/libIBAMR_utilities3d_a-StashableFactory.o \
+utilities/libIBAMR_utilities3d_a-StashableManager.o \
+utilities/libIBAMR_utilities3d_a-Stashable.o \
+utilities/libIBAMR_utilities3d_a-StashableStream.o \
+utilities/libIBAMR_utilities3d_a-get_version.o
 
 libIBAMR3d_a_SOURCES = # intentionally blank
 all: all-recursive

@@ -13,7 +13,13 @@ BUILT_SOURCES = godunov_helpers.f              \
   godunov_predictors2d.f godunov_predictors3d.f
 CLEANFILES = ${BUILT_SOURCES}
 
-noinst_LIBRARIES = libIBAMR_advect_fortran.a libIBAMR_advect_fortran2d.a libIBAMR_advect_fortran3d.a
+noinst_LIBRARIES = libIBAMR_advect_fortran.a
+if SAMRAI2D_ENABLED
+noinst_LIBRARIES += libIBAMR_advect_fortran2d.a
+endif
+if SAMRAI3D_ENABLED
+noinst_LIBRARIES += libIBAMR_advect_fortran3d.a
+endif
 
 ## Dimension-independent library
 libIBAMR_advect_fortran_a_F77FLAGS = $(AM_F77FLAGS)
@@ -21,15 +27,7 @@ libIBAMR_advect_fortran_a_SOURCES = godunov_helpers.f
 
 ## Dimension-dependent libraries
 libIBAMR_advect_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
-if SAMRAI2D_ENABLED
 libIBAMR_advect_fortran2d_a_SOURCES = advect_detect2d.f advect_diff2d.f advect_stable2d.f godunov_predictors2d.f
-else
-libIBAMR_advect_fortran2d_a_SOURCES = # intentionally blank
-endif
 
 libIBAMR_advect_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
-if SAMRAI3D_ENABLED
 libIBAMR_advect_fortran3d_a_SOURCES = advect_detect3d.f advect_diff3d.f advect_stable3d.f godunov_predictors3d.f
-else
-libIBAMR_advect_fortran3d_a_SOURCES = # intentionally blank
-endif
