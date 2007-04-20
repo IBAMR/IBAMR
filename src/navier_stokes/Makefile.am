@@ -9,7 +9,15 @@ SOURCES              = HierarchyProjector.C INSHierarchyIntegrator.C NormalVeloc
 pkg_include_HEADERS  = HierarchyProjector.h INSHierarchyIntegrator.h NormalVelocityBcCoefAdapter.h
 
 libIBAMR_navier_stokes2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+if SAMRAI2D_ENABLED
 libIBAMR_navier_stokes2d_a_SOURCES = $(SOURCES)
+else
+libIBAMR_navier_stokes2d_a_SOURCES = #intentionally blank
+endif
 
 libIBAMR_navier_stokes3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+if SAMRAI3D_ENABLED
 libIBAMR_navier_stokes3d_a_SOURCES = $(SOURCES)
+else
+libIBAMR_navier_stokes3d_a_SOURCES = #intentionally blank
+endif

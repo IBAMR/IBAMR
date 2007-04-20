@@ -34,7 +34,15 @@ LNodeInitStrategy.h \
 LagSiloDataWriter.h
 
 libIBAMR_lagrangian2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+if SAMRAI2D_ENABLED
 libIBAMR_lagrangian2d_a_SOURCES = $(SOURCES)
+else
+libIBAMR_lagrangian2d_a_SOURCES = # intentionally blank
+endif
 
 libIBAMR_lagrangian3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+if SAMRAI3D_ENABLED
 libIBAMR_lagrangian3d_a_SOURCES = $(SOURCES)
+else
+libIBAMR_lagrangian3d_a_SOURCES = # intentionally blank
+endif

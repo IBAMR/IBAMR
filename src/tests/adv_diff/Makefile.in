@@ -35,7 +35,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
-check_PROGRAMS = main2d$(EXEEXT) main3d$(EXEEXT)
+check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
+@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
+@SAMRAI3D_ENABLED_TRUE@am__append_2 = main3d
 subdir = src/tests/adv_diff
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -47,6 +49,8 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES =
+@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
+@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT)
 am__objects_1 = main2d-main.$(OBJEXT) main2d-QInit.$(OBJEXT) \
 	main2d-USet.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
@@ -139,6 +143,10 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PETSC_ARCH = @PETSC_ARCH@
 PETSC_DIR = @PETSC_DIR@
 RANLIB = @RANLIB@
+SAMRAI2D_ENABLED_FALSE = @SAMRAI2D_ENABLED_FALSE@
+SAMRAI2D_ENABLED_TRUE = @SAMRAI2D_ENABLED_TRUE@
+SAMRAI3D_ENABLED_FALSE = @SAMRAI3D_ENABLED_FALSE@
+SAMRAI3D_ENABLED_TRUE = @SAMRAI3D_ENABLED_TRUE@
 SAMRAI_DIR = @SAMRAI_DIR@
 SAMRAI_FORTDIR = @SAMRAI_FORTDIR@
 SET_MAKE = @SET_MAKE@
@@ -521,6 +529,7 @@ uninstall-am: uninstall-info-am
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \

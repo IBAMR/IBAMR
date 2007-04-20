@@ -15,7 +15,14 @@ EXTRA_DIST += shell2d_256.vertex shell2d_256.spring
 EXTRA_DIST += shell2d_512.vertex shell2d_512.spring
 EXTRA_DIST += sphere3d.vertex sphere3d.spring
 
-check_PROGRAMS = main2d main3d
+check_PROGRAMS =
+if SAMRAI2D_ENABLED
+check_PROGRAMS += main2d
+endif
+if SAMRAI3D_ENABLED
+check_PROGRAMS += main3d
+endif
+
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \

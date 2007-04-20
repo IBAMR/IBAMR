@@ -57,16 +57,24 @@ libIBAMR_advect_fortran_a_OBJECTS =  \
 	$(am_libIBAMR_advect_fortran_a_OBJECTS)
 libIBAMR_advect_fortran2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_advect_fortran2d_a_LIBADD =
-am_libIBAMR_advect_fortran2d_a_OBJECTS = advect_detect2d.$(OBJEXT) \
-	advect_diff2d.$(OBJEXT) advect_stable2d.$(OBJEXT) \
-	godunov_predictors2d.$(OBJEXT)
+am__libIBAMR_advect_fortran2d_a_SOURCES_DIST = advect_detect2d.f \
+	advect_diff2d.f advect_stable2d.f godunov_predictors2d.f
+@SAMRAI2D_ENABLED_TRUE@am_libIBAMR_advect_fortran2d_a_OBJECTS =  \
+@SAMRAI2D_ENABLED_TRUE@	advect_detect2d.$(OBJEXT) \
+@SAMRAI2D_ENABLED_TRUE@	advect_diff2d.$(OBJEXT) \
+@SAMRAI2D_ENABLED_TRUE@	advect_stable2d.$(OBJEXT) \
+@SAMRAI2D_ENABLED_TRUE@	godunov_predictors2d.$(OBJEXT)
 libIBAMR_advect_fortran2d_a_OBJECTS =  \
 	$(am_libIBAMR_advect_fortran2d_a_OBJECTS)
 libIBAMR_advect_fortran3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_advect_fortran3d_a_LIBADD =
-am_libIBAMR_advect_fortran3d_a_OBJECTS = advect_detect3d.$(OBJEXT) \
-	advect_diff3d.$(OBJEXT) advect_stable3d.$(OBJEXT) \
-	godunov_predictors3d.$(OBJEXT)
+am__libIBAMR_advect_fortran3d_a_SOURCES_DIST = advect_detect3d.f \
+	advect_diff3d.f advect_stable3d.f godunov_predictors3d.f
+@SAMRAI3D_ENABLED_TRUE@am_libIBAMR_advect_fortran3d_a_OBJECTS =  \
+@SAMRAI3D_ENABLED_TRUE@	advect_detect3d.$(OBJEXT) \
+@SAMRAI3D_ENABLED_TRUE@	advect_diff3d.$(OBJEXT) \
+@SAMRAI3D_ENABLED_TRUE@	advect_stable3d.$(OBJEXT) \
+@SAMRAI3D_ENABLED_TRUE@	godunov_predictors3d.$(OBJEXT)
 libIBAMR_advect_fortran3d_a_OBJECTS =  \
 	$(am_libIBAMR_advect_fortran3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
@@ -78,8 +86,8 @@ SOURCES = $(libIBAMR_advect_fortran_a_SOURCES) \
 	$(libIBAMR_advect_fortran2d_a_SOURCES) \
 	$(libIBAMR_advect_fortran3d_a_SOURCES)
 DIST_SOURCES = $(libIBAMR_advect_fortran_a_SOURCES) \
-	$(libIBAMR_advect_fortran2d_a_SOURCES) \
-	$(libIBAMR_advect_fortran3d_a_SOURCES)
+	$(am__libIBAMR_advect_fortran2d_a_SOURCES_DIST) \
+	$(am__libIBAMR_advect_fortran3d_a_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -143,6 +151,10 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PETSC_ARCH = @PETSC_ARCH@
 PETSC_DIR = @PETSC_DIR@
 RANLIB = @RANLIB@
+SAMRAI2D_ENABLED_FALSE = @SAMRAI2D_ENABLED_FALSE@
+SAMRAI2D_ENABLED_TRUE = @SAMRAI2D_ENABLED_TRUE@
+SAMRAI3D_ENABLED_FALSE = @SAMRAI3D_ENABLED_FALSE@
+SAMRAI3D_ENABLED_TRUE = @SAMRAI3D_ENABLED_TRUE@
 SAMRAI_DIR = @SAMRAI_DIR@
 SAMRAI_FORTDIR = @SAMRAI_FORTDIR@
 SET_MAKE = @SET_MAKE@
@@ -193,26 +205,28 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXTRA_DIST = limitertypes.i godunov_helpers.f.m4                               \
-  advect_detect1d.f.m4      advect_detect2d.f.m4      advect_detect3d.f.m4     \
-  advect_diff1d.f.m4        advect_diff2d.f.m4        advect_diff3d.f.m4       \
-  advect_stable1d.f.m4      advect_stable2d.f.m4      advect_stable3d.f.m4     \
-  godunov_predictors1d.f.m4 godunov_predictors2d.f.m4 godunov_predictors3d.f.m4
+EXTRA_DIST = limitertypes.i godunov_helpers.f.m4     \
+  advect_detect2d.f.m4      advect_detect3d.f.m4     \
+  advect_diff2d.f.m4        advect_diff3d.f.m4       \
+  advect_stable2d.f.m4      advect_stable3d.f.m4     \
+  godunov_predictors2d.f.m4 godunov_predictors3d.f.m4
 
-BUILT_SOURCES = godunov_helpers.f                                     \
-  advect_detect1d.f      advect_detect2d.f      advect_detect3d.f     \
-  advect_diff1d.f        advect_diff2d.f        advect_diff3d.f       \
-  advect_stable1d.f      advect_stable2d.f      advect_stable3d.f     \
-  godunov_predictors1d.f godunov_predictors2d.f godunov_predictors3d.f
+BUILT_SOURCES = godunov_helpers.f              \
+  advect_detect2d.f      advect_detect3d.f     \
+  advect_diff2d.f        advect_diff3d.f       \
+  advect_stable2d.f      advect_stable3d.f     \
+  godunov_predictors2d.f godunov_predictors3d.f
 
 CLEANFILES = ${BUILT_SOURCES}
 noinst_LIBRARIES = libIBAMR_advect_fortran.a libIBAMR_advect_fortran2d.a libIBAMR_advect_fortran3d.a
 libIBAMR_advect_fortran_a_F77FLAGS = $(AM_F77FLAGS)
 libIBAMR_advect_fortran_a_SOURCES = godunov_helpers.f
 libIBAMR_advect_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_advect_fortran2d_a_SOURCES = advect_detect2d.f advect_diff2d.f advect_stable2d.f godunov_predictors2d.f
+@SAMRAI2D_ENABLED_FALSE@libIBAMR_advect_fortran2d_a_SOURCES = # intentionally blank
+@SAMRAI2D_ENABLED_TRUE@libIBAMR_advect_fortran2d_a_SOURCES = advect_detect2d.f advect_diff2d.f advect_stable2d.f godunov_predictors2d.f
 libIBAMR_advect_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_advect_fortran3d_a_SOURCES = advect_detect3d.f advect_diff3d.f advect_stable3d.f godunov_predictors3d.f
+@SAMRAI3D_ENABLED_FALSE@libIBAMR_advect_fortran3d_a_SOURCES = # intentionally blank
+@SAMRAI3D_ENABLED_TRUE@libIBAMR_advect_fortran3d_a_SOURCES = advect_detect3d.f advect_diff3d.f advect_stable3d.f godunov_predictors3d.f
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

@@ -13,7 +13,15 @@ noinst_LIBRARIES = libIBAMR_navier_stokes_fortran2d.a libIBAMR_navier_stokes_for
 
 ## Dimension-dependent libraries
 libIBAMR_navier_stokes_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
+if SAMRAI2D_ENABLED
 libIBAMR_navier_stokes_fortran2d_a_SOURCES = navier_stokes_divsource2d.f  navier_stokes_stabledt2d.f
+else
+libIBAMR_navier_stokes_fortran2d_a_SOURCES = # intentionally blank
+endif
 
 libIBAMR_navier_stokes_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
+if SAMRAI3D_ENABLED
 libIBAMR_navier_stokes_fortran3d_a_SOURCES = navier_stokes_divsource3d.f  navier_stokes_stabledt3d.f
+else
+libIBAMR_navier_stokes_fortran3d_a_SOURCES = # intentionally blank
+endif

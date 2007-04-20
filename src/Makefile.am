@@ -9,6 +9,7 @@ libIBAMR_a_LIBADD = advect/fortran/godunov_helpers.o lagrangian/fortran/lagrangi
 libIBAMR_a_SOURCES = # intentionally blank
 
 ## Dimension-dependent libraries
+if SAMRAI2D_ENABLED
 libIBAMR2d_a_LIBADD = \
 IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
 IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
@@ -57,8 +58,12 @@ utilities/libIBAMR_utilities2d_a-StashableManager.o \
 utilities/libIBAMR_utilities2d_a-Stashable.o \
 utilities/libIBAMR_utilities2d_a-StashableStream.o \
 utilities/libIBAMR_utilities2d_a-get_version.o
+else
+libIBAMR2d_a_LIBADD = # intentionally blank
+endif
 libIBAMR2d_a_SOURCES = # intentionally blank
 
+if SAMRAI3D_ENABLED
 libIBAMR3d_a_LIBADD = \
 IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
 IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
@@ -107,4 +112,7 @@ utilities/libIBAMR_utilities3d_a-StashableManager.o \
 utilities/libIBAMR_utilities3d_a-Stashable.o \
 utilities/libIBAMR_utilities3d_a-StashableStream.o \
 utilities/libIBAMR_utilities3d_a-get_version.o
+else
+libIBAMR3d_a_LIBADD = # intentionally blank
+endif
 libIBAMR3d_a_SOURCES = # intentionally blank

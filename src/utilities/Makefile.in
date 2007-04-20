@@ -54,21 +54,29 @@ AR = ar
 ARFLAGS = cru
 libIBAMR_utilities2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_utilities2d_a_LIBADD =
+am__libIBAMR_utilities2d_a_SOURCES_DIST = Stashable.C \
+	StashableFactory.C StashableManager.C StashableStream.C \
+	get_version.C
 am__objects_1 = libIBAMR_utilities2d_a-Stashable.$(OBJEXT) \
 	libIBAMR_utilities2d_a-StashableFactory.$(OBJEXT) \
 	libIBAMR_utilities2d_a-StashableManager.$(OBJEXT) \
 	libIBAMR_utilities2d_a-StashableStream.$(OBJEXT) \
 	libIBAMR_utilities2d_a-get_version.$(OBJEXT)
-am_libIBAMR_utilities2d_a_OBJECTS = $(am__objects_1)
+@SAMRAI2D_ENABLED_TRUE@am_libIBAMR_utilities2d_a_OBJECTS =  \
+@SAMRAI2D_ENABLED_TRUE@	$(am__objects_1)
 libIBAMR_utilities2d_a_OBJECTS = $(am_libIBAMR_utilities2d_a_OBJECTS)
 libIBAMR_utilities3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_utilities3d_a_LIBADD =
+am__libIBAMR_utilities3d_a_SOURCES_DIST = Stashable.C \
+	StashableFactory.C StashableManager.C StashableStream.C \
+	get_version.C
 am__objects_2 = libIBAMR_utilities3d_a-Stashable.$(OBJEXT) \
 	libIBAMR_utilities3d_a-StashableFactory.$(OBJEXT) \
 	libIBAMR_utilities3d_a-StashableManager.$(OBJEXT) \
 	libIBAMR_utilities3d_a-StashableStream.$(OBJEXT) \
 	libIBAMR_utilities3d_a-get_version.$(OBJEXT)
-am_libIBAMR_utilities3d_a_OBJECTS = $(am__objects_2)
+@SAMRAI3D_ENABLED_TRUE@am_libIBAMR_utilities3d_a_OBJECTS =  \
+@SAMRAI3D_ENABLED_TRUE@	$(am__objects_2)
 libIBAMR_utilities3d_a_OBJECTS = $(am_libIBAMR_utilities3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -78,8 +86,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-DIST_SOURCES = $(libIBAMR_utilities2d_a_SOURCES) \
-	$(libIBAMR_utilities3d_a_SOURCES)
+DIST_SOURCES = $(am__libIBAMR_utilities2d_a_SOURCES_DIST) \
+	$(am__libIBAMR_utilities3d_a_SOURCES_DIST)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -159,6 +167,10 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PETSC_ARCH = @PETSC_ARCH@
 PETSC_DIR = @PETSC_DIR@
 RANLIB = @RANLIB@
+SAMRAI2D_ENABLED_FALSE = @SAMRAI2D_ENABLED_FALSE@
+SAMRAI2D_ENABLED_TRUE = @SAMRAI2D_ENABLED_TRUE@
+SAMRAI3D_ENABLED_FALSE = @SAMRAI3D_ENABLED_FALSE@
+SAMRAI3D_ENABLED_TRUE = @SAMRAI3D_ENABLED_TRUE@
 SAMRAI_DIR = @SAMRAI_DIR@
 SAMRAI_FORTDIR = @SAMRAI_FORTDIR@
 SET_MAKE = @SET_MAKE@
@@ -228,9 +240,11 @@ StashableStream.I \
 get_version.h
 
 libIBAMR_utilities2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-libIBAMR_utilities2d_a_SOURCES = $(SOURCES)
+@SAMRAI2D_ENABLED_FALSE@libIBAMR_utilities2d_a_SOURCES = #intentionally blank
+@SAMRAI2D_ENABLED_TRUE@libIBAMR_utilities2d_a_SOURCES = $(SOURCES)
 libIBAMR_utilities3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBAMR_utilities3d_a_SOURCES = $(SOURCES)
+@SAMRAI3D_ENABLED_FALSE@libIBAMR_utilities3d_a_SOURCES = #intentionally blank
+@SAMRAI3D_ENABLED_TRUE@libIBAMR_utilities3d_a_SOURCES = $(SOURCES)
 all: all-recursive
 
 .SUFFIXES:

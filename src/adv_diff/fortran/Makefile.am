@@ -9,7 +9,15 @@ noinst_LIBRARIES = libIBAMR_adv_diff_fortran2d.a libIBAMR_adv_diff_fortran3d.a
 
 ## Dimension-dependent libraries
 libIBAMR_adv_diff_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
+if SAMRAI2D_ENABLED
 libIBAMR_adv_diff_fortran2d_a_SOURCES = adv_diff_consdiff2d.f
+else
+libIBAMR_adv_diff_fortran2d_a_SOURCES = # intentionally blank
+endif
 
 libIBAMR_adv_diff_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
+if SAMRAI3D_ENABLED
 libIBAMR_adv_diff_fortran3d_a_SOURCES = adv_diff_consdiff3d.f
+else
+libIBAMR_adv_diff_fortran3d_a_SOURCES = # intentionally blank
+endif

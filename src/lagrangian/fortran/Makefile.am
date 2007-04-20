@@ -13,7 +13,15 @@ libIBAMR_lagrangian_fortran_a_SOURCES = lagrangian_delta.f
 
 ## Dimension-dependent libraries
 libIBAMR_lagrangian_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
+if SAMRAI2D_ENABLED
 libIBAMR_lagrangian_fortran2d_a_SOURCES = lagrangian_interaction2d.f
+else
+libIBAMR_lagrangian_fortran2d_a_SOURCES = # intentionally blank
+endif
 
 libIBAMR_lagrangian_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
+if SAMRAI3D_ENABLED
 libIBAMR_lagrangian_fortran3d_a_SOURCES = lagrangian_interaction3d.f
+else
+libIBAMR_lagrangian_fortran3d_a_SOURCES = # intentionally blank
+endif

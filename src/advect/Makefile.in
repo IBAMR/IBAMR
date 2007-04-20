@@ -53,15 +53,21 @@ AR = ar
 ARFLAGS = cru
 libIBAMR_advect2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_advect2d_a_LIBADD =
+am__libIBAMR_advect2d_a_SOURCES_DIST = AdvectHypPatchOps.C \
+	GodunovAdvector.C
 am__objects_1 = libIBAMR_advect2d_a-AdvectHypPatchOps.$(OBJEXT) \
 	libIBAMR_advect2d_a-GodunovAdvector.$(OBJEXT)
-am_libIBAMR_advect2d_a_OBJECTS = $(am__objects_1)
+@SAMRAI2D_ENABLED_TRUE@am_libIBAMR_advect2d_a_OBJECTS =  \
+@SAMRAI2D_ENABLED_TRUE@	$(am__objects_1)
 libIBAMR_advect2d_a_OBJECTS = $(am_libIBAMR_advect2d_a_OBJECTS)
 libIBAMR_advect3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_advect3d_a_LIBADD =
+am__libIBAMR_advect3d_a_SOURCES_DIST = AdvectHypPatchOps.C \
+	GodunovAdvector.C
 am__objects_2 = libIBAMR_advect3d_a-AdvectHypPatchOps.$(OBJEXT) \
 	libIBAMR_advect3d_a-GodunovAdvector.$(OBJEXT)
-am_libIBAMR_advect3d_a_OBJECTS = $(am__objects_2)
+@SAMRAI3D_ENABLED_TRUE@am_libIBAMR_advect3d_a_OBJECTS =  \
+@SAMRAI3D_ENABLED_TRUE@	$(am__objects_2)
 libIBAMR_advect3d_a_OBJECTS = $(am_libIBAMR_advect3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -71,8 +77,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-DIST_SOURCES = $(libIBAMR_advect2d_a_SOURCES) \
-	$(libIBAMR_advect3d_a_SOURCES)
+DIST_SOURCES = $(am__libIBAMR_advect2d_a_SOURCES_DIST) \
+	$(am__libIBAMR_advect3d_a_SOURCES_DIST)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -152,6 +158,10 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PETSC_ARCH = @PETSC_ARCH@
 PETSC_DIR = @PETSC_DIR@
 RANLIB = @RANLIB@
+SAMRAI2D_ENABLED_FALSE = @SAMRAI2D_ENABLED_FALSE@
+SAMRAI2D_ENABLED_TRUE = @SAMRAI2D_ENABLED_TRUE@
+SAMRAI3D_ENABLED_FALSE = @SAMRAI3D_ENABLED_FALSE@
+SAMRAI3D_ENABLED_TRUE = @SAMRAI3D_ENABLED_TRUE@
 SAMRAI_DIR = @SAMRAI_DIR@
 SAMRAI_FORTDIR = @SAMRAI_FORTDIR@
 SET_MAKE = @SET_MAKE@
@@ -207,9 +217,11 @@ noinst_LIBRARIES = libIBAMR_advect2d.a libIBAMR_advect3d.a
 SOURCES = AdvectHypPatchOps.C GodunovAdvector.C
 pkg_include_HEADERS = AdvectHypPatchOps.h GodunovAdvector.h
 libIBAMR_advect2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-libIBAMR_advect2d_a_SOURCES = $(SOURCES)
+@SAMRAI2D_ENABLED_FALSE@libIBAMR_advect2d_a_SOURCES = # intentionally blank
+@SAMRAI2D_ENABLED_TRUE@libIBAMR_advect2d_a_SOURCES = $(SOURCES)
 libIBAMR_advect3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBAMR_advect3d_a_SOURCES = $(SOURCES)
+@SAMRAI3D_ENABLED_FALSE@libIBAMR_advect3d_a_SOURCES = # intentionally blank
+@SAMRAI3D_ENABLED_TRUE@libIBAMR_advect3d_a_SOURCES = $(SOURCES)
 all: all-recursive
 
 .SUFFIXES:

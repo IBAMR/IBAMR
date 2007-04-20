@@ -5,7 +5,11 @@ include $(top_srcdir)/config/Make-rules
 SOURCES = main.C
 EXTRA_DIST = input2d
 
-check_PROGRAMS = main2d
+check_PROGRAMS =
+if SAMRAI2D_ENABLED
+check_PROGRAMS += main2d
+endif
+
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d $(PWD) ; \

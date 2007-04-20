@@ -52,16 +52,20 @@ AR = ar
 ARFLAGS = cru
 libIBAMR_navier_stokes_fortran2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_navier_stokes_fortran2d_a_LIBADD =
-am_libIBAMR_navier_stokes_fortran2d_a_OBJECTS =  \
-	navier_stokes_divsource2d.$(OBJEXT) \
-	navier_stokes_stabledt2d.$(OBJEXT)
+am__libIBAMR_navier_stokes_fortran2d_a_SOURCES_DIST =  \
+	navier_stokes_divsource2d.f navier_stokes_stabledt2d.f
+@SAMRAI2D_ENABLED_TRUE@am_libIBAMR_navier_stokes_fortran2d_a_OBJECTS =  \
+@SAMRAI2D_ENABLED_TRUE@	navier_stokes_divsource2d.$(OBJEXT) \
+@SAMRAI2D_ENABLED_TRUE@	navier_stokes_stabledt2d.$(OBJEXT)
 libIBAMR_navier_stokes_fortran2d_a_OBJECTS =  \
 	$(am_libIBAMR_navier_stokes_fortran2d_a_OBJECTS)
 libIBAMR_navier_stokes_fortran3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_navier_stokes_fortran3d_a_LIBADD =
-am_libIBAMR_navier_stokes_fortran3d_a_OBJECTS =  \
-	navier_stokes_divsource3d.$(OBJEXT) \
-	navier_stokes_stabledt3d.$(OBJEXT)
+am__libIBAMR_navier_stokes_fortran3d_a_SOURCES_DIST =  \
+	navier_stokes_divsource3d.f navier_stokes_stabledt3d.f
+@SAMRAI3D_ENABLED_TRUE@am_libIBAMR_navier_stokes_fortran3d_a_OBJECTS =  \
+@SAMRAI3D_ENABLED_TRUE@	navier_stokes_divsource3d.$(OBJEXT) \
+@SAMRAI3D_ENABLED_TRUE@	navier_stokes_stabledt3d.$(OBJEXT)
 libIBAMR_navier_stokes_fortran3d_a_OBJECTS =  \
 	$(am_libIBAMR_navier_stokes_fortran3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
@@ -71,8 +75,8 @@ F77LINK = $(F77LD) $(AM_FFLAGS) $(FFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
 	$@
 SOURCES = $(libIBAMR_navier_stokes_fortran2d_a_SOURCES) \
 	$(libIBAMR_navier_stokes_fortran3d_a_SOURCES)
-DIST_SOURCES = $(libIBAMR_navier_stokes_fortran2d_a_SOURCES) \
-	$(libIBAMR_navier_stokes_fortran3d_a_SOURCES)
+DIST_SOURCES = $(am__libIBAMR_navier_stokes_fortran2d_a_SOURCES_DIST) \
+	$(am__libIBAMR_navier_stokes_fortran3d_a_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -136,6 +140,10 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PETSC_ARCH = @PETSC_ARCH@
 PETSC_DIR = @PETSC_DIR@
 RANLIB = @RANLIB@
+SAMRAI2D_ENABLED_FALSE = @SAMRAI2D_ENABLED_FALSE@
+SAMRAI2D_ENABLED_TRUE = @SAMRAI2D_ENABLED_TRUE@
+SAMRAI3D_ENABLED_FALSE = @SAMRAI3D_ENABLED_FALSE@
+SAMRAI3D_ENABLED_TRUE = @SAMRAI3D_ENABLED_TRUE@
 SAMRAI_DIR = @SAMRAI_DIR@
 SAMRAI_FORTDIR = @SAMRAI_FORTDIR@
 SET_MAKE = @SET_MAKE@
@@ -197,9 +205,11 @@ BUILT_SOURCES = \
 CLEANFILES = ${BUILT_SOURCES}
 noinst_LIBRARIES = libIBAMR_navier_stokes_fortran2d.a libIBAMR_navier_stokes_fortran3d.a
 libIBAMR_navier_stokes_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_navier_stokes_fortran2d_a_SOURCES = navier_stokes_divsource2d.f  navier_stokes_stabledt2d.f
+@SAMRAI2D_ENABLED_FALSE@libIBAMR_navier_stokes_fortran2d_a_SOURCES = # intentionally blank
+@SAMRAI2D_ENABLED_TRUE@libIBAMR_navier_stokes_fortran2d_a_SOURCES = navier_stokes_divsource2d.f  navier_stokes_stabledt2d.f
 libIBAMR_navier_stokes_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_navier_stokes_fortran3d_a_SOURCES = navier_stokes_divsource3d.f  navier_stokes_stabledt3d.f
+@SAMRAI3D_ENABLED_FALSE@libIBAMR_navier_stokes_fortran3d_a_SOURCES = # intentionally blank
+@SAMRAI3D_ENABLED_TRUE@libIBAMR_navier_stokes_fortran3d_a_SOURCES = navier_stokes_divsource3d.f  navier_stokes_stabledt3d.f
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

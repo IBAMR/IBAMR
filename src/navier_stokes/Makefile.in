@@ -53,20 +53,26 @@ AR = ar
 ARFLAGS = cru
 libIBAMR_navier_stokes2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_navier_stokes2d_a_LIBADD =
+am__libIBAMR_navier_stokes2d_a_SOURCES_DIST = HierarchyProjector.C \
+	INSHierarchyIntegrator.C NormalVelocityBcCoefAdapter.C
 am__objects_1 =  \
 	libIBAMR_navier_stokes2d_a-HierarchyProjector.$(OBJEXT) \
 	libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.$(OBJEXT)
-am_libIBAMR_navier_stokes2d_a_OBJECTS = $(am__objects_1)
+@SAMRAI2D_ENABLED_TRUE@am_libIBAMR_navier_stokes2d_a_OBJECTS =  \
+@SAMRAI2D_ENABLED_TRUE@	$(am__objects_1)
 libIBAMR_navier_stokes2d_a_OBJECTS =  \
 	$(am_libIBAMR_navier_stokes2d_a_OBJECTS)
 libIBAMR_navier_stokes3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_navier_stokes3d_a_LIBADD =
+am__libIBAMR_navier_stokes3d_a_SOURCES_DIST = HierarchyProjector.C \
+	INSHierarchyIntegrator.C NormalVelocityBcCoefAdapter.C
 am__objects_2 =  \
 	libIBAMR_navier_stokes3d_a-HierarchyProjector.$(OBJEXT) \
 	libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.$(OBJEXT)
-am_libIBAMR_navier_stokes3d_a_OBJECTS = $(am__objects_2)
+@SAMRAI3D_ENABLED_TRUE@am_libIBAMR_navier_stokes3d_a_OBJECTS =  \
+@SAMRAI3D_ENABLED_TRUE@	$(am__objects_2)
 libIBAMR_navier_stokes3d_a_OBJECTS =  \
 	$(am_libIBAMR_navier_stokes3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
@@ -77,8 +83,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-DIST_SOURCES = $(libIBAMR_navier_stokes2d_a_SOURCES) \
-	$(libIBAMR_navier_stokes3d_a_SOURCES)
+DIST_SOURCES = $(am__libIBAMR_navier_stokes2d_a_SOURCES_DIST) \
+	$(am__libIBAMR_navier_stokes3d_a_SOURCES_DIST)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -158,6 +164,10 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PETSC_ARCH = @PETSC_ARCH@
 PETSC_DIR = @PETSC_DIR@
 RANLIB = @RANLIB@
+SAMRAI2D_ENABLED_FALSE = @SAMRAI2D_ENABLED_FALSE@
+SAMRAI2D_ENABLED_TRUE = @SAMRAI2D_ENABLED_TRUE@
+SAMRAI3D_ENABLED_FALSE = @SAMRAI3D_ENABLED_FALSE@
+SAMRAI3D_ENABLED_TRUE = @SAMRAI3D_ENABLED_TRUE@
 SAMRAI_DIR = @SAMRAI_DIR@
 SAMRAI_FORTDIR = @SAMRAI_FORTDIR@
 SET_MAKE = @SET_MAKE@
@@ -213,9 +223,11 @@ noinst_LIBRARIES = libIBAMR_navier_stokes2d.a libIBAMR_navier_stokes3d.a
 SOURCES = HierarchyProjector.C INSHierarchyIntegrator.C NormalVelocityBcCoefAdapter.C
 pkg_include_HEADERS = HierarchyProjector.h INSHierarchyIntegrator.h NormalVelocityBcCoefAdapter.h
 libIBAMR_navier_stokes2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-libIBAMR_navier_stokes2d_a_SOURCES = $(SOURCES)
+@SAMRAI2D_ENABLED_FALSE@libIBAMR_navier_stokes2d_a_SOURCES = #intentionally blank
+@SAMRAI2D_ENABLED_TRUE@libIBAMR_navier_stokes2d_a_SOURCES = $(SOURCES)
 libIBAMR_navier_stokes3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBAMR_navier_stokes3d_a_SOURCES = $(SOURCES)
+@SAMRAI3D_ENABLED_FALSE@libIBAMR_navier_stokes3d_a_SOURCES = #intentionally blank
+@SAMRAI3D_ENABLED_TRUE@libIBAMR_navier_stokes3d_a_SOURCES = $(SOURCES)
 all: all-recursive
 
 .SUFFIXES:

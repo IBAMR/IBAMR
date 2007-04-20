@@ -9,10 +9,14 @@ EXTRA_DIST += shell2d_crse_128.vertex shell2d_crse_128.spring shell2d_fine_128.v
 EXTRA_DIST += shell2d_crse_256.vertex shell2d_crse_256.spring shell2d_fine_256.vertex shell2d_fine_256.spring
 EXTRA_DIST += shell2d_crse_512.vertex shell2d_crse_512.spring shell2d_fine_512.vertex shell2d_fine_512.spring
 
-check_PROGRAMS = main2d
+check_PROGRAMS =
+if SAMRAI2D_ENABLED
+check_PROGRAMS += main2d
+endif
+
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[23]d $(PWD) ; \
+	  cp -f $(srcdir)/input2d $(PWD) ; \
 	  cp -f $(srcdir)/shell2d_{crse,fine}_{128,256,512}.{vertex,spring} $(PWD) ; \
 	fi ;
 

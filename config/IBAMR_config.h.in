@@ -120,46 +120,6 @@
 /* Define to 1 if you have the `SAMRAI' library (-lSAMRAI). */
 #undef HAVE_LIBSAMRAI
 
-/* Define to 1 if you have the `SAMRAI1d_algs' library (-lSAMRAI1d_algs). */
-#undef HAVE_LIBSAMRAI1D_ALGS
-
-/* Define to 1 if you have the `SAMRAI1d_appu' library (-lSAMRAI1d_appu). */
-#undef HAVE_LIBSAMRAI1D_APPU
-
-/* Define to 1 if you have the `SAMRAI1d_geom' library (-lSAMRAI1d_geom). */
-#undef HAVE_LIBSAMRAI1D_GEOM
-
-/* Define to 1 if you have the `SAMRAI1d_hier' library (-lSAMRAI1d_hier). */
-#undef HAVE_LIBSAMRAI1D_HIER
-
-/* Define to 1 if you have the `SAMRAI1d_math_special' library
-   (-lSAMRAI1d_math_special). */
-#undef HAVE_LIBSAMRAI1D_MATH_SPECIAL
-
-/* Define to 1 if you have the `SAMRAI1d_math_std' library
-   (-lSAMRAI1d_math_std). */
-#undef HAVE_LIBSAMRAI1D_MATH_STD
-
-/* Define to 1 if you have the `SAMRAI1d_mblk' library (-lSAMRAI1d_mblk). */
-#undef HAVE_LIBSAMRAI1D_MBLK
-
-/* Define to 1 if you have the `SAMRAI1d_mesh' library (-lSAMRAI1d_mesh). */
-#undef HAVE_LIBSAMRAI1D_MESH
-
-/* Define to 1 if you have the `SAMRAI1d_pdat_special' library
-   (-lSAMRAI1d_pdat_special). */
-#undef HAVE_LIBSAMRAI1D_PDAT_SPECIAL
-
-/* Define to 1 if you have the `SAMRAI1d_pdat_std' library
-   (-lSAMRAI1d_pdat_std). */
-#undef HAVE_LIBSAMRAI1D_PDAT_STD
-
-/* Define to 1 if you have the `SAMRAI1d_solv' library (-lSAMRAI1d_solv). */
-#undef HAVE_LIBSAMRAI1D_SOLV
-
-/* Define to 1 if you have the `SAMRAI1d_xfer' library (-lSAMRAI1d_xfer). */
-#undef HAVE_LIBSAMRAI1D_XFER
-
 /* Define to 1 if you have the `SAMRAI2d_algs' library (-lSAMRAI2d_algs). */
 #undef HAVE_LIBSAMRAI2D_ALGS
 

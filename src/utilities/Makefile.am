@@ -22,7 +22,15 @@ StashableStream.I \
 get_version.h
 
 libIBAMR_utilities2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+if SAMRAI2D_ENABLED
 libIBAMR_utilities2d_a_SOURCES = $(SOURCES)
+else
+libIBAMR_utilities2d_a_SOURCES = #intentionally blank
+endif
 
 libIBAMR_utilities3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+if SAMRAI3D_ENABLED
 libIBAMR_utilities3d_a_SOURCES = $(SOURCES)
+else
+libIBAMR_utilities3d_a_SOURCES = #intentionally blank
+endif
