@@ -33,8 +33,9 @@ system("$mkdir_command -p $ARCHIVE_RESTART_DIR") || die "error: cannot create ar
 $year += 1900;
 $mon += 1;
 $datetime = sprintf "%04d%02d%02d%02d%02d%02d", $year, $mon, $mday, $hour, $min, $sec;
-$logfile = "log_files.$datetime.tbz2";
-system("tar --ignore-failed-read --create --bzip2 --file $logfile *.log *.curve *.coords $VIZ_DIR/*.visit") == 0 || die "error: cannot create tar file $logfile: $!";
+$logfile = "log_files.$datetime.tar.bz2";
+@files = <*.log *.curve *.coords $VIZ_DIR/*.visit>;
+system("tar cvfj $logfile @files") == 0 || die "error: cannot create tar file $logfile: $!";
 system("$store_command $logfile $ARCHIVE_DIR/$logfile") || die "error: cannot store tar file $logfile to archive directory $ARCHIVE_DIR: $!";
 system("$get_command $ARCHIVE_DIR/$logfile $logfile.tmp") || die "error: cannot retrieve tar file $logfile from archive directory $ARCHIVE_DIR: $!";
 system("diff $logfile $logfile.tmp") == 0 || die "error: source tar file $logfile and archive tar file $ARCHIVE_DIR/$logfile appear to differ: $!";
@@ -48,7 +49,7 @@ if (-d $VIZ_DIR) {
 	if (-d $next) {
 	    @split_name = split(/$VIZ_DIR\//,$next);
 	    @split_name = split(/\//,$split_name[$split_name-1]);
-	    $name = "$split_name[$split_name-1].tgz";
+	    $name = "$split_name[$split_name-1].tar.gz";
 
 	    # archive the current viz file.
 	    print "archiving: $next\n";
@@ -89,7 +90,7 @@ if (-d $RESTART_DIR) {
 	if (-d $next) {
 	    @split_name = split(/$RESTART_DIR\//,$next);
 	    @split_name = split(/\//,$split_name[$split_name-1]);
-	    $name = $split_name[$split_name-1];
+	    $name = "$split_name[$split_name-1].tar.gz";
 
 	    # archive all restart files.
 	    print "archiving: $next\n";
