@@ -90,7 +90,11 @@ if ($from_restart) {
 $command =~ s/\s+/ /g; # remove any extra spaces
 
 print "about to execute: $command\n";
+print "\n***************************************************************************\n\n";
+
 system($command) == 0 || die "error: $command failed: $!";
+print "\n***************************************************************************\n\n";
+print "successfully executed: $command\n";
 
 # if we started from a restart file, fix the VisIt master files.
 if ($from_restart) {
