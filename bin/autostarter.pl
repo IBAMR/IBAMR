@@ -2,12 +2,22 @@
 use Env;
 use File::Copy;
 
+# announce that we are running the autostarter.
+print "autostarter.pl:   \n";
+print "autostarter.pl:   ************************************************************\n";
+print "autostarter.pl:   \n";
+print "autostarter.pl:   running the AUTOstarter...\n";
+print "autostarter.pl:   \n";
+print "autostarter.pl:   ************************************************************\n";
+print "autostarter.pl:   \n";
+
 # import all possible environment variables.
 Env::import();
-print "using executable: $EXEC\n";
-print "using options: $OPTIONS\n";
-print "using vizualization directory: $VIZ_DIR\n";
-print "using restart directory: $RESTART_DIR\n";
+print "autostarter.pl:   using executable: $EXEC\n";
+print "autostarter.pl:   using options: $OPTIONS\n";
+print "autostarter.pl:   using vizualization directory: $VIZ_DIR\n";
+print "autostarter.pl:   using restart directory: $RESTART_DIR\n";
+print "autostarter.pl:   \n";
 
 # the restart log file name
 $restart_log_file = "$PWD/restart.log";
@@ -24,7 +34,7 @@ if (-e $restart_log_file) {
 }
 
 if ($old_restart_num != -1) {
-    print "previous restart number: $old_restart_num\n";
+    print "autostarter.pl:   previous restart number: $old_restart_num\n";
 }
 
 # determine the most recent restart file.
@@ -45,7 +55,9 @@ if (-d $RESTART_DIR) {
 $from_restart = ($restart_num != -1);
 
 if ($from_restart) {
-    print "current restart number: $restart_num\n";
+    print "autostarter.pl:   current restart number: $restart_num\n";
+} else {
+    print "autostarter.pl:   initial program invokation (not from restart!)\n";
 }
 
 # make sure that the current restart number is larger than the
@@ -89,12 +101,16 @@ if ($from_restart) {
 }
 $command =~ s/\s+/ /g; # remove any extra spaces
 
-print "about to execute: $command\n";
-print "\n***************************************************************************\n\n";
+print "autostarter.pl:   about to execute: $command\n";
+print "autostarter.pl:   \n";
+print "autostarter.pl:   ************************************************************\n";
+print "autostarter.pl:   \n";
 
 system($command) == 0 || die "error: $command failed: $!";
-print "\n***************************************************************************\n\n";
-print "successfully executed: $command\n";
+print "autostarter.pl:   \n";
+print "autostarter.pl:   ************************************************************\n";
+print "autostarter.pl:   \n";
+print "autostarter.pl:   successfully executed: $command\n";
 
 # if we started from a restart file, fix the VisIt master files.
 if ($from_restart) {
@@ -150,3 +166,12 @@ if ($from_restart) {
     }
     move($silo_dumps_backup_file,$silo_dumps_file);
 }
+
+# announce that we have successfully run the executable
+print "autostarter.pl:   \n";
+print "autostarter.pl:   ************************************************************\n";
+print "autostarter.pl:   \n";
+print "autostarter.pl:   ...AUTOstarter complete!\n";
+print "autostarter.pl:   \n";
+print "autostarter.pl:   ************************************************************\n";
+print "autostarter.pl:   \n";
