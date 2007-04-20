@@ -20,6 +20,7 @@ print "farchiver.pl:   using restart directory: $RESTART_DIR\n";
 print "farchiver.pl:   using archive directory: $ARCHIVE_DIR\n";
 print "farchiver.pl:   using archive visualization directory: $ARCHIVE_VIZ_DIR\n";
 print "farchiver.pl:   using archive restart directory: $ARCHIVE_RESTART_DIR\n";
+print "farchiver.pl:   \n";
 
 # setup the archiver commands.
 $get_command = "far get";  # source-file target-file
@@ -39,6 +40,7 @@ print "farchiver.pl:                                 $ARCHIVE_RESTART_DIR\n";
 system("$mkdir_command -p $ARCHIVE_DIR") == 0 || die "error: cannot create archive directory $ARCHIVE_DIR: $!";
 system("$mkdir_command -p $ARCHIVE_VIZ_DIR") == 0 || die "error: cannot create archive directory $ARCHIVE_VIZ_DIR: $!";
 system("$mkdir_command -p $ARCHIVE_RESTART_DIR") == 0 || die "error: cannot create archive directory $ARCHIVE_RESTART_DIR: $!";
+print "farchiver.pl:   \n";
 
 # archive all log files.
 print "farchiver.pl:   archiving: log files\n";
@@ -63,6 +65,8 @@ system("diff $logfile $logfile.tmp") == 0 || die "error: source tar file $logfil
 print "farchiver.pl:   cleaning up temporary files...\n";
 unlink "$logfile" || die "error: cannot remove tar file $logfile: $!";
 unlink "$logfile.tmp" || die "error: cannot remove tar file $logfile.tmp: $!";
+
+print "farchiver.pl:   \n";
 
 # archive all viz files and remove all viz files.
 if (-d $VIZ_DIR) {
@@ -92,6 +96,8 @@ if (-d $VIZ_DIR) {
 
 	    print "farchiver.pl:   deleting source files...\n";
 	    rmtree($next) || die "error: cannot remove directory $next: $!";
+
+	    print "farchiver.pl:   \n";
 	}
     }
 }
@@ -144,6 +150,8 @@ if (-d $RESTART_DIR) {
 		print "farchiver.pl:   deleting source files...\n";
 		rmtree($next) || die "error: cannot remove directory $next: $!";
 	    }
+
+	    print "farchiver.pl:   \n";
 	}
     }
 }
