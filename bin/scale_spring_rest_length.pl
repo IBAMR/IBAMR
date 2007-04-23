@@ -26,7 +26,7 @@ if ($input_filename eq $output_filename) {
 }
 if (-e $output_filename) {
     print "warning: about to overwrite contents of $output_filename\n";
-    print "press [Enter] to continue...";  <>;
+    print "press [Enter] to continue...";  <STDIN>;
 }
 
 open(IN, "$input_filename") || die "error: cannot open $input_filename for reading: $!";
