@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <17.Apr.2007 21:15:58 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Apr.2007 17:00:12 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -580,6 +580,36 @@ private:
     resetLagrangianSourceStrategy(
         const double init_data_time,
         const bool initial_time);
+
+    /*!
+     * Set the values of the distributed internal sources/sinks on the Cartesian
+     * grid hierarchy.
+     *
+     * \note This method computes the point source/sink strengths, spreads those
+     * values to the Cartesian grid using the cosine delta function, and
+     * synchronizes the data on the hierarchy.
+     */
+    void
+    computeSourceStrengths(
+        const int coarsest_level,
+        const int finest_level,
+        const double data_time,
+        const std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data);
+
+    /*!
+     * Get the values of the pressures at the positions of the distributed
+     * internal sources/sinks.
+     *
+     * \note This method interpolates the \em new Cartesian grid pressure at the
+     * given locations of the internal sources/sinks.
+     */
+    void
+    computeSourcePressures(
+        const int coarsest_level,
+        const int finest_level,
+        const double data_time,
+        const std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        const double p_norm);
 
     /*!
      * Read input values, indicated above, from given database.  The boolean
