@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <24.Apr.2007 17:00:09 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Apr.2007 21:12:35 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2216,7 +2216,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
 
     if (d_do_log)
     {
-        SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy():  Before normalization:\n";
+        SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy():\n";
 #if (NDIM == 2)
         SAMRAI::tbox::plog << "    Sum_{i,j} q_{i,j} h^2     = " << q_total << "\n"
                            << "    Sum_{l=1,...,n_src} Q_{l} = " << Q_sum << "\n";
