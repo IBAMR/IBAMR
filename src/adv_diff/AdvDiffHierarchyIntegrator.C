@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <17.Apr.2007 21:41:53 griffith@box221.cims.nyu.edu>
+// Last modified: <01.May.2007 19:47:13 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -77,7 +77,8 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     SAMRAI::tbox::Pointer<GodunovAdvector> explicit_predictor,
     bool register_for_restart)
-    : d_Q_vars(),
+    : d_viscous_timestepping_type("CRANK_NICOLSON"),
+      d_Q_vars(),
       d_F_vars(),
       d_Psi_vars(),
       d_grad_vars(),
@@ -644,6 +645,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
             Q_var, getCurrentContext());
         const int Q_temp_idx = var_db->mapVariableAndContextToIndex(
             Q_var, d_temp_context);
+        const int Q_new_idx = var_db->mapVariableAndContextToIndex(
+            Q_var, getNewContext());
 
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator =
             grid_geom->lookupRefineOperator(
@@ -655,6 +658,17 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
                            Q_temp_idx,    // temporary work space
                            refine_operator);
         d_rstrategies[name+"::C->T::CONSTANT_REFINE"] = d_bc_op;
+
+        if (d_viscous_timestepping_type == "TGA")
+        {
+            d_ralgs[name+"::N->T::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+            d_ralgs[name+"::N->T::CONSTANT_REFINE"]->
+                registerRefine(Q_temp_idx,    // destination
+                               Q_new_idx,     // source
+                               Q_temp_idx,    // temporary work space
+                               refine_operator);
+            d_rstrategies[name+"::N->T::CONSTANT_REFINE"] = d_bc_op;
+        }
     }
 
     d_calgs["SYNCH_NEW_STATE_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
@@ -962,6 +976,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
     assert(SAMRAI::tbox::Utilities::deq(d_integrator_time,current_time));
 #endif
 
+    double intermediate_time = std::numeric_limits<double>::quiet_NaN();
     const double dt = new_time - current_time;
 
     const int coarsest_ln = 0;
@@ -1122,25 +1137,6 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         const int Psi_temp_idx = var_db->mapVariableAndContextToIndex(
             Psi_var, d_temp_context);
 
-        // Compute the time-dependent forcing term F(n+1/2).
-        if (!F_set.isNull() && F_set->isTimeDependent())
-        {
-            F_set->setDataOnPatchHierarchy(
-                F_var, getCurrentContext(),
-                d_hierarchy, current_time+0.5*dt);
-        }
-
-        // Set problem coefficients corresponding to Crank-Nicolson.
-        SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> helmholtz_spec = d_helmholtz_specs[l];
-        SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
-
-        helmholtz_spec->setCConstant(1.0);
-        helmholtz_spec->setDConstant(-0.5*dt*mu);
-
-        SAMRAI::solv::PoissonSpecifications rhs_spec("rhs_spec");
-        rhs_spec.setCConstant(1.0);
-        rhs_spec.setDConstant(+0.5*dt*mu);
-
         // Allocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -1149,18 +1145,12 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             level->allocatePatchData(Psi_temp_idx, new_time);
         }
 
-        // Setup the right hand side for the linear solve for Q(n+1).
-        d_bc_op->setPatchDataIndex(Q_temp_idx);
-        d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
-        d_bc_op->setHomogeneousBc(false);
-        d_bc_op->setExtrapolationType("LINEAR");
-
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        // Compute the time-dependent forcing term F(n+1/2).
+        if (!F_set.isNull() && F_set->isTimeDependent())
         {
-            std::ostringstream stream;
-            stream << l;
-            const std::string& name = stream.str();
-            d_rscheds[name+"::C->T::CONSTANT_REFINE"][ln]->fillData(current_time);
+            F_set->setDataOnPatchHierarchy(
+                F_var, getCurrentContext(),
+                d_hierarchy, current_time+0.5*dt);
         }
 
         if (!F_var.isNull())
@@ -1168,17 +1158,202 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             d_hier_cc_data_ops->add(Q_new_idx, F_current_idx, Q_new_idx);
         }
 
-        for (int depth = 0; depth < Q_depth; ++depth)
+        // Setup the problem coefficients and right hand side for the linear
+        // solve for Q(n+1).
+        SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> helmholtz_spec = d_helmholtz_specs[l];
+        SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
+
+        if (d_viscous_timestepping_type == "BACKWARD_EULER")
         {
-            d_hier_math_ops->laplace(
-                Psi_temp_idx, Psi_var,  // Psi(n+1/2)
-                rhs_spec,               // Poisson spec
-                Q_temp_idx  , Q_var  ,  // Q(n)
-                d_rscheds["NONE"],      // don't need to re-fill Q(n) data
-                current_time,           // Q(n) bdry fill time
-                dt,                     // gamma
-                Q_new_idx   , Q_var  ,  // N(n+1/2) = (u*grad Q)(n+1/2)
-                depth, depth, depth);   // dst_depth, src1_depth, src2_depth
+            // The backward Euler discretization is:
+            //
+            //     (I-dt*mu*L(t_new)) Q(n+1) = Q(n) + F(t_avg) dt
+            //
+            // where
+            //
+            //    t_new = (n+1) dt
+            //    t_avg = (t_new+t_old)/2
+            //
+            // Note that for simplicity of implementation, we always use a
+            // timestep-centered forcing term.
+            helmholtz_spec->setCConstant(1.0);
+            helmholtz_spec->setDConstant(-dt*mu);
+
+            d_bc_op->setPatchDataIndex(Q_temp_idx);
+            d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
+            d_bc_op->setHomogeneousBc(false);
+            d_bc_op->setExtrapolationType("LINEAR");
+
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                std::ostringstream stream;
+                stream << l;
+                const std::string& name = stream.str();
+                d_rscheds[name+"::C->T::CONSTANT_REFINE"][ln]->fillData(current_time);
+            }
+
+            SAMRAI::solv::PoissonSpecifications rhs_spec("rhs_spec");
+            rhs_spec.setCConstant(1.0);
+            rhs_spec.setDConstant(0.0);
+
+            for (int depth = 0; depth < Q_depth; ++depth)
+            {
+                d_hier_math_ops->laplace(
+                    Psi_temp_idx, Psi_var,  // Psi(n+1/2)
+                    rhs_spec,               // Poisson spec
+                    Q_temp_idx  , Q_var  ,  // Q(n)
+                    d_rscheds["NONE"],      // don't need to re-fill Q(n) data
+                    current_time,           // Q(n) bdry fill time
+                    dt,                     // gamma
+                    Q_new_idx   , Q_var  ,  // N(n+1/2) = (u*grad Q)(n+1/2)
+                    depth, depth, depth);   // dst_depth, src1_depth, src2_depth
+            }
+        }
+        else if (d_viscous_timestepping_type == "CRANK_NICOLSON")
+        {
+            // The Crank-Nicolson discretization is:
+            //
+            //     (I-0.5*dt*mu*L(t_new)) Q(n+1) = (I+0.5*dt*mu*L(t_old)) Q(n) + F(t_avg) dt
+            //
+            // where
+            //
+            //    t_old = n dt
+            //    t_new = (n+1) dt
+            //    t_avg = (t_new+t_old)/2
+            helmholtz_spec->setCConstant(1.0);
+            helmholtz_spec->setDConstant(-0.5*dt*mu);
+
+            d_bc_op->setPatchDataIndex(Q_temp_idx);
+            d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
+            d_bc_op->setHomogeneousBc(false);
+            d_bc_op->setExtrapolationType("LINEAR");
+
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                std::ostringstream stream;
+                stream << l;
+                const std::string& name = stream.str();
+                d_rscheds[name+"::C->T::CONSTANT_REFINE"][ln]->fillData(current_time);
+            }
+
+            SAMRAI::solv::PoissonSpecifications rhs_spec("rhs_spec");
+            rhs_spec.setCConstant(1.0);
+            rhs_spec.setDConstant(+0.5*dt*mu);
+
+            for (int depth = 0; depth < Q_depth; ++depth)
+            {
+                d_hier_math_ops->laplace(
+                    Psi_temp_idx, Psi_var,  // Psi(n+1/2)
+                    rhs_spec,               // Poisson spec
+                    Q_temp_idx  , Q_var  ,  // Q(n)
+                    d_rscheds["NONE"],      // don't need to re-fill Q(n) data
+                    current_time,           // Q(n) bdry fill time
+                    dt,                     // gamma
+                    Q_new_idx   , Q_var  ,  // N(n+1/2) = (u*grad Q)(n+1/2)
+                    depth, depth, depth);   // dst_depth, src1_depth, src2_depth
+            }
+        }
+        else if (d_viscous_timestepping_type == "TGA")
+        {
+            // The TGA discretization is:
+            //
+            //     (I-nu2*dt*mu*L(t_int)) (I-nu1*dt*mu*L(t_new)) Q(n+1) = [(I+nu3*dt*mu*L(t_old)) Q(n) + (I+nu4*dt*mu*L) F(t_avg) dt]
+            //
+            // where
+            //
+            //    t_old = n dt
+            //    t_new = (n+1) dt
+            //    t_int = t_new - nu1*dt = t_old + (nu2+nu3)*dt
+            //    t_avg = (t_new+t_old)/2 = t_old + (nu1+nu2+nu4)*dt
+            //
+            // Following McCorquodale et al., the coefficients for the TGA
+            // discretization are:
+            //
+            //     nu1 = (a - sqrt(a^2-4*a+2))/2
+            //     nu2 = (a + sqrt(a^2-4*a+2))/2
+            //     nu3 = (1-a)
+            //     nu4 = (0.5-a)
+            //
+            // Here, we choose
+            //
+            //     a = 2 - sqrt(2)
+            //
+            // so that nu1 == nu2.
+            //
+            // The following values were evaluated to 32 digits in Maple.
+            static const double nu1 =  0.29289321881345247559915563789515;
+            static const double nu3 =  0.41421356237309504880168872420970;
+            static const double nu4 = -0.08578643762690495119831127579030;
+
+            intermediate_time = new_time-nu1*dt;
+
+            helmholtz_spec->setCConstant(1.0);
+            helmholtz_spec->setDConstant(-nu1*dt*mu);
+
+            d_bc_op->setPatchDataIndex(Q_temp_idx);
+            d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
+            d_bc_op->setHomogeneousBc(true);
+            d_bc_op->setExtrapolationType("LINEAR");
+
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                std::ostringstream stream;
+                stream << l;
+                const std::string& name = stream.str();
+                d_rscheds[name+"::N->T::CONSTANT_REFINE"][ln]->fillData(current_time);
+            }
+
+            SAMRAI::solv::PoissonSpecifications rhs_spec2("rhs_spec2");
+            rhs_spec2.setCConstant(1.0);
+            rhs_spec2.setDConstant(+nu4*dt*mu);
+
+            for (int depth = 0; depth < Q_depth; ++depth)
+            {
+                d_hier_math_ops->laplace(
+                    Psi_temp_idx, Psi_var,  // Psi(n+1/2)
+                    rhs_spec2,              // Poisson spec
+                    Q_temp_idx  , Q_var  ,  // Q(n)
+                    d_rscheds["NONE"],      // don't need to re-fill Q(n) data
+                    current_time,           // Q(n) bdry fill time
+                    0.0, -1, NULL,
+                    depth, depth, -1);      // dst_depth, src1_depth, src2_depth
+            }
+
+            d_bc_op->setPatchDataIndex(Q_temp_idx);
+            d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
+            d_bc_op->setHomogeneousBc(false);
+            d_bc_op->setExtrapolationType("LINEAR");
+
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                std::ostringstream stream;
+                stream << l;
+                const std::string& name = stream.str();
+                d_rscheds[name+"::C->T::CONSTANT_REFINE"][ln]->fillData(current_time);
+            }
+
+            SAMRAI::solv::PoissonSpecifications rhs_spec1("rhs_spec1");
+            rhs_spec1.setCConstant(1.0);
+            rhs_spec1.setDConstant(+nu3*dt*mu);
+
+            for (int depth = 0; depth < Q_depth; ++depth)
+            {
+                d_hier_math_ops->laplace(
+                    Psi_temp_idx, Psi_var,  // Psi(n+1/2)
+                    rhs_spec1,              // Poisson spec
+                    Q_temp_idx  , Q_var  ,  // Q(n)
+                    d_rscheds["NONE"],      // don't need to re-fill Q(n) data
+                    current_time,           // Q(n) bdry fill time
+                    dt,                     // gamma
+                    Psi_temp_idx, Psi_var,  // src2
+                    depth, depth, depth);   // dst_depth, src1_depth, src2_depth
+            }
+
+        }
+        else
+        {
+            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                       << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << endl);
         }
 
         // Initialize the linear solver.
@@ -1211,12 +1386,39 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         }
 
         // Solve for Q(n+1).
-        if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
-        helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
-        d_hier_cc_data_ops->copyData(Q_new_idx, Q_temp_idx);
+        if (d_viscous_timestepping_type == "BACKWARD_EULER" ||
+            d_viscous_timestepping_type == "CRANK_NICOLSON")
+        {
+            if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
+            helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
+            d_hier_cc_data_ops->copyData(Q_new_idx, Q_temp_idx);
 
-        if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
-        if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
+            if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
+            if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
+        }
+        else if (d_viscous_timestepping_type == "TGA")
+        {
+            helmholtz_op->setTime(intermediate_time);
+            if (d_using_FAC) helmholtz_fac_op->setTime(intermediate_time);
+            helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
+
+            if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve #1 number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
+            if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve #1 residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
+
+            helmholtz_op->setTime(new_time);
+            if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
+            helmholtz_solver->solveSystem(*d_rhs_vecs[l],*d_sol_vecs[l]);
+            d_hier_cc_data_ops->copyData(Q_new_idx, Psi_temp_idx);
+
+            if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve #2 number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
+            if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve #2 residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
+        }
+        else
+        {
+            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                       << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << endl);
+        }
+
 
         // Deallocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1643,6 +1845,7 @@ AdvDiffHierarchyIntegrator::putToDatabase(
 
     db->putInteger("ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION",
                    ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION);
+    db->putString("d_viscous_timestepping_type", d_viscous_timestepping_type);
     db->putDouble("d_start_time", d_start_time);
     db->putDouble("d_end_time", d_end_time);
     db->putDouble("d_grow_dt", d_grow_dt);
@@ -1671,6 +1874,8 @@ AdvDiffHierarchyIntegrator::printClassData(
 {
     os << "\nAdvDiffHierarchyIntegrator::printClassData..." << endl;
     os << "this = " << const_cast<AdvDiffHierarchyIntegrator*>(this) << endl;
+    os << "d_viscous_timestepping_type = " << d_viscous_timestepping_type << endl;
+    os << "d_u_is_div_free = " << d_u_is_div_free << endl;
     os << "d_object_name = " << d_object_name << "\n"
        << "d_registered_for_restart = " << d_registered_for_restart << endl;
     os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
@@ -1742,6 +1947,7 @@ AdvDiffHierarchyIntegrator::getFromInput(
 
     if (!is_from_restart)
     {
+        d_viscous_timestepping_type = db->getStringWithDefault("viscous_timestepping_type", d_viscous_timestepping_type);
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
     }
 
@@ -1773,6 +1979,7 @@ AdvDiffHierarchyIntegrator::getFromRestart()
                    << "Restart file version different than class version.");
     }
 
+    d_viscous_timestepping_type = db->getString("viscous_timestepping_type");
     d_start_time = db->getDouble("d_start_time");
     d_end_time = db->getDouble("d_end_time");
     d_grow_dt = db->getDouble("d_grow_dt");

@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <17.Apr.2007 18:54:45 griffith@box221.cims.nyu.edu>
+// Last modified: <01.May.2007 18:27:18 griffith@box221.cims.nyu.edu>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -788,6 +788,17 @@ public:
         std::ostream& os) const;
 
 protected:
+    /*!
+     * String indicating the time integration employed for the implicit
+     * discretization of the viscous terms.
+     *
+     * Choices are:
+     *     - BACKWARD_EULER
+     *     - CRANK_NICOLSON
+     *     - TGA
+     */
+    std::string d_viscous_timestepping_type;
+
     /*!
      * Advected and diffused quantities Q, source terms F (possibly NULL),
      * advection source terms Psi = F + mu*L*Q, and optional face centered
