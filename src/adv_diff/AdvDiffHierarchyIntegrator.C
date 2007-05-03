@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <03.May.2007 14:58:57 griffith@box221.cims.nyu.edu>
+// Last modified: <03.May.2007 18:08:12 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -1989,7 +1989,7 @@ AdvDiffHierarchyIntegrator::getFromRestart()
                    << "Restart file version different than class version.");
     }
 
-    d_viscous_timestepping_type = db->getString("viscous_timestepping_type");
+    d_viscous_timestepping_type = db->getString("d_viscous_timestepping_type");
     d_start_time = db->getDouble("d_start_time");
     d_end_time = db->getDouble("d_end_time");
     d_grow_dt = db->getDouble("d_grow_dt");
