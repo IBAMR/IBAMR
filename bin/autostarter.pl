@@ -13,13 +13,19 @@ print "autostarter.pl:   \n";
 
 # import all possible environment variables.
 Env::import();
+print "autostarter.pl:   using lock file: $LOCK_FILE_NAME\n";
 print "autostarter.pl:   using executable: $EXEC\n";
 print "autostarter.pl:   using options: $OPTIONS\n";
 print "autostarter.pl:   using vizualization directory: $VIZ_DIR\n";
 print "autostarter.pl:   using restart directory: $RESTART_DIR\n";
 print "autostarter.pl:   \n";
 
-# the restart log file name
+# make sure that the lock file does not exist.
+if (-e $LOCK_FILE_NAME) {
+    die "error: lock file named $LOCK_FILE_NAME already exists: $!";
+}
+
+# set the restart log file name.
 $restart_log_file = "$PWD/restart.log";
 
 # determine the timestep of the most recent previous restart.
@@ -107,6 +113,12 @@ print "autostarter.pl:   *******************************************************
 print "autostarter.pl:   \n";
 
 system($command) == 0 || die "error: $command failed: $!";
+
+# make sure that the lock file does not exist.
+if (-e $LOCK_FILE_NAME) {
+    die "error: lock file named $LOCK_FILE_NAME exist following command execution: $!";
+}
+
 print "autostarter.pl:   \n";
 print "autostarter.pl:   ************************************************************\n";
 print "autostarter.pl:   \n";
