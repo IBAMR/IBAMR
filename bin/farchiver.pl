@@ -15,12 +15,18 @@ print "farchiver.pl:   \n";
 Env::import();
 $ARCHIVE_VIZ_DIR = "$ARCHIVE_DIR/$VIZ_DIR";
 $ARCHIVE_RESTART_DIR = "$ARCHIVE_DIR/$RESTART_DIR";
+print "farchiver.pl:   using lock file: $LOCK_FILE_NAME\n";
 print "farchiver.pl:   using vizualization directory: $VIZ_DIR\n";
 print "farchiver.pl:   using restart directory: $RESTART_DIR\n";
 print "farchiver.pl:   using archive directory: $ARCHIVE_DIR\n";
 print "farchiver.pl:   using archive visualization directory: $ARCHIVE_VIZ_DIR\n";
 print "farchiver.pl:   using archive restart directory: $ARCHIVE_RESTART_DIR\n";
 print "farchiver.pl:   \n";
+
+# make sure that the lock file does not exist.
+if (-e $LOCK_FILE_NAME) {
+    die "error: lock file named $LOCK_FILE_NAME already exists: $!";
+}
 
 # setup the archiver commands.
 $get_command = "far get";  # source-file target-file

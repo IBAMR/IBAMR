@@ -114,9 +114,8 @@ print "autostarter.pl:   \n";
 
 system($command) == 0 || die "error: $command failed: $!";
 
-# make sure that the lock file does not exist.
 if (-e $LOCK_FILE_NAME) {
-    die "error: lock file named $LOCK_FILE_NAME exist following command execution: $!";
+    die "error: lock file named $LOCK_FILE_NAME exists following command execution: $!";
 }
 
 print "autostarter.pl:   \n";
