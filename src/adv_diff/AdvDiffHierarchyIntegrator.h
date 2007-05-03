@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <01.May.2007 18:27:18 griffith@box221.cims.nyu.edu>
+// Last modified: <03.May.2007 15:07:36 griffith@box221.cims.nyu.edu>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -58,9 +58,9 @@ namespace IBAMR
  * are governed by the advection-diffusion equation.
  *
  * Each quantity \f$ Q \f$ managed by the integrator may have a unique diffusion
- * coefficient \f$ \mu \f$ and may optionally have a forcing term \f$ F \f$.
- * Only one advection velocity \f$ \vec{u}^{\mbox{\scriptsize ADV}} \f$ may be
- * registered with the integrator.
+ * coefficient \f$ \mu \f$ and drag coefficient \f$ \lambda \f$, and may
+ * optionally have a forcing term \f$ F \f$.  Only one advection velocity \f$
+ * \vec{u}^{\mbox{\scriptsize ADV}} \f$ may be registered with the integrator.
  *
  * This integrator employs adaptive local spatial refinement.  All levels of the
  * patch hierarchy are synchronously integrated in time.  In particular,
@@ -155,6 +155,7 @@ public:
     registerAdvectedAndDiffusedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
+        const double Q_lambda,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
         const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
@@ -187,6 +188,7 @@ public:
     registerAdvectedAndDiffusedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
+        const double Q_lambda,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
         const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
@@ -224,6 +226,7 @@ public:
     registerAdvectedAndDiffusedQuantityWithSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
+        const double Q_lambda,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
@@ -263,6 +266,7 @@ public:
     registerAdvectedAndDiffusedQuantityWithSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
+        const double Q_lambda,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
@@ -818,10 +822,10 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_F_sets;
 
     /*!
-     * The diffusivity coefficients associated with each advected and diffused
-     * quantity.
+     * The diffusivity and drag coefficients associated with each advected and
+     * diffused quantity.
      */
-    std::vector<double> d_Q_mus;
+    std::vector<double> d_Q_mus, d_Q_lambdas;
 
     /*!
      * The advection velocity.

@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <17.Apr.2007 21:27:43 griffith@box221.cims.nyu.edu>
+// Last modified: <03.May.2007 15:03:36 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -212,9 +212,10 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_output_Div_u = false;
     d_output_Div_u_adv = false;
 
-    d_rho = std::numeric_limits<double>::quiet_NaN();
-    d_mu  = std::numeric_limits<double>::quiet_NaN();
-    d_nu  = std::numeric_limits<double>::quiet_NaN();
+    d_rho    = std::numeric_limits<double>::quiet_NaN();
+    d_mu     = std::numeric_limits<double>::quiet_NaN();
+    d_nu     = std::numeric_limits<double>::quiet_NaN();
+    d_lambda = std::numeric_limits<double>::quiet_NaN();
 
     d_dt_max = std::numeric_limits<double>::max();
     d_dt_max_time_max = std::numeric_limits<double>::max();
@@ -707,7 +708,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_adv_diff_hier_integrator->
         registerAdvectedAndDiffusedQuantityWithSourceTerm(
-            d_U_var, d_nu, d_Grad_P_var, d_conservation_form,
+            d_U_var, d_nu, d_lambda, d_Grad_P_var, d_conservation_form,
             d_U_init, d_U_bc_coefs,
             SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>(NULL),
             d_grad_Phi_var);
@@ -1391,8 +1392,8 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     }
 
     SAMRAI::solv::PoissonSpecifications spec("spec");
-    spec.setCConstant(0.0);
-    spec.setDConstant(d_nu);
+    spec.setCConstant(-d_lambda);
+    spec.setDConstant( d_nu    );
 
     for (int d = 0; d < NDIM; ++d)
     {
@@ -1809,8 +1810,8 @@ INSHierarchyIntegrator::updatePressure(
         }
 
         SAMRAI::solv::PoissonSpecifications nu_spec("nu_spec");
-        nu_spec.setCConstant(0.0);
-        nu_spec.setDConstant(-d_nu*dt/2.0);
+        nu_spec.setCConstant( d_lambda*dt/2.0);
+        nu_spec.setDConstant(-d_nu    *dt/2.0);
 
         d_hier_math_ops->laplace(
             d_P_new_idx      , d_P_var  ,  // dst
@@ -2711,6 +2712,7 @@ INSHierarchyIntegrator::putToDatabase(
     db->putDouble("d_rho", d_rho);
     db->putDouble("d_mu", d_mu);
     db->putDouble("d_nu", d_nu);
+    db->putDouble("d_lambda", d_lambda);
 
     t_put_to_database->stop();
     return;
@@ -2785,7 +2787,8 @@ INSHierarchyIntegrator::printClassData(
        << "d_performing_init_cycles = " << d_performing_init_cycles << endl;
     os << "d_rho = " << d_rho << "\n"
        << "d_mu = " << d_mu << "\n"
-       << "d_nu = " << d_nu << endl;
+       << "d_nu = " << d_nu << "\n"
+       << "d_lambda = " << d_lambda << endl;
     os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n"
        << "d_hier_fc_data_ops = " << d_hier_fc_data_ops.getPointer() << "=n"
        << "d_hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
@@ -3144,6 +3147,17 @@ INSHierarchyIntegrator::getFromInput(
         }
 
         d_nu = d_mu/d_rho;  // the kinematic viscosity
+
+        if (db->keyExists("lambda"))
+        {
+            d_lambda = db->getDouble("lambda");
+        }
+        else
+        {
+            d_lambda = 0.0;
+        }
+
+        d_lambda = d_lambda/d_rho;
     }
 
     return;
@@ -3200,6 +3214,7 @@ INSHierarchyIntegrator::getFromRestart()
     d_rho = db->getDouble("d_rho");
     d_mu = db->getDouble("d_mu");
     d_nu = db->getDouble("d_nu");
+    d_lambda = db->getDouble("d_lambda");
 
     return;
 }// getFromRestart

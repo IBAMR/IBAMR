@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <24.Apr.2007 17:00:12 griffith@box221.cims.nyu.edu>
+// Last modified: <03.May.2007 14:38:00 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -723,7 +723,7 @@ private:
      * boundary mass.
      */
     bool d_using_pIB_method;
-    std::vector<double> d_gravity_vector;
+    std::vector<double> d_gravitational_acceleration;
 
     /*
      * Integrator data read from input or set at initialization.

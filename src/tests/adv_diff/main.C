@@ -281,9 +281,10 @@ main(
         "physical_bc_coef",
         input_db->getDatabase("LocationIndexRobinBcCoefs"));
     const double kappa = input_db->getDatabase("QInit")->getDouble("kappa");
+    const double lambda = 0.0;
     const bool consv_form = false;
     time_integrator->registerAdvectedAndDiffusedQuantity(
-        Q_var, kappa, consv_form, tbox::Pointer<SetDataStrategy>(&Q_init,false),
+        Q_var, kappa, lambda, consv_form, tbox::Pointer<SetDataStrategy>(&Q_init,false),
         &physical_bc_coef);
 
     tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =

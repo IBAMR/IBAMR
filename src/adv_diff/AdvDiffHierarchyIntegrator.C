@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <01.May.2007 19:47:13 griffith@box221.cims.nyu.edu>
+// Last modified: <03.May.2007 14:58:57 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -86,6 +86,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_Q_bc_coefs(),
       d_F_sets(),
       d_Q_mus(),
+      d_Q_lambdas(),
       d_u_var(NULL),
       d_u_set(NULL),
       d_u_is_div_free(false),
@@ -313,13 +314,14 @@ void
 AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const double Q_mu,
+    const double Q_lambda,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
     const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedAndDiffusedQuantity(
-        Q_var, Q_mu, conservation_form, Q_init,
+        Q_var, Q_mu, Q_lambda, conservation_form, Q_init,
         std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
         grad_var);
     return;
@@ -329,6 +331,7 @@ void
 AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const double Q_mu,
+    const double Q_lambda,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
     const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
@@ -337,6 +340,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!Q_var.isNull());
     assert(Q_mu >= 0.0);
+    assert(Q_lambda >= 0.0);
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
         Q_var->getPatchDataFactory();
@@ -356,12 +360,13 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
                    << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
     }
 
-    if (!SAMRAI::tbox::Utilities::deq(Q_mu,0.0))
+    if (!SAMRAI::tbox::Utilities::deq(Q_mu,0.0) || !SAMRAI::tbox::Utilities::deq(Q_lambda,0.0))
     {
         d_Q_vars    .push_back(Q_var);
         d_Q_inits   .push_back(Q_init);
         d_Q_bc_coefs.push_back(Q_bc_coefs_local);
         d_Q_mus     .push_back(Q_mu);
+        d_Q_lambdas .push_back(Q_lambda);
 
         d_grad_vars.push_back(grad_var);
 
@@ -392,6 +397,7 @@ void
 AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const double Q_mu,
+    const double Q_lambda,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
@@ -400,7 +406,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedAndDiffusedQuantityWithSourceTerm(
-        Q_var, Q_mu, F_var, conservation_form, Q_init,
+        Q_var, Q_mu, Q_lambda, F_var, conservation_form, Q_init,
         std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
         F_set, grad_var);
     return;
@@ -410,6 +416,7 @@ void
 AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const double Q_mu,
+    const double Q_lambda,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
@@ -440,12 +447,13 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
                    << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
     }
 
-    if (!SAMRAI::tbox::Utilities::deq(Q_mu,0.0))
+    if (!SAMRAI::tbox::Utilities::deq(Q_mu,0.0) || !SAMRAI::tbox::Utilities::deq(Q_lambda,0.0))
     {
         d_Q_vars    .push_back(Q_var);
         d_Q_inits   .push_back(Q_init);
         d_Q_bc_coefs.push_back(Q_bc_coefs_local);
         d_Q_mus     .push_back(Q_mu);
+        d_Q_lambdas .push_back(Q_lambda);
 
         d_grad_vars.push_back(grad_var);
 
@@ -995,6 +1003,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var   = d_F_vars[l];
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_vars[l];
         const double mu = d_Q_mus[l];
+        const double lambda = d_Q_lambdas[l];
         const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs = d_Q_bc_coefs[l];
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set = d_F_sets[l];
 
@@ -1029,8 +1038,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
         // Setup the right hand side for the advective flux prediction.
         SAMRAI::solv::PoissonSpecifications mu_spec("mu_spec");
-        mu_spec.setCConstant(0.0);
-        mu_spec.setDConstant(mu);
+        mu_spec.setCConstant(-lambda);
+        mu_spec.setDConstant(+mu    );
 
         d_bc_op->setPatchDataIndex(Q_temp_idx);
         d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
@@ -1118,6 +1127,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var   = d_F_vars[l];
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_vars[l];
         const double mu = d_Q_mus[l];
+        const double lambda = d_Q_lambdas[l];
         const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs = d_Q_bc_coefs[l];
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set = d_F_sets[l];
 
@@ -1176,8 +1186,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             //
             // Note that for simplicity of implementation, we always use a
             // timestep-centered forcing term.
-            helmholtz_spec->setCConstant(1.0);
-            helmholtz_spec->setDConstant(-dt*mu);
+            helmholtz_spec->setCConstant(1.0+dt*lambda);
+            helmholtz_spec->setDConstant(   -dt*mu    );
 
             d_bc_op->setPatchDataIndex(Q_temp_idx);
             d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
@@ -1220,8 +1230,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             //    t_old = n dt
             //    t_new = (n+1) dt
             //    t_avg = (t_new+t_old)/2
-            helmholtz_spec->setCConstant(1.0);
-            helmholtz_spec->setDConstant(-0.5*dt*mu);
+            helmholtz_spec->setCConstant(1.0+0.5*dt*lambda);
+            helmholtz_spec->setDConstant(   -0.5*dt*mu    );
 
             d_bc_op->setPatchDataIndex(Q_temp_idx);
             d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
@@ -1237,8 +1247,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             }
 
             SAMRAI::solv::PoissonSpecifications rhs_spec("rhs_spec");
-            rhs_spec.setCConstant(1.0);
-            rhs_spec.setDConstant(+0.5*dt*mu);
+            rhs_spec.setCConstant(1.0-0.5*dt*lambda);
+            rhs_spec.setDConstant(   +0.5*dt*mu    );
 
             for (int depth = 0; depth < Q_depth; ++depth)
             {
@@ -1287,8 +1297,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
             intermediate_time = new_time-nu1*dt;
 
-            helmholtz_spec->setCConstant(1.0);
-            helmholtz_spec->setDConstant(-nu1*dt*mu);
+            helmholtz_spec->setCConstant(1.0+nu1*dt*lambda);
+            helmholtz_spec->setDConstant(   -nu1*dt*mu    );
 
             d_bc_op->setPatchDataIndex(Q_temp_idx);
             d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
@@ -1304,8 +1314,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             }
 
             SAMRAI::solv::PoissonSpecifications rhs_spec2("rhs_spec2");
-            rhs_spec2.setCConstant(1.0);
-            rhs_spec2.setDConstant(+nu4*dt*mu);
+            rhs_spec2.setCConstant(1.0-nu4*dt*lambda);
+            rhs_spec2.setDConstant(   +nu4*dt*mu);
 
             for (int depth = 0; depth < Q_depth; ++depth)
             {
@@ -1333,8 +1343,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             }
 
             SAMRAI::solv::PoissonSpecifications rhs_spec1("rhs_spec1");
-            rhs_spec1.setCConstant(1.0);
-            rhs_spec1.setDConstant(+nu3*dt*mu);
+            rhs_spec1.setCConstant(1.0-nu3*dt*lambda);
+            rhs_spec1.setDConstant(   +nu3*dt*mu    );
 
             for (int depth = 0; depth < Q_depth; ++depth)
             {

@@ -1,5 +1,5 @@
 // Filename: USet.C
-// Last modified: <15.Feb.2007 00:18:01 boyce@bigboy.nyconnect.com>
+// Last modified: <03.May.2007 15:13:18 griffith@box221.cims.nyu.edu>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "USet.h"
@@ -20,7 +20,6 @@
 #include <ArrayData.h>
 #include <Box.h>
 #include <CartesianPatchGeometry.h>
-#include <CellData.h>
 #include <FaceData.h>
 #include <FaceIndex.h>
 #include <FaceIterator.h>

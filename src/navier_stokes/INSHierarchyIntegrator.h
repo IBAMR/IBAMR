@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <17.Apr.2007 20:34:14 griffith@box221.cims.nyu.edu>
+// Last modified: <03.May.2007 14:31:40 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1034,14 +1034,14 @@ private:
     bool d_performing_init_cycles;
 
     /*
-     * The fluid density (rho), dynamic viscosity (mu), and kinematic viscosity
-     * (nu).
+     * The fluid density (rho), dynamic viscosity (mu), kinematic viscosity
+     * (nu), and (optional) drag coefficient (lambda).
      *
      * \note rho_water = 1.00 g cm^-3
      *       mu_water  = 0.01 g cm^-1 s^-1
      *       nu_water  = 0.01 cm^2 s^-1
      */
-    double d_rho, d_mu, d_nu;
+    double d_rho, d_mu, d_nu, d_lambda;
 
     /*
      * Hierarchy operations objects.

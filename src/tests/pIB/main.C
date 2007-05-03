@@ -38,7 +38,7 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/LagSiloDataWriter.h>
 
-#include <stools/TimeDependentLocationIndexRobinBcCoefs.h>
+#include "GravitationalBodyForce.h"
 
 using namespace IBAMR;
 using namespace SAMRAI;
@@ -328,24 +328,14 @@ main(
         u0_bc_coef.setBoundaryValue(0, 0.0);  // x lower boundary
         u0_bc_coef.setBoundaryValue(1, 0.0);  // x upper boundary
         u0_bc_coef.setBoundarySlope(2, 0.0);  // y lower boundary
-        u0_bc_coef.setBoundaryValue(3, 0.0);  // y upper boundary
+        u0_bc_coef.setBoundarySlope(3, 0.0);  // y upper boundary
 
-        TimeDependentLocationIndexRobinBcCoefs u1_bc_coef(
+        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
             "u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        for (int i = 0; i < 2*NDIM; ++i)
-        {
-            u1_bc_coef.setBoundaryTimeConstant(i,2.5e-3);
-        }
-
-        u1_bc_coef.setBoundaryInitialSlope(0, 0.0);  // x lower boundary
-        u1_bc_coef.setBoundaryInitialSlope(1, 0.0);  // x upper boundary
-        u1_bc_coef.setBoundaryInitialSlope(2, 0.0);  // y lower boundary
-        u1_bc_coef.setBoundaryInitialValue(3, 0.0);  // y upper boundary
-
-        u1_bc_coef.setBoundaryFinalSlope(0,   0.0);  // x lower boundary
-        u1_bc_coef.setBoundaryFinalSlope(1,   0.0);  // x upper boundary
-        u1_bc_coef.setBoundaryFinalSlope(2,   0.0);  // y lower boundary
-        u1_bc_coef.setBoundaryFinalValue(3,-280.0);  // y upper boundary
+        u1_bc_coef.setBoundaryValue(0, 0.0);  // x lower boundary
+        u1_bc_coef.setBoundaryValue(1, 0.0);  // x upper boundary
+        u1_bc_coef.setBoundarySlope(2, 0.0);  // y lower boundary
+        u1_bc_coef.setBoundarySlope(3, 0.0);  // y upper boundary
 
         vector<const solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
         U_bc_coefs[0] = &u0_bc_coef;
@@ -356,7 +346,15 @@ main(
         phi_bc_coef.setBoundarySlope(0, 0.0);  // x lower boundary
         phi_bc_coef.setBoundarySlope(1, 0.0);  // x upper boundary
         phi_bc_coef.setBoundaryValue(2, 0.0);  // y lower boundary
-        phi_bc_coef.setBoundarySlope(3, 0.0);  // y upper boundary
+        phi_bc_coef.setBoundaryValue(3, 0.0);  // y upper boundary
+
+        /*
+         * Create body force specification objects.
+         */
+        tbox::Pointer<SetDataStrategy> F_set =
+            new GravitationalBodyForce(
+                "GravitationalBodyForce",
+                input_db->getDatabase("GravitationalBodyForce"));
 
         /*
          * Create major algorithm and data objects which comprise the
@@ -417,6 +415,7 @@ main(
                 "IBHierarchyIntegrator",
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
+        time_integrator->registerBodyForceSpecification(F_set);
 
         tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(

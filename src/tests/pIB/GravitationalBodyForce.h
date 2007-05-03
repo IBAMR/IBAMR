@@ -1,8 +1,8 @@
-#ifndef included_UInit
-#define included_UInit
+#ifndef included_GravitationalBodyForce
+#define included_GravitationalBodyForce
 
-// Filename: UInit.h
-// Last modified: <03.May.2007 15:14:02 griffith@box221.cims.nyu.edu>
+// Filename: GravitationalBodyForce.h
+// Last modified: <03.May.2007 13:56:01 griffith@box221.cims.nyu.edu>
 // Created on 03 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -11,8 +11,6 @@
 #include <stools/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <GridGeometry.h>
 #include <tbox/Database.h>
 
 // C++ STDLIB INCLUDES
@@ -26,25 +24,25 @@ using namespace std;
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 /*!
- * \brief Class to specify an initial velocity profile.
+ * \brief Class to specify a uniform body force that arises from graviational
+ * forces acting on an incompressible fluid with uniform mass density.
  */
-class UInit
+class GravitationalBodyForce
     : public SetDataStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    UInit(
+    GravitationalBodyForce(
         const string& object_name,
-        tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
         tbox::Pointer<tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
      */
     virtual
-    ~UInit();
+    ~GravitationalBodyForce();
 
     /*!
      * Indicates whether the concrete SetDataStrategy object is time
@@ -73,7 +71,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    UInit();
+    GravitationalBodyForce();
 
     /*!
      * \brief Copy constructor.
@@ -82,8 +80,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    UInit(
-        const UInit& from);
+    GravitationalBodyForce(
+        const GravitationalBodyForce& from);
 
     /*!
      * \brief Assignment operator.
@@ -94,9 +92,9 @@ private:
      *
      * \return A reference to this object.
      */
-    UInit&
+    GravitationalBodyForce&
     operator=(
-        const UInit& that);
+        const GravitationalBodyForce& that);
 
     /*!
      * Read input values, indicated above, from given database.
@@ -112,20 +110,15 @@ private:
     string d_object_name;
 
     /*
-     * The grid geometry.
+     * The gravitational force vector.
      */
-    tbox::Pointer<geom::CartesianGridGeometry<NDIM> > d_grid_geom;
-
-    /*
-     * The terminal velocity.
-     */
-    double d_V0;
+    vector<double> d_gravitational_force;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "UInit.I"
+//#include "GravitationalBodyForce.I"
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_UInit
+#endif //#ifndef included_GravitationalBodyForce

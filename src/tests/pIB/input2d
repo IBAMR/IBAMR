@@ -8,6 +8,8 @@ MUSCL_LIMITED = 3
 // physical parameters
 MU  = 1.2e-4     // corresponds to Re=2100
 RHO = 3.0e-4
+V0  = 280.0
+G   = 980.0
 
 // grid spacing parameters
 MAX_LEVELS = 4   // maximum number of levels in locally refined grid
@@ -29,7 +31,11 @@ IBHierarchyIntegrator {
    delta_fcn = "IB_6"
 
    using_pIB_method = TRUE
-   gravity_vector = 0.0 , -980.0  // cm s^-2
+   gravitational_acceleration = 0.0 , -G
+}
+
+GravitationalBodyForce {
+   gravitational_force = 0.0 , -G*RHO
 }
 
 spring_stiffness = 36000.0  // dyne
@@ -109,6 +115,7 @@ INSHierarchyIntegrator {
 
    mu  = MU
    rho = RHO
+   lambda = RHO*G/V0
 
    second_order_pressure_update = FALSE
    normalize_pressure = FALSE
