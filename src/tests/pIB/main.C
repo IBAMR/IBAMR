@@ -39,6 +39,7 @@
 #include <ibamr/LagSiloDataWriter.h>
 
 #include "GravitationalBodyForce.h"
+#include "PressureBcCoefs.h"
 
 using namespace IBAMR;
 using namespace SAMRAI;
@@ -341,12 +342,7 @@ main(
         U_bc_coefs[0] = &u0_bc_coef;
         U_bc_coefs[1] = &u1_bc_coef;
 
-        solv::LocationIndexRobinBcCoefs<NDIM> phi_bc_coef(
-            "phi_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        phi_bc_coef.setBoundarySlope(0, 0.0);  // x lower boundary
-        phi_bc_coef.setBoundarySlope(1, 0.0);  // x upper boundary
-        phi_bc_coef.setBoundaryValue(2, 0.0);  // y lower boundary
-        phi_bc_coef.setBoundaryValue(3, 0.0);  // y upper boundary
+        PressureBcCoefs phi_bc_coef("phi_bc_coef");
 
         /*
          * Create body force specification objects.
