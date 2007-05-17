@@ -5,15 +5,19 @@ include $(top_srcdir)/config/Make-rules
 SOURCES = main.C
 EXTRA_DIST  = input2d input3d
 EXTRA_DIST += generate_mesh2d.m
+
 EXTRA_DIST += curve2d_64.vertex curve2d_64.spring
 EXTRA_DIST += curve2d_128.vertex curve2d_128.spring
 EXTRA_DIST += curve2d_256.vertex curve2d_256.spring
-EXTRA_DIST += curve2d_512.vertex curve2d_512.spring
 EXTRA_DIST += shell2d_64.vertex shell2d_64.spring
 EXTRA_DIST += shell2d_128.vertex shell2d_128.spring
 EXTRA_DIST += shell2d_256.vertex shell2d_256.spring
-EXTRA_DIST += shell2d_512.vertex shell2d_512.spring
 EXTRA_DIST += sphere3d.vertex sphere3d.spring
+
+if DATA_FILES_ENABLED
+EXTRA_DIST += curve2d_512.vertex curve2d_512.spring
+EXTRA_DIST += shell2d_512.vertex shell2d_512.spring
+endif
 
 check_PROGRAMS =
 if SAMRAI2D_ENABLED
@@ -26,8 +30,8 @@ endif
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/curve2d_{64,128,256,512}.{vertex,spring} $(PWD) ; \
-	  cp -f $(srcdir)/shell2d_{64,128,256,512}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/curve2d_{64,128,256}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/shell2d_{64,128,256}.{vertex,spring} $(PWD) ; \
 	  cp -f $(srcdir)/sphere3d.{vertex,spring} $(PWD) ; \
 	fi ;
 
