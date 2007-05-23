@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <22.May.2007 21:08:21 griffith@box221.cims.nyu.edu>
+// Last modified: <22.May.2007 22:12:33 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -3023,9 +3023,13 @@ INSHierarchyIntegrator::resetBoundaryVelocity(
             const double* const dx = pgeom->getDx();
 
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U_data =
-                (U_idx == -1 ? SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL) : patch->getPatchData(U_idx));
+                (U_idx == -1
+                 ? SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL)
+                 : patch->getPatchData(U_idx));
             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data =
-                (u_idx == -1 ? SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL) : patch->getPatchData(u_idx));
+                (u_idx == -1
+                 ? SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL)
+                 : patch->getPatchData(u_idx));
 
             const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
                 STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
@@ -3038,30 +3042,38 @@ INSHierarchyIntegrator::resetBoundaryVelocity(
                 const SAMRAI::hier::Box<NDIM> bc_coef_box =
                     STOOLS::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > acoef_data =
+                    new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > bcoef_data =
+                    new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > gcoef_data =
+                    new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+
                 const int location_index = bdry_box.getLocationIndex();
                 const int bdry_normal_axis =  location_index / 2;
                 const bool bdry_upper_side = (location_index % 2) != 0;
 
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > acoef_data =
-                        new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > bcoef_data =
-                        new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > gcoef_data =
-                        new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
 #if USING_OLD_ROBIN_BC_INTERFACE
                     // In the old interface, beta = (1-alpha).
                     d_U_bc_coefs[d]->setBcCoefs(
                         acoef_data, gcoef_data, NULL,
-                        *patch, bdry_box, time);
+                        *patch, trimmed_bdry_box, time);
                     array_ops.scale(*bcoef_data, -1.0, *acoef_data, bc_coef_box);
                     array_ops.addScalar(*bcoef_data, *bcoef_data, 1.0, bc_coef_box);
 #else
                     d_U_bc_coefs[d]->setBcCoefs(
                         acoef_data, bcoef_data, gcoef_data, NULL,
-                        *patch, bdry_box, time);
+                        *patch, trimmed_bdry_box, time);
 #endif
+                    // i_s_bdry: side index located on physical boundary
+                    //
+                    // i_c_intr0: cell index located adjacent to physical
+                    // boundary in the patch interior
+                    //
+                    // i_c_intr1: cell index located adjacent to i_c_intr0 in
+                    // the patch interior
                     for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
                     {
                         const SAMRAI::hier::Index<NDIM>& i_s_bdry = b();
@@ -3070,13 +3082,6 @@ INSHierarchyIntegrator::resetBoundaryVelocity(
                         const double& g = (*gcoef_data)(i_s_bdry,0);
                         const double& h = dx[bdry_normal_axis];
 
-                        // i_s_bdry: side index located on physical boundary
-                        //
-                        // i_c_intr0: cell index located adjacent to physical
-                        // boundary in the patch interior
-                        //
-                        // i_c_intr1: cell index located adjacent to i_c_intr0
-                        // in the patch interior
                         SAMRAI::hier::Index<NDIM> i_c_intr0 = i_s_bdry;
                         SAMRAI::hier::Index<NDIM> i_c_intr1 = i_s_bdry;
                         if (bdry_upper_side)
@@ -3099,18 +3104,18 @@ INSHierarchyIntegrator::resetBoundaryVelocity(
 
                         if (d == bdry_normal_axis && u_idx != -1)
                         {
-                            const SAMRAI::pdat::FaceIndex<NDIM> i_s_bdry(
+                            const SAMRAI::pdat::FaceIndex<NDIM> i_f_bdry(
                                 i_c_intr0, bdry_normal_axis,
                                 (bdry_upper_side
                                  ? SAMRAI::pdat::FaceIndex<NDIM>::Upper
                                  : SAMRAI::pdat::FaceIndex<NDIM>::Lower));
-                            const SAMRAI::pdat::FaceIndex<NDIM> i_s_intr(
+                            const SAMRAI::pdat::FaceIndex<NDIM> i_f_intr(
                                 i_c_intr1, bdry_normal_axis,
                                 (bdry_upper_side
                                  ? SAMRAI::pdat::FaceIndex<NDIM>::Upper
                                  : SAMRAI::pdat::FaceIndex<NDIM>::Lower));
-                            const double& u_i = (*u_data)(i_s_intr);
-                            (*u_data)(i_s_bdry) = (b*u_i + g*h)/(a*h + b);
+                            const double& u_i = (*u_data)(i_f_intr);
+                            (*u_data)(i_f_bdry) = (b*u_i + g*h)/(a*h + b);
                         }
                     }
                 }
