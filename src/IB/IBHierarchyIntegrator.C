@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <03.May.2007 14:37:42 griffith@box221.cims.nyu.edu>
+// Last modified: <16.May.2007 18:37:52 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -64,7 +64,6 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_integra
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_advance_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_regrid_hierarchy;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_integrate_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_new_levels;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_time_dependent_data;
@@ -200,7 +199,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     // Determine the ghost cell width required for cell-centered spreading and
     // interpolating.
     const int stencil_size = LEInteractor::getStencilSize(d_delta_fcn);
-    d_ghosts = static_cast<int>(floor(0.5*static_cast<double>(stencil_size))+1);
+    d_ghosts = static_cast<int>(floor(0.5*double(stencil_size))+1);
 
     // Get the Lagrangian Data Manager.
     d_lag_data_manager = LDataManager::getManager(
@@ -227,8 +226,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
             getTimer("IBAMR::IBHierarchyIntegrator::advanceHierarchy()");
         t_regrid_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBHierarchyIntegrator::regridHierarchy()");
-        t_integrate_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::IBHierarchyIntegrator::integrateHierarchy()");
         t_synchronize_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBHierarchyIntegrator::synchronizeHierarchy()");
         t_synchronize_new_levels = SAMRAI::tbox::TimerManager::getManager()->
@@ -1813,7 +1810,7 @@ IBHierarchyIntegrator::applyGradientDetector(
             double dx_finer[NDIM];
             for (int d = 0; d < NDIM; ++d)
             {
-                dx_finer[d] = dx[d]/static_cast<double>(finer_level->getRatio()(d));
+                dx_finer[d] = dx[d]/double(finer_level->getRatio()(d));
             }
 
             // The source radius must be an integer multiple of the grid
@@ -2193,7 +2190,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
                         double wgt = 1.0;
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                            const double X_center = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
                             wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d]);
                         }
                         (*q_data)(i) += d_Q_src[ln][n]*wgt;
@@ -2334,7 +2331,7 @@ IBHierarchyIntegrator::computeSourcePressures(
                         double wgt = 1.0;
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                            const double X_center = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
                             wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d])*dx[d];
                         }
                         d_P_src[ln][n] += (*p_data)(i)*wgt;

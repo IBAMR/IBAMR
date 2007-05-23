@@ -1,5 +1,5 @@
 // Filename: LEInteractor.C
-// Last modified: <17.Apr.2007 18:19:26 griffith@box221.cims.nyu.edu>
+// Last modified: <16.May.2007 18:35:45 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "LEInteractor.h"
@@ -388,7 +388,7 @@ LEInteractor::interpolate(
                     {
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            periodic_offsets[NDIM*k+d] = static_cast<double>(offset(d))*dx[d];
+                            periodic_offsets[NDIM*k+d] = double(offset(d))*dx[d];
                         }
                     }
                 }
@@ -410,7 +410,7 @@ LEInteractor::interpolate(
                     {
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            periodic_offsets[NDIM*k+d] = static_cast<double>(offset(d))*dx[d];
+                            periodic_offsets[NDIM*k+d] = double(offset(d))*dx[d];
                         }
                     }
                 }
@@ -759,7 +759,7 @@ LEInteractor::spread(
                     {
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            periodic_offsets[NDIM*k+d] = static_cast<double>(offset(d))*dx[d];
+                            periodic_offsets[NDIM*k+d] = double(offset(d))*dx[d];
                         }
                     }
                 }
@@ -781,7 +781,7 @@ LEInteractor::spread(
                     {
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            periodic_offsets[NDIM*k+d] = static_cast<double>(offset(d))*dx[d];
+                            periodic_offsets[NDIM*k+d] = double(offset(d))*dx[d];
                         }
                     }
                 }

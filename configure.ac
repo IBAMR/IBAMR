@@ -1,7 +1,7 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_INIT([IBAMR],[070418],[griffith AT cims DOT nyu DOT edu])
+AC_INIT([IBAMR],[070517],[griffith AT cims DOT nyu DOT edu])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config/IBAMR_config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 foreign])
@@ -95,7 +95,7 @@ if test -z "$M4" ; then
 fi
 
 AC_ARG_WITH([doxygen-dir],
-  AS_HELP_STRING([--with-doxygen-dir=ARG],[manually set directory where the doxygen executable resides to ARG]),
+  AS_HELP_STRING([--with-doxygen-dir],[manually set directory where the doxygen executable resides to ARG]),
   DOXYGEN_PATH=$withval
   AC_CHECK_PROGS(DOXYGEN, "$DOXYGEN_PATH/doxygen" doxygen,,),
   DOXYGEN_PATH=""
@@ -127,6 +127,18 @@ fi
 AC_SUBST(HAVE_DOT,$HAVE_DOT)
 AC_SUBST(DOT,$DOT)
 AC_SUBST(DOT_PATH,$DOT_PATH)
+
+# Checks to see whether large data files should be included in the
+# distribution.
+AC_ARG_ENABLE([large-data-files],
+  AS_HELP_STRING([--enable-large-data-files],[enable the inclusion of all data files in the final distribution @<:@default=no@:>@]),
+  [DATA_FILES=$enableval],
+  [DATA_FILES="no"])
+AM_CONDITIONAL([DATA_FILES_ENABLED],[test "$DATA_FILES" == "yes"])
+if test "$DATA_FILES" != "yes" ; then
+  AC_MSG_WARN([not including large data files in final distribution])
+  echo "if you wish to include all data files in final distribution, specify --enable-large-data-files=yes"
+fi
 
 ###########################################################################
 # Checks for libraries.

@@ -2,16 +2,16 @@
 #define included_IntermediateVelocityRobinBcCoefs
 
 // Filename: IntermediateVelocityRobinBcCoefs.h
-// Last modified: <16.Apr.2007 01:58:39 boyce@trasnaform2.local>
+// Last modified: <16.May.2007 21:13:09 griffith@box221.cims.nyu.edu>
 // Created on 09 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <RobinBcCoefStrategy.h>
+// STOOLS INCLUDES
+#include <stools/ExtendedRobinBcCoefStrategy.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
+// SAMRAI INCLUDES
+#include <CellVariable.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -19,19 +19,20 @@ namespace IBAMR
 {
 /*!
  * \brief Class IntermediateVelocityRobinBcCoefs is an implementation of the
- * strategy class SAMRAI::solv::RobinBcCoefStrategy that is used to specify
+ * strategy class STOOLS::ExtendedRobinBcCoefStrategy that is used to specify
  * physical boundary conditions for a single component of the intermediate
  * velocity in a projection method.
  */
 class IntermediateVelocityRobinBcCoefs
-    : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+    : public STOOLS::ExtendedRobinBcCoefStrategy
 {
 public:
     /*!
      * \brief Constructor
      */
     IntermediateVelocityRobinBcCoefs(
-        int velocity_depth,
+        const int velocity_depth,
+        const bool using_pressure_increment_form,
         const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
 
     /*!
@@ -41,17 +42,18 @@ public:
     ~IntermediateVelocityRobinBcCoefs();
 
     /*!
-     * \brief Specify the current simulation time.
+     * \brief Specify whether or not to modify the boundary conditions.
      */
     void
-    setCurrentTime(
-        const double current_time);
+    correctBcCoefs(
+        const bool correct_bc_coefs);
 
     /*!
-     * \brief Specify the new simulation time.
+     * \brief Specify the current time interval.
      */
     void
-    setNewTime(
+    setTimeInterval(
+        const double current_time,
         const double new_time);
 
     /*!
@@ -66,16 +68,37 @@ public:
      * conditions.
      */
     void
-    setPressureIndex(
-        const int P_idx);
+    setPressureVariable(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_var,
+        const int P_src_idx,
+        const int P_dst_idx);
 
     /*!
      * \brief Specify the phi variable to be used to update the boundary
      * conditions.
      */
     void
-    setPhiIndex(
-        const int Phi_idx);
+    setPhiVariable(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Phi_var,
+        const int Phi_src_idx,
+        const int Phi_dst_idx);
+
+    /*!
+     * \name Extended SAMRAI::solv::RobinBcCoefStrategy interface.
+     */
+    //\{
+
+    /*!
+     * \brief Function to specify the variables and patch data indices whose
+     * values must be filled in order to specify boundary condition data.
+     */
+    virtual void
+    getBcFillVars(
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > >& bc_fill_vars,
+        std::vector<int>& bc_fill_src_idxs,
+        std::vector<int>& bc_fill_dst_idxs) const;
+
+    //\}
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
@@ -217,7 +240,7 @@ private:
      * \brief Correct the boundary coefficients using p(n-1/2) and phi(n-1/2).
      */
     void
-    correctBcCoefs(
+    computeCorrectedBcCoefs(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
@@ -230,9 +253,19 @@ private:
     const int d_velocity_depth;
 
     /*
+     * Whether the projection algorithm is using pressure increment form.
+     */
+    const bool d_using_pressure_increment_form;
+
+    /*
      * We use this object to actually set the boundary values.
      */
     const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_bc_coef;
+
+    /*
+     * Whether the class should correct the boundary condition coefficients.
+     */
+    bool d_correct_bc_coefs;
 
     /*
      * The current and new simulation times.
@@ -248,7 +281,10 @@ private:
      * Patch data descriptor indices indicating the data to be employed to set
      * the boundary conditions.
      */
-    int d_P_idx, d_Phi_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var;
+    int d_P_src_idx, d_P_dst_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var;
+    int d_Phi_src_idx, d_Phi_dst_idx;
 };
 }// namespace IBAMR
 

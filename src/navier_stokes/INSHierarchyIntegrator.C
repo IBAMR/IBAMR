@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <03.May.2007 15:03:36 griffith@box221.cims.nyu.edu>
+// Last modified: <22.May.2007 21:08:21 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -20,6 +20,7 @@
 #include <stools/CartExtrapPhysBdryOp.h>
 #include <stools/CartRobinPhysBdryOp.h>
 #include <stools/PatchMathOps.h>
+#include <stools/PhysicalBoundaryUtilities.h>
 #include <stools/RefinePatchStrategySet.h>
 
 // SAMRAI INCLUDES
@@ -29,6 +30,7 @@
 #include <CellIterator.h>
 #include <CoarseFineBoundary.h>
 #include <CoarsenOperator.h>
+#include <FaceIndex.h>
 #include <HierarchyDataOpsManager.h>
 #include <Index.h>
 #include <IntVector.h>
@@ -502,11 +504,11 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // AdvDiffHierarchyIntegrator.
     //
     // All other data is managed by the INSHierarchyIntegrator.
-    d_U_var = new SAMRAI::pdat::CellVariable<NDIM,double>(/*d_object_name+"::U"*/"u",NDIM);
+    d_U_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::U",NDIM);
     d_u_var = new SAMRAI::pdat::FaceVariable<NDIM,double>(d_object_name+"::u");
     d_u_adv_var = new SAMRAI::pdat::FaceVariable<NDIM,double>(d_object_name+"::u_adv");
 
-    d_P_var = new SAMRAI::pdat::CellVariable<NDIM,double>(/*d_object_name+"::P"*/"p");
+    d_P_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P");
     d_Grad_P_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Grad P",NDIM);
 
     d_Phi_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Phi");
@@ -520,7 +522,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (!d_F_set.isNull())
     {
-        d_F_var = new SAMRAI::pdat::CellVariable<NDIM,double>(/*d_object_name+"::F"*/"f",NDIM);
+        d_F_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::F",NDIM);
     }
     if (!d_Q_set.isNull())
     {
@@ -530,7 +532,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     if (d_output_Omega || d_using_vorticity_tagging)
     {
         const int depth = (NDIM == 2) ? 1 : NDIM;
-        d_Omega_var = new SAMRAI::pdat::CellVariable<NDIM,double>(/*d_object_name+"::Omega"*/"omega",depth);
+        d_Omega_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Omega",depth);
 #if (NDIM == 3)
         d_Omega_Norm_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::|Omega|_2");
 #endif
@@ -701,6 +703,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Register state variables that are maintained by the
     // AdvDiffHierarchyIntegrator.
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
 
     const bool u_adv_is_div_free = d_Q_set.isNull();
     d_adv_diff_hier_integrator->registerAdvectionVelocity(
@@ -720,7 +723,6 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Obtain the patch data descriptor indices for all variables registered
     // with the AdvDiffHierarchyIntegrator.
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
 
     d_u_adv_current_idx = var_db->mapVariableAndContextToIndex(
         d_u_adv_var, getCurrentContext());
@@ -826,7 +828,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_V_idx,         // temporary work space
                        refine_operator);
     d_rstrategies["U->V::C->S::CONSTANT_REFINE"] =
-        new STOOLS::CartRobinPhysBdryOp(d_V_idx, d_U_bc_coefs, false, "LINEAR");
+        new STOOLS::CartRobinPhysBdryOp(d_V_idx, d_U_bc_coefs, false);
 
     d_ralgs["P->P::C->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
@@ -894,7 +896,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_U_scratch_idx, // temporary work space
                        refine_operator);
     refine_strategy_set.push_back(
-        new STOOLS::CartRobinPhysBdryOp(d_U_scratch_idx, d_U_bc_coefs, false, "LINEAR"));
+        new STOOLS::CartRobinPhysBdryOp(d_U_scratch_idx, d_U_bc_coefs, false));
 
     refine_operator = grid_geom->lookupRefineOperator(
         d_H_var, "CONSERVATIVE_LINEAR_REFINE");
@@ -1332,6 +1334,9 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         d_hier_cc_data_ops->subtract(
             d_U_current_idx, d_U_current_idx, d_Grad_Phi_idx);
 
+        // Reset the velocity at the domain boundary.
+        resetBoundaryVelocity(d_U_current_idx, d_u_current_idx, current_time);
+
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
             SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom =
@@ -1469,6 +1474,9 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         current_time,                        // data time
         true,                                // synch u(adv,*) coarse-fine bdry
         d_Q_new_idx, d_Q_var);               // div u(adv)
+
+    // Reset the velocity at the domain boundary.
+    resetBoundaryVelocity(-1, d_u_adv_current_idx, current_time+0.5*dt);
 
     if (!d_Q_set.isNull())
     {
@@ -1671,6 +1679,9 @@ INSHierarchyIntegrator::projectVelocity(
     d_hier_cc_data_ops->copyData(
         d_Phi_new_idx, d_Phi_scratch_idx);
 
+    // Reset the velocity at the domain boundary.
+    resetBoundaryVelocity(d_U_new_idx, d_u_new_idx, new_time);
+
     // Optionally compute some auxiliary quantities.
     if (!d_Omega_var.isNull() || !d_Div_U_var.isNull())
     {
@@ -1787,6 +1798,16 @@ INSHierarchyIntegrator::updatePressure(
 
     const double dt = new_time - current_time;
 
+    // Normalize Phi(n+1/2) to have mean (i.e., discrete integral) zero.
+    if (d_normalize_pressure)
+    {
+        const double Phi_mean = (1.0/d_volume)*
+            d_hier_cc_data_ops->integral(d_Phi_new_idx, d_wgt_idx);
+        d_hier_cc_data_ops->addScalar(d_Phi_new_idx, // dst
+                                      d_Phi_new_idx, // src
+                                      -Phi_mean);    // alpha
+    }
+
     // The basic first-order pressure update corresponding to a discretization
     // of the incompressible Euler equations (i.e., corresponding to the case of
     // vanishing viscosity).
@@ -1829,28 +1850,11 @@ INSHierarchyIntegrator::updatePressure(
         }
     }
 
-    // Normalize P(n+1/2) and Phi(n+1/2) to have mean (i.e., discrete integral)
-    // zero.
-    if (d_normalize_pressure)
-    {
-        const double P_mean = (1.0/d_volume)*
-            d_hier_cc_data_ops->integral(d_P_new_idx, d_wgt_idx);
-        d_hier_cc_data_ops->addScalar(d_P_new_idx, // dst
-                                      d_P_new_idx, // src
-                                      -P_mean);    // alpha
-
-        const double Phi_mean = (1.0/d_volume)*
-            d_hier_cc_data_ops->integral(d_Phi_new_idx, d_wgt_idx);
-        d_hier_cc_data_ops->addScalar(d_Phi_new_idx, // dst
-                                      d_Phi_new_idx, // src
-                                      -Phi_mean);    // alpha
-    }
-
     // Reset the values of P(n-1/2) and Phi(n-1/2) during the initial timestep.
     if (override_current_pressure)
     {
-        d_hier_cc_data_ops->copyData(d_P_current_idx, d_P_new_idx);
-        d_hier_cc_data_ops->setToScalar(d_Phi_current_idx, 0.0);
+        d_hier_cc_data_ops->copyData(  d_P_current_idx,   d_P_new_idx);
+        d_hier_cc_data_ops->copyData(d_Phi_current_idx, d_Phi_new_idx);
     }
 
     t_update_pressure->stop();
@@ -2997,6 +3001,124 @@ INSHierarchyIntegrator::computeDivSourceTerm(
     t_compute_div_source_term->stop();
     return;
 }// computeDivSourceTerm
+
+void
+INSHierarchyIntegrator::resetBoundaryVelocity(
+    const int U_idx,
+    const int u_idx,
+    const double time)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    SAMRAI::math::ArrayDataBasicOps<NDIM,double> array_ops;
+    (void) array_ops;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U_data =
+                (U_idx == -1 ? SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL) : patch->getPatchData(U_idx));
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data =
+                (u_idx == -1 ? SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL) : patch->getPatchData(u_idx));
+
+            const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
+                STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+            const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+            for (int n = 0; n < n_physical_codim1_boxes; ++n)
+            {
+                const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                const SAMRAI::hier::BoundaryBox<NDIM> trimmed_bdry_box =
+                    STOOLS::PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+                const SAMRAI::hier::Box<NDIM> bc_coef_box =
+                    STOOLS::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+                const int location_index = bdry_box.getLocationIndex();
+                const int bdry_normal_axis =  location_index / 2;
+                const bool bdry_upper_side = (location_index % 2) != 0;
+
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > acoef_data =
+                        new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > bcoef_data =
+                        new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > gcoef_data =
+                        new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+#if USING_OLD_ROBIN_BC_INTERFACE
+                    // In the old interface, beta = (1-alpha).
+                    d_U_bc_coefs[d]->setBcCoefs(
+                        acoef_data, gcoef_data, NULL,
+                        *patch, bdry_box, time);
+                    array_ops.scale(*bcoef_data, -1.0, *acoef_data, bc_coef_box);
+                    array_ops.addScalar(*bcoef_data, *bcoef_data, 1.0, bc_coef_box);
+#else
+                    d_U_bc_coefs[d]->setBcCoefs(
+                        acoef_data, bcoef_data, gcoef_data, NULL,
+                        *patch, bdry_box, time);
+#endif
+                    for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+                    {
+                        const SAMRAI::hier::Index<NDIM>& i_s_bdry = b();
+                        const double& a = (*acoef_data)(i_s_bdry,0);
+                        const double& b = (*bcoef_data)(i_s_bdry,0);
+                        const double& g = (*gcoef_data)(i_s_bdry,0);
+                        const double& h = dx[bdry_normal_axis];
+
+                        // i_s_bdry: side index located on physical boundary
+                        //
+                        // i_c_intr0: cell index located adjacent to physical
+                        // boundary in the patch interior
+                        //
+                        // i_c_intr1: cell index located adjacent to i_c_intr0
+                        // in the patch interior
+                        SAMRAI::hier::Index<NDIM> i_c_intr0 = i_s_bdry;
+                        SAMRAI::hier::Index<NDIM> i_c_intr1 = i_s_bdry;
+                        if (bdry_upper_side)
+                        {
+                            i_c_intr0(bdry_normal_axis) -= 1;
+                            i_c_intr1(bdry_normal_axis) -= 2;
+                        }
+                        else
+                        {
+                            i_c_intr0(bdry_normal_axis) += 0;
+                            i_c_intr1(bdry_normal_axis) += 1;
+                        }
+
+                        if (U_idx != -1)
+                        {
+                            const double& u_i = (*U_data)(i_c_intr1,d);
+                            const double u_b = (2.0*b*u_i + 3.0*g*h)/(3.0*a*h + 2.0*b);
+                            (*U_data)(i_c_intr0,d) = (u_i + 2.0*u_b)/3.0;
+                        }
+
+                        if (d == bdry_normal_axis && u_idx != -1)
+                        {
+                            const SAMRAI::pdat::FaceIndex<NDIM> i_s_bdry(
+                                i_c_intr0, bdry_normal_axis,
+                                (bdry_upper_side
+                                 ? SAMRAI::pdat::FaceIndex<NDIM>::Upper
+                                 : SAMRAI::pdat::FaceIndex<NDIM>::Lower));
+                            const SAMRAI::pdat::FaceIndex<NDIM> i_s_intr(
+                                i_c_intr1, bdry_normal_axis,
+                                (bdry_upper_side
+                                 ? SAMRAI::pdat::FaceIndex<NDIM>::Upper
+                                 : SAMRAI::pdat::FaceIndex<NDIM>::Lower));
+                            const double& u_i = (*u_data)(i_s_intr);
+                            (*u_data)(i_s_bdry) = (b*u_i + g*h)/(a*h + b);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return;
+}// resetBoundaryVelocity
 
 void
 INSHierarchyIntegrator::getFromInput(

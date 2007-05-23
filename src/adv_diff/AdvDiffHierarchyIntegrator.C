@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <03.May.2007 18:08:12 griffith@box221.cims.nyu.edu>
+// Last modified: <21.May.2007 17:28:10 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -1044,7 +1044,6 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         d_bc_op->setPatchDataIndex(Q_temp_idx);
         d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
         d_bc_op->setHomogeneousBc(false);
-        d_bc_op->setExtrapolationType("LINEAR");
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -1192,7 +1191,6 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             d_bc_op->setPatchDataIndex(Q_temp_idx);
             d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
             d_bc_op->setHomogeneousBc(false);
-            d_bc_op->setExtrapolationType("LINEAR");
 
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
@@ -1236,7 +1234,6 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             d_bc_op->setPatchDataIndex(Q_temp_idx);
             d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
             d_bc_op->setHomogeneousBc(false);
-            d_bc_op->setExtrapolationType("LINEAR");
 
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
@@ -1303,7 +1300,6 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             d_bc_op->setPatchDataIndex(Q_temp_idx);
             d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
             d_bc_op->setHomogeneousBc(true);
-            d_bc_op->setExtrapolationType("LINEAR");
 
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
@@ -1332,7 +1328,6 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             d_bc_op->setPatchDataIndex(Q_temp_idx);
             d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
             d_bc_op->setHomogeneousBc(false);
-            d_bc_op->setExtrapolationType("LINEAR");
 
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {

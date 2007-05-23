@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <17.Apr.2007 18:19:17 griffith@box221.cims.nyu.edu>
+// Last modified: <16.May.2007 18:37:04 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -776,7 +776,7 @@ LDataManager::beginDataRedistribution(
                         double* const X = node_idx->getNodeLocation();
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            shifted_X[d] = X[d] + static_cast<double>(offset(d))*patchDx[d];
+                            shifted_X[d] = X[d] + double(offset(d))*patchDx[d];
                         }
 
                         const bool patch_owns_node_at_new_loc =
@@ -1332,7 +1332,7 @@ LDataManager::updateWorkloadData(
                 if (patch_box.contains(i))
                 {
                     const LNodeIndexSet& node_set = *it;
-                    (*node_count_data)(i) = static_cast<double>(node_set.size());
+                    (*node_count_data)(i) = node_set.size();
                     (*workload_data)(i) += d_beta_work*(*node_count_data)(i);
                 }
             }
@@ -1644,10 +1644,8 @@ LDataManager::initializeLevelData(
                     if (patch_owns_idx)
                     {
                         const LNodeIndexSet& node_set = *it;
-                        (*node_count_data)(i) =
-                            static_cast<double>(node_set.size());
-                        (*workload_data)(i) =
-                            d_alpha_work + d_beta_work*(*node_count_data)(i);
+                        (*node_count_data)(i) = node_set.size();
+                        (*workload_data)(i) = d_alpha_work + d_beta_work*(*node_count_data)(i);
                     }
 
                     for (LNodeIndexSet::iterator n = node_set.begin();

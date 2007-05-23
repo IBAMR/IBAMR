@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <17.Apr.2007 22:26:08 griffith@box221.cims.nyu.edu>
+// Last modified: <21.May.2007 17:28:06 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -199,8 +199,8 @@ compute_linear_extrap(
         SAMRAI::pdat::CellIndex<NDIM> i_intr_shft = i_intr;
         i_intr_shft(d) += i_shft(d);
         const double du = patch_data(i_intr,depth) - patch_data(i_intr_shft,depth);
-        const int delta = abs(i(d)-i_intr(d));
-        ret_val += du*static_cast<double>(delta);
+        const double delta = abs(i(d)-i_intr(d));
+        ret_val += du*delta;
     }
     return ret_val;
 }// compute_linear_extrap
@@ -1958,8 +1958,7 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
             Q_var, getDataContext());
 
         static const bool homogeneous_bc = false;
-        STOOLS::CartRobinPhysBdryOp bc_helper(
-            patch_data_idx, Q_bc_coefs, homogeneous_bc, d_extrap_type);
+        STOOLS::CartRobinPhysBdryOp bc_helper(patch_data_idx, Q_bc_coefs, homogeneous_bc);
         bc_helper.setPhysicalBoundaryConditions(
             patch, fill_time, ghost_width_to_fill);
     }
@@ -1976,6 +1975,14 @@ AdvectHypPatchOps::setOutflowBoundaryConditions(
     const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
     const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
     const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+
+    const int extrap_type = (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : -1));
+    if (extrap_type != 0 && extrap_type != 1)
+    {
+        TBOX_ERROR("AdvectHypPatchOps::setOutflowBoundaryConditions():\n"
+                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR" << endl);
+    }
 
     std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > > bdry_fill_boxes;
 
@@ -2049,57 +2056,65 @@ AdvectHypPatchOps::setOutflowBoundaryConditions(
             const SAMRAI::hier::Box<NDIM>& bdry_fill_box = (*it).first;
             const int location_index = (*it).second.first;
             const int codim = (*it).second.second;
-
+#if (NDIM == 2)
+            const bool is_lower[NDIM] = { STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
+                                          STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, 1) };
+            const bool is_upper[NDIM] = { STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
+                                          STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) };
+#endif
+#if (NDIM == 3)
+            const bool is_lower[NDIM] = { STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
+                                          STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, 1) ,
+                                          STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, 2) };
+            const bool is_upper[NDIM] = { STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
+                                          STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) ,
+                                          STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) };
+#endif
             // Loop over the boundary box indices and compute the nearest
             // interior index.
-            for (SAMRAI::pdat::CellIterator<NDIM> b(bdry_fill_box*ghost_box); b; b++)
+            for (int depth = 0; depth < patch_data->getDepth(); ++depth)
             {
-                const SAMRAI::pdat::CellIndex<NDIM>& i = b();
-                SAMRAI::pdat::CellIndex<NDIM> i_intr = i;
-                SAMRAI::hier::IntVector<NDIM> i_shft = 0;
-
-                bool is_outflow_bdry = false;
-                for (int d = 0; d < NDIM; ++d)
+                for (SAMRAI::pdat::CellIterator<NDIM> b(bdry_fill_box*ghost_box); b; b++)
                 {
-                    if      (STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, d))
-                    {
-                        i_intr(d) = patch_lower(d);
-                        i_shft(d) = +1; // use interior data for extrapolation
+                    const SAMRAI::pdat::CellIndex<NDIM>& i = b();
+                    SAMRAI::pdat::CellIndex<NDIM> i_intr = i;
+                    SAMRAI::hier::IntVector<NDIM> i_shft = 0;
 
-                        const SAMRAI::pdat::FaceIndex<NDIM> i_face(
-                            i_intr, d, SAMRAI::pdat::FaceIndex<NDIM>::Lower);
-                        is_outflow_bdry = is_outflow_bdry || (*u_data)(i_face) <= 0.0;
-                    }
-                    else if (STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, d))
+                    bool is_outflow_bdry = false;
+                    for (int d = 0; d < NDIM; ++d)
                     {
-                        i_intr(d) = patch_upper(d);
-                        i_shft(d) = -1; // use interior data for extrapolation
-
-                        const SAMRAI::pdat::FaceIndex<NDIM> i_face(
-                            i_intr, d, SAMRAI::pdat::FaceIndex<NDIM>::Upper);
-                        is_outflow_bdry = is_outflow_bdry || (*u_data)(i_face) >= 0.0;
-                    }
-                }
-
-                // Perform either constant or linear extrapolation.
-                if (is_outflow_bdry)
-                {
-                    for (int depth = 0; depth < patch_data->getDepth(); ++depth)
-                    {
-                        if (d_extrap_type == "CONSTANT")
+                        if (is_lower[d])
                         {
-                            (*patch_data)(i,depth) = (*patch_data)(i_intr,depth);
+                            i_intr(d) = patch_lower(d);
+                            i_shft(d) = +1; // use interior data for extrapolation
+
+                            const SAMRAI::pdat::FaceIndex<NDIM> i_face(
+                                i_intr, d, SAMRAI::pdat::FaceIndex<NDIM>::Lower);
+                            is_outflow_bdry = is_outflow_bdry || (*u_data)(i_face) <= 0.0;
                         }
-                        else if (d_extrap_type == "LINEAR")
+                        else if (is_upper[d])
                         {
-                            (*patch_data)(i,depth) = compute_linear_extrap(
-                                *patch_data, i, i_intr, i_shft, depth);
+                            i_intr(d) = patch_upper(d);
+                            i_shft(d) = -1; // use interior data for extrapolation
+
+                            const SAMRAI::pdat::FaceIndex<NDIM> i_face(
+                                i_intr, d, SAMRAI::pdat::FaceIndex<NDIM>::Upper);
+                            is_outflow_bdry = is_outflow_bdry || (*u_data)(i_face) >= 0.0;
                         }
-                        else
+                    }
+
+                    // Perform either constant or linear extrapolation.
+                    if (is_outflow_bdry)
+                    {
+                        switch (extrap_type)
                         {
-                            TBOX_ERROR("AdvectHypPatchOps::setOutflowBoundaryConditions():\n"
-                                       << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                                       << "  valid selections are: CONSTANT, LINEAR" << endl);
+                            case 0:
+                                (*patch_data)(i,depth) = (*patch_data)(i_intr,depth);
+                                break;
+                            case 1:
+                                (*patch_data)(i,depth) = compute_linear_extrap(
+                                    *patch_data, i, i_intr, i_shft, depth);
+                                break;
                         }
                     }
                 }
@@ -2128,8 +2143,7 @@ AdvectHypPatchOps::getFromInput(
     d_compute_final_velocity = db->getBoolWithDefault(
         "compute_final_velocity", d_compute_final_velocity);
 
-    d_extrap_type = db->getStringWithDefault(
-        "extrap_type", d_extrap_type);
+    d_extrap_type = db->getStringWithDefault("extrap_type", d_extrap_type);
     if (!(d_extrap_type == "CONSTANT" || d_extrap_type == "LINEAR"))
     {
         TBOX_ERROR("AdvectHypPatchOps::getFromInput():\n"

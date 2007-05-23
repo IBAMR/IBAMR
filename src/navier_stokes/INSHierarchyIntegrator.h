@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <03.May.2007 14:31:40 griffith@box221.cims.nyu.edu>
+// Last modified: <22.May.2007 20:54:43 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -809,6 +809,16 @@ private:
         const int u_idx,
         const int coarsest_ln,
         const int finest_ln);
+
+    /*!
+     * Reset the velocity near the physical boundary to enforce the prescribed
+     * boundary conditions.
+     */
+    void
+    resetBoundaryVelocity(
+        const int U_idx,
+        const int u_idx,
+        const double time);
 
     /*!
      * Read input values, indicated above, from given database.  The boolean

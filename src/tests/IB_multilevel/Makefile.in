@@ -35,11 +35,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
-@DATA_FILES_ENABLED_TRUE@am__append_1 = shell2d_fine_128.vertex \
-@DATA_FILES_ENABLED_TRUE@	shell2d_fine_128.spring \
-@DATA_FILES_ENABLED_TRUE@	shell2d_crse_256.vertex \
-@DATA_FILES_ENABLED_TRUE@	shell2d_crse_256.spring \
-@DATA_FILES_ENABLED_TRUE@	shell2d_crse_512.vertex \
+@DATA_FILES_ENABLED_TRUE@am__append_1 = shell2d_crse_512.vertex \
 @DATA_FILES_ENABLED_TRUE@	shell2d_crse_512.spring \
 @DATA_FILES_ENABLED_TRUE@	shell2d_fine_512.vertex \
 @DATA_FILES_ENABLED_TRUE@	shell2d_fine_512.spring
@@ -194,7 +190,9 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.C
 EXTRA_DIST = input2d generate_mesh2d.m shell2d_crse_128.vertex \
-	shell2d_crse_128.spring shell2d_fine_256.vertex \
+	shell2d_crse_128.spring shell2d_fine_128.vertex \
+	shell2d_fine_128.spring shell2d_crse_256.vertex \
+	shell2d_crse_256.spring shell2d_fine_256.vertex \
 	shell2d_fine_256.spring $(am__append_1)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/stools/src/libSTOOLS2d.a $(top_builddir)/stools/src/libSTOOLS.a

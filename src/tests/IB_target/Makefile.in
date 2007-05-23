@@ -35,9 +35,14 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
+@DATA_FILES_ENABLED_TRUE@am__append_1 = cylinder2d_1024.vertex \
+@DATA_FILES_ENABLED_TRUE@	cylinder2d_1024.spring \
+@DATA_FILES_ENABLED_TRUE@	cylinder3d_512.vertex \
+@DATA_FILES_ENABLED_TRUE@	sphere3d_256.vertex \
+@DATA_FILES_ENABLED_TRUE@	sphere3d_256.spring
 check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
-@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
-@SAMRAI3D_ENABLED_TRUE@am__append_2 = main3d
+@SAMRAI2D_ENABLED_TRUE@am__append_2 = main2d
+@SAMRAI3D_ENABLED_TRUE@am__append_3 = main3d
 subdir = src/tests/IB_target
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -95,6 +100,8 @@ CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
+DATA_FILES_ENABLED_FALSE = @DATA_FILES_ENABLED_FALSE@
+DATA_FILES_ENABLED_TRUE = @DATA_FILES_ENABLED_TRUE@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DOT = @DOT@
@@ -109,6 +116,7 @@ EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
 FLIBS = @FLIBS@
+GREP = @GREP@
 HAVE_DOT = @HAVE_DOT@
 HAVE_DOXYGEN = @HAVE_DOXYGEN@
 INSTALL_DATA = @INSTALL_DATA@
@@ -149,8 +157,6 @@ VERSION = @VERSION@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
-ac_ct_RANLIB = @ac_ct_RANLIB@
-ac_ct_STRIP = @ac_ct_STRIP@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -163,19 +169,26 @@ am__untar = @am__untar@
 bindir = @bindir@
 build_alias = @build_alias@
 datadir = @datadir@
+datarootdir = @datarootdir@
+docdir = @docdir@
+dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 host_alias = @host_alias@
+htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
+localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
+pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
+psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 subdirs = @subdirs@
@@ -187,14 +200,12 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.C
 EXTRA_DIST = input2d.cylinder input3d.cylinder input3d.sphere \
-	cylinder2d_256.vertex cylinder2d_512.vertex \
-	cylinder2d_1024.vertex cylinder2d_256.spring \
-	cylinder2d_512.spring cylinder2d_1024.spring \
-	cylinder3d_128.vertex cylinder3d_256.vertex \
-	cylinder3d_512.vertex sphere3d_64.vertex sphere3d_128.vertex \
-	sphere3d_256.vertex sphere3d_64.spring sphere3d_128.spring \
-	sphere3d_256.spring generate_cylinder2d.m \
-	generate_cylinder3d.m compute_St.m generate_sphere3d.C
+	generate_cylinder2d.m generate_cylinder3d.m compute_St.m \
+	generate_sphere3d.C cylinder2d_256.vertex \
+	cylinder2d_256.spring cylinder2d_512.vertex \
+	cylinder2d_512.spring cylinder3d_128.vertex \
+	cylinder3d_256.vertex sphere3d_64.vertex sphere3d_64.spring \
+	sphere3d_128.vertex sphere3d_128.spring $(am__append_1)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/stools/src/libSTOOLS2d.a $(top_builddir)/stools/src/libSTOOLS.a
 main2d_SOURCES = $(SOURCES)
@@ -469,9 +480,9 @@ uninstall-am: uninstall-info-am
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input{2d.cylinder,3d.cylinder,3d.sphere} $(PWD) ; \
-	  cp -f $(srcdir)/cylinder2d_{256,512,1024}.{vertex,spring} $(PWD) ; \
-	  cp -f $(srcdir)/cylinder3d_{128,256,512}.vertex $(PWD) ; \
-	  cp -f $(srcdir)/sphere3d_{64,128,256}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/cylinder2d_{256,512}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/cylinder3d_{128,256}.vertex $(PWD) ; \
+	  cp -f $(srcdir)/sphere3d_{64,128}.{vertex,spring} $(PWD) ; \
           cp -f $(srcdir)/compute_St.m $(PWD) ; \
 	fi ;
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
