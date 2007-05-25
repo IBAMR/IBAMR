@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <16.May.2007 18:37:52 griffith@box221.cims.nyu.edu>
+// Last modified: <23.May.2007 14:50:37 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -22,6 +22,7 @@
 
 // STOOLS INCLUDES
 #include <stools/CartExtrapPhysBdryOp.h>
+#include <stools/CartRobinPhysBdryOp.h>
 #include <stools/PETSC_SAMRAI_ERROR.h>
 #include <stools/STOOLS_Utilities.h>
 
@@ -116,6 +117,9 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_load_balancer(NULL),
       d_ins_hier_integrator(ins_hier_integrator),
       d_lag_data_manager(NULL),
+      d_U_init(NULL),
+      d_P_init(NULL),
+      d_U_bc_coefs(),
       d_lag_init(NULL),
       d_maintain_U_data(false),
       d_body_force_set(NULL),
@@ -276,6 +280,45 @@ IBHierarchyIntegrator::getName() const
 }// getName
 
 void
+IBHierarchyIntegrator::registerVelocityInitialConditions(
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> U_init)
+{
+    d_U_init = U_init;
+    d_ins_hier_integrator->registerVelocityInitialConditions(d_U_init);
+    return;
+}// registerVelocityInitialConditions
+
+void
+IBHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
+    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs)
+{
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::registerVelocityPhysicalBcCoefs()\n"
+                   << "  velocity boundary conditions must be registered prior to initialization\n"
+                   << "  of the hierarchy integrator object." << endl);
+    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned l = 0; l < U_bc_coefs.size(); ++l)
+    {
+        assert(U_bc_coefs[l] != NULL);
+    }
+#endif
+    d_U_bc_coefs = U_bc_coefs;
+    d_ins_hier_integrator->registerVelocityPhysicalBcCoefs(d_U_bc_coefs);
+    return;
+}// registerVelocityPhysicalBcCoefs
+
+void
+IBHierarchyIntegrator::registerPressureInitialConditions(
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init)
+{
+    d_P_init = P_init;
+    d_ins_hier_integrator->registerPressureInitialConditions(d_P_init);
+    return;
+}// registerPressureInitialConditions
+
+void
 IBHierarchyIntegrator::registerBodyForceSpecification(
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> body_force_set)
 {
@@ -404,7 +447,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     // IBHierarchyIntegrator::advanceHierarchy().
     d_eulerian_force_set = new IBEulerianForceSetter(
         d_object_name+"::IBEulerianForceSetter", -1, d_F_idx, -1);
-    d_ins_hier_integrator->registerForceSpecification(d_eulerian_force_set);
+    d_ins_hier_integrator->registerBodyForceSpecification(d_eulerian_force_set);
 
     if (!d_source_strategy.isNull())
     {
@@ -440,8 +483,11 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                        U_current_idx, // source
                        d_V_idx,       // temporary work space
                        refine_operator);
-    d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
+    if (!d_U_bc_coefs.empty())
+    {
+        d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] =
+            new STOOLS::CartRobinPhysBdryOp(d_V_idx, d_U_bc_coefs, false);
+    }
 
     const int U_new_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
@@ -457,8 +503,11 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                        U_new_idx, // source
                        d_W_idx,   // temporary work space
                        refine_operator);
-    d_rstrategies["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_W_idx, "LINEAR");
+    if (!d_U_bc_coefs.empty())
+    {
+        d_rstrategies["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"] =
+            new STOOLS::CartRobinPhysBdryOp(d_W_idx, d_U_bc_coefs, false);
+    }
 
     // NOTE: When using conservative averaging to coarsen the velocity from
     // finer levels to coarser levels, the appropriate prolongation operator for

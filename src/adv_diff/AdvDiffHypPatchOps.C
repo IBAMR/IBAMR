@@ -1,5 +1,5 @@
 // Filename: AdvDiffHypPatchOps.C
-// Last modified: <20.Feb.2007 02:14:43 boyce@bigboy.nyconnect.com>
+// Last modified: <23.May.2007 10:06:52 griffith@box221.cims.nyu.edu>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHypPatchOps.h"
@@ -51,7 +51,8 @@
 
 extern "C"
 {
-    void ADV_DIFF_CONSDIFF_F77(
+    void
+    ADV_DIFF_CONSDIFF_F77(
         const double*, const double&,
 #if (NDIM == 1)
         const int& , const int& ,
@@ -73,7 +74,8 @@ extern "C"
 #endif
         double*);
 
-    void ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77(
+    void
+    ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77(
         const double*, const double&,
 #if (NDIM == 1)
         const int& , const int& ,

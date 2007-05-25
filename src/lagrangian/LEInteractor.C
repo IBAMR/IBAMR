@@ -1,5 +1,5 @@
 // Filename: LEInteractor.C
-// Last modified: <16.May.2007 18:35:45 griffith@box221.cims.nyu.edu>
+// Last modified: <23.May.2007 10:09:00 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "LEInteractor.h"
@@ -71,7 +71,8 @@
 
 extern "C"
 {
-    void LAGRANGIAN_PWCUBIC_INTERP_F77(
+    void
+    LAGRANGIAN_PWCUBIC_INTERP_F77(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -86,7 +87,8 @@ extern "C"
         const double* , double*
                                        );
 
-    void LAGRANGIAN_PWCUBIC_SPREAD_F77(
+    void
+    LAGRANGIAN_PWCUBIC_SPREAD_F77(
         const double* , const double* , const double* , const int& ,
         const int* , const double* , const int& ,
         const double* , const double* ,
@@ -103,7 +105,8 @@ extern "C"
 
 
 
-    void LAGRANGIAN_IB4_INTERP_F77(
+    void
+    LAGRANGIAN_IB4_INTERP_F77(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -118,7 +121,8 @@ extern "C"
         const double* , double*
                                    );
 
-    void LAGRANGIAN_IB4_SPREAD_F77(
+    void
+    LAGRANGIAN_IB4_SPREAD_F77(
         const double* , const double* , const double* , const int& ,
         const int* , const double* , const int& ,
         const double* , const double* ,
@@ -135,7 +139,8 @@ extern "C"
 
 
 
-    void LAGRANGIAN_IB6_INTERP_F77(
+    void
+    LAGRANGIAN_IB6_INTERP_F77(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -150,7 +155,8 @@ extern "C"
         const double* , double*
                                    );
 
-    void LAGRANGIAN_IB6_SPREAD_F77(
+    void
+    LAGRANGIAN_IB6_SPREAD_F77(
         const double* , const double* , const double* , const int& ,
         const int* , const double* , const int& ,
         const double* , const double* ,
@@ -167,7 +173,8 @@ extern "C"
 
 
 
-    void LAGRANGIAN_WIB4_INTERP_F77(
+    void
+    LAGRANGIAN_WIB4_INTERP_F77(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -182,7 +189,8 @@ extern "C"
         const double* , double*
                                     );
 
-    void LAGRANGIAN_WIB4_SPREAD_F77(
+    void
+    LAGRANGIAN_WIB4_SPREAD_F77(
         const double* , const double* , const double* , const int& ,
         const int* , const double* , const int& ,
         const double* , const double* ,

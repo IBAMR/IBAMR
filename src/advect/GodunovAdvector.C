@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <17.Apr.2007 22:25:58 griffith@box221.cims.nyu.edu>
+// Last modified: <23.May.2007 10:07:32 griffith@box221.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -60,7 +60,8 @@
 
 extern "C"
 {
-    void ADVECT_DERIVATIVE_F77(
+    void
+    ADVECT_DERIVATIVE_F77(
         const double*,
 #if (NDIM == 1)
         const int& , const int& ,
@@ -91,7 +92,8 @@ extern "C"
 #endif
                                );
 
-    void ADVECT_FLUX_F77(
+    void
+    ADVECT_FLUX_F77(
         const double& ,
 #if (NDIM == 1)
         const int& , const int& ,
@@ -122,7 +124,8 @@ extern "C"
 #endif
                          );
 
-    void ADVECT_STABLEDT_F77(
+    void
+    ADVECT_STABLEDT_F77(
         const double*,
 #if (NDIM == 1)
         const int& , const int& ,
@@ -143,7 +146,8 @@ extern "C"
                              );
 
 #if ((NDIM == 2) || (NDIM == 3))
-    void GODUNOV_INCOMPRESSIBILITYFIX_F77(
+    void
+    GODUNOV_INCOMPRESSIBILITYFIX_F77(
         const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -162,7 +166,8 @@ extern "C"
                                           );
 #endif
 
-    void GODUNOV_PREDICT_F77(
+    void
+    GODUNOV_PREDICT_F77(
         const double* , const double& ,
 #if (NDIM == 3)
         const unsigned int& ,
@@ -199,7 +204,8 @@ extern "C"
 #endif
                              );
 
-    void GODUNOV_PREDICTWITHSOURCE_F77(
+    void
+    GODUNOV_PREDICTWITHSOURCE_F77(
         const double* , const double& ,
 #if (NDIM == 3)
         const unsigned int& ,

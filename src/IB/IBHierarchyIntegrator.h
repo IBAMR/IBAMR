@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <03.May.2007 14:38:00 griffith@box221.cims.nyu.edu>
+// Last modified: <23.May.2007 14:44:20 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -85,13 +85,37 @@ public:
     getName() const;
 
     /*!
+     * Supply initial conditions for the (cell centered) velocity.
+     */
+    void
+    registerVelocityInitialConditions(
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> U_init);
+
+    /*!
+     * Supply physical boundary conditions for the (cell centered) velocity.
+     */
+    void
+    registerVelocityPhysicalBcCoefs(
+        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
+
+    /*!
+     * Supply initial conditions for the (cell centered) pressure.
+     *
+     * \note These initial conditions are used for output purposes only.  They
+     * are not actually used in the computation.
+     */
+    void
+    registerPressureInitialConditions(
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init);
+
+    /*!
      * Supply an optional cell centered body forcing term.
      *
      * \note This forcing term will be added to the Eulerian force density.
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> body_force_set);
+        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set);
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
@@ -687,6 +711,13 @@ private:
      * data on the patch hierarchy.
      */
     LDataManager* d_lag_data_manager;
+
+    /*
+     * Initialization and boundary condition information for the Eulerian data
+     * used by the integrator.
+     */
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_U_init, d_P_init;
+    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
 
     /*
      * The specification and initialization information for the Lagrangian data

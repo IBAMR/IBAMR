@@ -1,5 +1,5 @@
 // Filename: LagSiloDataWriter.C
-// Last modified: <17.Apr.2007 18:19:04 griffith@box221.cims.nyu.edu>
+// Last modified: <23.May.2007 10:09:42 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagSiloDataWriter.h"
@@ -25,7 +25,8 @@
 
 // SILO INCLUDES
 #if HAVE_LIBSILO
-extern "C" {
+extern "C"
+{
 #include <silo.h>
 }
 #endif
@@ -60,7 +61,8 @@ static const std::string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
  * \brief Build a local mesh database entry corresponding to a cloud of marker
  * points.
  */
-void build_local_marker_cloud(
+void
+build_local_marker_cloud(
     DBfile* dbfile,
     std::string& dirname,
     const int nmarks,
@@ -124,7 +126,8 @@ void build_local_marker_cloud(
  * \brief Build a local mesh database entry corresponding to a quadrilateral
  * curvilinear block.
  */
-void build_local_curv_block(
+void
+build_local_curv_block(
     DBfile* dbfile,
     std::string& dirname,
     const SAMRAI::hier::IntVector<NDIM>& nelem_in,
@@ -306,7 +309,8 @@ void build_local_curv_block(
  * \brief Build a local mesh database entry corresponding to an unstructured
  * mesh.
  */
-void build_local_ucd_mesh(
+void
+build_local_ucd_mesh(
     DBfile* dbfile,
     std::string& dirname,
     const std::set<int>& vertices,

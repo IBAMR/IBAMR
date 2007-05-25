@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <22.May.2007 20:54:43 griffith@box221.cims.nyu.edu>
+// Last modified: <24.May.2007 13:54:29 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -141,15 +141,14 @@ public:
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init);
 
     /*!
-     * Supply a (possibly time dependent) cell centered forcing term.
+     * Supply an optional cell centered forcing term.
      */
     void
-    registerForceSpecification(
+    registerBodyForceSpecification(
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set);
 
     /*!
-     * Supply a (possibly time dependent) cell centered divergence
-     * specification.
+     * Supply an optional cell centered divergence specification.
      */
     void
     registerDivergenceSpecification(
@@ -811,14 +810,15 @@ private:
         const int finest_ln);
 
     /*!
-     * Reset the velocity near the physical boundary to enforce the prescribed
-     * boundary conditions.
+     * Reset the normal velocity components along the physical boundary.
      */
     void
-    resetBoundaryVelocity(
-        const int U_idx,
+    resetNormalVelocityBoundaryConditions(
         const int u_idx,
-        const double time);
+        const double time,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& cscheds,
+        const int coarsest_ln,
+        const int finest_ln);
 
     /*!
      * Read input values, indicated above, from given database.  The boolean

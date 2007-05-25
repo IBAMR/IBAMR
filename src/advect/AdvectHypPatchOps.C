@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <21.May.2007 17:28:06 griffith@box221.cims.nyu.edu>
+// Last modified: <23.May.2007 10:07:44 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -68,7 +68,8 @@
 
 extern "C"
 {
-    void ADVECT_CONSDIFF_F77(
+    void
+    ADVECT_CONSDIFF_F77(
         const double* ,
 #if (NDIM == 1)
         const int& , const int& ,
@@ -91,7 +92,8 @@ extern "C"
         double*
                              );
 
-    void ADVECT_CONSDIFFWITHDIVSOURCE_F77(
+    void
+    ADVECT_CONSDIFFWITHDIVSOURCE_F77(
         const double* , const double& ,
 #if (NDIM == 1)
         const int& , const int& ,
@@ -125,7 +127,8 @@ extern "C"
 #endif
         double*);
 
-    void ADVECT_DETECTGRAD_F77(
+    void
+    ADVECT_DETECTGRAD_F77(
 #if (NDIM == 1)
         const int& , const int& ,
         const int& , const int& , const int&,
