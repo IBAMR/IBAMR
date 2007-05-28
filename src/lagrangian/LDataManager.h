@@ -2,7 +2,7 @@
 #define included_LDataManager
 
 // Filename: LDataManager.h
-// Last modified: <17.Apr.2007 19:13:22 griffith@box221.cims.nyu.edu>
+// Last modified: <28.May.2007 17:39:02 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -251,6 +251,13 @@ public:
     getNodeCountPatchDescriptorIndex() const;
 
     /*!
+     * \brief Get the patch data descriptor index for the irregular Cartesian
+     * grid cell data.
+     */
+    int
+    getIrregularCellPatchDescriptorIndex() const;
+
+    /*!
      * \brief Get the patch data descriptor index for the MPI process mapping
      * cell data.
      */
@@ -353,6 +360,18 @@ public:
      */
     void
     updateWorkloadData(
+        const int coarsest_ln=-1,
+        const int finest_ln=-1);
+
+    /*!
+     * \brief Update the irregular cell data.
+     *
+     * This routine updates cell data which is maintained on the patch hierarchy
+     * in order to keep track of those "irregular" grid cells that lie within
+     * the support of the regularized delta function.
+     */
+    void
+    updateIrregularCellData(
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
@@ -701,6 +720,15 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_node_count_var;
     int d_node_count_idx;
     bool d_output_node_count;
+
+    /*
+     * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
+     * cell variable used to indicate the "irregular" Cartesian grid cells,
+     * i.e., those Cartesian grid cells within the ghost cell width of a node of
+     * the Lagrangian mesh.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_irregular_cell_var;
+    int d_irregular_cell_idx;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the

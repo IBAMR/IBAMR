@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <16.May.2007 18:37:04 griffith@box221.cims.nyu.edu>
+// Last modified: <28.May.2007 17:50:37 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -67,6 +67,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_map_petsc_to_lagrangian;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_update_workload_data;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_update_irregular_cell_data;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_restore_location_pointers;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_invalidate_location_pointers;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
@@ -578,6 +579,12 @@ LDataManager::getNodeCountPatchDescriptorIndex() const
 {
     return d_node_count_idx;
 }// getNodeCountPatchDescriptorIndex
+
+int
+LDataManager::getIrregularCellPatchDescriptorIndex() const
+{
+    return d_irregular_cell_idx;
+}// getIrregularCellPatchDescriptorIndex
 
 int
 LDataManager::getProcMappingPatchDescriptorIndex() const
@@ -1344,6 +1351,57 @@ LDataManager::updateWorkloadData(
 }// updateWorkloadData
 
 void
+LDataManager::updateIrregularCellData(
+    const int coarsest_ln_in,
+    const int finest_ln_in)
+{
+    t_update_irregular_cell_data->start();
+
+    const int coarsest_ln =
+        (coarsest_ln_in == -1)
+        ? d_coarsest_ln
+        : coarsest_ln_in;
+    const int finest_ln =
+        (finest_ln_in == -1)
+        ? d_finest_ln
+        : finest_ln_in;
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(coarsest_ln >= d_coarsest_ln &&
+           coarsest_ln <= d_finest_ln);
+    assert(finest_ln   >= d_coarsest_ln &&
+           finest_ln   <= d_finest_ln);
+#endif
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+
+            const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
+                patch->getPatchData(d_lag_node_index_current_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > irregular_cell_data =
+                patch->getPatchData(d_irregular_cell_idx);
+
+            irregular_cell_data->fillAll(0.0);
+            for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+            {
+                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                const SAMRAI::hier::Box<NDIM> stencil_box =
+                    SAMRAI::hier::Box<NDIM>::grow(SAMRAI::hier::Box<NDIM>(i,i), d_ghosts);
+                irregular_cell_data->fill(1.0,stencil_box);
+            }
+        }
+    }
+
+    t_update_irregular_cell_data->stop();
+    return;
+}// updateIrregularCellData
+
+void
 LDataManager::restoreLocationPointers(
     const int coarsest_ln_in,
     const int finest_ln_in)
@@ -1998,6 +2056,8 @@ LDataManager::LDataManager(
       d_node_count_var(NULL),
       d_node_count_idx(-1),
       d_output_node_count(false),
+      d_irregular_cell_var(NULL),
+      d_irregular_cell_idx(-1),
       d_mpi_proc_var(NULL),
       d_mpi_proc_idx(-1),
       d_output_mpi_proc(false),
@@ -2045,7 +2105,7 @@ LDataManager::LDataManager(
 
     // Register the SAMRAI variables with the VariableDatabase.
     d_lag_node_index_var = new LNodeIndexVariable(
-        d_object_name+"::LNodeIndex");
+        d_object_name+"::lag_node_index");
 
     // Setup the current context.
     d_lag_node_index_current_idx = var_db->registerVariableAndContext(
@@ -2070,9 +2130,9 @@ LDataManager::LDataManager(
         d_lag_node_index_scratch_idx, // temporary work space
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> >(NULL));
 
-    // Register the node count variable with the VariableDatabase.
+    // Register the workload variable with the VariableDatabase.
     d_workload_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
-        d_object_name+"::Workload");
+        d_object_name+"::workload");
 
     d_workload_idx = var_db->registerVariableAndContext(
         d_workload_var, d_current_context, 0);
@@ -2085,7 +2145,7 @@ LDataManager::LDataManager(
 
     // Register the node count variable with the VariableDatabase.
     d_node_count_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
-        d_object_name+"::Node Count");
+        d_object_name+"::node_count");
 
     d_node_count_idx = var_db->registerVariableAndContext(
         d_node_count_var, d_current_context, 0);
@@ -2105,9 +2165,22 @@ LDataManager::LDataManager(
                         d_node_count_idx, // source
                         coarsen_op);
 
+    // Register the irregular cell variable with the VariableDatabase.
+    d_irregular_cell_var = new SAMRAI::pdat::CellVariable<NDIM,double>(
+        d_object_name+"::irregular_cell");
+
+    d_irregular_cell_idx = var_db->registerVariableAndContext(
+        d_irregular_cell_var, d_current_context, 0);
+    d_current_data.setFlag(d_irregular_cell_idx);
+
+    if (d_registered_for_restart)
+    {
+        var_db->registerPatchDataForRestart(d_irregular_cell_idx);
+    }
+
     // Register the MPI process mapping variable with the VariableDatabase.
     d_mpi_proc_var = new SAMRAI::pdat::CellVariable<NDIM,int>(
-        d_object_name+"::MPI process mapping");
+        d_object_name+"::mpi_proc");
 
     d_mpi_proc_idx = var_db->registerVariableAndContext(
         d_mpi_proc_var, d_current_context, 0);
@@ -2132,6 +2205,8 @@ LDataManager::LDataManager(
             getTimer("IBAMR::LDataManager::endDataRedistribution()");
         t_update_workload_data = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::LDataManager::updateWorkloadData()");
+        t_update_irregular_cell_data = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::LDataManager::updateIrregularCellData()");
         t_restore_location_pointers = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::LDataManager::restoreLocationPointers()");
         t_invalidate_location_pointers = SAMRAI::tbox::TimerManager::getManager()->

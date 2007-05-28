@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <25.May.2007 14:31:28 griffith@box221.cims.nyu.edu>
+// Last modified: <28.May.2007 18:19:17 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -129,7 +129,8 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuratio
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_div_source_term;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_normal_velocity_boundary_conditions;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_cell_velocity_boundary_conditions;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_mac_velocity_boundary_conditions;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
@@ -309,8 +310,10 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
             getTimer("IBAMR::INSHierarchyIntegrator::putToDatabase()");
         t_compute_div_source_term = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::INSHierarchyIntegrator::computeDivSourceTerm()");
-        t_reset_normal_velocity_boundary_conditions = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::resetNormalVelocityBoundaryConditions()");
+        t_reset_cell_velocity_boundary_conditions = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSHierarchyIntegrator::resetCellVelocityBoundaryConditions()");
+        t_reset_mac_velocity_boundary_conditions = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSHierarchyIntegrator::resetMACVelocityBoundaryConditions()");
         timers_need_init = false;
     }
     return;
@@ -950,6 +953,22 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                         d_u_adv_new_idx, // source
                         coarsen_operator);
 
+    d_calgs["SYNCH_CURRENT_VELOCITY_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
+    coarsen_operator = grid_geom->lookupCoarsenOperator(
+        d_U_var, "CONSERVATIVE_COARSEN");
+    d_calgs["SYNCH_CURRENT_VELOCITY_DATA"]->
+        registerCoarsen(d_U_current_idx, // destination
+                        d_U_current_idx, // source
+                        coarsen_operator);
+
+    d_calgs["SYNCH_NEW_VELOCITY_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
+    coarsen_operator = grid_geom->lookupCoarsenOperator(
+        d_U_var, "CONSERVATIVE_COARSEN");
+    d_calgs["SYNCH_NEW_VELOCITY_DATA"]->
+        registerCoarsen(d_U_new_idx, // destination
+                        d_U_new_idx, // source
+                        coarsen_operator);
+
     d_calgs["SYNCH_CURRENT_ADVECTION_VELOCITY_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
     coarsen_operator = grid_geom->lookupCoarsenOperator(
         d_u_adv_var, "CONSERVATIVE_COARSEN");
@@ -1348,6 +1367,11 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         d_hier_cc_data_ops->subtract(
             d_U_current_idx, d_U_current_idx, d_Grad_Phi_idx);
 
+        resetCellVelocityBoundaryConditions(
+            d_U_current_idx, current_time,
+            d_cscheds["SYNCH_CURRENT_VELOCITY_DATA"],
+            coarsest_ln, finest_ln);
+
         d_reproject_after_regrid = false;
     }
 
@@ -1355,7 +1379,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
 
     // Reset the advection velocity boundary conditions.
-    resetNormalVelocityBoundaryConditions(
+    resetMACVelocityBoundaryConditions(
         d_u_adv_current_idx, current_time,
         d_cscheds["SYNCH_CURRENT_ADVECTION_VELOCITY_DATA"],
         coarsest_ln, finest_ln);
@@ -1448,7 +1472,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     }
 
     // Reset the advection velocity boundary conditions.
-    resetNormalVelocityBoundaryConditions(
+    resetMACVelocityBoundaryConditions(
         d_u_adv_current_idx, current_time,
         d_cscheds["SYNCH_CURRENT_ADVECTION_VELOCITY_DATA"],
         coarsest_ln, finest_ln);
@@ -1674,6 +1698,11 @@ INSHierarchyIntegrator::projectVelocity(
         d_U_new_idx, d_U_new_idx, d_Grad_Phi_idx);
     d_hier_cc_data_ops->copyData(
         d_Phi_new_idx, d_Phi_scratch_idx);
+
+    resetCellVelocityBoundaryConditions(
+        d_U_new_idx, new_time,
+        d_cscheds["SYNCH_NEW_VELOCITY_DATA"],
+        coarsest_ln, finest_ln);
 
     // Optionally compute some auxiliary quantities.
     if (!d_Omega_var.isNull() || !d_Div_U_var.isNull())
@@ -2996,14 +3025,126 @@ INSHierarchyIntegrator::computeDivSourceTerm(
 }// computeDivSourceTerm
 
 void
-INSHierarchyIntegrator::resetNormalVelocityBoundaryConditions(
+INSHierarchyIntegrator::resetCellVelocityBoundaryConditions(
+    const int U_idx,
+    const double time,
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& cscheds,
+    const int coarsest_ln,
+    const int finest_ln)
+{
+    t_reset_cell_velocity_boundary_conditions->start();
+
+    SAMRAI::math::ArrayDataBasicOps<NDIM,double> array_ops;
+    (void) array_ops;
+
+    // Reset the velocity components in cells adjacent to the physical boundary.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U_data =
+                patch->getPatchData(U_idx);
+
+            const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
+                STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+            const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+            for (int n = 0; n < n_physical_codim1_boxes; ++n)
+            {
+                const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                const SAMRAI::hier::BoundaryBox<NDIM> trimmed_bdry_box =
+                    STOOLS::PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+                const SAMRAI::hier::Box<NDIM> bc_coef_box =
+                    STOOLS::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > acoef_data =
+                    new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > bcoef_data =
+                    new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > gcoef_data =
+                    new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+
+                const int location_index = bdry_box.getLocationIndex();
+                const int bdry_normal_axis =  location_index / 2;
+                const bool bdry_upper_side = (location_index % 2) != 0;
+
+                for (int d = 0; d < NDIM; ++d)
+                {
+#if USING_OLD_ROBIN_BC_INTERFACE
+                    // In the old interface, beta = (1-alpha).
+                    d_U_bc_coefs[d]->setBcCoefs(
+                        acoef_data, gcoef_data, NULL,
+                        *patch, trimmed_bdry_box, time);
+                    array_ops.scale(*bcoef_data, -1.0, *acoef_data, bc_coef_box);
+                    array_ops.addScalar(*bcoef_data, *bcoef_data, 1.0, bc_coef_box);
+#else
+                    d_U_bc_coefs[d]->setBcCoefs(
+                        acoef_data, bcoef_data, gcoef_data, NULL,
+                        *patch, trimmed_bdry_box, time);
+#endif
+                    // i_s_bdry: side index located on physical boundary
+                    //
+                    // i_c_intr0: cell index located adjacent to physical boundary
+                    // in the patch interior
+                    //
+                    // i_c_intr1: cell index located adjacent to i_c_intr0 in the
+                    // patch interior
+                    for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+                    {
+                        const SAMRAI::hier::Index<NDIM>& i_s_bdry = b();
+                        const double& a = (*acoef_data)(i_s_bdry,0);
+                        const double& b = (*bcoef_data)(i_s_bdry,0);
+                        const double& g = (*gcoef_data)(i_s_bdry,0);
+                        const double& h = dx[bdry_normal_axis];
+
+                        SAMRAI::hier::Index<NDIM> i_c_intr0 = i_s_bdry;
+                        SAMRAI::hier::Index<NDIM> i_c_intr1 = i_s_bdry;
+                        if (bdry_upper_side)
+                        {
+                            i_c_intr0(bdry_normal_axis) -= 1;
+                            i_c_intr1(bdry_normal_axis) -= 2;
+                        }
+                        else
+                        {
+                            i_c_intr0(bdry_normal_axis) += 0;
+                            i_c_intr1(bdry_normal_axis) += 1;
+                        }
+
+                        if (U_idx != -1)
+                        {
+                            const double& u_i = (*U_data)(i_c_intr1,d);
+                            const double u_b = (2.0*b*u_i + 3.0*g*h)/(3.0*a*h + 2.0*b);
+                            (*U_data)(i_c_intr0,d) = (u_i + 2.0*u_b)/3.0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Synchronize the data on the patch hierarchy.
+    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    {
+        if (!cscheds[ln].isNull()) cscheds[ln]->coarsenData();
+    }
+
+    t_reset_cell_velocity_boundary_conditions->stop();
+    return;
+}// resetCellVelocityBoundaryConditions
+
+void
+INSHierarchyIntegrator::resetMACVelocityBoundaryConditions(
     const int u_idx,
     const double time,
     const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& cscheds,
     const int coarsest_ln,
     const int finest_ln)
 {
-    t_reset_normal_velocity_boundary_conditions->start();
+    t_reset_mac_velocity_boundary_conditions->start();
 
     SAMRAI::math::ArrayDataBasicOps<NDIM,double> array_ops;
     (void) array_ops;
@@ -3107,143 +3248,9 @@ INSHierarchyIntegrator::resetNormalVelocityBoundaryConditions(
         if (!cscheds[ln].isNull()) cscheds[ln]->coarsenData();
     }
 
-    t_reset_normal_velocity_boundary_conditions->stop();
+    t_reset_mac_velocity_boundary_conditions->stop();
     return;
-}// resetNormalVelocityBoundaryConditions
-
-#if 0
-INSHierarchyIntegrator::resetBoundaryVelocity(
-    const int U_idx,
-    const int u_idx,
-    const double time)
-{
-    t_reset_boundary_velocity->start();
-
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    SAMRAI::math::ArrayDataBasicOps<NDIM,double> array_ops;
-    (void) array_ops;
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            const double* const dx = pgeom->getDx();
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U_data =
-                (U_idx == -1
-                 ? SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL)
-                 : patch->getPatchData(U_idx));
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data =
-                (u_idx == -1
-                 ? SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL)
-                 : patch->getPatchData(u_idx));
-
-            const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
-                STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
-            const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-            for (int n = 0; n < n_physical_codim1_boxes; ++n)
-            {
-                const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                const SAMRAI::hier::BoundaryBox<NDIM> trimmed_bdry_box =
-                    STOOLS::PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-                const SAMRAI::hier::Box<NDIM> bc_coef_box =
-                    STOOLS::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > acoef_data =
-                    new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > bcoef_data =
-                    new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > gcoef_data =
-                    new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
-
-                const int location_index = bdry_box.getLocationIndex();
-                const int bdry_normal_axis =  location_index / 2;
-                const bool bdry_upper_side = (location_index % 2) != 0;
-
-                for (int d = 0; d < NDIM; ++d)
-                {
-#if USING_OLD_ROBIN_BC_INTERFACE
-                    // In the old interface, beta = (1-alpha).
-                    d_U_bc_coefs[d]->setBcCoefs(
-                        acoef_data, gcoef_data, NULL,
-                        *patch, trimmed_bdry_box, time);
-                    array_ops.scale(*bcoef_data, -1.0, *acoef_data, bc_coef_box);
-                    array_ops.addScalar(*bcoef_data, *bcoef_data, 1.0, bc_coef_box);
-#else
-                    d_U_bc_coefs[d]->setBcCoefs(
-                        acoef_data, bcoef_data, gcoef_data, NULL,
-                        *patch, trimmed_bdry_box, time);
-#endif
-                    // i_s_bdry: side index located on physical boundary
-                    //
-                    // i_c_intr0: cell index located adjacent to physical
-                    // boundary in the patch interior
-                    //
-                    // i_c_intr1: cell index located adjacent to i_c_intr0 in
-                    // the patch interior
-                    for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
-                    {
-                        const SAMRAI::hier::Index<NDIM>& i_s_bdry = b();
-                        const double& a = (*acoef_data)(i_s_bdry,0);
-                        const double& b = (*bcoef_data)(i_s_bdry,0);
-                        const double& g = (*gcoef_data)(i_s_bdry,0);
-                        const double& h = dx[bdry_normal_axis];
-
-                        SAMRAI::hier::Index<NDIM> i_c_intr0 = i_s_bdry;
-                        SAMRAI::hier::Index<NDIM> i_c_intr1 = i_s_bdry;
-                        if (bdry_upper_side)
-                        {
-                            i_c_intr0(bdry_normal_axis) -= 1;
-                            i_c_intr1(bdry_normal_axis) -= 2;
-                        }
-                        else
-                        {
-                            i_c_intr0(bdry_normal_axis) += 0;
-                            i_c_intr1(bdry_normal_axis) += 1;
-                        }
-
-                        if (U_idx != -1)
-                        {
-                            const double& u_i = (*U_data)(i_c_intr1,d);
-                            const double u_b = (2.0*b*u_i + 3.0*g*h)/(3.0*a*h + 2.0*b);
-                            (*U_data)(i_c_intr0,d) = (u_i + 2.0*u_b)/3.0;
-                        }
-
-                        if (d == bdry_normal_axis && u_idx != -1)
-                        {
-                            const SAMRAI::pdat::FaceIndex<NDIM> i_f_bdry(
-                                i_c_intr0, bdry_normal_axis,
-                                (bdry_upper_side
-                                 ? SAMRAI::pdat::FaceIndex<NDIM>::Upper
-                                 : SAMRAI::pdat::FaceIndex<NDIM>::Lower));
-                            const SAMRAI::pdat::FaceIndex<NDIM> i_f_intr(
-                                i_c_intr1, bdry_normal_axis,
-                                (bdry_upper_side
-                                 ? SAMRAI::pdat::FaceIndex<NDIM>::Upper
-                                 : SAMRAI::pdat::FaceIndex<NDIM>::Lower));
-                            const double& u_i = (*u_data)(i_f_intr);
-                            (*u_data)(i_f_bdry) = (b*u_i + g*h)/(a*h + b);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Synchronize the data on the patch hierarchy.
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
-    {
-        if (!cscheds[ln].isNull()) cscheds[ln]->coarsenData();
-    }
-
-    t_reset_boundary_velocity->start();
-    return;
-}// resetBoundaryVelocity
-#endif
+}// resetMACVelocityBoundaryConditions
 
 void
 INSHierarchyIntegrator::getFromInput(

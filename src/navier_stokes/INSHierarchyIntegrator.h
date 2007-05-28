@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <24.May.2007 13:54:29 griffith@box221.cims.nyu.edu>
+// Last modified: <28.May.2007 18:01:29 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -810,10 +810,21 @@ private:
         const int finest_ln);
 
     /*!
-     * Reset the normal velocity components along the physical boundary.
+     * Reset the cell-centered velocity components along the physical boundary.
      */
     void
-    resetNormalVelocityBoundaryConditions(
+    resetCellVelocityBoundaryConditions(
+        const int U_idx,
+        const double time,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& cscheds,
+        const int coarsest_ln,
+        const int finest_ln);
+
+    /*!
+     * Reset the MAC velocity components along the physical boundary.
+     */
+    void
+    resetMACVelocityBoundaryConditions(
         const int u_idx,
         const double time,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& cscheds,
