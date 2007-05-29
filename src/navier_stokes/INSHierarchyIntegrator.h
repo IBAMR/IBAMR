@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <28.May.2007 18:01:29 griffith@box221.cims.nyu.edu>
+// Last modified: <29.May.2007 12:38:16 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -161,6 +161,19 @@ public:
     void
     registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
+
+    /*!
+     * Supply an optional patch data descriptor for cell data indicating the
+     * locations of irregular Cartesian grid cells, i.e., those Cartesian grid
+     * cells within the stencil of the regularized delta function centered about
+     * a node of the Lagrangian mesh.
+     *
+     * \note Irregular cell data is not used by class INSHierarchyIntegrator
+     * unless a valid patch data descriptor index is provided via this method.
+     */
+    void
+    registerIrregularCellPatchDescriptorIndex(
+        const int irregular_cell_idx);
 
     ///
     ///  The following routines:
@@ -1135,8 +1148,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var, d_Div_u_var, d_Div_u_adv_var;
 
     /*
-     * SAMRAI::hier::Patch data descriptor indices for all variables managed by
-     * the integrator.
+     * Patch data descriptor indices for all variables managed by the
+     * integrator.
      *
      * State variables have three contexts: current, scratch, and new.
      */
@@ -1159,15 +1172,15 @@ private:
     int d_Div_u_adv_current_idx, d_Div_u_adv_new_idx, d_Div_u_adv_scratch_idx;
 
     /*
-     * SAMRAI::hier::Patch data descriptor indices for all variables managed by
-     * the integrator.
+     * Patch data descriptor indices for all variables managed by the
+     * integrator.
      *
      * Scratch variables have only one context.
      */
     int d_Grad_Phi_idx, d_grad_Phi_idx, d_G_idx, d_H_idx, d_V_idx;
 
     /*
-     * SAMRAI::hier::Patch data descriptors for all variables managed by the
+     * Patch data descriptors for all variables managed by the
      * AdvDiffHierarchyIntegrator class.
      *
      * TIME_DEP variables have three contexts: current, scratch, and new.  Note
@@ -1182,12 +1195,20 @@ private:
     int d_Grad_P_current_idx, d_Grad_P_new_idx, d_Grad_P_scratch_idx;
 
     /*
-     * SAMRAI::hier::Patch data descriptors for all variables managed by the
-     * HierarchyMathOps class.
+     * Patch data descriptors for all variables managed by the HierarchyMathOps
+     * class.
      *
      * Such variables have only one context.
      */
     int d_wgt_idx;
+
+    /*
+     * Patch data descriptors for all variables managed by the
+     * IBHierarchyIntegrator class.
+     *
+     * Such variables have only one context.
+     */
+    int d_irregular_cell_idx;
 };
 }// namespace IBAMR
 

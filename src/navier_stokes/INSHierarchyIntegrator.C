@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.May.2007 18:19:17 griffith@box221.cims.nyu.edu>
+// Last modified: <29.May.2007 14:02:16 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -176,6 +176,10 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
         SAMRAI::tbox::RestartManager::getManager()->
             registerRestartItem(d_object_name, this);
     }
+
+    // Initialize the irregular data index so that it is not used unless
+    // provided to method registerIrregularCellDataPatchDescriptorIndex().
+    d_irregular_cell_idx = -1;
 
     // Set some default values.
     d_P_scale = 1.0;
@@ -412,6 +416,17 @@ INSHierarchyIntegrator::registerVisItDataWriter(
     d_visit_writer = visit_writer;
     return;
 }// registerVisItDataWriter
+
+void
+INSHierarchyIntegrator::registerIrregularCellPatchDescriptorIndex(
+    const int irregular_cell_idx)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(irregular_cell_idx != -1);
+#endif
+    d_irregular_cell_idx = irregular_cell_idx;
+    return;
+}// registerIrregularCellPatchDescriptorIndex
 
 ///
 ///  The following routines:
@@ -3034,6 +3049,8 @@ INSHierarchyIntegrator::resetCellVelocityBoundaryConditions(
 {
     t_reset_cell_velocity_boundary_conditions->start();
 
+    const bool using_irregular_cell_data = d_irregular_cell_idx != -1;
+
     SAMRAI::math::ArrayDataBasicOps<NDIM,double> array_ops;
     (void) array_ops;
 
@@ -3049,6 +3066,10 @@ INSHierarchyIntegrator::resetCellVelocityBoundaryConditions(
 
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U_data =
                 patch->getPatchData(U_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > irregular_cell_data =
+                (using_irregular_cell_data
+                 ? patch->getPatchData(d_irregular_cell_idx)
+                 : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL));
 
             const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
                 STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
@@ -3114,7 +3135,7 @@ INSHierarchyIntegrator::resetCellVelocityBoundaryConditions(
                             i_c_intr1(bdry_normal_axis) += 1;
                         }
 
-                        if (U_idx != -1)
+                        if (!using_irregular_cell_data || (*irregular_cell_data)(i_c_intr0) == 1.0)
                         {
                             const double& u_i = (*U_data)(i_c_intr1,d);
                             const double u_b = (2.0*b*u_i + 3.0*g*h)/(3.0*a*h + 2.0*b);

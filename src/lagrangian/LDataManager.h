@@ -2,7 +2,7 @@
 #define included_LDataManager
 
 // Filename: LDataManager.h
-// Last modified: <28.May.2007 17:39:02 griffith@box221.cims.nyu.edu>
+// Last modified: <29.May.2007 12:28:41 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -372,6 +372,7 @@ public:
      */
     void
     updateIrregularCellData(
+        const int stencil_size,
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
@@ -724,8 +725,8 @@ private:
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * cell variable used to indicate the "irregular" Cartesian grid cells,
-     * i.e., those Cartesian grid cells within the ghost cell width of a node of
-     * the Lagrangian mesh.
+     * i.e., those Cartesian grid cells within the stencil of the regularized
+     * delta function centered about a node of the Lagrangian mesh.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_irregular_cell_var;
     int d_irregular_cell_idx;

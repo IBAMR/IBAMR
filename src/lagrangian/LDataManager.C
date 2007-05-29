@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <28.May.2007 17:50:37 griffith@box221.cims.nyu.edu>
+// Last modified: <29.May.2007 12:21:47 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -1352,6 +1352,7 @@ LDataManager::updateWorkloadData(
 
 void
 LDataManager::updateIrregularCellData(
+    const int stencil_size,
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
@@ -1380,19 +1381,18 @@ LDataManager::updateIrregularCellData(
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-
             const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
                 patch->getPatchData(d_lag_node_index_current_idx);
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > irregular_cell_data =
                 patch->getPatchData(d_irregular_cell_idx);
-
             irregular_cell_data->fillAll(0.0);
             for (LNodeIndexData::Iterator it(*idx_data); it; it++)
             {
                 const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
                 const SAMRAI::hier::Box<NDIM> stencil_box =
-                    SAMRAI::hier::Box<NDIM>::grow(SAMRAI::hier::Box<NDIM>(i,i), d_ghosts);
-                irregular_cell_data->fill(1.0,stencil_box);
+                    SAMRAI::hier::Box<NDIM>::grow(SAMRAI::hier::Box<NDIM>(i,i),
+                                                  SAMRAI::hier::IntVector<NDIM>(stencil_size/2));
+                irregular_cell_data->fillAll(1.0,stencil_box);
             }
         }
     }

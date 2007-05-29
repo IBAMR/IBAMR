@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <23.May.2007 14:50:37 griffith@box221.cims.nyu.edu>
+// Last modified: <29.May.2007 12:37:40 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1486,6 +1486,13 @@ IBHierarchyIntegrator::regridHierarchy()
     // Update the workload post-regridding.
     d_lag_data_manager->updateWorkloadData(
         0,d_hierarchy->getFinestLevelNumber());
+
+    // Update the irregular cell data post-regridding.
+    const int stencil_size = LEInteractor::getStencilSize(d_delta_fcn);
+    d_lag_data_manager->updateIrregularCellData(
+        stencil_size,0,d_hierarchy->getFinestLevelNumber());
+    d_ins_hier_integrator->registerIrregularCellPatchDescriptorIndex(
+        d_lag_data_manager->getIrregularCellPatchDescriptorIndex());
 
     // Indicate that the force and source strategies need to be re-initialized.
     d_force_strategy_needs_init  = true;
