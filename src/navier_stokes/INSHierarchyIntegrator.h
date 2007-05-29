@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <29.May.2007 12:38:16 griffith@box221.cims.nyu.edu>
+// Last modified: <29.May.2007 17:05:37 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -986,6 +986,14 @@ private:
     bool d_using_vorticity_tagging;
     SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
     double d_Omega_max;
+
+    /*
+     * These boolean values determine whether the boundary conditions for the
+     * normal and/or tangential cell centered velocity components are explicitly
+     * enforced at the physical boundaries of the domain.
+     */
+    bool d_enforce_normal_velocity_bc, d_enforce_tangential_velocity_bc;
+    bool d_enforce_velocity_bc_only_for_irregular_cells;
 
     /*
      * This boolean value determines whether a pressure increment is employed to

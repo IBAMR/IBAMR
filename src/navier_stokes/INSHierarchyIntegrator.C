@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <29.May.2007 14:02:16 griffith@box221.cims.nyu.edu>
+// Last modified: <29.May.2007 17:23:01 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -192,6 +192,10 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_max_integrator_steps = std::numeric_limits<int>::max();
 
     d_using_synch_projection = true;
+
+    d_enforce_normal_velocity_bc = false;
+    d_enforce_tangential_velocity_bc = false;
+    d_enforce_velocity_bc_only_for_irregular_cells = false;
 
     d_using_vorticity_tagging = false;
     d_Omega_max = 0.0;
@@ -2741,6 +2745,9 @@ INSHierarchyIntegrator::putToDatabase(
     db->putDoubleArray("d_Omega_rel_thresh", d_Omega_rel_thresh);
     db->putDoubleArray("d_Omega_abs_thresh", d_Omega_abs_thresh);
     db->putDouble("d_Omega_max", d_Omega_max);
+    db->putBool("d_enforce_normal_velocity_bc", d_enforce_normal_velocity_bc);
+    db->putBool("d_enforce_tangential_velocity_bc", d_enforce_tangential_velocity_bc);
+    db->putBool("d_enforce_velocity_bc_only_for_irregular_cells", d_enforce_velocity_bc_only_for_irregular_cells);
     db->putBool("d_using_pressure_increment_form", d_using_pressure_increment_form);
     db->putBool("d_second_order_pressure_update", d_second_order_pressure_update);
     db->putBool("d_normalize_pressure", d_normalize_pressure);
@@ -2806,6 +2813,9 @@ INSHierarchyIntegrator::printClassData(
     std::copy(d_Omega_abs_thresh.getPointer(), d_Omega_abs_thresh.getPointer()+d_Omega_abs_thresh.size(), std::ostream_iterator<double>(os, " , "));
     os << " ]\n"
        << "d_Omega_max = " << d_Omega_max << endl;
+    os << "d_enforce_normal_velocity_bc = " << d_enforce_normal_velocity_bc << "\n"
+       << "d_enforce_tangential_velocity_bc = " << d_enforce_tangential_velocity_bc << "\n"
+       << "d_enforce_velocity_bc_only_for_irregular_cells = " << d_enforce_velocity_bc_only_for_irregular_cells << endl;
     os << "d_using_pressure_increment_form = " << d_using_pressure_increment_form << endl;
     os << "d_second_order_pressure_update = " << d_second_order_pressure_update << endl;
     os << "d_normalize_pressure = " << d_normalize_pressure << endl;
@@ -3095,51 +3105,56 @@ INSHierarchyIntegrator::resetCellVelocityBoundaryConditions(
 
                 for (int d = 0; d < NDIM; ++d)
                 {
-#if USING_OLD_ROBIN_BC_INTERFACE
-                    // In the old interface, beta = (1-alpha).
-                    d_U_bc_coefs[d]->setBcCoefs(
-                        acoef_data, gcoef_data, NULL,
-                        *patch, trimmed_bdry_box, time);
-                    array_ops.scale(*bcoef_data, -1.0, *acoef_data, bc_coef_box);
-                    array_ops.addScalar(*bcoef_data, *bcoef_data, 1.0, bc_coef_box);
-#else
-                    d_U_bc_coefs[d]->setBcCoefs(
-                        acoef_data, bcoef_data, gcoef_data, NULL,
-                        *patch, trimmed_bdry_box, time);
-#endif
-                    // i_s_bdry: side index located on physical boundary
-                    //
-                    // i_c_intr0: cell index located adjacent to physical boundary
-                    // in the patch interior
-                    //
-                    // i_c_intr1: cell index located adjacent to i_c_intr0 in the
-                    // patch interior
-                    for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+                    if ((d == bdry_normal_axis && d_enforce_normal_velocity_bc) ||
+                        (d != bdry_normal_axis && d_enforce_tangential_velocity_bc))
                     {
-                        const SAMRAI::hier::Index<NDIM>& i_s_bdry = b();
-                        const double& a = (*acoef_data)(i_s_bdry,0);
-                        const double& b = (*bcoef_data)(i_s_bdry,0);
-                        const double& g = (*gcoef_data)(i_s_bdry,0);
-                        const double& h = dx[bdry_normal_axis];
+#if USING_OLD_ROBIN_BC_INTERFACE
+                        // In the old interface, beta = (1-alpha).
+                        d_U_bc_coefs[d]->setBcCoefs(
+                            acoef_data, gcoef_data, NULL,
+                            *patch, trimmed_bdry_box, time);
+                        array_ops.scale(*bcoef_data, -1.0, *acoef_data, bc_coef_box);
+                        array_ops.addScalar(*bcoef_data, *bcoef_data, 1.0, bc_coef_box);
+#else
+                        d_U_bc_coefs[d]->setBcCoefs(
+                            acoef_data, bcoef_data, gcoef_data, NULL,
+                            *patch, trimmed_bdry_box, time);
+#endif
+                        // i_s_bdry: side index located on physical boundary
+                        //
+                        // i_c_intr0: cell index located adjacent to physical
+                        // boundary in the patch interior
+                        //
+                        // i_c_intr1: cell index located adjacent to i_c_intr0
+                        // in the patch interior
+                        for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+                        {
+                            const SAMRAI::hier::Index<NDIM>& i_s_bdry = b();
+                            const double& a = (*acoef_data)(i_s_bdry,0);
+                            const double& b = (*bcoef_data)(i_s_bdry,0);
+                            const double& g = (*gcoef_data)(i_s_bdry,0);
+                            const double& h = dx[bdry_normal_axis];
 
-                        SAMRAI::hier::Index<NDIM> i_c_intr0 = i_s_bdry;
-                        SAMRAI::hier::Index<NDIM> i_c_intr1 = i_s_bdry;
-                        if (bdry_upper_side)
-                        {
-                            i_c_intr0(bdry_normal_axis) -= 1;
-                            i_c_intr1(bdry_normal_axis) -= 2;
-                        }
-                        else
-                        {
-                            i_c_intr0(bdry_normal_axis) += 0;
-                            i_c_intr1(bdry_normal_axis) += 1;
-                        }
+                            SAMRAI::hier::Index<NDIM> i_c_intr0 = i_s_bdry;
+                            SAMRAI::hier::Index<NDIM> i_c_intr1 = i_s_bdry;
+                            if (bdry_upper_side)
+                            {
+                                i_c_intr0(bdry_normal_axis) -= 1;
+                                i_c_intr1(bdry_normal_axis) -= 2;
+                            }
+                            else
+                            {
+                                i_c_intr0(bdry_normal_axis) += 0;
+                                i_c_intr1(bdry_normal_axis) += 1;
+                            }
 
-                        if (!using_irregular_cell_data || (*irregular_cell_data)(i_c_intr0) == 1.0)
-                        {
-                            const double& u_i = (*U_data)(i_c_intr1,d);
-                            const double u_b = (2.0*b*u_i + 3.0*g*h)/(3.0*a*h + 2.0*b);
-                            (*U_data)(i_c_intr0,d) = (u_i + 2.0*u_b)/3.0;
+                            if (!d_enforce_velocity_bc_only_for_irregular_cells ||
+                                (using_irregular_cell_data && (*irregular_cell_data)(i_c_intr0) == 1.0))
+                            {
+                                const double& u_i = (*U_data)(i_c_intr1,d);
+                                const double u_b = (2.0*b*u_i + 3.0*g*h)/(3.0*a*h + 2.0*b);
+                                (*U_data)(i_c_intr0,d) = (u_i + 2.0*u_b)/3.0;
+                            }
                         }
                     }
                 }
@@ -3392,6 +3407,15 @@ INSHierarchyIntegrator::getFromInput(
         d_num_init_cycles = db->getIntegerWithDefault(
             "num_init_cycles", d_num_init_cycles);
 
+        d_enforce_normal_velocity_bc = db->getBoolWithDefault(
+            "enforce_normal_velocity_bc", d_enforce_normal_velocity_bc);
+
+        d_enforce_tangential_velocity_bc = db->getBoolWithDefault(
+            "enforce_tangential_velocity_bc", d_enforce_tangential_velocity_bc);
+
+        d_enforce_velocity_bc_only_for_irregular_cells = db->getBoolWithDefault(
+            "enforce_velocity_bc_only_for_irregular_cells", d_enforce_velocity_bc_only_for_irregular_cells);
+
         d_using_pressure_increment_form = db->getBoolWithDefault(
             "using_pressure_increment_form", d_using_pressure_increment_form);
 
@@ -3477,6 +3501,9 @@ INSHierarchyIntegrator::getFromRestart()
     d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
     d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
     d_Omega_max = db->getDouble("d_Omega_max");
+    d_enforce_normal_velocity_bc = db->getBool("d_enforce_normal_velocity_bc");
+    d_enforce_tangential_velocity_bc = db->getBool("d_enforce_tangential_velocity_bc");
+    d_enforce_velocity_bc_only_for_irregular_cells = db->getBool("d_enforce_velocity_bc_only_for_irregular_cells");
     d_using_pressure_increment_form = db->getBool("d_using_pressure_increment_form");
     d_second_order_pressure_update = db->getBool("d_second_order_pressure_update");
     d_normalize_pressure = db->getBool("d_normalize_pressure");
