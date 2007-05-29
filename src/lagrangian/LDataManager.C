@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <29.May.2007 12:21:47 griffith@box221.cims.nyu.edu>
+// Last modified: <29.May.2007 19:31:55 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -704,6 +704,9 @@ LDataManager::beginDataRedistribution(
             }
 
             // Update the ghost values of the Lagrangian nodal positions.
+            SAMRAI::tbox::plog << d_object_name << "::beginDataRedistribution():\n"
+                               << "  filling ghost node data on level " << ln << "\n";
+
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->beginGhostUpdate();
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->endGhostUpdate();
 
@@ -711,9 +714,15 @@ LDataManager::beginDataRedistribution(
             // LNodeIndex.  They are directly used below to locate the
             // Lagrangian nodes.  They are also used to re-sort the node index
             // sets in an attempt to maximize data locality.
+            SAMRAI::tbox::plog << d_object_name << "::beginDataRedistribution():\n"
+                               << "  restoring location pointers on level " << ln << "\n";
+
             restoreLocationPointers(ln,ln);
 
             // Update the index patch data on the level.
+            SAMRAI::tbox::plog << d_object_name << "::beginDataRedistribution():\n"
+                               << "  updating LNodeIndexData on level " << ln << "\n";
+
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
