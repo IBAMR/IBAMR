@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <29.May.2007 19:31:55 griffith@box221.cims.nyu.edu>
+// Last modified: <30.May.2007 11:28:09 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -662,6 +662,7 @@ LDataManager::beginDataRedistribution(
     const int finest_ln_in)
 {
     t_begin_data_redistribution->start();
+    SAMRAI::tbox::plog << d_object_name << "::beginDataRedistribution(): starting!\n";
 
     const int coarsest_ln =
         (coarsest_ln_in == -1)
@@ -902,6 +903,7 @@ LDataManager::beginDataRedistribution(
         }// if (d_level_contains_lag_data[ln])
     }// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
 
+    SAMRAI::tbox::plog << d_object_name << "::beginDataRedistribution(): complete!\n";
     t_begin_data_redistribution->stop();
     return;
 }// beginDataRedistribution
@@ -912,6 +914,7 @@ LDataManager::endDataRedistribution(
     const int finest_ln_in)
 {
     t_end_data_redistribution->start();
+    SAMRAI::tbox::plog << d_object_name << "::endDataRedistribution(): starting!\n";
 
     const int coarsest_ln =
         (coarsest_ln_in == -1)
@@ -1296,6 +1299,7 @@ LDataManager::endDataRedistribution(
         d_silo_writer->registerLagrangianAO(d_ao, coarsest_ln, finest_ln);
     }
 
+    SAMRAI::tbox::plog << d_object_name << "::endDataRedistribution(): complete!\n";
     t_end_data_redistribution->stop();
     return;
 }// endDataRedistribution
