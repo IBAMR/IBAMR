@@ -32,3 +32,18 @@ libIBAMR_utilities2d_a_SOURCES = $(SOURCES)
 
 libIBAMR_utilities3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR_utilities3d_a_SOURCES = $(SOURCES)
+
+# Dimension-independent executables
+bin_PROGRAMS  = spring2hdf
+
+spring2hdf_CXXFLAGS= $(AM_CXXFLAGS)
+spring2hdf_SOURCES = spring2hdf.C
+
+# Dimension-dependent executables
+bin_PROGRAMS += vertex2hdf2d vertex2hdf3d
+
+vertex2hdf2d_CXXFLAGS= $(AM_CXXFLAGS) -DNDIM=2
+vertex2hdf2d_SOURCES = vertex2hdf.C
+
+vertex2hdf3d_CXXFLAGS= $(AM_CXXFLAGS) -DNDIM=3
+vertex2hdf3d_SOURCES = vertex2hdf.C
