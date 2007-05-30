@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <29.May.2007 12:37:40 griffith@box221.cims.nyu.edu>
+// Last modified: <30.May.2007 11:45:26 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1470,24 +1470,30 @@ IBHierarchyIntegrator::regridHierarchy()
     t_regrid_hierarchy->start();
 
     // Update the workload pre-regridding.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
     d_lag_data_manager->updateWorkloadData(
         0,d_hierarchy->getFinestLevelNumber());
 
     // Before regriding, begin Lagrangian data movement.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement.\n";
     d_lag_data_manager->beginDataRedistribution();
 
     // We use the INSHierarchyIntegrator to handle as much structured data
     // management as possible.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): calling INSHierarchyIntegrator::regridHierarchy().\n";
     d_ins_hier_integrator->regridHierarchy();
 
     // After regridding, finish Lagrangian data movement.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement.\n";
     d_lag_data_manager->endDataRedistribution();
 
     // Update the workload post-regridding.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
     d_lag_data_manager->updateWorkloadData(
         0,d_hierarchy->getFinestLevelNumber());
 
     // Update the irregular cell data post-regridding.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): tagging irregular cells.\n";
     const int stencil_size = LEInteractor::getStencilSize(d_delta_fcn);
     d_lag_data_manager->updateIrregularCellData(
         stencil_size,0,d_hierarchy->getFinestLevelNumber());

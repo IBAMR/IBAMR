@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <30.May.2007 11:28:09 griffith@box221.cims.nyu.edu>
+// Last modified: <30.May.2007 11:42:52 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -662,7 +662,6 @@ LDataManager::beginDataRedistribution(
     const int finest_ln_in)
 {
     t_begin_data_redistribution->start();
-    SAMRAI::tbox::plog << d_object_name << "::beginDataRedistribution(): starting!\n";
 
     const int coarsest_ln =
         (coarsest_ln_in == -1)
@@ -690,9 +689,6 @@ LDataManager::beginDataRedistribution(
 
     // Update the LNodeIndexSet distribution in the specified levels in the
     // patch hierarchy.
-    SAMRAI::tbox::plog << d_object_name << "::beginDataRedistribution():\n"
-                       << "  updating LNodeIndexSet data to correspond to the present configuration of the Lagrangian mesh\n";
-
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_level_contains_lag_data[ln])
@@ -705,9 +701,6 @@ LDataManager::beginDataRedistribution(
             }
 
             // Update the ghost values of the Lagrangian nodal positions.
-            SAMRAI::tbox::plog << d_object_name << "::beginDataRedistribution():\n"
-                               << "  filling ghost node data on level " << ln << "\n";
-
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->beginGhostUpdate();
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->endGhostUpdate();
 
@@ -715,15 +708,9 @@ LDataManager::beginDataRedistribution(
             // LNodeIndex.  They are directly used below to locate the
             // Lagrangian nodes.  They are also used to re-sort the node index
             // sets in an attempt to maximize data locality.
-            SAMRAI::tbox::plog << d_object_name << "::beginDataRedistribution():\n"
-                               << "  restoring location pointers on level " << ln << "\n";
-
             restoreLocationPointers(ln,ln);
 
             // Update the index patch data on the level.
-            SAMRAI::tbox::plog << d_object_name << "::beginDataRedistribution():\n"
-                               << "  updating LNodeIndexData on level " << ln << "\n";
-
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -903,7 +890,6 @@ LDataManager::beginDataRedistribution(
         }// if (d_level_contains_lag_data[ln])
     }// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
 
-    SAMRAI::tbox::plog << d_object_name << "::beginDataRedistribution(): complete!\n";
     t_begin_data_redistribution->stop();
     return;
 }// beginDataRedistribution
@@ -914,7 +900,6 @@ LDataManager::endDataRedistribution(
     const int finest_ln_in)
 {
     t_end_data_redistribution->start();
-    SAMRAI::tbox::plog << d_object_name << "::endDataRedistribution(): starting!\n";
 
     const int coarsest_ln =
         (coarsest_ln_in == -1)
@@ -943,9 +928,6 @@ LDataManager::endDataRedistribution(
     }
 
     // Fill the ghost cells of each level.
-    SAMRAI::tbox::plog << d_object_name << "::endDataRedistribution():\n"
-                       <<"  filling LNodeIndexSet ghost cells\n";
-
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_level_contains_lag_data[ln])
@@ -966,9 +948,6 @@ LDataManager::endDataRedistribution(
 
     // Define the PETSc data needed to communicate the LNodeLevelData from its
     // old configuration to its new configuration.
-    SAMRAI::tbox::plog << d_object_name << "::endDataRedistribution():\n"
-                       << "  updating PETSc application ordering data and starting data scattering\n";
-
     int ierr;
 
     std::vector<AO> new_ao(finest_ln+1);
@@ -1223,9 +1202,6 @@ LDataManager::endDataRedistribution(
 
     // Complete the data scattering process, destroy the source Vec objects, and
     // distribute nonlocal data to the new configuration.
-    SAMRAI::tbox::plog << d_object_name << "::endDataRedistribution():\n"
-                       <<"  finishing data scattering\n";
-
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_level_contains_lag_data[ln])
@@ -1299,7 +1275,6 @@ LDataManager::endDataRedistribution(
         d_silo_writer->registerLagrangianAO(d_ao, coarsest_ln, finest_ln);
     }
 
-    SAMRAI::tbox::plog << d_object_name << "::endDataRedistribution(): complete!\n";
     t_end_data_redistribution->stop();
     return;
 }// endDataRedistribution
