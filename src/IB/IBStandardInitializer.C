@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <30.May.2007 17:30:22 griffith@box221.cims.nyu.edu>
+// Last modified: <31.May.2007 13:03:51 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -570,7 +570,6 @@ IBStandardInitializer::readVertexFile_h5(
     H5T_class_t class_id;
     size_t type_size;
     herr_t status;
-
 
     file_id = H5Fopen(vertex_filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
     if (file_id < 0) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertex_filename << endl);

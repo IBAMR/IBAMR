@@ -1,5 +1,5 @@
 // Filename: LNodeIndexSet.I
-// Last modified: <17.Apr.2007 18:25:24 griffith@box221.cims.nyu.edu>
+// Last modified: <31.May.2007 12:31:34 griffith@box221.cims.nyu.edu>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -50,7 +50,7 @@ LNodeIndexSet::operator=(
 {
     if (this == &that) return *this;  // check for self-assignment
 
-    d_set    = that.d_set   ;
+    d_set    = that.d_set;
     d_offset = that.d_offset;
     return *this;
 }// operator=

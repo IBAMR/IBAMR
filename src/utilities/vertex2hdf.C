@@ -1,5 +1,5 @@
 // Filename: vertex2hdf.C
-#include "H5LT.h"// Last modified: <30.May.2007 16:58:26 griffith@box221.cims.nyu.edu>
+// Last modified: <31.May.2007 14:05:15 griffith@box221.cims.nyu.edu>
 // Created on 30 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -52,7 +52,8 @@ main(
 {
     if (argc != 3)
     {
-        cout << "error: USAGE: " << argv[0] << " <input filename> <output filename>" << endl;
+        cout << argv[0] << ": a tool to convert IBAMR vertex files from ASCII to HDF5" << "\n"
+             << "USAGE: " << argv[0] << " <input filename> <output filename>" << endl;
         return -1;
     }
 
@@ -61,6 +62,26 @@ main(
 
     cout << "input file name: " << input_filename << "\n"
          << "output file name: " << output_filename << "\n";
+
+    // Ensure that the input file exists, and that the output file does not.
+    ifstream input_fstream, output_fstream;
+    input_fstream.open(input_filename.c_str(), ios::in);
+    output_fstream.open(output_filename.c_str(), ios::in);
+
+    if (!input_fstream.is_open())
+    {
+        cout << "error: Unable to open input file " << input_filename << endl;
+        return -1;
+    }
+
+    if (output_fstream.is_open())
+    {
+        cout << "error: Output file " << output_filename << " already exists" << endl;
+        return -1;
+    }
+
+    input_fstream.close();
+    output_fstream.close();
 
     // The vertex information.
     int num_vertex = -1;
