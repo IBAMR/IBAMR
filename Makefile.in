@@ -192,7 +192,7 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = stools doc src
+SUBDIRS = stools doc src bin
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = autogen.sh bin/includes.pl \
 	bin/scale_spring_rest_length.pl bin/scale_spring_stiffness.pl \

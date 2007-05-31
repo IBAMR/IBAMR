@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = stools doc src
+SUBDIRS = stools doc src bin
 ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST  = autogen.sh

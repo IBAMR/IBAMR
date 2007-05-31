@@ -15,7 +15,6 @@
 @SET_MAKE@
 
 
-
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -41,9 +40,6 @@ DIST_COMMON = $(pkg_include_HEADERS) $(srcdir)/Makefile.am \
 	$(top_srcdir)/config/Make-rules
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBAMR_utilities2d.a
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBAMR_utilities3d.a
-bin_PROGRAMS = spring2hdf$(EXEEXT) hdf2vertex2d$(EXEEXT) \
-	hdf2vertex3d$(EXEEXT) vertex2hdf2d$(EXEEXT) \
-	vertex2hdf3d$(EXEEXT)
 subdir = src/utilities
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -76,24 +72,6 @@ am__objects_2 = libIBAMR_utilities3d_a-Stashable.$(OBJEXT) \
 	libIBAMR_utilities3d_a-get_version.$(OBJEXT)
 am_libIBAMR_utilities3d_a_OBJECTS = $(am__objects_2)
 libIBAMR_utilities3d_a_OBJECTS = $(am_libIBAMR_utilities3d_a_OBJECTS)
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(pkg_includedir)"
-binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
-PROGRAMS = $(bin_PROGRAMS)
-am_hdf2vertex2d_OBJECTS = hdf2vertex2d-hdf2vertex.$(OBJEXT)
-hdf2vertex2d_OBJECTS = $(am_hdf2vertex2d_OBJECTS)
-hdf2vertex2d_LDADD = $(LDADD)
-am_hdf2vertex3d_OBJECTS = hdf2vertex3d-hdf2vertex.$(OBJEXT)
-hdf2vertex3d_OBJECTS = $(am_hdf2vertex3d_OBJECTS)
-hdf2vertex3d_LDADD = $(LDADD)
-am_spring2hdf_OBJECTS = spring2hdf-spring2hdf.$(OBJEXT)
-spring2hdf_OBJECTS = $(am_spring2hdf_OBJECTS)
-spring2hdf_LDADD = $(LDADD)
-am_vertex2hdf2d_OBJECTS = vertex2hdf2d-vertex2hdf.$(OBJEXT)
-vertex2hdf2d_OBJECTS = $(am_vertex2hdf2d_OBJECTS)
-vertex2hdf2d_LDADD = $(LDADD)
-am_vertex2hdf3d_OBJECTS = vertex2hdf3d-vertex2hdf.$(OBJEXT)
-vertex2hdf3d_OBJECTS = $(am_vertex2hdf3d_OBJECTS)
-vertex2hdf3d_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -103,9 +81,7 @@ CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
 DIST_SOURCES = $(libIBAMR_utilities2d_a_SOURCES) \
-	$(libIBAMR_utilities3d_a_SOURCES) $(hdf2vertex2d_SOURCES) \
-	$(hdf2vertex3d_SOURCES) $(spring2hdf_SOURCES) \
-	$(vertex2hdf2d_SOURCES) $(vertex2hdf3d_SOURCES)
+	$(libIBAMR_utilities3d_a_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -118,6 +94,7 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
+am__installdirs = "$(DESTDIR)$(pkg_includedir)"
 pkg_includeHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(pkg_include_HEADERS)
 ETAGS = etags
@@ -262,16 +239,6 @@ libIBAMR_utilities2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR_utilities2d_a_SOURCES = $(SOURCES)
 libIBAMR_utilities3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR_utilities3d_a_SOURCES = $(SOURCES)
-spring2hdf_CXXFLAGS = $(AM_CXXFLAGS)
-spring2hdf_SOURCES = spring2hdf.C
-hdf2vertex2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-hdf2vertex2d_SOURCES = hdf2vertex.C
-hdf2vertex3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-hdf2vertex3d_SOURCES = hdf2vertex.C
-vertex2hdf2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-vertex2hdf2d_SOURCES = vertex2hdf.C
-vertex2hdf3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-vertex2hdf3d_SOURCES = vertex2hdf.C
 all: all-recursive
 
 .SUFFIXES:
@@ -318,44 +285,6 @@ libIBAMR_utilities3d.a: $(libIBAMR_utilities3d_a_OBJECTS) $(libIBAMR_utilities3d
 	-rm -f libIBAMR_utilities3d.a
 	$(libIBAMR_utilities3d_a_AR) libIBAMR_utilities3d.a $(libIBAMR_utilities3d_a_OBJECTS) $(libIBAMR_utilities3d_a_LIBADD)
 	$(RANLIB) libIBAMR_utilities3d.a
-install-binPROGRAMS: $(bin_PROGRAMS)
-	@$(NORMAL_INSTALL)
-	test -z "$(bindir)" || $(mkdir_p) "$(DESTDIR)$(bindir)"
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
-	  if test -f $$p \
-	  ; then \
-	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
-	   echo " $(INSTALL_PROGRAM_ENV) $(binPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(bindir)/$$f'"; \
-	   $(INSTALL_PROGRAM_ENV) $(binPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(bindir)/$$f" || exit 1; \
-	  else :; fi; \
-	done
-
-uninstall-binPROGRAMS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  f=`echo "$$p" | sed 's,^.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
-	  echo " rm -f '$(DESTDIR)$(bindir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(bindir)/$$f"; \
-	done
-
-clean-binPROGRAMS:
-	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-hdf2vertex2d$(EXEEXT): $(hdf2vertex2d_OBJECTS) $(hdf2vertex2d_DEPENDENCIES) 
-	@rm -f hdf2vertex2d$(EXEEXT)
-	$(CXXLINK) $(hdf2vertex2d_LDFLAGS) $(hdf2vertex2d_OBJECTS) $(hdf2vertex2d_LDADD) $(LIBS)
-hdf2vertex3d$(EXEEXT): $(hdf2vertex3d_OBJECTS) $(hdf2vertex3d_DEPENDENCIES) 
-	@rm -f hdf2vertex3d$(EXEEXT)
-	$(CXXLINK) $(hdf2vertex3d_LDFLAGS) $(hdf2vertex3d_OBJECTS) $(hdf2vertex3d_LDADD) $(LIBS)
-spring2hdf$(EXEEXT): $(spring2hdf_OBJECTS) $(spring2hdf_DEPENDENCIES) 
-	@rm -f spring2hdf$(EXEEXT)
-	$(CXXLINK) $(spring2hdf_LDFLAGS) $(spring2hdf_OBJECTS) $(spring2hdf_LDADD) $(LIBS)
-vertex2hdf2d$(EXEEXT): $(vertex2hdf2d_OBJECTS) $(vertex2hdf2d_DEPENDENCIES) 
-	@rm -f vertex2hdf2d$(EXEEXT)
-	$(CXXLINK) $(vertex2hdf2d_LDFLAGS) $(vertex2hdf2d_OBJECTS) $(vertex2hdf2d_LDADD) $(LIBS)
-vertex2hdf3d$(EXEEXT): $(vertex2hdf3d_OBJECTS) $(vertex2hdf3d_DEPENDENCIES) 
-	@rm -f vertex2hdf3d$(EXEEXT)
-	$(CXXLINK) $(vertex2hdf3d_LDFLAGS) $(vertex2hdf3d_OBJECTS) $(vertex2hdf3d_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -363,8 +292,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdf2vertex2d-hdf2vertex.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdf2vertex3d-hdf2vertex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-Stashable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-StashableFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-StashableManager.Po@am__quote@
@@ -375,9 +302,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-StashableManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-StashableStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-get_version.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spring2hdf-spring2hdf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vertex2hdf2d-vertex2hdf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vertex2hdf3d-vertex2hdf.Po@am__quote@
 
 .C.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -532,76 +456,6 @@ libIBAMR_utilities3d_a-get_version.obj: get_version.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='get_version.C' object='libIBAMR_utilities3d_a-get_version.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-get_version.obj `if test -f 'get_version.C'; then $(CYGPATH_W) 'get_version.C'; else $(CYGPATH_W) '$(srcdir)/get_version.C'; fi`
-
-hdf2vertex2d-hdf2vertex.o: hdf2vertex.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdf2vertex2d_CXXFLAGS) $(CXXFLAGS) -MT hdf2vertex2d-hdf2vertex.o -MD -MP -MF "$(DEPDIR)/hdf2vertex2d-hdf2vertex.Tpo" -c -o hdf2vertex2d-hdf2vertex.o `test -f 'hdf2vertex.C' || echo '$(srcdir)/'`hdf2vertex.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/hdf2vertex2d-hdf2vertex.Tpo" "$(DEPDIR)/hdf2vertex2d-hdf2vertex.Po"; else rm -f "$(DEPDIR)/hdf2vertex2d-hdf2vertex.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='hdf2vertex.C' object='hdf2vertex2d-hdf2vertex.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdf2vertex2d_CXXFLAGS) $(CXXFLAGS) -c -o hdf2vertex2d-hdf2vertex.o `test -f 'hdf2vertex.C' || echo '$(srcdir)/'`hdf2vertex.C
-
-hdf2vertex2d-hdf2vertex.obj: hdf2vertex.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdf2vertex2d_CXXFLAGS) $(CXXFLAGS) -MT hdf2vertex2d-hdf2vertex.obj -MD -MP -MF "$(DEPDIR)/hdf2vertex2d-hdf2vertex.Tpo" -c -o hdf2vertex2d-hdf2vertex.obj `if test -f 'hdf2vertex.C'; then $(CYGPATH_W) 'hdf2vertex.C'; else $(CYGPATH_W) '$(srcdir)/hdf2vertex.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/hdf2vertex2d-hdf2vertex.Tpo" "$(DEPDIR)/hdf2vertex2d-hdf2vertex.Po"; else rm -f "$(DEPDIR)/hdf2vertex2d-hdf2vertex.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='hdf2vertex.C' object='hdf2vertex2d-hdf2vertex.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdf2vertex2d_CXXFLAGS) $(CXXFLAGS) -c -o hdf2vertex2d-hdf2vertex.obj `if test -f 'hdf2vertex.C'; then $(CYGPATH_W) 'hdf2vertex.C'; else $(CYGPATH_W) '$(srcdir)/hdf2vertex.C'; fi`
-
-hdf2vertex3d-hdf2vertex.o: hdf2vertex.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdf2vertex3d_CXXFLAGS) $(CXXFLAGS) -MT hdf2vertex3d-hdf2vertex.o -MD -MP -MF "$(DEPDIR)/hdf2vertex3d-hdf2vertex.Tpo" -c -o hdf2vertex3d-hdf2vertex.o `test -f 'hdf2vertex.C' || echo '$(srcdir)/'`hdf2vertex.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/hdf2vertex3d-hdf2vertex.Tpo" "$(DEPDIR)/hdf2vertex3d-hdf2vertex.Po"; else rm -f "$(DEPDIR)/hdf2vertex3d-hdf2vertex.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='hdf2vertex.C' object='hdf2vertex3d-hdf2vertex.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdf2vertex3d_CXXFLAGS) $(CXXFLAGS) -c -o hdf2vertex3d-hdf2vertex.o `test -f 'hdf2vertex.C' || echo '$(srcdir)/'`hdf2vertex.C
-
-hdf2vertex3d-hdf2vertex.obj: hdf2vertex.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdf2vertex3d_CXXFLAGS) $(CXXFLAGS) -MT hdf2vertex3d-hdf2vertex.obj -MD -MP -MF "$(DEPDIR)/hdf2vertex3d-hdf2vertex.Tpo" -c -o hdf2vertex3d-hdf2vertex.obj `if test -f 'hdf2vertex.C'; then $(CYGPATH_W) 'hdf2vertex.C'; else $(CYGPATH_W) '$(srcdir)/hdf2vertex.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/hdf2vertex3d-hdf2vertex.Tpo" "$(DEPDIR)/hdf2vertex3d-hdf2vertex.Po"; else rm -f "$(DEPDIR)/hdf2vertex3d-hdf2vertex.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='hdf2vertex.C' object='hdf2vertex3d-hdf2vertex.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdf2vertex3d_CXXFLAGS) $(CXXFLAGS) -c -o hdf2vertex3d-hdf2vertex.obj `if test -f 'hdf2vertex.C'; then $(CYGPATH_W) 'hdf2vertex.C'; else $(CYGPATH_W) '$(srcdir)/hdf2vertex.C'; fi`
-
-spring2hdf-spring2hdf.o: spring2hdf.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spring2hdf_CXXFLAGS) $(CXXFLAGS) -MT spring2hdf-spring2hdf.o -MD -MP -MF "$(DEPDIR)/spring2hdf-spring2hdf.Tpo" -c -o spring2hdf-spring2hdf.o `test -f 'spring2hdf.C' || echo '$(srcdir)/'`spring2hdf.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/spring2hdf-spring2hdf.Tpo" "$(DEPDIR)/spring2hdf-spring2hdf.Po"; else rm -f "$(DEPDIR)/spring2hdf-spring2hdf.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='spring2hdf.C' object='spring2hdf-spring2hdf.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spring2hdf_CXXFLAGS) $(CXXFLAGS) -c -o spring2hdf-spring2hdf.o `test -f 'spring2hdf.C' || echo '$(srcdir)/'`spring2hdf.C
-
-spring2hdf-spring2hdf.obj: spring2hdf.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spring2hdf_CXXFLAGS) $(CXXFLAGS) -MT spring2hdf-spring2hdf.obj -MD -MP -MF "$(DEPDIR)/spring2hdf-spring2hdf.Tpo" -c -o spring2hdf-spring2hdf.obj `if test -f 'spring2hdf.C'; then $(CYGPATH_W) 'spring2hdf.C'; else $(CYGPATH_W) '$(srcdir)/spring2hdf.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/spring2hdf-spring2hdf.Tpo" "$(DEPDIR)/spring2hdf-spring2hdf.Po"; else rm -f "$(DEPDIR)/spring2hdf-spring2hdf.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='spring2hdf.C' object='spring2hdf-spring2hdf.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spring2hdf_CXXFLAGS) $(CXXFLAGS) -c -o spring2hdf-spring2hdf.obj `if test -f 'spring2hdf.C'; then $(CYGPATH_W) 'spring2hdf.C'; else $(CYGPATH_W) '$(srcdir)/spring2hdf.C'; fi`
-
-vertex2hdf2d-vertex2hdf.o: vertex2hdf.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vertex2hdf2d_CXXFLAGS) $(CXXFLAGS) -MT vertex2hdf2d-vertex2hdf.o -MD -MP -MF "$(DEPDIR)/vertex2hdf2d-vertex2hdf.Tpo" -c -o vertex2hdf2d-vertex2hdf.o `test -f 'vertex2hdf.C' || echo '$(srcdir)/'`vertex2hdf.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vertex2hdf2d-vertex2hdf.Tpo" "$(DEPDIR)/vertex2hdf2d-vertex2hdf.Po"; else rm -f "$(DEPDIR)/vertex2hdf2d-vertex2hdf.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='vertex2hdf.C' object='vertex2hdf2d-vertex2hdf.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vertex2hdf2d_CXXFLAGS) $(CXXFLAGS) -c -o vertex2hdf2d-vertex2hdf.o `test -f 'vertex2hdf.C' || echo '$(srcdir)/'`vertex2hdf.C
-
-vertex2hdf2d-vertex2hdf.obj: vertex2hdf.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vertex2hdf2d_CXXFLAGS) $(CXXFLAGS) -MT vertex2hdf2d-vertex2hdf.obj -MD -MP -MF "$(DEPDIR)/vertex2hdf2d-vertex2hdf.Tpo" -c -o vertex2hdf2d-vertex2hdf.obj `if test -f 'vertex2hdf.C'; then $(CYGPATH_W) 'vertex2hdf.C'; else $(CYGPATH_W) '$(srcdir)/vertex2hdf.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vertex2hdf2d-vertex2hdf.Tpo" "$(DEPDIR)/vertex2hdf2d-vertex2hdf.Po"; else rm -f "$(DEPDIR)/vertex2hdf2d-vertex2hdf.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='vertex2hdf.C' object='vertex2hdf2d-vertex2hdf.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vertex2hdf2d_CXXFLAGS) $(CXXFLAGS) -c -o vertex2hdf2d-vertex2hdf.obj `if test -f 'vertex2hdf.C'; then $(CYGPATH_W) 'vertex2hdf.C'; else $(CYGPATH_W) '$(srcdir)/vertex2hdf.C'; fi`
-
-vertex2hdf3d-vertex2hdf.o: vertex2hdf.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vertex2hdf3d_CXXFLAGS) $(CXXFLAGS) -MT vertex2hdf3d-vertex2hdf.o -MD -MP -MF "$(DEPDIR)/vertex2hdf3d-vertex2hdf.Tpo" -c -o vertex2hdf3d-vertex2hdf.o `test -f 'vertex2hdf.C' || echo '$(srcdir)/'`vertex2hdf.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vertex2hdf3d-vertex2hdf.Tpo" "$(DEPDIR)/vertex2hdf3d-vertex2hdf.Po"; else rm -f "$(DEPDIR)/vertex2hdf3d-vertex2hdf.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='vertex2hdf.C' object='vertex2hdf3d-vertex2hdf.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vertex2hdf3d_CXXFLAGS) $(CXXFLAGS) -c -o vertex2hdf3d-vertex2hdf.o `test -f 'vertex2hdf.C' || echo '$(srcdir)/'`vertex2hdf.C
-
-vertex2hdf3d-vertex2hdf.obj: vertex2hdf.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vertex2hdf3d_CXXFLAGS) $(CXXFLAGS) -MT vertex2hdf3d-vertex2hdf.obj -MD -MP -MF "$(DEPDIR)/vertex2hdf3d-vertex2hdf.Tpo" -c -o vertex2hdf3d-vertex2hdf.obj `if test -f 'vertex2hdf.C'; then $(CYGPATH_W) 'vertex2hdf.C'; else $(CYGPATH_W) '$(srcdir)/vertex2hdf.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vertex2hdf3d-vertex2hdf.Tpo" "$(DEPDIR)/vertex2hdf3d-vertex2hdf.Po"; else rm -f "$(DEPDIR)/vertex2hdf3d-vertex2hdf.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='vertex2hdf.C' object='vertex2hdf3d-vertex2hdf.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vertex2hdf3d_CXXFLAGS) $(CXXFLAGS) -c -o vertex2hdf3d-vertex2hdf.obj `if test -f 'vertex2hdf.C'; then $(CYGPATH_W) 'vertex2hdf.C'; else $(CYGPATH_W) '$(srcdir)/vertex2hdf.C'; fi`
 uninstall-info-am:
 install-pkg_includeHEADERS: $(pkg_include_HEADERS)
 	@$(NORMAL_INSTALL)
@@ -798,10 +652,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(LIBRARIES) $(PROGRAMS) $(HEADERS)
+all-am: Makefile $(LIBRARIES) $(HEADERS)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(pkg_includedir)"; do \
+	for dir in "$(DESTDIR)$(pkg_includedir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-recursive
@@ -831,8 +685,7 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-recursive
 
-clean-am: clean-binPROGRAMS clean-generic clean-noinstLIBRARIES \
-	mostlyclean-am
+clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -rf ./$(DEPDIR)
@@ -852,7 +705,7 @@ info-am:
 
 install-data-am: install-pkg_includeHEADERS
 
-install-exec-am: install-binPROGRAMS
+install-exec-am:
 
 install-info: install-info-recursive
 
@@ -877,25 +730,23 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-info-am \
-	uninstall-pkg_includeHEADERS
+uninstall-am: uninstall-info-am uninstall-pkg_includeHEADERS
 
 uninstall-info: uninstall-info-recursive
 
 .PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am check check-am \
-	clean clean-binPROGRAMS clean-generic clean-noinstLIBRARIES \
-	clean-recursive ctags ctags-recursive distclean \
-	distclean-compile distclean-generic distclean-recursive \
-	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-binPROGRAMS install-data \
-	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-man install-pkg_includeHEADERS \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	maintainer-clean-recursive mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-recursive pdf pdf-am ps ps-am \
-	tags tags-recursive uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-info-am \
+	clean clean-generic clean-noinstLIBRARIES clean-recursive \
+	ctags ctags-recursive distclean distclean-compile \
+	distclean-generic distclean-recursive distclean-tags distdir \
+	dvi dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-exec install-exec-am \
+	install-info install-info-am install-man \
+	install-pkg_includeHEADERS install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic maintainer-clean-recursive \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-recursive pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am uninstall-info-am \
 	uninstall-pkg_includeHEADERS
 
 .f.m4.f:

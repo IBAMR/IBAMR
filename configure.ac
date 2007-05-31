@@ -549,6 +549,7 @@ echo "================"
 AC_CONFIG_SUBDIRS([stools])
 AC_CONFIG_FILES([
   Makefile
+  bin/Makefile
   config/make.inc
   doc/Makefile doc/Doxyfile
   sample/IB/Makefile sample/empty_project/Makefile
