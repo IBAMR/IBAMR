@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <17.Apr.2007 21:27:33 griffith@box221.cims.nyu.edu>
+// Last modified: <31.May.2007 18:13:11 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -364,6 +364,7 @@ HierarchyProjector::projectHierarchy(
     t_project_hierarchy_face->start();
 
     d_laplace_op->setTime(Phi_bdry_fill_time);
+    d_poisson_fac_op->setTime(Phi_bdry_fill_time);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -445,6 +446,7 @@ HierarchyProjector::projectHierarchy(
     t_project_hierarchy_side->start();
 
     d_laplace_op->setTime(Phi_bdry_fill_time);
+    d_poisson_fac_op->setTime(Phi_bdry_fill_time);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
