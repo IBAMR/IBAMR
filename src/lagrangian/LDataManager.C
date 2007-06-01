@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <01.Jun.2007 19:03:47 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Jun.2007 19:25:20 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -72,6 +72,12 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution_3;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution_4;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution_5;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution_0;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution_1;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution_2;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution_3;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution_4;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution_5;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_update_workload_data;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_update_irregular_cell_data;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_restore_location_pointers;
@@ -946,6 +952,7 @@ LDataManager::endDataRedistribution(
     }
 
     // Fill the ghost cells of each level.
+    t_end_data_redistribution_0->start();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_level_contains_lag_data[ln])
@@ -963,6 +970,7 @@ LDataManager::endDataRedistribution(
             level->deallocatePatchData(d_scratch_data);
         }
     }
+    t_end_data_redistribution_0->stop();
 
     // Define the PETSc data needed to communicate the LNodeLevelData from its
     // old configuration to its new configuration.
@@ -1012,6 +1020,7 @@ LDataManager::endDataRedistribution(
     // Finally, we create the new PETSc Vec (vector) objects which are used to
     // store the Lagrangian data in the new distribution and begin the process
     // of scattering data from the old configuration into the new one.
+    t_end_data_redistribution_1->start();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         // Reset the nonlocal PETSc indices.
@@ -1217,9 +1226,11 @@ LDataManager::endDataRedistribution(
             }
         }// if (d_level_contains_lag_data[ln])
     }// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    t_end_data_redistribution_1->stop();
 
     // Complete the data scattering process, destroy the source Vec objects, and
     // distribute nonlocal data to the new configuration.
+    t_end_data_redistribution_2->start();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_level_contains_lag_data[ln])
@@ -1251,12 +1262,16 @@ LDataManager::endDataRedistribution(
             beginNonlocalDataFill(ln,ln);
         }// if (d_level_contains_lag_data[ln])
     }// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    t_end_data_redistribution_2->stop();
 
     // Finish distributing nonlocal data to the new configuration.
+    t_end_data_redistribution_3->start();
     endNonlocalDataFill(coarsest_ln,finest_ln);
+    t_end_data_redistribution_3->stop();
 
     // Indicate that the levels have been synchronized and destroy unneeded
     // ordering and indexing objects.
+    t_end_data_redistribution_4->start();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         d_needs_synch[ln] = false;
@@ -1282,9 +1297,12 @@ LDataManager::endDataRedistribution(
             PETSC_SAMRAI_ERROR(ierr);
         }
     }
+    t_end_data_redistribution_4->stop();
 
     // Restore the position data pointers for the LNodeIndex objects.
+    t_end_data_redistribution_5->start();
     restoreLocationPointers(coarsest_ln, finest_ln);
+    t_end_data_redistribution_5->stop();
 
     // If a Silo data writer is registered with the manager, give it access to
     // the new application orderings.
@@ -2221,6 +2239,18 @@ LDataManager::LDataManager(
             getTimer("IBAMR::LDataManager::beginDataRedistribution()_5");
         t_end_data_redistribution = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::LDataManager::endDataRedistribution()");
+        t_end_data_redistribution_0 = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::LDataManager::endDataRedistribution()_0");
+        t_end_data_redistribution_1 = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::LDataManager::endDataRedistribution()_1");
+        t_end_data_redistribution_2 = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::LDataManager::endDataRedistribution()_2");
+        t_end_data_redistribution_3 = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::LDataManager::endDataRedistribution()_3");
+        t_end_data_redistribution_4 = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::LDataManager::endDataRedistribution()_4");
+        t_end_data_redistribution_5 = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::LDataManager::endDataRedistribution()_5");
         t_update_workload_data = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::LDataManager::updateWorkloadData()");
         t_update_irregular_cell_data = SAMRAI::tbox::TimerManager::getManager()->
