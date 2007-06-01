@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <01.Jun.2007 18:31:04 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Jun.2007 19:03:47 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -2208,17 +2208,17 @@ LDataManager::LDataManager(
         t_begin_data_redistribution = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::LDataManager::beginDataRedistribution()");
         t_begin_data_redistribution_0 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::beginDataRedistribution()");
+            getTimer("IBAMR::LDataManager::beginDataRedistribution()_0");
         t_begin_data_redistribution_1 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::beginDataRedistribution()");
+            getTimer("IBAMR::LDataManager::beginDataRedistribution()_1");
         t_begin_data_redistribution_2 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::beginDataRedistribution()");
+            getTimer("IBAMR::LDataManager::beginDataRedistribution()_2");
         t_begin_data_redistribution_3 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::beginDataRedistribution()");
+            getTimer("IBAMR::LDataManager::beginDataRedistribution()_3");
         t_begin_data_redistribution_4 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::beginDataRedistribution()");
+            getTimer("IBAMR::LDataManager::beginDataRedistribution()_4");
         t_begin_data_redistribution_5 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::beginDataRedistribution()");
+            getTimer("IBAMR::LDataManager::beginDataRedistribution()_5");
         t_end_data_redistribution = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::LDataManager::endDataRedistribution()");
         t_update_workload_data = SAMRAI::tbox::TimerManager::getManager()->
