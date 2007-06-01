@@ -1,5 +1,5 @@
 // Filename: LNodeIndexData.C
-// Last modified: <17.Apr.2007 18:19:51 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Jun.2007 16:02:27 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LNodeIndexData.h"
@@ -67,6 +67,7 @@ LNodeIndexData::copy(
         const LNodeIndexSet& src_node_set = *it;
         if (ghost_box.contains(i)) appendItem(i,src_node_set);
     }
+    return;
 }// copy
 
 void
@@ -74,6 +75,7 @@ LNodeIndexData::copy2(
     SAMRAI::hier::PatchData<NDIM>& dst) const
 {
     dst.copy(*this);
+    return;
 }// copy
 
 void
@@ -114,6 +116,7 @@ LNodeIndexData::copy(
             }
         }
     }
+    return;
 }// copy
 
 void
@@ -122,6 +125,7 @@ LNodeIndexData::copy2(
     const SAMRAI::hier::BoxOverlap<NDIM>& overlap) const
 {
     dst.copy(*this, overlap);
+    return;
 }// copy2
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
