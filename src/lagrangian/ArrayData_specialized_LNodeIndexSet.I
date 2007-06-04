@@ -1,8 +1,12 @@
+#ifndef included_ArrayData_specialized_LNodeIndexSet
+#define included_ArrayData_specialized_LNodeIndexSet
+
 // Filename: ArrayData_specialized_LNodeIndexSet.I
-// Last modified: <04.Jun.2007 16:26:29 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 16:38:06 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
-#include <ArrayData.C>
+#include <ArrayData.h>
+#include <CellData.h>
 #include <ibamr/LNodeIndexSet.h>
 #include <cassert>
 
@@ -11,7 +15,7 @@ namespace SAMRAI
 namespace pdat
 {
 template<>
-size_t
+inline size_t
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSizeOfData(
     const hier::Box<NDIM>& box,
     const int depth)
@@ -20,21 +24,21 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSizeOfData(
 }// getSizeOfData
 
 template<>
-bool
+inline bool
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::isStandardType()
 {
     return false;
 }// isStandardType
 
 template<>
-bool
+inline bool
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::canEstimateStreamSizeFromBox()
 {
     return false;
 }// canEstimateStreamSizeFromBox
 
 template<>
-int
+inline int
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::getDataStreamSize(
     const hier::BoxList<NDIM>& dest_boxes,
     const hier::IntVector<NDIM>& source_offset) const
@@ -57,7 +61,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::getDataStreamSize(
 }// getDataStreamSize
 
 template<>
-void
+inline void
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
     tbox::AbstractStream& stream,
     const hier::Box<NDIM>& dest_box,
@@ -90,7 +94,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
 }// packStream
 
 template<>
-void
+inline void
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
     tbox::AbstractStream& stream,
     const hier::BoxList<NDIM>& dest_boxes,
@@ -129,7 +133,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
 }// packStream
 
 template<>
-void
+inline void
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
     tbox::AbstractStream& stream,
     const hier::Box<NDIM>& dest_box,
@@ -153,7 +157,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
 }// unpackStream
 
 template<>
-void
+inline void
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
     tbox::AbstractStream& stream,
     const hier::BoxList<NDIM>& dest_boxes,
@@ -181,7 +185,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
 }// unpackStream
 
 template <>
-void
+inline void
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::putSpecializedToDatabase(
     tbox::Pointer<tbox::Database> database)
 {
@@ -190,7 +194,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::putSpecializedToDatabase(
 }// putSpecializedToDatabase
 
 template <>
-void
+inline void
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSpecializedFromDatabase(
     tbox::Pointer<tbox::Database> database)
 {
@@ -199,7 +203,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSpecializedFromDatabase(
 }// getSpecializedFromDatabase
 
 template <>
-void
+inline void
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::undefineData()
 {
     fillAll(IBAMR::LNodeIndexSet());
@@ -207,7 +211,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::undefineData()
 }// undefineData
 
 template <>
-void
+inline void
 CellData<NDIM,IBAMR::LNodeIndexSet>::print(
     const hier::Box<NDIM>& box,
     std::ostream& os,
@@ -218,7 +222,7 @@ CellData<NDIM,IBAMR::LNodeIndexSet>::print(
 }// print
 
 template<>
-void
+inline void
 CellData<NDIM,IBAMR::LNodeIndexSet>::print(
     const hier::Box<NDIM>& box,
     const int d,
@@ -230,3 +234,5 @@ CellData<NDIM,IBAMR::LNodeIndexSet>::print(
 }// print
 }
 }
+
+#endif //#ifndef included_ArrayData_specialized_LNodeIndexSet

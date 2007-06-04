@@ -27,6 +27,7 @@ LNodeInitStrategy.C \
 LagSiloDataWriter.C
 
 pkg_include_HEADERS = \
+ArrayData_specialized_LNodeIndexSet.I \
 LDataManager.h \
 LEInteractor.h \
 LNodeIndex.h \

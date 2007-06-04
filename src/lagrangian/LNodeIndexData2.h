@@ -2,12 +2,13 @@
 #define included_LNodeIndexData2
 
 // Filename: LNodeIndexData2.h
-// Last modified: <04.Jun.2007 15:20:39 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 16:29:12 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
+#include <ibamr/ArrayData_specialized_LNodeIndexSet.I>
 #include <ibamr/LNodeIndexSet.h>
 
 // SAMRAI INCLUDES
