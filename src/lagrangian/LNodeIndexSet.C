@@ -1,5 +1,5 @@
 // Filename: LNodeIndexSet.C
-// Last modified: <17.Apr.2007 18:20:20 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 16:16:44 griffith@box221.cims.nyu.edu>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LNodeIndexSet.h"
@@ -16,168 +16,15 @@
 #define included_SAMRAI_config
 #endif
 
-// IBAMR INCLUDES
-#include <ibamr/StashableStream.h>
-
-// C++ STDLIB INCLUDES
-#include <algorithm>
-#include <functional>
-#include <numeric>
-#include <sstream>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-namespace
-{
-struct LNodeIndexGetDataStreamSizeSum
-    : std::binary_function<size_t,SAMRAI::tbox::Pointer<LNodeIndex>,size_t>
-{
-    inline size_t
-    operator()(
-        size_t size_so_far,
-        const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
-        {
-            return size_so_far+index->getDataStreamSize();
-        }
-};
-
-class LNodeIndexPackStream
-    : public std::unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
-{
-public:
-    inline
-    LNodeIndexPackStream(
-        SAMRAI::tbox::AbstractStream* const stream)
-        : d_stream(stream)
-        {
-            return;
-        }
-
-    inline void
-    operator()(
-        const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
-        {
-            index->packStream(*d_stream);
-            return;
-        }
-private:
-    SAMRAI::tbox::AbstractStream* const d_stream;
-};
-
-class LNodeIndexUnpackStream
-    : public std::unary_function<void,SAMRAI::tbox::Pointer<LNodeIndex> >
-{
-public:
-    inline
-    LNodeIndexUnpackStream(
-        SAMRAI::tbox::AbstractStream* const stream,
-        const SAMRAI::hier::IntVector<NDIM>& offset)
-        : d_stream(stream),
-          d_offset(offset)
-        {
-            return;
-        }
-
-    inline SAMRAI::tbox::Pointer<LNodeIndex>
-    operator()() const
-        {
-            SAMRAI::tbox::Pointer<LNodeIndex> index_out = new LNodeIndex();
-            index_out->unpackStream(*d_stream,d_offset);
-            return index_out;
-        }
-private:
-    SAMRAI::tbox::AbstractStream* const d_stream;
-    const SAMRAI::hier::IntVector<NDIM>& d_offset;
-};
-
-struct LNodeIndexLessThan
-    : std::binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
-{
-    inline bool
-    operator()(
-        const SAMRAI::tbox::Pointer<LNodeIndex>& lhs,
-        const SAMRAI::tbox::Pointer<LNodeIndex>& rhs) const
-        {
-            return *lhs < *rhs;
-        }
-};
-}
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-size_t
-LNodeIndexSet::getDataStreamSize() const
-{
-    return std::accumulate(d_set.begin(),d_set.end(),
-                           SAMRAI::tbox::AbstractStream::sizeofInt(),
-                           LNodeIndexGetDataStreamSizeSum());
-}// getDataStreamSize
-
-void
-LNodeIndexSet::packStream(
-    SAMRAI::tbox::AbstractStream& stream)
-{
-    const int num_idx = d_set.size();
-    stream.pack(&num_idx,1);
-    for_each(d_set.begin(),d_set.end(), LNodeIndexPackStream(&stream));
-    return;
-}// packStream
-
-void
-LNodeIndexSet::unpackStream(
-    SAMRAI::tbox::AbstractStream& stream,
-    const SAMRAI::hier::IntVector<NDIM>& offset)
-{
-    int num_idx;
-    stream.unpack(&num_idx,1);
-    d_set.resize(num_idx);
-    generate(d_set.begin(),d_set.end(),
-             LNodeIndexUnpackStream(&stream,offset));
-    trimToFit();
-
-    d_offset = offset;
-    return;
-}// unpackStream
-
-void
-LNodeIndexSet::putToDatabase(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database)
-{
-    const size_t data_sz = getDataStreamSize();
-    StashableStream stream(data_sz, StashableStream::Write);
-    packStream(stream);
-    database->putInteger("data_sz", data_sz);
-    database->putCharArray("data", static_cast<char*>(stream.getBufferStart()), data_sz);
-    database->putIntegerArray("d_offset", d_offset, NDIM);
-    return;
-}// putToDatabase
-
-void
-LNodeIndexSet::getFromDatabase(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database)
-{
-    database->getIntegerArray("d_offset", d_offset, NDIM);
-
-    const size_t data_sz = database->getInteger("data_sz");
-    std::vector<char> data(data_sz);
-    database->getCharArray("data", &data[0], data_sz);
-    StashableStream stream(&data[0], data_sz, StashableStream::Read);
-    unpackStream(stream, d_offset);
-    return;
-}// getFromDatabase
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
-void
-LNodeIndexSet::reorderCollection()
-{
-    sort(d_set.begin(),d_set.end(),LNodeIndexLessThan());
-    return;
-}// sortSet
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -185,6 +32,10 @@ LNodeIndexSet::reorderCollection()
 
 /////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
 
+#include <ArrayData.C>
+#include <CellData.C>
+#include <CellDataFactory.C>
+#include <CellVariable.C>
 #include <IndexData.C>
 #include <IndexDataFactory.C>
 #include <IndexVariable.C>
@@ -192,9 +43,240 @@ LNodeIndexSet::reorderCollection()
 #include <tbox/List.C>
 #include <tbox/Pointer.C>
 
+#include <cassert>
+
+namespace SAMRAI
+{
+namespace pdat
+{
+template<>
+size_t
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSizeOfData(
+    const hier::Box<NDIM>& box,
+    const int depth)
+{
+    return tbox::Arena::align(box.size()*depth*sizeof(IBAMR::LNodeIndexSet));
+}// getSizeOfData
+
+template<>
+bool
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::isStandardType()
+{
+    return false;
+}// isStandardType
+
+template<>
+bool
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::canEstimateStreamSizeFromBox()
+{
+    return false;
+}// canEstimateStreamSizeFromBox
+
+template<>
+int
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::getDataStreamSize(
+    const hier::BoxList<NDIM>& dest_boxes,
+    const hier::IntVector<NDIM>& source_offset) const
+{
+    size_t bytes = tbox::AbstractStream::sizeofInt();
+    for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
+    {
+        const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(b(), -source_offset));
+        for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
+        {
+            const hier::Index<NDIM>& i = it();
+            const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
+            if (!node_set.empty())
+            {
+                bytes += NDIM*tbox::AbstractStream::sizeofInt() + node_set.getDataStreamSize();
+            }
+        }
+    }
+    return bytes;
+}// getDataStreamSize
+
+template<>
+void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
+    tbox::AbstractStream& stream,
+    const hier::Box<NDIM>& dest_box,
+    const hier::IntVector<NDIM>& source_offset) const
+{
+    const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(dest_box, -source_offset));
+
+    // Count the number of non-empty index set locations.
+    int num_items = 0;
+    for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
+    {
+        const hier::Index<NDIM>& i = it();
+        const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
+        if (!node_set.empty()) ++num_items;
+    }
+    stream << num_items;
+
+    // Pack the non-empty index sets into the stream.
+    for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
+    {
+        const hier::Index<NDIM>& i = it();
+        const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
+        if (!node_set.empty())
+        {
+            stream.pack(i, NDIM);
+            node_set.packStream(stream);
+        }
+    }
+    return;
+}// packStream
+
+template<>
+void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
+    tbox::AbstractStream& stream,
+    const hier::BoxList<NDIM>& dest_boxes,
+    const hier::IntVector<NDIM>& source_offset) const
+{
+    // Count the number of non-empty index set locations.
+    int num_items = 0;
+    for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
+    {
+        const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(b(), -source_offset));
+        for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
+        {
+            const hier::Index<NDIM>& i = it();
+            const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
+            if (!node_set.empty()) ++num_items;
+        }
+    }
+    stream << num_items;
+
+    // Pack the non-empty index sets into the stream.
+    for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
+    {
+        const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(b(), -source_offset));
+        for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
+        {
+            const hier::Index<NDIM>& i = it();
+            const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
+            if (!node_set.empty())
+            {
+                stream.pack(i, NDIM);
+                node_set.packStream(stream);
+            }
+        }
+    }
+    return;
+}// packStream
+
+template<>
+void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
+    tbox::AbstractStream& stream,
+    const hier::Box<NDIM>& dest_box,
+    const hier::IntVector<NDIM>& source_offset)
+{
+    // Clear out the destination region.
+    fillAll(IBAMR::LNodeIndexSet(),dest_box*d_box);
+
+    // Get the number of non-empty index set locations.
+    int num_items;
+    stream >> num_items;
+
+    // Unpack the individual items.
+    hier::Index<NDIM> i;
+    for (int k = 0; k < num_items; ++k)
+    {
+        stream.unpack(i, NDIM);
+        (*this)(i,0).unpackStream(stream,source_offset);
+    }
+    return;
+}// unpackStream
+
+template<>
+void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
+    tbox::AbstractStream& stream,
+    const hier::BoxList<NDIM>& dest_boxes,
+    const hier::IntVector<NDIM>& source_offset)
+{
+    // Clear out the destination region.
+    for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
+    {
+        const hier::Box<NDIM>& dest_box(b());
+        fillAll(IBAMR::LNodeIndexSet(),dest_box*d_box);
+    }
+
+    // Get the number of non-empty index set locations.
+    int num_items;
+    stream >> num_items;
+
+    // Unpack the individual items.
+    hier::Index<NDIM> i;
+    for (int k = 0; k < num_items; ++k)
+    {
+        stream.unpack(i, NDIM);
+        (*this)(i,0).unpackStream(stream,source_offset);
+    }
+    return;
+}// unpackStream
+
+template <>
+void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::putSpecializedToDatabase(
+    tbox::Pointer<tbox::Database> database)
+{
+    assert(false);
+    return;
+}// putSpecializedToDatabase
+
+template <>
+void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSpecializedFromDatabase(
+    tbox::Pointer<tbox::Database> database)
+{
+    assert(false);
+    return;
+}// getSpecializedFromDatabase
+
+template <>
+void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::undefineData()
+{
+    fillAll(IBAMR::LNodeIndexSet());
+    return;
+}// undefineData
+
+template <>
+void
+CellData<NDIM,IBAMR::LNodeIndexSet>::print(
+    const hier::Box<NDIM>& box,
+    std::ostream& os,
+    const int prec) const
+{
+    TBOX_ERROR("CellData<DIM,TYPE>::print() is not implemented for TYPE=IBAMR::LNodeIndexSet" << std::endl);
+    return;
+}// print
+
+template<>
+void
+CellData<NDIM,IBAMR::LNodeIndexSet>::print(
+    const hier::Box<NDIM>& box,
+    const int d,
+    std::ostream& os,
+    int prec) const
+{
+    TBOX_ERROR("CellData<DIM,TYPE>::print() is not implemented for TYPE=IBAMR::LNodeIndexSet" << std::endl);
+    return;
+}// print
+}
+}
+
 template class SAMRAI::tbox::Pointer<IBAMR::LNodeIndexSet>;
 
 #if (NDIM == 1)
+template class SAMRAI::pdat::ArrayData<1,IBAMR::LNodeIndexSet>;
+template class SAMRAI::pdat::CellData<1,IBAMR::LNodeIndexSet>;
+template class SAMRAI::pdat::CellDataFactory<1,IBAMR::LNodeIndexSet>;
+template class SAMRAI::pdat::CellVariable<1,IBAMR::LNodeIndexSet>;
 template class SAMRAI::pdat::IndexData<1,IBAMR::LNodeIndexSet>;
 template class SAMRAI::pdat::IndexDataFactory<1,IBAMR::LNodeIndexSet>;
 template class SAMRAI::pdat::IndexDataNode<1,IBAMR::LNodeIndexSet>;
@@ -210,6 +292,10 @@ template class SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<1,IBAMR::LNodeI
 #endif
 
 #if (NDIM == 2)
+template class SAMRAI::pdat::ArrayData<2,IBAMR::LNodeIndexSet>;
+template class SAMRAI::pdat::CellData<2,IBAMR::LNodeIndexSet>;
+template class SAMRAI::pdat::CellDataFactory<2,IBAMR::LNodeIndexSet>;
+template class SAMRAI::pdat::CellVariable<2,IBAMR::LNodeIndexSet>;
 template class SAMRAI::pdat::IndexData<2,IBAMR::LNodeIndexSet>;
 template class SAMRAI::pdat::IndexDataFactory<2,IBAMR::LNodeIndexSet>;
 template class SAMRAI::pdat::IndexDataNode<2,IBAMR::LNodeIndexSet>;
@@ -225,6 +311,10 @@ template class SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<2,IBAMR::LNodeI
 #endif
 
 #if (NDIM == 3)
+template class SAMRAI::pdat::ArrayData<3,IBAMR::LNodeIndexSet>;
+template class SAMRAI::pdat::CellData<3,IBAMR::LNodeIndexSet>;
+template class SAMRAI::pdat::CellDataFactory<3,IBAMR::LNodeIndexSet>;
+template class SAMRAI::pdat::CellVariable<3,IBAMR::LNodeIndexSet>;
 template class SAMRAI::pdat::IndexData<3,IBAMR::LNodeIndexSet>;
 template class SAMRAI::pdat::IndexDataFactory<3,IBAMR::LNodeIndexSet>;
 template class SAMRAI::pdat::IndexDataNode<3,IBAMR::LNodeIndexSet>;

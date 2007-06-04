@@ -1,5 +1,5 @@
 // Filename: LNodeIndexSet.I
-// Last modified: <31.May.2007 12:31:34 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 15:40:11 griffith@box221.cims.nyu.edu>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -9,8 +9,15 @@
 #define included_SAMRAI_config
 #endif
 
+// IBAMR INCLUDES
+#include <ibamr/StashableStream.h>
+
 // C++ STDLIB INCLUDES
+#include <algorithm>
 #include <cassert>
+#include <functional>
+#include <numeric>
+#include <sstream>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -124,7 +131,74 @@ LNodeIndexSet::copySourceItem(
     return;
 }// copySourceItem
 
+inline size_t
+LNodeIndexSet::getDataStreamSize() const
+{
+    return std::accumulate(d_set.begin(),d_set.end(),
+                           SAMRAI::tbox::AbstractStream::sizeofInt(),
+                           LNodeIndexGetDataStreamSizeSum());
+}// getDataStreamSize
+
+inline void
+LNodeIndexSet::packStream(
+    SAMRAI::tbox::AbstractStream& stream) const
+{
+    const int num_idx = d_set.size();
+    stream.pack(&num_idx,1);
+    for_each(d_set.begin(),d_set.end(), LNodeIndexPackStream(&stream));
+    return;
+}// packStream
+
+inline void
+LNodeIndexSet::unpackStream(
+    SAMRAI::tbox::AbstractStream& stream,
+    const SAMRAI::hier::IntVector<NDIM>& offset)
+{
+    int num_idx;
+    stream.unpack(&num_idx,1);
+    d_set.resize(num_idx);
+    generate(d_set.begin(),d_set.end(),LNodeIndexUnpackStream(&stream,offset));
+    trimToFit();
+
+    d_offset = offset;
+    return;
+}// unpackStream
+
+inline void
+LNodeIndexSet::putToDatabase(
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database)
+{
+    const size_t data_sz = getDataStreamSize();
+    StashableStream stream(data_sz, StashableStream::Write);
+    packStream(stream);
+    database->putInteger("data_sz", data_sz);
+    database->putCharArray("data", static_cast<char*>(stream.getBufferStart()), data_sz);
+    database->putIntegerArray("d_offset", d_offset, NDIM);
+    return;
+}// putToDatabase
+
+inline void
+LNodeIndexSet::getFromDatabase(
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database)
+{
+    database->getIntegerArray("d_offset", d_offset, NDIM);
+
+    const size_t data_sz = database->getInteger("data_sz");
+    std::vector<char> data(data_sz);
+    database->getCharArray("data", &data[0], data_sz);
+    StashableStream stream(&data[0], data_sz, StashableStream::Read);
+    unpackStream(stream, d_offset);
+    return;
+}// getFromDatabase
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+inline void
+LNodeIndexSet::reorderCollection()
+{
+    sort(d_set.begin(),d_set.end(),LNodeIndexLessThan());
+    return;
+}// sortSet
 
 inline void
 LNodeIndexSet::trimToFit()

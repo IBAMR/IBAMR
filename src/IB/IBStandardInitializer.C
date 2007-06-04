@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <31.May.2007 13:03:51 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 14:32:16 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -20,7 +20,7 @@
 #include <ibamr/IBBeamForceSpec.h>
 #include <ibamr/IBSpringForceSpec.h>
 #include <ibamr/IBTargetPointForceSpec.h>
-#include <ibamr/LNodeIndexData.h>
+#include <ibamr/LNodeIndexData2.h>
 
 // STOOLS INCLUDES
 #include <stools/STOOLS_Utilities.h>
@@ -258,7 +258,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
         const double* const xUpper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        SAMRAI::tbox::Pointer<LNodeIndexData> index_data =
+        SAMRAI::tbox::Pointer<LNodeIndexData2> index_data =
             patch->getPatchData(lag_node_index_idx);
 
         // Initialize the vertices whose initial locations will be within the
@@ -321,12 +321,8 @@ IBStandardInitializer::initializeDataOnPatchLevel(
                 initializeForceSpec(
                     point_idx, global_index_offset, level_number);
 
-            if (!index_data->isElement(idx))
-            {
-                index_data->appendItem(idx,LNodeIndexSet());
-            }
-            LNodeIndexSet* node_set = index_data->getItem(idx);
-            node_set->push_back(
+            LNodeIndexSet& node_set = (*index_data)(idx);
+            node_set.push_back(
                 new LNodeIndex(current_global_idx, current_local_idx,
                                &(*X_data)(current_local_idx), force_spec));
         }

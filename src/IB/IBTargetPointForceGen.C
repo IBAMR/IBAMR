@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <16.Apr.2007 05:39:35 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Jun.2007 14:34:33 griffith@box221.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
@@ -18,7 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBTargetPointForceSpec.h>
-#include <ibamr/LNodeIndexData.h>
+#include <ibamr/LNodeIndexData2.h>
 
 // STOOLS INCLUDES
 #include <stools/PETSC_SAMRAI_ERROR.h>
@@ -107,7 +107,7 @@ IBTargetPointForceGen::computeLagrangianForce(
     const double* const XLower = grid_geom->getXLower();
     const double* const XUpper = grid_geom->getXUpper();
 
-    // Get the patch data descriptor index for the LNodeIndexData.
+    // Get the patch data descriptor index for the LNodeIndexData2.
     const int lag_node_index_idx = lag_manager->
         getLNodeIndexPatchDescriptorIndex();
 
@@ -119,58 +119,56 @@ IBTargetPointForceGen::computeLagrangianForce(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
+        const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
             patch->getPatchData(lag_node_index_idx);
 
-        for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+        for (LNodeIndexData2::Iterator it(patch_box); it; it++)
         {
-            if (patch_box.contains(it.getIndex()))
+            const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
+            const LNodeIndexSet& node_set = (*idx_data)(i);
+            for (LNodeIndexSet::const_iterator n = node_set.begin();
+                 n != node_set.end(); ++n)
             {
-                const LNodeIndexSet& node_set = *it;
-                for (LNodeIndexSet::const_iterator n = node_set.begin();
-                     n != node_set.end(); ++n)
+                const LNodeIndexSet::value_type& node_idx = *n;
+                const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
+                    node_idx->getStashData();
+                for (unsigned l = 0; l < stash_data.size(); ++l)
                 {
-                    const LNodeIndexSet::value_type& node_idx = *n;
-                    const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
-                        node_idx->getStashData();
-                    for (unsigned l = 0; l < stash_data.size(); ++l)
+                    SAMRAI::tbox::Pointer<IBTargetPointForceSpec> force_spec = stash_data[l];
+                    if (!force_spec.isNull())
                     {
-                        SAMRAI::tbox::Pointer<IBTargetPointForceSpec> force_spec = stash_data[l];
-                        if (!force_spec.isNull())
+#ifdef DEBUG_CHECK_ASSERTIONS
+                        const int& mastr_idx = node_idx->getLagrangianIndex();
+                        assert(mastr_idx == force_spec->getMasterNodeIndex());
+#endif
+                        const double& kappa_target = force_spec->getStiffness();
+                        if (!SAMRAI::tbox::Utilities::deq(kappa_target,0.0))
                         {
-#ifdef DEBUG_CHECK_ASSERTIONS
-                            const int& mastr_idx = node_idx->getLagrangianIndex();
-                            assert(mastr_idx == force_spec->getMasterNodeIndex());
-#endif
-                            const double& kappa_target = force_spec->getStiffness();
-                            if (!SAMRAI::tbox::Utilities::deq(kappa_target,0.0))
-                            {
-                                const int& petsc_idx = node_idx->getLocalPETScIndex();
-                                const double* const X = &X_arr[NDIM*petsc_idx];
-                                const std::vector<double>& X_target = force_spec->getTargetPointPosition();
+                            const int& petsc_idx = node_idx->getLocalPETScIndex();
+                            const double* const X = &X_arr[NDIM*petsc_idx];
+                            const std::vector<double>& X_target = force_spec->getTargetPointPosition();
 
-                                double* const F = &F_arr[NDIM*petsc_idx];
-                                double displacement = 0.0;
-                                for (int d = 0; d < NDIM; ++d)
-                                {
-                                    const double shift =
-                                        (X[d] < XLower[d]
-                                         ? XUpper[d] - XLower[d]
-                                         : (X[d] > XUpper[d]
-                                            ? XLower[d] - XUpper[d]
-                                            : 0.0));
+                            double* const F = &F_arr[NDIM*petsc_idx];
+                            double displacement = 0.0;
+                            for (int d = 0; d < NDIM; ++d)
+                            {
+                                const double shift =
+                                    (X[d] < XLower[d]
+                                     ? XUpper[d] - XLower[d]
+                                     : (X[d] > XUpper[d]
+                                        ? XLower[d] - XUpper[d]
+                                        : 0.0));
 #ifdef DEBUG_CHECK_ASSERTIONS
-                                    assert(X[d]+shift >= XLower[d]);
-                                    assert(X[d]+shift <= XUpper[d]);
+                                assert(X[d]+shift >= XLower[d]);
+                                assert(X[d]+shift <= XUpper[d]);
 #endif
-                                    F[d] += kappa_target*(X_target[d] - (X[d]+shift));
-                                    displacement += pow(X_target[d] - (X[d]+shift),2.0);
-                                }
-                                displacement = sqrt(displacement);
-                                if (displacement > max_config_displacement)
-                                {
-                                    max_config_displacement = displacement;
-                                }
+                                F[d] += kappa_target*(X_target[d] - (X[d]+shift));
+                                displacement += pow(X_target[d] - (X[d]+shift),2.0);
+                            }
+                            displacement = sqrt(displacement);
+                            if (displacement > max_config_displacement)
+                            {
+                                max_config_displacement = displacement;
                             }
                         }
                     }

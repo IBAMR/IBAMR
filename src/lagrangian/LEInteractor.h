@@ -2,13 +2,13 @@
 #define included_LEInteractor
 
 // Filename: LEInteractor.h
-// Last modified: <17.Apr.2007 19:14:26 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 13:21:40 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/LNodeIndexData.h>
+#include <ibamr/LNodeIndexData2.h>
 #include <ibamr/LNodeLevelData.h>
 
 // SAMRAI INCLUDES
@@ -69,7 +69,7 @@ public:
     interpolate(
         SAMRAI::tbox::Pointer<LNodeLevelData>& Q_data,
         const SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+        const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
@@ -97,7 +97,7 @@ public:
         const int Q_depth,
         const double* const X_data,
         const int X_depth,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+        const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
@@ -151,7 +151,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<LNodeLevelData>& Q_data,
         const SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+        const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
         const std::string& spread_fcn="IB_4",
@@ -182,7 +182,7 @@ public:
         const int Q_depth,
         const double* const X_data,
         const int X_depth,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+        const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
         const std::string& spread_fcn="IB_4",

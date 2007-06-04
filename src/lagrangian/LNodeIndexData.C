@@ -1,5 +1,5 @@
 // Filename: LNodeIndexData.C
-// Last modified: <01.Jun.2007 16:02:27 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 12:36:48 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LNodeIndexData.h"
@@ -15,9 +15,6 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
-
-// IBAMR INCLUDES
-#include <ibamr/LNodeIndexVariable.h>
 
 // SAMRAI INCLUDES
 #include <CellOverlap.h>

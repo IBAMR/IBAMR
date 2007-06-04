@@ -1,5 +1,5 @@
 // Filename: LEInteractor.C
-// Last modified: <23.May.2007 10:09:00 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 14:26:43 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "LEInteractor.h"
@@ -274,7 +274,7 @@ void
 LEInteractor::interpolate(
     SAMRAI::tbox::Pointer<LNodeLevelData>& Q_data,
     const SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
-    const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+    const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
@@ -306,7 +306,7 @@ LEInteractor::interpolate(
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
-    const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+    const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
@@ -355,14 +355,13 @@ LEInteractor::interpolate(
     {
         local_indices.reserve(idx_data->getInteriorLocalIndices().size() +
                               idx_data->getGhostLocalIndices().size());
-
-        for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+        for (LNodeIndexData2::Iterator it(box); it; it++)
         {
-            if (box.contains(it.getIndex()))
+            const SAMRAI::hier::Index<NDIM>& i = *it;
+            const LNodeIndexSet& node_set = (*idx_data)(i);
+            const LNodeIndexSet::size_type& num_ids = node_set.size();
+            if (num_ids > 0)
             {
-                const LNodeIndexSet& node_set = *it;
-                const LNodeIndexSet::size_type& num_ids = node_set.size();
-
                 local_indices.resize(local_indices.size()+num_ids);
                 std::transform(node_set.begin(), node_set.end(),
                                local_indices.end()-num_ids,
@@ -383,11 +382,12 @@ LEInteractor::interpolate(
         else if (box == idx_ghost_box)
         {
             int k = idx_data->getInteriorLocalIndices().size();
-            for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+            for (LNodeIndexData2::Iterator it(box); it; it++)
             {
-                if (!patch_box.contains(it.getIndex()))
+                const SAMRAI::hier::Index<NDIM>& i = *it;
+                if (!patch_box.contains(i))
                 {
-                    const LNodeIndexSet& node_set = *it;
+                    const LNodeIndexSet& node_set = (*idx_data)(i);
                     const SAMRAI::hier::IntVector<NDIM>& offset =
                         node_set.getPeriodicOffset();
 
@@ -405,11 +405,12 @@ LEInteractor::interpolate(
         else
         {
             int k = 0;
-            for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+            for (LNodeIndexData2::Iterator it(box); it; it++)
             {
-                if (box.contains(it.getIndex()))
+                const SAMRAI::hier::Index<NDIM>& i = *it;
+                if (box.contains(i))
                 {
-                    const LNodeIndexSet& node_set = *it;
+                    const LNodeIndexSet& node_set = (*idx_data)(i);
                     const SAMRAI::hier::IntVector<NDIM>& offset =
                         node_set.getPeriodicOffset();
 
@@ -645,7 +646,7 @@ LEInteractor::spread(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<LNodeLevelData>& Q_data,
     const SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
-    const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+    const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
     const std::string& spread_fcn,
@@ -677,7 +678,7 @@ LEInteractor::spread(
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
-    const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+    const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
     const std::string& spread_fcn,
@@ -726,14 +727,13 @@ LEInteractor::spread(
     {
         local_indices.reserve(idx_data->getInteriorLocalIndices().size() +
                               idx_data->getGhostLocalIndices().size());
-
-        for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+        for (LNodeIndexData2::Iterator it(box); it; it++)
         {
-            if (box.contains(it.getIndex()))
+            const SAMRAI::hier::Index<NDIM>& i = *it;
+            const LNodeIndexSet& node_set = (*idx_data)(i);
+            const LNodeIndexSet::size_type& num_ids = node_set.size();
+            if (num_ids > 0)
             {
-                const LNodeIndexSet& node_set = *it;
-                const LNodeIndexSet::size_type& num_ids = node_set.size();
-
                 local_indices.resize(local_indices.size()+num_ids);
                 std::transform(node_set.begin(), node_set.end(),
                                local_indices.end()-num_ids,
@@ -754,11 +754,12 @@ LEInteractor::spread(
         else if (box == idx_ghost_box)
         {
             int k = idx_data->getInteriorLocalIndices().size();
-            for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+            for (LNodeIndexData2::Iterator it(box); it; it++)
             {
-                if (!patch_box.contains(it.getIndex()))
+                const SAMRAI::hier::Index<NDIM>& i = *it;
+                if (!patch_box.contains(i))
                 {
-                    const LNodeIndexSet& node_set = *it;
+                    const LNodeIndexSet& node_set = (*idx_data)(i);
                     const SAMRAI::hier::IntVector<NDIM>& offset =
                         node_set.getPeriodicOffset();
 
@@ -776,11 +777,12 @@ LEInteractor::spread(
         else
         {
             int k = 0;
-            for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+            for (LNodeIndexData2::Iterator it(box); it; it++)
             {
-                if (box.contains(it.getIndex()))
+                const SAMRAI::hier::Index<NDIM>& i = *it;
+                if (box.contains(i))
                 {
-                    const LNodeIndexSet& node_set = *it;
+                    const LNodeIndexSet& node_set = (*idx_data)(i);
                     const SAMRAI::hier::IntVector<NDIM>& offset =
                         node_set.getPeriodicOffset();
 

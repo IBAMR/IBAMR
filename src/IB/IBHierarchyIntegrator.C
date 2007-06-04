@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <30.May.2007 11:45:26 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 14:38:14 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -18,7 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/LEInteractor.h>
-#include <ibamr/LNodeIndexData.h>
+#include <ibamr/LNodeIndexData2.h>
 
 // STOOLS INCLUDES
 #include <stools/CartExtrapPhysBdryOp.h>
@@ -856,7 +856,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > v_data =
                         patch->getPatchData(d_V_idx);
-                    const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data = patch->getPatchData(
+                    const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->getPatchData(
                         d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
 
                     LEInteractor::interpolate(
@@ -954,7 +954,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_current_data = patch->
                     getPatchData(d_ins_hier_integrator->getForceVar(),
                                  d_ins_hier_integrator->getCurrentContext());
-                const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data = patch->
+                const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->
                     getPatchData(d_lag_data_manager->
                                  getLNodeIndexPatchDescriptorIndex());
                 LEInteractor::spread(
@@ -1083,7 +1083,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_new_data = patch->
                     getPatchData(d_F_idx);
-                const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data = patch->
+                const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->
                     getPatchData(d_lag_data_manager->
                                  getLNodeIndexPatchDescriptorIndex());
                 LEInteractor::spread(
@@ -1253,7 +1253,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > w_data =
                     patch->getPatchData(d_W_idx);
-                const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data = patch->getPatchData(
+                const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->getPatchData(
                     d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
 
                 LEInteractor::interpolate(
@@ -1325,7 +1325,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > w_data =
                         patch->getPatchData(d_W_idx);
-                    const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data = patch->getPatchData(
+                    const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->getPatchData(
                         d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
 
                     LEInteractor::interpolate(

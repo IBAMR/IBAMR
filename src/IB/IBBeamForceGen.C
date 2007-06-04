@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <11.Apr.2007 03:49:08 boyce@trasnaform2.local>
+// Last modified: <04.Jun.2007 14:33:52 griffith@box221.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -18,7 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBBeamForceSpec.h>
-#include <ibamr/LNodeIndexData.h>
+#include <ibamr/LNodeIndexData2.h>
 
 // STOOLS INCLUDES
 #include <stools/PETSC_SAMRAI_ERROR.h>
@@ -149,7 +149,7 @@ IBBeamForceGen::initializeLevelData(
     petsc_prev_node_idxs.clear();
     bend_rigidities.clear();
 
-    // The patch data descriptor index for the LNodeIndexData.
+    // The patch data descriptor index for the LNodeIndexData2.
     const int lag_node_index_idx = lag_manager->
         getLNodeIndexPatchDescriptorIndex();
 
@@ -159,43 +159,41 @@ IBBeamForceGen::initializeLevelData(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
+        const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
             patch->getPatchData(lag_node_index_idx);
 
-        for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+        for (LNodeIndexData2::Iterator it(patch_box); it; it++)
         {
-            if (patch_box.contains(it.getIndex()))
+            const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
+            const LNodeIndexSet& node_set = (*idx_data)(i);
+            for (LNodeIndexSet::const_iterator n = node_set.begin();
+                 n != node_set.end(); ++n)
             {
-                const LNodeIndexSet& node_set = *it;
-                for (LNodeIndexSet::const_iterator n = node_set.begin();
-                     n != node_set.end(); ++n)
+                const LNodeIndexSet::value_type& node_idx = *n;
+                const int& mastr_idx = node_idx->getLagrangianIndex();
+                const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
+                    node_idx->getStashData();
+                for (unsigned l = 0; l < stash_data.size(); ++l)
                 {
-                    const LNodeIndexSet::value_type& node_idx = *n;
-                    const int& mastr_idx = node_idx->getLagrangianIndex();
-                    const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
-                        node_idx->getStashData();
-                    for (unsigned l = 0; l < stash_data.size(); ++l)
+                    SAMRAI::tbox::Pointer<IBBeamForceSpec> force_spec = stash_data[l];
+                    if (!force_spec.isNull())
                     {
-                        SAMRAI::tbox::Pointer<IBBeamForceSpec> force_spec = stash_data[l];
-                        if (!force_spec.isNull())
+                        const unsigned num_beams = force_spec->getNumberOfBeams();
+#ifdef DEBUG_CHECK_ASSERTIONS
+                        assert(mastr_idx == force_spec->getMasterNodeIndex());
+#endif
+                        const std::vector<std::pair<int,int> >& nghbrs = force_spec->getNeighborNodeIndices();
+                        const std::vector<double>& bend = force_spec->getBendingRigidities();
+#ifdef DEBUG_CHECK_ASSERTIONS
+                        assert(num_beams == nghbrs.size());
+                        assert(num_beams == bend.size());
+#endif
+                        for (unsigned k = 0; k < num_beams; ++k)
                         {
-                            const unsigned num_beams = force_spec->getNumberOfBeams();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                            assert(mastr_idx == force_spec->getMasterNodeIndex());
-#endif
-                            const std::vector<std::pair<int,int> >& nghbrs = force_spec->getNeighborNodeIndices();
-                            const std::vector<double>& bend = force_spec->getBendingRigidities();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                            assert(num_beams == nghbrs.size());
-                            assert(num_beams == bend.size());
-#endif
-                            for (unsigned k = 0; k < num_beams; ++k)
-                            {
-                                petsc_mastr_node_idxs.push_back(mastr_idx);
-                                petsc_next_node_idxs.push_back(nghbrs[k].second);
-                                petsc_prev_node_idxs.push_back(nghbrs[k].first );
-                                bend_rigidities.push_back(bend[k]);
-                            }
+                            petsc_mastr_node_idxs.push_back(mastr_idx);
+                            petsc_next_node_idxs.push_back(nghbrs[k].second);
+                            petsc_prev_node_idxs.push_back(nghbrs[k].first );
+                            bend_rigidities.push_back(bend[k]);
                         }
                     }
                 }

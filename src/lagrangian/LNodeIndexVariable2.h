@@ -1,9 +1,9 @@
-#ifndef included_LNodeIndexVariable
-#define included_LNodeIndexVariable
+#ifndef included_LNodeIndexVariable2
+#define included_LNodeIndexVariable2
 
-// Filename: LNodeIndexVariable.h
-// Last modified: <04.Jun.2007 12:33:31 griffith@box221.cims.nyu.edu>
-// Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
+// Filename: LNodeIndexVariable2.h
+// Last modified: <04.Jun.2007 12:37:29 griffith@box221.cims.nyu.edu>
+// Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -15,24 +15,24 @@
 namespace IBAMR
 {
 /*!
- * \brief Class LNodeIndexVariable provides a SAMRAI::hier::Variable class
- * corresponding to patch data of type LNodeIndexData.
+ * \brief Class LNodeIndexVariable2 provides a SAMRAI::hier::Variable class
+ * corresponding to patch data of type LNodeIndexData2.
  */
-class LNodeIndexVariable
+class LNodeIndexVariable2
     : public SAMRAI::hier::Variable<NDIM>
 {
 public:
     /*!
-     * Create an LNodeIndexVariable object with the specified name.
+     * Create an LNodeIndexVariable2 object with the specified name.
      */
-    LNodeIndexVariable(
+    LNodeIndexVariable2(
         const std::string& name);
 
     /*!
-     * Virtual destructor for LNodeIndexVariable objects.
+     * Virtual destructor for LNodeIndexVariable2 objects.
      */
     virtual
-    ~LNodeIndexVariable();
+    ~LNodeIndexVariable2();
 
     /*!
      * Return false since the LNodeIndex data index space matches the
@@ -59,7 +59,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LNodeIndexVariable();
+    LNodeIndexVariable2();
 
     /*!
      * \brief Copy constructor.
@@ -68,8 +68,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LNodeIndexVariable(
-        const LNodeIndexVariable& from);
+    LNodeIndexVariable2(
+        const LNodeIndexVariable2& from);
 
     /*!
      * \brief Assignment operator.
@@ -80,16 +80,16 @@ private:
      *
      * \return A reference to this object.
      */
-    LNodeIndexVariable&
+    LNodeIndexVariable2&
     operator=(
-        const LNodeIndexVariable& that);
+        const LNodeIndexVariable2& that);
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/LNodeIndexVariable.I>
+//#include <ibamr/LNodeIndexVariable2.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LNodeIndexVariable
+#endif //#ifndef included_LNodeIndexVariable2

@@ -2,7 +2,7 @@
 #define included_LNodeIndexSet
 
 // Filename: LNodeIndexSet.h
-// Last modified: <17.Apr.2007 19:32:16 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 15:40:00 griffith@box221.cims.nyu.edu>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -204,7 +204,7 @@ public:
      */
     void
     packStream(
-        SAMRAI::tbox::AbstractStream& stream);
+        SAMRAI::tbox::AbstractStream& stream) const;
 
     /*!
      * \brief Unpack data from the input stream.
@@ -257,6 +257,82 @@ private:
      * \brief The periodic offset.
      */
     SAMRAI::hier::IntVector<NDIM> d_offset;
+
+    /*!
+     * \brief Misc. nested structs and classes.
+     */
+    struct LNodeIndexGetDataStreamSizeSum
+        : std::binary_function<size_t,SAMRAI::tbox::Pointer<LNodeIndex>,size_t>
+    {
+        inline size_t
+        operator()(
+            size_t size_so_far,
+            const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
+            {
+                return size_so_far+index->getDataStreamSize();
+            }
+    };
+
+    class LNodeIndexPackStream
+        : public std::unary_function<SAMRAI::tbox::Pointer<LNodeIndex>,void>
+    {
+    public:
+        inline
+        LNodeIndexPackStream(
+            SAMRAI::tbox::AbstractStream* const stream)
+            : d_stream(stream)
+            {
+                return;
+            }
+
+        inline void
+        operator()(
+            const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
+            {
+                index->packStream(*d_stream);
+                return;
+            }
+    private:
+        SAMRAI::tbox::AbstractStream* const d_stream;
+    };
+
+    class LNodeIndexUnpackStream
+        : public std::unary_function<void,SAMRAI::tbox::Pointer<LNodeIndex> >
+    {
+    public:
+        inline
+        LNodeIndexUnpackStream(
+            SAMRAI::tbox::AbstractStream* const stream,
+            const SAMRAI::hier::IntVector<NDIM>& offset)
+            : d_stream(stream),
+              d_offset(offset)
+            {
+                return;
+            }
+
+        inline SAMRAI::tbox::Pointer<LNodeIndex>
+        operator()() const
+            {
+                SAMRAI::tbox::Pointer<LNodeIndex> index_out = new LNodeIndex();
+                index_out->unpackStream(*d_stream,d_offset);
+                return index_out;
+            }
+    private:
+        SAMRAI::tbox::AbstractStream* const d_stream;
+        const SAMRAI::hier::IntVector<NDIM>& d_offset;
+    };
+
+    struct LNodeIndexLessThan
+        : std::binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
+    {
+        inline bool
+        operator()(
+            const SAMRAI::tbox::Pointer<LNodeIndex>& lhs,
+            const SAMRAI::tbox::Pointer<LNodeIndex>& rhs) const
+            {
+                return *lhs < *rhs;
+            }
+    };
 };
 }// namespace IBAMR
 

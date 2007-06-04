@@ -16,9 +16,12 @@ LDataManager.C \
 LEInteractor.C \
 LNodeIndex.C \
 LNodeIndexData.C \
+LNodeIndexData2.C \
 LNodeIndexDataFactory.C \
+LNodeIndexDataFactory2.C \
 LNodeIndexSet.C \
 LNodeIndexVariable.C \
+LNodeIndexVariable2.C \
 LNodeLevelData.C \
 LNodeInitStrategy.C \
 LagSiloDataWriter.C
@@ -30,10 +33,14 @@ LNodeIndex.h \
 LNodeIndex.I \
 LNodeIndexData.h \
 LNodeIndexData.I \
+LNodeIndexData2.h \
+LNodeIndexData2.I \
 LNodeIndexDataFactory.h \
+LNodeIndexDataFactory2.h \
 LNodeIndexSet.h \
 LNodeIndexSet.I \
 LNodeIndexVariable.h \
+LNodeIndexVariable2.h \
 LNodeLevelData.h \
 LNodeLevelData.I \
 LNodeInitStrategy.h \

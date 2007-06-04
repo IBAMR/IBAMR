@@ -95,11 +95,14 @@ libIBAMR2d_a_DEPENDENCIES = IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData2.o \
 	lagrangian/fortran/lagrangian_interaction2d.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexSet.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory2.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LDataManager.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable.o \
+	lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable2.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LagSiloDataWriter.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o \
 	lagrangian/libIBAMR_lagrangian2d_a-LNodeInitStrategy.o \
@@ -145,11 +148,14 @@ libIBAMR3d_a_DEPENDENCIES = IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData2.o \
 	lagrangian/fortran/lagrangian_interaction3d.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexSet.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory2.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LDataManager.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable.o \
+	lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable2.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
 	lagrangian/libIBAMR_lagrangian3d_a-LNodeInitStrategy.o \
@@ -334,11 +340,14 @@ advect/libIBAMR_advect2d_a-GodunovAdvector.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
 lagrangian/libIBAMR_lagrangian2d_a-LEInteractor.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexData2.o \
 lagrangian/fortran/lagrangian_interaction2d.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexSet.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexDataFactory2.o \
 lagrangian/libIBAMR_lagrangian2d_a-LDataManager.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable.o \
+lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable2.o \
 lagrangian/libIBAMR_lagrangian2d_a-LagSiloDataWriter.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeInitStrategy.o \
@@ -384,11 +393,14 @@ advect/libIBAMR_advect3d_a-GodunovAdvector.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \
 lagrangian/libIBAMR_lagrangian3d_a-LEInteractor.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexData2.o \
 lagrangian/fortran/lagrangian_interaction3d.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexSet.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory2.o \
 lagrangian/libIBAMR_lagrangian3d_a-LDataManager.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable.o \
+lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable2.o \
 lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeInitStrategy.o \

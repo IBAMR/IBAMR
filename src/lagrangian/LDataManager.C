@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <01.Jun.2007 19:25:20 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 14:23:34 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -19,7 +19,7 @@
 // IBAMR INCLUDES
 #include <ibamr/LEInteractor.h>
 #include <ibamr/LNodeIndexSet.h>
-#include <ibamr/LNodeIndexData.h>
+#include <ibamr/LNodeIndexData2.h>
 #include <ibamr/LNodeLevelData.h>
 #include <ibamr/LagSiloDataWriter.h>
 
@@ -708,7 +708,7 @@ LDataManager::beginDataRedistribution(
             if (d_needs_synch[ln])
             {
                 TBOX_WARNING("LDataManager::beginDataRedistribution():\n" <<
-                             "\tLNodeLevelData is not synchronized with LNodeIndexData.\n" <<
+                             "\tLNodeLevelData is not synchronized with LNodeIndexData2.\n" <<
                              "\tLagrangian node position data is probably invalid!\n");
             }
 
@@ -743,34 +743,8 @@ LDataManager::beginDataRedistribution(
                 const bool touches_periodic_bdry =
                     patch_geom->getTouchesPeriodicBoundary();
 
-                SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
+                SAMRAI::tbox::Pointer<LNodeIndexData2> current_idx_data =
                     patch->getPatchData(d_lag_node_index_current_idx);
-
-                // We're about to move the node indices.
-                //
-                // Before doing so, we dispose of most of the indices which
-                // can't possibly wind up inside the current patch.  We assume
-                // here that the movement of the nodes is constrained by a
-                // CFL-type condition.
-                //
-                // Assuming that the movement of the nodes is constrained by a
-                // CFL number of 1 means that the only nodes which can be owned
-                // by the patch after redistribution either:
-                //
-                //   (1) are already owned by the patch, or,
-                //
-                //   (2) were one cell-width away from the patch before
-                //       redistribution.
-                //
-                // Correspondingly, we remove all node indices which are at
-                // least two cell-widths away from the patch before
-                // redistributing.  These nodes CANNOT lie on the patch after
-                // redistribution if the motion satisfies the CFL condition.
-                t_begin_data_redistribution_2->start();
-                idx_data->removeOutsideBox(
-                    SAMRAI::hier::Box<NDIM>::grow(
-                        patch_box, SAMRAI::hier::IntVector<NDIM>(CFL_WIDTH)));
-                t_begin_data_redistribution_2->stop();
 
                 // Create LNodeIndexSet objects for each cell index in the patch
                 // interior which will contain LNodeIndex objects AFTER
@@ -782,18 +756,19 @@ LDataManager::beginDataRedistribution(
                 typedef std::map<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::tbox::Pointer<LNodeIndexSet>,CellIndexFortranOrder> CellIndexMap;
                 CellIndexMap new_node_sets;
 
+                const SAMRAI::hier::Box<NDIM> cfl_box = SAMRAI::hier::Box<NDIM>::grow(
+                    patch_box, SAMRAI::hier::IntVector<NDIM>(CFL_WIDTH));
+
                 t_begin_data_redistribution_3->start();
-                for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+                for (LNodeIndexData2::Iterator it(cfl_box); it; it++)
                 {
-                    LNodeIndexSet& old_node_set = *it;
-                    const bool patch_owns_node_at_old_loc =
-                        patch_box.contains(it.getIndex());
-                    const SAMRAI::hier::IntVector<NDIM>& offset =
-                        old_node_set.getPeriodicOffset();
+                    const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
+                    LNodeIndexSet& node_set = (*current_idx_data)(i);
+                    const bool patch_owns_node_at_old_loc = patch_box.contains(i);
+                    const SAMRAI::hier::IntVector<NDIM>& offset = node_set.getPeriodicOffset();
                     double shifted_X[NDIM];
 
-                    for (LNodeIndexSet::iterator n = old_node_set.begin();
-                         n != old_node_set.end(); ++n)
+                    for (LNodeIndexSet::iterator n = node_set.begin(); n != node_set.end(); ++n)
                     {
                         LNodeIndexSet::value_type& node_idx = *n;
                         double* const X = node_idx->getNodeLocation();
@@ -825,9 +800,7 @@ LDataManager::beginDataRedistribution(
                             // Otherwise, create a new Lagrangian index set that
                             // is anchored to new_cell_idx and add the index to
                             // the new set.
-                            CellIndexMap::iterator lb =
-                                new_node_sets.lower_bound(new_cell_idx);
-
+                            CellIndexMap::iterator lb = new_node_sets.lower_bound(new_cell_idx);
                             if (lb != new_node_sets.end() &&
                                 !new_node_sets.key_comp()(new_cell_idx, lb->first))
                             {
@@ -836,8 +809,7 @@ LDataManager::beginDataRedistribution(
                             else
                             {
                                 typedef CellIndexMap::value_type MVT;
-                                MVT new_pair(new_cell_idx,
-                                             new LNodeIndexSet());
+                                MVT new_pair(new_cell_idx, new LNodeIndexSet());
                                 new_pair.second->push_back(node_idx);
                                 new_node_sets.insert(lb,new_pair);
                             }
@@ -856,10 +828,7 @@ LDataManager::beginDataRedistribution(
                             // responsibility of this patch to update the
                             // location of the node if the node leaves via a
                             // periodic boundary.
-                            //
-                            // I hate periodic boundaries.
-                            if (touches_periodic_bdry &&
-                                patch_owns_node_at_old_loc)
+                            if (touches_periodic_bdry && patch_owns_node_at_old_loc)
                             {
                                 for (int d = 0; d < NDIM; ++d)
                                 {
@@ -875,41 +844,33 @@ LDataManager::beginDataRedistribution(
                             }
                         }
                     }
-                }// for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+                }// for (LNodeIndexData2::Iterator it(cfl_box); it; it++)
                 t_begin_data_redistribution_3->stop();
 
-                // Clear the patch data.
-                //
-                // Note that the new_node_sets object defined above contains
-                // pointers to everything which lies on the patch interior in
-                // the new distribution, so we don't lose any needed information
-                // by removing the items.
-                t_begin_data_redistribution_4->start();
-                idx_data->removeAllItems();
-                t_begin_data_redistribution_4->stop();
-
                 // Reorder all of the new LNodeIndexSet objects (based on the
-                // locations of their nodes) and place them into the index patch
-                // data.
+                // locations of their nodes) and place them into the new index
+                // patch data.
                 t_begin_data_redistribution_5->start();
+                SAMRAI::tbox::Pointer<LNodeIndexData2> new_idx_data = new LNodeIndexData2(
+                    current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
                 for (CellIndexMap::const_iterator it = new_node_sets.begin();
                      it != new_node_sets.end(); ++it)
                 {
-                    const SAMRAI::pdat::CellIndex<NDIM>& idx = (*it).first;
+                    const SAMRAI::pdat::CellIndex<NDIM>& i = (*it).first;
                     LNodeIndexSet* node_set = (*it).second;
                     node_set->reorderCollection();
                     node_set->trimToFit();
-                    idx_data->appendItem(idx,*node_set);
+                    (*new_idx_data)(i) = *node_set;
                 }
-                new_node_sets.clear();
                 t_begin_data_redistribution_5->stop();
+
+                // Swap the old and new patch data pointers.
+                patch->setPatchData(d_lag_node_index_current_idx, new_idx_data);
             }// for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
 
             // Indicate that the LNodeLevelData on level number ln is not
             // currently distributed according to the distribution specified by
-            // the LNodeIndexData.
-            //
-            // I hope this isn't too confusing.
+            // the LNodeIndexData2.
             d_needs_synch[ln] = true;
         }// if (d_level_contains_lag_data[ln])
     }// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -946,7 +907,7 @@ LDataManager::endDataRedistribution(
         if (d_level_contains_lag_data[ln] && (!d_needs_synch[ln]))
         {
             TBOX_WARNING("LDataManager::endDataRedistribution():\n" <<
-                         "\tLNodeLevelData is already synchronized with LNodeIndexData.\n" <<
+                         "\tLNodeLevelData is already synchronized with LNodeIndexData2.\n" <<
                          "\tlevel = " << ln << "\n");
         }
     }
@@ -1048,7 +1009,7 @@ LDataManager::endDataRedistribution(
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const int patch_num = patch->getPatchNumber();
-                SAMRAI::tbox::Pointer<LNodeIndexData> lag_node_idx_data =
+                SAMRAI::tbox::Pointer<LNodeIndexData2> lag_node_idx_data =
                     patch->getPatchData(d_lag_node_index_current_idx);
 
                 patch_interior_local_indices[ln][patch_num] =
@@ -1347,7 +1308,7 @@ LDataManager::updateWorkloadData(
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
 
-            const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
+            const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
                 patch->getPatchData(d_lag_node_index_current_idx);
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > workload_data =
                 patch->getPatchData(d_workload_idx);
@@ -1357,15 +1318,12 @@ LDataManager::updateWorkloadData(
             workload_data->fillAll(d_alpha_work);
             node_count_data->fillAll(0.0);
 
-            for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+            for (LNodeIndexData2::Iterator it(patch_box); it; it++)
             {
-                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
-                if (patch_box.contains(i))
-                {
-                    const LNodeIndexSet& node_set = *it;
-                    (*node_count_data)(i) = node_set.size();
-                    (*workload_data)(i) += d_beta_work*(*node_count_data)(i);
-                }
+                const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
+                const LNodeIndexSet& node_set = (*idx_data)(i);
+                (*node_count_data)(i) = node_set.size();
+                (*workload_data)(i) += d_beta_work*(*node_count_data)(i);
             }
         }
     }
@@ -1405,18 +1363,23 @@ LDataManager::updateIrregularCellData(
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+            const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
                 patch->getPatchData(d_lag_node_index_current_idx);
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > irregular_cell_data =
                 patch->getPatchData(d_irregular_cell_idx);
             irregular_cell_data->fillAll(0.0);
-            for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+            for (LNodeIndexData2::Iterator it(patch_box); it; it++)
             {
-                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
-                const SAMRAI::hier::Box<NDIM> stencil_box =
-                    SAMRAI::hier::Box<NDIM>::grow(SAMRAI::hier::Box<NDIM>(i,i),
-                                                  SAMRAI::hier::IntVector<NDIM>(stencil_size/2));
-                irregular_cell_data->fillAll(1.0,stencil_box);
+                const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
+                const LNodeIndexSet& node_set = (*idx_data)(i);
+                if (!node_set.empty())
+                {
+                    const SAMRAI::hier::Box<NDIM> stencil_box =
+                        SAMRAI::hier::Box<NDIM>::grow(SAMRAI::hier::Box<NDIM>(i,i),
+                                                      SAMRAI::hier::IntVector<NDIM>(stencil_size/2));
+                    irregular_cell_data->fillAll(1.0,stencil_box);
+                }
             }
         }
     }
@@ -1454,16 +1417,21 @@ LDataManager::restoreLocationPointers(
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
+            SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
                 patch->getPatchData(d_lag_node_index_current_idx);
+            const SAMRAI::hier::Box<NDIM>& ghost_box = idx_data->getGhostBox();
 
-            for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+            for (LNodeIndexData2::Iterator it(ghost_box); it; it++)
             {
-                LNodeIndexSet& node_set = *it;
-                for_each(node_set.begin(), node_set.end(),
-                         RestoreLNodeIndexLocationPointers(
-                             d_lag_quantity_data[ln][COORDS_DATA_NAME]->
-                             getLocalFormArray()));
+                const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
+                const LNodeIndexSet& node_set = (*idx_data)(i);
+                if (!node_set.empty())
+                {
+                    for_each(node_set.begin(), node_set.end(),
+                             RestoreLNodeIndexLocationPointers(
+                                 d_lag_quantity_data[ln][COORDS_DATA_NAME]->
+                                 getLocalFormArray()));
+                }
             }
         }
     }
@@ -1501,14 +1469,19 @@ LDataManager::invalidateLocationPointers(
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
+            SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
                 patch->getPatchData(d_lag_node_index_current_idx);
+            const SAMRAI::hier::Box<NDIM>& ghost_box = idx_data->getGhostBox();
 
-            for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+            for (LNodeIndexData2::Iterator it(ghost_box); it; it++)
             {
-                LNodeIndexSet& node_set = *it;
-                for_each(node_set.begin(), node_set.end(),
-                         InvalidateLNodeIndexLocationPointers());
+                const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
+                const LNodeIndexSet& node_set = (*idx_data)(i);
+                if (!node_set.empty())
+                {
+                    for_each(node_set.begin(), node_set.end(),
+                             InvalidateLNodeIndexLocationPointers());
+                }
             }
         }
     }
@@ -1704,36 +1677,35 @@ LDataManager::initializeLevelData(
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
 
-                SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
+                SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
                     patch->getPatchData(d_lag_node_index_current_idx);
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > workload_data =
                     patch->getPatchData(d_workload_idx);
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > node_count_data =
                     patch->getPatchData(d_node_count_idx);
+                const SAMRAI::hier::Box<NDIM>& ghost_box = idx_data->getGhostBox();
 
                 idx_data->d_interior_local_indices.clear();
                 idx_data->d_ghost_local_indices.clear();
 
                 node_count_data->fillAll(0.0);
 
-                for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+                for (LNodeIndexData2::Iterator it(ghost_box); it; it++)
                 {
-                    const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
-                    LNodeIndexSet& node_set = *it;
-
+                    const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
+                    const LNodeIndexSet& node_set = (*idx_data)(i);
                     const bool patch_owns_idx = patch_box.contains(i);
 
                     if (patch_owns_idx)
                     {
-                        const LNodeIndexSet& node_set = *it;
                         (*node_count_data)(i) = node_set.size();
                         (*workload_data)(i) = d_alpha_work + d_beta_work*(*node_count_data)(i);
                     }
 
-                    for (LNodeIndexSet::iterator n = node_set.begin();
+                    for (LNodeIndexSet::const_iterator n = node_set.begin();
                          n != node_set.end(); ++n)
                     {
-                        LNodeIndexSet::value_type& node_idx = *n;
+                        const LNodeIndexSet::value_type& node_idx = *n;
                         const int lag_idx   = node_idx->getLagrangianIndex();
                         const int local_idx = node_idx->getLocalPETScIndex();
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1950,7 +1922,7 @@ LDataManager::applyGradientDetector(
 
             for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
             {
-                const SAMRAI::hier::Index<NDIM>& i = ic();
+                const SAMRAI::pdat::CellIndex<NDIM>& i = ic();
                 if (!SAMRAI::tbox::Utilities::deq((*node_count_data)(i),0.0))
                 {
                     (*tag_data)(i) = 1;
@@ -2128,7 +2100,7 @@ LDataManager::LDataManager(
     d_scratch_context = var_db->getContext(d_object_name+"::SCRATCH");
 
     // Register the SAMRAI variables with the VariableDatabase.
-    d_lag_node_index_var = new LNodeIndexVariable(
+    d_lag_node_index_var = new LNodeIndexVariable2(
         d_object_name+"::lag_node_index");
 
     // Setup the current context.
@@ -2499,7 +2471,7 @@ LDataManager::computeNodeDistribution(
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-        const SAMRAI::tbox::Pointer<LNodeIndexData> lag_node_index_data =
+        const SAMRAI::tbox::Pointer<LNodeIndexData2> lag_node_index_data =
             patch->getPatchData(d_lag_node_index_current_idx);
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
         const int& patch_num = patch->getPatchNumber();
@@ -2507,13 +2479,12 @@ LDataManager::computeNodeDistribution(
         std::vector<int>& patch_interior_indices = *patch_interior_local_indices[patch_num];
         patch_interior_indices.clear();
 
-        for (LNodeIndexData::Iterator it(*lag_node_index_data); it; it++)
+        for (LNodeIndexData2::Iterator it(patch_box); it; it++)
         {
-            const LNodeIndexSet* const id_set = &(it.getItem());
-            const SAMRAI::pdat::CellIndex<NDIM>& cell_idx = it.getIndex();
+            const SAMRAI::pdat::CellIndex<NDIM>& cell_idx = *it;
+            const LNodeIndexSet* const id_set = &((*lag_node_index_data)(cell_idx));
             const LNodeIndexSet::size_type& num_ids = id_set->size();
-
-            if (patch_box.contains(cell_idx))
+            if (num_ids > 0)
             {
                 // All nodes located in this cell are owned by the patch and
                 // consequently by the processor.
@@ -2558,87 +2529,93 @@ LDataManager::computeNodeDistribution(
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-        const SAMRAI::tbox::Pointer<LNodeIndexData> lag_node_index_data =
+        const SAMRAI::tbox::Pointer<LNodeIndexData2> lag_node_index_data =
             patch->getPatchData(d_lag_node_index_current_idx);
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::hier::Box<NDIM>& ghost_box = lag_node_index_data->getGhostBox();
         const int& patch_num = patch->getPatchNumber();
 
         std::vector<int>& patch_ghost_indices = *patch_ghost_local_indices[patch_num];
         patch_ghost_indices.clear();
 
-        for (LNodeIndexData::Iterator it(*lag_node_index_data); it; it++)
+        SAMRAI::hier::BoxList<NDIM> ghost_boxes;
+        ghost_boxes.removeIntersections(ghost_box,patch_box);
+
+        for (SAMRAI::hier::BoxList<NDIM>::Iterator b(ghost_boxes); b; b++)
         {
-            const LNodeIndexSet* const id_set = &(it.getItem());
-            const SAMRAI::pdat::CellIndex<NDIM>& cell_idx = it.getIndex();
-            const LNodeIndexSet::size_type& num_ids = id_set->size();
-
-            if (!patch_box.contains(cell_idx))
+            for (LNodeIndexData2::Iterator it(*b); it; it++)
             {
-                const SAMRAI::pdat::CellIndex<NDIM> canonical_cell_idx =
-                    get_canonical_cell_index(cell_idx, domain_box, periodic_shift);
-                if (local_boxes.contains(canonical_cell_idx))
+                const SAMRAI::pdat::CellIndex<NDIM>& cell_idx = *it;
+                const LNodeIndexSet* const id_set = &((*lag_node_index_data)(cell_idx));
+                const LNodeIndexSet::size_type& num_ids = id_set->size();
+                if (num_ids > 0)
                 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(ghost_cell_local_map.count(canonical_cell_idx) == 1);
-#endif
-                    // The nodes are local nodes, so we just look-up their local
-                    // IDs.
-                    for_each(id_set->begin(), id_set->end(),
-                             GetLocalPETScIndexFromIDSet(
-                                 (ghost_cell_local_map[canonical_cell_idx])->begin()));
-
-                    patch_ghost_indices.resize(
-                        patch_ghost_indices.size()+num_ids);
-                    generate(patch_ghost_indices.end()-num_ids,
-                             patch_ghost_indices.end(),
-                             GetLocalPETScIndexFromIDSet(
-                                 (ghost_cell_local_map[canonical_cell_idx])->begin()));
-                }
-                else
-                {
-                    // The nodes are not local to the processor, so we must
-                    // either assign or lookup their local IDs.
-                    if (ghost_cell_nonlocal_map.count(canonical_cell_idx) == 0)
+                    const SAMRAI::pdat::CellIndex<NDIM> canonical_cell_idx =
+                        get_canonical_cell_index(cell_idx, domain_box, periodic_shift);
+                    if (local_boxes.contains(canonical_cell_idx))
                     {
-                        // We have not set the local IDs for this cell index, so
-                        // we must assign them.
-                        std::vector<int> cell_lag_ids(num_ids);
-                        std::transform(id_set->begin(), id_set->end(), cell_lag_ids.begin(),
-                                       GetLagrangianIndex());
-
-                        nonlocal_lag_indices.reserve(
-                            nonlocal_lag_indices.size()+num_ids);
-                        nonlocal_lag_indices.insert(
-                            nonlocal_lag_indices.end(),
-                            cell_lag_ids.begin(), cell_lag_ids.end());
-
+#ifdef DEBUG_CHECK_ASSERTIONS
+                        assert(ghost_cell_local_map.count(canonical_cell_idx) == 1);
+#endif
+                        // The nodes are local nodes, so we just look-up their
+                        // local IDs.
                         for_each(id_set->begin(), id_set->end(),
-                                 SetLocalPETScIndex(local_offset));
-
-                        local_offset += static_cast<int>(num_ids);
-
-                        ghost_cell_nonlocal_map[canonical_cell_idx] = id_set;
+                                 GetLocalPETScIndexFromIDSet(
+                                     (ghost_cell_local_map[canonical_cell_idx])->begin()));
 
                         patch_ghost_indices.resize(
                             patch_ghost_indices.size()+num_ids);
                         generate(patch_ghost_indices.end()-num_ids,
                                  patch_ghost_indices.end(),
-                                 GetLocalPETScIndexFromIDSet(id_set->begin()));
+                                 GetLocalPETScIndexFromIDSet(
+                                     (ghost_cell_local_map[canonical_cell_idx])->begin()));
                     }
                     else
                     {
-                        // We have already set the local IDs for this cell
-                        // index, so we just look-up their local IDs.
-                        for_each(id_set->begin(), id_set->end(),
-                                 GetLocalPETScIndexFromIDSet(
-                                     (ghost_cell_nonlocal_map[canonical_cell_idx])->begin()));
+                        // The nodes are not local to the processor, so we must
+                        // either assign or lookup their local IDs.
+                        if (ghost_cell_nonlocal_map.count(canonical_cell_idx) == 0)
+                        {
+                            // We have not set the local IDs for this cell
+                            // index, so we must assign them.
+                            std::vector<int> cell_lag_ids(num_ids);
+                            std::transform(id_set->begin(), id_set->end(), cell_lag_ids.begin(),
+                                           GetLagrangianIndex());
 
-                        patch_ghost_indices.resize(
-                            patch_ghost_indices.size()+num_ids);
-                        generate(patch_ghost_indices.end()-num_ids,
-                                 patch_ghost_indices.end(),
-                                 GetLocalPETScIndexFromIDSet(
-                                     (ghost_cell_nonlocal_map[canonical_cell_idx])->begin()));
+                            nonlocal_lag_indices.reserve(
+                                nonlocal_lag_indices.size()+num_ids);
+                            nonlocal_lag_indices.insert(
+                                nonlocal_lag_indices.end(),
+                                cell_lag_ids.begin(), cell_lag_ids.end());
+
+                            for_each(id_set->begin(), id_set->end(),
+                                     SetLocalPETScIndex(local_offset));
+
+                            local_offset += static_cast<int>(num_ids);
+
+                            ghost_cell_nonlocal_map[canonical_cell_idx] = id_set;
+
+                            patch_ghost_indices.resize(
+                                patch_ghost_indices.size()+num_ids);
+                            generate(patch_ghost_indices.end()-num_ids,
+                                     patch_ghost_indices.end(),
+                                     GetLocalPETScIndexFromIDSet(id_set->begin()));
+                        }
+                        else
+                        {
+                            // We have already set the local IDs for this cell
+                            // index, so we just look-up their local IDs.
+                            for_each(id_set->begin(), id_set->end(),
+                                     GetLocalPETScIndexFromIDSet(
+                                         (ghost_cell_nonlocal_map[canonical_cell_idx])->begin()));
+
+                            patch_ghost_indices.resize(
+                                patch_ghost_indices.size()+num_ids);
+                            generate(patch_ghost_indices.end()-num_ids,
+                                     patch_ghost_indices.end(),
+                                     GetLocalPETScIndexFromIDSet(
+                                         (ghost_cell_nonlocal_map[canonical_cell_idx])->begin()));
+                        }
                     }
                 }
             }

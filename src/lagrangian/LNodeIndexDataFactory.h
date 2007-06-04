@@ -2,8 +2,8 @@
 #define included_LNodeIndexDataFactory
 
 // Filename: LNodeIndexDataFactory.h
+// Last modified: <04.Jun.2007 12:32:26 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
-// Last modified: <17.Apr.2007 19:30:54 griffith@box221.cims.nyu.edu>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -46,9 +46,9 @@ public:
 
     /*!
      * Virtual function to clone the irregular data factory.  This will return a
-     * new instantiation of the factory with the same properties (e.g, same type
-     * and ghost cell width).  The properties of the cloned factory can then be
-     * changed (e.g., change the ghost cell width) without modifying the
+     * new instantiation of the factory with the same properties (e.g., same
+     * type and ghost cell width).  The properties of the cloned factory can
+     * then be changed (e.g., change the ghost cell width) without modifying the
      * original.
      */
     virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >

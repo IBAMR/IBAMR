@@ -2,14 +2,14 @@
 #define included_LDataManager
 
 // Filename: LDataManager.h
-// Last modified: <29.May.2007 12:28:41 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 13:35:04 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/LNodeInitStrategy.h>
-#include <ibamr/LNodeIndexVariable.h>
+#include <ibamr/LNodeIndexVariable2.h>
 
 // SAMRAI INCLUDES
 #include <BoxArray.h>
@@ -700,7 +700,7 @@ private:
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * LNodeIndexData used to define the data distribution.
      */
-    SAMRAI::tbox::Pointer<LNodeIndexVariable> d_lag_node_index_var;
+    SAMRAI::tbox::Pointer<LNodeIndexVariable2> d_lag_node_index_var;
     int d_lag_node_index_current_idx, d_lag_node_index_scratch_idx;
 
     /*

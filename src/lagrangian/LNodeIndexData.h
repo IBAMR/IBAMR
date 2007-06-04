@@ -2,7 +2,7 @@
 #define included_LNodeIndexData
 
 // Filename: LNodeIndexData.h
-// Last modified: <17.Apr.2007 20:05:31 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 15:17:16 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -84,8 +84,9 @@ public:
         const SAMRAI::hier::BoxOverlap<NDIM>& overlap) const;
 
     /*!
-     * The SAMRAI::hier::PatchData<NDIM> functionality of LNodeIndexData is
-     * provided by the SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet> class.
+     * Most of the SAMRAI::hier::PatchData<NDIM> functionality of class
+     * LNodeIndexData is provided by class
+     * SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet>.
      */
     using SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet>::canEstimateStreamSizeFromBox;
     using SAMRAI::pdat::IndexData<NDIM,LNodeIndexSet>::getDataStreamSize;

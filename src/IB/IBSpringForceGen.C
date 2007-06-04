@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <11.Apr.2007 04:01:27 boyce@trasnaform2.local>
+// Last modified: <04.Jun.2007 14:34:09 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -18,7 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBSpringForceSpec.h>
-#include <ibamr/LNodeIndexData.h>
+#include <ibamr/LNodeIndexData2.h>
 
 // STOOLS INCLUDES
 #include <stools/PETSC_SAMRAI_ERROR.h>
@@ -160,7 +160,7 @@ IBSpringForceGen::initializeLevelData(
     stiffnesses.clear();
     rest_lengths.clear();
 
-    // The patch data descriptor index for the LNodeIndexData.
+    // The patch data descriptor index for the LNodeIndexData2.
     const int lag_node_index_idx = lag_manager->
         getLNodeIndexPatchDescriptorIndex();
 
@@ -170,48 +170,46 @@ IBSpringForceGen::initializeLevelData(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data =
+        const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
             patch->getPatchData(lag_node_index_idx);
 
-        for (LNodeIndexData::Iterator it(*idx_data); it; it++)
+        for (LNodeIndexData2::Iterator it(patch_box); it; it++)
         {
-            if (patch_box.contains(it.getIndex()))
+            const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
+            const LNodeIndexSet& node_set = (*idx_data)(i);
+            for (LNodeIndexSet::const_iterator n = node_set.begin();
+                 n != node_set.end(); ++n)
             {
-                const LNodeIndexSet& node_set = *it;
-                for (LNodeIndexSet::const_iterator n = node_set.begin();
-                     n != node_set.end(); ++n)
+                const LNodeIndexSet::value_type& node_idx = *n;
+                const int& mastr_idx = node_idx->getLagrangianIndex();
+                const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
+                    node_idx->getStashData();
+                for (unsigned l = 0; l < stash_data.size(); ++l)
                 {
-                    const LNodeIndexSet::value_type& node_idx = *n;
-                    const int& mastr_idx = node_idx->getLagrangianIndex();
-                    const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
-                        node_idx->getStashData();
-                    for (unsigned l = 0; l < stash_data.size(); ++l)
+                    SAMRAI::tbox::Pointer<IBSpringForceSpec> force_spec = stash_data[l];
+                    if (!force_spec.isNull())
                     {
-                        SAMRAI::tbox::Pointer<IBSpringForceSpec> force_spec = stash_data[l];
-                        if (!force_spec.isNull())
+                        const unsigned num_springs = force_spec->getNumberOfSprings();
+#ifdef DEBUG_CHECK_ASSERTIONS
+                        assert(mastr_idx == force_spec->getMasterNodeIndex());
+#endif
+                        const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
+                        const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
+                        const std::vector<double>& stf = force_spec->getStiffnesses();
+                        const std::vector<double>& rst = force_spec->getRestingLengths();
+#ifdef DEBUG_CHECK_ASSERTIONS
+                        assert(num_springs == slv.size());
+                        assert(num_springs == fcn.size());
+                        assert(num_springs == stf.size());
+                        assert(num_springs == rst.size());
+#endif
+                        if (num_springs > 0)
                         {
-                            const unsigned num_springs = force_spec->getNumberOfSprings();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                            assert(mastr_idx == force_spec->getMasterNodeIndex());
-#endif
-                            const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
-                            const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
-                            const std::vector<double>& stf = force_spec->getStiffnesses();
-                            const std::vector<double>& rst = force_spec->getRestingLengths();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                            assert(num_springs == slv.size());
-                            assert(num_springs == fcn.size());
-                            assert(num_springs == stf.size());
-                            assert(num_springs == rst.size());
-#endif
-                            if (num_springs > 0)
-                            {
-                                lag_mastr_node_idxs.insert(lag_mastr_node_idxs.end(), num_springs, mastr_idx);
-                                lag_slave_node_idxs.insert(lag_slave_node_idxs.end(), slv.begin(), slv.end());
-                                force_fcn_idxs.insert(force_fcn_idxs.end(), fcn.begin(), fcn.end());
-                                stiffnesses   .insert(stiffnesses   .end(), stf.begin(), stf.end());
-                                rest_lengths  .insert(rest_lengths  .end(), rst.begin(), rst.end());
-                            }
+                            lag_mastr_node_idxs.insert(lag_mastr_node_idxs.end(), num_springs, mastr_idx);
+                            lag_slave_node_idxs.insert(lag_slave_node_idxs.end(), slv.begin(), slv.end());
+                            force_fcn_idxs.insert(force_fcn_idxs.end(), fcn.begin(), fcn.end());
+                            stiffnesses   .insert(stiffnesses   .end(), stf.begin(), stf.end());
+                            rest_lengths  .insert(rest_lengths  .end(), rst.begin(), rst.end());
                         }
                     }
                 }
