@@ -2,7 +2,7 @@
 #define included_LNodeIndexSet
 
 // Filename: LNodeIndexSet.h
-// Last modified: <04.Jun.2007 15:40:00 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 17:37:12 griffith@box221.cims.nyu.edu>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -230,25 +230,6 @@ public:
 
 private:
     /*!
-     * \brief Assign that to this.
-     */
-    void
-    assignThatToThis(
-        const LNodeIndexSet& that);
-
-    /*!
-     * \brief Reorder the collection of indices.
-     */
-    void
-    reorderCollection();
-
-    /*!
-     * \brief Get rid of any excess capacity in the collection.
-     */
-    void
-    trimToFit();
-
-    /*!
      * \brief The collection of indices.
      */
     IndexSet d_set;
@@ -320,18 +301,6 @@ private:
     private:
         SAMRAI::tbox::AbstractStream* const d_stream;
         const SAMRAI::hier::IntVector<NDIM>& d_offset;
-    };
-
-    struct LNodeIndexLessThan
-        : std::binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
-    {
-        inline bool
-        operator()(
-            const SAMRAI::tbox::Pointer<LNodeIndex>& lhs,
-            const SAMRAI::tbox::Pointer<LNodeIndex>& rhs) const
-            {
-                return *lhs < *rhs;
-            }
     };
 };
 }// namespace IBAMR

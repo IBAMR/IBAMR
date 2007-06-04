@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <04.Jun.2007 14:23:34 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 17:48:09 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -65,19 +65,7 @@ namespace
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_map_lagrangian_to_petsc;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_map_petsc_to_lagrangian;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution_0;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution_1;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution_2;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution_3;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution_4;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_begin_data_redistribution_5;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution_0;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution_1;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution_2;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution_3;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution_4;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_end_data_redistribution_5;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_update_workload_data;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_update_irregular_cell_data;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_restore_location_pointers;
@@ -120,6 +108,18 @@ get_canonical_cell_index(
 
     return shifted_idx;
 }// get_canonical_cell_index
+
+struct LNodeIndexLessThan
+    : std::binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
+{
+    inline bool
+    operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& lhs,
+        const SAMRAI::tbox::Pointer<LNodeIndex>& rhs) const
+        {
+            return *lhs < *rhs;
+        }
+};
 
 struct CellIndexFortranOrder
     : std::binary_function<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::pdat::CellIndex<NDIM>,bool>
@@ -699,8 +699,6 @@ LDataManager::beginDataRedistribution(
         gridXLength[d] = gridXUpper[d] - gridXLower[d];
     }
 
-    // Update the LNodeIndexSet distribution in the specified levels in the
-    // patch hierarchy.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_level_contains_lag_data[ln])
@@ -713,22 +711,23 @@ LDataManager::beginDataRedistribution(
             }
 
             // Update the ghost values of the Lagrangian nodal positions.
-            t_begin_data_redistribution_0->start();
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->beginGhostUpdate();
             d_lag_quantity_data[ln][COORDS_DATA_NAME]->endGhostUpdate();
-            t_begin_data_redistribution_0->stop();
 
             // Make sure that the location pointers are properly set for each
             // LNodeIndex.  They are directly used below to locate the
             // Lagrangian nodes.  They are also used to re-sort the node index
             // sets in an attempt to maximize data locality.
-            t_begin_data_redistribution_1->start();
             restoreLocationPointers(ln,ln);
-            t_begin_data_redistribution_1->stop();
+        }
+    }
 
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_level_contains_lag_data[ln])
+        {
             // Update the index patch data on the level.
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -745,32 +744,30 @@ LDataManager::beginDataRedistribution(
 
                 SAMRAI::tbox::Pointer<LNodeIndexData2> current_idx_data =
                     patch->getPatchData(d_lag_node_index_current_idx);
+                SAMRAI::tbox::Pointer<LNodeIndexData2> new_idx_data = new LNodeIndexData2(
+                    current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
 
-                // Create LNodeIndexSet objects for each cell index in the patch
-                // interior which will contain LNodeIndex objects AFTER
+                // Initialize LNodeIndexSet objects for each cell index in the
+                // patch interior which will contain LNodeIndex objects AFTER
                 // redistribution.
                 //
                 // We only keep nodes whose new locations are in the patch
                 // interior.  That is to say, we only keep the nodes which the
                 // patch will own after redistribution.
-                typedef std::map<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::tbox::Pointer<LNodeIndexSet>,CellIndexFortranOrder> CellIndexMap;
-                CellIndexMap new_node_sets;
-
                 const SAMRAI::hier::Box<NDIM> cfl_box = SAMRAI::hier::Box<NDIM>::grow(
                     patch_box, SAMRAI::hier::IntVector<NDIM>(CFL_WIDTH));
 
-                t_begin_data_redistribution_3->start();
                 for (LNodeIndexData2::Iterator it(cfl_box); it; it++)
                 {
-                    const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-                    LNodeIndexSet& node_set = (*current_idx_data)(i);
-                    const bool patch_owns_node_at_old_loc = patch_box.contains(i);
-                    const SAMRAI::hier::IntVector<NDIM>& offset = node_set.getPeriodicOffset();
+                    const SAMRAI::pdat::CellIndex<NDIM>& old_cell_idx = *it;
+                    const LNodeIndexSet& old_node_set = (*current_idx_data)(old_cell_idx);
+                    const bool patch_owns_node_at_old_loc = patch_box.contains(old_cell_idx);
+                    const SAMRAI::hier::IntVector<NDIM>& offset = old_node_set.getPeriodicOffset();
                     double shifted_X[NDIM];
 
-                    for (LNodeIndexSet::iterator n = node_set.begin(); n != node_set.end(); ++n)
+                    for (LNodeIndexSet::const_iterator n = old_node_set.begin(); n != old_node_set.end(); ++n)
                     {
-                        LNodeIndexSet::value_type& node_idx = *n;
+                        const LNodeIndexSet::value_type& node_idx = *n;
                         double* const X = node_idx->getNodeLocation();
                         for (int d = 0; d < NDIM; ++d)
                         {
@@ -792,27 +789,10 @@ LDataManager::beginDataRedistribution(
                             const SAMRAI::pdat::CellIndex<NDIM> new_cell_idx =
                                 STOOLS::STOOLS_Utilities::getCellIndex(
                                     shifted_X,patchXLower,patchXUpper,patchDx,patch_lower,patch_upper);
-
-                            // If new_cell_idx already belongs to the map,
-                            // update the Lagrangian index set anchored at
-                            // new_cell_idx.
-                            //
-                            // Otherwise, create a new Lagrangian index set that
-                            // is anchored to new_cell_idx and add the index to
-                            // the new set.
-                            CellIndexMap::iterator lb = new_node_sets.lower_bound(new_cell_idx);
-                            if (lb != new_node_sets.end() &&
-                                !new_node_sets.key_comp()(new_cell_idx, lb->first))
-                            {
-                                lb->second->push_back(node_idx);
-                            }
-                            else
-                            {
-                                typedef CellIndexMap::value_type MVT;
-                                MVT new_pair(new_cell_idx, new LNodeIndexSet());
-                                new_pair.second->push_back(node_idx);
-                                new_node_sets.insert(lb,new_pair);
-                            }
+                            LNodeIndexSet& new_node_set = (*new_idx_data)(new_cell_idx);
+                            const LNodeIndexSet::iterator pos = lower_bound(
+                                new_node_set.begin(), new_node_set.end(), node_idx, LNodeIndexLessThan());
+                            new_node_set.d_set.insert(pos, node_idx);
                         }
                         else
                         {
@@ -844,36 +824,21 @@ LDataManager::beginDataRedistribution(
                             }
                         }
                     }
-                }// for (LNodeIndexData2::Iterator it(cfl_box); it; it++)
-                t_begin_data_redistribution_3->stop();
-
-                // Reorder all of the new LNodeIndexSet objects (based on the
-                // locations of their nodes) and place them into the new index
-                // patch data.
-                t_begin_data_redistribution_5->start();
-                SAMRAI::tbox::Pointer<LNodeIndexData2> new_idx_data = new LNodeIndexData2(
-                    current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
-                for (CellIndexMap::const_iterator it = new_node_sets.begin();
-                     it != new_node_sets.end(); ++it)
-                {
-                    const SAMRAI::pdat::CellIndex<NDIM>& i = (*it).first;
-                    LNodeIndexSet* node_set = (*it).second;
-                    node_set->reorderCollection();
-                    node_set->trimToFit();
-                    (*new_idx_data)(i) = *node_set;
                 }
-                t_begin_data_redistribution_5->stop();
 
                 // Swap the old and new patch data pointers.
                 patch->setPatchData(d_lag_node_index_current_idx, new_idx_data);
-            }// for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            }
+        }
+    }
 
-            // Indicate that the LNodeLevelData on level number ln is not
-            // currently distributed according to the distribution specified by
-            // the LNodeIndexData2.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_level_contains_lag_data[ln])
+        {
             d_needs_synch[ln] = true;
-        }// if (d_level_contains_lag_data[ln])
-    }// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        }
+    }
 
     t_begin_data_redistribution->stop();
     return;
@@ -913,7 +878,6 @@ LDataManager::endDataRedistribution(
     }
 
     // Fill the ghost cells of each level.
-    t_end_data_redistribution_0->start();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_level_contains_lag_data[ln])
@@ -931,7 +895,6 @@ LDataManager::endDataRedistribution(
             level->deallocatePatchData(d_scratch_data);
         }
     }
-    t_end_data_redistribution_0->stop();
 
     // Define the PETSc data needed to communicate the LNodeLevelData from its
     // old configuration to its new configuration.
@@ -981,7 +944,6 @@ LDataManager::endDataRedistribution(
     // Finally, we create the new PETSc Vec (vector) objects which are used to
     // store the Lagrangian data in the new distribution and begin the process
     // of scattering data from the old configuration into the new one.
-    t_end_data_redistribution_1->start();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         // Reset the nonlocal PETSc indices.
@@ -1187,11 +1149,9 @@ LDataManager::endDataRedistribution(
             }
         }// if (d_level_contains_lag_data[ln])
     }// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    t_end_data_redistribution_1->stop();
 
     // Complete the data scattering process, destroy the source Vec objects, and
     // distribute nonlocal data to the new configuration.
-    t_end_data_redistribution_2->start();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_level_contains_lag_data[ln])
@@ -1223,16 +1183,12 @@ LDataManager::endDataRedistribution(
             beginNonlocalDataFill(ln,ln);
         }// if (d_level_contains_lag_data[ln])
     }// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    t_end_data_redistribution_2->stop();
 
     // Finish distributing nonlocal data to the new configuration.
-    t_end_data_redistribution_3->start();
     endNonlocalDataFill(coarsest_ln,finest_ln);
-    t_end_data_redistribution_3->stop();
 
     // Indicate that the levels have been synchronized and destroy unneeded
     // ordering and indexing objects.
-    t_end_data_redistribution_4->start();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         d_needs_synch[ln] = false;
@@ -1258,12 +1214,9 @@ LDataManager::endDataRedistribution(
             PETSC_SAMRAI_ERROR(ierr);
         }
     }
-    t_end_data_redistribution_4->stop();
 
     // Restore the position data pointers for the LNodeIndex objects.
-    t_end_data_redistribution_5->start();
     restoreLocationPointers(coarsest_ln, finest_ln);
-    t_end_data_redistribution_5->stop();
 
     // If a Silo data writer is registered with the manager, give it access to
     // the new application orderings.
@@ -2197,32 +2150,8 @@ LDataManager::LDataManager(
             getTimer("IBAMR::LDataManager::mapPETScToLagrangian()");
         t_begin_data_redistribution = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::LDataManager::beginDataRedistribution()");
-        t_begin_data_redistribution_0 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::beginDataRedistribution()_0");
-        t_begin_data_redistribution_1 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::beginDataRedistribution()_1");
-        t_begin_data_redistribution_2 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::beginDataRedistribution()_2");
-        t_begin_data_redistribution_3 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::beginDataRedistribution()_3");
-        t_begin_data_redistribution_4 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::beginDataRedistribution()_4");
-        t_begin_data_redistribution_5 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::beginDataRedistribution()_5");
         t_end_data_redistribution = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::LDataManager::endDataRedistribution()");
-        t_end_data_redistribution_0 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::endDataRedistribution()_0");
-        t_end_data_redistribution_1 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::endDataRedistribution()_1");
-        t_end_data_redistribution_2 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::endDataRedistribution()_2");
-        t_end_data_redistribution_3 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::endDataRedistribution()_3");
-        t_end_data_redistribution_4 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::endDataRedistribution()_4");
-        t_end_data_redistribution_5 = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::LDataManager::endDataRedistribution()_5");
         t_update_workload_data = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::LDataManager::updateWorkloadData()");
         t_update_irregular_cell_data = SAMRAI::tbox::TimerManager::getManager()->

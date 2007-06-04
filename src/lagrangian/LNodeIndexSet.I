@@ -1,5 +1,5 @@
 // Filename: LNodeIndexSet.I
-// Last modified: <04.Jun.2007 15:40:11 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jun.2007 17:37:58 griffith@box221.cims.nyu.edu>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -158,7 +158,6 @@ LNodeIndexSet::unpackStream(
     stream.unpack(&num_idx,1);
     d_set.resize(num_idx);
     generate(d_set.begin(),d_set.end(),LNodeIndexUnpackStream(&stream,offset));
-    trimToFit();
 
     d_offset = offset;
     return;
@@ -192,23 +191,6 @@ LNodeIndexSet::getFromDatabase(
 }// getFromDatabase
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
-inline void
-LNodeIndexSet::reorderCollection()
-{
-    sort(d_set.begin(),d_set.end(),LNodeIndexLessThan());
-    return;
-}// sortSet
-
-inline void
-LNodeIndexSet::trimToFit()
-{
-    if (d_set.size() < d_set.capacity())
-    {
-        IndexSet(d_set).swap(d_set);
-    }
-    return;
-}// trimToFit
 
 //////////////////////////////////////////////////////////////////////////////
 
