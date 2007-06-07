@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <04.Jun.2007 14:32:16 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Jun.2007 23:44:06 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -497,6 +497,8 @@ IBStandardInitializer::initializeLagSiloDataWriter(
 void
 IBStandardInitializer::readVertexFiles()
 {
+    int rank = SAMRAI::tbox::MPI::getRank();
+    int nodes = SAMRAI::tbox::MPI::getNodes();
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
@@ -505,6 +507,11 @@ IBStandardInitializer::readVertexFiles()
         d_vertex_posn[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
+            // Wait for the previous MPI process to finish reading the current file.
+            int flag = 1;
+            int sz = 1;
+            if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+
             if (j == 0)
             {
                 d_vertex_offset[ln][j] = 0;
@@ -538,8 +545,15 @@ IBStandardInitializer::readVertexFiles()
             {
                 TBOX_ERROR(d_object_name << ":\n  Unable to open vertex input file associated with base filename " << d_base_filename[ln][j] << endl);
             }
+
+            // Free the next MPI process to start reading the current file.
+            if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
+
+    // Synchronize the processes.
+    SAMRAI::tbox::MPI::barrier();
+
     return;
 }// readVertexFiles
 
@@ -662,6 +676,8 @@ IBStandardInitializer::readVertexFile_ascii(
 void
 IBStandardInitializer::readSpringFiles()
 {
+    int rank = SAMRAI::tbox::MPI::getRank();
+    int nodes = SAMRAI::tbox::MPI::getNodes();
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
@@ -671,6 +687,11 @@ IBStandardInitializer::readSpringFiles()
         d_spring_force_fcn_idx[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
+            // Wait for the previous MPI process to finish reading the current file.
+            int flag = 1;
+            int sz = 1;
+            if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+
             const std::string h5_spring_filename = d_base_filename[ln][j] + ".spring.h5";
             std::ifstream h5_file_stream;
             h5_file_stream.open(h5_spring_filename.c_str(), std::ios::in);
@@ -695,8 +716,15 @@ IBStandardInitializer::readSpringFiles()
             {
                 TBOX_WARNING(d_object_name << ":\n  Unable to open spring input file associated with base filename " << d_base_filename[ln][j] << endl);
             }
+
+            // Free the next MPI process to start reading the current file.
+            if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
+
+    // Synchronize the processes.
+    SAMRAI::tbox::MPI::barrier();
+
     return;
 }// readSpringFiles
 
