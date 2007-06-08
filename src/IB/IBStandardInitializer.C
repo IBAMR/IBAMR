@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <06.Jun.2007 23:44:06 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Jun.2007 17:14:55 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -497,8 +497,8 @@ IBStandardInitializer::initializeLagSiloDataWriter(
 void
 IBStandardInitializer::readVertexFiles()
 {
-    int rank = SAMRAI::tbox::MPI::getRank();
-    int nodes = SAMRAI::tbox::MPI::getNodes();
+    const int rank = SAMRAI::tbox::MPI::getRank();
+    const int nodes = SAMRAI::tbox::MPI::getNodes();
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
@@ -553,7 +553,6 @@ IBStandardInitializer::readVertexFiles()
 
     // Synchronize the processes.
     SAMRAI::tbox::MPI::barrier();
-
     return;
 }// readVertexFiles
 
@@ -676,8 +675,8 @@ IBStandardInitializer::readVertexFile_ascii(
 void
 IBStandardInitializer::readSpringFiles()
 {
-    int rank = SAMRAI::tbox::MPI::getRank();
-    int nodes = SAMRAI::tbox::MPI::getNodes();
+    const int rank = SAMRAI::tbox::MPI::getRank();
+    const int nodes = SAMRAI::tbox::MPI::getNodes();
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
@@ -724,7 +723,6 @@ IBStandardInitializer::readSpringFiles()
 
     // Synchronize the processes.
     SAMRAI::tbox::MPI::barrier();
-
     return;
 }// readSpringFiles
 
@@ -1090,12 +1088,19 @@ IBStandardInitializer::readSpringFile_ascii(
 void
 IBStandardInitializer::readBeamFiles()
 {
+    const int rank = SAMRAI::tbox::MPI::getRank();
+    const int nodes = SAMRAI::tbox::MPI::getNodes();
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
         d_beam_specs[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
+            // Wait for the previous MPI process to finish reading the current file.
+            int flag = 1;
+            int sz = 1;
+            if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+
             const std::string beam_filename = d_base_filename[ln][j] + ".beam";
             std::ifstream file_stream;
             std::string line_string;
@@ -1222,20 +1227,33 @@ IBStandardInitializer::readBeamFiles()
                                    << "read " << num_beams << " beams from input filename " << beam_filename << endl
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
             }
+
+            // Free the next MPI process to start reading the current file.
+            if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
+
+    // Synchronize the processes.
+    SAMRAI::tbox::MPI::barrier();
     return;
 }// readBeamFiles
 
 void
 IBStandardInitializer::readTargetPointFiles()
 {
+    const int rank = SAMRAI::tbox::MPI::getRank();
+    const int nodes = SAMRAI::tbox::MPI::getNodes();
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
         d_target_stiffness[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
+            // Wait for the previous MPI process to finish reading the current file.
+            int flag = 1;
+            int sz = 1;
+            if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+
             d_target_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
 
             const std::string target_point_stiffness_filename = d_base_filename[ln][j] + ".target";
@@ -1330,8 +1348,14 @@ IBStandardInitializer::readTargetPointFiles()
                         d_uniform_target_stiffness[ln][j]);
                 }
             }
+
+            // Free the next MPI process to start reading the current file.
+            if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
+
+    // Synchronize the processes.
+    SAMRAI::tbox::MPI::barrier();
     return;
 }// readTargetPointFiles
 
