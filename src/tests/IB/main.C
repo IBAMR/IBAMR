@@ -488,6 +488,12 @@ main(
              * At specified intervals, write visualization and restart files,
              * and print out timer data.
              */
+            if (write_timer_data && iteration_num%timer_dump_interval == 0)
+            {
+                tbox::pout << "\nWriting timer data...\n\n";
+                tbox::TimerManager::getManager()->print(tbox::plog);
+            }
+
             if (viz_dump_data && iteration_num%viz_dump_interval == 0)
             {
                 if (uses_visit)
@@ -507,12 +513,6 @@ main(
                     restart_write_dirname, iteration_num);
 
                 if (stop_after_writing_restart) break;
-            }
-
-            if (write_timer_data && iteration_num%timer_dump_interval == 0)
-            {
-                tbox::pout << "\nWriting timer data...\n\n";
-                tbox::TimerManager::getManager()->print(tbox::plog);
             }
         }
 

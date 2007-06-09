@@ -16,6 +16,7 @@
 #include <tbox/Pointer.h>
 #include <tbox/RestartManager.h>
 #include <tbox/SAMRAIManager.h>
+#include <tbox/TimerManager.h>
 #include <tbox/Utilities.h>
 
 // Headers for major algorithm/data structure objects
@@ -228,6 +229,18 @@ main(
     const bool write_restart = restart_interval > 0
         && !restart_write_dirname.empty();
 
+    int timer_dump_interval = 0;
+    if (main_db->keyExists("timer_dump_interval"))
+    {
+        timer_dump_interval = main_db->getInteger("timer_dump_interval");
+    }
+
+    const bool write_timer_data = (timer_dump_interval > 0);
+    if (write_timer_data)
+    {
+        tbox::TimerManager::createManager(input_db->getDatabase("TimerManager"));
+    }
+
     /*
      * Get the restart manager and root restart database.  If run is from
      * restart, open the restart file.
@@ -382,8 +395,15 @@ main(
         tbox::pout <<                                                       endl;
 
         /*
-         * At specified intervals, write restart and visualization files.
+         * At specified intervals, output timer data and write visualization and
+         * restart and files.
          */
+        if (write_timer_data && iteration_num%timer_dump_interval == 0)
+        {
+            tbox::pout << "\nWriting timer data...\n\n";
+            tbox::TimerManager::getManager()->print(tbox::plog);
+        }
+
         if (write_restart && iteration_num%restart_interval == 0)
         {
             tbox::pout << "\nWriting restart files...\n\n";
