@@ -18,6 +18,8 @@ IBBeamForceSpecFactory.C \
 IBEulerianForceSetter.C \
 IBEulerianSourceSetter.C \
 IBHierarchyIntegrator.C \
+IBInstrumentationSpec.C \
+IBInstrumentationSpecFactory.C \
 IBLagrangianForceStrategy.C \
 IBLagrangianForceStrategySet.C \
 IBLagrangianSourceStrategy.C \
@@ -33,20 +35,26 @@ IBTargetPointForceSpecFactory.C
 pkg_include_HEADERS = \
 IBBeamForceGen.h \
 IBBeamForceSpec.h \
+IBBeamForceSpec.I \
 IBBeamForceSpecFactory.h \
 IBEulerianForceSetter.h \
 IBEulerianSourceSetter.h \
 IBHierarchyIntegrator.h \
+IBInstrumentationSpec.h \
+IBInstrumentationSpec.I \
+IBInstrumentationSpecFactory.h \
 IBLagrangianForceStrategy.h \
 IBLagrangianForceStrategySet.h \
 IBLagrangianSourceStrategy.h \
 IBSpringForceGen.h \
 IBSpringForceSpec.h \
+IBSpringForceSpec.I \
 IBSpringForceSpecFactory.h \
 IBStandardForceGen.h \
 IBStandardInitializer.h \
 IBTargetPointForceGen.h \
 IBTargetPointForceSpec.h \
+IBTargetPointForceSpec.I \
 IBTargetPointForceSpecFactory.h
 
 libIBAMR_IB2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

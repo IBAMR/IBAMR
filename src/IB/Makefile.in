@@ -61,6 +61,8 @@ am__objects_1 = libIBAMR_IB2d_a-IBBeamForceGen.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBEulerianForceSetter.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBEulerianSourceSetter.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR_IB2d_a-IBInstrumentationSpec.$(OBJEXT) \
+	libIBAMR_IB2d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
@@ -82,6 +84,8 @@ am__objects_2 = libIBAMR_IB3d_a-IBBeamForceGen.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBEulerianForceSetter.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBEulerianSourceSetter.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR_IB3d_a-IBInstrumentationSpec.$(OBJEXT) \
+	libIBAMR_IB3d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
@@ -248,6 +252,8 @@ IBBeamForceSpecFactory.C \
 IBEulerianForceSetter.C \
 IBEulerianSourceSetter.C \
 IBHierarchyIntegrator.C \
+IBInstrumentationSpec.C \
+IBInstrumentationSpecFactory.C \
 IBLagrangianForceStrategy.C \
 IBLagrangianForceStrategySet.C \
 IBLagrangianSourceStrategy.C \
@@ -263,20 +269,26 @@ IBTargetPointForceSpecFactory.C
 pkg_include_HEADERS = \
 IBBeamForceGen.h \
 IBBeamForceSpec.h \
+IBBeamForceSpec.I \
 IBBeamForceSpecFactory.h \
 IBEulerianForceSetter.h \
 IBEulerianSourceSetter.h \
 IBHierarchyIntegrator.h \
+IBInstrumentationSpec.h \
+IBInstrumentationSpec.I \
+IBInstrumentationSpecFactory.h \
 IBLagrangianForceStrategy.h \
 IBLagrangianForceStrategySet.h \
 IBLagrangianSourceStrategy.h \
 IBSpringForceGen.h \
 IBSpringForceSpec.h \
+IBSpringForceSpec.I \
 IBSpringForceSpecFactory.h \
 IBStandardForceGen.h \
 IBStandardInitializer.h \
 IBTargetPointForceGen.h \
 IBTargetPointForceSpec.h \
+IBTargetPointForceSpec.I \
 IBTargetPointForceSpecFactory.h
 
 libIBAMR_IB2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -340,6 +352,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianForceSetter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianSourceSetter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.Po@am__quote@
@@ -357,6 +371,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianForceSetter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianSourceSetter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.Po@am__quote@
@@ -466,6 +482,34 @@ libIBAMR_IB2d_a-IBHierarchyIntegrator.obj: IBHierarchyIntegrator.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHierarchyIntegrator.C' object='libIBAMR_IB2d_a-IBHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBHierarchyIntegrator.obj `if test -f 'IBHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBHierarchyIntegrator.C'; fi`
+
+libIBAMR_IB2d_a-IBInstrumentationSpec.o: IBInstrumentationSpec.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBInstrumentationSpec.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpec.Tpo" -c -o libIBAMR_IB2d_a-IBInstrumentationSpec.o `test -f 'IBInstrumentationSpec.C' || echo '$(srcdir)/'`IBInstrumentationSpec.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpec.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpec.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpec.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBInstrumentationSpec.C' object='libIBAMR_IB2d_a-IBInstrumentationSpec.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBInstrumentationSpec.o `test -f 'IBInstrumentationSpec.C' || echo '$(srcdir)/'`IBInstrumentationSpec.C
+
+libIBAMR_IB2d_a-IBInstrumentationSpec.obj: IBInstrumentationSpec.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBInstrumentationSpec.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpec.Tpo" -c -o libIBAMR_IB2d_a-IBInstrumentationSpec.obj `if test -f 'IBInstrumentationSpec.C'; then $(CYGPATH_W) 'IBInstrumentationSpec.C'; else $(CYGPATH_W) '$(srcdir)/IBInstrumentationSpec.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpec.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpec.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpec.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBInstrumentationSpec.C' object='libIBAMR_IB2d_a-IBInstrumentationSpec.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBInstrumentationSpec.obj `if test -f 'IBInstrumentationSpec.C'; then $(CYGPATH_W) 'IBInstrumentationSpec.C'; else $(CYGPATH_W) '$(srcdir)/IBInstrumentationSpec.C'; fi`
+
+libIBAMR_IB2d_a-IBInstrumentationSpecFactory.o: IBInstrumentationSpecFactory.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBInstrumentationSpecFactory.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.Tpo" -c -o libIBAMR_IB2d_a-IBInstrumentationSpecFactory.o `test -f 'IBInstrumentationSpecFactory.C' || echo '$(srcdir)/'`IBInstrumentationSpecFactory.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBInstrumentationSpecFactory.C' object='libIBAMR_IB2d_a-IBInstrumentationSpecFactory.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBInstrumentationSpecFactory.o `test -f 'IBInstrumentationSpecFactory.C' || echo '$(srcdir)/'`IBInstrumentationSpecFactory.C
+
+libIBAMR_IB2d_a-IBInstrumentationSpecFactory.obj: IBInstrumentationSpecFactory.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBInstrumentationSpecFactory.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.Tpo" -c -o libIBAMR_IB2d_a-IBInstrumentationSpecFactory.obj `if test -f 'IBInstrumentationSpecFactory.C'; then $(CYGPATH_W) 'IBInstrumentationSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/IBInstrumentationSpecFactory.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBInstrumentationSpecFactory.C' object='libIBAMR_IB2d_a-IBInstrumentationSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBInstrumentationSpecFactory.obj `if test -f 'IBInstrumentationSpecFactory.C'; then $(CYGPATH_W) 'IBInstrumentationSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/IBInstrumentationSpecFactory.C'; fi`
 
 libIBAMR_IB2d_a-IBLagrangianForceStrategy.o: IBLagrangianForceStrategy.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBLagrangianForceStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategy.Tpo" -c -o libIBAMR_IB2d_a-IBLagrangianForceStrategy.o `test -f 'IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`IBLagrangianForceStrategy.C; \
@@ -704,6 +748,34 @@ libIBAMR_IB3d_a-IBHierarchyIntegrator.obj: IBHierarchyIntegrator.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHierarchyIntegrator.C' object='libIBAMR_IB3d_a-IBHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBHierarchyIntegrator.obj `if test -f 'IBHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBHierarchyIntegrator.C'; fi`
+
+libIBAMR_IB3d_a-IBInstrumentationSpec.o: IBInstrumentationSpec.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBInstrumentationSpec.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpec.Tpo" -c -o libIBAMR_IB3d_a-IBInstrumentationSpec.o `test -f 'IBInstrumentationSpec.C' || echo '$(srcdir)/'`IBInstrumentationSpec.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpec.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpec.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpec.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBInstrumentationSpec.C' object='libIBAMR_IB3d_a-IBInstrumentationSpec.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBInstrumentationSpec.o `test -f 'IBInstrumentationSpec.C' || echo '$(srcdir)/'`IBInstrumentationSpec.C
+
+libIBAMR_IB3d_a-IBInstrumentationSpec.obj: IBInstrumentationSpec.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBInstrumentationSpec.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpec.Tpo" -c -o libIBAMR_IB3d_a-IBInstrumentationSpec.obj `if test -f 'IBInstrumentationSpec.C'; then $(CYGPATH_W) 'IBInstrumentationSpec.C'; else $(CYGPATH_W) '$(srcdir)/IBInstrumentationSpec.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpec.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpec.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpec.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBInstrumentationSpec.C' object='libIBAMR_IB3d_a-IBInstrumentationSpec.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBInstrumentationSpec.obj `if test -f 'IBInstrumentationSpec.C'; then $(CYGPATH_W) 'IBInstrumentationSpec.C'; else $(CYGPATH_W) '$(srcdir)/IBInstrumentationSpec.C'; fi`
+
+libIBAMR_IB3d_a-IBInstrumentationSpecFactory.o: IBInstrumentationSpecFactory.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBInstrumentationSpecFactory.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.Tpo" -c -o libIBAMR_IB3d_a-IBInstrumentationSpecFactory.o `test -f 'IBInstrumentationSpecFactory.C' || echo '$(srcdir)/'`IBInstrumentationSpecFactory.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBInstrumentationSpecFactory.C' object='libIBAMR_IB3d_a-IBInstrumentationSpecFactory.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBInstrumentationSpecFactory.o `test -f 'IBInstrumentationSpecFactory.C' || echo '$(srcdir)/'`IBInstrumentationSpecFactory.C
+
+libIBAMR_IB3d_a-IBInstrumentationSpecFactory.obj: IBInstrumentationSpecFactory.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBInstrumentationSpecFactory.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.Tpo" -c -o libIBAMR_IB3d_a-IBInstrumentationSpecFactory.obj `if test -f 'IBInstrumentationSpecFactory.C'; then $(CYGPATH_W) 'IBInstrumentationSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/IBInstrumentationSpecFactory.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBInstrumentationSpecFactory.C' object='libIBAMR_IB3d_a-IBInstrumentationSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBInstrumentationSpecFactory.obj `if test -f 'IBInstrumentationSpecFactory.C'; then $(CYGPATH_W) 'IBInstrumentationSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/IBInstrumentationSpecFactory.C'; fi`
 
 libIBAMR_IB3d_a-IBLagrangianForceStrategy.o: IBLagrangianForceStrategy.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBLagrangianForceStrategy.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategy.Tpo" -c -o libIBAMR_IB3d_a-IBLagrangianForceStrategy.o `test -f 'IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`IBLagrangianForceStrategy.C; \

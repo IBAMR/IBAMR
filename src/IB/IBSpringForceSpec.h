@@ -2,7 +2,7 @@
 #define included_IBSpringForceSpec
 
 // Filename: IBSpringForceSpec.h
-// Last modified: <17.Apr.2007 20:02:27 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Jun.2007 17:03:44 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -239,7 +239,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBSpringForceSpec.I>
+#include <ibamr/IBSpringForceSpec.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

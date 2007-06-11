@@ -2,7 +2,7 @@
 #define included_IBTargetPointForceSpec
 
 // Filename: IBTargetPointForceSpec.h
-// Last modified: <17.Apr.2007 19:26:51 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Jun.2007 17:04:45 griffith@box221.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -178,7 +178,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBTargetPointForceSpec.I>
+#include <ibamr/IBTargetPointForceSpec.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
