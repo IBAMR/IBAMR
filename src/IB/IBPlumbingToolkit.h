@@ -2,7 +2,7 @@
 #define included_IBPlumbingToolkit
 
 // Filename: IBPlumbingToolkit.h
-// Last modified: <12.May.2007 13:57:51 boyce@trasnaform2.local>
+// Last modified: <11.Jun.2007 16:56:38 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -18,8 +18,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBPlumbingToolkit is a utility class that provides support for
- * flow meters and pressure taps.
+ * \brief Class IBPlumbingToolkit provides support for flow meters and pressure
+ * gauges.
  */
 class IBPlumbingToolkit
     : public virtual SAMRAI::tbox::DescribedClass
@@ -41,7 +41,11 @@ public:
      * \brief Initialize hierarchy-dependent data.
      */
     void
-    initializeHierarchyData();
+    initializeHierarchyData(
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const double init_data_time,
+        const bool initial_time,
+        LDataManager* const lag_manager);
 
 private:
     /*!
@@ -75,17 +79,17 @@ private:
         const int meter_number);
 
     /*!
-     * \brief Initialize the data associated with a specific pressure tap.
+     * \brief Initialize the data associated with a specific pressure gauge.
      */
     void
-    initializePressureTap(
-        const int tap_number);
+    initializePressureGauge(
+        const int gauge_number);
 
     /*!
      * \brief Hierarchy independent data.
      */
     std::string d_interp_type;
-    int d_num_flow_meters, d_num_pressure_taps;
+    int d_num_flow_meters, d_num_pressure_gauges;
 };
 }// namespace IBAMR
 
