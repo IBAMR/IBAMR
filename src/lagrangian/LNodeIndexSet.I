@@ -1,5 +1,5 @@
 // Filename: LNodeIndexSet.I
-// Last modified: <04.Jun.2007 17:37:58 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Jun.2007 22:18:25 boyce@bigboy.nyconnect.com>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -165,7 +165,7 @@ LNodeIndexSet::unpackStream(
 
 inline void
 LNodeIndexSet::putToDatabase(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database)
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database) const
 {
     const size_t data_sz = getDataStreamSize();
     StashableStream stream(data_sz, StashableStream::Write);

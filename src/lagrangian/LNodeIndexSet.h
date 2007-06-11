@@ -2,7 +2,7 @@
 #define included_LNodeIndexSet
 
 // Filename: LNodeIndexSet.h
-// Last modified: <04.Jun.2007 17:37:12 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Jun.2007 22:18:34 boyce@bigboy.nyconnect.com>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -215,17 +215,17 @@ public:
         const SAMRAI::hier::IntVector<NDIM>& offset);
 
     /*!
-     * \brief Unpack data from a database.
-     */
-    void
-    getFromDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database);
-
-    /*!
      * \brief Pack data into a database.
      */
     void
     putToDatabase(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database) const;
+
+    /*!
+     * \brief Unpack data from a database.
+     */
+    void
+    getFromDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database);
 
 private:

@@ -2,7 +2,7 @@
 #define included_ArrayData_specialized_LNodeIndexSet
 
 // Filename: ArrayData_specialized_LNodeIndexSet.I
-// Last modified: <10.Jun.2007 21:04:45 boyce@bigboy.nyconnect.com>
+// Last modified: <10.Jun.2007 22:34:44 boyce@bigboy.nyconnect.com>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include <ArrayData.h>
@@ -268,7 +268,38 @@ inline void
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::putSpecializedToDatabase(
     tbox::Pointer<tbox::Database> database)
 {
-    assert(false);
+    const hier::Box<NDIM> src_box(d_box);
+
+    // Count the number of non-empty index set locations.
+    int num_items = 0;
+    for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
+    {
+        const hier::Index<NDIM>& i = it();
+        const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
+        if (!node_set.empty()) ++num_items;
+    }
+    database->putInteger("num_items",num_items);
+
+    // Pack the non-empty index sets into the database.
+    int k = 0;
+    for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
+    {
+        const hier::Index<NDIM>& i = it();
+        const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
+        if (!node_set.empty())
+        {
+            std::ostringstream idx_stream;
+            idx_stream << "idx_" << k;
+            database->putIntegerArray(idx_stream.str(),i,NDIM);
+
+            std::ostringstream db_stream;
+            db_stream << "db_" << k;
+            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> sub_db = database->putDatabase(db_stream.str());
+            node_set.putToDatabase(sub_db);
+
+            ++k;
+        }
+    }
     return;
 }// putSpecializedToDatabase
 
@@ -277,7 +308,28 @@ inline void
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSpecializedFromDatabase(
     tbox::Pointer<tbox::Database> database)
 {
-    assert(false);
+    const hier::Box<NDIM> dst_box(d_box);
+
+    // Clear out the destination region.
+    fillAll(IBAMR::LNodeIndexSet(),dst_box);
+
+    // Get the number of non-empty index set locations.
+    const int num_items = database->getInteger("num_items");
+
+    // Unpack the individual items.
+    hier::Index<NDIM> i;
+    for (int k = 0; k < num_items; ++k)
+    {
+        std::ostringstream idx_stream;
+        idx_stream << "idx_" << k;
+        database->getIntegerArray(idx_stream.str(),i,NDIM);
+
+        std::ostringstream db_stream;
+        db_stream << "db_" << k;
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> sub_db = database->getDatabase(db_stream.str());
+        IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
+        node_set.getFromDatabase(sub_db);
+    }
     return;
 }// getSpecializedFromDatabase
 
