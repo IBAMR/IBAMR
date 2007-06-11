@@ -9,13 +9,13 @@ NFINEST_z = NFINEST/4;
 dx = L/NFINEST;
 dz = L_z/NFINEST_z;
 
-% choose num_nodes_s so that ds = 2*PI*R/num_nodes = dx (approximately)
-num_nodes_s = 0.1875*NFINEST;
+% choose num_nodes_s so that ds = 2*PI*R/num_nodes = 0.5*dx (approximately)
+num_nodes_s = 0.375*NFINEST;
 ds = 2*pi*R/num_nodes_s;
 
-% choose num_nodes_r so that dr = L_z/num_nodes_z = dz (approximately)
-num_nodes_r = NFINEST_z;
-dr = dz;
+% choose num_nodes_r so that dr = L_z/num_nodes_z = 0.5*dz (approximately)
+num_nodes_r = 2.0*NFINEST_z;
+dr = 0.5*dz;
 
 X_center = [0.0 0.0 0.0];
 stiffness = 1.0;

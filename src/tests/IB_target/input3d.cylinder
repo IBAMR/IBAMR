@@ -18,7 +18,7 @@ RHO = 1.0
 MAX_LEVELS = 3   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 32                                     // coarsest grid spacing
+N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 16.0                                  // width of computational domain
 
@@ -37,11 +37,14 @@ IBHierarchyIntegrator {
    delta_fcn = "IB_6"
 }
 
+K_s = 2000.0*NFINEST/Re
+ds = 2.0*PI*R/(0.375*NFINEST)
+
 IBStandardInitializer {
    max_levels = MAX_LEVELS
    base_filenames_2 = "cylinder3d_512"
    cylinder3d_512 {
-      uniform_target_stiffness = 2560.0/NFINEST
+      uniform_target_stiffness = K_s*ds*ds
    }
 }
 

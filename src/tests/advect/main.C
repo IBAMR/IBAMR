@@ -545,6 +545,15 @@ main(
     }
 
     /*
+     * Ensure the final timer data is written out.
+     */
+    if (write_timer_data && iteration_num%timer_dump_interval != 0)
+    {
+        tbox::pout << "\nWriting timer data...\n\n";
+        tbox::TimerManager::getManager()->print(tbox::plog);
+    }
+
+    /*
      * Ensure the last state is written out for plotting.
      */
     if (viz_dump_data && iteration_num%viz_dump_interval != 0)

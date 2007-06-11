@@ -2,7 +2,7 @@
 #define included_ArrayData_specialized_LNodeIndexSet
 
 // Filename: ArrayData_specialized_LNodeIndexSet.I
-// Last modified: <04.Jun.2007 16:38:06 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Jun.2007 21:04:45 boyce@bigboy.nyconnect.com>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include <ArrayData.h>
@@ -29,6 +29,85 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::isStandardType()
 {
     return false;
 }// isStandardType
+
+template<>
+inline void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::copy(
+    const ArrayData<NDIM,IBAMR::LNodeIndexSet>& src,
+    const hier::Box<NDIM>& box)
+{
+    const hier::Box<NDIM> dst_box(box*d_box*src.d_box);
+
+    // Clear out the destination region.
+    fillAll(IBAMR::LNodeIndexSet(),dst_box);
+
+    // Copy items from the source data.
+    for (hier::Box<NDIM>::Iterator it(dst_box); it; it++)
+    {
+        const hier::Index<NDIM>& i_dst = it();
+        const hier::Index<NDIM>& i_src = i_dst;
+        IBAMR::LNodeIndexSet& dst_node_set = (*this)(i_dst,0);
+        const IBAMR::LNodeIndexSet& src_node_set = src(i_src,0);
+        if (!src_node_set.empty())
+        {
+            dst_node_set = src_node_set;
+        }
+    }
+    return;
+}// copy
+
+template<>
+inline void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::copy(
+    const ArrayData<NDIM,IBAMR::LNodeIndexSet>& src,
+    const hier::Box<NDIM>& box,
+    const hier::IntVector<NDIM>& offset)
+{
+    const hier::Box<NDIM> dst_box(box*d_box*hier::Box<NDIM>::shift(src.d_box,offset));
+
+    // Clear out the destination region.
+    fillAll(IBAMR::LNodeIndexSet(),dst_box);
+
+    // Copy items from the source data.
+    for (hier::Box<NDIM>::Iterator it(dst_box); it; it++)
+    {
+        const hier::Index<NDIM>& i_dst = it();
+        const hier::Index<NDIM>& i_src = i_dst-offset;
+        IBAMR::LNodeIndexSet& dst_node_set = (*this)(i_dst,0);
+        const IBAMR::LNodeIndexSet& src_node_set = src(i_src,0);
+        if (!src_node_set.empty())
+        {
+            dst_node_set.copySourceItem(i_src,offset,src_node_set);
+        }
+    }
+    return;
+}// copy
+
+template<>
+inline void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::copy(
+    const ArrayData<NDIM,IBAMR::LNodeIndexSet>& src,
+    const hier::BoxList<NDIM>& boxes,
+    const hier::IntVector<NDIM>& offset)
+{
+    for (hier::BoxList<NDIM>::Iterator b(boxes); b; b++)
+    {
+        copy(src, b(), offset);
+    }
+    return;
+}// copy
+
+template<>
+inline void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::copyDepth(
+    int dst_depth,
+    const ArrayData<NDIM,IBAMR::LNodeIndexSet>& src,
+    int src_depth,
+    const hier::Box<NDIM>& box)
+{
+    TBOX_ERROR("CellData<DIM,TYPE>::copyDepth() is not implemented for TYPE=IBAMR::LNodeIndexSet" << std::endl);
+    return;
+}// copyDepth
 
 template<>
 inline bool
