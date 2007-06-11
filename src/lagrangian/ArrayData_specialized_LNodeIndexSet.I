@@ -2,7 +2,7 @@
 #define included_ArrayData_specialized_LNodeIndexSet
 
 // Filename: ArrayData_specialized_LNodeIndexSet.I
-// Last modified: <10.Jun.2007 22:34:44 boyce@bigboy.nyconnect.com>
+// Last modified: <11.Jun.2007 00:03:27 boyce@bigboy.nyconnect.com>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include <ArrayData.h>
@@ -226,11 +226,12 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
     stream >> num_items;
 
     // Unpack the individual items.
-    hier::Index<NDIM> i;
+    hier::Index<NDIM> i_src;
     for (int k = 0; k < num_items; ++k)
     {
-        stream.unpack(i, NDIM);
-        (*this)(i,0).unpackStream(stream,source_offset);
+        stream.unpack(i_src, NDIM);
+        const hier::Index<NDIM> i_dst = i_src+source_offset;
+        (*this)(i_dst,0).unpackStream(stream,source_offset);
     }
     return;
 }// unpackStream
@@ -254,11 +255,12 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
     stream >> num_items;
 
     // Unpack the individual items.
-    hier::Index<NDIM> i;
+    hier::Index<NDIM> i_src;
     for (int k = 0; k < num_items; ++k)
     {
-        stream.unpack(i, NDIM);
-        (*this)(i,0).unpackStream(stream,source_offset);
+        stream.unpack(i_src, NDIM);
+        const hier::Index<NDIM> i_dst = i_src+source_offset;
+        (*this)(i_dst,0).unpackStream(stream,source_offset);
     }
     return;
 }// unpackStream
