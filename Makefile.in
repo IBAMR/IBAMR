@@ -231,11 +231,12 @@ EXTRA_DIST = autogen.sh bin/includes.pl \
 	include/ibamr/INSHierarchyIntegrator.h \
 	include/ibamr/LagSiloDataWriter.h include/ibamr/LDataManager.h \
 	include/ibamr/LEInteractor.h \
-	include/ibamr/LNodeIndexDataFactory.h \
-	include/ibamr/LNodeIndexData.h include/ibamr/LNodeIndexData.I \
-	include/ibamr/LNodeIndex.h include/ibamr/LNodeIndex.I \
-	include/ibamr/LNodeIndexSet.h include/ibamr/LNodeIndexSet.I \
-	include/ibamr/LNodeIndexVariable.h \
+	include/ibamr/LNodeIndexDataFactory2.h \
+	include/ibamr/LNodeIndexData2.h \
+	include/ibamr/LNodeIndexData2.I include/ibamr/LNodeIndex.h \
+	include/ibamr/LNodeIndex.I include/ibamr/LNodeIndexSet.h \
+	include/ibamr/LNodeIndexSet.I \
+	include/ibamr/LNodeIndexVariable2.h \
 	include/ibamr/LNodeInitStrategy.h \
 	include/ibamr/LNodeLevelData.h include/ibamr/LNodeLevelData.I \
 	include/ibamr/NormalVelocityBcCoefAdapter.h \

@@ -2,7 +2,7 @@
 #define included_IBInstrumentPanel
 
 // Filename: IBInstrumentPanel.h
-// Last modified: <12.Jun.2007 01:55:30 boyce@bigboy.nyconnect.com>
+// Last modified: <12.Jun.2007 17:41:23 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -17,6 +17,9 @@
 #include <tbox/Database.h>
 #include <tbox/DescribedClass.h>
 
+// BLITZ++ INLCUDES
+#include <blitz/array.h>
+
 // C++ STDLIB INCLUDES
 #include <map>
 
@@ -27,6 +30,8 @@ namespace IBAMR
 /*!
  * \brief Class IBInstrumentPanel provides support for flow meters and pressure
  * gauges.
+ *
+ * \note Use of class IBInstrumentPanel requires the Blitz++ array library.
  */
 class IBInstrumentPanel
     : public virtual SAMRAI::tbox::DescribedClass
@@ -45,32 +50,34 @@ public:
     ~IBInstrumentPanel();
 
     /*!
+     * \brief Initialize hierarchy-independent data.
+     *
+     * The data initialized by this method is assumed \em not to change during
+     * the course of a simulation.
+     */
+    void
+    initializeHierarchyIndependentData(
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        LDataManager* const lag_manager);
+
+    /*!
+     * \brief Initialize hierarchy- and configuration-dependent data.
+     */
+    void
+    initializeHierarchyDependentData(
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        LDataManager* const lag_manager);
+
+    /*!
      * \brief Compute the flow rates and pressures in the various distributed
      * internal meters.
      */
     void
-    readMeters(
+    readMeterData(
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > U_var,
         const int U_data_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_var,
         const int P_data_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        LDataManager* const lag_manager);
-
-    /*!
-     * \brief Compute the positions of all of the flow meters and pressure
-     * gauges.
-     */
-    void
-    initializeMeterData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        LDataManager* const lag_manager);
-
-    /*!
-     * \brief Initialize hierarchy-dependent data.
-     */
-    void
-    initializeHierarchyData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         LDataManager* const lag_manager);
 
@@ -99,20 +106,22 @@ private:
         const IBInstrumentPanel& that);
 
     /*!
-     * \brief Hierarchy independent data.
+     * \brief Hierarchy-independent data.
      */
-    int d_interp_level, d_num_meters;
+    int d_num_meters;
     std::vector<int> d_num_perimeter_nodes;
 
     /*!
      * \brief Hierarchy and configuration dependent data.
      */
-    std::vector<std::vector<double> > d_X_perimeter, d_X_centroid;
-    std::vector<std::vector<std::vector<double> > > d_X_web, d_dA_web;
+    std::vector<blitz::TinyVector<double,NDIM> > d_X_centroid;
+    std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > d_X_perimeter;
+    std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,2> > d_X_web, d_dA_web;
 
     /*!
-     * \brief Data structures employed to manage the mapping between web patch
-     * data (i.e., centroids and area-weigthed normals) and cell indices.
+     * \brief Data structures employed to manage mappings between cell indices
+     * and web patch data (i.e., patch centroids and area-weigthed normals) and
+     * meter centroid data.
      */
     struct IndexFortranOrder
         : public std::binary_function<SAMRAI::hier::Index<NDIM>,SAMRAI::hier::Index<NDIM>,bool>
@@ -131,18 +140,27 @@ private:
 #endif
 #endif
                         );
-            }
+            }// operator()
     };
 
     struct WebPatch
     {
         int meter_num;
-        double* const X;
-        double* const dA;
+        const blitz::TinyVector<double,NDIM>* X;
+        const blitz::TinyVector<double,NDIM>* dA;
     };
 
-    typedef std::map<SAMRAI::hier::Index<NDIM>,WebPatch,IndexFortranOrder> WebPatchMap;
-    std::vector<WebPatchMap> d_web_patch_map, d_centroid_map;
+    typedef std::multimap<SAMRAI::hier::Index<NDIM>,WebPatch,IndexFortranOrder> WebPatchMap;
+    std::vector<WebPatchMap> d_web_patch_map;
+
+    struct MeterCentroid
+    {
+        int meter_num;
+        const blitz::TinyVector<double,NDIM>* X;
+    };
+
+    typedef std::multimap<SAMRAI::hier::Index<NDIM>,MeterCentroid,IndexFortranOrder> MeterCentroidMap;
+    std::vector<MeterCentroidMap> d_meter_centroid_map;
 };
 }// namespace IBAMR
 

@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <08.Jun.2007 17:14:55 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Jun.2007 19:00:46 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBBeamForceSpec.h>
+#include <ibamr/IBInstrumentationSpec.h>
 #include <ibamr/IBSpringForceSpec.h>
 #include <ibamr/IBTargetPointForceSpec.h>
 #include <ibamr/LNodeIndexData2.h>
@@ -118,6 +119,8 @@ IBStandardInitializer::IBStandardInitializer(
       d_uniform_bdry_mass(),
       d_using_uniform_bdry_mass_stiffness(),
       d_uniform_bdry_mass_stiffness(),
+      d_enable_instrumentation(),
+      d_instrument_idx(),
       d_global_index_offset()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -125,10 +128,11 @@ IBStandardInitializer::IBStandardInitializer(
     assert(!input_db.isNull());
 #endif
 
-    // Register the force specification objects with the StashableManager class.
+    // Register the specification objects with the StashableManager class.
     IBSpringForceSpec::registerWithStashableManager();
     IBBeamForceSpec::registerWithStashableManager();
     IBTargetPointForceSpec::registerWithStashableManager();
+    IBInstrumentationSpec::registerWithStashableManager();
 
     // Initialize object with data read from the input database.
     getFromInput(input_db);
@@ -147,6 +151,9 @@ IBStandardInitializer::IBStandardInitializer(
 
     // Process the (optional) mass information.
     readBoundaryMassFiles();
+
+    // Process the (optional) instrumentation information.
+    readInstrumentationFiles();
 
     // Wait for all processes to finish.
     SAMRAI::tbox::MPI::barrier();
@@ -318,7 +325,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             // Initialize the force specification object assocaited with the
             // present vertex.
             std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec =
-                initializeForceSpec(
+                initializeSpecs(
                     point_idx, global_index_offset, level_number);
 
             LNodeIndexSet& node_set = (*index_data)(idx);
@@ -1488,6 +1495,107 @@ IBStandardInitializer::readBoundaryMassFiles()
 }// readBoundaryMassFiles
 
 void
+IBStandardInitializer::readInstrumentationFiles()
+{
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        d_instrument_idx[ln].resize(num_base_filename);
+        for (int j = 0; j < num_base_filename; ++j)
+        {
+            const std::string inst_filename = d_base_filename[ln][j] + ".inst";
+            std::ifstream file_stream;
+            std::string line_string;
+            file_stream.open(inst_filename.c_str(), std::ios::in);
+            if (file_stream.is_open())
+            {
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "processing instrumentation data from input filename " << inst_filename << endl
+                                   << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+
+                // The first line in the file indicates the number of
+                // instrumented IB points in the input file.
+                int num_inst_pts;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << inst_filename << endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_inst_pts))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << inst_filename << endl);
+                    }
+                }
+
+                if (num_inst_pts <= 0)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << inst_filename << endl);
+                }
+
+                // Each successive line indicates the vertex number, meter
+                // number, and meter node indices of each of the instrumented IB
+                // points in the input file.
+                for (int k = 0; k < num_inst_pts; ++k)
+                {
+                    int n;
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << inst_filename << endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+                        std::istringstream line_stream(line_string);
+                        if (!(line_stream >> n))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl);
+                        }
+                        else if ((n < 0) || (n >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl
+                                       << "  vertex index " << n << " is out of range" << endl);
+                        }
+
+                        std::pair<int,int>& idx = d_instrument_idx[ln][j][n];
+
+                        if (!(line_stream >> idx.first))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl);
+                        }
+                        else if (idx.first < 0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl
+                                       << "  meter index is negative" << endl);
+                        }
+
+                        if (!(line_stream >> idx.second))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl);
+                        }
+                        else if (idx.second < 0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl
+                                       << "  meter node index is negative" << endl);
+                        }
+                    }
+                }
+
+                // Close the input file.
+                file_stream.close();
+
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "read " << num_inst_pts << " instrumentation points from input filename " << inst_filename << endl
+                                   << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+            }
+        }
+    }
+    return;
+}// readInstrumentationFiles
+
+void
 IBStandardInitializer::getPatchVertices(
     std::vector<std::pair<int,int> >& patch_vertices,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
@@ -1567,13 +1675,30 @@ IBStandardInitializer::getVertexMassStiffness(
     return d_bdry_mass_stiffness[level_number][point_index.first][point_index.second];
 }// getVertexMassStiffness
 
+std::pair<int,int>
+IBStandardInitializer::getVertexInstrumentationIndices(
+    const std::pair<int,int>& point_index,
+    const int level_number) const
+{
+    std::map<int,std::pair<int,int> >::const_iterator lb =
+        d_instrument_idx[level_number][point_index.first].lower_bound(point_index.second);
+    if (lb != d_instrument_idx[level_number][point_index.first].end())
+    {
+        return (*lb).second;
+    }
+    else
+    {
+        return std::make_pair(-1,-1);
+    }
+}// getVertexInstrumentationIndices
+
 std::vector<SAMRAI::tbox::Pointer<Stashable> >
-IBStandardInitializer::initializeForceSpec(
+IBStandardInitializer::initializeSpecs(
     const std::pair<int,int>& point_index,
     const int global_index_offset,
     const int level_number) const
 {
-    std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec;
+    std::vector<SAMRAI::tbox::Pointer<Stashable> > vertex_specs;
 
     const int j = point_index.first;
     const int mastr_idx = getCannonicalLagrangianIndex(point_index, level_number);
@@ -1605,7 +1730,7 @@ IBStandardInitializer::initializeForceSpec(
 
     if (slave_idxs.size() > 0)
     {
-        force_spec.push_back(
+        vertex_specs.push_back(
             new IBSpringForceSpec(
                 mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length));
     }
@@ -1626,7 +1751,7 @@ IBStandardInitializer::initializeForceSpec(
 
     if (!beam_neighbor_idxs.empty())
     {
-        force_spec.push_back(
+        vertex_specs.push_back(
             new IBBeamForceSpec(
                 mastr_idx, beam_neighbor_idxs, beam_bend_rigidity));
     }
@@ -1636,13 +1761,22 @@ IBStandardInitializer::initializeForceSpec(
 
     if (!SAMRAI::tbox::Utilities::deq(kappa_target,0.0))
     {
-        force_spec.push_back(
+        vertex_specs.push_back(
             new IBTargetPointForceSpec(
                 mastr_idx, kappa_target, X_target));
     }
 
-    return force_spec;
-}// initializeForceSpec
+    const std::pair<int,int> inst_idx = getVertexInstrumentationIndices(point_index, level_number);
+
+    if (inst_idx.first != -1 && inst_idx.second != -1)
+    {
+        vertex_specs.push_back(
+            new IBInstrumentationSpec(
+                mastr_idx, inst_idx.first, inst_idx.second));
+    }
+
+    return vertex_specs;
+}// initializeSpecs
 
 void
 IBStandardInitializer::getFromInput(
@@ -1710,6 +1844,9 @@ IBStandardInitializer::getFromInput(
     d_using_uniform_bdry_mass_stiffness.resize(d_max_levels);
     d_uniform_bdry_mass_stiffness.resize(d_max_levels);
 
+    d_enable_instrumentation.resize(d_max_levels);
+    d_instrument_idx.resize(d_max_levels);
+
     d_global_index_offset.resize(d_max_levels);
 
     // Determine the various input file names.
@@ -1765,6 +1902,8 @@ IBStandardInitializer::getFromInput(
         d_using_uniform_bdry_mass_stiffness[ln].resize(num_base_filename,false);
         d_uniform_bdry_mass_stiffness[ln].resize(num_base_filename,-1.0);
 
+        d_enable_instrumentation[ln].resize(num_base_filename,true);
+
         for (int j = 0; j < num_base_filename; ++j)
         {
             const std::string& base_filename = d_base_filename[ln][j];
@@ -1790,6 +1929,10 @@ IBStandardInitializer::getFromInput(
                 if (sub_db->keyExists("enable_bdry_mass"))
                 {
                     d_enable_bdry_mass[ln][j] = sub_db->getBool("enable_bdry_mass");
+                }
+                if (sub_db->keyExists("enable_instrumentation"))
+                {
+                    d_enable_instrumentation[ln][j] = sub_db->getBool("enable_instrumentation");
                 }
 
                 // Determine whether to use uniform values for any particular
@@ -1884,7 +2027,7 @@ IBStandardInitializer::getFromInput(
             SAMRAI::tbox::pout << "  base filename: " << base_filename << endl
                                << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << endl
                                << "     required files: " << base_filename << ".vertex" << endl
-                               << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".target, " << base_filename << ".mass" << endl;
+                               << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".target, " << base_filename << ".mass, " << base_filename << ".inst " << endl;
             if (!d_enable_springs[ln][j])
             {
                 SAMRAI::tbox::pout << "  NOTE: spring forces are DISABLED for " << base_filename << endl;
@@ -1950,6 +2093,11 @@ IBStandardInitializer::getFromInput(
                     SAMRAI::tbox::pout << "  NOTE: uniform massive boundary point stiffnesses are being employed for the structure named " << base_filename << endl
                                        << "        any massive boundary point stiffness information in optional file " << base_filename << ".mass will be IGNORED" << endl;
                 }
+            }
+
+            if (!d_enable_instrumentation[ln][j])
+            {
+                SAMRAI::tbox::pout << "  NOTE: instrumentation is DISABLED for " << base_filename << endl;
             }
 
             SAMRAI::tbox::pout << endl;

@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <30.May.2007 17:06:05 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Jun.2007 18:54:57 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -157,6 +157,42 @@ namespace IBAMR
  * The penalty parameter provides control over the energetic penalty imposed
  * when the position of the Lagrangian immersed boundary point deviates from
  * that of its massive copy.
+ *
+ * <HR>
+ *
+ * <B>Instrumentation file format</B>
+ *
+ * Instrumentation input files (specifying the nodes employed to determine the
+ * time-dependent positions of flow meters and pressure gauges) end with the
+ * extension <TT>".inst"</TT> and have the following format: \verbatim
+
+ M                                      # number of instrumentation points in the file
+ i_0   meter_idx_0   meter_node_idx_0   # vertex index, meter index, node index within meter
+ i_1   meter_idx_1   meter_node_idx_1
+ i_2   meter_idx_2   meter_node_idx_2
+ ...
+ \endverbatim
+ * \note Flow meters and pressure gauges are constructed out of "rings" of
+ * immersed boundary points.  The flow is computed by computing the total
+ * velocity flux through a web spanning the perimeter of the flow meter.  The
+ * pressure is measured at the centroid of each flow meter.
+ *
+ * Note that each meter may have a different number of nodes specifying its
+ * perimeter; however, the values of meter_node_idx associated with a particular
+ * meter must be a continuous range of integers, starting with index 0.  E.g.,
+ * the following is a valid input file: \verbatim
+
+ 6           # number of instrumentation points in the file
+ 0   0   0   # perimeter of meter 0 consists of vertices 0, 1, and 2
+ 1   0   1
+ 2   0   2
+ 9   1   0   # perimeter of meter 1 consists of vertices 9, 10, and 11
+ 10  1   1
+ 11  1   2
+ \endverbatim
+ *
+ * \see IBInstrumentPanel
+ * \see IBInstrumentationSpec
  */
 class IBStandardInitializer
     : public LNodeInitStrategy
@@ -354,6 +390,12 @@ private:
     readBoundaryMassFiles();
 
     /*!
+     * \brief Read the instrumentation data from one or more input files.
+     */
+    void
+    readInstrumentationFiles();
+
+    /*!
      * \brief Determine the indices of any vertices initially located within the
      * specified patch.
      */
@@ -407,11 +449,20 @@ private:
         const int level_number) const;
 
     /*!
-     * \return The force specification objects associated with the specified
-     * vertex.
+     * \return The instrumentation indices associated with a particular node (or
+     * std::make_pair(-1,-1) if there is no instrumentation data associated with
+     * that node).
+     */
+    std::pair<int,int>
+    getVertexInstrumentationIndices(
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
+
+    /*!
+     * \return The specification objects associated with the specified vertex.
      */
     std::vector<SAMRAI::tbox::Pointer<Stashable> >
-    initializeForceSpec(
+    initializeSpecs(
         const std::pair<int,int>& point_index,
         const int global_index_offset,
         const int level_number) const;
@@ -515,6 +566,12 @@ private:
 
     std::vector<std::vector<bool> > d_using_uniform_bdry_mass_stiffness;
     std::vector<std::vector<double> > d_uniform_bdry_mass_stiffness;
+
+    /*
+     * Instrumentation information.
+     */
+    std::vector<std::vector<bool> > d_enable_instrumentation;
+    std::vector<std::vector<std::map<int,std::pair<int,int> > > > d_instrument_idx;
 
     /*
      * Data required to specify connectivity information for visualization
