@@ -18,6 +18,7 @@ IBBeamForceSpecFactory.C \
 IBEulerianForceSetter.C \
 IBEulerianSourceSetter.C \
 IBHierarchyIntegrator.C \
+IBInstrumentPanel.C \
 IBInstrumentationSpec.C \
 IBInstrumentationSpecFactory.C \
 IBLagrangianForceStrategy.C \
@@ -40,6 +41,7 @@ IBBeamForceSpecFactory.h \
 IBEulerianForceSetter.h \
 IBEulerianSourceSetter.h \
 IBHierarchyIntegrator.h \
+IBInstrumentPanel.h \
 IBInstrumentationSpec.h \
 IBInstrumentationSpec.I \
 IBInstrumentationSpecFactory.h \

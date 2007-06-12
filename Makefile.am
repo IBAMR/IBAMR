@@ -23,6 +23,7 @@ EXTRA_DIST += include/ibamr/IBEulerianForceSetter.h
 EXTRA_DIST += include/ibamr/IBEulerianSourceSetter.h
 EXTRA_DIST += include/ibamr/IBHierarchyIntegrator.h
 EXTRA_DIST += include/ibamr/IBImplicitHierarchyIntegrator.h
+EXTRA_DIST += include/ibamr/IBInstrumentPanel.h
 EXTRA_DIST += include/ibamr/IBInstrumentationSpecFactory.h
 EXTRA_DIST += include/ibamr/IBInstrumentationSpec.h
 EXTRA_DIST += include/ibamr/IBInstrumentationSpec.I

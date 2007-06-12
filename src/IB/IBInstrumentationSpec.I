@@ -1,5 +1,5 @@
 // Filename: IBInstrumentationSpec.I
-// Last modified: <11.Jun.2007 17:37:23 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Jun.2007 19:00:05 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -25,11 +25,11 @@ IBInstrumentationSpec::getIsRegisteredWithStashableManager()
 inline
 IBInstrumentationSpec::IBInstrumentationSpec(
     const int master_idx,
-    const int flow_meter_idx,
-    const int pressure_gauge_idx)
+    const int meter_idx,
+    const int node_idx)
     : d_master_idx(master_idx),
-      d_flow_meter_idx(flow_meter_idx),
-      d_pressure_gauge_idx(pressure_gauge_idx)
+      d_meter_idx(meter_idx),
+      d_node_idx(node_idx)
 {
     if (!s_registered_factory)
     {
@@ -60,28 +60,28 @@ IBInstrumentationSpec::getMasterNodeIndex()
 }// getMasterNodeIndex
 
 inline const int&
-IBInstrumentationSpec::getFlowMeterIndex() const
+IBInstrumentationSpec::getMeterIndex() const
 {
-    return d_flow_meter_idx;
-}// getFlowMeterIndex
+    return d_meter_idx;
+}// getMeterIndex
 
 inline int&
-IBInstrumentationSpec::getFlowMeterIndex()
+IBInstrumentationSpec::getMeterIndex()
 {
-    return d_flow_meter_idx;
-}// getFlowMeterIndex
+    return d_meter_idx;
+}// getMeterIndex
 
 inline const int&
-IBInstrumentationSpec::getPressureGaugeIndex() const
+IBInstrumentationSpec::getNodeIndex() const
 {
-    return d_pressure_gauge_idx;
-}// getPressureGaugeIndex
+    return d_node_idx;
+}// getNodeIndex
 
 inline int&
-IBInstrumentationSpec::getPressureGaugeIndex()
+IBInstrumentationSpec::getNodeIndex()
 {
-    return d_pressure_gauge_idx;
-}// getPressureGaugeIndex
+    return d_node_idx;
+}// getNodeIndex
 
 inline int
 IBInstrumentationSpec::getStashableID() const
@@ -92,7 +92,7 @@ IBInstrumentationSpec::getStashableID() const
 inline size_t
 IBInstrumentationSpec::getDataStreamSize() const
 {
-    return 3*SAMRAI::tbox::AbstractStream::sizeofInt();
+    return 5*SAMRAI::tbox::AbstractStream::sizeofInt();
 }// getDataStreamSize
 
 inline void
@@ -100,8 +100,8 @@ IBInstrumentationSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
     stream.pack(&d_master_idx,1);
-    stream.pack(&d_flow_meter_idx,1);
-    stream.pack(&d_pressure_gauge_idx,1);
+    stream.pack(&d_meter_idx,1);
+    stream.pack(&d_node_idx,1);
     return;
 }// packStream
 

@@ -22,6 +22,7 @@ IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
 IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
 IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
 IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
+IB/libIBAMR_IB2d_a-IBInstrumentPanel.o \
 IB/libIBAMR_IB2d_a-IBInstrumentationSpec.o \
 IB/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.o \
 IB/libIBAMR_IB2d_a-IBLagrangianForceStrategy.o \
@@ -77,6 +78,7 @@ IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
 IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
 IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
 IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
+IB/libIBAMR_IB3d_a-IBInstrumentPanel.o \
 IB/libIBAMR_IB3d_a-IBInstrumentationSpec.o \
 IB/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.o \
 IB/libIBAMR_IB3d_a-IBLagrangianForceStrategy.o \

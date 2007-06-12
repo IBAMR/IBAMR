@@ -2,7 +2,7 @@
 #define included_IBInstrumentationSpec
 
 // Filename: IBInstrumentationSpec.h
-// Last modified: <11.Jun.2007 17:05:06 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Jun.2007 18:58:06 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -52,8 +52,8 @@ public:
      */
     IBInstrumentationSpec(
         const int master_idx=-1,
-        const int flow_meter_idx=-1,
-        const int pressure_gauge_idx=-1);
+        const int meter_idx=-1,
+        const int node_idx=-1);
 
     /*!
      * \brief Virtual destructor.
@@ -74,32 +74,32 @@ public:
     getMasterNodeIndex();
 
     /*!
-     * \return A const refrence to the flow meter index associated with the
-     * master node.
+     * \return A const refrence to the meter index associated with the master
+     * node.
      */
     const int&
-    getFlowMeterIndex() const;
+    getMeterIndex() const;
 
     /*!
-     * \return A non-const refrence to the flow meter index associated with the
+     * \return A non-const refrence to the meter index associated with the
      * master node.
      */
     int&
-    getFlowMeterIndex();
+    getMeterIndex();
 
     /*!
-     * \return A const refrence to the pressure gauge index associated with the
-     * master node.
+     * \return A const refrence to the node index associated with the master
+     * node.
      */
     const int&
-    getPressureGaugeIndex() const;
+    getNodeIndex() const;
 
     /*!
-     * \return A non-const refrence to the pressure gauge index associated with
-     * the master node.
+     * \return A non-const refrence to the node index associated with the master
+     * node.
      */
     int&
-    getPressureGaugeIndex();
+    getNodeIndex();
 
     /*!
      * \brief Return the unique identifier used to specify the StashableFactory
@@ -168,7 +168,7 @@ private:
     /*!
      * Data required to define the instrument.
      */
-    int d_master_idx, d_flow_meter_idx, d_pressure_gauge_idx;
+    int d_master_idx, d_meter_idx, d_node_idx;
 };
 }// namespace IBAMR
 

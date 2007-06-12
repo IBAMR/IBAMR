@@ -1,15 +1,17 @@
-#ifndef included_IBPlumbingToolkit
-#define included_IBPlumbingToolkit
+#ifndef included_IBInstrumentPanel
+#define included_IBInstrumentPanel
 
-// Filename: IBPlumbingToolkit.h
-// Last modified: <11.Jun.2007 16:56:38 griffith@box221.cims.nyu.edu>
+// Filename: IBInstrumentPanel.h
+// Last modified: <11.Jun.2007 19:37:48 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
+#include <ibamr/LDataManager.h>
 
 // SAMRAI INCLUDES
+#include <PatchHierarchy.h>
 #include <tbox/Database.h>
 #include <tbox/DescribedClass.h>
 
@@ -18,24 +20,35 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBPlumbingToolkit provides support for flow meters and pressure
+ * \brief Class IBInstrumentPanel provides support for flow meters and pressure
  * gauges.
  */
-class IBPlumbingToolkit
+class IBInstrumentPanel
     : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    IBPlumbingToolkit(
+    IBInstrumentPanel(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~IBPlumbingToolkit();
+    ~IBInstrumentPanel();
+
+    /*!
+     * \brief Compute the positions of all of the flow meters and pressure
+     * gauges.
+     */
+    void
+    computeMeterPositions(
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const double init_data_time,
+        const bool initial_time,
+        LDataManager* const lag_manager);
 
     /*!
      * \brief Initialize hierarchy-dependent data.
@@ -55,8 +68,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBPlumbingToolkit(
-        const IBPlumbingToolkit& from);
+    IBInstrumentPanel(
+        const IBInstrumentPanel& from);
 
     /*!
      * \brief Assignment operator.
@@ -67,36 +80,29 @@ private:
      *
      * \return A reference to this object.
      */
-    IBPlumbingToolkit&
+    IBInstrumentPanel&
     operator=(
-        const IBPlumbingToolkit& that);
-
-    /*!
-     * \brief Initialize the data associated with a specific flow meter.
-     */
-    void
-    initializeFlowMeter(
-        const int meter_number);
-
-    /*!
-     * \brief Initialize the data associated with a specific pressure gauge.
-     */
-    void
-    initializePressureGauge(
-        const int gauge_number);
+        const IBInstrumentPanel& that);
 
     /*!
      * \brief Hierarchy independent data.
      */
-    std::string d_interp_type;
-    int d_num_flow_meters, d_num_pressure_gauges;
+    int d_interp_level;
+    int d_num_meters;
+    std::vector<int> d_num_meter_nodes;
+
+    /*!
+     * \brief Hierarchy and configuration dependent data.
+     */
+    std::vector<std::vector<double> > d_X_perimeter, d_X_centroid;
+    std::vector<std::vector<std::vector<double> > > d_X_web;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBPlumbingToolkit.I>
+//#include <ibamr/IBInstrumentPanel.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBPlumbingToolkit
+#endif //#ifndef included_IBInstrumentPanel

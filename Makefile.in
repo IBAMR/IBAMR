@@ -211,6 +211,7 @@ EXTRA_DIST = autogen.sh bin/includes.pl \
 	include/ibamr/IBEulerianSourceSetter.h \
 	include/ibamr/IBHierarchyIntegrator.h \
 	include/ibamr/IBImplicitHierarchyIntegrator.h \
+	include/ibamr/IBInstrumentPanel.h \
 	include/ibamr/IBInstrumentationSpecFactory.h \
 	include/ibamr/IBInstrumentationSpec.h \
 	include/ibamr/IBInstrumentationSpec.I \
