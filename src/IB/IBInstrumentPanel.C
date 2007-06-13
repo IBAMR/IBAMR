@@ -128,7 +128,9 @@ init_meter_elements3d(
             }
 #endif
             // Compute the centroid of the quadrilateral web patch.
-            X_web(m,n) = 0.25*(X0+X1+X2+X3);
+            X_web(m,n) = ((n+1 < num_web_nodes)
+                          ? blitz::TinyVector<double,NDIM>((X0+X1+X2+X3)/4.0)
+                          : blitz::TinyVector<double,NDIM>((X0+X1+X2)/3.0));
 
             // Compute the area-weighted normal to the quadrilateral web patch,
             // i.e.,
