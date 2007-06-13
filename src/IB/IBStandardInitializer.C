@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <12.Jun.2007 19:00:46 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Jun.2007 22:28:08 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -1507,7 +1507,7 @@ IBStandardInitializer::readInstrumentationFiles()
             std::ifstream file_stream;
             std::string line_string;
             file_stream.open(inst_filename.c_str(), std::ios::in);
-            if (file_stream.is_open())
+            if (file_stream.is_open() && d_enable_instrumentation[ln][j])
             {
                 SAMRAI::tbox::plog << d_object_name << ":  "
                                    << "processing instrumentation data from input filename " << inst_filename << endl
@@ -1680,11 +1680,11 @@ IBStandardInitializer::getVertexInstrumentationIndices(
     const std::pair<int,int>& point_index,
     const int level_number) const
 {
-    std::map<int,std::pair<int,int> >::const_iterator lb =
-        d_instrument_idx[level_number][point_index.first].lower_bound(point_index.second);
-    if (lb != d_instrument_idx[level_number][point_index.first].end())
+    std::map<int,std::pair<int,int> >::const_iterator it =
+        d_instrument_idx[level_number][point_index.first].find(point_index.second);
+    if (it != d_instrument_idx[level_number][point_index.first].end())
     {
-        return (*lb).second;
+        return (*it).second;
     }
     else
     {

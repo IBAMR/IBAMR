@@ -2,7 +2,7 @@
 #define included_IBInstrumentPanel
 
 // Filename: IBInstrumentPanel.h
-// Last modified: <12.Jun.2007 17:41:23 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Jun.2007 20:58:10 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -14,7 +14,6 @@
 #include <CellVariable.h>
 #include <Index.h>
 #include <PatchHierarchy.h>
-#include <tbox/Database.h>
 #include <tbox/DescribedClass.h>
 
 // BLITZ++ INLCUDES
@@ -38,10 +37,14 @@ class IBInstrumentPanel
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
+     *
+     * \param object_name          String used for error reporting.
+     * \param dump_directory_name  String indicating the directory where visualization data is to be written.
      */
     IBInstrumentPanel(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
+        const std::string& object_name,
+        const std::string& dump_directory_name);
 
     /*!
      * \brief Virtual destructor.
@@ -81,7 +84,22 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         LDataManager* const lag_manager);
 
+    /*!
+     * \brief Write the plot data to disk.
+     */
+    void
+    writePlotData(
+        const int time_step_number,
+        const double simulation_time);
+
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    IBInstrumentPanel();
+
     /*!
      * \brief Copy constructor.
      *
@@ -104,6 +122,21 @@ private:
     IBInstrumentPanel&
     operator=(
         const IBInstrumentPanel& that);
+
+    /*
+     * The object name is used for error reporting purposes.
+     */
+    std::string d_object_name;
+
+    /*
+     * The directory where data is to be dumped.
+     */
+    std::string d_dump_directory_name;
+
+    /*
+     * Time step number (passed in by user).
+     */
+    int d_time_step_number;
 
     /*!
      * \brief Hierarchy-independent data.

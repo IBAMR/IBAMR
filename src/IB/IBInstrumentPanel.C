@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <12.Jun.2007 18:14:01 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Jun.2007 23:22:06 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -21,6 +21,7 @@
 #include <ibamr/LNodeIndexData2.h>
 
 // STOOLS INCLUDES
+#include <stools/PETSC_SAMRAI_ERROR.h>
 #include <stools/STOOLS_Utilities.h>
 
 // SAMRAI INCLUDES
@@ -33,6 +34,14 @@
 
 // BLITZ++ INCLUDES
 #include <blitz/tinyvec-et.h>
+
+// SILO INCLUDES
+#if HAVE_LIBSILO
+extern "C"
+{
+#include <silo.h>
+}
+#endif
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
@@ -47,7 +56,20 @@ namespace IBAMR
 
 namespace
 {
-inline void
+// The rank of the root MPI process and the MPI tag number.
+static const int SILO_MPI_ROOT = 0;
+static const int SILO_MPI_TAG  = 0;
+
+// The name of the Silo dumps and database filenames.
+static const int SILO_NAME_BUFSIZE = 128;
+static const std::string VISIT_DUMPS_FILENAME = "meter_data.visit";
+static const std::string SILO_DUMP_DIR_PREFIX = "meter_data.cycle_";
+static const std::string SILO_SUMMARY_FILE_PREFIX= "meter_data.cycle_";
+static const std::string SILO_SUMMARY_FILE_POSTFIX = ".summary.silo";
+static const std::string SILO_PROCESSOR_FILE_PREFIX = "meter_data.proc_";
+static const std::string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
+
+void
 init_meter_elements2d(
     blitz::Array<blitz::TinyVector<double,NDIM>,2>& X_web,
     blitz::Array<blitz::TinyVector<double,NDIM>,2>& dA_web,
@@ -61,7 +83,7 @@ init_meter_elements2d(
     return;
 }// init_meter_elements2d
 
-inline void
+void
 init_meter_elements3d(
     blitz::Array<blitz::TinyVector<double,NDIM>,2>& X_web,
     blitz::Array<blitz::TinyVector<double,NDIM>,2>& dA_web,
@@ -75,8 +97,8 @@ init_meter_elements3d(
     assert(X_web.extent(0) == X_perimeter.extent(0));
     assert(dA_web.extent(0) == X_perimeter.extent(0));
 #endif
-    const int num_perimeter_nodes = X_perimeter.extent(1);
-    const int num_web_nodes = X_web.extent(2);
+    const int num_perimeter_nodes = X_web.extent(0);
+    const int num_web_nodes = X_web.extent(1);
     for (int m = 0; m < num_perimeter_nodes; ++m)
     {
         const blitz::TinyVector<double,NDIM> X_perimeter0(X_perimeter(m));
@@ -124,13 +146,98 @@ init_meter_elements3d(
 #endif
     return;
 }// init_meter_elements3d
+
+#if HAVE_LIBSILO
+/*!
+ * \brief Build a local mesh database entry corresponding to a meter web.
+ */
+void
+build_meter_web(
+    DBfile* dbfile,
+    std::string& dirname,
+    const blitz::Array<blitz::TinyVector<double,NDIM>,2>& X_web,
+    const blitz::Array<blitz::TinyVector<double,NDIM>,2>& dA_web,
+    const int time_step,
+    const double simulation_time)
+{
+    const int npoints = X_web.numElements();
+
+    std::vector<float> block_X(NDIM*npoints);
+    std::vector<float> block_dA(NDIM*npoints);
+
+    for (int m = 0, i = 0; m < X_web.extent(0); ++m)
+    {
+        for (int n = 0; n < X_web.extent(1); ++n, ++i)
+        {
+            // Get the coordinate and normal vector data.
+            for (int d = 0; d < NDIM; ++d)
+            {
+                block_X[d*npoints+i] = float(X_web(m,n)(d));
+                block_dA[d*npoints+i] = float(dA_web(m,n)(d));
+            }
+        }
+    }
+
+    // Set the working directory in the Silo database.
+    if (DBSetDir(dbfile, dirname.c_str()) == -1)
+    {
+        TBOX_ERROR("IBInstrumentPanel::build_meter_web()\n"
+                   << "  Could not set directory " << dirname << endl);
+    }
+
+    // Write out the variables.
+    int    cycle = time_step;
+    float  time  = static_cast<float>(simulation_time);
+    double dtime = simulation_time;
+
+    static const int MAX_OPTS = 3;
+    DBoptlist* optlist = DBMakeOptlist(MAX_OPTS);
+    DBAddOption(optlist, DBOPT_CYCLE, &cycle);
+    DBAddOption(optlist, DBOPT_TIME , &time);
+    DBAddOption(optlist, DBOPT_DTIME, &dtime);
+
+    const char* meshname = "mesh";
+    std::vector<float*> coords(NDIM);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        coords[d] = &block_X[d*npoints];
+    }
+
+    int ndims = NDIM;
+
+    DBPutPointmesh(dbfile, meshname, ndims, &coords[0], npoints, DB_FLOAT, optlist);
+
+    const char* varname = "scaled_normal";
+    std::vector<float*> vars(NDIM);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        vars[d] = &block_dA[d*npoints];
+    }
+
+    DBPutPointvar(dbfile, varname, meshname, ndims, &vars[0], npoints, DB_FLOAT, optlist);
+
+    DBFreeOptlist(optlist);
+
+    // Reset the working directory in the Silo database.
+    if (DBSetDir(dbfile, "..") == -1)
+    {
+        TBOX_ERROR("IBInstrumentPanel::build_meter_web()\n"
+                   << "  Could not return to the base directory from subdirectory " << dirname << endl);
+    }
+    return;
+}// build_meter_web
+#endif
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBInstrumentPanel::IBInstrumentPanel(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
-    : d_num_meters(0),
+    const std::string& object_name,
+    const std::string& dump_directory_name)
+    : d_object_name(object_name),
+      d_dump_directory_name(dump_directory_name),
+      d_time_step_number(-1),
+      d_num_meters(0),
       d_num_perimeter_nodes(),
       d_X_centroid(),
       d_X_perimeter(),
@@ -139,10 +246,11 @@ IBInstrumentPanel::IBInstrumentPanel(
       d_web_patch_map(),
       d_meter_centroid_map()
 {
-    if (!input_db.isNull())
-    {
-
-    }
+#if HAVE_LIBSILO
+    // intentionally blank
+#else
+    TBOX_WARNING("IBInstrumentPanel::IBInstrumentPanel(): SILO is not installed; cannot write data." << endl);
+#endif
     return;
 }// IBInstrumentPanel
 
@@ -265,6 +373,13 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     {
         if (lag_manager->levelContainsLagrangianData(ln))
         {
+            // Extract the local position array.
+            SAMRAI::tbox::Pointer<LNodeLevelData> X_data = lag_manager->
+                getLNodeLevelData(LDataManager::COORDS_DATA_NAME,ln);
+            Vec X_vec = X_data->getGlobalVec();
+            double* X_arr;
+            int ierr = VecGetArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
+
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
                 hierarchy->getPatchLevel(ln);
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -289,16 +404,19 @@ IBInstrumentPanel::initializeHierarchyDependentData(
                             SAMRAI::tbox::Pointer<IBInstrumentationSpec> spec = stash_data[l];
                             if (!spec.isNull())
                             {
+                                const int& petsc_idx = node_idx->getLocalPETScIndex();
+                                const double* const X = &X_arr[NDIM*petsc_idx];
                                 const int m = spec->getMeterIndex();
                                 const int n = spec->getNodeIndex();
-                                copy(node_idx->getNodeLocation(),
-                                     node_idx->getNodeLocation()+NDIM,
-                                     d_X_perimeter[m](n).data());
+                                copy(X,X+NDIM,d_X_perimeter[m](n).data());
                             }
                         }
                     }
                 }
             }
+
+            // Restore the local position array.
+            ierr = VecGetArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
         }
     }
 
@@ -551,8 +669,184 @@ IBInstrumentPanel::readMeterData(
     // Synchronize the values across all processes.
     SAMRAI::tbox::MPI::sumReduction(&U_dA[0],d_num_meters);
     SAMRAI::tbox::MPI::sumReduction(&P_centroid[0],d_num_meters);
+
+    // Output meter data.
+    // XXXX
+    for (int m = 0; m < d_num_meters; ++m)
+    {
+        SAMRAI::tbox::pout << "meter " << m << ": flow rate = " << U_dA[m] << "   pressure = " << P_centroid[m] << "\n";
+    }
     return;
 }// readMeterData
+
+void
+IBInstrumentPanel::writePlotData(
+    const int time_step_number,
+    const double simulation_time)
+{
+#if HAVE_LIBSILO
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(time_step_number >= 0);
+    assert(!d_dump_directory_name.empty());
+#endif
+
+    if (time_step_number <= d_time_step_number)
+    {
+        TBOX_ERROR("IBInstrumentPanel::writePlotData()\n"
+                   << "  data writer with name " << d_object_name << "\n"
+                   << "  time step number: " << time_step_number
+                   << " is <= last time step number: " << d_time_step_number
+                   << endl);
+    }
+    d_time_step_number = time_step_number;
+
+    if (d_dump_directory_name.empty())
+    {
+        TBOX_ERROR("IBInstrumentPanel::writePlotData()\n"
+                   << "  data writer with name " << d_object_name << "\n"
+                   << "  dump directory name is empty" << endl);
+    }
+
+    char temp_buf[SILO_NAME_BUFSIZE];
+    std::string current_file_name;
+    DBfile* dbfile;
+    const int mpi_rank  = SAMRAI::tbox::MPI::getRank();
+    const int mpi_nodes = SAMRAI::tbox::MPI::getNodes();
+
+    // Create the working directory.
+    sprintf(temp_buf, "%06d", d_time_step_number);
+    std::string current_dump_directory_name = SILO_DUMP_DIR_PREFIX + temp_buf;
+    std::string dump_dirname = d_dump_directory_name + "/" + current_dump_directory_name;
+
+    SAMRAI::tbox::Utilities::recursiveMkdir(dump_dirname);
+
+    // Create one local DBfile per MPI process.
+    sprintf(temp_buf, "%04d", mpi_rank);
+    current_file_name = dump_dirname + "/" + SILO_PROCESSOR_FILE_PREFIX;
+    current_file_name += temp_buf;
+    current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
+
+    if ((dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB))
+        == NULL)
+    {
+        TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                   << "  Could not create DBfile named " << current_file_name << endl);
+    }
+
+    // Output the web data on the available MPI processes.
+    for (int meter = 0; meter < d_num_meters; ++meter)
+    {
+        if (meter%mpi_nodes == mpi_rank)
+        {
+            std::ostringstream stream;
+            stream << "meter_" << meter;
+            std::string dirname = stream.str();
+
+            if (DBMkDir(dbfile, dirname.c_str()) == -1)
+            {
+                TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                           << "  Could not create directory named "
+                           << dirname << endl);
+            }
+
+            build_meter_web(dbfile, dirname, d_X_web[meter], d_dA_web[meter],
+                            time_step_number, simulation_time);
+        }
+    }
+
+    DBClose(dbfile);
+
+    if (mpi_rank == SILO_MPI_ROOT)
+    {
+        // Create and initialize the multimesh Silo database on the root MPI
+        // process.
+        sprintf(temp_buf, "%06d", d_time_step_number);
+        std::string summary_file_name = dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
+        if ((dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB))
+            == NULL)
+        {
+            TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                       << "  Could not create DBfile named " << summary_file_name << endl);
+        }
+
+        int    cycle = time_step_number;
+        float  time  = static_cast<float>(simulation_time);
+        double dtime = simulation_time;
+
+        static const int MAX_OPTS = 3;
+        DBoptlist* optlist = DBMakeOptlist(MAX_OPTS);
+        DBAddOption(optlist, DBOPT_CYCLE, &cycle);
+        DBAddOption(optlist, DBOPT_TIME , &time );
+        DBAddOption(optlist, DBOPT_DTIME, &dtime);
+
+        for (int meter = 0; meter < d_num_meters; ++meter)
+        {
+            const int proc = meter%mpi_nodes;
+            sprintf(temp_buf, "%04d", proc);
+            current_file_name = SILO_PROCESSOR_FILE_PREFIX;
+            current_file_name += temp_buf;
+            current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
+
+            std::ostringstream file_stream;
+            file_stream << current_file_name << ":meter_" << meter << "/mesh";
+            std::string meshname = file_stream.str();
+            char* meshname_ptr = const_cast<char*>(meshname.c_str());
+            int meshtype = DB_POINTMESH;
+
+            std::ostringstream name_stream;
+            name_stream << "meter_" << meter;
+            std::string meter_name = name_stream.str();
+
+            DBPutMultimesh(dbfile, meter_name.c_str(), 1, &meshname_ptr, &meshtype, optlist);
+
+            if (DBMkDir(dbfile, meter_name.c_str()) == -1)
+            {
+                TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                           << "  Could not create directory named "
+                           << meter_name << endl);
+            }
+
+            std::ostringstream varname_stream;
+            varname_stream << current_file_name << ":meter_" << meter << "/scaled_normal";
+            std::string varname = varname_stream.str();
+            char* varname_ptr = const_cast<char*>(varname.c_str());
+            int vartype = DB_POINTVAR;
+
+            std::ostringstream stream;
+            stream << "meter_" << meter << "/n";
+            std::string var_name = stream.str();
+
+            DBPutMultivar(dbfile, var_name.c_str(), 1, &varname_ptr, &vartype, optlist);
+        }
+
+        DBClose(dbfile);
+
+        // Create or update the dumps file on the root MPI process.
+        static bool summary_file_opened = false;
+        std::string path = d_dump_directory_name + "/" + VISIT_DUMPS_FILENAME;
+        sprintf(temp_buf, "%06d", d_time_step_number);
+        std::string file = current_dump_directory_name + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
+        if (!summary_file_opened)
+        {
+            summary_file_opened = true;
+            std::ofstream sfile(path.c_str(), ios::out);
+            sfile << file << endl;
+            sfile.close();
+        }
+        else
+        {
+            std::ofstream sfile(path.c_str(), ios::app);
+            sfile << file << endl;
+            sfile.close();
+        }
+    }
+
+    SAMRAI::tbox::MPI::barrier();
+#else
+    TBOX_WARNING("IBInstrumentPanel::writePlotData(): SILO is not installed; cannot write data." << endl);
+#endif //if HAVE_LIBSILO
+    return;
+}// writePlotData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
