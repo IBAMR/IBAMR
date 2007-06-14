@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <13.Jun.2007 23:47:47 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Jun.2007 19:03:04 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -30,6 +30,7 @@
 #include <CartesianPatchGeometry.h>
 #include <Patch.h>
 #include <PatchLevel.h>
+#include <tbox/RestartManager.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
 #include <tbox/Utilities.h>
@@ -188,7 +189,7 @@ build_meter_web(
     std::string& dirname,
     const blitz::Array<blitz::TinyVector<double,NDIM>,2>& X_web,
     const blitz::Array<blitz::TinyVector<double,NDIM>,2>& dA_web,
-    const int time_step,
+    const int timestep,
     const double simulation_time)
 {
     const int npoints = X_web.numElements();
@@ -217,7 +218,7 @@ build_meter_web(
     }
 
     // Write out the variables.
-    int    cycle = time_step;
+    int    cycle = timestep;
     float  time  = static_cast<float>(simulation_time);
     double dtime = simulation_time;
 
@@ -275,35 +276,40 @@ linear_interp(
     const blitz::TinyVector<bool,NDIM> is_lower(X < X_cell);
     blitz::TinyVector<double,DEPTH> U(0.0);
 #if (NDIM == 3)
-    for (int i2 = (is_lower(2) ? -1 : 0); i2 <= (is_lower(2) ? 0 : 1); ++i2)
+    for (int i_shift2 = (is_lower(2) ? -1 : 0); i_shift2 <= (is_lower(2) ? 0 : 1); ++i_shift2)
     {
 #endif
-        for (int i1 = (is_lower(1) ? -1 : 0); i1 <= (is_lower(1) ? 0 : 1); ++i1)
+        for (int i_shift1 = (is_lower(1) ? -1 : 0); i_shift1 <= (is_lower(1) ? 0 : 1); ++i_shift1)
         {
-            for (int i0 = (is_lower(0) ? -1 : 0); i0 <= (is_lower(0) ? 0 : 1); ++i0)
+            for (int i_shift0 = (is_lower(0) ? -1 : 0); i_shift0 <= (is_lower(0) ? 0 : 1); ++i_shift0)
             {
                 const blitz::TinyVector<double,NDIM> X_center(
-                    X_cell(0)+double(i0)*dx[0], X_cell(1)+double(i1)*dx[1]
+                    X_cell(0)+double(i_shift0)*dx[0],
+                    X_cell(1)+double(i_shift1)*dx[1]
 #if (NDIM == 3)
-                    ,X_cell(2)+double(i2)*dx[2]
+                    ,
+                    X_cell(2)+double(i_shift2)*dx[2]
 #endif
                                                               );
                 const double wgt =
-                    ((X(0) < X_center(0) ? X(0) - (X_center(0)-dx[0]) : X_center(0)+dx[0] - X(0))/dx[0])*
-                    ((X(1) < X_center(1) ? X(1) - (X_center(1)-dx[1]) : X_center(1)+dx[1] - X(1))/dx[1])
+                    ((X(0) < X_center(0) ? X(0) - (X_center(0)-dx[0]) : (X_center(0)+dx[0]) - X(0))/dx[0])*
+                    ((X(1) < X_center(1) ? X(1) - (X_center(1)-dx[1]) : (X_center(1)+dx[1]) - X(1))/dx[1])
 #if (NDIM == 3)
-                    *((X(2) < X_center(2) ? X(2) - (X_center(2)-dx[2]) : X_center(2)+dx[2] - X(2))/dx[2])
+                    *
+                    ((X(2) < X_center(2) ? X(2) - (X_center(2)-dx[2]) : (X_center(2)+dx[2]) - X(2))/dx[2])
 #endif
                     ;
 
-                const SAMRAI::hier::Index<NDIM> i_stencil(i0+i_cell(0),i1+i_cell(1)
+                const SAMRAI::hier::Index<NDIM> i(i_shift0+i_cell(0),
+                                                  i_shift1+i_cell(1)
 #if (NDIM == 3)
-                                                          ,i2+i_cell(2)
+                                                  ,
+                                                  i_shift2+i_cell(2)
 #endif
-                                                          );
+                                                  );
                 for (int d = 0; d < DEPTH; ++d)
                 {
-                    U(d) += v(i_stencil,d)*wgt;
+                    U(d) += v(i,d)*wgt;
                 }
             }
         }
@@ -318,28 +324,42 @@ linear_interp(
 
 IBInstrumentPanel::IBInstrumentPanel(
     const std::string& object_name,
-    const std::string& dump_directory_name)
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_object_name(object_name),
-      d_dump_directory_name(dump_directory_name),
-      d_time_step_number(-1),
+      d_initialized(false),
       d_num_meters(0),
       d_num_perimeter_nodes(),
       d_X_centroid(),
       d_X_perimeter(),
       d_X_web(),
       d_dA_web(),
+      d_instrument_read_timestep_num(-1),
       d_instrument_read_time(std::numeric_limits<double>::quiet_NaN()),
+      d_max_instrument_name_len(-1),
       d_instrument_names(),
       d_flow_values(),
-      d_pressure_values(),
+      d_pres_values(),
       d_web_patch_map(),
-      d_meter_centroid_map()
+      d_meter_centroid_map(),
+      d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
+      d_output_log_file(false),
+      d_log_file_name(NDIM == 2 ? "inst2d.log" : "inst3d.log"),
+      d_log_file_stream(),
+      d_flow_conv(1.0),
+      d_pres_conv(1.0)
 {
 #if HAVE_LIBSILO
     // intentionally blank
 #else
     TBOX_WARNING("IBInstrumentPanel::IBInstrumentPanel(): SILO is not installed; cannot write data." << endl);
 #endif
+
+    // Initialize object with data read from the input database.
+    if (!input_db.isNull())
+    {
+        getFromInput(input_db);
+    }
+
     // Setup Timers.
     static bool timers_need_init = true;
     if (timers_need_init)
@@ -358,7 +378,11 @@ IBInstrumentPanel::IBInstrumentPanel(
 
 IBInstrumentPanel::~IBInstrumentPanel()
 {
-    // intentionally blank
+    // Close the log file stream.
+    if (SAMRAI::tbox::MPI::getRank() == 0)
+    {
+        d_log_file_stream.close();
+    }
     return;
 }// ~IBInstrumentPanel
 
@@ -383,8 +407,20 @@ IBInstrumentPanel::getFlowValues() const
 const std::vector<double>&
 IBInstrumentPanel::getPressureValues() const
 {
-    return d_pressure_values;
+    return d_pres_values;
 }// getPressureValues
+
+bool
+IBInstrumentPanel::isInstrumented() const
+{
+    if (!d_initialized)
+    {
+        TBOX_WARNING(d_object_name << "::isInstrumented()\n"
+                     << "  instrument data has not been initialized" << endl);
+        return false;
+    }
+    return (d_num_meters > 0);
+}// isInstrumented
 
 void
 IBInstrumentPanel::initializeHierarchyIndependentData(
@@ -474,9 +510,56 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     }
     d_X_web.resize(d_num_meters);
     d_dA_web.resize(d_num_meters);
-    d_instrument_names.resize(d_num_meters);
+    d_instrument_names = IBInstrumentationSpec::getInstrumentNames();
+    if (static_cast<int>(d_instrument_names.size()) != d_num_meters)
+    {
+        TBOX_WARNING(d_object_name << "::initializeHierarchyIndependentData()\n"
+                     << "  instrument names are not initialized\n"
+                     << "  using default names" << endl);
+        d_instrument_names.resize(d_num_meters);
+        for (int m = 0; m < d_num_meters; ++m)
+        {
+            std::ostringstream meter_stream;
+            meter_stream << "meter " << m;
+            d_instrument_names[m] = meter_stream.str();
+        }
+        IBInstrumentationSpec::setInstrumentNames(d_instrument_names);
+    }
     d_flow_values.resize(d_num_meters,std::numeric_limits<double>::quiet_NaN());
-    d_pressure_values.resize(d_num_meters,std::numeric_limits<double>::quiet_NaN());
+    d_pres_values.resize(d_num_meters,std::numeric_limits<double>::quiet_NaN());
+
+    // Open the log file stream.
+    d_max_instrument_name_len = 0;
+    for (int m = 0; m < d_num_meters; ++m)
+    {
+        d_max_instrument_name_len =
+            std::max(d_max_instrument_name_len,
+                     static_cast<int>(d_instrument_names[m].length()));
+    }
+
+    if (d_output_log_file && SAMRAI::tbox::MPI::getRank() == 0 && !d_log_file_stream.is_open())
+    {
+        const bool from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
+        if (from_restart)
+        {
+            d_log_file_stream.open(d_log_file_name.c_str(),std::ios::app);
+        }
+        else
+        {
+            d_log_file_stream.open(d_log_file_name.c_str(),std::ios::out);
+            d_log_file_stream << std::string(d_max_instrument_name_len,' ')
+                              << "  time       "
+                              << "  x_centroid "
+                              << "  y_centroid "
+                              << (NDIM == 3 ? "  z_centroid " : "")
+                              << "  flow rate   "
+                              << "  pressure    "
+                              << "\n";
+        }
+    }
+
+    // Indicate that the hierarchy-independent data has been initialized.
+    d_initialized = true;
 
     t_initialize_hierarchy_independent_data->stop();
     return;
@@ -485,12 +568,25 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
 void
 IBInstrumentPanel::initializeHierarchyDependentData(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-    LDataManager* const lag_manager)
+    LDataManager* const lag_manager,
+    const int timestep_num,
+    const double data_time)
 {
+    if (!d_initialized)
+    {
+        initializeHierarchyIndependentData(hierarchy, lag_manager);
+    }
+    if (d_num_meters == 0) return;
+
     t_initialize_hierarchy_dependent_data->start();
 
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
+
+    // Keep track of the timestep number and time at which the instrument data
+    // was collected.
+    d_instrument_read_timestep_num = timestep_num;
+    d_instrument_read_time = data_time;
 
     // The patch data descriptor index for the LNodeIndexData.
     const int lag_node_index_idx = lag_manager-> getLNodeIndexPatchDescriptorIndex();
@@ -734,25 +830,40 @@ IBInstrumentPanel::initializeHierarchyDependentData(
 
 void
 IBInstrumentPanel::readInstrumentData(
-    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > U_var,
     const int U_data_idx,
-    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_var,
     const int P_data_idx,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     LDataManager* const lag_manager,
+    const int timestep_num,
     const double data_time)
 {
+    if (d_num_meters == 0) return;
+
     t_read_instrument_data->start();
 
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
-    // Keep track of the time at which the instrument data was collected.
-    d_instrument_read_time = data_time;
+    // Ensure we are collecting data at the
+    if (timestep_num != d_instrument_read_timestep_num)
+    {
+        TBOX_ERROR(d_object_name << "::readInstrumentData()\n"
+                   << "  time step number: " << timestep_num
+                   << " is != instrumentation time step number: " << d_instrument_read_timestep_num
+                   << endl);
+    }
+
+    if (!SAMRAI::tbox::Utilities::deq(data_time, d_instrument_read_time))
+    {
+        TBOX_ERROR(d_object_name << "::readInstrumentData()\n"
+                   << "  data read time: " << data_time
+                   << " is != instrumentation data read time: " << d_instrument_read_time
+                   << endl);
+    }
 
     // Reset the instrument values.
     std::fill(d_flow_values.begin(), d_flow_values.end(), 0.0);
-    std::fill(d_pressure_values.begin(), d_pressure_values.end(), 0.0);
+    std::fill(d_pres_values.begin(), d_pres_values.end(), 0.0);
 
     // Compute the local contributions to the flux of U through the flow meter,
     // and the value of P at the centroid of the meter.
@@ -815,7 +926,7 @@ IBInstrumentPanel::readInstrumentData(
                         const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
                         const blitz::TinyVector<double,1> P = linear_interp<1>(
                             X, i, X_cell, P_data, patch_lower, patch_upper, xLower, xUpper, dx);
-                        d_pressure_values[meter_num] = P(0);
+                        d_pres_values[meter_num] = P(0);
                     }
                 }
             }
@@ -824,7 +935,7 @@ IBInstrumentPanel::readInstrumentData(
 
     // Synchronize the values across all processes.
     SAMRAI::tbox::MPI::sumReduction(&d_flow_values[0],d_num_meters);
-    SAMRAI::tbox::MPI::sumReduction(&d_pressure_values[0],d_num_meters);
+    SAMRAI::tbox::MPI::sumReduction(&d_pres_values[0],d_num_meters);
 
     // The patch data descriptor index for the LNodeIndexData.
     const int lag_node_index_idx = lag_manager-> getLNodeIndexPatchDescriptorIndex();
@@ -933,9 +1044,24 @@ IBInstrumentPanel::readInstrumentData(
     }
 
     // Output meter data.
-    for (int m = 0; m < d_num_meters; ++m)
+    SAMRAI::tbox::plog << std::string(d_max_instrument_name_len+80,'*') << "\n";
+    SAMRAI::tbox::plog << d_object_name << "::readInstrumentData():\n";
+    SAMRAI::tbox::plog << std::string(d_max_instrument_name_len,' ')
+                       << "  time       "
+                       << "  x_centroid "
+                       << "  y_centroid "
+                       << (NDIM == 3 ? "  z_centroid " : "")
+                       << "  flow rate   "
+                       << "  pressure    "
+                       << "\n";
+
+    outputLogData(SAMRAI::tbox::plog);
+    SAMRAI::tbox::plog << std::string(d_max_instrument_name_len+80,'*') << "\n";
+
+    if (d_output_log_file && SAMRAI::tbox::MPI::getRank() == 0)
     {
-        SAMRAI::tbox::plog << "meter " << m << ": flow rate = " << d_flow_values[m] << "   pressure = " << d_pressure_values[m] << "\n";
+        outputLogData(d_log_file_stream);
+        d_log_file_stream.flush();
     }
 
     t_read_instrument_data->stop();
@@ -944,30 +1070,29 @@ IBInstrumentPanel::readInstrumentData(
 
 void
 IBInstrumentPanel::writePlotData(
-    const int time_step_number,
+    const int timestep_num,
     const double simulation_time)
 {
+    if (d_num_meters == 0) return;
+
     t_write_plot_data->start();
 #if HAVE_LIBSILO
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(time_step_number >= 0);
-    assert(!d_dump_directory_name.empty());
+    assert(timestep_num >= 0);
+    assert(!d_plot_directory_name.empty());
 #endif
 
-    if (time_step_number <= d_time_step_number)
+    if (timestep_num != d_instrument_read_timestep_num)
     {
         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                   << "  data writer with name " << d_object_name << "\n"
-                   << "  time step number: " << time_step_number
-                   << " is <= last time step number: " << d_time_step_number
+                   << "  time step number: " << timestep_num
+                   << " is != last time step number: " << d_instrument_read_timestep_num
                    << endl);
     }
-    d_time_step_number = time_step_number;
 
-    if (d_dump_directory_name.empty())
+    if (d_plot_directory_name.empty())
     {
         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                   << "  data writer with name " << d_object_name << "\n"
                    << "  dump directory name is empty" << endl);
     }
 
@@ -978,9 +1103,9 @@ IBInstrumentPanel::writePlotData(
     const int mpi_nodes = SAMRAI::tbox::MPI::getNodes();
 
     // Create the working directory.
-    sprintf(temp_buf, "%06d", d_time_step_number);
+    sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);
     std::string current_dump_directory_name = SILO_DUMP_DIR_PREFIX + temp_buf;
-    std::string dump_dirname = d_dump_directory_name + "/" + current_dump_directory_name;
+    std::string dump_dirname = d_plot_directory_name + "/" + current_dump_directory_name;
 
     SAMRAI::tbox::Utilities::recursiveMkdir(dump_dirname);
 
@@ -1014,7 +1139,7 @@ IBInstrumentPanel::writePlotData(
             }
 
             build_meter_web(dbfile, dirname, d_X_web[meter], d_dA_web[meter],
-                            time_step_number, simulation_time);
+                            timestep_num, simulation_time);
         }
     }
 
@@ -1024,7 +1149,7 @@ IBInstrumentPanel::writePlotData(
     {
         // Create and initialize the multimesh Silo database on the root MPI
         // process.
-        sprintf(temp_buf, "%06d", d_time_step_number);
+        sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);
         std::string summary_file_name = dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
         if ((dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB))
             == NULL)
@@ -1033,7 +1158,7 @@ IBInstrumentPanel::writePlotData(
                        << "  Could not create DBfile named " << summary_file_name << endl);
         }
 
-        int    cycle = time_step_number;
+        int    cycle = timestep_num;
         float  time  = static_cast<float>(simulation_time);
         double dtime = simulation_time;
 
@@ -1087,8 +1212,8 @@ IBInstrumentPanel::writePlotData(
 
         // Create or update the dumps file on the root MPI process.
         static bool summary_file_opened = false;
-        std::string path = d_dump_directory_name + "/" + VISIT_DUMPS_FILENAME;
-        sprintf(temp_buf, "%06d", d_time_step_number);
+        std::string path = d_plot_directory_name + "/" + VISIT_DUMPS_FILENAME;
+        sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);
         std::string file = current_dump_directory_name + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
         if (!summary_file_opened)
         {
@@ -1116,6 +1241,59 @@ IBInstrumentPanel::writePlotData(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+IBInstrumentPanel::getFromInput(
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(!db.isNull());
+#endif
+    d_plot_directory_name = db->getStringWithDefault("plot_directory_name", d_plot_directory_name);
+    d_output_log_file = db->getBoolWithDefault("output_log_file", d_output_log_file);
+    if (d_output_log_file)
+    {
+        d_log_file_name = db->getStringWithDefault("log_file_name", d_log_file_name);
+    }
+    d_flow_conv = db->getDoubleWithDefault("flow_conv", d_flow_conv);
+    d_pres_conv = db->getDoubleWithDefault("pres_conv", d_pres_conv);
+    return;
+}// getFromInput
+
+void
+IBInstrumentPanel::outputLogData(
+    std::ostream& os)
+{
+    for (int m = 0; m < d_num_meters; ++m)
+    {
+        std::string meter_name(d_instrument_names[m]);
+        meter_name.resize(d_max_instrument_name_len,' ');
+        os << meter_name;
+
+        os.setf(std::ios_base::scientific); os.precision(5);
+        os  << "  " << d_instrument_read_time;
+
+        os.setf(std::ios_base::scientific); os.precision(5);
+        os << "  " << d_X_centroid[m](0);
+        os.setf(std::ios_base::scientific); os.precision(5);
+        os << "  " << d_X_centroid[m](1);
+#if (NDIM == 3)
+        os.setf(std::ios_base::scientific); os.precision(5);
+        os << "  " << d_X_centroid[m](2);
+#endif
+
+        os.setf(std::ios_base::scientific); os.setf(std::ios_base::showpos); os.precision(5);
+        os << "  " << d_flow_conv*d_flow_values[m];
+
+        os.setf(std::ios_base::scientific); os.setf(std::ios_base::showpos); os.precision(5);
+        os << "  " << d_pres_conv*d_pres_values[m];
+
+        os << "\n";
+
+        os.unsetf(std::ios_base::scientific); os.unsetf(std::ios_base::showpos);
+    }
+    return;
+}// outputLogData
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

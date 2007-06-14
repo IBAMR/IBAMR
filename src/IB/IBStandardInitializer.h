@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <13.Jun.2007 17:48:28 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Jun.2007 19:20:57 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -166,7 +166,11 @@ namespace IBAMR
  * time-dependent positions of flow meters and pressure gauges) end with the
  * extension <TT>".inst"</TT> and have the following format: \verbatim
 
- M                                      # number of instrumentation points in the file
+ M                                      # number of instruments in the file
+ meter name 0                           # meter names
+ meter name 1
+ meter name 2
+ N                                      # number of instrumentation points in the file
  i_0   meter_idx_0   meter_node_idx_0   # vertex index, meter index, node index within meter
  i_1   meter_idx_1   meter_node_idx_1
  i_2   meter_idx_2   meter_node_idx_2
@@ -181,7 +185,9 @@ namespace IBAMR
  * perimeter; however, the values of meter_node_idx associated with a particular
  * meter must be a continuous range of integers, starting with index 0.  E.g.,
  * the following is a valid input file: \verbatim
-
+ 2           # number of instruments in the file
+ meter 0     # meter names
+ meter 1
  6           # number of instrumentation points in the file
  0   0   0   # perimeter of meter 0 consists of vertices 0, 1, and 2
  1   0   1

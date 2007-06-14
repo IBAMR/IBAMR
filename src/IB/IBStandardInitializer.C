@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <13.Jun.2007 19:50:47 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Jun.2007 19:32:08 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -1523,6 +1523,7 @@ IBStandardInitializer::readInstrumentationFiles()
     int sz = 1;
 
     int instrument_offset = 0;
+    std::vector<std::string> instrument_names;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
@@ -1543,8 +1544,8 @@ IBStandardInitializer::readInstrumentationFiles()
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
                 // The first line in the file indicates the number of
-                // instrumented IB points in the input file.
-                int num_inst_pts;
+                // instruments in the input file.
+                int num_inst;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << inst_filename << endl);
@@ -1553,15 +1554,61 @@ IBStandardInitializer::readInstrumentationFiles()
                 {
                     line_string = discard_comments(line_string);
                     std::istringstream line_stream(line_string);
-                    if (!(line_stream >> num_inst_pts))
+                    if (!(line_stream >> num_inst))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << inst_filename << endl);
                     }
                 }
 
-                if (num_inst_pts <= 0)
+                if (num_inst <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << inst_filename << endl);
+                }
+
+                // The next several lines in the file indicate the names of the
+                // instruments in the input file.
+                for (int m = 0; m < num_inst; ++m)
+                {
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << m+2 << " of file " << inst_filename << endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+
+                        // trim leading whitespace
+                        std::string::size_type notwhite = line_string.find_first_not_of(" \t\n");
+                        line_string.erase(0,notwhite);
+
+                        // trim trailing whitespace
+                        notwhite = line_string.find_last_not_of(" \t\n");
+                        line_string.erase(notwhite+1);
+
+                        instrument_names.push_back(line_string);
+                    }
+                }
+
+                // The next line in the file indicates the number of
+                // instrumented IB points in the input file.
+                int num_inst_pts;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << num_inst+2 << " of file " << inst_filename << endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_inst_pts))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << num_inst+2 << " of file " << inst_filename << endl);
+                    }
+                }
+
+                if (num_inst_pts <= 0)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << num_inst+2 << " of file " << inst_filename << endl);
                 }
 
                 // Each successive line indicates the vertex number, meter
@@ -1574,7 +1621,7 @@ IBStandardInitializer::readInstrumentationFiles()
                     int n;
                     if (!std::getline(file_stream, line_string))
                     {
-                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << inst_filename << endl);
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << num_inst+k+3 << " of file " << inst_filename << endl);
                     }
                     else
                     {
@@ -1582,11 +1629,11 @@ IBStandardInitializer::readInstrumentationFiles()
                         std::istringstream line_stream(line_string);
                         if (!(line_stream >> n))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl);
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << num_inst+k+3 << " of file " << inst_filename << endl);
                         }
                         else if ((n < 0) || (n >= d_num_vertex[ln][j]))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << num_inst+k+3 << " of file " << inst_filename << endl
                                        << "  vertex index " << n << " is out of range" << endl);
                         }
 
@@ -1594,12 +1641,12 @@ IBStandardInitializer::readInstrumentationFiles()
 
                         if (!(line_stream >> idx.first))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl);
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << num_inst+k+3 << " of file " << inst_filename << endl);
                         }
-                        else if (idx.first < 0)
+                        else if (idx.first < 0 || idx.first >= num_inst)
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl
-                                       << "  meter index is negative" << endl);
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << num_inst+k+3 << " of file " << inst_filename << endl
+                                       << "  meter index " << idx.first << " is out of range" << endl);
                         }
 
                         if (idx.first >= static_cast<int>(encountered_instrument_idx.size()))
@@ -1610,11 +1657,11 @@ IBStandardInitializer::readInstrumentationFiles()
 
                         if (!(line_stream >> idx.second))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl);
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << num_inst+k+3 << " of file " << inst_filename << endl);
                         }
                         else if (idx.second < 0)
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << num_inst+k+3 << " of file " << inst_filename << endl
                                        << "  meter node index is negative" << endl);
                         }
 
@@ -1655,6 +1702,13 @@ IBStandardInitializer::readInstrumentationFiles()
                     }
                 }
 
+                if (static_cast<int>(encountered_instrument_idx.size()) != num_inst)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  "
+                               << "  Not all anticipated instrument indices were found in input file " << inst_filename <<
+                               << "  Expected to find " << num_inst << " distinct meter indices in input file" << endl);
+                }
+
                 // Increment the meter offset.
                 instrument_offset += encountered_instrument_idx.size();
 
@@ -1670,6 +1724,7 @@ IBStandardInitializer::readInstrumentationFiles()
             if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
+    IBInstrumentationSpec::setInstrumentNames(instrument_names);
     return;
 }// readInstrumentationFiles
 

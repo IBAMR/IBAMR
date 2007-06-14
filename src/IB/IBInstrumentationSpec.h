@@ -2,7 +2,7 @@
 #define included_IBInstrumentationSpec
 
 // Filename: IBInstrumentationSpec.h
-// Last modified: <11.Jun.2007 18:58:06 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Jun.2007 18:36:01 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -46,6 +46,19 @@ public:
      */
     static bool
     getIsRegisteredWithStashableManager();
+
+    /*!
+     * \brief Set the names of the flow meters and pressure gauges.
+     */
+    static void
+    setInstrumentNames(
+        const std::vector<std::string>& names);
+
+    /*!
+     * \brief Get the names of the flow meters and pressure gauges.
+     */
+    static const std::vector<std::string>&
+    getInstrumentNames();
 
     /*!
      * \brief Default constructor.
@@ -164,6 +177,11 @@ private:
      * The stashable ID for this object type.
      */
     static int s_stashable_id;
+
+    /*!
+     * The names of the instrument names.
+     */
+    static std::vector<std::string> s_instrument_names;
 
     /*!
      * Data required to define the instrument.

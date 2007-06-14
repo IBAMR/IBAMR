@@ -1,5 +1,5 @@
 // Filename: IBInstrumentationSpec.I
-// Last modified: <11.Jun.2007 19:00:05 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Jun.2007 18:36:15 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -19,6 +19,12 @@ IBInstrumentationSpec::getIsRegisteredWithStashableManager()
 {
     return s_registered_factory;
 }// getIsRegisteredWithStashableManager
+
+inline const std::vector<std::string>&
+IBInstrumentationSpec::getInstrumentNames()
+{
+    return s_instrument_names;
+}// getInstrumentNames
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

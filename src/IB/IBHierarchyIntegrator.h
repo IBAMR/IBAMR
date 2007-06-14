@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <13.Jun.2007 23:17:02 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Jun.2007 16:29:05 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -619,7 +619,8 @@ private:
      */
     void
     updateIBInstrumentationData(
-        const double time);
+        const int timestep_num,
+        const double data_time);
 
     /*!
      * Set the values of the distributed internal sources/sinks on the Cartesian

@@ -2,7 +2,7 @@
 #define included_IBInstrumentPanel
 
 // Filename: IBInstrumentPanel.h
-// Last modified: <13.Jun.2007 15:08:35 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Jun.2007 18:46:51 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -38,13 +38,10 @@ class IBInstrumentPanel
 public:
     /*!
      * \brief Constructor.
-     *
-     * \param object_name          String used for error reporting.
-     * \param dump_directory_name  String indicating the directory where visualization data is to be written.
      */
     IBInstrumentPanel(
         const std::string& object_name,
-        const std::string& dump_directory_name);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Virtual destructor.
@@ -87,6 +84,16 @@ public:
     getPressureValues() const;
 
     /*!
+     * \return A boolean indicating whether there are any instruments embedded
+     * within the model data.
+     *
+     * \note This method returns false and prints a warning message prior to the
+     * first call to initializeHierarchyIndependentData().
+     */
+    bool
+    isInstrumented() const;
+
+    /*!
      * \brief Initialize hierarchy-independent data.
      *
      * The data initialized by this method is assumed \em not to change during
@@ -103,7 +110,9 @@ public:
     void
     initializeHierarchyDependentData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        LDataManager* const lag_manager);
+        LDataManager* const lag_manager,
+        const int timestep_num,
+        const double data_time);
 
     /*!
      * \brief Compute the flow rates and pressures in the various distributed
@@ -111,20 +120,30 @@ public:
      */
     void
     readInstrumentData(
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > U_var,
         const int U_data_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_var,
         const int P_data_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         LDataManager* const lag_manager,
+        const int timestep_num,
         const double data_time);
+
+    /*!
+     * \brief Set the directory where plot data is to be written.
+     *
+     * \note By default, visualization data is placed into the directory
+     * "viz_inst2d" for two-dimensional simulations and "viz_inst3d" for
+     * three-dimensional simulations.
+     */
+    void
+    setPlotDirectory(
+        const std::string& plot_directory_name);
 
     /*!
      * \brief Write the plot data to disk.
      */
     void
     writePlotData(
-        const int time_step_number,
+        const int timestep_num,
         const double simulation_time);
 
 private:
@@ -158,33 +177,42 @@ private:
     operator=(
         const IBInstrumentPanel& that);
 
+    /*!
+     * Read input values, indicated above, from given database.
+     *
+     * When assertion checking is active, the database pointer must be non-null.
+     */
+    void
+    getFromInput(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    /*!
+     * Output log data to the provided output stream.
+     */
+    void
+    outputLogData(
+        std::ostream& os);
+
     /*
      * The object name is used for error reporting purposes.
      */
     std::string d_object_name;
 
-    /*
-     * The directory where data is to be dumped.
-     */
-    std::string d_dump_directory_name;
-
-    /*
-     * Time step number (passed in by user).
-     */
-    int d_time_step_number;
-
     /*!
      * \brief Instrumentation data.
      */
+    bool d_initialized;
     int d_num_meters;
     std::vector<int> d_num_perimeter_nodes;
     std::vector<blitz::TinyVector<double,NDIM> > d_X_centroid;
     std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > d_X_perimeter;
     std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,2> > d_X_web, d_dA_web;
 
+    int d_instrument_read_timestep_num;
     double d_instrument_read_time;
+    int d_max_instrument_name_len;
     std::vector<std::string> d_instrument_names;
-    std::vector<double> d_flow_values, d_pressure_values;
+    std::vector<double> d_flow_values, d_pres_values;
 
     /*!
      * \brief Data structures employed to manage mappings between cell indices
@@ -229,6 +257,20 @@ private:
 
     typedef std::multimap<SAMRAI::hier::Index<NDIM>,MeterCentroid,IndexFortranOrder> MeterCentroidMap;
     std::vector<MeterCentroidMap> d_meter_centroid_map;
+
+    /*
+     * The directory where data is to be dumped and the most recent timestep
+     * number at which data was dumped.
+     */
+    std::string d_plot_directory_name;
+
+    /*!
+     * The log file name and optional flow rate and pressure conversion factors.
+     */
+    bool d_output_log_file;
+    std::string d_log_file_name;
+    std::ofstream d_log_file_stream;
+    double d_flow_conv, d_pres_conv;
 };
 }// namespace IBAMR
 

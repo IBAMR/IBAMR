@@ -1,5 +1,5 @@
 // Filename: IBInstrumentationSpec.C
-// Last modified: <11.Jun.2007 21:38:52 boyce@bigboy.nyconnect.com>
+// Last modified: <14.Jun.2007 18:52:28 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBInstrumentationSpec.h"
@@ -32,6 +32,8 @@ namespace IBAMR
 bool IBInstrumentationSpec::s_registered_factory = false;
 int  IBInstrumentationSpec::s_stashable_id = -1;
 
+std::vector<std::string> IBInstrumentationSpec::s_instrument_names;
+
 void
 IBInstrumentationSpec::registerWithStashableManager()
 {
@@ -51,6 +53,14 @@ IBInstrumentationSpec::registerWithStashableManager()
     }
     return;
 }// registerWithStashableManager
+
+void
+IBInstrumentationSpec::setInstrumentNames(
+    const std::vector<std::string>& names)
+{
+    s_instrument_names = names;
+    return;
+}// getInstrumentNames
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

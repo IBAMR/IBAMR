@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <13.Jun.2007 23:29:20 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Jun.2007 17:35:29 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -211,7 +211,10 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
 
     // Create the instrument panel object.
     d_instrument_panel = new IBInstrumentPanel(
-        d_object_name+"::IBInstrumentPanel", "viz_IB3d"); // XXXX
+        d_object_name+"::IBInstrumentPanel",
+        (input_db->isDatabase("IBInstrumentPanel")
+         ? input_db->getDatabase("IBInstrumentPanel")
+         : SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL)));
 
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =
@@ -517,9 +520,9 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     const int U_scratch_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
         d_ins_hier_integrator->getScratchContext());
-    const int P_current_idx = var_db->mapVariableAndContextToIndex(
+    const int P_new_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getPressureVar(),
-        d_ins_hier_integrator->getCurrentContext());
+        d_ins_hier_integrator->getNewContext());
     const int P_scratch_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getPressureVar(),
         d_ins_hier_integrator->getScratchContext());
@@ -531,7 +534,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         "CONSERVATIVE_LINEAR_REFINE");
     d_ralgs["INSTRUMENTATION_DATA_FILL"]->
         registerRefine(U_scratch_idx,  // destination
-                       U_current_idx,  // source
+                       U_new_idx,      // source
                        U_scratch_idx,  // temporary work space
                        refine_operator);
 
@@ -540,7 +543,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         "LINEAR_REFINE");
     d_ralgs["INSTRUMENTATION_DATA_FILL"]->
         registerRefine(P_scratch_idx,  // destination
-                       P_current_idx,  // source
+                       P_new_idx,      // source
                        P_scratch_idx,  // temporary work space
                        refine_operator);
 
@@ -677,10 +680,14 @@ IBHierarchyIntegrator::initializeHierarchy()
     d_lag_data_manager->updateWorkloadData(
         coarsest_ln, finest_ln);
 
-    // Initialize the instrumentation manager.
+    // Initialize the instrumentation data.
     d_instrument_panel->initializeHierarchyIndependentData(
         d_hierarchy, d_lag_data_manager);
-    updateIBInstrumentationData(d_integrator_time);
+    if (d_instrument_panel->isInstrumented())
+    {
+        d_instrument_panel->initializeHierarchyDependentData(
+            d_hierarchy, d_lag_data_manager, d_integrator_step, d_integrator_time);
+    }
 
     // Indicate that the force and source strategies need to be re-initialized.
     d_force_strategy_needs_init  = true;
@@ -716,9 +723,6 @@ IBHierarchyIntegrator::advanceHierarchy(
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    // Update the instrumentation data.
-    updateIBInstrumentationData(current_time);
 
     // Set the current time interval in the force specification objects.
     d_eulerian_force_set->setTimeInterval(current_time, new_time);
@@ -1380,6 +1384,9 @@ IBHierarchyIntegrator::advanceHierarchy(
             }
         }
     }
+
+    // Update the instrumentation data.
+    updateIBInstrumentationData(d_integrator_step+1,new_time);
 
     // Compute the pressure at the updated locations of any distributed internal
     // fluid sources or sinks.
@@ -2175,25 +2182,26 @@ IBHierarchyIntegrator::resetLagrangianSourceStrategy(
 
 void
 IBHierarchyIntegrator::updateIBInstrumentationData(
-    const double time)
+    const int timestep_num,
+    const double data_time)
 {
+    if (!d_instrument_panel->isInstrumented()) return;
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Compute the positions of the flow meter nets.
     d_instrument_panel->initializeHierarchyDependentData(
-        d_hierarchy, d_lag_data_manager);
+        d_hierarchy, d_lag_data_manager, timestep_num, data_time);
 
     // Compute the flow rates and pressures.
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > U_var =
-        d_ins_hier_integrator->getVelocityVar();
     const int U_scratch_idx = var_db->mapVariableAndContextToIndex(
-        U_var, d_ins_hier_integrator->getScratchContext());
-    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_var =
-        d_ins_hier_integrator->getPressureVar();
+        d_ins_hier_integrator->getVelocityVar(),
+        d_ins_hier_integrator->getScratchContext());
     const int P_scratch_idx = var_db->mapVariableAndContextToIndex(
-        P_var, d_ins_hier_integrator->getScratchContext());
+        d_ins_hier_integrator->getPressureVar(),
+        d_ins_hier_integrator->getScratchContext());
 
     std::vector<bool> deallocate_U_scratch_data(finest_ln+1,false);
     std::vector<bool> deallocate_P_scratch_data(finest_ln+1,false);
@@ -2203,19 +2211,20 @@ IBHierarchyIntegrator::updateIBInstrumentationData(
         if (!level->checkAllocated(U_scratch_idx))
         {
             deallocate_U_scratch_data[ln] = true;
-            level->allocatePatchData(U_scratch_idx, time);
+            level->allocatePatchData(U_scratch_idx, data_time);
         }
         if (!level->checkAllocated(P_scratch_idx))
         {
             deallocate_P_scratch_data[ln] = true;
-            level->allocatePatchData(P_scratch_idx, time);
+            level->allocatePatchData(P_scratch_idx, data_time);
         }
-        d_rscheds["INSTRUMENTATION_DATA_FILL"][ln]->fillData(time);
+        d_rscheds["INSTRUMENTATION_DATA_FILL"][ln]->fillData(data_time);
     }
 
     d_instrument_panel->readInstrumentData(
-        U_var, U_scratch_idx, P_var, P_scratch_idx,
-        d_hierarchy, d_lag_data_manager, d_integrator_time);
+        U_scratch_idx, P_scratch_idx,
+        d_hierarchy, d_lag_data_manager,
+        timestep_num, data_time);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
