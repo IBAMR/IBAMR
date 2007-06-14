@@ -2,7 +2,7 @@
 #define included_IBInstrumentPanel
 
 // Filename: IBInstrumentPanel.h
-// Last modified: <12.Jun.2007 20:58:10 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Jun.2007 15:08:35 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -53,6 +53,40 @@ public:
     ~IBInstrumentPanel();
 
     /*!
+     * \return A const reference to the vector of instrument names.
+     */
+    const std::vector<std::string>&
+    getInstrumentNames() const;
+
+    /*!
+     * \return A const reference to the most recent time that the flow meter and
+     * pressure gauge values were set.
+     *
+     * \note This value is not initialized until the first call is made to
+     * readInstrumentData().
+     */
+    const double&
+    getInstrumentDataReadTime() const;
+
+    /*!
+     * \return A const reference to the vector of flow meter values.
+     *
+     * \note This vector is not initialized until the first call is made to
+     * readInstrumentData().
+     */
+    const std::vector<double>&
+    getFlowValues() const;
+
+    /*!
+     * \return A const reference to the vector of pressure gauge values.
+     *
+     * \note This vector is not initialized until the first call is made to
+     * readInstrumentData().
+     */
+    const std::vector<double>&
+    getPressureValues() const;
+
+    /*!
      * \brief Initialize hierarchy-independent data.
      *
      * The data initialized by this method is assumed \em not to change during
@@ -73,16 +107,17 @@ public:
 
     /*!
      * \brief Compute the flow rates and pressures in the various distributed
-     * internal meters.
+     * internal flow meters and pressure gauges.
      */
     void
-    readMeterData(
+    readInstrumentData(
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > U_var,
         const int U_data_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_var,
         const int P_data_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        LDataManager* const lag_manager);
+        LDataManager* const lag_manager,
+        const double data_time);
 
     /*!
      * \brief Write the plot data to disk.
@@ -139,17 +174,17 @@ private:
     int d_time_step_number;
 
     /*!
-     * \brief Hierarchy-independent data.
+     * \brief Instrumentation data.
      */
     int d_num_meters;
     std::vector<int> d_num_perimeter_nodes;
-
-    /*!
-     * \brief Hierarchy and configuration dependent data.
-     */
     std::vector<blitz::TinyVector<double,NDIM> > d_X_centroid;
     std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > d_X_perimeter;
     std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,2> > d_X_web, d_dA_web;
+
+    double d_instrument_read_time;
+    std::vector<std::string> d_instrument_names;
+    std::vector<double> d_flow_values, d_pressure_values;
 
     /*!
      * \brief Data structures employed to manage mappings between cell indices

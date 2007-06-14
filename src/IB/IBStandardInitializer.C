@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <12.Jun.2007 22:28:08 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Jun.2007 19:50:47 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -230,6 +230,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     const int global_index_offset,
     const int local_index_offset,
     SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
+    SAMRAI::tbox::Pointer<LNodeLevelData>& U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -332,6 +333,10 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             node_set.push_back(
                 new LNodeIndex(current_global_idx, current_local_idx,
                                &(*X_data)(current_local_idx), force_spec));
+
+            // Initialize the velocity of the present vertex.
+            double* const node_U = &(*U_data)(current_local_idx);
+            std::fill(node_U,node_U+NDIM,0.0);
         }
     }
 
@@ -506,6 +511,9 @@ IBStandardInitializer::readVertexFiles()
 {
     const int rank = SAMRAI::tbox::MPI::getRank();
     const int nodes = SAMRAI::tbox::MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
@@ -515,8 +523,6 @@ IBStandardInitializer::readVertexFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            int flag = 1;
-            int sz = 1;
             if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
 
             if (j == 0)
@@ -684,6 +690,9 @@ IBStandardInitializer::readSpringFiles()
 {
     const int rank = SAMRAI::tbox::MPI::getRank();
     const int nodes = SAMRAI::tbox::MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
@@ -694,8 +703,6 @@ IBStandardInitializer::readSpringFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            int flag = 1;
-            int sz = 1;
             if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
 
             const std::string h5_spring_filename = d_base_filename[ln][j] + ".spring.h5";
@@ -1097,6 +1104,9 @@ IBStandardInitializer::readBeamFiles()
 {
     const int rank = SAMRAI::tbox::MPI::getRank();
     const int nodes = SAMRAI::tbox::MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
@@ -1104,8 +1114,6 @@ IBStandardInitializer::readBeamFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            int flag = 1;
-            int sz = 1;
             if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
 
             const std::string beam_filename = d_base_filename[ln][j] + ".beam";
@@ -1250,6 +1258,9 @@ IBStandardInitializer::readTargetPointFiles()
 {
     const int rank = SAMRAI::tbox::MPI::getRank();
     const int nodes = SAMRAI::tbox::MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
@@ -1257,8 +1268,6 @@ IBStandardInitializer::readTargetPointFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            int flag = 1;
-            int sz = 1;
             if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
 
             d_target_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
@@ -1369,6 +1378,11 @@ IBStandardInitializer::readTargetPointFiles()
 void
 IBStandardInitializer::readBoundaryMassFiles()
 {
+    const int rank = SAMRAI::tbox::MPI::getRank();
+    const int nodes = SAMRAI::tbox::MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
@@ -1376,6 +1390,9 @@ IBStandardInitializer::readBoundaryMassFiles()
         d_bdry_mass_stiffness[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
+            // Wait for the previous MPI process to finish reading the current file.
+            if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+
             d_bdry_mass[ln][j].resize(d_num_vertex[ln][j], 0.0);
             d_bdry_mass_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
 
@@ -1489,6 +1506,9 @@ IBStandardInitializer::readBoundaryMassFiles()
                         d_uniform_bdry_mass_stiffness[ln][j]);
                 }
             }
+
+            // Free the next MPI process to start reading the current file.
+            if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
     return;
@@ -1497,12 +1517,21 @@ IBStandardInitializer::readBoundaryMassFiles()
 void
 IBStandardInitializer::readInstrumentationFiles()
 {
+    const int rank = SAMRAI::tbox::MPI::getRank();
+    const int nodes = SAMRAI::tbox::MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
+    int instrument_offset = 0;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
         d_instrument_idx[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
+            // Wait for the previous MPI process to finish reading the current file.
+            if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+
             const std::string inst_filename = d_base_filename[ln][j] + ".inst";
             std::ifstream file_stream;
             std::string line_string;
@@ -1538,6 +1567,8 @@ IBStandardInitializer::readInstrumentationFiles()
                 // Each successive line indicates the vertex number, meter
                 // number, and meter node indices of each of the instrumented IB
                 // points in the input file.
+                std::vector<bool> encountered_instrument_idx;
+                std::map<int,std::vector<bool> > encountered_node_idx;
                 for (int k = 0; k < num_inst_pts; ++k)
                 {
                     int n;
@@ -1571,6 +1602,12 @@ IBStandardInitializer::readInstrumentationFiles()
                                        << "  meter index is negative" << endl);
                         }
 
+                        if (idx.first >= static_cast<int>(encountered_instrument_idx.size()))
+                        {
+                            encountered_instrument_idx.resize(idx.first+1,false);
+                        }
+                        encountered_instrument_idx[idx.first] = true;
+
                         if (!(line_stream >> idx.second))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl);
@@ -1580,8 +1617,46 @@ IBStandardInitializer::readInstrumentationFiles()
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << inst_filename << endl
                                        << "  meter node index is negative" << endl);
                         }
+
+                        if (idx.second >= static_cast<int>(encountered_node_idx[idx.first].size()))
+                        {
+                            encountered_node_idx[idx.first].resize(idx.second+1,false);
+                        }
+                        encountered_node_idx[idx.first][idx.second] = true;
+
+                        // Correct the instrument index to account for
+                        // instrument indices from earlier files.
+                        idx.first += instrument_offset;
                     }
                 }
+
+                // Ensure that a complete range of instrument indices were found
+                // in the input file.
+                for (std::vector<bool>::iterator meter_it = encountered_instrument_idx.begin();
+                     meter_it != encountered_instrument_idx.end(); ++meter_it)
+                {
+                    const int meter_idx = std::distance(encountered_instrument_idx.begin(),meter_it);
+                    if ((*meter_it) == false)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  "
+                                   << "  Instrument index " << meter_idx << " not found in input file " << inst_filename << endl);
+                    }
+
+                    std::vector<bool>& meter_node_idxs = encountered_node_idx[meter_idx];
+                    for (std::vector<bool>::iterator node_it = meter_node_idxs.begin();
+                         node_it != meter_node_idxs.end(); ++node_it)
+                    {
+                        const int node_idx = std::distance(meter_node_idxs.begin(),node_it);
+                        if ((*node_it) == false)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  "
+                                       << "  Node index " << node_idx << " associated with meter index " << meter_idx << " not found in input file " << inst_filename << endl);
+                        }
+                    }
+                }
+
+                // Increment the meter offset.
+                instrument_offset += encountered_instrument_idx.size();
 
                 // Close the input file.
                 file_stream.close();
@@ -1590,6 +1665,9 @@ IBStandardInitializer::readInstrumentationFiles()
                                    << "read " << num_inst_pts << " instrumentation points from input filename " << inst_filename << endl
                                    << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
             }
+
+            // Free the next MPI process to start reading the current file.
+            if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
     return;

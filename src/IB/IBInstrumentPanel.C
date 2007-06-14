@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <12.Jun.2007 23:22:06 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Jun.2007 23:47:47 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -27,10 +27,12 @@
 // SAMRAI INCLUDES
 #include <Box.h>
 #include <CartesianGridGeometry.h>
+#include <CartesianPatchGeometry.h>
 #include <Patch.h>
 #include <PatchLevel.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
+#include <tbox/Utilities.h>
 
 // BLITZ++ INCLUDES
 #include <blitz/tinyvec-et.h>
@@ -56,6 +58,12 @@ namespace IBAMR
 
 namespace
 {
+// Timers.
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_independent_data;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_dependent_data;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_read_instrument_data;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_write_plot_data;
+
 // The rank of the root MPI process and the MPI tag number.
 static const int SILO_MPI_ROOT = 0;
 static const int SILO_MPI_TAG  = 0;
@@ -70,29 +78,16 @@ static const std::string SILO_PROCESSOR_FILE_PREFIX = "meter_data.proc_";
 static const std::string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
 
 void
-init_meter_elements2d(
+init_meter_elements(
     blitz::Array<blitz::TinyVector<double,NDIM>,2>& X_web,
     blitz::Array<blitz::TinyVector<double,NDIM>,2>& dA_web,
     const blitz::Array<blitz::TinyVector<double,NDIM>,1>& X_perimeter,
     const blitz::TinyVector<double,NDIM>& X_centroid)
 {
-#if (NDIM != 2)
-    assert(false);
+#if (NDIM == 2)
+    TBOX_ERROR("no support for 2D flow meters at this time!\n");
 #endif
-    assert(false);  // XXXX
-    return;
-}// init_meter_elements2d
-
-void
-init_meter_elements3d(
-    blitz::Array<blitz::TinyVector<double,NDIM>,2>& X_web,
-    blitz::Array<blitz::TinyVector<double,NDIM>,2>& dA_web,
-    const blitz::Array<blitz::TinyVector<double,NDIM>,1>& X_perimeter,
-    const blitz::TinyVector<double,NDIM>& X_centroid)
-{
-#if (NDIM != 3)
-    assert(false);
-#else
+#if (NDIM == 3)
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(X_web.extent(0) == X_perimeter.extent(0));
     assert(dA_web.extent(0) == X_perimeter.extent(0));
@@ -101,12 +96,19 @@ init_meter_elements3d(
     const int num_web_nodes = X_web.extent(1);
     for (int m = 0; m < num_perimeter_nodes; ++m)
     {
-        const blitz::TinyVector<double,NDIM> X_perimeter0(X_perimeter(m));
+        const blitz::TinyVector<double,NDIM>& X_perimeter0(X_perimeter(m));
         const blitz::TinyVector<double,NDIM> dX0((X_centroid-X_perimeter0)/double(num_web_nodes));
 
-        const blitz::TinyVector<double,NDIM> X_perimeter1(X_perimeter((m+1)%num_perimeter_nodes));
+        const blitz::TinyVector<double,NDIM>& X_perimeter1(X_perimeter((m+1)%num_perimeter_nodes));
         const blitz::TinyVector<double,NDIM> dX1((X_centroid-X_perimeter1)/double(num_web_nodes));
 
+        // Away from the center of the web, each web patch is a planar
+        // quadrilateral.  At the web centroid, the quadrilateral is degenerate,
+        // i.e., it becomes a triangle.
+        //
+        // The only change required between these two cases is that the centroid
+        // of a nondegenerate quadrilateral is different from that of a
+        // degenerate quadrilateral.
         for (int n = 0; n < num_web_nodes; ++n)
         {
             // Compute the four vertices of the quadrilateral web patch.
@@ -117,16 +119,7 @@ init_meter_elements3d(
             const blitz::TinyVector<double,NDIM> X1(X_perimeter1+double(n  )*dX1);
             const blitz::TinyVector<double,NDIM> X2(X_perimeter1+double(n+1)*dX1);
             const blitz::TinyVector<double,NDIM> X3(X_perimeter0+double(n+1)*dX0);
-#ifdef DEBUG_CHECK_ASSERTIONS
-            if (n+1 == num_web_nodes)
-            {
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    assert(SAMRAI::tbox::Utilities::deq(X2(d),X_centroid(d)));
-                    assert(SAMRAI::tbox::Utilities::deq(X3(d),X_centroid(d)));
-                }
-            }
-#endif
+
             // Compute the centroid of the quadrilateral web patch.
             X_web(m,n) = ((n+1 < num_web_nodes)
                           ? blitz::TinyVector<double,NDIM>((X0+X1+X2+X3)/4.0)
@@ -135,19 +128,55 @@ init_meter_elements3d(
             // Compute the area-weighted normal to the quadrilateral web patch,
             // i.e.,
             //
-            //    dA = 0.5*((X2-X1) X (X0-X1) + (X0-X3) X (X2-X3))
+            //    dA = 0.5*((X2-X0) X (X3-X1))
             //
             // Note that by construction, the quadrilateral is guaranteed to lie
-            // within a plane, and that the vectors are chosen so that the
-            // resulting normal vectors have the same orientation.
-            dA_web(m,n) = 0.5*(
-                cross(blitz::TinyVector<double,NDIM>(X2-X1), blitz::TinyVector<double,NDIM>(X0-X1)) +
-                cross(blitz::TinyVector<double,NDIM>(X0-X3), blitz::TinyVector<double,NDIM>(X2-X3)));
+            // within a plane.  Also, note that if X2 == X3, the following is
+            // simply the forumla for the area-weighted normal to a triangle.
+            dA_web(m,n) = 0.5*cross(blitz::TinyVector<double,NDIM>(X2-X0),
+                                    blitz::TinyVector<double,NDIM>(X3-X1));
         }
     }
 #endif
     return;
-}// init_meter_elements3d
+}// init_meter_elements
+
+double
+compute_flow_correction(
+    const blitz::Array<blitz::TinyVector<double,NDIM>,1>& U_perimeter,
+    const blitz::TinyVector<double,NDIM>& U_centroid,
+    const blitz::Array<blitz::TinyVector<double,NDIM>,1>& X_perimeter,
+    const blitz::TinyVector<double,NDIM>& X_centroid)
+{
+    double U_dot_dA = 0.0;
+#if (NDIM == 2)
+    TBOX_ERROR("no support for 2D flow meters at this time!\n");
+#endif
+#if (NDIM == 3)
+    const int num_perimeter_nodes = X_perimeter.extent(0);
+    for (int m = 0; m < num_perimeter_nodes; ++m)
+    {
+        const blitz::TinyVector<double,NDIM>& U_perimeter0(U_perimeter(m));
+        const blitz::TinyVector<double,NDIM>& X_perimeter0(X_perimeter(m));
+
+        const blitz::TinyVector<double,NDIM>& U_perimeter1(U_perimeter((m+1)%num_perimeter_nodes));
+        const blitz::TinyVector<double,NDIM>& X_perimeter1(X_perimeter((m+1)%num_perimeter_nodes));
+
+        // Compute the mean velocity at the center of the triangle.
+        const blitz::TinyVector<double,NDIM> U =
+            blitz::TinyVector<double,NDIM>((U_perimeter0+U_perimeter1+U_centroid)/3.0);
+
+        // Compute the area weighted normal to the triangle.
+        const blitz::TinyVector<double,NDIM> dA =
+            0.5*cross(blitz::TinyVector<double,NDIM>(X_centroid-X_perimeter0),
+                      blitz::TinyVector<double,NDIM>(X_centroid-X_perimeter1));
+
+        // Compute the contribution to U_dot_dA.
+        U_dot_dA += dot(U,dA);
+    }
+#endif
+    return U_dot_dA;
+}// compute_flow_correction
 
 #if HAVE_LIBSILO
 /*!
@@ -229,6 +258,60 @@ build_meter_web(
     return;
 }// build_meter_web
 #endif
+
+template <int DEPTH>
+inline blitz::TinyVector<double,DEPTH>
+linear_interp(
+    const blitz::TinyVector<double,NDIM>& X,
+    const SAMRAI::hier::Index<NDIM>& i_cell,
+    const blitz::TinyVector<double,NDIM>& X_cell,
+    const SAMRAI::pdat::CellData<NDIM,double>& v,
+    const SAMRAI::hier::Index<NDIM>& patch_lower,
+    const SAMRAI::hier::Index<NDIM>& patch_upper,
+    const double* const xLower,
+    const double* const xUpper,
+    const double* const dx)
+{
+    const blitz::TinyVector<bool,NDIM> is_lower(X < X_cell);
+    blitz::TinyVector<double,DEPTH> U(0.0);
+#if (NDIM == 3)
+    for (int i2 = (is_lower(2) ? -1 : 0); i2 <= (is_lower(2) ? 0 : 1); ++i2)
+    {
+#endif
+        for (int i1 = (is_lower(1) ? -1 : 0); i1 <= (is_lower(1) ? 0 : 1); ++i1)
+        {
+            for (int i0 = (is_lower(0) ? -1 : 0); i0 <= (is_lower(0) ? 0 : 1); ++i0)
+            {
+                const blitz::TinyVector<double,NDIM> X_center(
+                    X_cell(0)+double(i0)*dx[0], X_cell(1)+double(i1)*dx[1]
+#if (NDIM == 3)
+                    ,X_cell(2)+double(i2)*dx[2]
+#endif
+                                                              );
+                const double wgt =
+                    ((X(0) < X_center(0) ? X(0) - (X_center(0)-dx[0]) : X_center(0)+dx[0] - X(0))/dx[0])*
+                    ((X(1) < X_center(1) ? X(1) - (X_center(1)-dx[1]) : X_center(1)+dx[1] - X(1))/dx[1])
+#if (NDIM == 3)
+                    *((X(2) < X_center(2) ? X(2) - (X_center(2)-dx[2]) : X_center(2)+dx[2] - X(2))/dx[2])
+#endif
+                    ;
+
+                const SAMRAI::hier::Index<NDIM> i_stencil(i0+i_cell(0),i1+i_cell(1)
+#if (NDIM == 3)
+                                                          ,i2+i_cell(2)
+#endif
+                                                          );
+                for (int d = 0; d < DEPTH; ++d)
+                {
+                    U(d) += v(i_stencil,d)*wgt;
+                }
+            }
+        }
+#if (NDIM == 3)
+    }
+#endif
+    return U;
+}// linear_interp
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -245,6 +328,10 @@ IBInstrumentPanel::IBInstrumentPanel(
       d_X_perimeter(),
       d_X_web(),
       d_dA_web(),
+      d_instrument_read_time(std::numeric_limits<double>::quiet_NaN()),
+      d_instrument_names(),
+      d_flow_values(),
+      d_pressure_values(),
       d_web_patch_map(),
       d_meter_centroid_map()
 {
@@ -253,6 +340,19 @@ IBInstrumentPanel::IBInstrumentPanel(
 #else
     TBOX_WARNING("IBInstrumentPanel::IBInstrumentPanel(): SILO is not installed; cannot write data." << endl);
 #endif
+    // Setup Timers.
+    static bool timers_need_init = true;
+    if (timers_need_init)
+    {
+        t_initialize_hierarchy_independent_data = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBInstrumentPanel::initializeHierarchyIndependentData()");
+        t_initialize_hierarchy_dependent_data = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBInstrumentPanel::initializeHierarchyDependentData()");
+        t_read_instrument_data = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBInstrumentPanel::readInstrumentData()");
+        t_write_plot_data = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBInstrumentPanel::writePlotData()");
+    }
     return;
 }// IBInstrumentPanel
 
@@ -262,11 +362,37 @@ IBInstrumentPanel::~IBInstrumentPanel()
     return;
 }// ~IBInstrumentPanel
 
+const std::vector<std::string>&
+IBInstrumentPanel::getInstrumentNames() const
+{
+    return d_instrument_names;
+}// getInstrumentNames
+
+const double&
+IBInstrumentPanel::getInstrumentDataReadTime() const
+{
+    return d_instrument_read_time;
+}// getInstrumentDataReadTime
+
+const std::vector<double>&
+IBInstrumentPanel::getFlowValues() const
+{
+    return d_flow_values;
+}// getFlowValues
+
+const std::vector<double>&
+IBInstrumentPanel::getPressureValues() const
+{
+    return d_pressure_values;
+}// getPressureValues
+
 void
 IBInstrumentPanel::initializeHierarchyIndependentData(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     LDataManager* const lag_manager)
 {
+    t_initialize_hierarchy_independent_data->start();
+
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
@@ -348,6 +474,11 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     }
     d_X_web.resize(d_num_meters);
     d_dA_web.resize(d_num_meters);
+    d_instrument_names.resize(d_num_meters);
+    d_flow_values.resize(d_num_meters,std::numeric_limits<double>::quiet_NaN());
+    d_pressure_values.resize(d_num_meters,std::numeric_limits<double>::quiet_NaN());
+
+    t_initialize_hierarchy_independent_data->stop();
     return;
 }// initializeHierarchyIndependentData
 
@@ -356,6 +487,8 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     LDataManager* const lag_manager)
 {
+    t_initialize_hierarchy_dependent_data->start();
+
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
@@ -377,7 +510,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         {
             // Extract the local position array.
             SAMRAI::tbox::Pointer<LNodeLevelData> X_data = lag_manager->
-                getLNodeLevelData(LDataManager::COORDS_DATA_NAME,ln);
+                getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
             Vec X_vec = X_data->getGlobalVec();
             double* X_arr;
             int ierr = VecGetArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
@@ -410,7 +543,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
                                 const double* const X = &X_arr[NDIM*petsc_idx];
                                 const int m = spec->getMeterIndex();
                                 const int n = spec->getNodeIndex();
-                                copy(X,X+NDIM,d_X_perimeter[m](n).data());
+                                std::copy(X,X+NDIM,d_X_perimeter[m](n).data());
                             }
                         }
                     }
@@ -440,15 +573,15 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
         {
-            copy(&X_perimeter_flattened[NDIM*k],(&X_perimeter_flattened[NDIM*k])+NDIM,
-                 d_X_perimeter[m](n).data());
+            std::copy(&X_perimeter_flattened[NDIM*k],(&X_perimeter_flattened[NDIM*k])+NDIM,
+                      d_X_perimeter[m](n).data());
         }
     }
 
     // Determine the centroid of each perimeter.
+    std::fill(d_X_centroid.begin(),d_X_centroid.end(),blitz::TinyVector<double,NDIM>(0.0));
     for (int m = 0; m < d_num_meters; ++m)
     {
-        d_X_centroid[m] = 0.0;
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
             d_X_centroid[m] += d_X_perimeter[m](n);
@@ -467,7 +600,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         }
     }
 
-    // Determine the finest grid spacing.
+    // Determine the finest grid spacing in the Cartesian grid hierarchy.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom =
         hierarchy->getGridGeometry();
     const double* const domainXLower = grid_geom->getXLower();
@@ -486,25 +619,24 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     const double h_finest = *(std::min_element(dx_finest.begin(),dx_finest.end()));
 
     // Build the meter web patch centroids and area elements.
+    //
+    // Note that we set the number of web nodes in each meter to that the
+    // spacing is approximately half a meshwidth on the finest level of the
+    // Cartesian grid hierarchy.
     for (int m = 0; m < d_num_meters; ++m)
     {
-        int num_web_nodes = 2*static_cast<int>(ceil(r_max[m]/h_finest));
+        const int num_web_nodes = 2*static_cast<int>(ceil(r_max[m]/h_finest));
         d_X_web[m].resize(d_num_perimeter_nodes[m],num_web_nodes);
         d_dA_web[m].resize(d_num_perimeter_nodes[m],num_web_nodes);
-#if (NDIM == 2)
-        init_meter_elements2d(d_X_web[m],d_dA_web[m],d_X_perimeter[m],d_X_centroid[m]);
-#endif
-#if (NDIM == 3)
-        init_meter_elements3d(d_X_web[m],d_dA_web[m],d_X_perimeter[m],d_X_centroid[m]);
-#endif
+        init_meter_elements(d_X_web[m],d_dA_web[m],d_X_perimeter[m],d_X_centroid[m]);
     }
 
     // Setup the mappings from cell indices to the web patch data.
     //
-    // NOTE: Each web patch is assigned to precisely one cell in precisely one
-    // level.  In particular, each web patch is assigned to whichever cell is
-    // the finest cell that contains the region of physical space in which the
-    // web patch centroid is located.
+    // NOTE: Each meter web patch is assigned to precisely one Cartesian grid
+    // cell in precisely one level.  In particular, each web patch is assigned
+    // to whichever grid cell is the finest cell that contains the region of
+    // physical space in which the web patch centroid is located.
     d_web_patch_map.clear();
     d_web_patch_map.resize(finest_ln+1);
     d_meter_centroid_map.clear();
@@ -558,7 +690,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
                          ? STOOLS::STOOLS_Utilities::getCellIndex(
                              X, domainXLower, domainXUpper, finer_dx,
                              finer_domain_box_level_lower, finer_domain_box_level_upper)
-                         : SAMRAI::hier::Index<NDIM>(-1));
+                         : SAMRAI::hier::Index<NDIM>(std::numeric_limits<int>::max()));
 
                     if (level->getBoxes().contains(i) &&
                         (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
@@ -573,49 +705,57 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             }
 
             // Setup the web centroid mapping.
-            {
-                const double* const X = d_X_centroid[l].data();
-                const SAMRAI::hier::Index<NDIM> i =
-                    STOOLS::STOOLS_Utilities::getCellIndex(
-                        X, domainXLower, domainXUpper, dx,
-                        domain_box_level_lower, domain_box_level_upper);
-                const SAMRAI::hier::Index<NDIM> finer_i =
-                    (ln < finest_ln
-                     ? STOOLS::STOOLS_Utilities::getCellIndex(
-                         X, domainXLower, domainXUpper, finer_dx,
-                         finer_domain_box_level_lower, finer_domain_box_level_upper)
-                     : SAMRAI::hier::Index<NDIM>(-1));
+            const double* const X = d_X_centroid[l].data();
+            const SAMRAI::hier::Index<NDIM> i =
+                STOOLS::STOOLS_Utilities::getCellIndex(
+                    X, domainXLower, domainXUpper, dx,
+                    domain_box_level_lower, domain_box_level_upper);
+            const SAMRAI::hier::Index<NDIM> finer_i =
+                (ln < finest_ln
+                 ? STOOLS::STOOLS_Utilities::getCellIndex(
+                     X, domainXLower, domainXUpper, finer_dx,
+                     finer_domain_box_level_lower, finer_domain_box_level_upper)
+                 : SAMRAI::hier::Index<NDIM>(std::numeric_limits<int>::max()));
 
-                if (level->getBoxes().contains(i) &&
-                    (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
-                {
-                    MeterCentroid c;
-                    c.meter_num = l;
-                    c.X = &d_X_centroid[l];
-                    d_meter_centroid_map[ln].insert(std::make_pair(i,c));
-                }
+            if (level->getBoxes().contains(i) &&
+                (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
+            {
+                MeterCentroid c;
+                c.meter_num = l;
+                c.X = &d_X_centroid[l];
+                d_meter_centroid_map[ln].insert(std::make_pair(i,c));
             }
         }
     }
+
+    t_initialize_hierarchy_dependent_data->stop();
     return;
 }// initializeHierarchyDependentData
 
 void
-IBInstrumentPanel::readMeterData(
+IBInstrumentPanel::readInstrumentData(
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > U_var,
     const int U_data_idx,
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_var,
     const int P_data_idx,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-    LDataManager* const lag_manager)
+    LDataManager* const lag_manager,
+    const double data_time)
 {
+    t_read_instrument_data->start();
+
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
+    // Keep track of the time at which the instrument data was collected.
+    d_instrument_read_time = data_time;
+
+    // Reset the instrument values.
+    std::fill(d_flow_values.begin(), d_flow_values.end(), 0.0);
+    std::fill(d_pressure_values.begin(), d_pressure_values.end(), 0.0);
+
     // Compute the local contributions to the flux of U through the flow meter,
     // and the value of P at the centroid of the meter.
-    std::vector<double> U_dA(d_num_meters,0.0);
-    std::vector<double> P_centroid(d_num_meters,0.0);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
@@ -624,11 +764,22 @@ IBInstrumentPanel::readMeterData(
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+            const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+            const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
 
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U_data =
+            const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+
+            const double* const xLower = pgeom->getXLower();
+            const double* const xUpper = pgeom->getXUpper();
+            const double* const dx = pgeom->getDx();
+
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U_data_ptr =
                 patch->getPatchData(U_data_idx);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > P_data =
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > P_data_ptr =
                 patch->getPatchData(P_data_idx);
+
+            const SAMRAI::pdat::CellData<NDIM,double>& U_data = *U_data_ptr;
+            const SAMRAI::pdat::CellData<NDIM,double>& P_data = *P_data_ptr;
 
             for (SAMRAI::hier::Box<NDIM>::Iterator b(patch_box); b; b++)
             {
@@ -636,56 +787,167 @@ IBInstrumentPanel::readMeterData(
 
                 std::pair<WebPatchMap::const_iterator,WebPatchMap::const_iterator> r1 =
                     d_web_patch_map[ln].equal_range(i);
-                for (WebPatchMap::const_iterator it = r1.first; it != r1.second; ++it)
-                {
-                    const int& meter_num = (*it).second.meter_num;
-                    const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
-                    const blitz::TinyVector<double,NDIM>& dA = *((*it).second.dA);
-
-                    // XXXX: Should perform linear interpolation here!!!
-                    (void) X;
-                    const blitz::TinyVector<double,NDIM> U(
-                        (*U_data)(i,0),(*U_data)(i,1)
-#if (NDIM == 3)
-                        ,(*U_data)(i,2)
-#endif
-                                                           );
-                    U_dA[meter_num] += dot(U,dA);
-                }
-
                 std::pair<MeterCentroidMap::const_iterator,MeterCentroidMap::const_iterator> r2 =
                     d_meter_centroid_map[ln].equal_range(i);
-                for (MeterCentroidMap::const_iterator it = r2.first; it != r2.second; ++it)
+                if (r1.first != r1.second || r2.first != r2.second)
                 {
-                    const int& meter_num = (*it).second.meter_num;
-                    const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
+                    const blitz::TinyVector<double,NDIM> X_cell(
+                        xLower[0] + dx[0]*(double(i(0)-patch_lower(0))+0.5),
+                        xLower[1] + dx[1]*(double(i(1)-patch_lower(1))+0.5)
+#if (NDIM == 3)
+                        ,xLower[2] + dx[2]*(double(i(2)-patch_lower(2))+0.5)
+#endif
+                                                                );
 
-                    // XXXX: Should perform linear interpolation here!!!
-                    (void) X;
-                    P_centroid[meter_num] = (*P_data)(i);
+                    for (WebPatchMap::const_iterator it = r1.first; it != r1.second; ++it)
+                    {
+                        const int& meter_num = (*it).second.meter_num;
+                        const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
+                        const blitz::TinyVector<double,NDIM>& dA = *((*it).second.dA);
+                        const blitz::TinyVector<double,NDIM> U = linear_interp<NDIM>(
+                            X, i, X_cell, U_data, patch_lower, patch_upper, xLower, xUpper, dx);
+                        d_flow_values[meter_num] += dot(U,dA);
+                    }
+
+                    for (MeterCentroidMap::const_iterator it = r2.first; it != r2.second; ++it)
+                    {
+                        const int& meter_num = (*it).second.meter_num;
+                        const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
+                        const blitz::TinyVector<double,1> P = linear_interp<1>(
+                            X, i, X_cell, P_data, patch_lower, patch_upper, xLower, xUpper, dx);
+                        d_pressure_values[meter_num] = P(0);
+                    }
                 }
             }
         }
     }
 
     // Synchronize the values across all processes.
-    SAMRAI::tbox::MPI::sumReduction(&U_dA[0],d_num_meters);
-    SAMRAI::tbox::MPI::sumReduction(&P_centroid[0],d_num_meters);
+    SAMRAI::tbox::MPI::sumReduction(&d_flow_values[0],d_num_meters);
+    SAMRAI::tbox::MPI::sumReduction(&d_pressure_values[0],d_num_meters);
 
-    // Output meter data.
-    // XXXX
+    // The patch data descriptor index for the LNodeIndexData.
+    const int lag_node_index_idx = lag_manager-> getLNodeIndexPatchDescriptorIndex();
+
+    // Loop over all local nodes to determine the velocities of the local
+    // perimeter nodes.
+    std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > U_perimeter(d_num_meters);
     for (int m = 0; m < d_num_meters; ++m)
     {
-        SAMRAI::tbox::pout << "meter " << m << ": flow rate = " << U_dA[m] << "   pressure = " << P_centroid[m] << "\n";
+        U_perimeter[m].resize(d_num_perimeter_nodes[m]);
+        for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
+        {
+            U_perimeter[m](n) = 0.0;
+        }
     }
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (lag_manager->levelContainsLagrangianData(ln))
+        {
+            // Extract the local velocity array.
+            SAMRAI::tbox::Pointer<LNodeLevelData> U_data = lag_manager->
+                getLNodeLevelData(LDataManager::VEL_DATA_NAME,ln);
+            Vec U_vec = U_data->getGlobalVec();
+            double* U_arr;
+            int ierr = VecGetArray(U_vec, &U_arr);  PETSC_SAMRAI_ERROR(ierr);
+
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
+                hierarchy->getPatchLevel(ln);
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
+                    patch->getPatchData(lag_node_index_idx);
+
+                for (LNodeIndexData2::Iterator it(patch_box); it; it++)
+                {
+                    const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
+                    const LNodeIndexSet& node_set = (*idx_data)(i);
+                    for (LNodeIndexSet::const_iterator n = node_set.begin();
+                         n != node_set.end(); ++n)
+                    {
+                        const LNodeIndexSet::value_type& node_idx = *n;
+                        const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
+                            node_idx->getStashData();
+                        for (unsigned l = 0; l < stash_data.size(); ++l)
+                        {
+                            SAMRAI::tbox::Pointer<IBInstrumentationSpec> spec = stash_data[l];
+                            if (!spec.isNull())
+                            {
+                                const int& petsc_idx = node_idx->getLocalPETScIndex();
+                                const double* const U = &U_arr[NDIM*petsc_idx];
+                                const int m = spec->getMeterIndex();
+                                const int n = spec->getNodeIndex();
+                                std::copy(U,U+NDIM,U_perimeter[m](n).data());
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Restore the local position array.
+            ierr = VecGetArray(U_vec, &U_arr);  PETSC_SAMRAI_ERROR(ierr);
+        }
+    }
+
+    // Set the velocities of all perimeter nodes on all processes.
+    std::vector<double> U_perimeter_flattened;
+    for (int m = 0; m < d_num_meters; ++m)
+    {
+        for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
+        {
+            U_perimeter_flattened.insert(
+                U_perimeter_flattened.end(),
+                U_perimeter[m](n).data(),U_perimeter[m](n).data()+NDIM);
+        }
+    }
+
+    SAMRAI::tbox::MPI::sumReduction(&U_perimeter_flattened[0],U_perimeter_flattened.size());
+
+    for (int m = 0, k = 0; m < d_num_meters; ++m)
+    {
+        for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
+        {
+            std::copy(&U_perimeter_flattened[NDIM*k],(&U_perimeter_flattened[NDIM*k])+NDIM,
+                      U_perimeter[m](n).data());
+        }
+    }
+
+    // Determine the velocity of the centroid of each perimeter.
+    std::vector<blitz::TinyVector<double,NDIM> > U_centroid(d_num_meters,blitz::TinyVector<double,NDIM>(0.0));
+    for (int m = 0; m < d_num_meters; ++m)
+    {
+        for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
+        {
+            U_centroid[m] += U_perimeter[m](n);
+        }
+        U_centroid[m] /= double(d_num_perimeter_nodes[m]);
+    }
+
+    // Correct for the relative motion of the flow meters.
+    for (int m = 0; m < d_num_meters; ++m)
+    {
+        d_flow_values[m] -= compute_flow_correction(
+            U_perimeter[m],U_centroid[m],d_X_perimeter[m],d_X_centroid[m]);
+    }
+
+    // Output meter data.
+    for (int m = 0; m < d_num_meters; ++m)
+    {
+        SAMRAI::tbox::plog << "meter " << m << ": flow rate = " << d_flow_values[m] << "   pressure = " << d_pressure_values[m] << "\n";
+    }
+
+    t_read_instrument_data->stop();
     return;
-}// readMeterData
+}// readInstrumentData
 
 void
 IBInstrumentPanel::writePlotData(
     const int time_step_number,
     const double simulation_time)
 {
+    t_write_plot_data->start();
 #if HAVE_LIBSILO
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(time_step_number >= 0);
@@ -694,7 +956,7 @@ IBInstrumentPanel::writePlotData(
 
     if (time_step_number <= d_time_step_number)
     {
-        TBOX_ERROR("IBInstrumentPanel::writePlotData()\n"
+        TBOX_ERROR(d_object_name << "::writePlotData()\n"
                    << "  data writer with name " << d_object_name << "\n"
                    << "  time step number: " << time_step_number
                    << " is <= last time step number: " << d_time_step_number
@@ -704,7 +966,7 @@ IBInstrumentPanel::writePlotData(
 
     if (d_dump_directory_name.empty())
     {
-        TBOX_ERROR("IBInstrumentPanel::writePlotData()\n"
+        TBOX_ERROR(d_object_name << "::writePlotData()\n"
                    << "  data writer with name " << d_object_name << "\n"
                    << "  dump directory name is empty" << endl);
     }
@@ -847,6 +1109,7 @@ IBInstrumentPanel::writePlotData(
 #else
     TBOX_WARNING("IBInstrumentPanel::writePlotData(): SILO is not installed; cannot write data." << endl);
 #endif //if HAVE_LIBSILO
+    t_write_plot_data->stop();
     return;
 }// writePlotData
 

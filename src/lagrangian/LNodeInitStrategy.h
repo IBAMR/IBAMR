@@ -2,7 +2,7 @@
 #define included_LNodeInitStrategy
 
 // Filename: LNodeInitStrategy.h
-// Last modified: <17.Apr.2007 18:32:03 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Jun.2007 17:48:02 griffith@box221.cims.nyu.edu>
 // Created on 11 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -71,6 +71,7 @@ public:
         const int global_index_offset,
         const int local_index_offset,
         SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
+        SAMRAI::tbox::Pointer<LNodeLevelData>& U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,

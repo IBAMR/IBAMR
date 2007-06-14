@@ -1,5 +1,5 @@
 // Filename: LagSiloDataWriter.C
-// Last modified: <23.May.2007 10:09:42 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Jun.2007 15:44:36 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagSiloDataWriter.h"
@@ -1193,7 +1193,7 @@ LagSiloDataWriter::writePlotData(
 
     if (time_step_number <= d_time_step_number)
     {
-        TBOX_ERROR("LagSiloDataWriter::writePlotData()\n"
+        TBOX_ERROR(d_object_name << "::writePlotData()\n"
                    << "  data writer with name " << d_object_name << "\n"
                    << "  time step number: " << time_step_number
                    << " is <= last time step number: " << d_time_step_number
@@ -1203,7 +1203,7 @@ LagSiloDataWriter::writePlotData(
 
     if (d_dump_directory_name.empty())
     {
-        TBOX_ERROR("LagSiloDataWriter::writePlotData()\n"
+        TBOX_ERROR(d_object_name << "::writePlotData()\n"
                    << "  data writer with name " << d_object_name << "\n"
                    << "  dump directory name is empty" << endl);
     }
@@ -1231,7 +1231,7 @@ LagSiloDataWriter::writePlotData(
     if ((dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB))
         == NULL)
     {
-        TBOX_ERROR(d_object_name + "::writePlotData()\n"
+        TBOX_ERROR(d_object_name << "::writePlotData()\n"
                    << "  Could not create DBfile named " << current_file_name << endl);
     }
 
@@ -1300,7 +1300,7 @@ LagSiloDataWriter::writePlotData(
 
                 if (DBMkDir(dbfile, dirname.c_str()) == -1)
                 {
-                    TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                    TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                << "  Could not create directory named "
                                << dirname << endl);
                 }
@@ -1325,7 +1325,7 @@ LagSiloDataWriter::writePlotData(
 
                 if (DBMkDir(dbfile, dirname.c_str()) == -1)
                 {
-                    TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                    TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                << "  Could not create directory named "
                                << dirname << endl);
                 }
@@ -1363,7 +1363,7 @@ LagSiloDataWriter::writePlotData(
 
                     if (DBMkDir(dbfile, dirname.c_str()) == -1)
                     {
-                        TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                        TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                    << "  Could not create directory named "
                                    << dirname << endl);
                     }
@@ -1398,7 +1398,7 @@ LagSiloDataWriter::writePlotData(
 
                 if (DBMkDir(dbfile, dirname.c_str()) == -1)
                 {
-                    TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                    TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                << "  Could not create directory named "
                                << dirname << endl);
                 }
@@ -1698,7 +1698,7 @@ LagSiloDataWriter::writePlotData(
         if ((dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB))
             == NULL)
         {
-            TBOX_ERROR(d_object_name + "::writePlotData()\n"
+            TBOX_ERROR(d_object_name << "::writePlotData()\n"
                        << "  Could not create DBfile named " << summary_file_name << endl);
         }
 
@@ -1735,7 +1735,7 @@ LagSiloDataWriter::writePlotData(
 
                     if (DBMkDir(dbfile, cloud_name.c_str()) == -1)
                     {
-                        TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                        TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                    << "  Could not create directory named "
                                    << cloud_name << endl);
                     }
@@ -1760,7 +1760,7 @@ LagSiloDataWriter::writePlotData(
 
                     if (DBMkDir(dbfile, block_name.c_str()) == -1)
                     {
-                        TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                        TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                    << "  Could not create directory named "
                                    << block_name << endl);
                     }
@@ -1789,7 +1789,7 @@ LagSiloDataWriter::writePlotData(
 
                     if (DBMkDir(dbfile, mb_name.c_str()) == -1)
                     {
-                        TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                        TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                    << "  Could not create directory named "
                                    << mb_name << endl);
                     }
@@ -1820,7 +1820,7 @@ LagSiloDataWriter::writePlotData(
 
                     if (DBMkDir(dbfile, mesh_name.c_str()) == -1)
                     {
-                        TBOX_ERROR(d_object_name + "::writePlotData()\n"
+                        TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                    << "  Could not create directory named "
                                    << mesh_name << endl);
                     }

@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <04.Jun.2007 17:48:09 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Jun.2007 17:47:43 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -275,7 +275,8 @@ private:
 };
 }
 
-const std::string LDataManager::COORDS_DATA_NAME   = "X";
+const std::string LDataManager::POSN_DATA_NAME = "X";
+const std::string LDataManager::VEL_DATA_NAME = "U";
 std::map<std::string,LDataManager*> LDataManager::s_data_manager_instances;
 bool LDataManager::s_registered_callback;
 unsigned char LDataManager::s_shutdown_priority = 200;
@@ -711,8 +712,8 @@ LDataManager::beginDataRedistribution(
             }
 
             // Update the ghost values of the Lagrangian nodal positions.
-            d_lag_quantity_data[ln][COORDS_DATA_NAME]->beginGhostUpdate();
-            d_lag_quantity_data[ln][COORDS_DATA_NAME]->endGhostUpdate();
+            d_lag_quantity_data[ln][POSN_DATA_NAME]->beginGhostUpdate();
+            d_lag_quantity_data[ln][POSN_DATA_NAME]->endGhostUpdate();
 
             // Make sure that the location pointers are properly set for each
             // LNodeIndex.  They are directly used below to locate the
@@ -1382,7 +1383,7 @@ LDataManager::restoreLocationPointers(
                 {
                     for_each(node_set.begin(), node_set.end(),
                              RestoreLNodeIndexLocationPointers(
-                                 d_lag_quantity_data[ln][COORDS_DATA_NAME]->
+                                 d_lag_quantity_data[ln][POSN_DATA_NAME]->
                                  getLocalFormArray()));
                 }
             }
@@ -1597,9 +1598,10 @@ LDataManager::initializeLevelData(
                                d_node_offset[level_number], num_local_nodes);
 
             // 2. Allocate LNodeLevelData corresponding to the curvilinear mesh
-            //    node positions.
+            //    node positions and velocities.
             static const bool maintain_data = true;
-            createLNodeLevelData(COORDS_DATA_NAME, level_number, NDIM, maintain_data);
+            createLNodeLevelData(POSN_DATA_NAME, level_number, NDIM, maintain_data);
+            createLNodeLevelData(VEL_DATA_NAME, level_number, NDIM, maintain_data);
 
             // 3. Initialize the Lagrangian data.
 
@@ -1613,7 +1615,8 @@ LDataManager::initializeLevelData(
             const int num_initialized_local_nodes = d_lag_init->initializeDataOnPatchLevel(
                 d_lag_node_index_current_idx,
                 global_index_offset, local_index_offset,
-                d_lag_quantity_data[level_number][COORDS_DATA_NAME],
+                d_lag_quantity_data[level_number][POSN_DATA_NAME],
+                d_lag_quantity_data[level_number][VEL_DATA_NAME],
                 hierarchy, level_number,
                 init_data_time, can_be_refined, initial_time, this);
 
@@ -1732,7 +1735,7 @@ LDataManager::initializeLevelData(
     if (!d_silo_writer.isNull() && d_level_contains_lag_data[level_number])
     {
         d_silo_writer->registerCoordsData(
-            d_lag_quantity_data[level_number][COORDS_DATA_NAME], level_number);
+            d_lag_quantity_data[level_number][POSN_DATA_NAME], level_number);
         d_silo_writer->registerLagrangianAO(
             d_ao[level_number], level_number);
     }
@@ -1775,7 +1778,7 @@ LDataManager::resetHierarchyConfiguration(
             if (d_level_contains_lag_data[ln])
             {
                 d_silo_writer->registerCoordsData(
-                    d_lag_quantity_data[ln][COORDS_DATA_NAME], ln);
+                    d_lag_quantity_data[ln][POSN_DATA_NAME], ln);
             }
         }
     }

@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <23.May.2007 14:44:20 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Jun.2007 23:17:02 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -10,6 +10,7 @@
 // IBAMR INCLUDES
 #include <ibamr/IBEulerianForceSetter.h>
 #include <ibamr/IBEulerianSourceSetter.h>
+#include <ibamr/IBInstrumentPanel.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
 #include <ibamr/IBLagrangianSourceStrategy.h>
 #include <ibamr/INSHierarchyIntegrator.h>
@@ -172,7 +173,8 @@ public:
     ///      stepsRemaining(),
     ///      getPatchHierarchy(),
     ///      getGriddingAlgorithm(),
-    ///      getLDataManager()
+    ///      getLDataManager(),
+    ///      getIBInstrumentPanel()
     ///
     ///  allow the IBHierarchyIntegrator to be used as a hierarchy integrator.
     ///
@@ -283,6 +285,12 @@ public:
      */
     LDataManager*
     getLDataManager() const;
+
+    /*!
+     * Return a pointer to the instrumentation manager object.
+     */
+    SAMRAI::tbox::Pointer<IBInstrumentPanel>
+    getIBInstrumentPanel() const;
 
     ///
     ///  The following routines:
@@ -606,6 +614,14 @@ private:
         const bool initial_time);
 
     /*!
+     * Compute the flow rates and pressures in the internal flow meters and
+     * pressure gauges.
+     */
+    void
+    updateIBInstrumentationData(
+        const double time);
+
+    /*!
      * Set the values of the distributed internal sources/sinks on the Cartesian
      * grid hierarchy.
      *
@@ -713,6 +729,12 @@ private:
     LDataManager* d_lag_data_manager;
 
     /*
+     * Instrumentation (flow meter and pressure gauge) algorithms and data
+     * structures.
+     */
+    SAMRAI::tbox::Pointer<IBInstrumentPanel> d_instrument_panel;
+
+    /*
      * Initialization and boundary condition information for the Eulerian data
      * used by the integrator.
      */
@@ -724,12 +746,6 @@ private:
      * used by the integrator.
      */
     SAMRAI::tbox::Pointer<LNodeInitStrategy> d_lag_init;
-
-    /*
-     * Boolean to indicate whether the hierarchy integrator should maintain the
-     * Lagragian velocity data.
-     */
-    bool d_maintain_U_data;
 
     /*
      * The force generators.

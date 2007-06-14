@@ -2,7 +2,7 @@
 #define included_LDataManager
 
 // Filename: LDataManager.h
-// Last modified: <04.Jun.2007 13:35:04 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Jun.2007 17:39:06 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -71,10 +71,16 @@ class LDataManager
 {
 public:
     /*!
-     * The name of the LNodeLevelData that specifies the location of the
+     * The name of the LNodeLevelData that specifies the positions of the
      * curvilinear mesh nodes.
      */
-    static const std::string COORDS_DATA_NAME;
+    static const std::string POSN_DATA_NAME;
+
+    /*!
+     * The name of the LNodeLevelData that specifies the velocities of the
+     * curvilinear mesh nodes.
+     */
+    static const std::string VEL_DATA_NAME;
 
     /*!
      * Return a pointer to the instance of the Lagrangian data manager
