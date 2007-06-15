@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <14.Jun.2007 19:03:04 griffith@box221.cims.nyu.edu>
+// Last modified: <15.Jun.2007 01:04:57 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -163,7 +163,8 @@ compute_flow_correction(
         const blitz::TinyVector<double,NDIM>& U_perimeter1(U_perimeter((m+1)%num_perimeter_nodes));
         const blitz::TinyVector<double,NDIM>& X_perimeter1(X_perimeter((m+1)%num_perimeter_nodes));
 
-        // Compute the mean velocity at the center of the triangle.
+        // Compute the linear interpolation of the velocity at the center of the
+        // triangle.
         const blitz::TinyVector<double,NDIM> U =
             blitz::TinyVector<double,NDIM>((U_perimeter0+U_perimeter1+U_centroid)/3.0);
 
@@ -1127,9 +1128,7 @@ IBInstrumentPanel::writePlotData(
     {
         if (meter%mpi_nodes == mpi_rank)
         {
-            std::ostringstream stream;
-            stream << "meter_" << meter;
-            std::string dirname = stream.str();
+            std::string dirname = d_instrument_names[meter];
 
             if (DBMkDir(dbfile, dirname.c_str()) == -1)
             {
@@ -1176,15 +1175,11 @@ IBInstrumentPanel::writePlotData(
             current_file_name += temp_buf;
             current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-            std::ostringstream file_stream;
-            file_stream << current_file_name << ":meter_" << meter << "/mesh";
-            std::string meshname = file_stream.str();
+            std::string meshname = current_file_name + ":" + d_instrument_names[meter] + "/mesh";
             char* meshname_ptr = const_cast<char*>(meshname.c_str());
             int meshtype = DB_POINTMESH;
 
-            std::ostringstream name_stream;
-            name_stream << "meter_" << meter;
-            std::string meter_name = name_stream.str();
+            std::string meter_name = d_instrument_names[meter];
 
             DBPutMultimesh(dbfile, meter_name.c_str(), 1, &meshname_ptr, &meshtype, optlist);
 
@@ -1195,15 +1190,11 @@ IBInstrumentPanel::writePlotData(
                            << meter_name << endl);
             }
 
-            std::ostringstream varname_stream;
-            varname_stream << current_file_name << ":meter_" << meter << "/scaled_normal";
-            std::string varname = varname_stream.str();
+            std::string varname = current_file_name + ":" + d_instrument_names[meter] + "/scaled_normal";
             char* varname_ptr = const_cast<char*>(varname.c_str());
             int vartype = DB_POINTVAR;
 
-            std::ostringstream stream;
-            stream << "meter_" << meter << "/n";
-            std::string var_name = stream.str();
+            std::string var_name = d_instrument_names[meter] + "_normal";
 
             DBPutMultivar(dbfile, var_name.c_str(), 1, &varname_ptr, &vartype, optlist);
         }

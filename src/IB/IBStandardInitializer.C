@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <14.Jun.2007 19:32:08 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Jun.2007 20:05:58 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -1705,7 +1705,7 @@ IBStandardInitializer::readInstrumentationFiles()
                 if (static_cast<int>(encountered_instrument_idx.size()) != num_inst)
                 {
                     TBOX_ERROR(d_object_name << ":\n  "
-                               << "  Not all anticipated instrument indices were found in input file " << inst_filename <<
+                               << "  Not all anticipated instrument indices were found in input file " << inst_filename
                                << "  Expected to find " << num_inst << " distinct meter indices in input file" << endl);
                 }
 
