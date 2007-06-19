@@ -151,6 +151,35 @@ ACX_BLAS(,)
 ACX_LAPACK(,)
 LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
 
+# Check for zlib library and configure zlib options.
+echo
+echo "================================="
+echo "Configuring required package zlib"
+echo "================================="
+AC_ARG_WITH([zlib],
+  AS_HELP_STRING(--with-zlib=PATH,location of required zlib installation @<:@default=/usr/local/sfw/zlib/current@:>@),
+  [if test ! -d "$withval" ; then
+     AC_MSG_ERROR([you must specify an existing directory when using --with-zlib=PATH])
+   fi
+   ZLIB_DIR=$withval],
+  [ZLIB_DIR=/usr/local/sfw/zlib/current])
+
+if test -d "${ZLIB_DIR}/lib" ; then
+  if test "${USE_RPATH_FLAG}" == "yes" ; then
+    LDFLAGS="${RPATH_FLAG}${ZLIB_DIR}/lib $LDFLAGS"
+  fi
+  LDFLAGS="-L${ZLIB_DIR}/lib $LDFLAGS"
+fi
+if test -d "${ZLIB_DIR}/include" ; then
+  CPPFLAGS="-I${ZLIB_DIR}/include $CPPFLAGS"
+fi
+
+AC_CHECK_HEADER([zlib.h],,AC_MSG_WARN([could not find header file zlib.h]))
+
+AC_LANG_PUSH([C])
+AC_CHECK_LIB([z],[inflateEnd],,AC_MSG_WARN([could not find libz]))
+AC_LANG_POP([C])
+
 # Check for hdf5 library and configure hdf5 options.
 echo
 echo "================================="
@@ -178,8 +207,7 @@ AC_CHECK_HEADER([hdf5.h],,AC_MSG_WARN([could not find header file hdf5.h]))
 
 AC_LANG_PUSH([C])
 AC_CHECK_LIB([hdf5],[H5open],,
-  echo "checking to see if we need to include zlib and/or szip to use hdf5..."
-  AC_CHECK_LIB([z], [inflateEnd])
+  echo "checking to see if we need to include szip to use hdf5..."
   AC_CHECK_LIB([sz], [SZ_encoder_enabled])
   unset ac_cv_lib_hdf5_H5open
   AC_CHECK_LIB([hdf5],[H5open],,AC_MSG_WARN([could not find libhdf5])))
