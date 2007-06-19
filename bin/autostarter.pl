@@ -85,6 +85,12 @@ if ($from_restart) {
     if (-e $silo_dumps_file) {
 	move($silo_dumps_file, $silo_dumps_backup_file) || die "error: cannot move $silo_dumps_file to $silo_dumps_backup_file: $!";
     }
+
+    $meter_dumps_file = "$VIZ_DIR/meter_data.visit";
+    $meter_dumps_backup_file = "$meter_dumps_file.bak";
+    if (-e $meter_dumps_file) {
+	move($meter_dumps_file, $meter_dumps_backup_file) || die "error: cannot move $meter_dumps_file to $meter_dumps_backup_file: $!";
+    }
 }
 
 # if we are restarting, update the restart.log file.
@@ -176,6 +182,32 @@ if ($from_restart) {
 	close(IN) || die "error: cannot close $silo_dumps_file: $!";
     }
     move($silo_dumps_backup_file,$silo_dumps_file);
+
+    $meter_dumps_file = "$VIZ_DIR/meter_data.visit";
+    $meter_dumps_backup_file = "$meter_dumps_file.bak";
+    if (-e $meter_dumps_file) {
+	$last = "";
+	if (-e $meter_dumps_backup_file) {
+	    open(IN, "<", $meter_dumps_backup_file) || die "error: cannot open $meter_dumps_backup_file for reading: $!";
+	    while ($line = <IN>) {
+		$last = $line;
+	    }
+	    close(IN) || die "error: cannot close $meter_dumps_backup_file: $!";
+	}
+
+	open(OUT, ">>", $meter_dumps_backup_file) || die "error: cannot open $meter_dumps_backup_file for writing: $!";
+	open(IN, "<", $meter_dumps_file) || die "error: cannot open $meter_dumps_file for reading: $!";
+	$first = <IN>;
+	if (!($last eq $first)) {
+	    print OUT $first;
+	}
+	while ($line = <IN>) {
+	    print OUT $line;
+	}
+	close(OUT) || die "error: cannot close $meter_dumps_backup_file: $!";
+	close(IN) || die "error: cannot close $meter_dumps_file: $!";
+    }
+    move($meter_dumps_backup_file,$meter_dumps_file);
 }
 
 # announce that we have successfully run the executable
