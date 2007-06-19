@@ -1,5 +1,5 @@
 // Filename: LNodeIndexData2.C
-// Last modified: <04.Jun.2007 15:15:49 griffith@box221.cims.nyu.edu>
+// Last modified: <19.Jun.2007 16:49:15 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "LNodeIndexData2.h"
@@ -18,6 +18,9 @@
 
 // SAMRAI INCLUDES
 #include <CellOverlap.h>
+
+// ZLIB INCLUDES
+#include <zlib.h>
 
 // C++ STDLIB INCLUDES
 #include <cassert>

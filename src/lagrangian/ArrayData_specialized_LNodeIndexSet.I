@@ -2,7 +2,7 @@
 #define included_ArrayData_specialized_LNodeIndexSet
 
 // Filename: ArrayData_specialized_LNodeIndexSet.I
-// Last modified: <19.Jun.2007 01:48:23 griffith@box221.cims.nyu.edu>
+// Last modified: <19.Jun.2007 17:48:18 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include <ArrayData.h>
@@ -10,6 +10,7 @@
 #include <ibamr/LNodeIndexSet.h>
 #include <ibamr/StashableStream.h>
 #include <cassert>
+#include <zlib.h>
 
 namespace SAMRAI
 {
@@ -93,7 +94,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::copy(
 {
     for (hier::BoxList<NDIM>::Iterator b(boxes); b; b++)
     {
-        copy(src, b(), offset);
+        copy(src,b(),offset);
     }
     return;
 }// copy
@@ -123,10 +124,10 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::getDataStreamSize(
     const hier::BoxList<NDIM>& dest_boxes,
     const hier::IntVector<NDIM>& source_offset) const
 {
-    size_t bytes = tbox::AbstractStream::sizeofInt();
+    size_t bytes = 3*tbox::AbstractStream::sizeofInt();
     for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
     {
-        const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(b(), -source_offset));
+        const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(b(),-source_offset));
         for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
         {
             const hier::Index<NDIM>& i = it();
@@ -144,30 +145,76 @@ template<>
 inline void
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
     tbox::AbstractStream& stream,
-    const hier::Box<NDIM>& dest_box,
+    const hier::BoxList<NDIM>& dest_boxes,
     const hier::IntVector<NDIM>& source_offset) const
 {
-    const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(dest_box, -source_offset));
-
-    // Count the number of non-empty index set locations.
+    // Count the number of non-empty index set locations and the total size of
+    // the uncompressed data stream required to store those index sets.
     int num_items = 0;
-    for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
+    size_t uncompressed_data_sz = 0;
+    for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
     {
-        const hier::Index<NDIM>& i = it();
-        const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
-        if (!node_set.empty()) ++num_items;
+        const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(b(),-source_offset));
+        for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
+        {
+            const hier::Index<NDIM>& i = it();
+            const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
+            if (!node_set.empty())
+            {
+                ++num_items;
+                uncompressed_data_sz += NDIM*tbox::AbstractStream::sizeofInt();
+                uncompressed_data_sz += node_set.getDataStreamSize();
+            }
+        }
     }
     stream << num_items;
-
-    // Pack the non-empty index sets into the stream.
-    for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
+    if (num_items > 0)
     {
-        const hier::Index<NDIM>& i = it();
-        const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
-        if (!node_set.empty())
+        // Pack the non-empty index sets into a data stream.
+        IBAMR::StashableStream uncompressed_stream(uncompressed_data_sz,IBAMR::StashableStream::Write);
+        for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
         {
-            stream.pack(i, NDIM);
-            node_set.packStream(stream);
+            const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(b(),-source_offset));
+            for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
+            {
+                const hier::Index<NDIM>& i = it();
+                const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
+                if (!node_set.empty())
+                {
+                    uncompressed_stream.pack(i,NDIM);
+                    node_set.packStream(uncompressed_stream);
+                }
+            }
+        }
+
+        // Compress the data stream using zlib.
+        assert(sizeof(char) == sizeof(Bytef));
+        size_t compressed_data_sz = 2*uncompressed_data_sz;
+        std::vector<char> compressed_data(compressed_data_sz);
+        static const int level = 1;  // use fastest compression for packStream()
+        const int retval = compress2(
+            reinterpret_cast<Bytef*>(&compressed_data[0]),&compressed_data_sz,
+            reinterpret_cast<const Bytef*>(uncompressed_stream.getBufferStart()),uncompressed_data_sz,
+            level);
+
+        switch (retval)
+        {
+            case Z_MEM_ERROR:
+                TBOX_ERROR("Compression memory error\n");
+            case Z_BUF_ERROR:
+                TBOX_ERROR("Output buffer too small\n");
+        }
+
+        stream << int(compressed_data_sz);
+        stream << int(uncompressed_data_sz);
+
+        if (compressed_data_sz < uncompressed_data_sz)
+        {
+            stream.pack(&compressed_data[0],compressed_data_sz);
+        }
+        else
+        {
+            stream.pack(static_cast<char*>(uncompressed_stream.getBufferStart()),uncompressed_data_sz);
         }
     }
     return;
@@ -177,65 +224,13 @@ template<>
 inline void
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
     tbox::AbstractStream& stream,
-    const hier::BoxList<NDIM>& dest_boxes,
+    const hier::Box<NDIM>& dest_box,
     const hier::IntVector<NDIM>& source_offset) const
 {
-    // Count the number of non-empty index set locations.
-    int num_items = 0;
-    for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
-    {
-        const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(b(), -source_offset));
-        for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
-        {
-            const hier::Index<NDIM>& i = it();
-            const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
-            if (!node_set.empty()) ++num_items;
-        }
-    }
-    stream << num_items;
-
-    // Pack the non-empty index sets into the stream.
-    for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
-    {
-        const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(b(), -source_offset));
-        for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
-        {
-            const hier::Index<NDIM>& i = it();
-            const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
-            if (!node_set.empty())
-            {
-                stream.pack(i, NDIM);
-                node_set.packStream(stream);
-            }
-        }
-    }
+    // Just use the BoxList-version of packStream().
+    packStream(stream,hier::BoxList<NDIM>(dest_box),source_offset);
     return;
 }// packStream
-
-template<>
-inline void
-ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
-    tbox::AbstractStream& stream,
-    const hier::Box<NDIM>& dest_box,
-    const hier::IntVector<NDIM>& source_offset)
-{
-    // Clear out the destination region.
-    fillAll(IBAMR::LNodeIndexSet(),dest_box*d_box);
-
-    // Get the number of non-empty index set locations.
-    int num_items;
-    stream >> num_items;
-
-    // Unpack the individual items.
-    hier::Index<NDIM> i_src;
-    for (int k = 0; k < num_items; ++k)
-    {
-        stream.unpack(i_src, NDIM);
-        const hier::Index<NDIM> i_dst = i_src+source_offset;
-        (*this)(i_dst,0).unpackStream(stream,source_offset);
-    }
-    return;
-}// unpackStream
 
 template<>
 inline void
@@ -254,15 +249,62 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
     // Get the number of non-empty index set locations.
     int num_items;
     stream >> num_items;
-
-    // Unpack the individual items.
-    hier::Index<NDIM> i_src;
-    for (int k = 0; k < num_items; ++k)
+    if (num_items > 0)
     {
-        stream.unpack(i_src, NDIM);
-        const hier::Index<NDIM> i_dst = i_src+source_offset;
-        (*this)(i_dst,0).unpackStream(stream,source_offset);
+        // Get the sizes of the compressed and uncompressed data streams.
+        int compressed_data_sz_int,uncompressed_data_sz_int;
+        stream >> compressed_data_sz_int;
+        stream >> uncompressed_data_sz_int;
+        const size_t compressed_data_sz = compressed_data_sz_int;
+        const size_t uncompressed_data_sz = uncompressed_data_sz_int;
+
+        // Get the raw data.
+        assert(sizeof(char) == sizeof(Bytef));
+        std::vector<char> compressed_data(compressed_data_sz);
+        std::vector<char> uncompressed_data(uncompressed_data_sz);
+        if (compressed_data_sz < uncompressed_data_sz)
+        {
+            stream.unpack(&compressed_data[0],compressed_data_sz);
+            size_t data_sz = uncompressed_data_sz;
+            const int retval = uncompress(
+                reinterpret_cast<Bytef*>(&uncompressed_data[0]),&data_sz,
+                reinterpret_cast<const Bytef*>(&compressed_data[0]),compressed_data_sz);
+            assert(data_sz == uncompressed_data_sz);
+
+            switch (retval)
+            {
+                case Z_MEM_ERROR:
+                    TBOX_ERROR("Compression memory error\n");
+                case Z_BUF_ERROR:
+                    TBOX_ERROR("Output buffer too small\n");
+            }
+        }
+        else
+        {
+            stream.unpack(&uncompressed_data[0],uncompressed_data_sz);
+        }
+
+        // Unpack the individual items.
+        IBAMR::StashableStream uncompressed_stream(&uncompressed_data[0],uncompressed_data_sz,IBAMR::StashableStream::Read);
+        for (int k = 0; k < num_items; ++k)
+        {
+            hier::Index<NDIM> i;
+            uncompressed_stream.unpack(i,NDIM);
+            (*this)(i,0).unpackStream(uncompressed_stream,source_offset);
+        }
     }
+    return;
+}// unpackStream
+
+template<>
+inline void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
+    tbox::AbstractStream& stream,
+    const hier::Box<NDIM>& dest_box,
+    const hier::IntVector<NDIM>& source_offset)
+{
+    // Just use the BoxList-version of unpackStream().
+    unpackStream(stream,hier::BoxList<NDIM>(dest_box),source_offset);
     return;
 }// unpackStream
 
@@ -274,9 +316,9 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::putSpecializedToDatabase(
     const hier::Box<NDIM> src_box(d_box);
 
     // Count the number of non-empty index set locations and the total size of
-    // the data stream required to store those index sets.
+    // the uncompressed data stream required to store those index sets.
     int num_items = 0;
-    size_t data_sz = 0;
+    size_t uncompressed_data_sz = 0;
     for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
     {
         const hier::Index<NDIM>& i = it();
@@ -284,31 +326,57 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::putSpecializedToDatabase(
         if (!node_set.empty())
         {
             ++num_items;
-            data_sz += 2*NDIM*tbox::AbstractStream::sizeofInt();
-            data_sz += node_set.getDataStreamSize();
+            uncompressed_data_sz += 2*NDIM*tbox::AbstractStream::sizeofInt();
+            uncompressed_data_sz += node_set.getDataStreamSize();
         }
 
     }
     database->putInteger("num_items",num_items);
-
     if (num_items > 0)
     {
-        database->putInteger("data_sz",data_sz);
-
-        // Pack the non-empty index sets into the database.
-        IBAMR::StashableStream stream(data_sz,IBAMR::StashableStream::Write);
+        // Pack the non-empty index sets into a data stream.
+        IBAMR::StashableStream uncompressed_stream(uncompressed_data_sz,IBAMR::StashableStream::Write);
         for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
         {
             const hier::Index<NDIM>& i = it();
             const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
             if (!node_set.empty())
             {
-                stream.pack(i,NDIM);
-                stream.pack(node_set.getPeriodicOffset(),NDIM);
-                node_set.packStream(stream);
+                uncompressed_stream.pack(i,NDIM);
+                uncompressed_stream.pack(node_set.getPeriodicOffset(),NDIM);
+                node_set.packStream(uncompressed_stream);
             }
         }
-        database->putCharArray("data",static_cast<char*>(stream.getBufferStart()),data_sz);
+
+        // Compress the data stream using zlib.
+        assert(sizeof(char) == sizeof(Bytef));
+        size_t compressed_data_sz = 2*uncompressed_data_sz;
+        std::vector<char> compressed_data(compressed_data_sz);
+        static const int level = 9;  // use maximum compression for putSpecializedToDatabase()
+        const int retval = compress2(
+            reinterpret_cast<Bytef*>(&compressed_data[0]),&compressed_data_sz,
+            reinterpret_cast<const Bytef*>(uncompressed_stream.getBufferStart()),uncompressed_data_sz,
+            level);
+
+        switch (retval)
+        {
+            case Z_MEM_ERROR:
+                TBOX_ERROR("Compression memory error\n");
+            case Z_BUF_ERROR:
+                TBOX_ERROR("Output buffer too small\n");
+        }
+
+        database->putInteger("compressed_data_sz",compressed_data_sz);
+        database->putInteger("uncompressed_data_sz",uncompressed_data_sz);
+
+        if (compressed_data_sz < uncompressed_data_sz)
+        {
+            database->putCharArray("compressed_data",&compressed_data[0],compressed_data_sz);
+        }
+        else
+        {
+            database->putCharArray("uncompressed_data",static_cast<char*>(uncompressed_stream.getBufferStart()),uncompressed_data_sz);
+        }
     }
     return;
 }// putSpecializedToDatabase
@@ -325,25 +393,47 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSpecializedFromDatabase(
 
     // Get the number of non-empty index set locations.
     const int num_items = database->getInteger("num_items");
-
     if (num_items > 0)
     {
-        // Get the size of the data stream required to store those index sets.
-        const size_t data_sz = database->getInteger("data_sz");
+        // Get the sizes of the compressed and uncompressed data streams.
+        const size_t compressed_data_sz = database->getInteger("compressed_data_sz");
+        const size_t uncompressed_data_sz = database->getInteger("uncompressed_data_sz");
 
-        // Get the raw data stream.
-        std::vector<char> data(data_sz);
-        database->getCharArray("data",&data[0],data_sz);
-        IBAMR::StashableStream stream(&data[0],data_sz,IBAMR::StashableStream::Read);
+        // Get the raw data.
+        assert(sizeof(char) == sizeof(Bytef));
+        std::vector<char> compressed_data(compressed_data_sz);
+        std::vector<char> uncompressed_data(uncompressed_data_sz);
+        if (compressed_data_sz < uncompressed_data_sz)
+        {
+            database->getCharArray("compressed_data",&compressed_data[0],compressed_data_sz);
+            size_t data_sz = uncompressed_data_sz;
+            const int retval = uncompress(
+                reinterpret_cast<Bytef*>(&uncompressed_data[0]),&data_sz,
+                reinterpret_cast<const Bytef*>(&compressed_data[0]),compressed_data_sz);
+            assert(data_sz == uncompressed_data_sz);
+
+            switch (retval)
+            {
+                case Z_MEM_ERROR:
+                    TBOX_ERROR("Compression memory error\n");
+                case Z_BUF_ERROR:
+                    TBOX_ERROR("Output buffer too small\n");
+            }
+        }
+        else
+        {
+            database->getCharArray("uncompressed_data",&uncompressed_data[0],uncompressed_data_sz);
+        }
 
         // Unpack the individual items.
+        IBAMR::StashableStream uncompressed_stream(&uncompressed_data[0],uncompressed_data_sz,IBAMR::StashableStream::Read);
         for (int k = 0; k < num_items; ++k)
         {
             hier::Index<NDIM> i;
-            stream.unpack(i, NDIM);
+            uncompressed_stream.unpack(i,NDIM);
             hier::IntVector<NDIM> periodic_offset;
-            stream.unpack(periodic_offset, NDIM);
-            (*this)(i,0).unpackStream(stream,periodic_offset);
+            uncompressed_stream.unpack(periodic_offset,NDIM);
+            (*this)(i,0).unpackStream(uncompressed_stream,periodic_offset);
         }
     }
     return;
