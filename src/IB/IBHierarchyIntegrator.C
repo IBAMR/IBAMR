@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <14.Jun.2007 17:35:29 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Jun.2007 14:41:58 boyce@bigboy.nyconnect.com>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -17,6 +17,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/IBInstrumentationSpec.h>
 #include <ibamr/LEInteractor.h>
 #include <ibamr/LNodeIndexData2.h>
 
@@ -2067,6 +2068,13 @@ IBHierarchyIntegrator::putToDatabase(
         }
     }
 
+    const std::vector<std::string> instrument_names = IBInstrumentationSpec::getInstrumentNames();
+    if (!instrument_names.empty())
+    {
+        db->putInteger("instrument_names_sz", instrument_names.size());
+        db->putStringArray("instrument_names", &instrument_names[0], instrument_names.size());
+    }
+
     t_put_to_database->stop();
     return;
 }// putToDatabase
@@ -2637,6 +2645,14 @@ IBHierarchyIntegrator::getFromRestart()
             d_P_src[ln][n] = db->getDouble("d_P_src_"+id_string);
             d_Q_src[ln][n] = db->getDouble("d_Q_src_"+id_string);
         }
+    }
+
+    if (db->keyExists("instrument_names"))
+    {
+        const int sz = db->getInteger("instrument_names_sz");
+        std::vector<std::string> instrument_names(sz);
+        db->getStringArray("instrument_names", &instrument_names[0], sz);
+        IBInstrumentationSpec::setInstrumentNames(instrument_names);
     }
 
     return;

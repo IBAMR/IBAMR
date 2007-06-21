@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <14.Jun.2007 20:05:58 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Jun.2007 14:41:51 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -34,6 +34,7 @@
 #include <CellIterator.h>
 #include <Index.h>
 #include <tbox/MPI.h>
+#include <tbox/RestartManager.h>
 #include <tbox/Utilities.h>
 
 // HDF5 INCLUDES
@@ -86,6 +87,7 @@ IBStandardInitializer::IBStandardInitializer(
     const std::string& object_name,
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_object_name(object_name),
+      d_use_file_batons(true),
       d_max_levels(-1),
       d_level_is_initialized(),
       d_silo_writer(NULL),
@@ -137,27 +139,40 @@ IBStandardInitializer::IBStandardInitializer(
     // Initialize object with data read from the input database.
     getFromInput(input_db);
 
-    // Process the vertex information.
-    readVertexFiles();
+    // Check to see if we are starting from a restart file.
+    SAMRAI::tbox::RestartManager* restart_manager = SAMRAI::tbox::RestartManager::getManager();
+    const bool is_from_restart = restart_manager->isFromRestart();
 
-    // Process the (optional) spring information.
-    readSpringFiles();
+    // Process the input files only if we are not starting from a restart file.
+    if (!is_from_restart)
+    {
+        // Process the vertex information.
+        readVertexFiles();
 
-    // Process the (optional) beam information.
-    readBeamFiles();
+        // Process the (optional) spring information.
+        readSpringFiles();
 
-    // Process the (optional) target point information.
-    readTargetPointFiles();
+        // Process the (optional) beam information.
+        readBeamFiles();
 
-    // Process the (optional) mass information.
-    readBoundaryMassFiles();
+        // Process the (optional) target point information.
+        readTargetPointFiles();
 
-    // Process the (optional) instrumentation information.
-    readInstrumentationFiles();
+        // Process the (optional) mass information.
+        readBoundaryMassFiles();
 
-    // Wait for all processes to finish.
-    SAMRAI::tbox::MPI::barrier();
+        // Process the (optional) instrumentation information.
+        readInstrumentationFiles();
 
+        // Wait for all processes to finish.
+        SAMRAI::tbox::MPI::barrier();
+    }
+    else
+    {
+        SAMRAI::tbox::pout << "!!!!!!!!!!\n";
+        SAMRAI::tbox::pout << "!!!!!!!!!! WARNING: silo data is not properly registered by class IBStandardInitializer for restarted runs\n";
+        SAMRAI::tbox::pout << "!!!!!!!!!!\n";
+    }
     return;
 }// IBStandardInitializer
 
@@ -523,7 +538,7 @@ IBStandardInitializer::readVertexFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
 
             if (j == 0)
             {
@@ -560,12 +575,12 @@ IBStandardInitializer::readVertexFiles()
             }
 
             // Free the next MPI process to start reading the current file.
-            if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
 
     // Synchronize the processes.
-    SAMRAI::tbox::MPI::barrier();
+    if (d_use_file_batons) SAMRAI::tbox::MPI::barrier();
     return;
 }// readVertexFiles
 
@@ -703,7 +718,7 @@ IBStandardInitializer::readSpringFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
 
             const std::string h5_spring_filename = d_base_filename[ln][j] + ".spring.h5";
             std::ifstream h5_file_stream;
@@ -731,12 +746,12 @@ IBStandardInitializer::readSpringFiles()
             }
 
             // Free the next MPI process to start reading the current file.
-            if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
 
     // Synchronize the processes.
-    SAMRAI::tbox::MPI::barrier();
+    if (d_use_file_batons) SAMRAI::tbox::MPI::barrier();
     return;
 }// readSpringFiles
 
@@ -1114,7 +1129,7 @@ IBStandardInitializer::readBeamFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
 
             const std::string beam_filename = d_base_filename[ln][j] + ".beam";
             std::ifstream file_stream;
@@ -1244,12 +1259,12 @@ IBStandardInitializer::readBeamFiles()
             }
 
             // Free the next MPI process to start reading the current file.
-            if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
 
     // Synchronize the processes.
-    SAMRAI::tbox::MPI::barrier();
+    if (d_use_file_batons) SAMRAI::tbox::MPI::barrier();
     return;
 }// readBeamFiles
 
@@ -1268,7 +1283,7 @@ IBStandardInitializer::readTargetPointFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
 
             d_target_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
 
@@ -1366,12 +1381,12 @@ IBStandardInitializer::readTargetPointFiles()
             }
 
             // Free the next MPI process to start reading the current file.
-            if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
 
     // Synchronize the processes.
-    SAMRAI::tbox::MPI::barrier();
+    if (d_use_file_batons) SAMRAI::tbox::MPI::barrier();
     return;
 }// readTargetPointFiles
 
@@ -1391,7 +1406,7 @@ IBStandardInitializer::readBoundaryMassFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
 
             d_bdry_mass[ln][j].resize(d_num_vertex[ln][j], 0.0);
             d_bdry_mass_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
@@ -1508,7 +1523,7 @@ IBStandardInitializer::readBoundaryMassFiles()
             }
 
             // Free the next MPI process to start reading the current file.
-            if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
     return;
@@ -1531,7 +1546,7 @@ IBStandardInitializer::readInstrumentationFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
 
             const std::string inst_filename = d_base_filename[ln][j] + ".inst";
             std::ifstream file_stream;
@@ -1721,7 +1736,7 @@ IBStandardInitializer::readInstrumentationFiles()
             }
 
             // Free the next MPI process to start reading the current file.
-            if (rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
         }
     }
     IBInstrumentationSpec::setInstrumentNames(instrument_names);
@@ -1918,6 +1933,10 @@ IBStandardInitializer::getFromInput(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!db.isNull());
 #endif
+
+    // Determine whether to use "batons" to prevent multiple MPI processes from
+    // reading the same file at once.
+    d_use_file_batons = db->getBoolWithDefault("use_file_batons",d_use_file_batons);
 
     // Determine the (maximum) number of levels in the locally refined grid.
     // Note that each piece of the Lagrangian structure must be assigned to a

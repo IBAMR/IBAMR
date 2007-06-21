@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <14.Jun.2007 16:29:05 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Jun.2007 14:27:36 boyce@bigboy.nyconnect.com>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////

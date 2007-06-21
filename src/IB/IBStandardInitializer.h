@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <14.Jun.2007 19:20:57 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Jun.2007 12:08:44 boyce@bigboy.nyconnect.com>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -488,6 +488,13 @@ private:
      * and for error reporting purposes.
      */
     std::string d_object_name;
+
+    /*
+     * The boolean value determines whether file read batons are employed to
+     * prevent multiple MPI processes from accessing the same input files
+     * simultaneously.
+     */
+    bool d_use_file_batons;
 
     /*
      * The maximum number of levels in the Cartesian grid patch hierarchy and a

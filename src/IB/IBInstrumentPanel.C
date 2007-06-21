@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <15.Jun.2007 01:04:57 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Jun.2007 12:33:44 boyce@bigboy.nyconnect.com>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -521,7 +521,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
         for (int m = 0; m < d_num_meters; ++m)
         {
             std::ostringstream meter_stream;
-            meter_stream << "meter " << m;
+            meter_stream << "meter_" << m;
             d_instrument_names[m] = meter_stream.str();
         }
         IBInstrumentationSpec::setInstrumentNames(d_instrument_names);
