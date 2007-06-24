@@ -148,6 +148,9 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
     const hier::BoxList<NDIM>& dest_boxes,
     const hier::IntVector<NDIM>& source_offset) const
 {
+    // Make sure that char and Bytef are the same size.
+    assert(sizeof(char) == sizeof(Bytef));
+
     // Count the number of non-empty index set locations and the total size of
     // the uncompressed data stream required to store those index sets.
     int num_items = 0;
@@ -188,7 +191,6 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
         }
 
         // Compress the data stream using zlib.
-        assert(sizeof(char) == sizeof(Bytef));
         size_t compressed_data_sz = 2*uncompressed_data_sz;
         std::vector<char> compressed_data(compressed_data_sz);
         static const int level = 1;  // use fastest compression for packStream()
@@ -239,6 +241,9 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
     const hier::BoxList<NDIM>& dest_boxes,
     const hier::IntVector<NDIM>& source_offset)
 {
+    // Make sure that char and Bytef are the same size.
+    assert(sizeof(char) == sizeof(Bytef));
+    
     // Clear out the destination region.
     for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
     {
@@ -259,7 +264,6 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
         const size_t uncompressed_data_sz = uncompressed_data_sz_int;
 
         // Get the raw data.
-        assert(sizeof(char) == sizeof(Bytef));
         std::vector<char> compressed_data(compressed_data_sz);
         std::vector<char> uncompressed_data(uncompressed_data_sz);
         if (compressed_data_sz < uncompressed_data_sz)
@@ -290,6 +294,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
         {
             hier::Index<NDIM> i;
             uncompressed_stream.unpack(i,NDIM);
+            i += source_offset;
             (*this)(i,0).unpackStream(uncompressed_stream,source_offset);
         }
     }
@@ -315,6 +320,9 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::putSpecializedToDatabase(
 {
     const hier::Box<NDIM> src_box(d_box);
 
+    // Make sure that char and Bytef are the same size.
+    assert(sizeof(char) == sizeof(Bytef));
+    
     // Count the number of non-empty index set locations and the total size of
     // the uncompressed data stream required to store those index sets.
     int num_items = 0;
@@ -349,7 +357,6 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::putSpecializedToDatabase(
         }
 
         // Compress the data stream using zlib.
-        assert(sizeof(char) == sizeof(Bytef));
         size_t compressed_data_sz = 2*uncompressed_data_sz;
         std::vector<char> compressed_data(compressed_data_sz);
         static const int level = 9;  // use maximum compression for putSpecializedToDatabase()
@@ -388,6 +395,9 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSpecializedFromDatabase(
 {
     const hier::Box<NDIM> dst_box(d_box);
 
+    // Make sure that char and Bytef are the same size.
+    assert(sizeof(char) == sizeof(Bytef));
+    
     // Clear out the destination region.
     fillAll(IBAMR::LNodeIndexSet(),dst_box);
 
@@ -400,7 +410,6 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSpecializedFromDatabase(
         const size_t uncompressed_data_sz = database->getInteger("uncompressed_data_sz");
 
         // Get the raw data.
-        assert(sizeof(char) == sizeof(Bytef));
         std::vector<char> compressed_data(compressed_data_sz);
         std::vector<char> uncompressed_data(uncompressed_data_sz);
         if (compressed_data_sz < uncompressed_data_sz)

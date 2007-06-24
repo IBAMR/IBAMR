@@ -4,7 +4,7 @@
 R = 0.5;
 L = 16.0;
 L_z = 4.0;
-NFINEST = 128;
+NFINEST = 1024;
 NFINEST_z = NFINEST/4;
 dx = L/NFINEST;
 dz = L_z/NFINEST_z;
