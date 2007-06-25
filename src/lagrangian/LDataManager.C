@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <24.Jun.2007 21:10:15 griffith@box221.cims.nyu.edu>
+// Last modified: <25.Jun.2007 01:10:40 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -816,15 +816,19 @@ LDataManager::beginDataRedistribution(
                                 bool shifted = false;
                                 SAMRAI::hier::IntVector<NDIM> offset = 0;
                                 std::vector<double> D(NDIM,0.0);
+                                static const int lower = 0;
+                                static const int upper = 1;
                                 for (int d = 0; d < NDIM; ++d)
                                 {
-                                    if (X[d] < gridXLower[d])
+                                    if      (patch_geom->getTouchesPeriodicBoundary(d,lower) &&
+                                             X[d] < gridXLower[d])
                                     {
                                         shifted = true;
                                         offset(d) = +periodic_shift(d);
                                         D[d] = +gridXLength[d];
                                     }
-                                    else if (X[d] >= gridXUpper[d])
+                                    else if (patch_geom->getTouchesPeriodicBoundary(d,upper) &&
+                                             X[d] >= gridXUpper[d])
                                     {
                                         shifted = true;
                                         offset(d) = -periodic_shift(d);
