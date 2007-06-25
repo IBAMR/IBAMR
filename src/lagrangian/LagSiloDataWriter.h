@@ -2,7 +2,7 @@
 #define included_LagSiloDataWriter
 
 // Filename: LagSiloDataWriter.h
-// Last modified: <17.Apr.2007 19:27:42 griffith@box221.cims.nyu.edu>
+// Last modified: <25.Jun.2007 00:35:13 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -222,6 +222,15 @@ private:
     operator=(
         const LagSiloDataWriter& that);
 
+    /*!
+     * \brief Build the VecScatter objects required to communicate data for
+     * plotting.
+     */
+    void
+    buildVecScatters(
+        AO& ao,
+        const int level_number);
+
     /*
      * The object name is used for error reporting purposes.
      */
@@ -291,6 +300,8 @@ private:
     /*
      * Data for obtaining local data.
      */
+    std::vector<AO> d_ao;
+    std::vector<bool> d_build_vec_scatters;
     std::vector<std::map<int,Vec> > d_src_vec, d_dst_vec;
     std::vector<std::map<int,VecScatter> > d_vec_scatter;
 };
