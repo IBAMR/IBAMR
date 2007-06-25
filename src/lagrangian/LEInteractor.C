@@ -1,5 +1,5 @@
 // Filename: LEInteractor.C
-// Last modified: <04.Jun.2007 14:26:43 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Jun.2007 21:03:42 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "LEInteractor.h"
@@ -278,8 +278,8 @@ LEInteractor::interpolate(
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
-    const std::string& interp_fcn,
-    const bool enforce_periodic_bcs)
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& interp_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!Q_data.isNull());
@@ -295,7 +295,7 @@ LEInteractor::interpolate(
                 &(*X_data)(0), X_data->getDepth(),
                 idx_data,
                 q_data,
-                patch, box, interp_fcn, enforce_periodic_bcs);
+                patch, box, periodic_shift, interp_fcn);
 
     return;
 }// interpolate
@@ -310,8 +310,8 @@ LEInteractor::interpolate(
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
-    const std::string& interp_fcn,
-    const bool enforce_periodic_bcs)
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& interp_fcn)
 {
     t_interpolate->start();
 
@@ -327,236 +327,21 @@ LEInteractor::interpolate(
     const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
     const SAMRAI::hier::Index<NDIM>& iupper = patch_box.upper();
 
-    const SAMRAI::hier::Box<NDIM>& idx_ghost_box = idx_data->getGhostBox();
     const SAMRAI::hier::IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+    const int depth = q_data->getDepth();
 
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const xLower = pgeom->getXLower();
     const double* const xUpper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
 
-    const int depth = q_data->getDepth();
-
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
+    getLocalIndices(local_indices, box, idx_data);
 
-    if (box == patch_box)
-    {
-        local_indices = idx_data->getInteriorLocalIndices();
-    }
-    else if (box == idx_ghost_box)
-    {
-        local_indices = idx_data->getInteriorLocalIndices();
-        local_indices.insert(local_indices.end(),
-                             idx_data->getGhostLocalIndices().begin(),
-                             idx_data->getGhostLocalIndices().end());
-    }
-    else
-    {
-        local_indices.reserve(idx_data->getInteriorLocalIndices().size() +
-                              idx_data->getGhostLocalIndices().size());
-        for (LNodeIndexData2::Iterator it(box); it; it++)
-        {
-            const SAMRAI::hier::Index<NDIM>& i = *it;
-            const LNodeIndexSet& node_set = (*idx_data)(i);
-            const LNodeIndexSet::size_type& num_ids = node_set.size();
-            if (num_ids > 0)
-            {
-                local_indices.resize(local_indices.size()+num_ids);
-                std::transform(node_set.begin(), node_set.end(),
-                               local_indices.end()-num_ids,
-                               GetLocalPETScIndex());
-            }
-        }
-    }
-
-    // Generate the periodic offsets when necessary.
+    // Generate periodic offsets.
     std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
-
-    if (enforce_periodic_bcs)
-    {
-        if (box == patch_box)
-        {
-            // intentionally blank
-        }
-        else if (box == idx_ghost_box)
-        {
-            int k = idx_data->getInteriorLocalIndices().size();
-            for (LNodeIndexData2::Iterator it(box); it; it++)
-            {
-                const SAMRAI::hier::Index<NDIM>& i = *it;
-                if (!patch_box.contains(i))
-                {
-                    const LNodeIndexSet& node_set = (*idx_data)(i);
-                    const SAMRAI::hier::IntVector<NDIM>& offset =
-                        node_set.getPeriodicOffset();
-
-                    for (LNodeIndexSet::size_type n = 0;
-                         n < node_set.size(); ++n, ++k)
-                    {
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            periodic_offsets[NDIM*k+d] = double(offset(d))*dx[d];
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            int k = 0;
-            for (LNodeIndexData2::Iterator it(box); it; it++)
-            {
-                const SAMRAI::hier::Index<NDIM>& i = *it;
-                if (box.contains(i))
-                {
-                    const LNodeIndexSet& node_set = (*idx_data)(i);
-                    const SAMRAI::hier::IntVector<NDIM>& offset =
-                        node_set.getPeriodicOffset();
-
-                    for (LNodeIndexSet::size_type n = 0;
-                         n < node_set.size(); ++n, ++k)
-                    {
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            periodic_offsets[NDIM*k+d] = double(offset(d))*dx[d];
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Interpolate.
-    t_interpolate_f77->start();
-
-    const int local_indices_size = local_indices.size();
-    if (local_indices_size > 0)
-    {
-        if (interp_fcn == "PIECEWISE_CUBIC")
-        {
-            LAGRANGIAN_PWCUBIC_INTERP_F77(
-                dx,xLower,xUpper,depth,
-#if (NDIM == 2)
-                ilower(0),iupper(0),ilower(1),iupper(1),
-                q_gcw(0),q_gcw(1),
-#endif
-#if (NDIM == 3)
-                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                q_gcw(0),q_gcw(1),q_gcw(2),
-#endif
-                q_data->getPointer(),
-                &local_indices[0], &periodic_offsets[0], local_indices_size,
-                X_data,Q_data);
-        }
-        else if (interp_fcn == "IB_4")
-        {
-            LAGRANGIAN_IB4_INTERP_F77(
-                dx,xLower,xUpper,depth,
-#if (NDIM == 2)
-                ilower(0),iupper(0),ilower(1),iupper(1),
-                q_gcw(0),q_gcw(1),
-#endif
-#if (NDIM == 3)
-                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                q_gcw(0),q_gcw(1),q_gcw(2),
-#endif
-                q_data->getPointer(),
-                &local_indices[0], &periodic_offsets[0], local_indices_size,
-                X_data,Q_data);
-        }
-        else if (interp_fcn == "IB_6")
-        {
-            LAGRANGIAN_IB6_INTERP_F77(
-                dx,xLower,xUpper,depth,
-#if (NDIM == 2)
-                ilower(0),iupper(0),ilower(1),iupper(1),
-                q_gcw(0),q_gcw(1),
-#endif
-#if (NDIM == 3)
-                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                q_gcw(0),q_gcw(1),q_gcw(2),
-#endif
-                q_data->getPointer(),
-                &local_indices[0], &periodic_offsets[0], local_indices_size,
-                X_data,Q_data);
-        }
-        else if (interp_fcn == "WIDE_IB_4")
-        {
-            LAGRANGIAN_WIB4_INTERP_F77(
-                dx,xLower,xUpper,depth,
-#if (NDIM == 2)
-                ilower(0),iupper(0),ilower(1),iupper(1),
-                q_gcw(0),q_gcw(1),
-#endif
-#if (NDIM == 3)
-                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                q_gcw(0),q_gcw(1),q_gcw(2),
-#endif
-                q_data->getPointer(),
-                &local_indices[0], &periodic_offsets[0], local_indices_size,
-                X_data,Q_data);
-        }
-        else
-        {
-            TBOX_ERROR("LEInteractor::interpolate()\n" <<
-                       "  Unknown interpolation weighting function "
-                       << interp_fcn << endl);
-        }
-    }
-    t_interpolate_f77->stop();
-
-    t_interpolate->stop();
-    return;
-}// interpolate
-
-void
-LEInteractor::interpolate(
-    double* const Q_data,
-    const int Q_depth,
-    const double* const X_data,
-    const int X_depth,
-    const int num_vals,
-    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-    const SAMRAI::hier::Box<NDIM>& box,
-    const std::string& interp_fcn)
-{
-    t_interpolate->start();
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!q_data.isNull());
-    assert(!patch.isNull());
-    assert(Q_depth == q_data->getDepth());
-    assert(X_depth == NDIM);
-    assert(num_vals > 0);
-#endif
-
-    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-    const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
-    const SAMRAI::hier::Index<NDIM>& iupper = patch_box.upper();
-
-    const SAMRAI::hier::IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
-
-    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-    const double* const xLower = pgeom->getXLower();
-    const double* const xUpper = pgeom->getXUpper();
-    const double* const dx = pgeom->getDx();
-
-    const int depth = q_data->getDepth();
-
-    // Generate a list of local indices which lie in the specified box.
-    std::vector<int> local_indices;
-    for (int l = 0; l < num_vals; ++l)
-    {
-        const SAMRAI::pdat::CellIndex<NDIM> idx =
-            STOOLS::STOOLS_Utilities::getCellIndex(
-                &X_data[l*NDIM],xLower,xUpper,dx,ilower,iupper);
-        if (box.contains(idx)) local_indices.push_back(l);
-    }
-
-    // This routine does not have enough data to generate periodic offsets.
-    std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
+    getPeriodicOffsets(periodic_offsets, box, patch, periodic_shift, idx_data);
 
     // Interpolate.
     t_interpolate_f77->start();
@@ -649,8 +434,8 @@ LEInteractor::spread(
     const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
-    const std::string& spread_fcn,
-    const bool enforce_periodic_bcs)
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& spread_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!Q_data.isNull());
@@ -661,13 +446,11 @@ LEInteractor::spread(
     assert(Q_data->getDepth() == q_data->getDepth());
     assert(X_data->getDepth() == NDIM);
 #endif
-
     spread(q_data,
            &(*Q_data)(0), Q_data->getDepth(),
            &(*X_data)(0), X_data->getDepth(),
            idx_data,
-           patch, box, spread_fcn, enforce_periodic_bcs);
-
+           patch, box, periodic_shift, spread_fcn);
     return;
 }// spread
 
@@ -681,8 +464,8 @@ LEInteractor::spread(
     const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::Box<NDIM>& box,
-    const std::string& spread_fcn,
-    const bool enforce_periodic_bcs)
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& spread_fcn)
 {
     t_spread->start();
 
@@ -693,242 +476,25 @@ LEInteractor::spread(
     assert(Q_depth == q_data->getDepth());
     assert(X_depth == NDIM);
 #endif
-
-    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-    const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
-    const SAMRAI::hier::Index<NDIM>& iupper = patch_box.upper();
-
-    const SAMRAI::hier::Box<NDIM>& idx_ghost_box = idx_data->getGhostBox();
-    const SAMRAI::hier::IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
-
-    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-    const double* const xLower = pgeom->getXLower();
-    const double* const xUpper = pgeom->getXUpper();
-    const double* const dx = pgeom->getDx();
-
-    const int depth = q_data->getDepth();
-
-    // Generate a list of local indices which lie in the specified
-    // box.
-    std::vector<int> local_indices;
-
-    if (box == patch_box)
-    {
-        local_indices = idx_data->getInteriorLocalIndices();
-    }
-    else if (box == idx_ghost_box)
-    {
-        local_indices = idx_data->getInteriorLocalIndices();
-        local_indices.insert(local_indices.end(),
-                             idx_data->getGhostLocalIndices().begin(),
-                             idx_data->getGhostLocalIndices().end());
-    }
-    else
-    {
-        local_indices.reserve(idx_data->getInteriorLocalIndices().size() +
-                              idx_data->getGhostLocalIndices().size());
-        for (LNodeIndexData2::Iterator it(box); it; it++)
-        {
-            const SAMRAI::hier::Index<NDIM>& i = *it;
-            const LNodeIndexSet& node_set = (*idx_data)(i);
-            const LNodeIndexSet::size_type& num_ids = node_set.size();
-            if (num_ids > 0)
-            {
-                local_indices.resize(local_indices.size()+num_ids);
-                std::transform(node_set.begin(), node_set.end(),
-                               local_indices.end()-num_ids,
-                               GetLocalPETScIndex());
-            }
-        }
-    }
-
-    // Generate the periodic offsets when necessary.
-    std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
-
-    if (enforce_periodic_bcs)
-    {
-        if (box == patch_box)
-        {
-            // intentionally blank
-        }
-        else if (box == idx_ghost_box)
-        {
-            int k = idx_data->getInteriorLocalIndices().size();
-            for (LNodeIndexData2::Iterator it(box); it; it++)
-            {
-                const SAMRAI::hier::Index<NDIM>& i = *it;
-                if (!patch_box.contains(i))
-                {
-                    const LNodeIndexSet& node_set = (*idx_data)(i);
-                    const SAMRAI::hier::IntVector<NDIM>& offset =
-                        node_set.getPeriodicOffset();
-
-                    for (LNodeIndexSet::size_type n = 0;
-                         n < node_set.size(); ++n, ++k)
-                    {
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            periodic_offsets[NDIM*k+d] = double(offset(d))*dx[d];
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            int k = 0;
-            for (LNodeIndexData2::Iterator it(box); it; it++)
-            {
-                const SAMRAI::hier::Index<NDIM>& i = *it;
-                if (box.contains(i))
-                {
-                    const LNodeIndexSet& node_set = (*idx_data)(i);
-                    const SAMRAI::hier::IntVector<NDIM>& offset =
-                        node_set.getPeriodicOffset();
-
-                    for (LNodeIndexSet::size_type n = 0;
-                         n < node_set.size(); ++n, ++k)
-                    {
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            periodic_offsets[NDIM*k+d] = double(offset(d))*dx[d];
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Spread.
-    t_spread_f77->start();
-
-    const int local_indices_size = local_indices.size();
-    if (local_indices_size > 0)
-    {
-        if (spread_fcn == "PIECEWISE_CUBIC")
-        {
-            LAGRANGIAN_PWCUBIC_SPREAD_F77(
-                dx,xLower,xUpper,depth,
-                &local_indices[0], &periodic_offsets[0], local_indices_size,
-                X_data, Q_data,
-#if (NDIM == 2)
-                ilower(0),iupper(0),ilower(1),iupper(1),
-                q_gcw(0),q_gcw(1),
-#endif
-#if (NDIM == 3)
-                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                q_gcw(0),q_gcw(1),q_gcw(2),
-#endif
-                q_data->getPointer());
-        }
-        else if (spread_fcn == "IB_4")
-        {
-            LAGRANGIAN_IB4_SPREAD_F77(
-                dx,xLower,xUpper,depth,
-                &local_indices[0], &periodic_offsets[0], local_indices_size,
-                X_data, Q_data,
-#if (NDIM == 2)
-                ilower(0),iupper(0),ilower(1),iupper(1),
-                q_gcw(0),q_gcw(1),
-#endif
-#if (NDIM == 3)
-                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                q_gcw(0),q_gcw(1),q_gcw(2),
-#endif
-                q_data->getPointer());
-        }
-        else if (spread_fcn == "IB_6")
-        {
-            LAGRANGIAN_IB6_SPREAD_F77(
-                dx,xLower,xUpper,depth,
-                &local_indices[0], &periodic_offsets[0], local_indices_size,
-                X_data,Q_data,
-#if (NDIM == 2)
-                ilower(0),iupper(0),ilower(1),iupper(1),
-                q_gcw(0),q_gcw(1),
-#endif
-#if (NDIM == 3)
-                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                q_gcw(0),q_gcw(1),q_gcw(2),
-#endif
-                q_data->getPointer());
-        }
-        else if (spread_fcn == "WIDE_IB_4")
-        {
-            LAGRANGIAN_WIB4_SPREAD_F77(
-                dx,xLower,xUpper,depth,
-                &local_indices[0], &periodic_offsets[0], local_indices_size,
-                X_data,Q_data,
-#if (NDIM == 2)
-                ilower(0),iupper(0),ilower(1),iupper(1),
-                q_gcw(0),q_gcw(1),
-#endif
-#if (NDIM == 3)
-                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                q_gcw(0),q_gcw(1),q_gcw(2),
-#endif
-                q_data->getPointer());
-        }
-        else
-        {
-            TBOX_ERROR("LEInteractor::spread()\n" <<
-                       "  Unknown spreading weighting function "
-                       << spread_fcn << endl);
-        }
-    }
-    t_spread_f77->stop();
-
-    t_spread->stop();
-    return;
-}// spread
-
-void
-LEInteractor::spread(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-    const double* const Q_data,
-    const int Q_depth,
-    const double* const X_data,
-    const int X_depth,
-    const int num_vals,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-    const SAMRAI::hier::Box<NDIM>& box,
-    const std::string& spread_fcn)
-{
-    t_spread->start();
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!q_data.isNull());
-    assert(!patch.isNull());
-    assert(Q_depth == q_data->getDepth());
-    assert(X_depth == NDIM);
-    assert(num_vals > 0);
-#endif
-
     const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
     const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
     const SAMRAI::hier::Index<NDIM>& iupper = patch_box.upper();
 
     const SAMRAI::hier::IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+    const int depth = q_data->getDepth();
 
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const xLower = pgeom->getXLower();
     const double* const xUpper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-
-    const int depth = q_data->getDepth();
 
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
-    for (int l = 0; l < num_vals; ++l)
-    {
-        const SAMRAI::pdat::CellIndex<NDIM> idx =
-            STOOLS::STOOLS_Utilities::getCellIndex(
-                &X_data[l*NDIM],xLower,xUpper,dx,ilower,iupper);
-        if (box.contains(idx)) local_indices.push_back(l);
-    }
+    getLocalIndices(local_indices, box, idx_data);
 
-    // This routine does not have enough data to generate periodic offsets.
+    // Generate periodic offsets.
     std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
+    getPeriodicOffsets(periodic_offsets, box, patch, periodic_shift, idx_data);
 
     // Spread.
     t_spread_f77->start();
@@ -941,7 +507,7 @@ LEInteractor::spread(
             LAGRANGIAN_PWCUBIC_SPREAD_F77(
                 dx,xLower,xUpper,depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
-                X_data,Q_data,
+                X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
                 q_gcw(0),q_gcw(1),
@@ -957,7 +523,7 @@ LEInteractor::spread(
             LAGRANGIAN_IB4_SPREAD_F77(
                 dx,xLower,xUpper,depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
-                X_data,Q_data,
+                X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
                 q_gcw(0),q_gcw(1),
@@ -1016,6 +582,137 @@ LEInteractor::spread(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+LEInteractor::getLocalIndices(
+    std::vector<int>& local_indices,
+    const SAMRAI::hier::Box<NDIM>& box,
+    const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data)
+{
+    const SAMRAI::hier::Box<NDIM>& patch_box = idx_data->getBox();
+    const SAMRAI::hier::Box<NDIM>& ghost_box = idx_data->getGhostBox();
+
+    if (box == patch_box)
+    {
+        local_indices = idx_data->getInteriorLocalIndices();
+    }
+    else if (box == ghost_box)
+    {
+        local_indices = idx_data->getInteriorLocalIndices();
+        local_indices.insert(local_indices.end(),
+                             idx_data->getGhostLocalIndices().begin(),
+                             idx_data->getGhostLocalIndices().end());
+    }
+    else
+    {
+        local_indices.reserve(idx_data->getInteriorLocalIndices().size() +
+                              idx_data->getGhostLocalIndices().size());
+        for (LNodeIndexData2::Iterator it(box); it; it++)
+        {
+            const SAMRAI::hier::Index<NDIM>& i = *it;
+            const LNodeIndexSet& node_set = (*idx_data)(i);
+            const LNodeIndexSet::size_type& num_ids = node_set.size();
+            if (num_ids > 0)
+            {
+                local_indices.resize(local_indices.size()+num_ids);
+                std::transform(node_set.begin(), node_set.end(),
+                               local_indices.end()-num_ids,
+                               GetLocalPETScIndex());
+            }
+        }
+    }
+    return;
+}// getLocalIndices
+
+void
+LEInteractor::getPeriodicOffsets(
+    std::vector<double>& periodic_offsets,
+    const SAMRAI::hier::Box<NDIM>& box,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data)
+{
+    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
+    const SAMRAI::hier::Index<NDIM>& iupper = patch_box.upper();
+
+    const SAMRAI::hier::Box<NDIM>& ghost_box = idx_data->getGhostBox();
+
+    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
+    if (pgeom->getTouchesPeriodicBoundary() && box != patch_box)
+    {
+        if (box == ghost_box)
+        {
+            periodic_offsets.resize(NDIM*idx_data->getInteriorLocalIndices().size());
+            periodic_offsets.reserve(NDIM*(idx_data->getInteriorLocalIndices().size()+
+                                           idx_data->getGhostLocalIndices().size()));
+            SAMRAI::hier::BoxList<NDIM> ghost_boxes;
+            ghost_boxes.removeIntersections(ghost_box,patch_box);
+            for (SAMRAI::hier::BoxList<NDIM>::Iterator b(ghost_boxes); b; b++)
+            {
+                for (LNodeIndexData2::Iterator it(*b); it; it++)
+                {
+                    const SAMRAI::hier::Index<NDIM>& i = *it;
+                    const LNodeIndexSet& node_set = (*idx_data)(i);
+                    SAMRAI::hier::IntVector<NDIM> offset = 0;
+                    static const int lower = 0;
+                    static const int upper = 1;
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        if      (pgeom->getTouchesPeriodicBoundary(d,lower) && i(d) < ilower(d))
+                        {
+                            offset(d) = -periodic_shift(d);  // X is ABOVE the top of the patch --- need to shift DOWN
+                        }
+                        else if (pgeom->getTouchesPeriodicBoundary(d,upper) && i(d) > iupper(d))
+                        {
+                            offset(d) = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
+                        }
+                    }
+                    for (LNodeIndexSet::size_type n = 0; n < node_set.size(); ++n)
+                    {
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            periodic_offsets.push_back(double(offset(d))*dx[d]);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            periodic_offsets.resize(0);
+            for (LNodeIndexData2::Iterator it(box); it; it++)
+            {
+                const SAMRAI::hier::Index<NDIM>& i = *it;
+                const LNodeIndexSet& node_set = (*idx_data)(i);
+                SAMRAI::hier::IntVector<NDIM> offset = 0;
+                static const int lower = 0;
+                static const int upper = 1;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    if      (pgeom->getTouchesPeriodicBoundary(d,lower) && i(d) < ilower(d))
+                    {
+                        offset(d) = -periodic_shift(d);  // X is ABOVE the top of the patch --- need to shift DOWN
+                    }
+                    else if (pgeom->getTouchesPeriodicBoundary(d,upper) && i(d) > iupper(d))
+                    {
+                        offset(d) = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
+                    }
+                }
+                for (LNodeIndexSet::size_type n = 0; n < node_set.size(); ++n)
+                {
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        periodic_offsets.push_back(double(offset(d))*dx[d]);
+                    }
+                }
+            }
+        }
+    }
+    return;
+}// getPeriodicOffsets
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

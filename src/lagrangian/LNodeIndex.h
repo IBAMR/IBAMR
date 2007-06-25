@@ -2,7 +2,7 @@
 #define included_LNodeIndex
 
 // Filename: LNodeIndex.h
-// Last modified: <17.Apr.2007 20:05:11 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Jun.2007 21:21:51 griffith@box221.cims.nyu.edu>
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -159,6 +159,15 @@ public:
     unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);
+
+    /*!
+     * \brief Indicate that the LNodeIndex is being shifted across a periodic
+     * boundary.
+     */
+    void
+    registerPeriodicShift(
+        const SAMRAI::hier::IntVector<NDIM>& offset,
+        const std::vector<double>& displacement);
 
 private:
     /*!

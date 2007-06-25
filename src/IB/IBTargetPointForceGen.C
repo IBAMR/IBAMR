@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <04.Jun.2007 14:34:33 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Jun.2007 21:17:51 griffith@box221.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
@@ -104,8 +104,6 @@ IBTargetPointForceGen::computeLagrangianForce(
         TBOX_ERROR("IBTargetPointForceGen::computeLagrangianForce():\n"
                    << "  physical domain must be a single box.\n");
     }
-    const double* const XLower = grid_geom->getXLower();
-    const double* const XUpper = grid_geom->getXUpper();
 
     // Get the patch data descriptor index for the LNodeIndexData2.
     const int lag_node_index_idx = lag_manager->
@@ -152,18 +150,8 @@ IBTargetPointForceGen::computeLagrangianForce(
                             double displacement = 0.0;
                             for (int d = 0; d < NDIM; ++d)
                             {
-                                const double shift =
-                                    (X[d] < XLower[d]
-                                     ? XUpper[d] - XLower[d]
-                                     : (X[d] > XUpper[d]
-                                        ? XLower[d] - XUpper[d]
-                                        : 0.0));
-#ifdef DEBUG_CHECK_ASSERTIONS
-                                assert(X[d]+shift >= XLower[d]);
-                                assert(X[d]+shift <= XUpper[d]);
-#endif
-                                F[d] += kappa_target*(X_target[d] - (X[d]+shift));
-                                displacement += pow(X_target[d] - (X[d]+shift),2.0);
+                                F[d] += kappa_target*(X_target[d] - X[d]);
+                                displacement += pow(X_target[d] - X[d],2.0);
                             }
                             displacement = sqrt(displacement);
                             if (displacement > max_config_displacement)

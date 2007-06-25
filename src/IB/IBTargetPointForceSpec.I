@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceSpec.C
-// Last modified: <11.Jun.2007 17:35:45 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Jun.2007 21:26:57 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -114,6 +114,18 @@ IBTargetPointForceSpec::packStream(
     stream.pack(&d_X_target[0],NDIM);
     return;
 }// packStream
+
+inline void
+IBTargetPointForceSpec::registerPeriodicShift(
+    const SAMRAI::hier::IntVector<NDIM>& offset,
+    const std::vector<double>& displacement)
+{
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_X_target[d] += displacement[d];
+    }
+    return;
+}// registerPeriodicShift
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

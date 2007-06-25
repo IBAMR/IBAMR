@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <21.Jun.2007 14:41:58 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Jun.2007 19:00:55 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -74,9 +74,6 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuration;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
-
-// Whether to account for periodic shifts in spreading and interpolating.
-static const bool ENFORCE_PERIODIC_BCS = true;
 
 // Version of IBHierarchyIntegrator restart file data.
 static const int IB_HIERARCHY_INTEGRATOR_VERSION = 1;
@@ -725,6 +722,8 @@ IBHierarchyIntegrator::advanceHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+
     // Set the current time interval in the force specification objects.
     d_eulerian_force_set->setTimeInterval(current_time, new_time);
     d_force_strategy->setTimeInterval(current_time, new_time);
@@ -817,6 +816,9 @@ IBHierarchyIntegrator::advanceHierarchy(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(
+            level->getRatio());
+
         level->allocatePatchData(d_F_idx, current_time);
         level->allocatePatchData(d_F_scratch1_idx, current_time);
         level->allocatePatchData(d_F_scratch2_idx, current_time);
@@ -913,8 +915,8 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                     LEInteractor::interpolate(
                         U_data[ln], X_data[ln], idx_data, v_data,
-                        patch, patch_box,
-                        d_delta_fcn, ENFORCE_PERIODIC_BCS);
+                        patch, patch_box, periodic_shift,
+                        d_delta_fcn);
                 }
             }
 
@@ -1011,8 +1013,8 @@ IBHierarchyIntegrator::advanceHierarchy(
                                  getLNodeIndexPatchDescriptorIndex());
                 LEInteractor::spread(
                     f_current_data, F_data[ln], X_data[ln], idx_data,
-                    patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts),
-                    d_delta_fcn, ENFORCE_PERIODIC_BCS);
+                    patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
+                    d_delta_fcn);
             }
 
             // 4. Compute X~(n+1), the preliminary structure configuration at
@@ -1140,8 +1142,8 @@ IBHierarchyIntegrator::advanceHierarchy(
                                  getLNodeIndexPatchDescriptorIndex());
                 LEInteractor::spread(
                     f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
-                    patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts),
-                    d_delta_fcn, ENFORCE_PERIODIC_BCS);
+                    patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
+                    d_delta_fcn);
             }
         }
     }
@@ -1289,11 +1291,13 @@ IBHierarchyIntegrator::advanceHierarchy(
     //    using X(n+1).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(
+            level->getRatio());
+
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             int ierr;
-
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
             // 1. Interpolate u(n+1) from the Cartesian grid onto the Lagrangian
             //    mesh.
@@ -1310,8 +1314,8 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                 LEInteractor::interpolate(
                     U_new_data[ln], X_new_data[ln], idx_data, w_data,
-                    patch, patch_box,
-                    d_delta_fcn, ENFORCE_PERIODIC_BCS);
+                    patch, patch_box, periodic_shift,
+                    d_delta_fcn);
             }
 
             // 2. Compute X(n+1), the final structure configuration at time
@@ -1380,8 +1384,8 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                 LEInteractor::interpolate(
                     U_data[ln], X_data[ln], idx_data, w_data,
-                    patch, patch_box,
-                    d_delta_fcn, ENFORCE_PERIODIC_BCS);
+                    patch, patch_box, periodic_shift,
+                    d_delta_fcn);
             }
         }
     }
@@ -2336,10 +2340,6 @@ IBHierarchyIntegrator::computeSourceStrengths(
                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data = patch->getPatchData(d_Q_idx);
                 for (int n = 0; n < d_n_src[ln]; ++n)
                 {
-//                  LEInteractor::spread(
-//                      q_data, &d_Q_src[ln][n], 1, &d_X_src[ln][n][0], NDIM, 1,
-//                      patch, patch_box, "IB_4");
-
                     // The source radius must be an integer multiple of the grid
                     // spacing.
                     double r[NDIM];
@@ -2477,10 +2477,6 @@ IBHierarchyIntegrator::computeSourcePressures(
                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > p_data = patch->getPatchData(P_new_idx);
                 for (int n = 0; n < d_n_src[ln]; ++n)
                 {
-//                  LEInteractor::interpolate(
-//                      &P_src[ln][n], 1, &X_src[ln][n][0], NDIM, 1, p_data,
-//                      patch, patch_box, "IB_4");
-
                     // The source radius must be an integer multiple of the grid
                     // spacing.
                     double r[NDIM];

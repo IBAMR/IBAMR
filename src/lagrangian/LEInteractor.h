@@ -2,7 +2,7 @@
 #define included_LEInteractor
 
 // Filename: LEInteractor.h
-// Last modified: <04.Jun.2007 13:21:40 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Jun.2007 17:17:21 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -73,8 +73,8 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
-        const std::string& interp_fcn="IB_4",
-        const bool enforce_periodic_bcs=false);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+        const std::string& interp_fcn="IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -101,31 +101,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
-        const std::string& interp_fcn="IB_4",
-        const bool enforce_periodic_bcs=false);
-
-    /*!
-     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
-     * positions of the nodes of the Lagrangian mesh are specified by X_data.
-     *
-     * \note This method does not implement periodic boundary conditions!
-     *
-     * \note The interpolation operator implements the operation
-     *
-     *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
-     *
-     * This is the standard regularized delta function interpolation operation.
-     */
-    static void
-    interpolate(
-        double* const Q_data,
-        const int Q_depth,
-        const double* const X_data,
-        const int X_depth,
-        const int num_vals,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-        const SAMRAI::hier::Box<NDIM>& box,
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
         const std::string& interp_fcn="IB_4");
 
     /*!
@@ -154,8 +130,8 @@ public:
         const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
-        const std::string& spread_fcn="IB_4",
-        const bool enforce_periodic_bcs=false);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+        const std::string& spread_fcn="IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -185,34 +161,7 @@ public:
         const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
-        const std::string& spread_fcn="IB_4",
-        const bool enforce_periodic_bcs=false);
-
-    /*!
-     * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
-     * positions of the nodes of the Lagrangian mesh are specified by X_data.
-     *
-     * \note This method does not implement periodic boundary conditions!
-     *
-     * \note The spreading operation DOES NOT include the scale factor
-     * corresponding to the curvilinear volume element (dq dr ds).  The
-     * spreading formula is
-     *
-     *     q(i,j,k) = Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
-     *
-     * Unlike the standard regularized delta function spreading operation, the
-     * implemented operations spreads values, NOT densities.
-     */
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const double* const Q_data,
-        const int Q_depth,
-        const double* const X_data,
-        const int X_depth,
-        const int num_vals,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-        const SAMRAI::hier::Box<NDIM>& box,
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
         const std::string& spread_fcn="IB_4");
 
 private:
@@ -252,6 +201,27 @@ private:
     LEInteractor&
     operator=(
         const LEInteractor& that);
+
+    /*!
+     * \brief Compute the local PETSc indices located within the provided box.
+     */
+    static void
+    getLocalIndices(
+        std::vector<int>& local_indices,
+        const SAMRAI::hier::Box<NDIM>& box,
+        const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data);
+
+    /*!
+     * \brief Compute the periodic shifts for the indicies located withing the
+     * provided box.
+     */
+    static void
+    getPeriodicOffsets(
+        std::vector<double>& local_indices,
+        const SAMRAI::hier::Box<NDIM>& box,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+        const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data);
 };
 }// namespace IBAMR
 

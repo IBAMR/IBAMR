@@ -2,7 +2,7 @@
 #define included_IBTargetPointForceSpec
 
 // Filename: IBTargetPointForceSpec.h
-// Last modified: <11.Jun.2007 17:04:45 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Jun.2007 21:25:51 griffith@box221.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -124,6 +124,15 @@ public:
     virtual void
     packStream(
         SAMRAI::tbox::AbstractStream& stream);
+
+    /*!
+     * \brief Indicate that the object is being shifted across a periodic
+     * boundary.
+     */
+    virtual void
+    registerPeriodicShift(
+        const SAMRAI::hier::IntVector<NDIM>& offset,
+        const std::vector<double>& displacement);
 
 private:
     /*!

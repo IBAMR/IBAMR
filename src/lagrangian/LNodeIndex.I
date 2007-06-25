@@ -1,5 +1,5 @@
 // Filename: LNodeIndex.I
-// Last modified: <17.Apr.2007 18:25:15 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Jun.2007 21:48:05 griffith@box221.cims.nyu.edu>
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -165,6 +165,19 @@ LNodeIndex::unpackStream(
     StashableManager::getManager()->unpackStream(stream, offset, d_stash_data);
     return;
 }// unpackStream
+
+inline void
+LNodeIndex::registerPeriodicShift(
+    const SAMRAI::hier::IntVector<NDIM>& offset,
+    const std::vector<double>& displacement)
+{
+    for (std::vector<SAMRAI::tbox::Pointer<Stashable> >::iterator it = d_stash_data.begin();
+         it != d_stash_data.end(); ++it)
+    {
+        (*it)->registerPeriodicShift(offset, displacement);
+    }
+    return;
+}// registerPeriodicShift
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

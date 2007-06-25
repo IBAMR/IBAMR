@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <13.Jun.2007 17:47:43 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Jun.2007 21:10:15 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -729,6 +729,8 @@ LDataManager::beginDataRedistribution(
         {
             // Update the index patch data on the level.
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            const SAMRAI::hier::IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift(
+                level->getRatio());
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -811,16 +813,31 @@ LDataManager::beginDataRedistribution(
                             // periodic boundary.
                             if (touches_periodic_bdry && patch_owns_node_at_old_loc)
                             {
+                                bool shifted = false;
+                                SAMRAI::hier::IntVector<NDIM> offset = 0;
+                                std::vector<double> D(NDIM,0.0);
                                 for (int d = 0; d < NDIM; ++d)
                                 {
                                     if (X[d] < gridXLower[d])
                                     {
-                                        X[d] += gridXLength[d];
+                                        shifted = true;
+                                        offset(d) = +periodic_shift(d);
+                                        D[d] = +gridXLength[d];
                                     }
                                     else if (X[d] >= gridXUpper[d])
                                     {
-                                        X[d] -= gridXLength[d];
+                                        shifted = true;
+                                        offset(d) = -periodic_shift(d);
+                                        D[d] = -gridXLength[d];
                                     }
+                                }
+                                if (shifted)
+                                {
+                                    for (int d = 0; d < NDIM; ++d)
+                                    {
+                                        X[d] += D[d];
+                                    }
+                                    node_idx->registerPeriodicShift(offset, D);
                                 }
                             }
                         }

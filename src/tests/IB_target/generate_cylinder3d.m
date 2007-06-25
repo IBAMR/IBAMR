@@ -4,7 +4,7 @@
 R = 0.5;
 L = 16.0;
 L_z = 4.0;
-NFINEST = 1024;
+NFINEST = 128;
 NFINEST_z = NFINEST/4;
 dx = L/NFINEST;
 dz = L_z/NFINEST_z;
@@ -15,7 +15,7 @@ ds = 2*pi*R/num_nodes_s;
 
 % choose num_nodes_r so that dr = L_z/num_nodes_z = 0.5*dz (approximately)
 num_nodes_r = 2.0*NFINEST_z;
-dr = 0.5*dz;
+dr = L_z/num_nodes_r;
 
 X_center = [0.0 0.0 0.0];
 stiffness = 1.0;

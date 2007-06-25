@@ -2,15 +2,19 @@
 #define included_Stashable
 
 // Filename: Stashable.h
-// Last modified: <17.Apr.2007 18:33:29 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Jun.2007 21:29:55 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
+#include <IntVector.h>
 #include <tbox/AbstractStream.h>
 #include <tbox/DescribedClass.h>
 #include <tbox/Pointer.h>
+
+// C++ STDLIB INCLUDES
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -65,6 +69,17 @@ public:
     virtual void
     packStream(
         SAMRAI::tbox::AbstractStream& stream) = 0;
+
+    /*!
+     * \brief Indicate that the Stashable object is being shifted across a
+     * periodic boundary.
+     *
+     * \note A default empty implementation is provided.
+     */
+    virtual void
+    registerPeriodicShift(
+        const SAMRAI::hier::IntVector<NDIM>& offset,
+        const std::vector<double>& displacement);
 
 private:
     /*!
