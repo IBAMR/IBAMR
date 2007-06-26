@@ -2,7 +2,7 @@
 #define included_IBInstrumentPanel
 
 // Filename: IBInstrumentPanel.h
-// Last modified: <14.Jun.2007 18:46:51 griffith@box221.cims.nyu.edu>
+// Last modified: <25.Jun.2007 15:09:18 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -248,15 +248,6 @@ private:
 
     typedef std::multimap<SAMRAI::hier::Index<NDIM>,WebPatch,IndexFortranOrder> WebPatchMap;
     std::vector<WebPatchMap> d_web_patch_map;
-
-    struct MeterCentroid
-    {
-        int meter_num;
-        const blitz::TinyVector<double,NDIM>* X;
-    };
-
-    typedef std::multimap<SAMRAI::hier::Index<NDIM>,MeterCentroid,IndexFortranOrder> MeterCentroidMap;
-    std::vector<MeterCentroidMap> d_meter_centroid_map;
 
     /*
      * The directory where data is to be dumped and the most recent timestep

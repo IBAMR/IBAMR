@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <21.Jun.2007 12:33:44 boyce@bigboy.nyconnect.com>
+// Last modified: <25.Jun.2007 15:27:18 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -341,7 +341,6 @@ IBInstrumentPanel::IBInstrumentPanel(
       d_flow_values(),
       d_pres_values(),
       d_web_patch_map(),
-      d_meter_centroid_map(),
       d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
       d_output_log_file(false),
       d_log_file_name(NDIM == 2 ? "inst2d.log" : "inst3d.log"),
@@ -736,8 +735,6 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     // physical space in which the web patch centroid is located.
     d_web_patch_map.clear();
     d_web_patch_map.resize(finest_ln+1);
-    d_meter_centroid_map.clear();
-    d_meter_centroid_map.resize(finest_ln+1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
@@ -800,28 +797,6 @@ IBInstrumentPanel::initializeHierarchyDependentData(
                     }
                 }
             }
-
-            // Setup the web centroid mapping.
-            const double* const X = d_X_centroid[l].data();
-            const SAMRAI::hier::Index<NDIM> i =
-                STOOLS::STOOLS_Utilities::getCellIndex(
-                    X, domainXLower, domainXUpper, dx,
-                    domain_box_level_lower, domain_box_level_upper);
-            const SAMRAI::hier::Index<NDIM> finer_i =
-                (ln < finest_ln
-                 ? STOOLS::STOOLS_Utilities::getCellIndex(
-                     X, domainXLower, domainXUpper, finer_dx,
-                     finer_domain_box_level_lower, finer_domain_box_level_upper)
-                 : SAMRAI::hier::Index<NDIM>(std::numeric_limits<int>::max()));
-
-            if (level->getBoxes().contains(i) &&
-                (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
-            {
-                MeterCentroid c;
-                c.meter_num = l;
-                c.X = &d_X_centroid[l];
-                d_meter_centroid_map[ln].insert(std::make_pair(i,c));
-            }
         }
     }
 
@@ -865,6 +840,7 @@ IBInstrumentPanel::readInstrumentData(
     // Reset the instrument values.
     std::fill(d_flow_values.begin(), d_flow_values.end(), 0.0);
     std::fill(d_pres_values.begin(), d_pres_values.end(), 0.0);
+    std::vector<double> A(d_num_meters, 0.0);
 
     // Compute the local contributions to the flux of U through the flow meter,
     // and the value of P at the centroid of the meter.
@@ -897,11 +873,9 @@ IBInstrumentPanel::readInstrumentData(
             {
                 const SAMRAI::hier::Index<NDIM>& i = b();
 
-                std::pair<WebPatchMap::const_iterator,WebPatchMap::const_iterator> r1 =
+                std::pair<WebPatchMap::const_iterator,WebPatchMap::const_iterator> range =
                     d_web_patch_map[ln].equal_range(i);
-                std::pair<MeterCentroidMap::const_iterator,MeterCentroidMap::const_iterator> r2 =
-                    d_meter_centroid_map[ln].equal_range(i);
-                if (r1.first != r1.second || r2.first != r2.second)
+                if (range.first != range.second)
                 {
                     const blitz::TinyVector<double,NDIM> X_cell(
                         xLower[0] + dx[0]*(double(i(0)-patch_lower(0))+0.5),
@@ -911,23 +885,18 @@ IBInstrumentPanel::readInstrumentData(
 #endif
                                                                 );
 
-                    for (WebPatchMap::const_iterator it = r1.first; it != r1.second; ++it)
+                    for (WebPatchMap::const_iterator it = range.first; it != range.second; ++it)
                     {
                         const int& meter_num = (*it).second.meter_num;
                         const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
                         const blitz::TinyVector<double,NDIM>& dA = *((*it).second.dA);
                         const blitz::TinyVector<double,NDIM> U = linear_interp<NDIM>(
                             X, i, X_cell, U_data, patch_lower, patch_upper, xLower, xUpper, dx);
-                        d_flow_values[meter_num] += dot(U,dA);
-                    }
-
-                    for (MeterCentroidMap::const_iterator it = r2.first; it != r2.second; ++it)
-                    {
-                        const int& meter_num = (*it).second.meter_num;
-                        const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
                         const blitz::TinyVector<double,1> P = linear_interp<1>(
                             X, i, X_cell, P_data, patch_lower, patch_upper, xLower, xUpper, dx);
-                        d_pres_values[meter_num] = P(0);
+                        d_flow_values[meter_num] += dot(U,dA);
+                        d_pres_values[meter_num] += P(0)*norm(dA);
+                        A[meter_num] += norm(dA);
                     }
                 }
             }
@@ -937,6 +906,13 @@ IBInstrumentPanel::readInstrumentData(
     // Synchronize the values across all processes.
     SAMRAI::tbox::MPI::sumReduction(&d_flow_values[0],d_num_meters);
     SAMRAI::tbox::MPI::sumReduction(&d_pres_values[0],d_num_meters);
+    SAMRAI::tbox::MPI::sumReduction(&A[0],d_num_meters);
+
+    // Normalize the pressure.
+    for (int m = 0; m < d_num_meters; ++m)
+    {
+        d_pres_values[m] /= A[m];
+    }
 
     // The patch data descriptor index for the LNodeIndexData.
     const int lag_node_index_idx = lag_manager-> getLNodeIndexPatchDescriptorIndex();

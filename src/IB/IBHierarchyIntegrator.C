@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <24.Jun.2007 19:00:55 griffith@box221.cims.nyu.edu>
+// Last modified: <25.Jun.2007 18:01:35 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -116,6 +116,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_ins_hier_integrator(ins_hier_integrator),
       d_lag_data_manager(NULL),
       d_instrument_panel(NULL),
+      d_total_flow_volume(),
       d_U_init(NULL),
       d_P_init(NULL),
       d_U_bc_coefs(),
@@ -685,6 +686,10 @@ IBHierarchyIntegrator::initializeHierarchy()
     {
         d_instrument_panel->initializeHierarchyDependentData(
             d_hierarchy, d_lag_data_manager, d_integrator_step, d_integrator_time);
+        if (d_total_flow_volume.empty())
+        {
+            d_total_flow_volume.resize(d_instrument_panel->getFlowValues().size(),0.0);
+        }
     }
 
     // Indicate that the force and source strategies need to be re-initialized.
@@ -1392,6 +1397,16 @@ IBHierarchyIntegrator::advanceHierarchy(
 
     // Update the instrumentation data.
     updateIBInstrumentationData(d_integrator_step+1,new_time);
+    if (d_instrument_panel->isInstrumented())
+    {
+        const std::vector<string>& instrument_name = d_instrument_panel->getInstrumentNames();
+        const std::vector<double>& flow_data = d_instrument_panel->getFlowValues();
+        for (unsigned m = 0; m < flow_data.size(); ++m)
+        {
+            d_total_flow_volume[m] += flow_data[m]*dt;
+            SAMRAI::tbox::plog << "flow volume through " << instrument_name[m] << ":\t " << d_total_flow_volume[m] << "\n";
+        }
+    }
 
     // Compute the pressure at the updated locations of any distributed internal
     // fluid sources or sinks.
@@ -2041,6 +2056,8 @@ IBHierarchyIntegrator::putToDatabase(
                    IB_HIERARCHY_INTEGRATOR_VERSION);
 
     db->putString("d_delta_fcn", d_delta_fcn);
+    db->putInteger("d_total_flow_volume_sz", d_total_flow_volume.size());
+    db->putDoubleArray("d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
     db->putBool("d_using_pIB_method", d_using_pIB_method);
     db->putDoubleArray("d_gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
     db->putDouble("d_start_time", d_start_time);
@@ -2607,6 +2624,9 @@ IBHierarchyIntegrator::getFromRestart()
     }
 
     d_delta_fcn = db->getString("d_delta_fcn");
+    const int total_flow_volume_sz = db->getInteger("d_total_flow_volume_sz");
+    d_total_flow_volume.resize(total_flow_volume_sz, std::numeric_limits<double>::quiet_NaN());
+    db->getDoubleArray("d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
     d_using_pIB_method = db->getBool("d_using_pIB_method");
     db->getDoubleArray("d_gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
     d_start_time = db->getDouble("d_start_time");
