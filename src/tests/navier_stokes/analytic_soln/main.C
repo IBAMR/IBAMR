@@ -373,6 +373,24 @@ main(
         }
 
         /*
+         * Count the nubmer of cells in each level of the patch hierarchy.
+         */
+        int number_of_cells = 0;
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            const hier::BoxArray<NDIM>& level_boxes = level->getBoxes();
+            int number_of_level_cells = 0;
+            for (int k = 0; k < level_boxes.size(); ++k)
+            {
+                number_of_level_cells += level_boxes(k).size();
+            }
+            tbox::pout << "level " << ln << " cells = " << number_of_level_cells << "\n";
+            number_of_cells += number_of_level_cells;
+        }
+        tbox::pout << "total number of cells = " << number_of_cells << "\n";
+
+        /*
          * Setup timer.
          */
         tbox::TimerManager* timer_manager = tbox::TimerManager::getManager();

@@ -45,7 +45,8 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   second_order_pressure_update = TRUE
+   normalize_pressure = TRUE
+   second_order_pressure_update = FALSE
 
    num_cycles = 1
    num_init_cycles = 5
@@ -56,6 +57,8 @@ GodunovAdvector {
 }
 
 AdvDiffHierarchyIntegrator {
+   viscous_timestepping_type = "TGA"
+
    enable_logging = TRUE
 
    tag_buffer = 1

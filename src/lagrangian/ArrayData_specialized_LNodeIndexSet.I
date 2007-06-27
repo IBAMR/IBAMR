@@ -2,7 +2,7 @@
 #define included_ArrayData_specialized_LNodeIndexSet
 
 // Filename: ArrayData_specialized_LNodeIndexSet.I
-// Last modified: <19.Jun.2007 17:48:18 griffith@box221.cims.nyu.edu>
+// Last modified: <27.Jun.2007 00:17:49 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include <ArrayData.h>
@@ -151,6 +151,9 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
     // Make sure that char and Bytef are the same size.
     assert(sizeof(char) == sizeof(Bytef));
 
+    // Make sure that size_t and uLongf are the same size.
+    assert(sizeof(size_t) == sizeof(uLongf));
+
     // Count the number of non-empty index set locations and the total size of
     // the uncompressed data stream required to store those index sets.
     int num_items = 0;
@@ -195,7 +198,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
         std::vector<char> compressed_data(compressed_data_sz);
         static const int level = 1;  // use fastest compression for packStream()
         const int retval = compress2(
-            reinterpret_cast<Bytef*>(&compressed_data[0]),&compressed_data_sz,
+            reinterpret_cast<Bytef*>(&compressed_data[0]),reinterpret_cast<uLongf*>(&compressed_data_sz),
             reinterpret_cast<const Bytef*>(uncompressed_stream.getBufferStart()),uncompressed_data_sz,
             level);
 
@@ -243,7 +246,10 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
 {
     // Make sure that char and Bytef are the same size.
     assert(sizeof(char) == sizeof(Bytef));
-    
+
+    // Make sure that size_t and uLongf are the same size.
+    assert(sizeof(size_t) == sizeof(uLongf));
+
     // Clear out the destination region.
     for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
     {
@@ -271,7 +277,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
             stream.unpack(&compressed_data[0],compressed_data_sz);
             size_t data_sz = uncompressed_data_sz;
             const int retval = uncompress(
-                reinterpret_cast<Bytef*>(&uncompressed_data[0]),&data_sz,
+                reinterpret_cast<Bytef*>(&uncompressed_data[0]),reinterpret_cast<uLongf*>(&data_sz),
                 reinterpret_cast<const Bytef*>(&compressed_data[0]),compressed_data_sz);
             assert(data_sz == uncompressed_data_sz);
 
@@ -322,7 +328,10 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::putSpecializedToDatabase(
 
     // Make sure that char and Bytef are the same size.
     assert(sizeof(char) == sizeof(Bytef));
-    
+
+    // Make sure that size_t and uLongf are the same size.
+    assert(sizeof(size_t) == sizeof(uLongf));
+
     // Count the number of non-empty index set locations and the total size of
     // the uncompressed data stream required to store those index sets.
     int num_items = 0;
@@ -361,7 +370,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::putSpecializedToDatabase(
         std::vector<char> compressed_data(compressed_data_sz);
         static const int level = 9;  // use maximum compression for putSpecializedToDatabase()
         const int retval = compress2(
-            reinterpret_cast<Bytef*>(&compressed_data[0]),&compressed_data_sz,
+            reinterpret_cast<Bytef*>(&compressed_data[0]),reinterpret_cast<uLongf*>(&compressed_data_sz),
             reinterpret_cast<const Bytef*>(uncompressed_stream.getBufferStart()),uncompressed_data_sz,
             level);
 
@@ -397,7 +406,10 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSpecializedFromDatabase(
 
     // Make sure that char and Bytef are the same size.
     assert(sizeof(char) == sizeof(Bytef));
-    
+
+    // Make sure that size_t and uLongf are the same size.
+    assert(sizeof(size_t) == sizeof(uLongf));
+
     // Clear out the destination region.
     fillAll(IBAMR::LNodeIndexSet(),dst_box);
 
@@ -417,7 +429,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSpecializedFromDatabase(
             database->getCharArray("compressed_data",&compressed_data[0],compressed_data_sz);
             size_t data_sz = uncompressed_data_sz;
             const int retval = uncompress(
-                reinterpret_cast<Bytef*>(&uncompressed_data[0]),&data_sz,
+                reinterpret_cast<Bytef*>(&uncompressed_data[0]),reinterpret_cast<uLongf*>(&data_sz),
                 reinterpret_cast<const Bytef*>(&compressed_data[0]),compressed_data_sz);
             assert(data_sz == uncompressed_data_sz);
 
