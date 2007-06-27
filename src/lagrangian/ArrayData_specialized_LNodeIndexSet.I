@@ -2,7 +2,7 @@
 #define included_ArrayData_specialized_LNodeIndexSet
 
 // Filename: ArrayData_specialized_LNodeIndexSet.I
-// Last modified: <27.Jun.2007 00:17:49 griffith@box221.cims.nyu.edu>
+// Last modified: <27.Jun.2007 18:45:57 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include <ArrayData.h>
@@ -10,7 +10,6 @@
 #include <ibamr/LNodeIndexSet.h>
 #include <ibamr/StashableStream.h>
 #include <cassert>
-#include <zlib.h>
 
 namespace SAMRAI
 {
@@ -124,7 +123,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::getDataStreamSize(
     const hier::BoxList<NDIM>& dest_boxes,
     const hier::IntVector<NDIM>& source_offset) const
 {
-    size_t bytes = 3*tbox::AbstractStream::sizeofInt();
+    size_t bytes = tbox::AbstractStream::sizeofInt();
     for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
     {
         const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(b(),-source_offset));
@@ -148,16 +147,9 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
     const hier::BoxList<NDIM>& dest_boxes,
     const hier::IntVector<NDIM>& source_offset) const
 {
-    // Make sure that char and Bytef are the same size.
-    assert(sizeof(char) == sizeof(Bytef));
-
-    // Make sure that size_t and uLongf are the same size.
-    assert(sizeof(size_t) == sizeof(uLongf));
-
     // Count the number of non-empty index set locations and the total size of
-    // the uncompressed data stream required to store those index sets.
+    // the data stream required to store those index sets.
     int num_items = 0;
-    size_t uncompressed_data_sz = 0;
     for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
     {
         const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(b(),-source_offset));
@@ -168,16 +160,13 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
             if (!node_set.empty())
             {
                 ++num_items;
-                uncompressed_data_sz += NDIM*tbox::AbstractStream::sizeofInt();
-                uncompressed_data_sz += node_set.getDataStreamSize();
             }
         }
     }
     stream << num_items;
     if (num_items > 0)
     {
-        // Pack the non-empty index sets into a data stream.
-        IBAMR::StashableStream uncompressed_stream(uncompressed_data_sz,IBAMR::StashableStream::Write);
+        // Pack the non-empty index sets into the data stream.
         for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
         {
             const hier::Box<NDIM> src_box(d_box*hier::Box<NDIM>::shift(b(),-source_offset));
@@ -187,39 +176,10 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::packStream(
                 const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
                 if (!node_set.empty())
                 {
-                    uncompressed_stream.pack(i,NDIM);
-                    node_set.packStream(uncompressed_stream);
+                    stream.pack(i,NDIM);
+                    node_set.packStream(stream);
                 }
             }
-        }
-
-        // Compress the data stream using zlib.
-        size_t compressed_data_sz = 2*uncompressed_data_sz;
-        std::vector<char> compressed_data(compressed_data_sz);
-        static const int level = 1;  // use fastest compression for packStream()
-        const int retval = compress2(
-            reinterpret_cast<Bytef*>(&compressed_data[0]),reinterpret_cast<uLongf*>(&compressed_data_sz),
-            reinterpret_cast<const Bytef*>(uncompressed_stream.getBufferStart()),uncompressed_data_sz,
-            level);
-
-        switch (retval)
-        {
-            case Z_MEM_ERROR:
-                TBOX_ERROR("Compression memory error\n");
-            case Z_BUF_ERROR:
-                TBOX_ERROR("Output buffer too small\n");
-        }
-
-        stream << int(compressed_data_sz);
-        stream << int(uncompressed_data_sz);
-
-        if (compressed_data_sz < uncompressed_data_sz)
-        {
-            stream.pack(&compressed_data[0],compressed_data_sz);
-        }
-        else
-        {
-            stream.pack(static_cast<char*>(uncompressed_stream.getBufferStart()),uncompressed_data_sz);
         }
     }
     return;
@@ -244,12 +204,6 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
     const hier::BoxList<NDIM>& dest_boxes,
     const hier::IntVector<NDIM>& source_offset)
 {
-    // Make sure that char and Bytef are the same size.
-    assert(sizeof(char) == sizeof(Bytef));
-
-    // Make sure that size_t and uLongf are the same size.
-    assert(sizeof(size_t) == sizeof(uLongf));
-
     // Clear out the destination region.
     for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
     {
@@ -262,46 +216,13 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
     stream >> num_items;
     if (num_items > 0)
     {
-        // Get the sizes of the compressed and uncompressed data streams.
-        int compressed_data_sz_int,uncompressed_data_sz_int;
-        stream >> compressed_data_sz_int;
-        stream >> uncompressed_data_sz_int;
-        const size_t compressed_data_sz = compressed_data_sz_int;
-        const size_t uncompressed_data_sz = uncompressed_data_sz_int;
-
-        // Get the raw data.
-        std::vector<char> compressed_data(compressed_data_sz);
-        std::vector<char> uncompressed_data(uncompressed_data_sz);
-        if (compressed_data_sz < uncompressed_data_sz)
-        {
-            stream.unpack(&compressed_data[0],compressed_data_sz);
-            size_t data_sz = uncompressed_data_sz;
-            const int retval = uncompress(
-                reinterpret_cast<Bytef*>(&uncompressed_data[0]),reinterpret_cast<uLongf*>(&data_sz),
-                reinterpret_cast<const Bytef*>(&compressed_data[0]),compressed_data_sz);
-            assert(data_sz == uncompressed_data_sz);
-
-            switch (retval)
-            {
-                case Z_MEM_ERROR:
-                    TBOX_ERROR("Compression memory error\n");
-                case Z_BUF_ERROR:
-                    TBOX_ERROR("Output buffer too small\n");
-            }
-        }
-        else
-        {
-            stream.unpack(&uncompressed_data[0],uncompressed_data_sz);
-        }
-
         // Unpack the individual items.
-        IBAMR::StashableStream uncompressed_stream(&uncompressed_data[0],uncompressed_data_sz,IBAMR::StashableStream::Read);
         for (int k = 0; k < num_items; ++k)
         {
             hier::Index<NDIM> i;
-            uncompressed_stream.unpack(i,NDIM);
+            stream.unpack(i,NDIM);
             i += source_offset;
-            (*this)(i,0).unpackStream(uncompressed_stream,source_offset);
+            (*this)(i,0).unpackStream(stream,source_offset);
         }
     }
     return;
@@ -326,16 +247,10 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::putSpecializedToDatabase(
 {
     const hier::Box<NDIM> src_box(d_box);
 
-    // Make sure that char and Bytef are the same size.
-    assert(sizeof(char) == sizeof(Bytef));
-
-    // Make sure that size_t and uLongf are the same size.
-    assert(sizeof(size_t) == sizeof(uLongf));
-
     // Count the number of non-empty index set locations and the total size of
     // the uncompressed data stream required to store those index sets.
     int num_items = 0;
-    size_t uncompressed_data_sz = 0;
+    size_t data_sz = 0;
     for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
     {
         const hier::Index<NDIM>& i = it();
@@ -343,56 +258,30 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::putSpecializedToDatabase(
         if (!node_set.empty())
         {
             ++num_items;
-            uncompressed_data_sz += 2*NDIM*tbox::AbstractStream::sizeofInt();
-            uncompressed_data_sz += node_set.getDataStreamSize();
+            data_sz += 2*NDIM*tbox::AbstractStream::sizeofInt();
+            data_sz += node_set.getDataStreamSize();
         }
-
     }
     database->putInteger("num_items",num_items);
     if (num_items > 0)
     {
         // Pack the non-empty index sets into a data stream.
-        IBAMR::StashableStream uncompressed_stream(uncompressed_data_sz,IBAMR::StashableStream::Write);
+        IBAMR::StashableStream stream(data_sz,IBAMR::StashableStream::Write);
         for (hier::Box<NDIM>::Iterator it(src_box); it; it++)
         {
             const hier::Index<NDIM>& i = it();
             const IBAMR::LNodeIndexSet& node_set = (*this)(i,0);
             if (!node_set.empty())
             {
-                uncompressed_stream.pack(i,NDIM);
-                uncompressed_stream.pack(node_set.getPeriodicOffset(),NDIM);
-                node_set.packStream(uncompressed_stream);
+                stream.pack(i,NDIM);
+                stream.pack(node_set.getPeriodicOffset(),NDIM);
+                node_set.packStream(stream);
             }
         }
 
-        // Compress the data stream using zlib.
-        size_t compressed_data_sz = 2*uncompressed_data_sz;
-        std::vector<char> compressed_data(compressed_data_sz);
-        static const int level = 9;  // use maximum compression for putSpecializedToDatabase()
-        const int retval = compress2(
-            reinterpret_cast<Bytef*>(&compressed_data[0]),reinterpret_cast<uLongf*>(&compressed_data_sz),
-            reinterpret_cast<const Bytef*>(uncompressed_stream.getBufferStart()),uncompressed_data_sz,
-            level);
-
-        switch (retval)
-        {
-            case Z_MEM_ERROR:
-                TBOX_ERROR("Compression memory error\n");
-            case Z_BUF_ERROR:
-                TBOX_ERROR("Output buffer too small\n");
-        }
-
-        database->putInteger("compressed_data_sz",compressed_data_sz);
-        database->putInteger("uncompressed_data_sz",uncompressed_data_sz);
-
-        if (compressed_data_sz < uncompressed_data_sz)
-        {
-            database->putCharArray("compressed_data",&compressed_data[0],compressed_data_sz);
-        }
-        else
-        {
-            database->putCharArray("uncompressed_data",static_cast<char*>(uncompressed_stream.getBufferStart()),uncompressed_data_sz);
-        }
+        // Store the data stream in the database.
+        database->putInteger("data_sz",data_sz);
+        database->putCharArray("data",static_cast<char*>(stream.getBufferStart()),data_sz);
     }
     return;
 }// putSpecializedToDatabase
@@ -404,12 +293,6 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSpecializedFromDatabase(
 {
     const hier::Box<NDIM> dst_box(d_box);
 
-    // Make sure that char and Bytef are the same size.
-    assert(sizeof(char) == sizeof(Bytef));
-
-    // Make sure that size_t and uLongf are the same size.
-    assert(sizeof(size_t) == sizeof(uLongf));
-
     // Clear out the destination region.
     fillAll(IBAMR::LNodeIndexSet(),dst_box);
 
@@ -417,44 +300,22 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSpecializedFromDatabase(
     const int num_items = database->getInteger("num_items");
     if (num_items > 0)
     {
-        // Get the sizes of the compressed and uncompressed data streams.
-        const size_t compressed_data_sz = database->getInteger("compressed_data_sz");
-        const size_t uncompressed_data_sz = database->getInteger("uncompressed_data_sz");
+        // Get the sizes of the data stream.
+        const size_t data_sz = database->getInteger("data_sz");
 
         // Get the raw data.
-        std::vector<char> compressed_data(compressed_data_sz);
-        std::vector<char> uncompressed_data(uncompressed_data_sz);
-        if (compressed_data_sz < uncompressed_data_sz)
-        {
-            database->getCharArray("compressed_data",&compressed_data[0],compressed_data_sz);
-            size_t data_sz = uncompressed_data_sz;
-            const int retval = uncompress(
-                reinterpret_cast<Bytef*>(&uncompressed_data[0]),reinterpret_cast<uLongf*>(&data_sz),
-                reinterpret_cast<const Bytef*>(&compressed_data[0]),compressed_data_sz);
-            assert(data_sz == uncompressed_data_sz);
-
-            switch (retval)
-            {
-                case Z_MEM_ERROR:
-                    TBOX_ERROR("Compression memory error\n");
-                case Z_BUF_ERROR:
-                    TBOX_ERROR("Output buffer too small\n");
-            }
-        }
-        else
-        {
-            database->getCharArray("uncompressed_data",&uncompressed_data[0],uncompressed_data_sz);
-        }
+        std::vector<char> data(data_sz);
+        database->getCharArray("data",&data[0],data_sz);
 
         // Unpack the individual items.
-        IBAMR::StashableStream uncompressed_stream(&uncompressed_data[0],uncompressed_data_sz,IBAMR::StashableStream::Read);
+        IBAMR::StashableStream stream(&data[0],data_sz,IBAMR::StashableStream::Read);
         for (int k = 0; k < num_items; ++k)
         {
             hier::Index<NDIM> i;
-            uncompressed_stream.unpack(i,NDIM);
+            stream.unpack(i,NDIM);
             hier::IntVector<NDIM> periodic_offset;
-            uncompressed_stream.unpack(periodic_offset,NDIM);
-            (*this)(i,0).unpackStream(uncompressed_stream,periodic_offset);
+            stream.unpack(periodic_offset,NDIM);
+            (*this)(i,0).unpackStream(stream,periodic_offset);
         }
     }
     return;
