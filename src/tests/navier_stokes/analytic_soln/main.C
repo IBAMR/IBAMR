@@ -373,6 +373,12 @@ main(
         }
 
         /*
+         * Setup timer.
+         */
+        tbox::TimerManager* timer_manager = tbox::TimerManager::getManager();
+        tbox::Pointer<tbox::Timer> t_advance_hierarchy = timer_manager->getTimer("IBAMR::main::advanceHierarchy()");
+
+        /*
          * Time step loop.  Note that the step count and integration time are
          * maintained by the time integrator object.
          */
@@ -381,6 +387,8 @@ main(
         double dt_old = 0.0;
 
         int iteration_num = time_integrator->getIntegratorStep();
+
+        tbox::MPI::barrier();
 
         while (!tbox::Utilities::deq(loop_time,loop_time_end) &&
                time_integrator->stepsRemaining())
@@ -392,8 +400,11 @@ main(
             tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
             tbox::pout << "Simulation time is " << loop_time                 << endl;
 
+            t_advance_hierarchy->start();
             dt_old = dt_now;
             double dt_new = time_integrator->advanceHierarchy(dt_now);
+            tbox::MPI::barrier();
+            t_advance_hierarchy->stop();
 
             loop_time += dt_now;
             dt_now = dt_new;
