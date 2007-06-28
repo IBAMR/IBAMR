@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <23.May.2007 10:07:32 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 17:37:53 griffith@box221.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -611,9 +611,197 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
 {
     t_predict_normal_velocity_with_source_term->start();
 
+    bool found_invalid_value_in_box = false;
+    {
+        SAMRAI::tbox::pout << "u_ADV before prediction...\n";
+        const SAMRAI::hier::Box<NDIM>& box = u_ADV.getGhostBox();
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (SAMRAI::pdat::FaceIterator<NDIM> b(box, axis); b; b++)
+            {
+                const SAMRAI::pdat::FaceIndex<NDIM>& i = b();
+                for (int d = 0; d < u_ADV.getDepth(); ++d)
+                {
+                    if (isnan(u_ADV(i,d)) ||
+                        u_ADV(i,d) != u_ADV(i,d) ||
+                        u_ADV(i,d) == std::numeric_limits<double>::infinity())
+                    {
+                        if (!found_invalid_value_in_box)
+                        {
+                            found_invalid_value_in_box = true;
+                            SAMRAI::tbox::plog << "*********************************************************" << std::endl
+                                               << "invalid value(s) found in patch box: " << patch.getBox() << std::endl;
+                        }
+                        SAMRAI::tbox::plog << "axis  = " << axis << std::endl
+                                           << "index = " << i    << std::endl
+                                           << "depth = " << d    << std::endl;
+                    }
+                }
+            }
+        }
+    }
+
+    {
+        SAMRAI::tbox::pout << "V before prediction...\n";
+        const SAMRAI::hier::Box<NDIM>& box = V.getGhostBox();
+        for (SAMRAI::pdat::CellIterator<NDIM> b(box); b; b++)
+        {
+            const SAMRAI::pdat::CellIndex<NDIM>& i = b();
+            for (int d = 0; d < V.getDepth(); ++d)
+            {
+                if (isnan(V(i,d)) ||
+                    V(i,d) != V(i,d) ||
+                    V(i,d) == std::numeric_limits<double>::infinity())
+                {
+                    if (!found_invalid_value_in_box)
+                    {
+                        found_invalid_value_in_box = true;
+                        SAMRAI::tbox::plog << "*********************************************************" << std::endl
+                                           << "invalid value(s) found in patch box: " << patch.getBox() << std::endl;
+                    }
+                    SAMRAI::tbox::plog << "index = " << i    << std::endl
+                                       << "depth = " << d    << std::endl;
+                }
+            }
+        }
+    }
+
+    {
+        SAMRAI::tbox::pout << "F before prediction...\n";
+        const SAMRAI::hier::Box<NDIM>& box = F.getGhostBox();
+        for (SAMRAI::pdat::CellIterator<NDIM> b(box); b; b++)
+        {
+            const SAMRAI::pdat::CellIndex<NDIM>& i = b();
+            for (int d = 0; d < F.getDepth(); ++d)
+            {
+                if (isnan(F(i,d)) ||
+                    F(i,d) != F(i,d) ||
+                    F(i,d) == std::numeric_limits<double>::infinity())
+                {
+                    if (!found_invalid_value_in_box)
+                    {
+                        found_invalid_value_in_box = true;
+                        SAMRAI::tbox::plog << "*********************************************************" << std::endl
+                                           << "invalid value(s) found in patch box: " << patch.getBox() << std::endl;
+                    }
+                    SAMRAI::tbox::plog << "index = " << i    << std::endl
+                                       << "depth = " << d    << std::endl;
+                }
+            }
+        }
+    }
+    /////////////////////////////////////////////////////////////
     SAMRAI::pdat::FaceData<NDIM,double> v_half_tmp(v_half.getBox(), NDIM, SAMRAI::hier::IntVector<NDIM>(FACEG));
 
     predictWithSourceTerm(v_half_tmp, u_ADV, V, F, patch, dt);
+    /////////////////////////////////////////////////////////////
+    {
+        SAMRAI::tbox::pout << "v_half_tmp after prediction...\n";
+        const SAMRAI::hier::Box<NDIM>& box = v_half_tmp.getGhostBox();
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (SAMRAI::pdat::FaceIterator<NDIM> b(box, axis); b; b++)
+            {
+                const SAMRAI::pdat::FaceIndex<NDIM>& i = b();
+                for (int d = 0; d < v_half_tmp.getDepth(); ++d)
+                {
+                    if (isnan(v_half_tmp(i,d)) ||
+                        v_half_tmp(i,d) != v_half_tmp(i,d) ||
+                        v_half_tmp(i,d) == std::numeric_limits<double>::infinity())
+                    {
+                        if (!found_invalid_value_in_box)
+                        {
+                            found_invalid_value_in_box = true;
+                            SAMRAI::tbox::plog << "*********************************************************" << std::endl
+                                               << "invalid value(s) found in patch box: " << patch.getBox() << std::endl;
+                        }
+                        SAMRAI::tbox::plog << "axis  = " << axis << std::endl
+                                           << "index = " << i    << std::endl
+                                           << "depth = " << d    << std::endl;
+                    }
+                }
+            }
+        }
+    }
+
+    {
+        SAMRAI::tbox::pout << "u_ADV after prediction...\n";
+        const SAMRAI::hier::Box<NDIM>& box = u_ADV.getGhostBox();
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (SAMRAI::pdat::FaceIterator<NDIM> b(box, axis); b; b++)
+            {
+                const SAMRAI::pdat::FaceIndex<NDIM>& i = b();
+                for (int d = 0; d < u_ADV.getDepth(); ++d)
+                {
+                    if (isnan(u_ADV(i,d)) ||
+                        u_ADV(i,d) != u_ADV(i,d) ||
+                        u_ADV(i,d) == std::numeric_limits<double>::infinity())
+                    {
+                        if (!found_invalid_value_in_box)
+                        {
+                            found_invalid_value_in_box = true;
+                            SAMRAI::tbox::plog << "*********************************************************" << std::endl
+                                               << "invalid value(s) found in patch box: " << patch.getBox() << std::endl;
+                        }
+                        SAMRAI::tbox::plog << "axis  = " << axis << std::endl
+                                           << "index = " << i    << std::endl
+                                           << "depth = " << d    << std::endl;
+                    }
+                }
+            }
+        }
+    }
+
+    {
+        SAMRAI::tbox::pout << "V after prediction...\n";
+        const SAMRAI::hier::Box<NDIM>& box = V.getGhostBox();
+        for (SAMRAI::pdat::CellIterator<NDIM> b(box); b; b++)
+        {
+            const SAMRAI::pdat::CellIndex<NDIM>& i = b();
+            for (int d = 0; d < V.getDepth(); ++d)
+            {
+                if (isnan(V(i,d)) ||
+                    V(i,d) != V(i,d) ||
+                    V(i,d) == std::numeric_limits<double>::infinity())
+                {
+                    if (!found_invalid_value_in_box)
+                    {
+                        found_invalid_value_in_box = true;
+                        SAMRAI::tbox::plog << "*********************************************************" << std::endl
+                                           << "invalid value(s) found in patch box: " << patch.getBox() << std::endl;
+                    }
+                    SAMRAI::tbox::plog << "index = " << i    << std::endl
+                                       << "depth = " << d    << std::endl;
+                }
+            }
+        }
+    }
+
+    {
+        SAMRAI::tbox::pout << "F after prediction...\n";
+        const SAMRAI::hier::Box<NDIM>& box = F.getGhostBox();
+        for (SAMRAI::pdat::CellIterator<NDIM> b(box); b; b++)
+        {
+            const SAMRAI::pdat::CellIndex<NDIM>& i = b();
+            for (int d = 0; d < F.getDepth(); ++d)
+            {
+                if (isnan(F(i,d)) ||
+                    F(i,d) != F(i,d) ||
+                    F(i,d) == std::numeric_limits<double>::infinity())
+                {
+                    if (!found_invalid_value_in_box)
+                    {
+                        found_invalid_value_in_box = true;
+                        SAMRAI::tbox::plog << "*********************************************************" << std::endl
+                                           << "invalid value(s) found in patch box: " << patch.getBox() << std::endl;
+                    }
+                    SAMRAI::tbox::plog << "index = " << i    << std::endl
+                                       << "depth = " << d    << std::endl;
+                }
+            }
+        }
+    }
 
     for (int axis = 0; axis < NDIM; ++axis)
     {
@@ -622,6 +810,50 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
             v_half_tmp.getArrayData(axis);
         const SAMRAI::hier::Box<NDIM> box = (v_half_arr.getBox())*(v_half_tmp_arr.getBox());
         v_half_arr.copyDepth(0, v_half_tmp_arr, axis, box);
+    }
+
+    {
+        SAMRAI::tbox::pout << "v_half after prediction...\n";
+        const SAMRAI::hier::Box<NDIM>& box = v_half.getGhostBox();
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (SAMRAI::pdat::FaceIterator<NDIM> b(box, axis); b; b++)
+            {
+                const SAMRAI::pdat::FaceIndex<NDIM>& i = b();
+                for (int d = 0; d < v_half.getDepth(); ++d)
+                {
+                    if (isnan(v_half(i,d)) ||
+                        v_half(i,d) != v_half(i,d) ||
+                        v_half(i,d) == std::numeric_limits<double>::infinity())
+                    {
+                        if (!found_invalid_value_in_box)
+                        {
+                            found_invalid_value_in_box = true;
+                            SAMRAI::tbox::plog << "*********************************************************" << std::endl
+                                               << "invalid value(s) found in patch box: " << patch.getBox() << std::endl;
+                        }
+                        SAMRAI::tbox::plog << "axis  = " << axis << std::endl
+                                           << "index = " << i    << std::endl
+                                           << "depth = " << d    << std::endl;
+                    }
+                }
+            }
+        }
+    }
+
+    if (found_invalid_value_in_box)
+    {
+        SAMRAI::tbox::plog << "\n\nv_half:\n";
+        v_half.print(v_half.getGhostBox());
+
+        SAMRAI::tbox::plog << "\n\nu_ADV:\n";
+        u_ADV.print(u_ADV.getGhostBox());
+
+        SAMRAI::tbox::plog << "\n\nV:\n";
+        V.print(V.getGhostBox());
+
+        SAMRAI::tbox::plog << "\n\nF:\n";
+        F.print(F.getGhostBox());
     }
 
     t_predict_normal_velocity_with_source_term->stop();

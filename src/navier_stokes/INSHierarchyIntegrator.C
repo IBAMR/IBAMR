@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 17:19:14 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 17:26:01 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1515,12 +1515,6 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
     {
         // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "after prediction: u_adv" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_u_adv_var, d_u_adv_current_idx, d_hierarchy, true);
-        // XXXXXXXXXXXXXXXX
-
-        // XXXXXXXXXXXXXXXX
         SAMRAI::tbox::plog << "after prediction: u_adv_scratch" << std::endl;
         STOOLS::STOOLS_Utilities::checkFloatingPointValues(
             d_u_adv_var, d_u_adv_scratch_idx, d_hierarchy, true);
@@ -1536,6 +1530,14 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         SAMRAI::tbox::plog << "after prediction: H_scratch" << std::endl;
         STOOLS::STOOLS_Utilities::checkFloatingPointValues(
             d_H_var, d_H_idx, d_hierarchy, true);
+        // XXXXXXXXXXXXXXXX
+    }
+
+    {
+        // XXXXXXXXXXXXXXXX
+        SAMRAI::tbox::plog << "after prediction: u_adv" << std::endl;
+        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
+            d_u_adv_var, d_u_adv_current_idx, d_hierarchy, true);
         // XXXXXXXXXXXXXXXX
     }
 
