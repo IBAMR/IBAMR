@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 14:57:28 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 16:31:08 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1482,7 +1482,33 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         level->allocatePatchData(d_U_scratch_idx, current_time);
         level->allocatePatchData(d_u_adv_scratch_idx, current_time);
         d_rscheds["predictAdvectionVelocity"][ln]->fillData(current_time);
+    }
 
+    {
+        // XXXXXXXXXXXXXXXX
+        SAMRAI::tbox::plog << "before prediction: u_adv_scratch" << std::endl;
+        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
+            d_u_adv_var, d_u_adv_scratch_idx, d_hierarchy, true);
+
+        // XXXXXXXXXXXXXXXX
+        SAMRAI::tbox::plog << "before prediction: U_scratch" << std::endl;
+        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
+            d_U_var, d_U_scratch_idx, d_hierarchy, true);
+
+        // XXXXXXXXXXXXXXXX
+        SAMRAI::tbox::plog << "before prediction: G_scratch" << std::endl;
+        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
+            d_G_var, d_G_idx, d_hierarchy, true);
+
+        // XXXXXXXXXXXXXXXX
+        SAMRAI::tbox::plog << "before prediction: H_scratch" << std::endl;
+        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
+            d_H_var, d_H_idx, d_hierarchy, true);
+    }
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
