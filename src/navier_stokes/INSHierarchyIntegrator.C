@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 14:30:30 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 14:51:30 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1400,8 +1400,10 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
     {
         // XXXXXXXXXXXXXXXX
+        SAMRAI::tbox::plog << "u" << std::endl;
         STOOLS::STOOLS_Utilities::checkFloatingPointValues(
             d_u_var, d_u_current_idx, d_hierarchy);
+        SAMRAI::tbox::plog << "u_adv" << std::endl;
         STOOLS::STOOLS_Utilities::checkFloatingPointValues(
             d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
         // XXXXXXXXXXXXXXXX
@@ -1502,6 +1504,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
     {
         // XXXXXXXXXXXXXXXX
+        SAMRAI::tbox::plog << "u_adv" << std::endl;
         STOOLS::STOOLS_Utilities::checkFloatingPointValues(
             d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
         // XXXXXXXXXXXXXXXX
