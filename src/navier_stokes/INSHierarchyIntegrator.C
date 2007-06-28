@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 14:51:30 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 14:57:28 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1467,6 +1467,15 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     }
 
     // Predict the time centered advection velocity.
+
+    {
+        // XXXXXXXXXXXXXXXX
+        SAMRAI::tbox::plog << "before prediction: u_adv" << std::endl;
+        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
+            d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
+        // XXXXXXXXXXXXXXXX
+    }
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1497,6 +1506,14 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         level->deallocatePatchData(d_u_adv_scratch_idx);
     }
 
+    {
+        // XXXXXXXXXXXXXXXX
+        SAMRAI::tbox::plog << "after prediction before synch: u_adv" << std::endl;
+        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
+            d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
+        // XXXXXXXXXXXXXXXX
+    }
+
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
         d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
@@ -1504,7 +1521,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
     {
         // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "u_adv" << std::endl;
+        SAMRAI::tbox::plog << "after prediction after synch u_adv" << std::endl;
         STOOLS::STOOLS_Utilities::checkFloatingPointValues(
             d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
         // XXXXXXXXXXXXXXXX
