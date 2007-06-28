@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 16:50:30 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 17:11:19 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1398,17 +1398,6 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     // Initialize the advection velocity to equal u(n).
     d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
 
-    {
-        // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "u" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_u_var, d_u_current_idx, d_hierarchy);
-        SAMRAI::tbox::plog << "u_adv" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
-        // XXXXXXXXXXXXXXXX
-    }
-
     // Reset the advection velocity boundary conditions.
     resetMACVelocityBoundaryConditions(
         d_u_adv_current_idx, current_time,
@@ -1467,15 +1456,6 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     }
 
     // Predict the time centered advection velocity.
-
-    {
-        // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "before prediction: u_adv" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
-        // XXXXXXXXXXXXXXXX
-    }
-
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1486,24 +1466,28 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
     {
         // XXXXXXXXXXXXXXXX
+        SAMRAI::tbox::plog << "before prediction: u_adv" << std::endl;
+        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
+            d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
+        // XXXXXXXXXXXXXXXX
+
+        // XXXXXXXXXXXXXXXX
         SAMRAI::tbox::plog << "before prediction: u_adv_scratch" << std::endl;
         STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_u_adv_var, d_u_adv_scratch_idx, d_hierarchy, true);
+            d_u_adv_var, d_u_adv_scratch_idx, d_hierarchy);
+        // XXXXXXXXXXXXXXXX
 
         // XXXXXXXXXXXXXXXX
         SAMRAI::tbox::plog << "before prediction: U_scratch" << std::endl;
         STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_U_var, d_U_scratch_idx, d_hierarchy, true);
-
+            d_U_var, d_U_scratch_idx, d_hierarchy);
         // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "before prediction: G_scratch" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_G_var, d_G_idx, d_hierarchy, true);
 
         // XXXXXXXXXXXXXXXX
         SAMRAI::tbox::plog << "before prediction: H_scratch" << std::endl;
         STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_H_var, d_H_idx, d_hierarchy, true);
+            d_H_var, d_H_idx, d_hierarchy);
+        // XXXXXXXXXXXXXXXX
     }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1531,24 +1515,28 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
     {
         // XXXXXXXXXXXXXXXX
+        SAMRAI::tbox::plog << "after prediction: u_adv" << std::endl;
+        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
+            d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
+        // XXXXXXXXXXXXXXXX
+
+        // XXXXXXXXXXXXXXXX
         SAMRAI::tbox::plog << "after prediction: u_adv_scratch" << std::endl;
         STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_u_adv_var, d_u_adv_scratch_idx, d_hierarchy, true);
+            d_u_adv_var, d_u_adv_scratch_idx, d_hierarchy);
+        // XXXXXXXXXXXXXXXX
 
         // XXXXXXXXXXXXXXXX
         SAMRAI::tbox::plog << "after prediction: U_scratch" << std::endl;
         STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_U_var, d_U_scratch_idx, d_hierarchy, true);
-
+            d_U_var, d_U_scratch_idx, d_hierarchy);
         // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "after prediction: G_scratch" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_G_var, d_G_idx, d_hierarchy, true);
 
         // XXXXXXXXXXXXXXXX
         SAMRAI::tbox::plog << "after prediction: H_scratch" << std::endl;
         STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_H_var, d_H_idx, d_hierarchy, true);
+            d_H_var, d_H_idx, d_hierarchy);
+        // XXXXXXXXXXXXXXXX
     }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1558,25 +1546,9 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         level->deallocatePatchData(d_u_adv_scratch_idx);
     }
 
-    {
-        // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "after prediction before synch: u_adv" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
-        // XXXXXXXXXXXXXXXX
-    }
-
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
         d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
-    }
-
-    {
-        // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "after prediction after synch u_adv" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
-        // XXXXXXXXXXXXXXXX
     }
 
     // Reset the advection velocity boundary conditions.
