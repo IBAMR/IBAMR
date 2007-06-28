@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 13:39:54 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 13:52:46 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1397,13 +1397,11 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     // Initialize the advection velocity to equal u(n).
     d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
 
-#if 0
     // Reset the advection velocity boundary conditions.
     resetMACVelocityBoundaryConditions(
         d_u_adv_current_idx, current_time,
         d_cscheds["SYNCH_CURRENT_ADVECTION_VELOCITY_DATA"],
         coarsest_ln, finest_ln);
-#endif
 
     // Setup the forcing terms for velocity prediction.
     d_hier_math_ops->grad(
@@ -1492,13 +1490,11 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
     }
 
-#if 0
     // Reset the advection velocity boundary conditions.
     resetMACVelocityBoundaryConditions(
         d_u_adv_current_idx, current_time,
         d_cscheds["SYNCH_CURRENT_ADVECTION_VELOCITY_DATA"],
         coarsest_ln, finest_ln);
-#endif
 
     // Project the advection velocity.
     if (!d_Q_set.isNull())
@@ -3189,6 +3185,8 @@ INSHierarchyIntegrator::resetMACVelocityBoundaryConditions(
     SAMRAI::math::ArrayDataBasicOps<NDIM,double> array_ops;
     (void) array_ops;
 
+    bool found_invalid_value = false;
+
     // Reset the normal velocity components along the physical boundary.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -3277,10 +3275,23 @@ INSHierarchyIntegrator::resetMACVelocityBoundaryConditions(
                     const double& u_i = (*u_data)(i_f_intr);
                     const double u_b = (b*u_i + g*h)/(a*h + b);
                     (*u_data)(i_f_bdry) = u_b;
+
+                    if (isnan((*u_data)(i_f_bdry)) ||
+                        (*u_data)(i_f_bdry) != (*u_data)(i_f_bdry) ||
+                        (*u_data)(i_f_bdry) == std::numeric_limits<double>::infinity())
+                    {
+                        found_invalid_value = true;
+                        SAMRAI::tbox::plog << "patch_box = " << patch->getBox() << std::endl;
+                        SAMRAI::tbox::plog << "bc_coef_box = " << bc_coef_box << std::endl;
+                        SAMRAI::tbox::plog << "i_s_bdry = " << i_s_bdry << std::endl;
+                        SAMRAI::tbox::plog << "location_index = " << location_index << std::endl;
+                    }
                 }
             }
         }
     }
+
+    assert(!found_invalid_value);
 
     // Synchronize the data on the patch hierarchy.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
