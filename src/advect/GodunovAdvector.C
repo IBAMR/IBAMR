@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <28.Jun.2007 17:37:53 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 17:47:29 griffith@box221.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -613,7 +613,7 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
 
     bool found_invalid_value_in_box = false;
     {
-        SAMRAI::tbox::pout << "u_ADV before prediction...\n";
+        SAMRAI::tbox::plog << "u_ADV before prediction...\n";
         const SAMRAI::hier::Box<NDIM>& box = u_ADV.getGhostBox();
         for (int axis = 0; axis < NDIM; ++axis)
         {
@@ -642,7 +642,7 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
     }
 
     {
-        SAMRAI::tbox::pout << "V before prediction...\n";
+        SAMRAI::tbox::plog << "V before prediction...\n";
         const SAMRAI::hier::Box<NDIM>& box = V.getGhostBox();
         for (SAMRAI::pdat::CellIterator<NDIM> b(box); b; b++)
         {
@@ -667,7 +667,7 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
     }
 
     {
-        SAMRAI::tbox::pout << "F before prediction...\n";
+        SAMRAI::tbox::plog << "F before prediction...\n";
         const SAMRAI::hier::Box<NDIM>& box = F.getGhostBox();
         for (SAMRAI::pdat::CellIterator<NDIM> b(box); b; b++)
         {
@@ -696,7 +696,7 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
     predictWithSourceTerm(v_half_tmp, u_ADV, V, F, patch, dt);
     /////////////////////////////////////////////////////////////
     {
-        SAMRAI::tbox::pout << "v_half_tmp after prediction...\n";
+        SAMRAI::tbox::plog << "v_half_tmp after prediction...\n";
         const SAMRAI::hier::Box<NDIM>& box = v_half_tmp.getGhostBox();
         for (int axis = 0; axis < NDIM; ++axis)
         {
@@ -725,7 +725,7 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
     }
 
     {
-        SAMRAI::tbox::pout << "u_ADV after prediction...\n";
+        SAMRAI::tbox::plog << "u_ADV after prediction...\n";
         const SAMRAI::hier::Box<NDIM>& box = u_ADV.getGhostBox();
         for (int axis = 0; axis < NDIM; ++axis)
         {
@@ -754,7 +754,7 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
     }
 
     {
-        SAMRAI::tbox::pout << "V after prediction...\n";
+        SAMRAI::tbox::plog << "V after prediction...\n";
         const SAMRAI::hier::Box<NDIM>& box = V.getGhostBox();
         for (SAMRAI::pdat::CellIterator<NDIM> b(box); b; b++)
         {
@@ -779,7 +779,7 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
     }
 
     {
-        SAMRAI::tbox::pout << "F after prediction...\n";
+        SAMRAI::tbox::plog << "F after prediction...\n";
         const SAMRAI::hier::Box<NDIM>& box = F.getGhostBox();
         for (SAMRAI::pdat::CellIterator<NDIM> b(box); b; b++)
         {
@@ -813,7 +813,7 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
     }
 
     {
-        SAMRAI::tbox::pout << "v_half after prediction...\n";
+        SAMRAI::tbox::plog << "v_half after prediction...\n";
         const SAMRAI::hier::Box<NDIM>& box = v_half.getGhostBox();
         for (int axis = 0; axis < NDIM; ++axis)
         {
