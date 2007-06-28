@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <29.May.2007 17:23:01 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 13:39:54 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1397,11 +1397,13 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     // Initialize the advection velocity to equal u(n).
     d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
 
+#if 0
     // Reset the advection velocity boundary conditions.
     resetMACVelocityBoundaryConditions(
         d_u_adv_current_idx, current_time,
         d_cscheds["SYNCH_CURRENT_ADVECTION_VELOCITY_DATA"],
         coarsest_ln, finest_ln);
+#endif
 
     // Setup the forcing terms for velocity prediction.
     d_hier_math_ops->grad(
@@ -1490,11 +1492,13 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
     }
 
+#if 0
     // Reset the advection velocity boundary conditions.
     resetMACVelocityBoundaryConditions(
         d_u_adv_current_idx, current_time,
         d_cscheds["SYNCH_CURRENT_ADVECTION_VELOCITY_DATA"],
         coarsest_ln, finest_ln);
+#endif
 
     // Project the advection velocity.
     if (!d_Q_set.isNull())
