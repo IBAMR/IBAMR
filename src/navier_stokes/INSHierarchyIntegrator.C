@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 13:52:46 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 14:30:30 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -22,6 +22,7 @@
 #include <stools/PatchMathOps.h>
 #include <stools/PhysicalBoundaryUtilities.h>
 #include <stools/RefinePatchStrategySet.h>
+#include <stools/STOOLS_Utilities.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -1397,6 +1398,15 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     // Initialize the advection velocity to equal u(n).
     d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
 
+    {
+        // XXXXXXXXXXXXXXXX
+        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
+            d_u_var, d_u_current_idx, d_hierarchy);
+        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
+            d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
+        // XXXXXXXXXXXXXXXX
+    }
+
     // Reset the advection velocity boundary conditions.
     resetMACVelocityBoundaryConditions(
         d_u_adv_current_idx, current_time,
@@ -1488,6 +1498,13 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
         d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
+    }
+
+    {
+        // XXXXXXXXXXXXXXXX
+        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
+            d_u_adv_var, d_u_adv_current_idx, d_hierarchy);
+        // XXXXXXXXXXXXXXXX
     }
 
     // Reset the advection velocity boundary conditions.
@@ -3241,6 +3258,7 @@ INSHierarchyIntegrator::resetMACVelocityBoundaryConditions(
                 //
                 // i_c_intr1: cell index located adjacent to i_c_intr0 in the
                 // patch interior
+                bool printed_box = false;
                 for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
                 {
                     const SAMRAI::hier::Index<NDIM>& i_s_bdry = b();
@@ -3281,8 +3299,18 @@ INSHierarchyIntegrator::resetMACVelocityBoundaryConditions(
                         (*u_data)(i_f_bdry) == std::numeric_limits<double>::infinity())
                     {
                         found_invalid_value = true;
-                        SAMRAI::tbox::plog << "patch_box = " << patch->getBox() << std::endl;
-                        SAMRAI::tbox::plog << "bc_coef_box = " << bc_coef_box << std::endl;
+                        if (!printed_box)
+                        {
+                            SAMRAI::tbox::plog << "patch_box = " << patch->getBox() << std::endl;
+                            SAMRAI::tbox::plog << "bc_coef_box = " << bc_coef_box << std::endl;
+                            printed_box = true;
+                        }
+                        SAMRAI::tbox::plog << "a = " << a << std::endl
+                                           << "b = " << b << std::endl
+                                           << "g = " << g << std::endl
+                                           << "h = " << h << std::endl
+                                           << "u_i = " << u_i << std::endl
+                                           << "u_b = " << u_b << std::endl;
                         SAMRAI::tbox::plog << "i_s_bdry = " << i_s_bdry << std::endl;
                         SAMRAI::tbox::plog << "location_index = " << location_index << std::endl;
                     }
