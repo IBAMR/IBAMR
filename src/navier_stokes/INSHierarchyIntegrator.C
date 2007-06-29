@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 18:12:55 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 21:18:08 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1457,43 +1457,13 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
     // Predict the time centered advection velocity.
     SAMRAI::tbox::plog << "predictAdvectionVelocity data fill...\n";
+    STOOLS::CartRobinPhysBdryOp bc_refill_op(d_U_scratch_idx, d_U_bc_coefs, false);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_U_scratch_idx, current_time);
         level->allocatePatchData(d_u_adv_scratch_idx, current_time);
         d_rscheds["predictAdvectionVelocity"][ln]->fillData(current_time);
-    }
-
-    {
-        // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "before prediction: u_adv" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_u_adv_var, d_u_adv_current_idx, d_hierarchy, true);
-        // XXXXXXXXXXXXXXXX
-
-        // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "before prediction: u_adv_scratch" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_u_adv_var, d_u_adv_scratch_idx, d_hierarchy, true);
-        // XXXXXXXXXXXXXXXX
-
-        // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "before prediction: U_scratch" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_U_var, d_U_scratch_idx, d_hierarchy, true);
-        // XXXXXXXXXXXXXXXX
-
-        // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "before prediction: H_scratch" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_H_var, d_H_idx, d_hierarchy, true);
-        // XXXXXXXXXXXXXXXX
-    }
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1507,44 +1477,15 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > H_data =
                 patch->getPatchData(d_H_idx);
 
+            // KLUDGE: do we need to re-set physical boundary conditions here????
+            bc_refill_op.setPhysicalBoundaryConditions(
+                *patch, current_time, U_scratch_data->getGhostCellWidth());
+
             d_explicit_predictor->predictNormalVelocityWithSourceTerm(
                 *u_adv_current_data, *u_adv_scratch_data,
                 *U_scratch_data, *H_data,
                 *patch, dt);
         }
-    }
-
-    {
-        // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "after prediction: u_adv_scratch" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_u_adv_var, d_u_adv_scratch_idx, d_hierarchy, true);
-        // XXXXXXXXXXXXXXXX
-
-        // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "after prediction: U_scratch" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_U_var, d_U_scratch_idx, d_hierarchy, true);
-        // XXXXXXXXXXXXXXXX
-
-        // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "after prediction: H_scratch" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_H_var, d_H_idx, d_hierarchy, true);
-        // XXXXXXXXXXXXXXXX
-    }
-
-    {
-        // XXXXXXXXXXXXXXXX
-        SAMRAI::tbox::plog << "after prediction: u_adv" << std::endl;
-        STOOLS::STOOLS_Utilities::checkFloatingPointValues(
-            d_u_adv_var, d_u_adv_current_idx, d_hierarchy, true);
-        // XXXXXXXXXXXXXXXX
-    }
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_U_scratch_idx);
         level->deallocatePatchData(d_u_adv_scratch_idx);
     }
