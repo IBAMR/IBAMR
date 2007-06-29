@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 21:40:17 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 21:41:42 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1457,7 +1457,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
     // Predict the time centered advection velocity.
     STOOLS::CartRobinPhysBdryOp U_bc_refill_op(d_U_scratch_idx, d_U_bc_coefs, false);
-    STOOLS::CartExtrapPhysBdryOp H_bc_refill_op(d_H_idx, "LINEAR"));
+    STOOLS::CartExtrapPhysBdryOp H_bc_refill_op(d_H_idx, "LINEAR");
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
