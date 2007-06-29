@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <23.May.2007 10:07:44 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 22:20:28 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -882,6 +882,9 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     const double dt)
 {
     t_compute_fluxes_on_patch->start();
+
+    // KLUDGE: do we need to re-set physical boundary conditions here????
+    setPhysicalBoundaryConditions(patch, time, SAMRAI::hier::IntVector<NDIM>(CELLG));
 
     (void) time;
 
