@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 21:19:21 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 23:28:00 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -909,7 +909,6 @@ IBHierarchyIntegrator::advanceHierarchy(
             {
                 if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): interpolating u(n) to U(n) on level number " << ln << "\n";
 
-                STOOLS::CartRobinPhysBdryOp bc_refill_op(d_V_idx, d_U_bc_coefs, false);
                 for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
                     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -918,10 +917,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                         patch->getPatchData(d_V_idx);
                     const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->getPatchData(
                         d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-
-                    // KLUDGE: do we need to re-set physical boundary conditions here????
-                    bc_refill_op.setPhysicalBoundaryConditions(
-                        *patch, current_time, v_data->getGhostCellWidth());
 
                     LEInteractor::interpolate(
                         U_data[ln], X_data[ln], idx_data, v_data,
@@ -1309,8 +1304,6 @@ IBHierarchyIntegrator::advanceHierarchy(
         {
             int ierr;
 
-            STOOLS::CartRobinPhysBdryOp bc_refill_op(d_W_idx, d_U_bc_coefs, false);
-
             // 1. Interpolate u(n+1) from the Cartesian grid onto the Lagrangian
             //    mesh.
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): interpolating u(n+1) to U(n+1) on level number " << ln << "\n";
@@ -1323,10 +1316,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                     patch->getPatchData(d_W_idx);
                 const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->getPatchData(
                     d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-
-                // KLUDGE: do we need to re-set physical boundary conditions here????
-                bc_refill_op.setPhysicalBoundaryConditions(
-                    *patch, new_time, w_data->getGhostCellWidth());
 
                 LEInteractor::interpolate(
                     U_new_data[ln], X_new_data[ln], idx_data, w_data,
@@ -1397,10 +1386,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                     patch->getPatchData(d_W_idx);
                 const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->getPatchData(
                     d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-
-                // KLUDGE: do we need to re-set physical boundary conditions here????
-                bc_refill_op.setPhysicalBoundaryConditions(
-                    *patch, new_time, w_data->getGhostCellWidth());
 
                 LEInteractor::interpolate(
                     U_data[ln], X_data[ln], idx_data, w_data,

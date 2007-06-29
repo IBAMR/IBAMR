@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 21:44:28 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 23:33:08 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1456,7 +1456,6 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     }
 
     // Predict the time centered advection velocity.
-    STOOLS::CartRobinPhysBdryOp U_bc_refill_op(d_U_scratch_idx, d_U_bc_coefs, false);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1475,10 +1474,6 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
                 patch->getPatchData(d_U_scratch_idx);
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > H_data =
                 patch->getPatchData(d_H_idx);
-
-            // KLUDGE: do we need to re-set physical boundary conditions here????
-            U_bc_refill_op.setPhysicalBoundaryConditions(
-                *patch, current_time, U_scratch_data->getGhostCellWidth());
 
             d_explicit_predictor->predictNormalVelocityWithSourceTerm(
                 *u_adv_current_data, *u_adv_scratch_data,
@@ -3189,8 +3184,6 @@ INSHierarchyIntegrator::resetMACVelocityBoundaryConditions(
     SAMRAI::math::ArrayDataBasicOps<NDIM,double> array_ops;
     (void) array_ops;
 
-    bool found_invalid_value = false;
-
     // Reset the normal velocity components along the physical boundary.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -3245,7 +3238,6 @@ INSHierarchyIntegrator::resetMACVelocityBoundaryConditions(
                 //
                 // i_c_intr1: cell index located adjacent to i_c_intr0 in the
                 // patch interior
-                bool printed_box = false;
                 for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
                 {
                     const SAMRAI::hier::Index<NDIM>& i_s_bdry = b();
@@ -3280,35 +3272,10 @@ INSHierarchyIntegrator::resetMACVelocityBoundaryConditions(
                     const double& u_i = (*u_data)(i_f_intr);
                     const double u_b = (b*u_i + g*h)/(a*h + b);
                     (*u_data)(i_f_bdry) = u_b;
-
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    if (isnan((*u_data)(i_f_bdry)) ||
-                        (*u_data)(i_f_bdry) != (*u_data)(i_f_bdry) ||
-                        (*u_data)(i_f_bdry) == std::numeric_limits<double>::infinity())
-                    {
-                        found_invalid_value = true;
-                        if (!printed_box)
-                        {
-                            SAMRAI::tbox::plog << "patch_box = " << patch->getBox() << std::endl;
-                            SAMRAI::tbox::plog << "bc_coef_box = " << bc_coef_box << std::endl;
-                            printed_box = true;
-                        }
-                        SAMRAI::tbox::plog << "a = " << a << std::endl
-                                           << "b = " << b << std::endl
-                                           << "g = " << g << std::endl
-                                           << "h = " << h << std::endl
-                                           << "u_i = " << u_i << std::endl
-                                           << "u_b = " << u_b << std::endl;
-                        SAMRAI::tbox::plog << "i_s_bdry = " << i_s_bdry << std::endl;
-                        SAMRAI::tbox::plog << "location_index = " << location_index << std::endl;
-                    }
                 }
             }
         }
     }
-
-    //XXXXXXXXXXXXXXXXXXXXXXXXX
-    assert(!found_invalid_value);
 
     // Synchronize the data on the patch hierarchy.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
