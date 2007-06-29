@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 21:18:08 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Jun.2007 21:40:17 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1456,8 +1456,8 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     }
 
     // Predict the time centered advection velocity.
-    SAMRAI::tbox::plog << "predictAdvectionVelocity data fill...\n";
-    STOOLS::CartRobinPhysBdryOp bc_refill_op(d_U_scratch_idx, d_U_bc_coefs, false);
+    STOOLS::CartRobinPhysBdryOp U_bc_refill_op(d_U_scratch_idx, d_U_bc_coefs, false);
+    STOOLS::CartExtrapPhysBdryOp H_bc_refill_op(d_H_idx, "LINEAR"));
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1478,8 +1478,10 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
                 patch->getPatchData(d_H_idx);
 
             // KLUDGE: do we need to re-set physical boundary conditions here????
-            bc_refill_op.setPhysicalBoundaryConditions(
+            U_bc_refill_op.setPhysicalBoundaryConditions(
                 *patch, current_time, U_scratch_data->getGhostCellWidth());
+            H_bc_refill_op.setPhysicalBoundaryConditions(
+                *patch, current_time, H_scratch_data->getGhostCellWidth());
 
             d_explicit_predictor->predictNormalVelocityWithSourceTerm(
                 *u_adv_current_data, *u_adv_scratch_data,
@@ -3282,6 +3284,7 @@ INSHierarchyIntegrator::resetMACVelocityBoundaryConditions(
                     const double u_b = (b*u_i + g*h)/(a*h + b);
                     (*u_data)(i_f_bdry) = u_b;
 
+                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
                     if (isnan((*u_data)(i_f_bdry)) ||
                         (*u_data)(i_f_bdry) != (*u_data)(i_f_bdry) ||
                         (*u_data)(i_f_bdry) == std::numeric_limits<double>::infinity())
@@ -3307,6 +3310,7 @@ INSHierarchyIntegrator::resetMACVelocityBoundaryConditions(
         }
     }
 
+    //XXXXXXXXXXXXXXXXXXXXXXXXX
     assert(!found_invalid_value);
 
     // Synchronize the data on the patch hierarchy.
