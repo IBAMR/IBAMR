@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <25.Jun.2007 17:51:52 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Jul.2007 23:52:38 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -649,8 +649,7 @@ private:
         const int coarsest_level,
         const int finest_level,
         const double data_time,
-        const std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
-        const double p_norm);
+        const std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data);
 
     /*!
      * Read input values, indicated above, from given database.  The boolean

@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 23:28:00 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Jul.2007 23:55:48 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1412,8 +1412,7 @@ IBHierarchyIntegrator::advanceHierarchy(
     // fluid sources or sinks.
     if (!d_source_strategy.isNull())
     {
-        const double p_norm = 0.0;
-        computeSourcePressures(coarsest_ln, finest_ln, new_time, X_data, p_norm);
+        computeSourcePressures(coarsest_ln, finest_ln, new_time, X_data);
     }
 
     // Deallocate any remaining scratch data.
@@ -2425,6 +2424,46 @@ IBHierarchyIntegrator::computeSourceStrengths(
                    << "Lagrangian and Eulerian source/sink strengths are inconsistent.");
     }
 
+    // Balance the net inflow with outflow along the upper/lower boundaries.
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom =
+        d_hierarchy->getGridGeometry();
+    assert(grid_geom->getDomainIsSingleBox());
+    const SAMRAI::hier::Box<NDIM> domain_box = grid_geom->getPhysicalDomain()(0);
+    const double* const dx_coarsest = grid_geom->getDx();
+
+    SAMRAI::hier::Box<NDIM> interior_box = domain_box;
+    for (int d = 0; d < NDIM-1; ++d)
+    {
+        interior_box.grow(d,-1);
+    }
+
+    SAMRAI::hier::BoxList<NDIM> bdry_boxes;
+    bdry_boxes.removeIntersections(domain_box,interior_box);
+    double vol = double(bdry_boxes.getTotalSizeOfBoxes());
+    for (int d = 0; d < NDIM; ++d)
+    {
+        vol *= dx_coarsest[d];
+    }
+
+    const double q_norm = -Q_sum/vol;
+    for (int ln = coarsest_level; ln <= finest_level; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+            const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data = patch->getPatchData(d_Q_idx);
+            for (SAMRAI::hier::BoxList<NDIM>::Iterator blist(bdry_boxes); blist; blist++)
+            {
+                for (SAMRAI::hier::Box<NDIM>::Iterator b(blist()*patch_box); b; b++)
+                {
+                    (*q_data)(b()) += q_norm;
+                }
+            }
+        }
+    }
+
     // Synchronize the Cartesian grid source density on the patch hierarchy.
     for (int ln = finest_level; ln > coarsest_level; --ln)
     {
@@ -2438,10 +2477,58 @@ IBHierarchyIntegrator::computeSourcePressures(
     const int coarsest_level,
     const int finest_level,
     const double data_time,
-    const std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
-    const double p_norm)
+    const std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data)
 {
     if (d_source_strategy.isNull()) return;
+
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    const int P_new_idx = var_db->mapVariableAndContextToIndex(
+        d_ins_hier_integrator->getPressureVar(),
+        d_ins_hier_integrator->getNewContext());
+    const int wgt_idx = d_ins_hier_integrator->getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
+
+    // Compute the normalization pressure.
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom =
+        d_hierarchy->getGridGeometry();
+    assert(grid_geom->getDomainIsSingleBox());
+    const SAMRAI::hier::Box<NDIM> domain_box = grid_geom->getPhysicalDomain()(0);
+
+    SAMRAI::hier::Box<NDIM> interior_box = domain_box;
+    for (int d = 0; d < NDIM-1; ++d)
+    {
+        interior_box.grow(d,-1);
+    }
+
+    SAMRAI::hier::BoxList<NDIM> bdry_boxes;
+    bdry_boxes.removeIntersections(domain_box,interior_box);
+
+    double p_norm = 0.0;
+    double vol = 0.0;
+    for (int ln = coarsest_level; ln <= finest_level; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+            const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > p_data = patch->getPatchData(P_new_idx);
+            const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > wgt_data = patch->getPatchData(wgt_idx);
+            for (SAMRAI::hier::BoxList<NDIM>::Iterator blist(bdry_boxes); blist; blist++)
+            {
+                for (SAMRAI::hier::Box<NDIM>::Iterator b(blist()*patch_box); b; b++)
+                {
+                    const SAMRAI::hier::Index<NDIM>& i = b();
+                    p_norm += (*p_data)(i)*(*wgt_data)(i);
+                    vol += (*wgt_data)(i);
+                }
+            }
+        }
+    }
+
+    SAMRAI::tbox::MPI::sumReduction(&p_norm,1);
+    SAMRAI::tbox::MPI::sumReduction(&vol,1);
+
+    p_norm /= vol;
 
     // Reset the values of P_src.
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
@@ -2467,10 +2554,6 @@ IBHierarchyIntegrator::computeSourcePressures(
 
     // Compute the mean pressure at the sources/sinks associated with each level
     // of the Cartesian grid.
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    const int P_new_idx = var_db->mapVariableAndContextToIndex(
-        d_ins_hier_integrator->getPressureVar(),
-        d_ins_hier_integrator->getNewContext());
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
     {
         if (d_n_src[ln] > 0)
