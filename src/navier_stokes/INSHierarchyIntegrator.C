@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <28.Jun.2007 23:33:08 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Jul.2007 03:27:46 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1502,6 +1502,17 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
             d_Q_new_idx, d_Q_var, d_hierarchy, current_time+0.5*dt);
     }
 
+    // XXXXXXXX
+    d_hier_math_ops->div(
+        d_Div_u_adv_new_idx, d_Div_u_adv_var, // dst
+        1.0,                                  // alpha
+        d_u_adv_current_idx, d_u_adv_var    , // src
+        d_rscheds["NONE"],                    // don't need to fill u(n+1/2) data
+        current_time,                         // data time
+        true);                                // synch u(n+1/2) coarse-fine bdry
+    SAMRAI::tbox::pout << "int(u_adv_star) = " << d_hier_cc_data_ops->integral(d_Div_u_adv_new_idx, d_wgt_idx) << std::endl;
+    // XXXXXXXX
+
     d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
     d_hier_projector->projectHierarchy(
         d_rho, dt,
@@ -1688,6 +1699,17 @@ INSHierarchyIntegrator::projectVelocity(
         d_ralgs["U->V::C->S::CONSTANT_REFINE"]->resetSchedule(
             d_rscheds["U->V::C->S::CONSTANT_REFINE"][ln]);
     }
+
+    // XXXXXXXX
+    d_hier_math_ops->div(
+        d_Div_u_new_idx, d_Div_u_var, // dst
+        1.0,                          // alpha
+        d_u_new_idx    , d_u_var    , // src
+        d_rscheds["NONE"],            // no fill needed
+        new_time,                     // data time
+        true);                        // synch u(n+1) coarse-fine bdry
+    SAMRAI::tbox::pout << "int(u_new_star) = " << d_hier_cc_data_ops->integral(d_Div_u_adv_new_idx, d_wgt_idx) << std::endl;
+    // XXXXXXXX
 
     // Project u^(n,*)->u(n+1) and re-use grad Phi to project
     // U^(n,*)->U^(n+1).
