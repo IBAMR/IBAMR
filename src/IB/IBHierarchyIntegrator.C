@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <02.Jul.2007 23:55:48 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Jul.2007 01:14:05 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2445,7 +2445,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
         vol *= dx_coarsest[d];
     }
 
-    const double q_norm = -Q_sum/vol;
+    const double q_norm = -q_total/vol;
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -2463,6 +2463,8 @@ IBHierarchyIntegrator::computeSourceStrengths(
             }
         }
     }
+
+    SAMRAI::tbox::plog << "q_integral = " << d_hier_cc_data_ops->integral(d_Q_idx, wgt_idx) << endl;
 
     // Synchronize the Cartesian grid source density on the patch hierarchy.
     for (int ln = finest_level; ln > coarsest_level; --ln)
@@ -2529,6 +2531,8 @@ IBHierarchyIntegrator::computeSourcePressures(
     SAMRAI::tbox::MPI::sumReduction(&vol,1);
 
     p_norm /= vol;
+
+    SAMRAI::tbox::plog << "p_norm = " << p_norm << endl;
 
     // Reset the values of P_src.
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
