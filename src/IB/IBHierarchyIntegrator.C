@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <03.Jul.2007 01:14:05 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Jul.2007 01:41:07 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2449,12 +2449,14 @@ IBHierarchyIntegrator::computeSourceStrengths(
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAI::hier::BoxList<NDIM> level_bdry_boxes(bdry_boxes);
+        level_bdry_boxes.refine(level->getRatio());
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data = patch->getPatchData(d_Q_idx);
-            for (SAMRAI::hier::BoxList<NDIM>::Iterator blist(bdry_boxes); blist; blist++)
+            for (SAMRAI::hier::BoxList<NDIM>::Iterator blist(level_bdry_boxes); blist; blist++)
             {
                 for (SAMRAI::hier::Box<NDIM>::Iterator b(blist()*patch_box); b; b++)
                 {
@@ -2464,7 +2466,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
         }
     }
 
-    SAMRAI::tbox::plog << "q_integral = " << d_hier_cc_data_ops->integral(d_Q_idx, wgt_idx) << endl;
+    SAMRAI::tbox::plog << "    q_integral = " << d_hier_cc_data_ops->integral(d_Q_idx, wgt_idx) << endl;
 
     // Synchronize the Cartesian grid source density on the patch hierarchy.
     for (int ln = finest_level; ln > coarsest_level; --ln)
@@ -2509,13 +2511,15 @@ IBHierarchyIntegrator::computeSourcePressures(
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAI::hier::BoxList<NDIM> level_bdry_boxes(bdry_boxes);
+        level_bdry_boxes.refine(level->getRatio());
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > p_data = patch->getPatchData(P_new_idx);
             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > wgt_data = patch->getPatchData(wgt_idx);
-            for (SAMRAI::hier::BoxList<NDIM>::Iterator blist(bdry_boxes); blist; blist++)
+            for (SAMRAI::hier::BoxList<NDIM>::Iterator blist(level_bdry_boxes); blist; blist++)
             {
                 for (SAMRAI::hier::Box<NDIM>::Iterator b(blist()*patch_box); b; b++)
                 {
@@ -2531,8 +2535,6 @@ IBHierarchyIntegrator::computeSourcePressures(
     SAMRAI::tbox::MPI::sumReduction(&vol,1);
 
     p_norm /= vol;
-
-    SAMRAI::tbox::plog << "p_norm = " << p_norm << endl;
 
     // Reset the values of P_src.
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
