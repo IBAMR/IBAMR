@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <03.Jul.2007 01:41:07 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jul.2007 13:40:32 boyce@bigboy.nyconnect.com>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1009,6 +1009,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_current_data = patch->
                     getPatchData(d_ins_hier_integrator->getForceVar(),
@@ -1020,6 +1021,16 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_current_data, F_data[ln], X_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
+
+                // WARNING: The following code ALWAYS assumes that physical
+                // boundaries are reflection boundaries.
+                if (pgeom->getTouchesRegularBoundary())
+                {
+                    LEInteractor::spreadReflectedForces(
+                        f_current_data, F_data[ln], X_data[ln], idx_data,
+                        patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
+                        d_delta_fcn);
+                }
             }
 
             // 4. Compute X~(n+1), the preliminary structure configuration at
@@ -1139,6 +1150,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_new_data = patch->
                     getPatchData(d_F_idx);
@@ -1149,6 +1161,16 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
+
+                // WARNING: the following code ALWAYS assumes that physical
+                // boundaries are reflection boundaries.
+                if (pgeom->getTouchesRegularBoundary())
+                {
+                    LEInteractor::spreadReflectedForces(
+                        f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
+                        patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
+                        d_delta_fcn);
+                }
             }
         }
     }
