@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <04.Jul.2007 03:53:12 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Jul.2007 12:13:51 boyce@bigboy.nyconnect.com>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -248,11 +248,6 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
             getTimer("IBAMR::AdvDiffHierarchyIntegrator::putToDatabase()");
         timers_need_init = false;
     }
-
-    // XXXX
-    assert(d_viscous_timestepping_type == "TGA");
-    // XXXX
-
     return;
 }// AdvDiffHierarchyIntegrator
 

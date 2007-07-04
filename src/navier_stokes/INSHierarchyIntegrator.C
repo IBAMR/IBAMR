@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <04.Jul.2007 12:06:08 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Jul.2007 12:13:39 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -328,12 +328,6 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
             getTimer("IBAMR::INSHierarchyIntegrator::resetMACVelocityBoundaryConditions()");
         timers_need_init = false;
     }
-
-    // XXXX
-    //assert(d_second_order_pressure_update);
-    assert(d_using_hybrid_projection);
-    // XXXX
-
     return;
 }// INSHierarchyIntegrator
 
@@ -1898,11 +1892,7 @@ INSHierarchyIntegrator::updatePressure(
 
     if (d_using_hybrid_projection)
     {
-        // XXXX
         assert(d_using_pressure_increment_form);
-        //assert(d_second_order_pressure_update);
-        // XXXX
-
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom =
             d_hierarchy->getGridGeometry();
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > bdry_fill_op;
