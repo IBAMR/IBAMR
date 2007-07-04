@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <04.Jul.2007 00:08:02 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jul.2007 03:53:12 boyce@bigboy.nyconnect.com>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -1177,6 +1177,13 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> helmholtz_spec = d_helmholtz_specs[l];
         SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
 
+        // Problem coefficients corresponding to the TGA discretization.
+        const double a = 2.0 - sqrt(2.0) - std::numeric_limits<double>::epsilon();
+        const double nu1 = 0.5*(a-sqrt(a*a-4.0*a+2.0));
+        const double nu2 = 0.5*(a+sqrt(a*a-4.0*a+2.0));
+        const double nu3 = (1.0-a);
+        const double nu4 = (0.5-a);
+
         if (d_viscous_timestepping_type == "BACKWARD_EULER")
         {
             // The backward Euler discretization is:
@@ -1286,21 +1293,13 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             //     nu3 = (1-a)
             //     nu4 = (0.5-a)
             //
-            // Here, we choose
-            //
-            //     a = 2 - sqrt(2)
-            //
-            // so that nu1 == nu2.
-            //
-            // The following values were evaluated to 32 digits in Maple.
-            static const double nu1 =  0.29289321881345247559915563789515;
-            static const double nu3 =  0.41421356237309504880168872420970;
-            static const double nu4 = -0.08578643762690495119831127579030;
-
+            // Ref: McCorquodale, Colella, Johansen.  "A Cartesian grid embedded
+            // boundary method for the heat equation on irregular domains." JCP
+            // 173, pp. 620-635 (2001)
             intermediate_time = new_time-nu1*dt;
 
-            helmholtz_spec->setCConstant(1.0+nu1*dt*lambda);
-            helmholtz_spec->setDConstant(   -nu1*dt*mu    );
+            helmholtz_spec->setCConstant(1.0+nu2*dt*lambda);
+            helmholtz_spec->setDConstant(   -nu2*dt*mu    );
 
             d_bc_op->setPatchDataIndex(Q_temp_idx);
             d_bc_op->setPhysicalBcCoefs(Q_bc_coefs);
@@ -1414,10 +1413,15 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve #1 number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
             if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve #1 residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
 
+            helmholtz_spec->setCConstant(1.0+nu1*dt*lambda);
+            helmholtz_spec->setDConstant(   -nu1*dt*mu    );
+            helmholtz_op->setPoissonSpecifications(*helmholtz_spec);
+
             helmholtz_op->setTime(new_time);
             if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
-            helmholtz_solver->solveSystem(*d_rhs_vecs[l],*d_sol_vecs[l]);
-            d_hier_cc_data_ops->copyData(Q_new_idx, Psi_temp_idx);
+            d_rhs_vecs[l]->copyVector(d_sol_vecs[l]);
+            helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
+            d_hier_cc_data_ops->copyData(Q_new_idx, Q_temp_idx);
 
             if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve #2 number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
             if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve #2 residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";

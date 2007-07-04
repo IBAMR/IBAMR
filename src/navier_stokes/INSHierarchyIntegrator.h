@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <04.Jul.2007 02:07:57 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jul.2007 03:58:50 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1229,9 +1229,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_helmholtz_sol_var, d_helmholtz_rhs_var;
     int d_helmholtz_sol_idx, d_helmholtz_rhs_idx;
 
-    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>           d_helmholtz1_op    , d_helmholtz4_op    ;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_helmholtz1_spec  , d_helmholtz4_spec  ;
-    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_helmholtz1_solver, d_helmholtz4_solver;
+    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>           d_helmholtz1_op    , d_helmholtz2_op    , d_helmholtz4_op    ;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_helmholtz1_spec  , d_helmholtz2_spec  , d_helmholtz4_spec  ;
+    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_helmholtz1_solver, d_helmholtz2_solver, d_helmholtz4_solver;
     bool d_helmholtz_solvers_need_init;
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;

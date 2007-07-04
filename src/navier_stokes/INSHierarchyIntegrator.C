@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <04.Jul.2007 02:35:01 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jul.2007 12:06:08 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1038,6 +1038,13 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz1_solver->setInitialGuessNonzero(true);
         d_helmholtz1_solver->setOperator(d_helmholtz1_op);
 
+        d_helmholtz2_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz2_spec");
+        d_helmholtz2_op = new STOOLS::CCLaplaceOperator(d_object_name+"::helmholtz2_op",*d_helmholtz2_spec,std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,NULL));
+
+        d_helmholtz2_solver = new STOOLS::PETScKrylovLinearSolver(d_object_name+"::helmholtz2_solver", "adv_diff_");
+        d_helmholtz2_solver->setInitialGuessNonzero(true);
+        d_helmholtz2_solver->setOperator(d_helmholtz2_op);
+
         d_helmholtz4_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz4_spec");
         d_helmholtz4_op = new STOOLS::CCLaplaceOperator(d_object_name+"::helmholtz4_op",*d_helmholtz4_spec,NULL);
 
@@ -1891,8 +1898,10 @@ INSHierarchyIntegrator::updatePressure(
 
     if (d_using_hybrid_projection)
     {
+        // XXXX
         assert(d_using_pressure_increment_form);
         //assert(d_second_order_pressure_update);
+        // XXXX
 
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom =
             d_hierarchy->getGridGeometry();
@@ -1918,40 +1927,41 @@ INSHierarchyIntegrator::updatePressure(
         //     nu3 = (1-a)
         //     nu4 = (0.5-a)
         //
-        // Here, we choose
-        //
-        //     a = 2 - sqrt(2)
-        //
-        // so that nu1 == nu2.
-        //
-        // The following values were evaluated to 32 digits in Maple.
-        static const double nu1 =  0.29289321881345247559915563789515;
-        static const double nu4 = -0.08578643762690495119831127579030;
+        // Ref: McCorquodale, Colella, Johansen.  "A Cartesian grid embedded
+        // boundary method for the heat equation on irregular domains." JCP 173,
+        // pp. 620-635 (2001)
+        const double a = 2.0 - sqrt(2.0) - std::numeric_limits<double>::epsilon();
+        const double nu1 = 0.5*(a-sqrt(a*a-4.0*a+2.0));
+        const double nu2 = 0.5*(a+sqrt(a*a-4.0*a+2.0));
+        const double nu4 = (0.5-a);
 
         d_helmholtz1_spec->setCConstant(1.0);
         d_helmholtz1_spec->setDConstant(-nu1*dt*d_nu);
+        d_helmholtz1_op->setPoissonSpecifications(*d_helmholtz1_spec);
+        d_helmholtz1_op->setTime(current_time);
+        d_helmholtz1_op->setHierarchyMathOps(d_hier_math_ops);
+
+        d_helmholtz2_spec->setCConstant(1.0);
+        d_helmholtz2_spec->setDConstant(-nu2*dt*d_nu);
+        d_helmholtz2_op->setPoissonSpecifications(*d_helmholtz2_spec);
+        d_helmholtz2_op->setTime(current_time);
+        d_helmholtz2_op->setHierarchyMathOps(d_hier_math_ops);
 
         d_helmholtz4_spec->setCConstant(1.0);
         d_helmholtz4_spec->setDConstant(+nu4*dt*d_nu);
+        d_helmholtz4_op->setPoissonSpecifications(*d_helmholtz4_spec);
+        d_helmholtz4_op->setTime(current_time);
+        d_helmholtz4_op->setHierarchyMathOps(d_hier_math_ops);
 
         if (!SAMRAI::tbox::Utilities::deq(dt,d_old_dt) || d_helmholtz_solvers_need_init)
         {
-            d_helmholtz1_op->setPoissonSpecifications(*d_helmholtz1_spec);
-            d_helmholtz1_op->setTime(current_time);
-            d_helmholtz1_op->setHierarchyMathOps(d_hier_math_ops);
-
-            d_helmholtz4_op->setPoissonSpecifications(*d_helmholtz4_spec);
-            d_helmholtz4_op->setTime(current_time);
-            d_helmholtz4_op->setHierarchyMathOps(d_hier_math_ops);
-
             d_helmholtz1_solver->initializeSolverState(*d_helmholtz_sol_vec,*d_helmholtz_rhs_vec);
+            d_helmholtz2_solver->initializeSolverState(*d_helmholtz_sol_vec,*d_helmholtz_rhs_vec);
             d_helmholtz4_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
 
             d_helmholtz_solvers_need_init = false;
         }
 
-        // WARNING: This comment is out of date.
-        //
         // For the TGA discretization, the correct pressure update is given by
         //
         //    (I+mu4*L)*(p(n+1/2)-p~) = (rho/dt)*(I-mu2*L)(I-mu1*L)*Phi
@@ -1974,10 +1984,7 @@ INSHierarchyIntegrator::updatePressure(
         // Phi.
         //
         // We here determine the value of Phi yielded by projecting U(*,2).
-        // This requires the solution of an elliptic equation.  However, we pose
-        // the problem in terms of an update to Phi.  This difference is well
-        // approximated by (dt/rho)*P~(n+1/2), so that we do not need to solve
-        // for the change in Phi to a high degree of precision.
+        // This requires the solution of an elliptic equation.
 
         // Set G to equal (dt/rho) Grad P~.
         //
@@ -2018,7 +2025,7 @@ INSHierarchyIntegrator::updatePressure(
 
         // Solve the system.
         d_helmholtz_sol_vec->setToScalar(0.0);
-        d_helmholtz1_solver->solveSystem(*d_helmholtz_sol_vec,*d_helmholtz_rhs_vec);
+        d_helmholtz2_solver->solveSystem(*d_helmholtz_sol_vec,*d_helmholtz_rhs_vec);
         if (d_do_log) SAMRAI::tbox::plog << "INSHierarchyIntegrator::updatePressure(): number of iterations = " << d_helmholtz1_solver->getNumIterations() << "\n";
         if (d_do_log) SAMRAI::tbox::plog << "INSHierarchyIntegrator::updatePressure(): residual norm        = " << d_helmholtz1_solver->getResidualNorm()  << "\n";
         d_helmholtz_rhs_vec->copyVector(d_helmholtz_sol_vec);
@@ -2088,7 +2095,7 @@ INSHierarchyIntegrator::updatePressure(
 
             d_hier_math_ops->laplace(
                 d_rhs_idx, d_rhs_var, // dst
-                *d_helmholtz1_spec,   // Poisson spec
+                *d_helmholtz2_spec,   // Poisson spec
                 d_sol_idx, d_sol_var, // src
                 d_rscheds["Phi->Phi::S->S::CONSTANT_REFINE"],
                 current_time);        // data time
