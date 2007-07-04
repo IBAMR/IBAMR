@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <17.Apr.2007 21:21:41 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Jul.2007 23:41:27 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -43,6 +43,13 @@
 #include <string>
 #include <vector>
 
+/////////////////////////////// FORWARD DECLARATIONS /////////////////////////
+
+namespace IBAMR
+{
+class INSHierarchyIntegrator;
+}
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -56,6 +63,8 @@ class HierarchyProjector
       public virtual SAMRAI::tbox::Serializable
 {
 public:
+    friend class INSHierarchyIntegrator;
+
     /*!
      * The constructor for HierarchyProjector sets some default values, reads in
      * configuration information from input and restart databases, and registers

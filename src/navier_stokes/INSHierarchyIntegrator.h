@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <29.May.2007 17:05:37 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jul.2007 02:07:57 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -13,6 +13,7 @@
 #include <ibamr/HierarchyProjector.h>
 
 // STOOLS INCLUDES
+#include <stools/CCPoissonFACOperator.h>
 #include <stools/LinearSolver.h>
 #include <stools/HierarchyMathOps.h>
 #include <stools/SetDataStrategy.h>
@@ -22,6 +23,7 @@
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
 #include <ComponentSelector.h>
+#include <FACPreconditioner.h>
 #include <FaceVariable.h>
 #include <Geometry.h>
 #include <GriddingAlgorithm.h>
@@ -1217,6 +1219,24 @@ private:
      * Such variables have only one context.
      */
     int d_irregular_cell_idx;
+
+    /*
+     * Solvers and other data required by the hybrid projection.
+     */
+    bool d_using_hybrid_projection;
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_helmholtz_sol_vec, d_helmholtz_rhs_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_helmholtz_sol_var, d_helmholtz_rhs_var;
+    int d_helmholtz_sol_idx, d_helmholtz_rhs_idx;
+
+    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>           d_helmholtz1_op    , d_helmholtz4_op    ;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_helmholtz1_spec  , d_helmholtz4_spec  ;
+    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_helmholtz1_solver, d_helmholtz4_solver;
+    bool d_helmholtz_solvers_need_init;
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var;
+    int d_sol_idx, d_rhs_idx;
 };
 }// namespace IBAMR
 

@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <21.May.2007 17:28:10 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jul.2007 00:08:02 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -248,6 +248,11 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
             getTimer("IBAMR::AdvDiffHierarchyIntegrator::putToDatabase()");
         timers_need_init = false;
     }
+
+    // XXXX
+    assert(d_viscous_timestepping_type == "TGA");
+    // XXXX
+
     return;
 }// AdvDiffHierarchyIntegrator
 
@@ -1353,7 +1358,6 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                     Psi_temp_idx, Psi_var,  // src2
                     depth, depth, depth);   // dst_depth, src1_depth, src2_depth
             }
-
         }
         else
         {
