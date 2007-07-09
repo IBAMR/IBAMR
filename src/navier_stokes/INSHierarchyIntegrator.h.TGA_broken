@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <09.Jul.2007 01:40:41 boyce@bigboy.nyconnect.com>
+// Last modified: <09.Jul.2007 00:44:17 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -14,8 +14,8 @@
 
 // STOOLS INCLUDES
 #include <stools/CCPoissonFACOperator.h>
-#include <stools/LinearSolver.h>
 #include <stools/HierarchyMathOps.h>
+#include <stools/KrylovLinearSolver.h>
 #include <stools/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
@@ -126,13 +126,6 @@ public:
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> U_init);
 
     /*!
-     * Supply physical boundary conditions for the (cell centered) velocity.
-     */
-    void
-    registerVelocityPhysicalBcCoefs(
-        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
-
-    /*!
      * Supply initial conditions for the (cell centered) pressure.
      *
      * \note These initial conditions are used for output purposes only.  They
@@ -163,19 +156,6 @@ public:
     void
     registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
-
-    /*!
-     * Supply an optional patch data descriptor for cell data indicating the
-     * locations of irregular Cartesian grid cells, i.e., those Cartesian grid
-     * cells within the stencil of the regularized delta function centered about
-     * a node of the Lagrangian mesh.
-     *
-     * \note Irregular cell data is not used by class INSHierarchyIntegrator
-     * unless a valid patch data descriptor index is provided via this method.
-     */
-    void
-    registerIrregularCellPatchDescriptorIndex(
-        const int irregular_cell_idx);
 
     ///
     ///  The following routines:
@@ -731,26 +711,29 @@ public:
 
 protected:
     /*!
-     * Register a "state" variable with the integrator.  When a refine operator
-     * is specified, the data for the variable is automatically maintained as
-     * the patch hierarchy evolves.
+     * Register a "state" variable with the integrator.  When a refine
+     * operator is specified, the data for the variable is
+     * automatically maintained as the patch hierarchy evolves.
      *
-     * All state variables are registered with three contexts: current, new, and
-     * scratch.  The current context of a state variable is maintained from
-     * timestep to timestep and, optionally, as the patch hierarchy evolves.
+     * All state variables are registered with three contexts:
+     * current, new, and scratch.  The current context of a state
+     * variable is maintained from timestep to timestep and,
+     * optionally, as the patch hierarchy evolves.
      *
-     * When a coarsen operator is specified, at the end of each timestep refined
-     * regions of the new context are re-filled with the underlying fine data.
-     * Whether or not a coarsen operation occurs, data in the current context is
-     * then overwritten by data in the new context.
+     * When a coarsen operator is specified, at the end of each
+     * timestep refined regions of the new context are re-filled with
+     * the underlying fine data.  Whether or not a coarsen operation
+     * occurs, data in the current context is then overwritten by data
+     * in the new context.
      *
-     * \note If a refine operator is not specified, the data for the variable is
-     * UNDEFINED following any changes to the hierarchy configuration.
+     * \note If a refine operator is not specified, the data for the
+     * variable is UNDEFINED following any changes to the hierarchy
+     * configuration.
      *
-     * \todo Add variable registration to a HierarchyIntegrator base class.
+     * \todo Add variable registration to a HierarchyIntegrator base
+     * class.
      */
-    void
-    registerVariable(
+    void registerVariable(
         int& current_idx,
         int& new_idx,
         int& scratch_idx,
@@ -760,18 +743,25 @@ protected:
         const std::string& refine_name="NO_REFINE");
 
     /*!
-     * Register a "scratch" variable with the integrator.  This data IS NOT
-     * maintained as the patch hierarchy evolves.
+     * Register a "scratch" variable with the integrator.  This data
+     * IS NOT maintained as the patch hierarchy evolves.
      *
-     * All scratch variables are registered with the scratch context.
+     * All scratch variables are registered with the scratch
+     * context.
      *
-     * \todo Add variable registration to a HierarchyIntegrator base class.
+     * \todo Add variable registration to a HierarchyIntegrator base
+     * class.
      */
-    void
-    registerVariable(
+    void registerVariable(
         int& scratch_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
         const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0));
+
+    /*!
+     * Whether or not to use conservative differencing for each
+     * advected and diffused quantity.
+     */
+    std::vector<bool> d_Q_cons_form;
 
 private:
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;
@@ -785,14 +775,16 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * \note This constructor is not implemented and should not be used.
+     * \note This constructor is not implemented and should not be
+     * used.
      */
     INSHierarchyIntegrator();
 
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be used.
+     * \note This constructor is not implemented and should not be
+     * used.
      *
      * \param from The value to copy to this object.
      */
@@ -808,16 +800,14 @@ private:
      *
      * \return A reference to this object.
      */
-    INSHierarchyIntegrator&
-    operator=(
+    INSHierarchyIntegrator& operator=(
         const INSHierarchyIntegrator& that);
 
     /*!
-     * Compute the appropriate source term which must be added to the momentum
-     * equation when the fluid contains sources and sinks.
+     * Compute the appropriate source term which must be added to the
+     * momentum equation when the fluid contains sources and sinks.
      */
-    void
-    computeDivSourceTerm(
+    void computeDivSourceTerm(
         const int F_idx,
         const int Q_idx,
         const int u_idx,
@@ -825,105 +815,94 @@ private:
         const int finest_ln);
 
     /*!
-     * Reset the cell-centered velocity components along the physical boundary.
-     */
-    void
-    resetCellVelocityBoundaryConditions(
-        const int U_idx,
-        const double time,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& cscheds,
-        const int coarsest_ln,
-        const int finest_ln);
-
-    /*!
-     * Reset the MAC velocity components along the physical boundary.
-     */
-    void
-    resetMACVelocityBoundaryConditions(
-        const int u_idx,
-        const double time,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& cscheds,
-        const int coarsest_ln,
-        const int finest_ln);
-
-    /*!
-     * Read input values, indicated above, from given database.  The boolean
-     * argument is_from_restart should be set to true if the simulation is
-     * beginning from restart.  Otherwise it should be set to false.
+     * Compute the "acceleration" timestep restriction
      *
-     * When assertion checking is active, the database pointer must be non-null.
+     *      dt <= min sqrt(2 dx / |F - grad P|/rho)
      */
-    void
-    getFromInput(
+    double computeStableDt(
+        const int F_idx,
+        const int coarsest_ln,
+        const int finest_ln);
+
+    /*!
+     * Read input values, indicated above, from given database.  The
+     * boolean argument is_from_restart should be set to true if the
+     * simulation is beginning from restart.  Otherwise it should be
+     * set to false.
+     *
+     * When assertion checking is active, the database pointer must be
+     * non-null.  Otherwise, all your base are belong to us.
+     */
+    void getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
         bool is_from_restart);
 
     /*!
-     * Read object state from the restart file and initialize class data
-     * members.  The database from which the restart data is read is determined
-     * by the object_name specified in the constructor.
+     * Read object state from the restart file and initialize class
+     * data members.  The database from which the restart data is read
+     * is determined by the object_name specified in the constructor.
      *
      * Unrecoverable Errors:
      *
-     *    -   The database corresponding to object_name is not found in the
-     *        restart file.
+     *    -   The database corresponding to object_name is not found
+     *        in the restart file.
      *
-     *    -   The class version number and restart version number do not match.
+     *    -   The class version number and restart version number do not
+     *        match.
      *
      */
-    void
-    getFromRestart();
+    void getFromRestart();
 
     /*
-     * The object name is used as a handle to databases stored in restart files
-     * and for error reporting purposes.  The boolean is used to control restart
-     * file writing operations.
+     * The object name is used as a handle to databases stored in
+     * restart files and for error reporting purposes.  The boolean is
+     * used to control restart file writing operations.
      */
     std::string d_object_name;
     bool d_registered_for_restart;
 
     /*
-     * Pointers to the patch hierarchy and gridding algorithm objects associated
-     * with this time integration object.
+     * Pointers to the patch hierarchy and gridding algorithm objects
+     * associated with this time integration object.
      *
-     * The gridding algorithm provides grid generation and regridding routines
-     * for the AMR hierarchy.
+     * The gridding algorithm provides grid generation and regridding
+     * routines for the AMR hierarchy.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
 
     /*
-     * We cache a pointer to the VisIt data writer to register plot variables.
-     *
-     * Double precision values are (optional) factors used to rescale the
-     * pressure, force, and source/sink density for plotting.
+     * We cache a pointer to the VisIt data writer to register plot
+     * variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
     double d_P_scale, d_F_scale, d_Q_scale;
 
     /*
-     * The GodunovAdvector provides the numerical routines necessary to perform
-     * the explicit prediction of the time and face centered advection velocity.
+     * The GodunovAdvector provides the numerical routines necessary
+     * to explicitly predict a time and face centered advection
+     * velocity.
      */
     SAMRAI::tbox::Pointer<GodunovAdvector> d_explicit_predictor;
 
     /*
-     * The AdvDiffHierarchyIntegrator maintains the linear solvers and related
-     * data needed to handle the implicit integration of the diffusive terms and
-     * the explicit integration of the advective terms.
+     * The AdvDiffHierarchyIntegrator maintains the linear
+     * solvers and related data needed to handle the implicit
+     * integration of the diffusive terms and the explicit integration
+     * of the advective terms.
      */
     SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
 
     /*
-     * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic operations
-     * needed to handle the explicit integration of advection terms.  It is
-     * supplied and maintained by the AdvDiffHierarchyIntegrator.
+     * The algs::HyperbolicLevelIntegrator<NDIM> supplies generic operations
+     * needed to handle the explicit integration of advection terms.
+     * It is maintained by the AdvDiffHierarchyIntegrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
 
     /*
-     * The HierarchyProjector maintains the linear solvers and related data
-     * needed to enforce the incompressibility constraint.
+     * The HierarchyProjector maintains the linear solvers and related
+     * data needed to enforce the incompressibility constraint.
      */
     SAMRAI::tbox::Pointer<HierarchyProjector> d_hier_projector;
 
@@ -934,118 +913,93 @@ private:
     double d_end_time;
     double d_grow_dt;
     int d_max_integrator_steps;
+    double d_cfl;
 
     /*
-     * The number of cycles to perform each timestep.  During each cycle, the
-     * most recently available pressure is employed as the time centered
-     * approximation to the pressure gradient that appears in the momentum
-     * equation.  (During the first cycle, this is simply the lagged pressure
-     * computed during the previous timestep.)  Typically, num_cycles will equal
-     * 1.
+     * The number of initial cycles to perform each timestep.
      */
     int d_num_cycles;
 
     /*
-     * The number of cycles to perform during the first timestep in order to
-     * initialize the pressure.
+     * The number of initial cycles to perform in order to obtain a
+     * sufficiently accurate guess for P(n=1/2).
      */
     int d_num_init_cycles;
 
     /*
-     * The regrid interval indicates the number of integration steps taken
-     * between invocations of the regridding process.
+     * The regrid interval indicates the number of integration steps
+     * taken between invocations of the regridding process.
      */
     int d_regrid_interval;
 
     /*
-     * The tag buffer indicates the number of cells on each level by which
-     * tagged cells will be buffered after they have selected for refinement.
-     * These values are passed into the gridding algorithm routines during
-     * hierarchy construction and regridding.  The tag buffer helps to guarantee
-     * that refined cells near important features in the solution will remain
+     * The tag buffer indicates the number of cells on each level by
+     * which tagged cells will be buffered after they have selected
+     * for refinement.  These values are passed into the gridding
+     * algorithm routines during hierarchy construction and
+     * regridding.  The tag buffer helps to guarantee that refined
+     * cells near important features in the solution will remain
      * refined until the level is regridded next.
      */
     bool d_using_default_tag_buffer;
     SAMRAI::tbox::Array<int> d_tag_buffer;
 
     /*
-     * This boolean value determines whether a re-projection ("synchronization
-     * projection") of the velocity field occurs following a regridding of the
-     * patch hierarchy.
+     * This boolean value determines whether a re-projection
+     * ("synchronization projection") of the velocity field occurs
+     * following a regridding of the patch hierarchy.
      */
     bool d_using_synch_projection;
 
     /*
-     * This boolean value determines whether the advection term is computed
-     * using conservative or non-conservative differencing.
+     * This boolean value determines whether the advection term is
+     * computed using conservative or non-conservative differencing.
      */
     bool d_conservation_form;
 
     /*
-     * Tag cells based on the relative and absolute magnitudes of the local
-     * vorticity.
+     * Tag cells based on the magnitude of vorticity.
      */
     bool d_using_vorticity_tagging;
-    SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
+    SAMRAI::tbox::Array<double> d_Omega_eps;
     double d_Omega_max;
 
     /*
-     * These boolean values determine whether the boundary conditions for the
-     * normal and/or tangential cell centered velocity components are explicitly
-     * enforced at the physical boundaries of the domain.
+     * These boolean values determine the form of the pressure update.
      */
-    bool d_enforce_normal_velocity_bc, d_enforce_tangential_velocity_bc;
-    bool d_enforce_velocity_bc_only_for_irregular_cells;
-
-    /*
-     * This boolean value determines whether a pressure increment is employed to
-     * update the pressure (i.e., as in the Bell-Collela-Glaz algorithm).
-     *
-     * Note that the pressure increment form of the projection algorithm is
-     * generally NOT stable for IB computations.  Therefore, the recommended
-     * value is `false'.
-     */
-    bool d_using_pressure_increment_form;
-
-    /*
-     * This boolean value determines whether the pressure update is second-order
-     * accurate in time.
-     */
+    bool d_project_predicted_flux;
+    bool d_reproject_pressure;
     bool d_second_order_pressure_update;
 
     /*
-     * This boolean value determines whether the pressure is normalized to have
-     * zero mean (i.e., discrete integral) at the end of each timestep.
-     */
-    bool d_normalize_pressure;
-
-    /*
-     * These boolean values indicate whether to output the pressure, applied
-     * force, and source strength for visualization.
+     * These boolean values indicate whether to output the pressure,
+     * applied force, and source strength for visualization.
      */
     bool d_output_P;
     bool d_output_F;
     bool d_output_Q;
 
     /*
-     * This boolean value indicates whether to store the cell centered vorticity
-     * (curl U) for visualization.
+     * This boolean value indicates whether to store the cell centered
+     * vorticity (curl U) for visualization.
      */
     bool d_output_Omega;
 
     /*
-     * These boolean values indicate whether to store the cell centered
-     * divergences of U, u, and u_adv for visualization.
+     * These boolean values indicate whether to store the cell
+     * centered divergences of U, u, and u_adv for visualization.
      */
     bool d_output_Div_U;
     bool d_output_Div_u;
     bool d_output_Div_u_adv;
 
     /*
-     * Integrator data that evolves during time integration and maintains the
-     * state of the timestep sequence over the levels in the AMR hierarchy.
+     * Integrator data that evolves during time integration and
+     * maintains the state of the timestep sequence over the levels in
+     * the AMR hierarchy.
      */
     double d_old_dt;
+    double d_stable_dt;
     double d_integrator_time;
     int    d_integrator_step;
 
@@ -1062,7 +1016,8 @@ private:
     bool d_is_initialized;
 
     /*
-     * Indicates whether the integrator should output logging messages.
+     * Indicates whether the integrator should output logging
+     * messages.
      */
     bool d_do_log;
 
@@ -1072,7 +1027,8 @@ private:
     bool d_reproject_after_regrid;
 
     /*
-     * Indicates whether the integrator is attempting to initialize the pressue.
+     * Indicates whether the integrator is attempting to initialize
+     * the pressue.
      */
     int d_cycle;
     bool d_performing_init_cycles;
@@ -1095,35 +1051,50 @@ private:
     SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> d_hier_math_ops;
     bool d_is_managing_hier_math_ops;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_wgt_var;
-    double d_volume;
-
     /*
-     * Communications algorithms, patch strategies, and schedules.
+     * Communications algorithms and schedules.
      */
-    RefineAlgMap           d_ralgs;
-    RefinePatchStrategyMap d_rstrategies;
-    RefineSchedMap         d_rscheds;
+    RefineAlgMap    d_ralgs;
+    RefineSchedMap  d_rscheds;
 
-    CoarsenAlgMap           d_calgs;
-    CoarsenPatchStrategyMap d_cstrategies;
-    CoarsenSchedMap         d_cscheds;
+    CoarsenAlgMap   d_calgs;
+    CoarsenSchedMap d_cscheds;
 
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
-    SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
 
     /*
-     * Objects to set initial conditions (note that the initial value of the
-     * pressure is for visualization purposes only) as well as constant or
-     * time-dependent body forcing.
+     * Objects to set initial conditions (note that the initial value
+     * of the pressure is for visualization purposes only) as well as
+     * constant or time-dependent body forcing.
      */
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_U_init, d_P_init;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
-    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set, d_Q_set;
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set;
+    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_Q_set;
 
     /*
-     * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
+     * Linear solvers and associated data.
+     *
+     * The cell weights are used to compute norms of data defined on
+     * the patch hierarchy.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var, d_tmp_var, d_wgt_var;
+    double d_volume;
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
+
+    double d_poisson_abs_residual_tol, d_poisson_rel_residual_tol;
+    SAMRAI::tbox::Pointer<STOOLS::LinearSolver>    d_poisson_solver;
+
+    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>           d_helmholtz1_op;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_helmholtz1_spec;
+    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_helmholtz1_solver;
+
+    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>           d_helmholtz4_op;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_helmholtz4_spec;
+    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_helmholtz4_solver;
+
+    /*
+     * SAMRAI::hier::Variable<NDIM> lists and SAMRAI::hier::ComponentSelector objects
      * are used for data management.
      */
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_state_variables;
@@ -1166,7 +1137,6 @@ private:
     int d_u_current_idx, d_u_new_idx, d_u_scratch_idx;
 
     int d_P_current_idx, d_P_new_idx, d_P_scratch_idx;
-    int d_Phi_current_idx, d_Phi_new_idx, d_Phi_scratch_idx;
     int d_F_current_idx, d_F_new_idx, d_F_scratch_idx;
     int d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx;
 
@@ -1187,7 +1157,8 @@ private:
      *
      * Scratch variables have only one context.
      */
-    int d_Grad_Phi_idx, d_grad_Phi_idx, d_G_idx, d_H_idx, d_V_idx;
+    int d_Phi_idx, d_Grad_Phi_idx, d_grad_Phi_idx, d_G_idx, d_H_idx, d_V_idx;
+    int d_sol_idx, d_rhs_idx, d_tmp_idx;
 
     /*
      * Patch data descriptors for all variables managed by the
@@ -1211,32 +1182,6 @@ private:
      * Such variables have only one context.
      */
     int d_wgt_idx;
-
-    /*
-     * Patch data descriptors for all variables managed by the
-     * IBHierarchyIntegrator class.
-     *
-     * Such variables have only one context.
-     */
-    int d_irregular_cell_idx;
-
-    /*
-     * Solvers and other data required by the hybrid projection.
-     */
-    bool d_using_hybrid_projection;
-
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_helmholtz_sol_vec, d_helmholtz_rhs_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_helmholtz_sol_var, d_helmholtz_rhs_var;
-    int d_helmholtz_sol_idx, d_helmholtz_rhs_idx;
-
-    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>           d_helmholtz1_op    , d_helmholtz4_op    ;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_helmholtz1_spec  , d_helmholtz4_spec  ;
-    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_helmholtz1_solver, d_helmholtz4_solver;
-    bool d_helmholtz_solvers_need_init;
-
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var;
-    int d_sol_idx, d_rhs_idx;
 };
 }// namespace IBAMR
 

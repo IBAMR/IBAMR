@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <04.Jul.2007 13:40:32 boyce@bigboy.nyconnect.com>
+// Last modified: <08.Jul.2007 22:55:02 boyce@bigboy.nyconnect.com>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -311,7 +311,8 @@ IBHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
     }
 #endif
     d_U_bc_coefs = U_bc_coefs;
-    d_ins_hier_integrator->registerVelocityPhysicalBcCoefs(d_U_bc_coefs);
+    assert(false);
+    //d_ins_hier_integrator->registerVelocityPhysicalBcCoefs(d_U_bc_coefs);
     return;
 }// registerVelocityPhysicalBcCoefs
 
@@ -1589,7 +1590,7 @@ IBHierarchyIntegrator::regridHierarchy()
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
     d_lag_data_manager->updateWorkloadData(
         0,d_hierarchy->getFinestLevelNumber());
-
+#if 0
     // Update the irregular cell data post-regridding.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): tagging irregular cells.\n";
     const int stencil_size = LEInteractor::getStencilSize(d_delta_fcn);
@@ -1597,7 +1598,7 @@ IBHierarchyIntegrator::regridHierarchy()
         stencil_size,0,d_hierarchy->getFinestLevelNumber());
     d_ins_hier_integrator->registerIrregularCellPatchDescriptorIndex(
         d_lag_data_manager->getIrregularCellPatchDescriptorIndex());
-
+#endif
     // Indicate that the force and source strategies need to be re-initialized.
     d_force_strategy_needs_init  = true;
     d_source_strategy_needs_init = true;

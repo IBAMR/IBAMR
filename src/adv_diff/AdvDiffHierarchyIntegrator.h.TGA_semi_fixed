@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <08.Jul.2007 23:47:08 boyce@bigboy.nyconnect.com>
+// Last modified: <08.Jul.2007 23:06:47 boyce@bigboy.nyconnect.com>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -14,7 +14,6 @@
 // STOOLS INCLUDES
 #include <stools/CCLaplaceOperator.h>
 #include <stools/CCPoissonFACOperator.h>
-#include <stools/CartRobinPhysBdryOp.h>
 #include <stools/HierarchyMathOps.h>
 #include <stools/KrylovLinearSolver.h>
 #include <stools/SetDataStrategy.h>
@@ -58,9 +57,9 @@ namespace IBAMR
  * are governed by the advection-diffusion equation.
  *
  * Each quantity \f$ Q \f$ managed by the integrator may have a unique diffusion
- * coefficient \f$ \mu \f$ and drag coefficient \f$ \lambda \f$, and may
- * optionally have a forcing term \f$ F \f$.  Only one advection velocity \f$
- * \vec{u}^{\mbox{\scriptsize ADV}} \f$ may be registered with the integrator.
+ * coefficient \f$ \mu \f$, and may optionally have a forcing term \f$ F \f$.
+ * Only one advection velocity \f$ \vec{u}^{\mbox{\scriptsize ADV}} \f$ may be
+ * registered with the integrator.
  *
  * This integrator employs adaptive local spatial refinement.  All levels of the
  * patch hierarchy are synchronously integrated in time.  In particular,
@@ -155,7 +154,6 @@ public:
     registerAdvectedAndDiffusedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
-        const double Q_lambda,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
         const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
@@ -188,7 +186,6 @@ public:
     registerAdvectedAndDiffusedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
-        const double Q_lambda,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
         const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
@@ -226,7 +223,6 @@ public:
     registerAdvectedAndDiffusedQuantityWithSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
-        const double Q_lambda,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
@@ -266,7 +262,6 @@ public:
     registerAdvectedAndDiffusedQuantityWithSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
-        const double Q_lambda,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
@@ -793,20 +788,9 @@ public:
 
 protected:
     /*!
-     * String indicating the time integration employed for the implicit
-     * discretization of the viscous terms.
-     *
-     * Choices are:
-     *     - BACKWARD_EULER
-     *     - CRANK_NICOLSON
-     *     - TGA
-     */
-    std::string d_viscous_timestepping_type;
-
-    /*!
-     * Advected and diffused quantities Q, source terms F (possibly NULL),
-     * advection source terms Psi = F + mu*L*Q, and optional face centered
-     * gradient terms to enforce incompressibility.
+     * Advected and diffused quantities Q, source terms F (possibly
+     * NULL), advection source terms Psi = F + mu*L*Q, and optional
+     * face centered gradient terms to enforce incompressibility.
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_vars;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_vars;
@@ -814,18 +798,18 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_grad_vars;
 
     /*!
-     * Objects to set initial and boundary conditions as well as forcing terms
-     * for each advected and diffused quantity.
+     * Objects to set initial and boundary conditions as well as
+     * forcing terms for each advected and diffused quantity.
      */
     std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_Q_inits;
     std::vector<std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coefs;
     std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_F_sets;
 
     /*!
-     * The diffusivity and drag coefficients associated with each advected and
+     * The diffusivity coefficients associated with each advected and
      * diffused quantity.
      */
-    std::vector<double> d_Q_mus, d_Q_lambdas;
+    std::vector<double> d_Q_mus;
 
     /*!
      * The advection velocity.
@@ -846,14 +830,16 @@ private:
     /*!
      * \brief Default constructor.
      *
-     * \note This constructor is not implemented and should not be used.
+     * \note This constructor is not implemented and should not be
+     * used.
      */
     AdvDiffHierarchyIntegrator();
 
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be used.
+     * \note This constructor is not implemented and should not be
+     * used.
      *
      * \param from The value to copy to this object.
      */
@@ -874,11 +860,13 @@ private:
         const AdvDiffHierarchyIntegrator& that);
 
     /*!
-     * Read input values, indicated below, from given database.  The boolean
-     * argument is_from_restart should be set to true if the simulation is
-     * beginning from restart.  Otherwise it should be set to false.
+     * Read input values, indicated below, from given database.  The
+     * boolean argument is_from_restart should be set to true if the
+     * simulation is beginning from restart.  Otherwise it should be
+     * set to false.
      *
-     * When assertion checking is active, the database pointer must be non-null.
+     * When assertion checking is active, the database pointer must be
+     * non-null.  Otherwise, all your base are belong to us.
      */
     void
     getFromInput(
@@ -886,48 +874,49 @@ private:
         bool is_from_restart);
 
     /*!
-     * Read object state from the restart file and initialize class data
-     * members.  The database from which the restart data is read is determined
-     * by the object_name specified in the constructor.
+     * Read object state from the restart file and initialize class
+     * data members.  The database from which the restart data is read
+     * is determined by the object_name specified in the constructor.
      *
      * Unrecoverable Errors:
      *
-     *    -   The database corresponding to object_name is not found in the
-     *        restart file.
-     *
-     *    -   The class version number and restart version number do not match.
-     *
+     *    -   The database corresponding to object_name is not found
+     *        in the restart file.
+     *    -   The class version number and restart version number do not
+     *        match.
      */
     void
     getFromRestart();
 
     /*
-     * The object name is used as a handle to databases stored in restart files
-     * and for error reporting purposes.  The boolean is used to control restart
-     * file writing operations.
+     * The object name is used as a handle to databases stored in
+     * restart files and for error reporting purposes.  The boolean is
+     * used to control restart file writing operations.
      */
     std::string d_object_name;
     bool d_registered_for_restart;
 
     /*
-     * Pointers to the patch hierarchy and gridding algorithm objects associated
-     * with this time integration object.
+     * Pointers to the patch hierarchy and gridding algorithm objects
+     * associated with this time integration object.
      *
-     * The gridding algorithm provides grid generation and regridding routines
-     * for the AMR hierarchy.
+     * The gridding algorithm provides grid generation and regridding
+     * routines for the AMR hierarchy.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
 
     /*
-     * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic operations
-     * needed to handle the explicit integration of advection terms.
+     * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic
+     * operations needed to handle the explicit integration of
+     * advection terms.
      */
     SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
 
     /*
-     * The advection patch strategy supplies the advection specific operations
-     * needed to treat data on patches in the AMR hierarchy.
+     * The advection patch strategy supplies the advection specific
+     * operations needed to treat data on patches in the AMR
+     * hierarchy.
      */
     SAMRAI::tbox::Pointer<AdvDiffHypPatchOps> d_hyp_patch_ops;
 
@@ -940,25 +929,27 @@ private:
     int d_max_integrator_steps;
 
     /*
-     * The regrid interval indicates the number of integration steps taken
-     * between invocations of the regridding process.
+     * The regrid interval indicates the number of integration steps
+     * taken between invocations of the regridding process.
      */
     int d_regrid_interval;
 
     /*
-     * The tag buffer indicates the number of cells on each level by which
-     * tagged cells will be buffered after they have selected for refinement.
-     * These values are passed into the gridding algorithm routines during
-     * hierarchy construction and regridding.  The tag buffer helps to guarantee
-     * that refined cells near important features in the solution will remain
+     * The tag buffer indicates the number of cells on each level by
+     * which tagged cells will be buffered after they have selected
+     * for refinement.  These values are passed into the gridding
+     * algorithm routines during hierarchy construction and
+     * regridding.  The tag buffer helps to guarantee that refined
+     * cells near important features in the solution will remain
      * refined until the level is regridded next.
      */
     bool d_using_default_tag_buffer;
     SAMRAI::tbox::Array<int> d_tag_buffer;
 
     /*
-     * Integrator data that evolves during time integration and maintains the
-     * state of the timestep sequence over the levels in the AMR hierarchy.
+     * Integrator data that evolves during time integration and
+     * maintains the state of the timestep sequence over the levels in
+     * the AMR hierarchy.
      */
     double d_old_dt;
     double d_integrator_time;
@@ -970,7 +961,8 @@ private:
     bool d_is_initialized;
 
     /*
-     * Indicates whether the integrator should output logging messages.
+     * Indicates whether the integrator should output logging
+     * messages.
      */
     bool d_do_log;
 
@@ -985,11 +977,6 @@ private:
     int d_wgt_idx;
 
     /*
-     * Variable context used for temporary storage.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_temp_context;
-
-    /*
      * Communications algorithms, patch strategies, and schedules.
      */
     RefineAlgMap           d_ralgs;
@@ -1000,28 +987,41 @@ private:
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;
 
-    SAMRAI::tbox::Pointer<STOOLS::CartRobinPhysBdryOp> d_bc_op;
-
     /*
-     * Linear solvers and associated data including Poisson specifications,
-     * boundary conditions, and solver configuation databases.
+     * Linear solvers (one set for each diffusion coefficient) and
+     * associated data including Poisson specifications, boundary
+     * conditions, and solver configuation databases.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_sol_vecs, d_rhs_vecs;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var, d_tmp_var;
+    int d_sol_idx, d_rhs_idx, d_tmp_idx;
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
 
     int d_max_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
-    bool d_using_FAC;
 
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >              d_helmholtz_ops;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz_specs;
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> >             d_helmholtz_solvers;
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >           d_helmholtz_fac_ops;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > d_helmholtz_fac_pcs;
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >              d_helmholtz1_ops;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz1_specs;
+
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >              d_helmholtz2_ops;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz2_specs;
+
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz3_specs;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz4_specs;
+
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> >             d_helmholtz1_solvers;
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >           d_helmholtz1_fac_ops;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > d_helmholtz1_fac_pcs;
+
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> >             d_helmholtz2_solvers;
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >           d_helmholtz2_fac_ops;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > d_helmholtz2_fac_pcs;
 
     std::vector<bool> d_helmholtz_solvers_need_init;
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_ops_db, d_fac_pcs_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_ops_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_pcs_db;
 };
 }// namespace IBAMR
 
