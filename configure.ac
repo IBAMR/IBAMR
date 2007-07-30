@@ -311,7 +311,7 @@ else
 fi
 
 AC_ARG_ENABLE([samrai-3d],
-  AS_HELP_STRING(--enable-samrai-3D,enable optional support for three-dimensional SAMRAI objects @<:@default=yes@:>@),
+  AS_HELP_STRING(--enable-samrai-3d,enable optional support for three-dimensional SAMRAI objects @<:@default=yes@:>@),
   [SAMRAI3D=$enablevar], [SAMRAI3D=yes])
 AM_CONDITIONAL([SAMRAI3D_ENABLED],[test "$SAMRAI3D" == "yes"])
 

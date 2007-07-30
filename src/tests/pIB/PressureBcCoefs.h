@@ -2,7 +2,7 @@
 #define included_PressureBcCoefs
 
 // Filename: PressureBcCoefs.h
-// Last modified: <04.May.2007 11:40:37 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Jul.2007 17:43:56 griffith@box221.cims.nyu.edu>
 // Created on 04 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -84,7 +84,6 @@ public:
         const hier::BoundaryBox<NDIM>& bdry_box,
         double fill_time=0.0) const;
 
-#if 0
     /*!
      * \brief Function to fill arrays of Robin boundary condition coefficients
      * at a patch boundary.  (Old interface.)
@@ -123,7 +122,6 @@ public:
         const hier::Patch<NDIM>& patch,
         const hier::BoundaryBox<NDIM>& bdry_box,
         double fill_time=0.0) const;
-#endif
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
@@ -175,6 +173,19 @@ private:
     PressureBcCoefs&
     operator=(
         const PressureBcCoefs& that);
+
+    /*!
+     * \brief Implementation of method setBcCoefs().
+     */
+    void
+    setBcCoefs_private(
+        tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
+        tbox::Pointer<pdat::ArrayData<NDIM,double> >& bcoef_data,
+        tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
+        const tbox::Pointer<hier::Variable<NDIM> >& variable,
+        const hier::Patch<NDIM>& patch,
+        const hier::BoundaryBox<NDIM>& bdry_box,
+        double fill_time=0.0) const;
 
     /*
      * The object name.

@@ -1,5 +1,5 @@
 // Filename: PressureBcCoefs.C
-// Last modified: <05.May.2007 21:16:50 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Jul.2007 17:44:17 griffith@box221.cims.nyu.edu>
 // Created on 04 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "PressureBcCoefs.h"
@@ -61,8 +61,51 @@ PressureBcCoefs::setBcCoefs(
 #if USING_OLD_ROBIN_BC_INTERFACE
     TBOX_ERROR("PressureBcCoefs::setBcCoefs():\n"
                << "  using incorrect solv::RobinBcCoefStrategy interface." << endl);
+#else
+    setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 #endif
+    return;
+}// setBcCoefs
 
+void
+PressureBcCoefs::setBcCoefs(
+    tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
+    tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
+    const tbox::Pointer<hier::Variable<NDIM> >& variable,
+    const hier::Patch<NDIM>& patch,
+    const hier::BoundaryBox<NDIM>& bdry_box,
+    double fill_time) const
+{
+#if USING_OLD_ROBIN_BC_INTERFACE
+    tbox::Pointer<pdat::ArrayData<NDIM,double> > bcoef_data = NULL;
+    setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+#else
+    TBOX_ERROR("PressureBcCoefs::setBcCoefs():\n"
+               << "  using incorrect solv::RobinBcCoefStrategy interface." << endl);
+#endif
+    return;
+}// setBcCoefs
+
+hier::IntVector<NDIM>
+PressureBcCoefs::numberOfExtensionsFillable() const
+{
+    return 1;
+}// numberOfExtensionsFillable
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+PressureBcCoefs::setBcCoefs_private(
+    tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
+    tbox::Pointer<pdat::ArrayData<NDIM,double> >& bcoef_data,
+    tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
+    const tbox::Pointer<hier::Variable<NDIM> >& variable,
+    const hier::Patch<NDIM>& patch,
+    const hier::BoundaryBox<NDIM>& bdry_box,
+    double fill_time) const
+{
     const hier::Box<NDIM>& patch_box = patch.getBox();
     const hier::Index<NDIM>& patch_lower = patch_box.lower();
     tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
@@ -127,17 +170,7 @@ PressureBcCoefs::setBcCoefs(
         }
     }
     return;
-}// setBcCoefs
-
-hier::IntVector<NDIM>
-PressureBcCoefs::numberOfExtensionsFillable() const
-{
-    return 1;
-}// numberOfExtensionsFillable
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
+}// setBcCoefs_private
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

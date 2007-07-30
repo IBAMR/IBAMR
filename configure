@@ -896,7 +896,7 @@ Optional Features:
                           distribution [default=no]
   --enable-samrai-2d      enable optional support for two-dimensional SAMRAI
                           objects [default=yes]
-  --enable-samrai-3D      enable optional support for three-dimensional SAMRAI
+  --enable-samrai-3d      enable optional support for three-dimensional SAMRAI
                           objects [default=yes]
   --enable-blitz          enable support for the optional Blitz++ library
                           [default=yes]
