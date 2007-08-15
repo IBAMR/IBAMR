@@ -80,8 +80,6 @@ PInit::setDataOnPatch(
 #if (NDIM == 2)
         (*P_data)(i) = -(cos(4.0*M_PI*(X[0]-t)) + cos(4.0*M_PI*(X[1]-t)))*
             exp(-16.0*M_PI*M_PI*d_nu*t);
-        (*P_data)(i) = -(cos(4.0*M_PI*(X[0])) + cos(4.0*M_PI*(X[1])))*
-            exp(-16.0*M_PI*M_PI*d_nu*t);
 #endif
 #if (NDIM == 3)
         const double A = 1.0;
