@@ -518,13 +518,13 @@ main(
 
         math::HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
-        tbox::pout << "Error in " << u_var->getName() << " at time " << loop_time << ":\n"
+        tbox::pout << "Error in u at time " << loop_time << ":\n"
                    << "  L1-norm:  " << hier_cc_data_ops.L1Norm(u_idx,wgt_idx)  << "\n"
                    << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_idx,wgt_idx)  << "\n"
                    << "  max-norm: " << hier_cc_data_ops.maxNorm(u_idx,wgt_idx) << "\n";
 
         hier_cc_data_ops.subtract(p_idx, p_idx, p_cloned_idx);
-        tbox::pout << "Error in " << p_var->getName() << " at time " << loop_time-0.5*dt_old << ":\n"
+        tbox::pout << "Error in p at time " << loop_time-0.5*dt_old << ":\n"
                    << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_idx,wgt_idx)  << "\n"
                    << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_idx,wgt_idx)  << "\n"
                    << "  max-norm: " << hier_cc_data_ops.maxNorm(p_idx,wgt_idx) << "\n";

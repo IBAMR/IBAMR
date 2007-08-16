@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <09.Jul.2007 01:41:35 boyce@bigboy.nyconnect.com>
+// Last modified: <15.Aug.2007 16:14:15 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1891,7 +1891,7 @@ INSHierarchyIntegrator::updatePressure(
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > bdry_fill_op;
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > bdry_fill_alg;
 
-        // XXXXX: WARNING THE FOLLOWING PROBABLY DOESN'T HANDLE ANY PHYSICAL
+        // XXXX: WARNING THE FOLLOWING PROBABLY DOESN'T HANDLE ANY PHYSICAL
         // BOUNDARY CONDITIONS CORRECTLY
 
         // The TGA discretization is:
