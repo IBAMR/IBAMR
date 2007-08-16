@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator2.C
-// Last modified: <16.Aug.2007 00:57:16 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Aug.2007 01:45:05 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator2.h"
@@ -1856,11 +1856,15 @@ INSHierarchyIntegrator2::updatePressure(
     // Ref: McCorquodale, Colella, Johansen.  "A Cartesian grid embedded
     // boundary method for the heat equation on irregular domains." JCP 173,
     // pp. 620-635 (2001)
+    const double a = 2.0 - sqrt(2.0);
+    const double nu1 = 0.5*(a-sqrt(a*a-4.0*a+2.0));
+    const double nu4 = (0.5-a);
+
     if (d_second_order_pressure_update)
     {
-        const double a = 2.0 - sqrt(2.0);
-        const double nu1 = 0.5*(a-sqrt(a*a-4.0*a+2.0));
-        const double nu4 = (0.5-a);
+        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > bdry_fill_op;
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > bdry_fill_alg;
 
         d_helmholtz1_spec->setCConstant(1.0+nu1*dt*d_lambda);
         d_helmholtz1_spec->setDConstant(   -nu1*dt*d_nu    );
@@ -1879,14 +1883,7 @@ INSHierarchyIntegrator2::updatePressure(
             d_helmholtz4_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
             d_helmholtz_solvers_need_init = false;
         }
-    }
 
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > bdry_fill_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > bdry_fill_alg;
-
-    if (d_second_order_pressure_update)
-    {
         // We have to solve an additional Helmholtz problem in order to obtain a
         // formally consistent second order timestepping scheme for the
         // pressure.
@@ -1947,6 +1944,34 @@ INSHierarchyIntegrator2::updatePressure(
         const double P_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(d_P_new_idx, d_wgt_idx);
         d_hier_cc_data_ops->addScalar(d_P_new_idx, d_P_new_idx, -P_mean);
     }
+
+    // Project u^(n,*)->u(n+1) and re-use grad Phi to project
+    // U^(n,*)->U^(n+1).
+    d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
+    d_hier_fc_data_ops->subtract(d_u_scratch_idx, d_u_new_idx, d_u_current_idx);
+    d_hier_projector->projectHierarchy(
+        d_rho, dt,
+        d_u_scratch_idx  , d_u_var       , // u(n+1)  XXXX
+        d_Phi_scratch_idx, d_Phi_var     , // Phi
+        d_rscheds["Phi->Phi::S->S::CONSTANT_REFINE"],
+        current_time,                      // Phi data time
+        d_grad_Phi_idx   , d_grad_Phi_var, // grad Phi
+        d_u_scratch_idx  , d_u_var       , // u(n+1,*)  XXXX
+        d_rscheds["NONE"],                 // no fill needed
+        current_time,                      // u_scratch data time
+        false,                             // do not synch u(n+1,*) coarse-fine bdry
+        d_Q_new_idx, d_Q_var);             // div u(n+1)  XXXX
+    d_hier_fc_data_ops->add(d_u_new_idx, d_u_scratch_idx, d_u_current_idx);
+
+    d_hier_math_ops->interp(
+        d_Grad_Phi_idx, d_Grad_Phi_var, // dst
+        d_grad_Phi_idx, d_grad_Phi_var, // src
+        d_rscheds["NONE"],              // no fill needed
+        current_time,                   // data time
+        false);                         // do not synch grad Phi coarse-fine bdry
+
+    d_hier_cc_data_ops->axpy(d_U_new_idx, -dt/d_rho, d_Grad_Phi_idx, d_U_new_idx);
+    d_hier_cc_data_ops->add(d_P_new_idx, d_P_new_idx, d_Phi_scratch_idx);
 
     // Reset the values of P(n-1/2) and Phi(n-1/2) during the initial timestep.
     if (override_current_pressure)
