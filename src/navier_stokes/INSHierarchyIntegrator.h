@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <09.Jul.2007 01:40:41 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Aug.2007 19:38:30 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -998,14 +998,14 @@ private:
     bool d_enforce_velocity_bc_only_for_irregular_cells;
 
     /*
-     * This boolean value determines whether a pressure increment is employed to
-     * update the pressure (i.e., as in the Bell-Collela-Glaz algorithm).
+     * The types of projections to use for the velocity and pressure.
      *
-     * Note that the pressure increment form of the projection algorithm is
-     * generally NOT stable for IB computations.  Therefore, the recommended
-     * value is `false'.
+     * Choices are: ``pressure_increment'' and ``pressure_update''.
+     *
+     * NOTE: If the velocity and pressure projection types may be different.
      */
-    bool d_using_pressure_increment_form;
+    std::string d_velocity_projection_type, d_pressure_projection_type;
+    bool d_using_hybrid_projection;
 
     /*
      * This boolean value determines whether the pressure update is second-order
@@ -1221,10 +1221,9 @@ private:
     int d_irregular_cell_idx;
 
     /*
-     * Solvers and other data required by the hybrid projection.
+     * Solvers and other data required by the hybrid projection or the
+     * second-order pressure update.
      */
-    bool d_using_hybrid_projection;
-
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_helmholtz_sol_vec, d_helmholtz_rhs_vec;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_helmholtz_sol_var, d_helmholtz_rhs_var;
     int d_helmholtz_sol_idx, d_helmholtz_rhs_idx;

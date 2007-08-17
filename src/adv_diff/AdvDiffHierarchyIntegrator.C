@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <09.Jul.2007 00:10:25 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Aug.2007 22:54:22 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -1402,6 +1402,12 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
             if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
             if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
+
+            if (helmholtz_solver->getNumIterations() == helmholtz_solver->getMaxIterations())
+            {
+                SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
+                                   <<"  WARNING: linear solver iterations == max iterations\n";
+            }
         }
         else if (d_viscous_timestepping_type == "TGA")
         {
@@ -1412,6 +1418,12 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve #1 number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
             if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve #1 residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
 
+            if (helmholtz_solver->getNumIterations() == helmholtz_solver->getMaxIterations())
+            {
+                SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
+                                   <<"  WARNING: linear solver iterations == max iterations\n";
+            }
+
             helmholtz_op->setTime(new_time);
             if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
             d_rhs_vecs[l]->copyVector(d_sol_vecs[l]);
@@ -1420,6 +1432,12 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
             if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve #2 number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
             if (d_do_log) SAMRAI::tbox::plog << "AdvDiffHierarchyIntegrator::integrateHierarchy(): linear solve #2 residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
+
+            if (helmholtz_solver->getNumIterations() == helmholtz_solver->getMaxIterations())
+            {
+                SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
+                                   <<"  WARNING: linear solver iterations == max iterations\n";
+            }
         }
         else
         {

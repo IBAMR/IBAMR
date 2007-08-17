@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <15.Aug.2007 17:51:10 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Aug.2007 22:53:19 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -391,6 +391,12 @@ HierarchyProjector::projectHierarchy(
     if (d_do_log) SAMRAI::tbox::plog << "HierarchyProjector::projectHierarchy(): number of iterations = " << d_poisson_solver->getNumIterations() << "\n";
     if (d_do_log) SAMRAI::tbox::plog << "HierarchyProjector::projectHierarchy(): residual norm        = " << d_poisson_solver->getResidualNorm()  << "\n";
 
+    if (d_poisson_solver->getNumIterations() == d_poisson_solver->getMaxIterations())
+    {
+        SAMRAI::tbox::pout << d_object_name << "::projectHierarchy():"
+                           <<"  WARNING: linear solver iterations == max iterations\n";
+    }
+
     // Deallocate data used to store f = (rho/dt)*(Q - div w).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -470,6 +476,12 @@ HierarchyProjector::projectHierarchy(
     d_poisson_solver->solveSystem(sol_vec,rhs_vec);
     if (d_do_log) SAMRAI::tbox::plog << "HierarchyProjector::projectHierarchy(): number of iterations = " << d_poisson_solver->getNumIterations() << "\n";
     if (d_do_log) SAMRAI::tbox::plog << "HierarchyProjector::projectHierarchy(): residual norm        = " << d_poisson_solver->getResidualNorm()  << "\n";
+
+    if (d_poisson_solver->getNumIterations() == d_poisson_solver->getMaxIterations())
+    {
+        SAMRAI::tbox::pout << d_object_name << "::projectHierarchy():"
+                           <<"  WARNING: linear solver iterations == max iterations\n";
+    }
 
     // Deallocate data used to store f = (rho/dt)*(Q - div w).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

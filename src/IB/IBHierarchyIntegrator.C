@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <08.Jul.2007 22:55:02 boyce@bigboy.nyconnect.com>
+// Last modified: <16.Aug.2007 18:58:03 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -311,7 +311,7 @@ IBHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
     }
 #endif
     d_U_bc_coefs = U_bc_coefs;
-    assert(false);
+    SAMRAI::tbox::pout << "FIX THIS!!!!!\n";  // XXXX
     //d_ins_hier_integrator->registerVelocityPhysicalBcCoefs(d_U_bc_coefs);
     return;
 }// registerVelocityPhysicalBcCoefs

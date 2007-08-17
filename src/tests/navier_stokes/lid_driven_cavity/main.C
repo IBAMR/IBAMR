@@ -352,7 +352,7 @@ main(
                 "INSHierarchyIntegrator",
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
-        // XXXX time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs); XXXX
+        time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
