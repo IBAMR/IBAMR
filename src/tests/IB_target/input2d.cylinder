@@ -94,6 +94,8 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
+   velocity_projection_type = "pressure_increment"
+   pressure_projection_type = "pressure_update"
    using_synch_projection = FALSE
    second_order_pressure_update = FALSE
    normalize_pressure = FALSE
@@ -103,10 +105,12 @@ INSHierarchyIntegrator {
 }
 
 GodunovAdvector {
-   limiter_type = MUSCL_LIMITED
+   limiter_type = FOURTH_ORDER
 }
 
 AdvDiffHierarchyIntegrator {
+   viscous_timestepping_type = "TGA"
+
    enable_logging = TRUE
 
    tag_buffer = 1
