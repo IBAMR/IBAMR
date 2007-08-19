@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <16.Aug.2007 19:38:30 griffith@box221.cims.nyu.edu>
+// Last modified: <18.Aug.2007 18:33:27 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1010,8 +1010,13 @@ private:
     /*
      * This boolean value determines whether the pressure update is second-order
      * accurate in time.
+     *
+     * The string indicates the type of viscous timestepping scheme that is
+     * being employed; its value is provided by class
+     * AdvDiffHierarchyIntegrator.
      */
     bool d_second_order_pressure_update;
+    std::string d_viscous_timestepping_type;
 
     /*
      * This boolean value determines whether the pressure is normalized to have
@@ -1166,7 +1171,6 @@ private:
     int d_u_current_idx, d_u_new_idx, d_u_scratch_idx;
 
     int d_P_current_idx, d_P_new_idx, d_P_scratch_idx;
-    int d_Phi_current_idx, d_Phi_new_idx, d_Phi_scratch_idx;
     int d_F_current_idx, d_F_new_idx, d_F_scratch_idx;
     int d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx;
 
@@ -1187,7 +1191,7 @@ private:
      *
      * Scratch variables have only one context.
      */
-    int d_Grad_Phi_idx, d_grad_Phi_idx, d_G_idx, d_H_idx, d_V_idx;
+    int d_Phi_idx, d_Grad_Phi_idx, d_grad_Phi_idx, d_G_idx, d_H_idx, d_V_idx;
 
     /*
      * Patch data descriptors for all variables managed by the
@@ -1221,21 +1225,27 @@ private:
     int d_irregular_cell_idx;
 
     /*
-     * Solvers and other data required by the hybrid projection or the
-     * second-order pressure update.
+     * Data required by the hybrid projection scheme or by the second-order
+     * pressure update.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_helmholtz_sol_vec, d_helmholtz_rhs_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_helmholtz_sol_var, d_helmholtz_rhs_var;
-    int d_helmholtz_sol_idx, d_helmholtz_rhs_idx;
-
-    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>           d_helmholtz1_op    , d_helmholtz4_op    ;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_helmholtz1_spec  , d_helmholtz4_spec  ;
-    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_helmholtz1_solver, d_helmholtz4_solver;
-    bool d_helmholtz_solvers_need_init;
+    int d_poisson_max_iterations;
+    double d_poisson_abs_residual_tol, d_poisson_rel_residual_tol;
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var;
     int d_sol_idx, d_rhs_idx;
+
+    /*
+     * Data required by the second-order pressure update when we are using the
+     * TGA time discretization for the viscous terms.
+     */
+    int d_helmholtz_max_iterations;
+    double d_helmholtz_abs_residual_tol, d_helmholtz_rel_residual_tol;
+
+    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>           d_helmholtz_op    ;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_helmholtz_spec  ;
+    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_helmholtz_solver;
+    bool d_helmholtz_solver_needs_init;
 };
 }// namespace IBAMR
 

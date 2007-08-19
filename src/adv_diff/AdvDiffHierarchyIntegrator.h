@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <08.Jul.2007 23:47:08 boyce@bigboy.nyconnect.com>
+// Last modified: <18.Aug.2007 15:57:39 griffith@box221.cims.nyu.edu>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -109,6 +109,22 @@ public:
      */
     const std::string&
     getName() const;
+
+    /*!
+     * Return the type of viscous time integration scheme being employed by the
+     * advection-diffusion solver.
+     *
+     * At the present time, valid time integration schemes include:
+     *
+     *    - "TGA"
+     *    - "CRANK-NICOLSON"
+     *    - "BACKWARD-EULER"
+     *
+     * \note The choice of time integration scheme employed by the solver is set
+     * via the input database provided to the class constructor.
+     */
+    const std::string&
+    getViscousTimesteppingType() const;
 
     /*!
      * Register a VisIt data writer so this class will write plot files that may

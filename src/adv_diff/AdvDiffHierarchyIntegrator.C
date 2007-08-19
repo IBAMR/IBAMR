@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <16.Aug.2007 22:54:22 griffith@box221.cims.nyu.edu>
+// Last modified: <18.Aug.2007 15:57:17 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -288,6 +288,12 @@ AdvDiffHierarchyIntegrator::getName() const
 {
     return d_object_name;
 }// getName
+
+const std::string&
+AdvDiffHierarchyIntegrator::getViscousTimesteppingType() const
+{
+    return d_viscous_timestepping_type;
+}// getViscousTimesteppingType
 
 void
 AdvDiffHierarchyIntegrator::registerVisItDataWriter(
