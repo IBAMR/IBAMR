@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <20.Aug.2007 23:52:43 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Aug.2007 15:37:28 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1021,7 +1021,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_current_data, F_data[ln], X_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
-#if 0  // XXXX
+#if 1  // XXXX
                 // WARNING: The following code ALWAYS assumes that physical
                 // boundaries are reflection boundaries.
                 if (pgeom->getTouchesRegularBoundary())
@@ -1162,7 +1162,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
-#if 0  // XXXX
+#if 1  // XXXX
                 // WARNING: the following code ALWAYS assumes that physical
                 // boundaries are reflection boundaries.
                 if (pgeom->getTouchesRegularBoundary())
