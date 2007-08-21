@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <18.Aug.2007 20:06:27 griffith@box221.cims.nyu.edu>
+// Last modified: <20.Aug.2007 18:29:48 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -676,8 +676,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (!d_F_div_var.isNull())
     {
-        registerVariable(d_F_div_current_idx, d_F_div_new_idx,
-                         d_F_div_scratch_idx,
+        registerVariable(d_F_div_current_idx, d_F_div_new_idx, d_F_div_scratch_idx,
                          d_F_div_var, cell_ghosts,
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
@@ -691,8 +690,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (!d_Omega_var.isNull())
     {
-        registerVariable(d_Omega_current_idx, d_Omega_new_idx,
-                         d_Omega_scratch_idx,
+        registerVariable(d_Omega_current_idx, d_Omega_new_idx, d_Omega_scratch_idx,
                          d_Omega_var, cell_ghosts,
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
@@ -712,8 +710,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (!d_Div_U_var.isNull())
     {
-        registerVariable(d_Div_U_current_idx, d_Div_U_new_idx,
-                         d_Div_U_scratch_idx,
+        registerVariable(d_Div_U_current_idx, d_Div_U_new_idx, d_Div_U_scratch_idx,
                          d_Div_U_var, cell_ghosts,
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
@@ -727,8 +724,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (!d_Div_u_var.isNull())
     {
-        registerVariable(d_Div_u_current_idx, d_Div_u_new_idx,
-                         d_Div_u_scratch_idx,
+        registerVariable(d_Div_u_current_idx, d_Div_u_new_idx, d_Div_u_scratch_idx,
                          d_Div_u_var, cell_ghosts,
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
@@ -742,8 +738,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (!d_Div_u_adv_var.isNull())
     {
-        registerVariable(d_Div_u_adv_current_idx, d_Div_u_adv_new_idx,
-                         d_Div_u_adv_scratch_idx,
+        registerVariable(d_Div_u_adv_current_idx, d_Div_u_adv_new_idx, d_Div_u_adv_scratch_idx,
                          d_Div_u_adv_var, cell_ghosts,
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
@@ -927,23 +922,23 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     refine_operator = grid_geom->lookupRefineOperator(
         d_grad_Phi_var, "CONSERVATIVE_LINEAR_REFINE");
     d_ralgs["grad_Phi->grad_Phi::CONSERVATIVE_LINEAR_REFINE"]->
-        registerRefine(d_grad_Phi_idx,      // destination
-                       d_grad_Phi_idx,      // source
-                       d_u_adv_scratch_idx, // temporary work space
+        registerRefine(d_grad_Phi_idx, // destination
+                       d_grad_Phi_idx, // source
+                       d_grad_Phi_idx, // temporary work space
                        refine_operator);
     d_rstrategies["grad_Phi->grad_Phi::CONSERVATIVE_LINEAR_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_u_adv_scratch_idx, "LINEAR");
+        new STOOLS::CartExtrapPhysBdryOp(d_grad_Phi_idx, "LINEAR");
 
-    d_ralgs["G->H::S->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    d_ralgs["V->V::S->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
         d_G_var, "CONSTANT_REFINE");
-    d_ralgs["G->H::S->S::CONSTANT_REFINE"]->
-        registerRefine(d_H_idx, // destination
-                       d_G_idx, // source
-                       d_H_idx, // temporary work space
+    d_ralgs["V->V::S->S::CONSTANT_REFINE"]->
+        registerRefine(d_V_idx, // destination
+                       d_V_idx, // source
+                       d_V_idx, // temporary work space
                        refine_operator);
-    d_rstrategies["G->H::S->S::CONSTANT_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_H_idx, "LINEAR");
+    d_rstrategies["V->V::S->S::CONSTANT_REFINE"] =
+        new STOOLS::CartRobinPhysBdryOp(d_V_idx, d_U_bc_coefs, true);
 
     d_ralgs["predictAdvectionVelocity"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     std::vector<SAMRAI::xfer::RefinePatchStrategy<NDIM>*> refine_strategy_set;
@@ -1047,6 +1042,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
         d_helmholtz_op = new STOOLS::CCLaplaceOperator(d_object_name+"::helmholtz_op",*d_helmholtz_spec,NULL);
+        d_helmholtz_op->setPhysicalBcCoef(d_hier_projector->getPhysicalBcCoef());
         d_helmholtz_solver = new STOOLS::PETScKrylovLinearSolver(d_object_name+"::helmholtz_solver", "adv_diff_");
         d_helmholtz_solver->setMaxIterations(d_helmholtz_max_iterations);
         d_helmholtz_solver->setAbsoluteTolerance(d_helmholtz_abs_residual_tol);
@@ -1900,17 +1896,17 @@ INSHierarchyIntegrator::updatePressure(
                        << "  this statement should not be reached.");
         }
 
-        // Set G to equal (+/-)(dt/rho) Grad P~.
+        // Set V to equal (+/-)(dt/rho) Grad P~.
         //
         // NOTE: d_Grad_P_current_idx stores the value -(1/rho)*Grad P(n-1/2).
-        d_hier_cc_data_ops->scale(d_G_idx, -sgn*dt, d_Grad_P_current_idx);
+        d_hier_cc_data_ops->scale(d_V_idx, -sgn*dt, d_Grad_P_current_idx);
 
         // Compute rhs = (rho/dt)*div delta u^{*}.
         d_hier_math_ops->div(
             d_rhs_idx, d_rhs_var, // dst
             -d_rho/dt,            // alpha
-            d_H_idx, d_H_var,     // src1
-            d_rscheds["G->H::S->S::CONSTANT_REFINE"],
+            d_V_idx, d_V_var,     // src1
+            d_rscheds["V->V::S->S::CONSTANT_REFINE"],
             current_time);        // src1_bdry_fill_time
 
         // Set the initial guess for delta Phi = Phi~ - Phi.
@@ -2017,6 +2013,7 @@ INSHierarchyIntegrator::updatePressure(
             d_helmholtz_spec->setCConstant(1.0-nu4*dt*d_lambda);
             d_helmholtz_spec->setDConstant(   +nu4*dt*d_nu);
             d_helmholtz_op->setPoissonSpecifications(*d_helmholtz_spec);
+            d_helmholtz_op->setPhysicalBcCoef(d_hier_projector->getPhysicalBcCoef());
             d_helmholtz_op->setTime(0.5*(current_time+new_time));
             d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 

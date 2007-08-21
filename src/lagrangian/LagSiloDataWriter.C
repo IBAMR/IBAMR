@@ -1,5 +1,5 @@
 // Filename: LagSiloDataWriter.C
-// Last modified: <25.Jun.2007 00:47:09 griffith@box221.cims.nyu.edu>
+// Last modified: <20.Aug.2007 19:04:32 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagSiloDataWriter.h"
@@ -1136,11 +1136,11 @@ LagSiloDataWriter::writePlotData(
             PETSC_SAMRAI_ERROR(ierr);
 
             Vec& global_X_vec = d_coords_data[ln]->getGlobalVec();
-            ierr = VecScatterBegin(global_X_vec, local_X_vec, INSERT_VALUES,
-                                   SCATTER_FORWARD, d_vec_scatter[ln][NDIM]);
+            ierr = VecScatterBegin(d_vec_scatter[ln][NDIM], global_X_vec, local_X_vec,
+                                   INSERT_VALUES, SCATTER_FORWARD);
             PETSC_SAMRAI_ERROR(ierr);
-            ierr = VecScatterEnd(global_X_vec, local_X_vec, INSERT_VALUES,
-                                 SCATTER_FORWARD, d_vec_scatter[ln][NDIM]);
+            ierr = VecScatterEnd(d_vec_scatter[ln][NDIM], global_X_vec, local_X_vec,
+                                 INSERT_VALUES, SCATTER_FORWARD);
             PETSC_SAMRAI_ERROR(ierr);
 
             double* local_X_arr;
@@ -1158,11 +1158,11 @@ LagSiloDataWriter::writePlotData(
                 PETSC_SAMRAI_ERROR(ierr);
 
                 Vec& global_v_vec = d_var_data[ln][v]->getGlobalVec();
-                ierr = VecScatterBegin(global_v_vec, local_v_vec, INSERT_VALUES,
-                                       SCATTER_FORWARD, d_vec_scatter[ln][var_depth]);
+                ierr = VecScatterBegin(d_vec_scatter[ln][var_depth], global_v_vec, local_v_vec,
+                                       INSERT_VALUES, SCATTER_FORWARD);
                 PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecScatterEnd(global_v_vec, local_v_vec, INSERT_VALUES,
-                                     SCATTER_FORWARD, d_vec_scatter[ln][var_depth]);
+                ierr = VecScatterEnd(d_vec_scatter[ln][var_depth], global_v_vec, local_v_vec,
+                                     INSERT_VALUES, SCATTER_FORWARD);
                 PETSC_SAMRAI_ERROR(ierr);
 
                 double* local_v_arr;

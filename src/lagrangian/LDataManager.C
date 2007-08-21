@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <25.Jun.2007 01:10:40 griffith@box221.cims.nyu.edu>
+// Last modified: <20.Aug.2007 19:04:27 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -1164,9 +1164,8 @@ LDataManager::endDataRedistribution(
                     PETSC_SAMRAI_ERROR(ierr);
                 }
 
-                ierr = VecScatterBegin(src[ln][i], dst[ln][i],
-                                       INSERT_VALUES, SCATTER_FORWARD,
-                                       scatter[ln][i]);
+                ierr = VecScatterBegin(scatter[ln][i], src[ln][i], dst[ln][i],
+                                       INSERT_VALUES, SCATTER_FORWARD);
                 PETSC_SAMRAI_ERROR(ierr);
             }
         }// if (d_level_contains_lag_data[ln])
@@ -1188,9 +1187,8 @@ LDataManager::endDataRedistribution(
             {
                 SAMRAI::tbox::Pointer<LNodeLevelData> data = (*it).second;
 
-                ierr = VecScatterEnd(src[ln][i], dst[ln][i],
-                                     INSERT_VALUES, SCATTER_FORWARD,
-                                     scatter[ln][i]);
+                ierr = VecScatterEnd(scatter[ln][i], src[ln][i], dst[ln][i],
+                                     INSERT_VALUES, SCATTER_FORWARD);
                 PETSC_SAMRAI_ERROR(ierr);
                 ierr = VecScatterDestroy(scatter[ln][i]);
                 PETSC_SAMRAI_ERROR(ierr);
@@ -2280,10 +2278,10 @@ LDataManager::scatterData(
                             PETSC_NULL, &vec_scatter);  PETSC_SAMRAI_ERROR(ierr);
 
     // Scatter the values.
-    ierr = VecScatterBegin(petsc_vec, lagrangian_vec, INSERT_VALUES,
-                           mode, vec_scatter);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecScatterEnd(petsc_vec, lagrangian_vec, INSERT_VALUES,
-                         mode, vec_scatter);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecScatterBegin(vec_scatter, petsc_vec, lagrangian_vec,
+                           INSERT_VALUES, mode);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecScatterEnd(vec_scatter, petsc_vec, lagrangian_vec,
+                         INSERT_VALUES, mode);  PETSC_SAMRAI_ERROR(ierr);
 
     // Cleanup allocated data.
     ierr = ISDestroy(petsc_is);  PETSC_SAMRAI_ERROR(ierr);
