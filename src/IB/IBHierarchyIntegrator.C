@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <17.Aug.2007 15:29:58 griffith@box221.cims.nyu.edu>
+// Last modified: <20.Aug.2007 23:52:43 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1021,7 +1021,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_current_data, F_data[ln], X_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
-
+#if 0  // XXXX
                 // WARNING: The following code ALWAYS assumes that physical
                 // boundaries are reflection boundaries.
                 if (pgeom->getTouchesRegularBoundary())
@@ -1031,6 +1031,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                         patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                         d_delta_fcn);
                 }
+#endif
             }
 
             // 4. Compute X~(n+1), the preliminary structure configuration at
@@ -1161,7 +1162,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
-
+#if 0  // XXXX
                 // WARNING: the following code ALWAYS assumes that physical
                 // boundaries are reflection boundaries.
                 if (pgeom->getTouchesRegularBoundary())
@@ -1171,6 +1172,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                         patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                         d_delta_fcn);
                 }
+#endif
             }
         }
     }
@@ -1589,7 +1591,7 @@ IBHierarchyIntegrator::regridHierarchy()
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
     d_lag_data_manager->updateWorkloadData(
         0,d_hierarchy->getFinestLevelNumber());
-#if 0
+#if 0  // XXXX
     // Update the irregular cell data post-regridding.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): tagging irregular cells.\n";
     const int stencil_size = LEInteractor::getStencilSize(d_delta_fcn);
