@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <20.Aug.2007 18:29:48 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Aug.2007 00:04:23 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1439,10 +1439,12 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
         d_hier_cc_data_ops->axpy(d_U_current_idx, -dt/d_rho, d_Grad_Phi_idx, d_U_current_idx);
 
+#if 0 // XXXX
         resetCellVelocityBoundaryConditions(
             d_U_current_idx, current_time,
             d_cscheds["SYNCH_CURRENT_VELOCITY_DATA"],
             coarsest_ln, finest_ln);
+#endif
 
         d_reproject_after_regrid = false;
     }
@@ -1450,11 +1452,13 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     // Initialize the advection velocity to equal u(n).
     d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
 
+#if 0 // XXXX
     // Reset the advection velocity boundary conditions.
     resetMACVelocityBoundaryConditions(
         d_u_adv_current_idx, current_time,
         d_cscheds["SYNCH_CURRENT_ADVECTION_VELOCITY_DATA"],
         coarsest_ln, finest_ln);
+#endif
 
     // Setup the forcing terms for velocity prediction.
     d_hier_math_ops->grad(
@@ -1537,11 +1541,13 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
     }
 
+#if 0 // XXXX
     // Reset the advection velocity boundary conditions.
     resetMACVelocityBoundaryConditions(
         d_u_adv_current_idx, current_time,
         d_cscheds["SYNCH_CURRENT_ADVECTION_VELOCITY_DATA"],
         coarsest_ln, finest_ln);
+#endif
 
     // Project the advection velocity.
     if (!d_Q_set.isNull())
@@ -1744,10 +1750,12 @@ INSHierarchyIntegrator::projectVelocity(
 
     d_hier_cc_data_ops->axpy(d_U_new_idx, -dt/d_rho, d_Grad_Phi_idx, d_U_new_idx);
 
+#if 0 // XXXX
     resetCellVelocityBoundaryConditions(
         d_U_new_idx, new_time,
         d_cscheds["SYNCH_NEW_VELOCITY_DATA"],
         coarsest_ln, finest_ln);
+#endif
 
     // Optionally compute some auxiliary quantities.
     if (!d_Omega_var.isNull() || !d_Div_U_var.isNull())
