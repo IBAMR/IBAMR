@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <21.Aug.2007 15:37:28 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Aug.2007 18:10:03 boyce@bigboy.nyconnect.com>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2764,6 +2764,10 @@ IBHierarchyIntegrator::getFromRestart()
     db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level+1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
+        d_X_src[ln].resize(d_n_src[ln],std::vector<double>(NDIM,std::numeric_limits<double>::quiet_NaN()));
+        d_r_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
+        d_P_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
+        d_Q_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
         for (int n = 0; n < d_n_src[ln]; ++n)
         {
             std::ostringstream id_stream;
