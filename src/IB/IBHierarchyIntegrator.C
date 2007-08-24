@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <24.Aug.2007 18:10:03 boyce@bigboy.nyconnect.com>
+// Last modified: <24.Aug.2007 18:44:48 boyce@bigboy.nyconnect.com>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1779,7 +1779,9 @@ IBHierarchyIntegrator::initializeLevelData(
         {
             d_source_strategy->getSourceLocations(
                 d_X_src[level_number], d_r_src[level_number],
-                d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,level_number),
+                (d_lag_data_manager->levelContainsLagrangianData(level_number)
+                 ? d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,level_number)
+                 : SAMRAI::tbox::Pointer<LNodeLevelData>(NULL)),
                 hierarchy, level_number, d_integrator_time, d_lag_data_manager);
         }
     }
