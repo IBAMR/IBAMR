@@ -6,7 +6,7 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // physical parameters
-MU = 0.0001
+MU = 0.001
 RHO = 1.0
 
 // grid spacing parameters
@@ -105,7 +105,7 @@ INSHierarchyIntegrator {
    vorticity_rel_thresh = 0.25
 
    output_P = TRUE
-   output_F = FALSE
+   output_F = TRUE
    output_Q = FALSE
 
    output_Omega = TRUE
@@ -249,7 +249,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         =  0, 0          // lower end of computational domain.
    x_up         =  1, 1          // upper end of computational domain.
-   periodic_dimension = 0, 0
+   periodic_dimension = 1, 1
 }
 
 GriddingAlgorithm {

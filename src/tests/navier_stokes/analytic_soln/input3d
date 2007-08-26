@@ -16,6 +16,28 @@ REF_RATIO  = 2   // refinement ratio between levels
 N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
+VelocitySolution {
+   constant_names = "nu" , "A" , "B" , "C"
+   nu = MU/RHO
+   A = 1.0
+   B = 1.0
+   C = 1.0
+
+   function_0 = "1.0 + exp(-4.0*PI*PI*nu*t)*(C*cos(2*PI*(X_1-t)) + A*sin(2*PI*(X_2-t)))"
+   function_1 = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*sin(2*PI*(X_0-t)) + A*cos(2*PI*(X_2-t)))"
+   function_2 = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*cos(2*PI*(X_0-t)) + C*sin(2*PI*(X_1-t)))"
+}
+
+PressureSolution {
+   constant_names = "nu" , "A" , "B" , "C"
+   nu = MU/RHO
+   A = 1.0
+   B = 1.0
+   C = 1.0
+
+   function = "-exp(-8.0*PI*PI*nu*t)*(A*C*cos(2*PI*(X_1-t))*sin(2*PI*(X_2-t)) + A*B*sin(2*PI*(X_0-t))*cos(2*PI*(X_2-t)) + B*C*cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))"
+}
+
 INSHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 1.0e0    // final simulation time
@@ -45,8 +67,8 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   normalize_pressure = TRUE
    second_order_pressure_update = FALSE
+   normalize_pressure = TRUE
 
    num_cycles = 1
    num_init_cycles = 5

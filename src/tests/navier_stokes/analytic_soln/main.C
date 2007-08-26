@@ -31,11 +31,11 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/INSHierarchyIntegrator.h>
-
-#include "PInit.h"
-#include "UInit.h"
+#include <stools/muParserDataSetter.h>
+#include <stools/muParserRobinBcCoefs.h>
 
 using namespace IBAMR;
+using namespace STOOLS;
 using namespace SAMRAI;
 using namespace std;
 
@@ -255,16 +255,6 @@ main(
         }
 
         /*
-         * Create initial condition specification objects.
-         */
-        const double rho = input_db->getDatabase("INSHierarchyIntegrator")->getDouble("rho");
-        const double mu  = input_db->getDatabase("INSHierarchyIntegrator")->getDouble("mu" );
-        const double nu  = mu/rho;
-
-        UInit u_init("UInit", nu);
-        PInit p_init("PInit", nu);
-
-        /*
          * Create major algorithm and data objects which comprise the
          * application.  Each object will be initialized either from input data
          * or restart files, or a combination of both.  Refer to each class
@@ -303,10 +293,6 @@ main(
                 "INSHierarchyIntegrator",
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
-        time_integrator->registerVelocityInitialConditions(
-            tbox::Pointer<SetDataStrategy>(&u_init,false));
-        time_integrator->registerPressureInitialConditions(
-            tbox::Pointer<SetDataStrategy>(&p_init,false));
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -327,6 +313,59 @@ main(
                 "GriddingAlgorithm",
                 input_db->getDatabase("GriddingAlgorithm"),
                 error_detector, box_generator, load_balancer);
+
+        /*
+         * Create initial condition specification objects.
+         */
+        tbox::Pointer<SetDataStrategy> u_init = new muParserDataSetter(
+            "u_init", input_db->getDatabase("VelocitySolution"), grid_geometry);
+        tbox::Pointer<SetDataStrategy> p_init = new muParserDataSetter(
+            "p_init", input_db->getDatabase("PressureSolution"), grid_geometry);
+
+        time_integrator->registerVelocityInitialConditions(u_init);
+        time_integrator->registerPressureInitialConditions(p_init);
+
+        /*
+         * Create boundary condition specification objects (when necessary).
+         */
+        vector<const solv::RobinBcCoefStrategy<NDIM>*> u_bc_coefs;
+        solv::RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
+
+        const hier::IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
+        const bool periodic_domain = periodic_shift.min() != 0;
+        if (!periodic_domain)
+        {
+            for (int d = 0; d < NDIM; ++d)
+            {
+                ostringstream bc_coefs_name_stream;
+                bc_coefs_name_stream << "u_bc_coefs_" << d;
+                const string bc_coefs_name = bc_coefs_name_stream.str();
+
+                ostringstream bc_coefs_db_name_stream;
+                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
+                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+
+                u_bc_coefs.push_back(
+                    new muParserRobinBcCoefs(
+                        bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry));
+            }
+
+            phi_bc_coef = new muParserRobinBcCoefs(
+                "phi_bc_coef", input_db->getDatabase("PhiBcCoef"), grid_geometry);
+
+            time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
+            hier_projector->setPhysicalBcCoef(phi_bc_coef);
+        }
+
+        /*
+         * Create body force function specification objects (when necessary).
+         */
+        if (input_db->keyExists("ForcingFunction"))
+        {
+            tbox::Pointer<SetDataStrategy> f_set = new muParserDataSetter(
+                "f_set", input_db->getDatabase("ForcingFunction"), grid_geometry);
+            time_integrator->registerBodyForceSpecification(f_set);
+        }
 
         /*
          * Set up visualization plot file writer.
@@ -421,7 +460,6 @@ main(
             t_advance_hierarchy->start();
             dt_old = dt_now;
             double dt_new = time_integrator->advanceHierarchy(dt_now);
-            tbox::MPI::barrier();
             t_advance_hierarchy->stop();
 
             loop_time += dt_now;
@@ -508,8 +546,8 @@ main(
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(p_cloned_idx, loop_time);
         }
 
-        u_init.setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
-        p_init.setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time-0.5*dt_old);
+        u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
+        p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time-0.5*dt_old);
 
         STOOLS::HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
         hier_math_ops.setPatchHierarchy(patch_hierarchy);
@@ -517,6 +555,14 @@ main(
         const int wgt_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
         math::HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+
+        if (true) //(normalize_pressure)  XXXX
+        {
+            const double volume = hier_math_ops.getVolumeOfPhysicalDomain();
+            const double p_mean = (1.0/volume)*hier_cc_data_ops.integral(p_cloned_idx, wgt_idx);
+            hier_cc_data_ops.addScalar(p_cloned_idx, p_cloned_idx, -p_mean);
+        }
+
         hier_cc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
         tbox::pout << "Error in u at time " << loop_time << ":\n"
                    << "  L1-norm:  " << hier_cc_data_ops.L1Norm(u_idx,wgt_idx)  << "\n"
@@ -539,6 +585,19 @@ main(
             }
         }
 
+        /*
+         * Cleanup boundary condition specification objects (when necessary).
+         */
+        if (!periodic_domain)
+        {
+            for (vector<const solv::RobinBcCoefStrategy<NDIM>*>::const_iterator cit = u_bc_coefs.begin();
+                 cit != u_bc_coefs.end(); ++cit)
+            {
+                delete (*cit);
+            }
+
+            delete phi_bc_coef;
+        }
     }// cleanup all smart Pointers prior to shutdown
 
     tbox::SAMRAIManager::shutdown();
