@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <18.Aug.2007 18:33:27 griffith@box221.cims.nyu.edu>
+// Last modified: <26.Aug.2007 21:25:58 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -163,19 +163,6 @@ public:
     void
     registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
-
-    /*!
-     * Supply an optional patch data descriptor for cell data indicating the
-     * locations of irregular Cartesian grid cells, i.e., those Cartesian grid
-     * cells within the stencil of the regularized delta function centered about
-     * a node of the Lagrangian mesh.
-     *
-     * \note Irregular cell data is not used by class INSHierarchyIntegrator
-     * unless a valid patch data descriptor index is provided via this method.
-     */
-    void
-    registerIrregularCellPatchDescriptorIndex(
-        const int irregular_cell_idx);
 
     ///
     ///  The following routines:
@@ -825,28 +812,6 @@ private:
         const int finest_ln);
 
     /*!
-     * Reset the cell-centered velocity components along the physical boundary.
-     */
-    void
-    resetCellVelocityBoundaryConditions(
-        const int U_idx,
-        const double time,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& cscheds,
-        const int coarsest_ln,
-        const int finest_ln);
-
-    /*!
-     * Reset the MAC velocity components along the physical boundary.
-     */
-    void
-    resetMACVelocityBoundaryConditions(
-        const int u_idx,
-        const double time,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& cscheds,
-        const int coarsest_ln,
-        const int finest_ln);
-
-    /*!
      * Read input values, indicated above, from given database.  The boolean
      * argument is_from_restart should be set to true if the simulation is
      * beginning from restart.  Otherwise it should be set to false.
@@ -988,14 +953,6 @@ private:
     bool d_using_vorticity_tagging;
     SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
     double d_Omega_max;
-
-    /*
-     * These boolean values determine whether the boundary conditions for the
-     * normal and/or tangential cell centered velocity components are explicitly
-     * enforced at the physical boundaries of the domain.
-     */
-    bool d_enforce_normal_velocity_bc, d_enforce_tangential_velocity_bc;
-    bool d_enforce_velocity_bc_only_for_irregular_cells;
 
     /*
      * The types of projections to use for the velocity and pressure.
@@ -1144,9 +1101,9 @@ private:
     /*!
      * State and temporary variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_var, d_F_var, d_F_div_var, d_Q_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Grad_P_var, d_G_var, d_H_var, d_V_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var, d_Phi_var, d_Grad_Phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_var, d_V_var, d_F_U_var, d_F_var, d_F_div_var, d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var, d_Grad_P_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var, d_Grad_Phi_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_var, d_u_adv_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_grad_Phi_var;
@@ -1191,7 +1148,7 @@ private:
      *
      * Scratch variables have only one context.
      */
-    int d_Phi_idx, d_Grad_Phi_idx, d_grad_Phi_idx, d_G_idx, d_H_idx, d_V_idx;
+    int d_Grad_P_idx, d_Phi_idx, d_Grad_Phi_idx, d_grad_Phi_idx, d_V_idx;
 
     /*
      * Patch data descriptors for all variables managed by the
@@ -1204,9 +1161,8 @@ private:
      * NO_FILL variables have only one context.
      */
     int d_U_current_idx,     d_U_new_idx,     d_U_scratch_idx;
+    int d_F_U_current_idx,   d_F_U_new_idx,   d_F_U_scratch_idx;
     int d_u_adv_current_idx, d_u_adv_new_idx, d_u_adv_scratch_idx;
-
-    int d_Grad_P_current_idx, d_Grad_P_new_idx, d_Grad_P_scratch_idx;
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
@@ -1217,35 +1173,22 @@ private:
     int d_wgt_idx;
 
     /*
-     * Patch data descriptors for all variables managed by the
-     * IBHierarchyIntegrator class.
-     *
-     * Such variables have only one context.
-     */
-    int d_irregular_cell_idx;
-
-    /*
-     * Data required by the hybrid projection scheme or by the second-order
-     * pressure update.
+     * Data and solvers required by the hybrid projection scheme and/or by the
+     * second-order pressure update.
      */
     int d_poisson_max_iterations;
     double d_poisson_abs_residual_tol, d_poisson_rel_residual_tol;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var;
     int d_sol_idx, d_rhs_idx;
 
-    /*
-     * Data required by the second-order pressure update when we are using the
-     * TGA time discretization for the viscous terms.
-     */
     int d_helmholtz_max_iterations;
     double d_helmholtz_abs_residual_tol, d_helmholtz_rel_residual_tol;
 
-    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>           d_helmholtz_op    ;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_helmholtz_spec  ;
-    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_helmholtz_solver;
-    bool d_helmholtz_solver_needs_init;
+    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>           d_hybrid_helmholtz_op    , d_helmholtz_op    ;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_hybrid_helmholtz_spec  , d_helmholtz_spec  ;
+    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_hybrid_helmholtz_solver, d_helmholtz_solver;
+    bool d_helmholtz_solvers_need_init;
 };
 }// namespace IBAMR
 

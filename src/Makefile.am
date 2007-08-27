@@ -11,7 +11,7 @@ lib_LIBRARIES += libIBAMR3d.a
 endif
 
 ## Dimension-independent library
-libIBAMR_a_LIBADD = advect/fortran/godunov_helpers.o lagrangian/fortran/lagrangian_delta.o
+libIBAMR_a_LIBADD = advect/fortran/godunov_helpers.o adv_diff/libIBAMR_adv_diff_a-TGACoefs.o lagrangian/fortran/lagrangian_delta.o
 libIBAMR_a_SOURCES = # intentionally blank
 
 ## Dimension-dependent libraries

@@ -556,13 +556,6 @@ main(
 
         math::HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
 
-        if (true) //(normalize_pressure)  XXXX
-        {
-            const double volume = hier_math_ops.getVolumeOfPhysicalDomain();
-            const double p_mean = (1.0/volume)*hier_cc_data_ops.integral(p_cloned_idx, wgt_idx);
-            hier_cc_data_ops.addScalar(p_cloned_idx, p_cloned_idx, -p_mean);
-        }
-
         hier_cc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
         tbox::pout << "Error in u at time " << loop_time << ":\n"
                    << "  L1-norm:  " << hier_cc_data_ops.L1Norm(u_idx,wgt_idx)  << "\n"

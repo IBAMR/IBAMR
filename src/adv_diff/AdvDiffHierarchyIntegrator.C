@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <18.Aug.2007 15:57:17 griffith@box221.cims.nyu.edu>
+// Last modified: <26.Aug.2007 20:54:57 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/TGACoefs.h>
 
 // STOOLS INCLUDES
 #include <stools/FACPreconditionerLSWrapper.h>
@@ -1181,12 +1184,6 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> helmholtz_spec = d_helmholtz_specs[l];
         SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
 
-        // Problem coefficients corresponding to the TGA discretization.
-        const double a = 2.0 - sqrt(2.0);
-        const double nu1 = 0.5*(a-sqrt(a*a-4.0*a+2.0));
-        const double nu3 = (1.0-a);
-        const double nu4 = (0.5-a);
-
         if (d_viscous_timestepping_type == "BACKWARD_EULER")
         {
             // The backward Euler discretization is:
@@ -1301,6 +1298,10 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             // Ref: McCorquodale, Colella, Johansen.  "A Cartesian grid embedded
             // boundary method for the heat equation on irregular domains." JCP
             // 173, pp. 620-635 (2001)
+            static const double nu1 = TGACoefs::nu1;
+            static const double nu3 = TGACoefs::nu3;
+            static const double nu4 = TGACoefs::nu4;
+
             intermediate_time = new_time-nu1*dt;
 
             helmholtz_spec->setCConstant(1.0+nu1*dt*lambda);
@@ -1402,6 +1403,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         if (d_viscous_timestepping_type == "BACKWARD_EULER" ||
             d_viscous_timestepping_type == "CRANK_NICOLSON")
         {
+            helmholtz_op->setTime(new_time);
             if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
             helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
             d_hier_cc_data_ops->copyData(Q_new_idx, Q_temp_idx);
