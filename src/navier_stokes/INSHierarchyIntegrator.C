@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <26.Aug.2007 21:42:06 griffith@box221.cims.nyu.edu>
+// Last modified: <27.Aug.2007 00:36:17 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -272,19 +272,31 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 
     // Determine whether we are using a hybrid projection algorithm.
     if (d_velocity_projection_type != "pressure_increment" &&
-        d_velocity_projection_type != "pressure_update")
+        d_velocity_projection_type != "pressure_update" &&
+        d_velocity_projection_type != "modified_pressure_update")
     {
         TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
                    << "  invalid velocity projection type: " << d_velocity_projection_type << "\n"
-                   << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << endl);
+                   << "  valid choices are: ``pressure_increment'' or ``pressure_update'' or ``modified_pressure_update''" << endl);
     }
 
     if (d_pressure_projection_type != "pressure_increment" &&
-        d_pressure_projection_type != "pressure_update")
+        d_pressure_projection_type != "pressure_update" &&
+        d_pressure_projection_type != "modified_pressure_update")
     {
         TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
                    << "  invalid pressure projection type: ``" << d_pressure_projection_type << "''\n"
-                   << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << endl);
+                   << "  valid choices are: ``pressure_increment'' or ``pressure_update'' or ``modified_pressure_update''" << endl);
+    }
+
+    if (d_velocity_projection_type != d_pressure_projection_type)
+    {
+        if (d_velocity_projection_type != "pressure_increment")
+        {
+            TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
+                       << "  invalid hybrid projection configuration.\n"
+                       << "  for hybrid projection, it is required that velocity_projection_type = ``pressure_increment''." << endl);
+        }
     }
 
     d_using_hybrid_projection = d_velocity_projection_type != d_pressure_projection_type;
@@ -881,15 +893,15 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_rstrategies["V->V::S->S::CONSTANT_REFINE"] =
         new STOOLS::CartRobinPhysBdryOp(d_V_idx, d_U_bc_coefs, true);
 
-    d_ralgs["P->P::S->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    d_ralgs["P->P::C->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
         d_P_var, "CONSTANT_REFINE");
-    d_ralgs["P->P::S->S::CONSTANT_REFINE"]->
+    d_ralgs["P->P::C->S::CONSTANT_REFINE"]->
         registerRefine(d_P_scratch_idx, // destination
-                       d_P_scratch_idx, // source
+                       d_P_current_idx, // source
                        d_P_scratch_idx, // temporary work space
                        refine_operator);
-    d_rstrategies["P->P::S->S::CONSTANT_REFINE"] =
+    d_rstrategies["P->P::C->S::CONSTANT_REFINE"] =
         new STOOLS::CartExtrapPhysBdryOp(d_P_scratch_idx, "LINEAR");
 
     d_ralgs["Phi->Phi::S->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
@@ -1012,7 +1024,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Setup hybrid pressure update solvers required for all time
     // discretizations.
-    if (d_using_hybrid_projection)
+    if (d_using_hybrid_projection && d_pressure_projection_type == "pressure_update")
     {
         d_hybrid_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::hybrid_helmholtz_spec");
         d_hybrid_helmholtz_op = new STOOLS::CCLaplaceOperator(d_object_name+"::hybrid_helmholtz_op",*d_hybrid_helmholtz_spec,NULL);
@@ -1021,7 +1033,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         d_hybrid_helmholtz_solver->setMaxIterations(d_helmholtz_max_iterations);
         d_hybrid_helmholtz_solver->setAbsoluteTolerance(d_helmholtz_abs_residual_tol);
         d_hybrid_helmholtz_solver->setRelativeTolerance(d_helmholtz_rel_residual_tol);
-        d_hybrid_helmholtz_solver->setInitialGuessNonzero(false);
+        d_hybrid_helmholtz_solver->setInitialGuessNonzero(true);
         d_hybrid_helmholtz_solver->setOperator(d_hybrid_helmholtz_op);
 
         // Indicate the the solver needs to be initialized.
@@ -1437,12 +1449,11 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
 
     // Initialize the pressure and pressure gradient.
-    d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_current_idx);
     d_hier_math_ops->grad(
         d_Grad_P_idx   , d_Grad_P_var, // dst
         1.0,                           // alpha
         d_P_scratch_idx, d_P_var     , // src
-        d_rscheds["P->P::S->S::CONSTANT_REFINE"],
+        d_rscheds["P->P::C->S::CONSTANT_REFINE"],
         current_time);                 // data time
 
     // Setup the forcing terms for velocity prediction.
@@ -1591,7 +1602,8 @@ INSHierarchyIntegrator::integrateAdvDiff(
     // Setup time-centered forcing terms.
     d_hier_cc_data_ops->setToScalar(d_F_U_current_idx, 0.0);
 
-    if (d_velocity_projection_type == "pressure_increment")
+    if (d_velocity_projection_type == "pressure_increment" ||
+        d_pressure_projection_type == "modified_pressure_update")
     {
         d_hier_cc_data_ops->axpy(d_F_U_current_idx, -(1.0/d_rho), d_Grad_P_idx, d_F_U_current_idx);
     }
@@ -1644,6 +1656,12 @@ INSHierarchyIntegrator::projectVelocity(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     const double dt = new_time - current_time;
+
+    // Set U^{*} = U^{*} + (dt/rho) Grad P(n-1/2), when appropriate.
+    if (d_velocity_projection_type == "modified_pressure_update")
+    {
+        d_hier_cc_data_ops->axpy(d_U_new_idx, +(dt/d_rho), d_Grad_P_idx, d_U_new_idx);
+    }
 
     // Compute Q = div u(n+1).
     if (!d_Q_set.isNull())
@@ -1842,165 +1860,176 @@ INSHierarchyIntegrator::updatePressure(
         scalar_rhs_vec->addComponent(d_rhs_var,d_rhs_idx,d_wgt_idx,d_hier_cc_data_ops);
     }
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > vector_sol_vec, vector_rhs_vec;
-    if (d_using_hybrid_projection || d_second_order_pressure_update)
-    {
-        vector_sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-            d_object_name+"::vector_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-        vector_sol_vec->addComponent(d_V_var,d_V_idx,d_wgt_idx,d_hier_cc_data_ops);
-
-        vector_rhs_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-            d_object_name+"::vector_rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
-        vector_rhs_vec->addComponent(d_F_U_var,d_F_U_scratch_idx,d_wgt_idx,d_hier_cc_data_ops);
-    }
-
     // Update the value of Phi.
     if (d_using_hybrid_projection)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert((d_velocity_projection_type == "pressure_increment" &&
-                d_pressure_projection_type == "pressure_update") ||
-               (d_velocity_projection_type == "pressure_update" &&
-                d_pressure_projection_type == "pressure_increment"));
+        assert(d_velocity_projection_type == "pressure_increment" &&
+               (d_pressure_projection_type == "pressure_update" ||
+                d_pressure_projection_type == "modified_pressure_update"));
 #endif
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        if (d_pressure_projection_type == "pressure_update")
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            level->allocatePatchData(d_F_U_scratch_idx, current_time);
-        }
+            // Allocate scratch data.
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                level->allocatePatchData(d_F_U_scratch_idx, current_time);
+            }
 
-        // Setup the rhs.
-        const double sgn = (d_velocity_projection_type == "pressure_increment" ? 1.0 : -1.0);
-        d_hier_cc_data_ops->scale(d_F_U_scratch_idx, sgn*(dt/d_rho), d_Grad_P_idx);
+            // Setup the rhs and solution vectors.
+            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > vector_sol_vec, vector_rhs_vec;
+            vector_sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+                d_object_name+"::vector_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+            vector_sol_vec->addComponent(d_V_var,d_V_idx,d_wgt_idx,d_hier_cc_data_ops);
 
-        if (d_viscous_timestepping_type == "BACKWARD_EULER")
-        {
-            // The backward Euler discretization is:
-            //
-            //     (I-dt*mu*L(t_new)) Q(n+1) = Q(n) + F(t_avg) dt
-            //
-            // where
-            //
-            //    t_new = (n+1) dt
-            //    t_avg = (t_new+t_old)/2
-            //
-            // Note that for simplicity of implementation, we always use a
-            // timestep-centered forcing term.
-            d_hybrid_helmholtz_spec->setCConstant(1.0+dt*d_lambda);
-            d_hybrid_helmholtz_spec->setDConstant(   -dt*d_nu    );
-        }
-        else if (d_viscous_timestepping_type == "CRANK_NICOLSON")
-        {
-            // The Crank-Nicolson discretization is:
-            //
-            //     (I-0.5*dt*mu*L(t_new)) Q(n+1) = (I+0.5*dt*mu*L(t_old)) Q(n) + F(t_avg) dt
-            //
-            // where
-            //
-            //    t_old = n dt
-            //    t_new = (n+1) dt
-            //    t_avg = (t_new+t_old)/2
-            d_hybrid_helmholtz_spec->setCConstant(1.0+0.5*dt*d_lambda);
-            d_hybrid_helmholtz_spec->setDConstant(   -0.5*dt*d_nu    );
-        }
-        else if (d_viscous_timestepping_type == "TGA")
-        {
-            // The TGA discretization is:
-            //
-            //     (I-nu2*dt*mu*L(t_int)) (I-nu1*dt*mu*L(t_new)) Q(n+1) = [(I+nu3*dt*mu*L(t_old)) Q(n) + (I+nu4*dt*mu*L) F(t_avg) dt]
-            //
-            // where
-            //
-            //    t_old = n dt
-            //    t_new = (n+1) dt
-            //    t_int = t_new - nu1*dt = t_old + (nu2+nu3)*dt
-            //    t_avg = (t_new+t_old)/2 = t_old + (nu1+nu2+nu4)*dt
-            //
-            // Following McCorquodale et al., the coefficients for the TGA
-            // discretization are:
-            //
-            //     nu1 = (a - sqrt(a^2-4*a+2))/2
-            //     nu2 = (a + sqrt(a^2-4*a+2))/2
-            //     nu3 = (1-a)
-            //     nu4 = (0.5-a)
-            //
-            // Note that by choosing a = 2 - sqrt(2), nu1 == nu2.
-            //
-            // Ref: McCorquodale, Colella, Johansen.  "A Cartesian grid embedded
-            // boundary method for the heat equation on irregular domains." JCP
-            // 173, pp. 620-635 (2001)
-            static const double nu1 = TGACoefs::nu1;
-            intermediate_time = new_time-nu1*dt;
-            d_hybrid_helmholtz_spec->setCConstant(1.0+nu1*dt*d_lambda);
-            d_hybrid_helmholtz_spec->setDConstant(   -nu1*dt*d_nu    );
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                       << "  unrecongnized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
-        }
+            vector_rhs_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+                d_object_name+"::vector_rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
+            vector_rhs_vec->addComponent(d_F_U_var,d_F_U_scratch_idx,d_wgt_idx,d_hier_cc_data_ops);
 
-        // Initialize the linear solver.
-        d_hybrid_helmholtz_op->setPoissonSpecifications(*d_hybrid_helmholtz_spec);
-        d_hybrid_helmholtz_op->setPhysicalBcCoefs(d_U_bc_coefs);
-        d_hybrid_helmholtz_op->setHomogeneousBc(true);
-        d_hybrid_helmholtz_op->setTime(new_time);
-        d_hybrid_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
+            d_hier_cc_data_ops->scale(d_V_idx, (dt/d_rho), d_Grad_P_idx);
+            d_hier_cc_data_ops->scale(d_F_U_scratch_idx, (dt/d_rho), d_Grad_P_idx);
 
-        if (!SAMRAI::tbox::Utilities::deq(dt,d_old_dt) || d_helmholtz_solvers_need_init)
-        {
-            d_hybrid_helmholtz_solver->initializeSolverState(*vector_sol_vec,*vector_rhs_vec);
-        }
+            if (d_viscous_timestepping_type == "BACKWARD_EULER")
+            {
+                // The backward Euler discretization is:
+                //
+                //     (I-dt*mu*L(t_new)) Q(n+1) = Q(n) + F(t_avg) dt
+                //
+                // where
+                //
+                //    t_new = (n+1) dt
+                //    t_avg = (t_new+t_old)/2
+                //
+                // Note that for simplicity of implementation, we always use a
+                // timestep-centered forcing term.
+                d_hybrid_helmholtz_spec->setCConstant(1.0+dt*d_lambda);
+                d_hybrid_helmholtz_spec->setDConstant(   -dt*d_nu    );
+            }
+            else if (d_viscous_timestepping_type == "CRANK_NICOLSON")
+            {
+                // The Crank-Nicolson discretization is:
+                //
+                //     (I-0.5*dt*mu*L(t_new)) Q(n+1) = (I+0.5*dt*mu*L(t_old)) Q(n) + F(t_avg) dt
+                //
+                // where
+                //
+                //    t_old = n dt
+                //    t_new = (n+1) dt
+                //    t_avg = (t_new+t_old)/2
+                d_hybrid_helmholtz_spec->setCConstant(1.0+0.5*dt*d_lambda);
+                d_hybrid_helmholtz_spec->setDConstant(   -0.5*dt*d_nu    );
+            }
+            else if (d_viscous_timestepping_type == "TGA")
+            {
+                // The TGA discretization is:
+                //
+                //     (I-nu2*dt*mu*L(t_int)) (I-nu1*dt*mu*L(t_new)) Q(n+1) = [(I+nu3*dt*mu*L(t_old)) Q(n) + (I+nu4*dt*mu*L) F(t_avg) dt]
+                //
+                // where
+                //
+                //    t_old = n dt
+                //    t_new = (n+1) dt
+                //    t_int = t_new - nu1*dt = t_old + (nu2+nu3)*dt
+                //    t_avg = (t_new+t_old)/2 = t_old + (nu1+nu2+nu4)*dt
+                //
+                // Following McCorquodale et al., the coefficients for the TGA
+                // discretization are:
+                //
+                //     nu1 = (a - sqrt(a^2-4*a+2))/2
+                //     nu2 = (a + sqrt(a^2-4*a+2))/2
+                //     nu3 = (1-a)
+                //     nu4 = (0.5-a)
+                //
+                // Note that by choosing a = 2 - sqrt(2), nu1 == nu2.
+                //
+                // Ref: McCorquodale, Colella, Johansen.  "A Cartesian grid
+                // embedded boundary method for the heat equation on irregular
+                // domains." JCP 173, pp. 620-635 (2001)
+                static const double nu1 = TGACoefs::nu1;
+                intermediate_time = new_time-nu1*dt;
+                d_hybrid_helmholtz_spec->setCConstant(1.0+nu1*dt*d_lambda);
+                d_hybrid_helmholtz_spec->setDConstant(   -nu1*dt*d_nu    );
+            }
+            else
+            {
+                TBOX_ERROR(d_object_name << "::updatePressure():\n"
+                           << "  unrecongnized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
+            }
 
-        // Solve for delta U^{*} = U~^{*} - U^{*}.
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): about to solve for U~^{*} - U^{*} . . . \n";
-
-        if (d_viscous_timestepping_type == "BACKWARD_EULER" ||
-            d_viscous_timestepping_type == "CRANK_NICOLSON")
-        {
+            // Initialize the linear solver.
+            d_hybrid_helmholtz_op->setPoissonSpecifications(*d_hybrid_helmholtz_spec);
+            d_hybrid_helmholtz_op->setPhysicalBcCoefs(d_U_bc_coefs);
+            d_hybrid_helmholtz_op->setHomogeneousBc(true);
             d_hybrid_helmholtz_op->setTime(new_time);
-            d_hybrid_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
+            d_hybrid_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve number of iterations = " << d_hybrid_helmholtz_solver->getNumIterations() << "\n";
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve residual norm        = " << d_hybrid_helmholtz_solver->getResidualNorm()  << "\n";
-
-            if (d_hybrid_helmholtz_solver->getNumIterations() == d_hybrid_helmholtz_solver->getMaxIterations())
+            if (!SAMRAI::tbox::Utilities::deq(dt,d_old_dt) || d_helmholtz_solvers_need_init)
             {
-                SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
-                                   <<"  WARNING: linear solver iterations == max iterations\n";
+                d_hybrid_helmholtz_solver->initializeSolverState(*vector_sol_vec,*vector_rhs_vec);
+            }
+
+            // Solve for delta U^{*} = U~^{*} - U^{*}.
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): about to solve for U~^{*} - U^{*} . . . \n";
+
+            if (d_viscous_timestepping_type == "BACKWARD_EULER" ||
+                d_viscous_timestepping_type == "CRANK_NICOLSON")
+            {
+                d_hybrid_helmholtz_op->setTime(new_time);
+                d_hybrid_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
+
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve number of iterations = " << d_hybrid_helmholtz_solver->getNumIterations() << "\n";
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve residual norm        = " << d_hybrid_helmholtz_solver->getResidualNorm()  << "\n";
+
+                if (d_hybrid_helmholtz_solver->getNumIterations() == d_hybrid_helmholtz_solver->getMaxIterations())
+                {
+                    SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
+                                       <<"  WARNING: linear solver iterations == max iterations\n";
+                }
+            }
+            else if (d_viscous_timestepping_type == "TGA")
+            {
+                d_hybrid_helmholtz_op->setTime(intermediate_time);
+                d_hybrid_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
+
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve #1 number of iterations = " << d_hybrid_helmholtz_solver->getNumIterations() << "\n";
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve #1 residual norm        = " << d_hybrid_helmholtz_solver->getResidualNorm()  << "\n";
+
+                if (d_hybrid_helmholtz_solver->getNumIterations() == d_hybrid_helmholtz_solver->getMaxIterations())
+                {
+                    SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
+                                       <<"  WARNING: linear solver iterations == max iterations\n";
+                }
+
+                d_hybrid_helmholtz_op->setTime(new_time);
+                vector_rhs_vec->copyVector(vector_sol_vec);
+                d_hybrid_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
+
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve #2 number of iterations = " << d_hybrid_helmholtz_solver->getNumIterations() << "\n";
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve #2 residual norm        = " << d_hybrid_helmholtz_solver->getResidualNorm()  << "\n";
+
+                if (d_hybrid_helmholtz_solver->getNumIterations() == d_hybrid_helmholtz_solver->getMaxIterations())
+                {
+                    SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
+                                       <<"  WARNING: linear solver iterations == max iterations\n";
+                }
+            }
+            else
+            {
+                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                           << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << endl);
+            }
+
+            // Deallocate scratch data.
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                level->deallocatePatchData(d_F_U_scratch_idx);
             }
         }
-        else if (d_viscous_timestepping_type == "TGA")
+        else if (d_pressure_projection_type == "modified_pressure_update")
         {
-            d_hybrid_helmholtz_op->setTime(intermediate_time);
-            d_hybrid_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
-
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve #1 number of iterations = " << d_hybrid_helmholtz_solver->getNumIterations() << "\n";
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve #1 residual norm        = " << d_hybrid_helmholtz_solver->getResidualNorm()  << "\n";
-
-            if (d_hybrid_helmholtz_solver->getNumIterations() == d_hybrid_helmholtz_solver->getMaxIterations())
-            {
-                SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
-                                   <<"  WARNING: linear solver iterations == max iterations\n";
-            }
-
-            d_hybrid_helmholtz_op->setTime(new_time);
-            vector_rhs_vec->copyVector(vector_sol_vec);
-            d_hybrid_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
-
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve #2 number of iterations = " << d_hybrid_helmholtz_solver->getNumIterations() << "\n";
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve #2 residual norm        = " << d_hybrid_helmholtz_solver->getResidualNorm()  << "\n";
-
-            if (d_hybrid_helmholtz_solver->getNumIterations() == d_hybrid_helmholtz_solver->getMaxIterations())
-            {
-                SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
-                                   <<"  WARNING: linear solver iterations == max iterations\n";
-            }
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << endl);
+            d_hier_cc_data_ops->scale(d_V_idx, (dt/d_rho), d_Grad_P_idx);
         }
 
         // Compute rhs = -(rho/dt)*div delta U^{*}.
@@ -2012,7 +2041,7 @@ INSHierarchyIntegrator::updatePressure(
             current_time);        // src1_bdry_fill_time
 
         // Set the initial guess for delta Phi = Phi~ - Phi.
-        d_hier_cc_data_ops->scale(d_sol_idx, sgn, d_P_current_idx);
+        d_hier_cc_data_ops->copyData(d_sol_idx, d_P_current_idx);
 
         // Solve the linear system for delta Phi = Phi~ - Phi.
         SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> poisson_solver = d_hier_projector->getPoissonSolver();
@@ -2042,17 +2071,16 @@ INSHierarchyIntegrator::updatePressure(
 
         // Update Phi.
         d_hier_cc_data_ops->add(d_Phi_idx, d_sol_idx, d_Phi_idx);
-
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            level->deallocatePatchData(d_F_U_scratch_idx);
-        }
     }
 
     // Update the pressure.
     if (d_second_order_pressure_update)
     {
+        if (d_pressure_projection_type == "modified_pressure_update")
+        {
+            d_hier_cc_data_ops->subtract(d_Phi_idx, d_Phi_idx, d_P_current_idx);
+        }
+
         if (d_viscous_timestepping_type == "BACKWARD_EULER")
         {
             TBOX_ERROR(d_object_name << "::updatePressure():\n"
@@ -2123,7 +2151,6 @@ INSHierarchyIntegrator::updatePressure(
             if (!SAMRAI::tbox::Utilities::deq(dt,d_old_dt) || d_helmholtz_solvers_need_init)
             {
                 d_helmholtz_solver->initializeSolverState(*scalar_sol_vec,*scalar_rhs_vec);
-                d_helmholtz_solvers_need_init = false;
             }
 
             // We have to solve an additional Helmholtz problem in order to
@@ -2182,11 +2209,12 @@ INSHierarchyIntegrator::updatePressure(
         }
 
         // Update the pressure.
-        if (d_pressure_projection_type == "pressure_increment")
+        if (d_pressure_projection_type == "pressure_increment" ||
+            d_pressure_projection_type == "modified_pressure_update")
         {
-            d_hier_cc_data_ops->add(d_P_new_idx, d_P_scratch_idx, d_sol_idx);
+            d_hier_cc_data_ops->add(d_P_new_idx, d_P_current_idx, d_sol_idx);
         }
-        else
+        else if (d_pressure_projection_type == "pressure_update")
         {
             d_hier_cc_data_ops->copyData(d_P_new_idx, d_sol_idx);
         }
@@ -2198,13 +2226,17 @@ INSHierarchyIntegrator::updatePressure(
         // corresponding to the case of vanishing viscosity).
         if (d_pressure_projection_type == "pressure_increment")
         {
-            d_hier_cc_data_ops->add(d_P_new_idx, d_P_scratch_idx, d_Phi_idx);
+            d_hier_cc_data_ops->add(d_P_new_idx, d_P_current_idx, d_Phi_idx);
         }
-        else
+        else if (d_pressure_projection_type == "pressure_update" ||
+                 d_pressure_projection_type == "modified_pressure_update")
         {
             d_hier_cc_data_ops->copyData(d_P_new_idx, d_Phi_idx);
         }
     }
+
+    // Indicate that we have reinitialized all Helmholtz solvers.
+    d_helmholtz_solvers_need_init = false;
 
     // Normalize P(n+1/2) to have mean (discrete integral) zero.
     if (d_normalize_pressure)
