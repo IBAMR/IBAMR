@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <26.Aug.2007 21:25:58 griffith@box221.cims.nyu.edu>
+// Last modified: <29.Aug.2007 00:58:12 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -163,6 +163,14 @@ public:
     void
     registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
+
+    /*!
+     * XXXX Experimental function.
+     */
+    void
+    registerRegridHierarchyCallback(
+        void (*callback)(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >, double, bool, void*),
+        void* ctx);
 
     ///
     ///  The following routines:
@@ -1176,9 +1184,6 @@ private:
      * Data and solvers required by the hybrid projection scheme and/or by the
      * second-order pressure update.
      */
-    int d_poisson_max_iterations;
-    double d_poisson_abs_residual_tol, d_poisson_rel_residual_tol;
-
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var;
     int d_sol_idx, d_rhs_idx;
 
@@ -1189,6 +1194,12 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_hybrid_helmholtz_spec  , d_helmholtz_spec  ;
     SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_hybrid_helmholtz_solver, d_helmholtz_solver;
     bool d_helmholtz_solvers_need_init;
+
+    /*!
+     * \brief Callback function pointers and callback contexts.
+     */
+    std::vector<void (*)(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >, double, bool, void*)> d_regrid_hierarchy_callbacks;
+    std::vector<void*> d_regrid_hierarchy_ctxs;
 };
 }// namespace IBAMR
 

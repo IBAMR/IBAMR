@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <02.Jul.2007 23:52:38 griffith@box221.cims.nyu.edu>
+// Last modified: <29.Aug.2007 00:11:27 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -822,6 +822,11 @@ private:
      * Indicates whether the integrator should output logging messages.
      */
     bool d_do_log;
+
+    /*
+     * Indicates whether the velocity field needs to be re-projected.
+     */
+    bool d_reinterpolate_after_regrid;
 
     /*
      * Hierarchy operations objects.

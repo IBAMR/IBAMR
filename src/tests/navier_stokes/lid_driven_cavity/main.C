@@ -300,18 +300,6 @@ main(
 #if (NDIM > 2)
         U_bc_coefs[2] = &u2_bc_coef;
 #endif
-
-        solv::LocationIndexRobinBcCoefs<NDIM> phi_bc_coef(
-            "phi_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        phi_bc_coef.setBoundarySlope(0,0.0);  // x lower boundary
-        phi_bc_coef.setBoundaryValue(1,0.0);  // x upper boundary
-        phi_bc_coef.setBoundarySlope(2,0.0);  // y lower boundary
-        phi_bc_coef.setBoundarySlope(3,0.0);  // y upper boundary
-#if (NDIM > 2)
-        phi_bc_coef.setBoundarySlope(4,0.0);  // z lower boundary
-        phi_bc_coef.setBoundarySlope(5,0.0);  // z upper boundary
-#endif
-
         /*
          * Create major algorithm and data objects which comprise the
          * application.  Each object will be initialized either from input data
@@ -345,7 +333,6 @@ main(
                 "HierarchyProjector",
                 input_db->getDatabase("HierarchyProjector"),
                 patch_hierarchy);
-        hier_projector->setPhysicalBcCoef(&phi_bc_coef);
 
         tbox::Pointer<INSHierarchyIntegrator> time_integrator =
             new INSHierarchyIntegrator(

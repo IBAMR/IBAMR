@@ -2,14 +2,17 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <15.Aug.2007 15:25:35 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Aug.2007 19:48:35 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBAMR INCLUDES
+#include <ibamr/INSProjectionBcCoef.h>
+#include <ibamr/INSProjectionLaplaceOperator.h>
+
 // STOOLS INCLUDES
 #include <stools/LinearOperator.h>
-#include <stools/CCLaplaceOperator.h>
 #include <stools/CCPoissonFACOperator.h>
 #include <stools/KrylovLinearSolver.h>
 #include <stools/HierarchyMathOps.h>
@@ -22,7 +25,6 @@
 #include <FACPreconditioner.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <HierarchyFaceDataOpsReal.h>
-#include <HierarchySideDataOpsReal.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
@@ -49,7 +51,7 @@ namespace IBAMR
 {
 /*!
  * \brief Class HierarchyProjector provides MAC projection functionality for
- * face- and side-centered vector fields on AMR grids.
+ * face-centered vector fields on AMR grids.
  */
 class HierarchyProjector
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
@@ -133,8 +135,8 @@ public:
     ///
     ///  The following routines:
     ///
-    ///      setPhysicalBcCoef(),
-    ///      getPhysicalBcCoef(),
+    ///      setVelocityPhysicalBcCoefs(),
+    ///      getVelocityPhysicalBcCoefs(),
     ///      getPoissonSolver()
     ///
     ///  allow other objects to access the Poisson solver and related data used
@@ -142,24 +144,22 @@ public:
     ///
 
     /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
-     * physical boundary conditions.
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
+     * physical boundary conditions for the velocity.
      *
-     * \note \a bc_coef may be NULL.  In this case, homogeneous Neumann boundary
-     * conditions are employed.
-     *
-     * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients.
+     * \param u_bc_coefs  Vector of boundary condition specification objects corresponding to the components of the velocity.
      */
     void
-    setPhysicalBcCoef(
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
+    setVelocityPhysicalBcCoefs(
+        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
 
     /*!
-     * Returns a pointer to the SAMRAI::solv::RobinBcCoefStrategy object
-     * employed by the projector to solve the elliptic projection equation.
+     * Returns a vector of pointers to the SAMRAI::solv::RobinBcCoefStrategy
+     * object employed by the projector to specify physical boundary conditions
+     * for the velocity.
      */
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
-    getPhysicalBcCoef() const;
+    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
+    getVelocityPhysicalBcCoefs() const;
 
     /*!
      * Returns a pointer to the concrete linear solver object employed by the
@@ -181,64 +181,20 @@ public:
      *
      * Computes u = w - grad_Phi, where div u = Q.  If Q is not supplied, it is
      * assumed that div u = 0.
-     *
-     * Storage and communications schedules to fill ghost data for Phi are
-     * required.
-     *
-     * Optional SAMRAI::xfer::RefineSchedule objects allow for the filling of
-     * ghost cells in w at the specified time.  Additionally, w data along the
-     * coarse-fine interface is synchronized when specified.
      */
     virtual void
     projectHierarchy(
         const double rho,
         const double dt,
+        const double time,
         const int u_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >& u_var,
         const int Phi_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Phi_var,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& Phi_bdry_fill,
-        const double Phi_bdry_fill_time,
         const int grad_Phi_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >& grad_Phi_var,
         const int w_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >& w_var,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& w_bdry_fill,
-        const double w_bdry_fill_time,
-        const bool w_cf_bdry_synch=true,
-        const int Q_idx=-1,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Q_var=NULL);
-
-    /*!
-     * Project the side centered MAC velocity w on the hierarchy.
-     *
-     * Computes u = w - grad_Phi, where div u = Q.  If Q is not supplied, it is
-     * assumed that div u = 0.
-     *
-     * Storage and communications schedules to fill ghost data for Phi are
-     * required.
-     *
-     * Optional SAMRAI::xfer::RefineSchedule objects allow for the filling of
-     * ghost cells in w at the specified time.  Additionally, w data along the
-     * coarse-fine interface is synchronized when specified.
-     */
-    virtual void
-    projectHierarchy(
-        const double rho,
-        const double dt,
-        const int u_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >& u_var,
-        const int Phi_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Phi_var,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& Phi_bdry_fill,
-        const double Phi_bdry_fill_time,
-        const int grad_Phi_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >& grad_Phi_var,
-        const int w_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >& w_var,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& w_bdry_fill,
-        const double w_bdry_fill_time,
-        const bool w_cf_bdry_synch=true,
         const int Q_idx=-1,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Q_var=NULL);
 
@@ -431,7 +387,6 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM,double> > d_hier_fc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > d_hier_sc_data_ops;
     SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> d_hier_math_ops;
     bool d_is_managing_hier_math_ops;
 
@@ -445,8 +400,11 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_f_var;
-    int d_f_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_var;
+    int d_F_idx;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_w_var;
+    int d_w_idx;
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
 
@@ -454,11 +412,12 @@ private:
     double d_abs_residual_tol, d_rel_residual_tol;
 
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
+    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_default_u_bc_coefs;
+    INSProjectionBcCoef* d_Phi_bc_coef;
 
     SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> d_poisson_solver;
-    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> d_laplace_op;
+    SAMRAI::tbox::Pointer<INSProjectionLaplaceOperator> d_laplace_op;
     SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> d_poisson_fac_op;
     SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_poisson_fac_pc;
 
@@ -468,6 +427,14 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var;
     int d_sol_idx, d_rhs_idx;
+
+    /*
+     * Cached communications algorithms and schedules.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_inhomogeneous_bc_fill_alg;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_inhomogeneous_bc_fill_scheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_bc_refine_strategy;
+    SAMRAI::tbox::Pointer<STOOLS::CartRobinPhysBdryOp> d_bc_op;
 };
 }// namespace IBAMR
 

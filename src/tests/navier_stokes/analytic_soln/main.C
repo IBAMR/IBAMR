@@ -350,11 +350,7 @@ main(
                         bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry));
             }
 
-            phi_bc_coef = new muParserRobinBcCoefs(
-                "phi_bc_coef", input_db->getDatabase("PhiBcCoef"), grid_geometry);
-
             time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
-            hier_projector->setPhysicalBcCoef(phi_bc_coef);
         }
 
         /*

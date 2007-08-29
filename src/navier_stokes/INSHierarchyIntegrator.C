@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <27.Aug.2007 00:36:17 griffith@box221.cims.nyu.edu>
+// Last modified: <29.Aug.2007 15:37:36 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -21,7 +21,6 @@
 
 // STOOLS INCLUDES
 #include <stools/CartExtrapPhysBdryOp.h>
-#include <stools/CartRobinPhysBdryOp.h>
 #include <stools/FACPreconditionerLSWrapper.h>
 #include <stools/PETScKrylovLinearSolver.h>
 #include <stools/PatchMathOps.h>
@@ -240,10 +239,6 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 
     d_reproject_after_regrid = true;
 
-    d_poisson_max_iterations = 50;
-    d_poisson_abs_residual_tol = 1.0e-30;
-    d_poisson_rel_residual_tol = 1.0e-8;
-
     d_helmholtz_max_iterations = 25;
     d_helmholtz_abs_residual_tol = 1.0e-30;
     d_helmholtz_rel_residual_tol = 1.0e-8;
@@ -419,6 +414,7 @@ INSHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
     }
 #endif
     d_U_bc_coefs = U_bc_coefs;
+    d_hier_projector->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
     return;
 }// registerVelocityPhysicalBcCoefs
 
@@ -457,6 +453,16 @@ INSHierarchyIntegrator::registerVisItDataWriter(
     d_visit_writer = visit_writer;
     return;
 }// registerVisItDataWriter
+
+void
+INSHierarchyIntegrator::registerRegridHierarchyCallback(
+    void (*callback)(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >, double, bool, void*),
+    void* ctx)
+{
+    d_regrid_hierarchy_callbacks.push_back(callback);
+    d_regrid_hierarchy_ctxs.push_back(ctx);
+    return;
+}// registerRegridHierarchyCallback
 
 ///
 ///  The following routines:
@@ -880,7 +886,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_V_idx,         // temporary work space
                        refine_operator);
     d_rstrategies["U->V::C->S::CONSTANT_REFINE"] =
-        new STOOLS::CartRobinPhysBdryOp(d_V_idx, d_U_bc_coefs, false);
+        new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
 
     d_ralgs["V->V::S->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
@@ -891,7 +897,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_V_idx, // temporary work space
                        refine_operator);
     d_rstrategies["V->V::S->S::CONSTANT_REFINE"] =
-        new STOOLS::CartRobinPhysBdryOp(d_V_idx, d_U_bc_coefs, true);
+        new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
 
     d_ralgs["P->P::C->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
@@ -904,6 +910,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_rstrategies["P->P::C->S::CONSTANT_REFINE"] =
         new STOOLS::CartExtrapPhysBdryOp(d_P_scratch_idx, "LINEAR");
 
+    // XXXX rename this schedule???
     d_ralgs["Phi->Phi::S->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
         d_Phi_var, "CONSTANT_REFINE");
@@ -946,7 +953,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_U_scratch_idx, // temporary work space
                        refine_operator);
     refine_strategy_set.push_back(
-        new STOOLS::CartRobinPhysBdryOp(d_U_scratch_idx, d_U_bc_coefs, false));
+        new STOOLS::CartExtrapPhysBdryOp(d_U_scratch_idx, "LINEAR"));
 
     refine_operator = grid_geom->lookupRefineOperator(
         d_F_U_var, "CONSERVATIVE_LINEAR_REFINE");
@@ -974,6 +981,13 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                         coarsen_operator);
 
     coarsen_operator = grid_geom->lookupCoarsenOperator(
+        d_u_var, "CONSERVATIVE_COARSEN");
+    d_calgs["SYNCH_CURRENT_STATE_DATA"]->
+        registerCoarsen(d_u_current_idx, // destination
+                        d_u_current_idx, // source
+                        coarsen_operator);
+
+    coarsen_operator = grid_geom->lookupCoarsenOperator(
         d_u_adv_var, "CONSERVATIVE_COARSEN");
     d_calgs["SYNCH_CURRENT_STATE_DATA"]->
         registerCoarsen(d_u_adv_current_idx, // destination
@@ -981,10 +995,44 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                         coarsen_operator);
 
     coarsen_operator = grid_geom->lookupCoarsenOperator(
+        d_P_var, "CONSERVATIVE_COARSEN");
+    d_calgs["SYNCH_CURRENT_STATE_DATA"]->
+        registerCoarsen(d_P_current_idx, // destination
+                        d_P_current_idx, // source
+                        coarsen_operator);
+
+    if (d_F_current_idx != -1)
+    {
+        coarsen_operator = grid_geom->lookupCoarsenOperator(
+            d_F_var, "CONSERVATIVE_COARSEN");
+        d_calgs["SYNCH_CURRENT_STATE_DATA"]->
+            registerCoarsen(d_F_current_idx, // destination
+                            d_F_current_idx, // source
+                            coarsen_operator);
+    }
+
+    if (d_Q_current_idx != -1)
+    {
+        coarsen_operator = grid_geom->lookupCoarsenOperator(
+            d_Q_var, "CONSERVATIVE_COARSEN");
+        d_calgs["SYNCH_CURRENT_STATE_DATA"]->
+            registerCoarsen(d_Q_current_idx, // destination
+                            d_Q_current_idx, // source
+                            coarsen_operator);
+    }
+
+    coarsen_operator = grid_geom->lookupCoarsenOperator(
         d_U_var, "CONSERVATIVE_COARSEN");
     d_calgs["SYNCH_NEW_STATE_DATA"]->
         registerCoarsen(d_U_new_idx, // destination
                         d_U_new_idx, // source
+                        coarsen_operator);
+
+    coarsen_operator = grid_geom->lookupCoarsenOperator(
+        d_u_var, "CONSERVATIVE_COARSEN");
+    d_calgs["SYNCH_NEW_STATE_DATA"]->
+        registerCoarsen(d_u_new_idx, // destination
+                        d_u_new_idx, // source
                         coarsen_operator);
 
     coarsen_operator = grid_geom->lookupCoarsenOperator(
@@ -994,29 +1042,32 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                         d_u_adv_new_idx, // source
                         coarsen_operator);
 
-    d_calgs["SYNCH_CURRENT_VELOCITY_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
     coarsen_operator = grid_geom->lookupCoarsenOperator(
-        d_U_var, "CONSERVATIVE_COARSEN");
-    d_calgs["SYNCH_CURRENT_VELOCITY_DATA"]->
-        registerCoarsen(d_U_current_idx, // destination
-                        d_U_current_idx, // source
+        d_P_var, "CONSERVATIVE_COARSEN");
+    d_calgs["SYNCH_NEW_STATE_DATA"]->
+        registerCoarsen(d_P_new_idx, // destination
+                        d_P_new_idx, // source
                         coarsen_operator);
 
-    d_calgs["SYNCH_NEW_VELOCITY_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
-    coarsen_operator = grid_geom->lookupCoarsenOperator(
-        d_U_var, "CONSERVATIVE_COARSEN");
-    d_calgs["SYNCH_NEW_VELOCITY_DATA"]->
-        registerCoarsen(d_U_new_idx, // destination
-                        d_U_new_idx, // source
-                        coarsen_operator);
+    if (d_F_new_idx != -1)
+    {
+        coarsen_operator = grid_geom->lookupCoarsenOperator(
+            d_F_var, "CONSERVATIVE_COARSEN");
+        d_calgs["SYNCH_NEW_STATE_DATA"]->
+            registerCoarsen(d_F_new_idx, // destination
+                            d_F_new_idx, // source
+                            coarsen_operator);
+    }
 
-    d_calgs["SYNCH_CURRENT_ADVECTION_VELOCITY_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
-    coarsen_operator = grid_geom->lookupCoarsenOperator(
-        d_u_adv_var, "CONSERVATIVE_COARSEN");
-    d_calgs["SYNCH_CURRENT_ADVECTION_VELOCITY_DATA"]->
-        registerCoarsen(d_u_adv_current_idx, // destination
-                        d_u_adv_current_idx, // source
-                        coarsen_operator);
+    if (d_Q_new_idx != -1)
+    {
+        coarsen_operator = grid_geom->lookupCoarsenOperator(
+            d_Q_var, "CONSERVATIVE_COARSEN");
+        d_calgs["SYNCH_NEW_STATE_DATA"]->
+            registerCoarsen(d_Q_new_idx, // destination
+                            d_Q_new_idx, // source
+                            coarsen_operator);
+    }
 
     // Setup the Hierarchy math operations object.
     setHierarchyMathOps(d_adv_diff_hier_integrator->getHierarchyMathOps());
@@ -1046,7 +1097,8 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
         d_helmholtz_op = new STOOLS::CCLaplaceOperator(d_object_name+"::helmholtz_op",*d_helmholtz_spec,NULL);
-        d_helmholtz_op->setPhysicalBcCoef(d_hier_projector->getPhysicalBcCoef());
+        //d_helmholtz_op->setPhysicalBcCoef(d_hier_projector->getPhysicalBcCoef());
+        assert(false);
         d_helmholtz_solver = new STOOLS::PETScKrylovLinearSolver(d_object_name+"::helmholtz_solver", "adv_diff_");
         d_helmholtz_solver->setMaxIterations(d_helmholtz_max_iterations);
         d_helmholtz_solver->setAbsoluteTolerance(d_helmholtz_abs_residual_tol);
@@ -1370,9 +1422,81 @@ INSHierarchyIntegrator::regridHierarchy()
 {
     t_regrid_hierarchy->start();
 
+    const bool initial_time = SAMRAI::tbox::Utilities::deq(d_integrator_time,d_start_time);
+
     const int coarsest_ln = 0;
     d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln,
                                          d_integrator_time, d_tag_buffer);
+
+    for (size_t i = 0; i < d_regrid_hierarchy_callbacks.size(); ++i)
+    {
+        (*d_regrid_hierarchy_callbacks[i])(d_hierarchy, d_integrator_time, initial_time, d_regrid_hierarchy_ctxs[i]);
+    }
+
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    // Immediately following a regrid, we re-project the velocity.  We also
+    // project the velocity at the start time.
+    if ((d_using_synch_projection && d_reproject_after_regrid) || initial_time)
+    {
+        // Allocate scratch data.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(d_u_scratch_idx, d_integrator_time);
+            level->allocatePatchData(d_V_idx, d_integrator_time);
+            level->allocatePatchData(d_Phi_idx, d_integrator_time);
+            level->allocatePatchData(d_Grad_Phi_idx, d_integrator_time);
+            level->allocatePatchData(d_grad_Phi_idx, d_integrator_time);
+        }
+
+        // Interpolate U(*)->u(*).
+        d_hier_math_ops->interp(
+            d_u_scratch_idx, d_u_var, // u(n,*)
+            false,                    // do not synch u(n,*) coarse-fine bdry
+            d_V_idx        , d_V_var, // U(n,*)
+            d_rscheds["U->V::C->S::CONSTANT_REFINE"],
+            d_integrator_time);       // data time
+
+        // Project u^(n,*)->u(n) and re-use grad Phi to project
+        // U^(n,*)->U^(n).
+        d_hier_cc_data_ops->setToScalar(d_Phi_idx, 0.0);
+        d_hier_projector->projectHierarchy(
+            initial_time ? 1.0 : d_rho, initial_time ? 1.0 : d_old_dt, d_integrator_time,
+            d_u_current_idx, d_u_var       ,   // u(n)
+            d_Phi_idx      , d_Phi_var     ,   // Phi
+            d_grad_Phi_idx , d_grad_Phi_var,   // grad Phi
+            d_u_current_idx, d_u_var       ,   // u(n,*)
+            d_Q_current_idx, d_Q_var        ); // div u(n)
+
+        d_hier_math_ops->interp(
+            d_Grad_Phi_idx, d_Grad_Phi_var, // Grad Phi
+            d_grad_Phi_idx, d_grad_Phi_var, // grad Phi
+            d_rscheds["NONE"],              // no fill needed
+            d_integrator_time,              // data time
+            false);                         // do not synch grad Phi coarse-fine bdry
+
+        d_hier_cc_data_ops->axpy(d_U_current_idx, initial_time ? -1.0 : -d_old_dt/d_rho, d_Grad_Phi_idx, d_U_current_idx);
+
+        d_reproject_after_regrid = false;
+
+        // Deallocate scratch data.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(d_u_scratch_idx);
+            level->deallocatePatchData(d_V_idx);
+            level->deallocatePatchData(d_Phi_idx);
+            level->deallocatePatchData(d_Grad_Phi_idx);
+            level->deallocatePatchData(d_grad_Phi_idx);
+        }
+    }
+
+    // Synchronize the state data on the patch hierarchy.
+    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    {
+        d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
+    }
 
     t_regrid_hierarchy->stop();
     return;
@@ -1404,51 +1528,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         level->allocatePatchData(d_new_data, new_time);
     }
 
-    // Immediately following a regrid, we re-project the velocity.  We also
-    // project the velocity at the start time.
-    if ((d_using_synch_projection && d_reproject_after_regrid) ||
-        (d_performing_init_cycles && d_cycle == 0))
-    {
-        // Interpolate U(*)->u(*).
-        d_hier_math_ops->interp(
-            d_u_scratch_idx, d_u_var, // u(n,*)
-            true,                     // synch u(n,*) coarse-fine bdry
-            d_V_idx        , d_V_var, // U(n,*)
-            d_rscheds["U->V::C->S::CONSTANT_REFINE"],
-            current_time);            // data time
-
-        // Project u^(n,*)->u(n) and re-use grad Phi to project
-        // U^(n,*)->U^(n).
-        d_hier_cc_data_ops->setToScalar(d_Phi_idx, 0.0);
-        d_hier_projector->projectHierarchy(
-            d_rho, dt,
-            d_u_current_idx, d_u_var       , // u(n)
-            d_Phi_idx      , d_Phi_var     , // Phi
-            d_rscheds["Phi->Phi::S->S::CONSTANT_REFINE"],
-            current_time,                    // Phi data time
-            d_grad_Phi_idx , d_grad_Phi_var, // grad Phi
-            d_u_scratch_idx, d_u_var       , // u(n,*)
-            d_rscheds["NONE"],               // no fill needed
-            current_time,                    // u_scratch data time
-            false,                           // do not synch u(n,*) coarse-fine bdry
-            d_Q_current_idx, d_Q_var);       // div u(n)
-
-        d_hier_math_ops->interp(
-            d_Grad_Phi_idx, d_Grad_Phi_var, // Grad Phi
-            d_grad_Phi_idx, d_grad_Phi_var, // grad Phi
-            d_rscheds["NONE"],              // no fill needed
-            current_time,                   // data time
-            false);                         // do not synch grad Phi coarse-fine bdry
-
-        d_hier_cc_data_ops->axpy(d_U_current_idx, -dt/d_rho, d_Grad_Phi_idx, d_U_current_idx);
-
-        d_reproject_after_regrid = false;
-    }
-
-    // Initialize the advection velocity to equal u(n).
-    d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
-
-    // Initialize the pressure and pressure gradient.
+    // Initialize the pressure gradient.
     d_hier_math_ops->grad(
         d_Grad_P_idx   , d_Grad_P_var, // dst
         1.0,                           // alpha
@@ -1456,6 +1536,9 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         d_rscheds["P->P::C->S::CONSTANT_REFINE"],
         current_time);                 // data time
 
+    // Initialize the advection velocity to equal u(n).
+    d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
+#if 0
     // Setup the forcing terms for velocity prediction.
     d_hier_cc_data_ops->scale(d_F_U_current_idx, -(1.0/d_rho), d_Grad_P_idx);
 
@@ -1525,11 +1608,6 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         level->deallocatePatchData(d_u_adv_scratch_idx);
     }
 
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
-    {
-        d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
-    }
-
     // Project the advection velocity.
     if (!d_Q_set.isNull())
     {
@@ -1539,17 +1617,12 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
     d_hier_cc_data_ops->setToScalar(d_Phi_idx, 0.0);
     d_hier_projector->projectHierarchy(
-        d_rho, dt,
-        d_u_adv_current_idx, d_u_adv_var   , // u(adv)
-        d_Phi_idx          , d_Phi_var     , // Phi
-        d_rscheds["Phi->Phi::S->S::CONSTANT_REFINE"],
-        current_time,                        // Phi data time
-        d_grad_Phi_idx     , d_grad_Phi_var, // grad Phi
-        d_u_adv_current_idx, d_u_adv_var   , // u(adv,*)
-        d_rscheds["NONE"],                   // don't need to fill u(adv,*) data
-        current_time,                        // data time
-        true,                                // synch u(adv,*) coarse-fine bdry
-        d_Q_new_idx, d_Q_var);               // div u(adv)
+        d_rho, dt, current_time+0.5*dt,
+        d_u_adv_current_idx, d_u_adv_var   ,   // u(adv)
+        d_Phi_idx          , d_Phi_var     ,   // Phi
+        d_grad_Phi_idx     , d_grad_Phi_var,   // grad Phi
+        d_u_adv_current_idx, d_u_adv_var   ,   // u(adv,*)
+        d_Q_new_idx        , d_Q_var        ); // div u(adv)
 
     if (!d_Div_u_adv_var.isNull())
     {
@@ -1565,7 +1638,10 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
                                          << d_hier_cc_data_ops->maxNorm(d_Div_u_adv_new_idx, d_wgt_idx)
                                          << endl;
     }
-
+#else
+    // XXXX
+    d_hier_fc_data_ops->setToScalar(d_grad_Phi_idx,0.0);
+#endif
     t_predict_advection_velocity->stop();
     return;
 }// predictAdvectionVelocity
@@ -1663,6 +1739,17 @@ INSHierarchyIntegrator::projectVelocity(
         d_hier_cc_data_ops->axpy(d_U_new_idx, +(dt/d_rho), d_Grad_P_idx, d_U_new_idx);
     }
 
+    // Cache a copy of U^{*} if we are using a hybrid projection method.
+    if (d_using_hybrid_projection)
+    {
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(d_U_scratch_idx, new_time);
+        }
+        d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
+    }
+
     // Compute Q = div u(n+1).
     if (!d_Q_set.isNull())
     {
@@ -1687,7 +1774,7 @@ INSHierarchyIntegrator::projectVelocity(
 
     d_hier_math_ops->interp(
         d_u_scratch_idx, d_u_var, // u(*)
-        true,                     // synch u(*) coarse-fine bdry
+        false,                    // do not synch u(*) coarse-fine bdry
         d_V_idx        , d_V_var, // U(*)
         d_rscheds["U->V::C->S::CONSTANT_REFINE"],
         new_time);                // data time
@@ -1702,17 +1789,12 @@ INSHierarchyIntegrator::projectVelocity(
     // U^(n,*)->U^(n+1).
     d_hier_cc_data_ops->setToScalar(d_Phi_idx, 0.0);
     d_hier_projector->projectHierarchy(
-        d_rho, dt,
-        d_u_new_idx    , d_u_var       , // u(n+1)
-        d_Phi_idx      , d_Phi_var     , // Phi
-        d_rscheds["Phi->Phi::S->S::CONSTANT_REFINE"],
-        current_time,                    // Phi data time
-        d_grad_Phi_idx , d_grad_Phi_var, // grad Phi
-        d_u_scratch_idx, d_u_var       , // u(n+1,*)
-        d_rscheds["NONE"],               // no fill needed
-        current_time,                    // u_scratch data time
-        false,                           // do not synch u(n+1,*) coarse-fine bdry
-        d_Q_new_idx, d_Q_var);           // div u(n+1)
+        d_rho, dt, new_time,
+        d_u_new_idx    , d_u_var       ,   // u(n+1)
+        d_Phi_idx      , d_Phi_var     ,   // Phi
+        d_grad_Phi_idx , d_grad_Phi_var,   // grad Phi
+        d_u_scratch_idx, d_u_var       ,   // u(n+1,*)
+        d_Q_new_idx    , d_Q_var        ); // div u(n+1)
 
     d_hier_math_ops->interp(
         d_Grad_Phi_idx, d_Grad_Phi_var, // dst
@@ -2032,45 +2114,33 @@ INSHierarchyIntegrator::updatePressure(
             d_hier_cc_data_ops->scale(d_V_idx, (dt/d_rho), d_Grad_P_idx);
         }
 
-        // Compute rhs = -(rho/dt)*div delta U^{*}.
-        d_hier_math_ops->div(
-            d_rhs_idx, d_rhs_var, // dst
-            -d_rho/dt,            // alpha
-            d_V_idx, d_V_var,     // src1
+        // Store the value of U~^{*} in V.
+        d_hier_cc_data_ops->add(d_V_idx, d_U_scratch_idx, d_V_idx);
+
+        // Interpolate U~(*)->u~(*).
+        d_hier_math_ops->interp(
+            d_u_scratch_idx, d_u_var, // u~(n+`,*)
+            false,                    // do not synch u~(n+1,*) coarse-fine bdry
+            d_V_idx        , d_V_var, // U~(n+1,*)
             d_rscheds["V->V::S->S::CONSTANT_REFINE"],
-            current_time);        // src1_bdry_fill_time
+            new_time);                // data time
 
-        // Set the initial guess for delta Phi = Phi~ - Phi.
-        d_hier_cc_data_ops->copyData(d_sol_idx, d_P_current_idx);
+        // Project U^{*}.
+        d_hier_cc_data_ops->add(d_Phi_idx, d_P_current_idx, d_Phi_idx);
+        d_hier_projector->projectHierarchy(
+            d_rho, dt, new_time,
+            d_u_scratch_idx, d_u_var       ,   // u(n)
+            d_Phi_idx      , d_Phi_var     ,   // Phi
+            d_grad_Phi_idx , d_grad_Phi_var,   // grad Phi
+            d_u_scratch_idx, d_u_var       ,   // u(n,*)
+            d_Q_current_idx, d_Q_var        ); // div u(n)
 
-        // Solve the linear system for delta Phi = Phi~ - Phi.
-        SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> poisson_solver = d_hier_projector->getPoissonSolver();
-
-        const int max_iterations = poisson_solver->getMaxIterations();
-        const double abs_residual_tol = poisson_solver->getAbsoluteTolerance();
-        const double rel_residual_tol = poisson_solver->getRelativeTolerance();
-
-        poisson_solver->setMaxIterations(d_poisson_max_iterations);
-        poisson_solver->setAbsoluteTolerance(d_poisson_abs_residual_tol);
-        poisson_solver->setRelativeTolerance(d_poisson_rel_residual_tol);
-
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): about to solve re-projection equation . . . \n";
-        poisson_solver->solveSystem(*scalar_sol_vec,*scalar_rhs_vec);
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): number of iterations = " << d_hier_projector->getPoissonSolver()->getNumIterations() << "\n";
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): residual norm        = " << d_hier_projector->getPoissonSolver()->getResidualNorm()  << "\n";
-
-        if (poisson_solver->getNumIterations() == poisson_solver->getMaxIterations())
+        // Deallocate scratch data.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            SAMRAI::tbox::pout << d_object_name << "::updatePressure():"
-                               <<"  WARNING: linear solver iterations == max iterations\n";
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(d_U_scratch_idx);
         }
-
-        poisson_solver->setMaxIterations(max_iterations);
-        poisson_solver->setAbsoluteTolerance(abs_residual_tol);
-        poisson_solver->setRelativeTolerance(rel_residual_tol);
-
-        // Update Phi.
-        d_hier_cc_data_ops->add(d_Phi_idx, d_sol_idx, d_Phi_idx);
     }
 
     // Update the pressure.
@@ -2105,7 +2175,7 @@ INSHierarchyIntegrator::updatePressure(
                 d_sol_idx, d_sol_var,   // dst
                 helmholtz_spec      ,   // Poisson spec
                 d_Phi_idx, d_Phi_var,   // src
-                d_rscheds["Phi->Phi::S->S::CONSTANT_REFINE"],
+                d_rscheds["NONE"],
                 current_time         ); // data time
         }
         else if (d_viscous_timestepping_type == "TGA")
@@ -2144,7 +2214,8 @@ INSHierarchyIntegrator::updatePressure(
             d_helmholtz_spec->setCConstant(1.0-nu4*dt*d_lambda);
             d_helmholtz_spec->setDConstant(   +nu4*dt*d_nu);
             d_helmholtz_op->setPoissonSpecifications(*d_helmholtz_spec);
-            d_helmholtz_op->setPhysicalBcCoef(d_hier_projector->getPhysicalBcCoef());
+            //d_helmholtz_op->setPhysicalBcCoef(d_hier_projector->getPhysicalBcCoef());
+            assert(false);
             d_helmholtz_op->setTime(0.5*(current_time+new_time));
             d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
@@ -2163,7 +2234,7 @@ INSHierarchyIntegrator::updatePressure(
                 d_sol_idx, d_sol_var,   // dst
                 helmholtz1_spec     ,   // Poisson spec
                 d_Phi_idx, d_Phi_var,   // src
-                d_rscheds["Phi->Phi::S->S::CONSTANT_REFINE"],
+                d_rscheds["NONE"],
                 current_time         ); // data time
 
             bdry_fill_op = grid_geom->lookupRefineOperator(d_sol_var, "CONSTANT_REFINE");
@@ -3495,10 +3566,6 @@ INSHierarchyIntegrator::getFromInput(
         "dt_max_time_min", d_dt_max_time_min);
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
-
-    d_poisson_max_iterations = db->getIntegerWithDefault("poisson_max_iterations", d_poisson_max_iterations);
-    d_poisson_abs_residual_tol = db->getDoubleWithDefault("poisson_abs_residual_tol", d_poisson_abs_residual_tol);
-    d_poisson_rel_residual_tol = db->getDoubleWithDefault("poisson_rel_residual_tol", d_poisson_rel_residual_tol);
 
     d_helmholtz_max_iterations = db->getIntegerWithDefault("helmholtz_max_iterations", d_helmholtz_max_iterations);
     d_helmholtz_abs_residual_tol = db->getDoubleWithDefault("helmholtz_abs_residual_tol", d_helmholtz_abs_residual_tol);

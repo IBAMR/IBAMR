@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <26.Aug.2007 15:19:30 griffith@box221.cims.nyu.edu>
+// Last modified: <29.Aug.2007 01:28:03 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -150,6 +150,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_dt_max_time_min(-(d_dt_max_time_max-std::numeric_limits<double>::epsilon())),
       d_is_initialized(false),
       d_do_log(false),
+      d_reinterpolate_after_regrid(false),
       d_hier_cc_data_ops(),
       d_ralgs(),
       d_rstrategies(),
@@ -769,8 +770,9 @@ IBHierarchyIntegrator::advanceHierarchy(
     // Synchronize the Cartesian grid velocity u(n) on the patch hierarchy.
     //
     // NOTE: Since we are maintaining the Lagrangian velocity data, this step is
-    // skipped for each timestep following the initial one.
-    if (initial_time)
+    // skipped for each timestep following the initial one, except for those
+    // timesteps that immediately follow a regridding.
+    if (initial_time || d_reinterpolate_after_regrid)
     {
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
@@ -904,8 +906,9 @@ IBHierarchyIntegrator::advanceHierarchy(
             //    mesh.
             //
             // NOTE: Since we are maintaining the Lagrangian velocity data, this
-            // step is skipped for each timestep following the initial one.
-            if (initial_time)
+            // step is skipped for each timestep following the initial one
+            // execpt immediately following a regridding operation.
+            if (initial_time || d_reinterpolate_after_regrid)
             {
                 if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): interpolating u(n) to U(n) on level number " << ln << "\n";
 
@@ -1021,7 +1024,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_current_data, F_data[ln], X_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
-#if 1  // XXXX
+#if 0  // XXXX
                 // WARNING: The following code ALWAYS assumes that physical
                 // boundaries are reflection boundaries.
                 if (pgeom->getTouchesRegularBoundary())
@@ -1162,7 +1165,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
-#if 1  // XXXX
+#if 0  // XXXX
                 // WARNING: the following code ALWAYS assumes that physical
                 // boundaries are reflection boundaries.
                 if (pgeom->getTouchesRegularBoundary())
@@ -1176,6 +1179,9 @@ IBHierarchyIntegrator::advanceHierarchy(
             }
         }
     }
+
+    // Reset the reinterpolation flag.
+    d_reinterpolate_after_regrid = false;
 
     // If an additional body force specification object is provided, compute the
     // body force at the beginning and end of the time step, and add those
@@ -1812,6 +1818,10 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
     d_lag_data_manager->
         resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
+    // Indicate that the velocity field needs to be re-interpolated (but only in
+    // the multi-level case).
+    d_reinterpolate_after_regrid = d_reinterpolate_after_regrid || (finest_level>0);
+
     // Reset the Hierarchy data operations for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_cc_data_ops->resetLevels(0, finest_hier_level);
@@ -2183,6 +2193,7 @@ IBHierarchyIntegrator::printClassData(
        << "d_dt_max_time_min = " << d_dt_max_time_min << endl;
     os << "d_is_initialized = " << d_is_initialized << endl;
     os << "d_do_log = " << d_do_log << endl;
+    os << "d_reinterpolate_after_regrid = " << d_reinterpolate_after_regrid << endl;
     os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << endl;
     os << "Skipping variables, patch data descriptors, communications algorithms, etc." << endl;
     return;
