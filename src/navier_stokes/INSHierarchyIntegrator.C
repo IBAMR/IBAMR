@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <29.Aug.2007 15:37:36 griffith@box221.cims.nyu.edu>
+// Last modified: <29.Aug.2007 17:04:45 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -454,15 +454,26 @@ INSHierarchyIntegrator::registerVisItDataWriter(
     return;
 }// registerVisItDataWriter
 
+// XXXX fix function pointer arguments
 void
 INSHierarchyIntegrator::registerRegridHierarchyCallback(
     void (*callback)(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >, double, bool, void*),
     void* ctx)
 {
     d_regrid_hierarchy_callbacks.push_back(callback);
-    d_regrid_hierarchy_ctxs.push_back(ctx);
+    d_regrid_hierarchy_callback_ctxs.push_back(ctx);
     return;
 }// registerRegridHierarchyCallback
+
+void
+INSHierarchyIntegrator::registerApplyGradientDetectorCallback(
+    void (*callback)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const int level_number, const double error_data_time, const int tag_index, const bool initial_time, const bool uses_richardson_extrapolation_too, void* ctx),
+    void* ctx)
+{
+    d_apply_gradient_detector_callbacks.push_back(callback);
+    d_apply_gradient_detector_callback_ctxs.push_back(ctx);
+    return;
+}// registerApplyGradientDetectorCallback
 
 ///
 ///  The following routines:
@@ -1430,7 +1441,7 @@ INSHierarchyIntegrator::regridHierarchy()
 
     for (size_t i = 0; i < d_regrid_hierarchy_callbacks.size(); ++i)
     {
-        (*d_regrid_hierarchy_callbacks[i])(d_hierarchy, d_integrator_time, initial_time, d_regrid_hierarchy_ctxs[i]);
+        (*d_regrid_hierarchy_callbacks[i])(d_hierarchy, d_integrator_time, initial_time, d_regrid_hierarchy_callback_ctxs[i]);
     }
 
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -3023,6 +3034,15 @@ INSHierarchyIntegrator::applyGradientDetector(
                 }
             }
         }
+    }
+
+    // Allow callback functions to tag cells for refinement.
+    for (size_t i = 0; i < d_apply_gradient_detector_callbacks.size(); ++i)
+    {
+        (*d_apply_gradient_detector_callbacks[i])(
+            hierarchy, level_number, error_data_time,
+            tag_index, initial_time,
+            uses_richardson_extrapolation_too, d_apply_gradient_detector_callback_ctxs[i]);
     }
 
     t_apply_gradient_detector->stop();
