@@ -1,8 +1,8 @@
-// Filename: INSProjectionBcCoef.C
-// Last modified: <30.Aug.2007 21:16:39 griffith@box221.cims.nyu.edu>
-// Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
+// Filename: INSIntermediateVelocityBcCoef.C
+// Last modified: <30.Aug.2007 23:52:57 griffith@box221.cims.nyu.edu>
+// Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
-#include "INSProjectionBcCoef.h"
+#include "INSIntermediateVelocityBcCoef.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -20,8 +20,8 @@
 #include <stools/PhysicalBoundaryUtilities.h>
 
 // SAMRAI INCLUDES
-#include <FaceData.h>
-#include <SideData.h>
+#include <CartesianPatchGeometry.h>
+#include <CellData.h>
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
@@ -36,47 +36,52 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSProjectionBcCoef::INSProjectionBcCoef(
-    const int u_idx,
+INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
+    const int comp_idx,
+    const int Phi_idx,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const bool homogeneous_bc)
-    : d_rho(std::numeric_limits<double>::quiet_NaN()),
+    : d_current_time(std::numeric_limits<double>::quiet_NaN()),
+      d_new_time(std::numeric_limits<double>::quiet_NaN()),
+      d_intermediate_velocity_fix(false),
+      d_rho(std::numeric_limits<double>::quiet_NaN()),
       d_dt(std::numeric_limits<double>::quiet_NaN()),
-      d_u_idx(-1),
+      d_comp_idx(comp_idx),
+      d_Phi_idx(-1),
       d_homo_patch_data_idxs(),
       d_inhomo_patch_data_idxs(),
       d_u_bc_coefs(),
       d_homogeneous_bc(false)
 {
-    setIntermediateVelocityPatchDataIndex(u_idx);
+    setPhiPatchDataIndex(Phi_idx);
     setVelocityPhysicalBcCoefs(u_bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
-}// INSProjectionBcCoef
+}// INSIntermediateVelocityBcCoef
 
-INSProjectionBcCoef::~INSProjectionBcCoef()
+INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
 {
     // intentionally blank
     return;
-}// ~INSProjectionBcCoef
+}// ~INSIntermediateVelocityBcCoef
 
 void
-INSProjectionBcCoef::setIntermediateVelocityPatchDataIndex(
-    const int u_idx)
+INSIntermediateVelocityBcCoef::setPhiPatchDataIndex(
+    const int Phi_idx)
 {
-    d_u_idx = u_idx;
+    d_Phi_idx = Phi_idx;
     d_inhomo_patch_data_idxs.clear();
-    d_inhomo_patch_data_idxs.insert(d_u_idx);
+    d_inhomo_patch_data_idxs.insert(d_Phi_idx);
     return;
-}// setIntermediateVelocityPatchDataIndex
+}// setPhiPatchDataIndex
 
 void
-INSProjectionBcCoef::setVelocityPhysicalBcCoefs(
+INSIntermediateVelocityBcCoef::setVelocityPhysicalBcCoefs(
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
 {
     if (u_bc_coefs.size() != NDIM)
     {
-        TBOX_ERROR("INSProjectionBcCoef::setVelocityPhysicalBcCoefs():\n"
+        TBOX_ERROR("INSIntermediateVelocityBcCoef::setVelocityPhysicalBcCoefs():\n"
                    << "  precisely NDIM boundary condiiton objects must be provided." << endl);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -90,7 +95,7 @@ INSProjectionBcCoef::setVelocityPhysicalBcCoefs(
 }// setVelocityPhysicalBcCoefs
 
 void
-INSProjectionBcCoef::setHomogeneousBc(
+INSIntermediateVelocityBcCoef::setHomogeneousBc(
     const bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
@@ -98,19 +103,19 @@ INSProjectionBcCoef::setHomogeneousBc(
 }// setHomogeneousBc
 
 const std::set<int>&
-INSProjectionBcCoef::getHomogeneousBcFillDataIndices() const
+INSIntermediateVelocityBcCoef::getHomogeneousBcFillDataIndices() const
 {
     return d_homo_patch_data_idxs;
 }// getHomogeneousBcFillDataIndices
 
 const std::set<int>&
-INSProjectionBcCoef::getInhomogeneousBcFillDataIndices() const
+INSIntermediateVelocityBcCoef::getInhomogeneousBcFillDataIndices() const
 {
     return d_inhomo_patch_data_idxs;
 }// getInhomogeneousBcFillDataIndices
 
 void
-INSProjectionBcCoef::setBcCoefs(
+INSIntermediateVelocityBcCoef::setBcCoefs(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
@@ -120,7 +125,7 @@ INSProjectionBcCoef::setBcCoefs(
     double fill_time) const
 {
 #if USING_OLD_ROBIN_BC_INTERFACE
-    TBOX_ERROR("INSProjectionBcCoef::setBcCoefs():\n"
+    TBOX_ERROR("INSIntermediateVelocityBcCoef::setBcCoefs():\n"
                << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << endl);
 #else
     setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
@@ -129,7 +134,7 @@ INSProjectionBcCoef::setBcCoefs(
 }// setBcCoefs
 
 void
-INSProjectionBcCoef::setBcCoefs(
+INSIntermediateVelocityBcCoef::setBcCoefs(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
@@ -144,14 +149,14 @@ INSProjectionBcCoef::setBcCoefs(
          : new SAMRAI::pdat::ArrayData<NDIM,double>(acoef_data->getBox(), acoef_data->getDepth()));
     setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 #else
-    TBOX_ERROR("INSProjectionBcCoef::setBcCoefs():\n"
+    TBOX_ERROR("INSIntermediateVelocityBcCoef::setBcCoefs():\n"
                << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << endl);
 #endif
     return;
 }// setBcCoefs
 
 SAMRAI::hier::IntVector<NDIM>
-INSProjectionBcCoef::numberOfExtensionsFillable() const
+INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
     SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (int d = 0; d < NDIM; ++d)
@@ -167,7 +172,7 @@ INSProjectionBcCoef::numberOfExtensionsFillable() const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-INSProjectionBcCoef::setBcCoefs_private(
+INSIntermediateVelocityBcCoef::setBcCoefs_private(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
@@ -176,35 +181,22 @@ INSProjectionBcCoef::setBcCoefs_private(
     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
     const int location_index   = bdry_box.getLocationIndex();
     const int bdry_normal_axis = location_index/2;
-    const bool is_lower        = location_index%2 == 0;
-
-    const SAMRAI::hier::Box<NDIM> bc_coef_box =
-        STOOLS::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(bdry_box);
-
-    const bool fill_acoef_data = !acoef_data.isNull();
-    const bool fill_bcoef_data = !bcoef_data.isNull();
-    const bool fill_gcoef_data = !gcoef_data.isNull();
 
     // Set the normal velocity bc coefs.
 #if USING_OLD_ROBIN_BC_INTERFACE
-    d_u_bc_coefs[bdry_normal_axis]->setBcCoefs(
+    d_u_bc_coefs[d_comp_idx]->setBcCoefs(
         acoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 #else
-    d_u_bc_coefs[bdry_normal_axis]->setBcCoefs(
+    d_u_bc_coefs[d_comp_idx]->setBcCoefs(
         acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 #endif
 
-    // Loop over the boundary box and reset the homogeneous coefficients.
-    for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
-    {
-        const SAMRAI::hier::Index<NDIM>& i = b();
-
-        if (fill_acoef_data) (*acoef_data)(i,0) = 1.0-(*acoef_data)(i,0);
-        if (fill_bcoef_data) (*bcoef_data)(i,0) = 1.0-(*bcoef_data)(i,0);
-        if (fill_gcoef_data && d_homogeneous_bc) (*gcoef_data)(i,0) = 0.0;
-    }
+    if (!d_intermediate_velocity_fix || SAMRAI::tbox::Utilities::deq(fill_time, d_current_time)) return;
 
     // Loop over the boundary box and reset the inhomogeneous coefficients.
     if (!d_homogeneous_bc && !gcoef_data.isNull())
@@ -212,51 +204,59 @@ INSProjectionBcCoef::setBcCoefs_private(
 #ifdef DEBUG_CHECK_ASSERTIONS
         assert(!acoef_data.isNull());
 #endif
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_fc_data = patch.getPatchData(d_u_idx);
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_sc_data = patch.getPatchData(d_u_idx);
+        const SAMRAI::hier::Box<NDIM> bc_coef_box =
+            STOOLS::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(bdry_box);
 
-        if (!u_fc_data.isNull())
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Phi_data = patch.getPatchData(d_Phi_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        assert(!Phi_data.isNull());
+#endif
+        const SAMRAI::hier::Box<NDIM> ghost_box = Phi_data->getGhostBox();
+        const SAMRAI::hier::Index<NDIM> ghost_upper = ghost_box.upper();
+        const SAMRAI::hier::Index<NDIM> ghost_lower = ghost_box.lower();
+        for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
         {
-            for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+            const SAMRAI::hier::Index<NDIM>& i = b();
+            if (bdry_normal_axis != d_comp_idx)
             {
-                const SAMRAI::hier::Index<NDIM>& i = b();
-                const SAMRAI::pdat::FaceIndex<NDIM> i_f(
-                    i, bdry_normal_axis, SAMRAI::pdat::FaceIndex<NDIM>::Lower);
-
-                if (SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),0.0))
+                if (SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),1.0))
                 {
-                    (*gcoef_data)(i,0) =
-                        (is_lower ? -1.0 : +1.0)*(d_rho/d_dt)*((*u_fc_data)(i_f) - (*gcoef_data)(i,0));
+                    SAMRAI::hier::Index<NDIM> i_up0(i), i_up1(i), i_down0(i), i_down1(i);
+                    i_up0  (d_comp_idx) += 1;
+                    i_up1  (d_comp_idx) += 1;
+
+                    i_down0(d_comp_idx) -= 1;
+                    i_down1(d_comp_idx) -= 1;
+
+                    i_up1  (bdry_normal_axis) -= 1;
+                    i_down1(bdry_normal_axis) -= 1;
+
+                    if (i_up0(d_comp_idx) > ghost_upper(d_comp_idx))
+                    {
+                        i_up0  (d_comp_idx) -= 1;
+                        i_up1  (d_comp_idx) -= 1;
+                        i_down0(d_comp_idx) -= 1;
+                        i_down1(d_comp_idx) -= 1;
+                    }
+                    else if (i_down0(d_comp_idx) < ghost_lower(d_comp_idx))
+                    {
+                        i_up0  (d_comp_idx) += 1;
+                        i_up1  (d_comp_idx) += 1;
+                        i_down0(d_comp_idx) += 1;
+                        i_down1(d_comp_idx) += 1;
+                    }
+
+                    const double grad_Phi = 0.5*(
+                        0.5*((*Phi_data)(i_up0)-(*Phi_data)(i_down0))/dx[d_comp_idx] +
+                        0.5*((*Phi_data)(i_up1)-(*Phi_data)(i_down1))/dx[d_comp_idx]);
+
+                    (*gcoef_data)(i,0) += (d_dt/d_rho)*grad_Phi;
                 }
                 else
                 {
                     assert(false);
                 }
             }
-        }
-        else if (!u_sc_data.isNull())
-        {
-            for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
-            {
-                const SAMRAI::hier::Index<NDIM>& i = b();
-                const SAMRAI::pdat::SideIndex<NDIM> i_s(
-                    i, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-
-                if (SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),0.0))
-                {
-                    (*gcoef_data)(i,0) =
-                        (is_lower ? -1.0 : +1.0)*(d_rho/d_dt)*((*u_sc_data)(i_s) - (*gcoef_data)(i,0));
-                }
-                else
-                {
-                    assert(false);
-                }
-            }
-        }
-        else
-        {
-            TBOX_ERROR("INSProjectionBcCoef::setBcCoefs():\n"
-                       << "  intermediate velocity data required to set inhomogenous boundary conditions is not available" << std::endl);
         }
     }
 

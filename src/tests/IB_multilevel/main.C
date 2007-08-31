@@ -300,16 +300,12 @@ main(
             "u2_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_u2"));
 #endif
 
-        vector<const solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
+        vector<solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
         U_bc_coefs[0] = &u0_bc_coef;
         U_bc_coefs[1] = &u1_bc_coef;
 #if (NDIM > 2)
         U_bc_coefs[2] = &u2_bc_coef;
 #endif
-
-        solv::LocationIndexRobinBcCoefs<NDIM> phi_bc_coef(
-            "phi_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs_phi"));
-
         /*
          * Create major algorithm and data objects which comprise the
          * application.  Each object will be initialized either from input data
@@ -343,7 +339,6 @@ main(
                 "HierarchyProjector",
                 input_db->getDatabase("HierarchyProjector"),
                 patch_hierarchy);
-        hier_projector->setPhysicalBcCoef(&phi_bc_coef);
 
         tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator =
             new INSHierarchyIntegrator(

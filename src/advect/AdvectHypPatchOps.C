@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <28.Jun.2007 23:25:14 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Aug.2007 19:50:34 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -337,12 +337,12 @@ AdvectHypPatchOps::registerAdvectedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedQuantity(
         Q_var, conservation_form, Q_init,
-        std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
         grad_var);
     return;
 }// registerAdvectedQuantity
@@ -352,7 +352,7 @@ AdvectHypPatchOps::registerAdvectedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
-    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -363,11 +363,11 @@ AdvectHypPatchOps::registerAdvectedQuantity(
         Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
 
-    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
     if (Q_bc_coefs_local.empty())
     {
-        Q_bc_coefs_local = std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
-            Q_depth,static_cast<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
+        Q_bc_coefs_local = std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
+            Q_depth,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
     }
 
     if (Q_depth != static_cast<int>(Q_bc_coefs_local.size()))
@@ -423,13 +423,13 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedQuantityWithSourceTerm(
         Q_var, F_var, conservation_form, Q_init,
-        std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
         F_set, grad_var);
     return;
 }// registerAdvectedQuantityWithSourceTerm
@@ -440,7 +440,7 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
-    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
@@ -453,11 +453,11 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
         Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
 
-    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
     if (Q_bc_coefs_local.empty())
     {
-        Q_bc_coefs_local = std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
-            Q_depth,static_cast<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
+        Q_bc_coefs_local = std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
+            Q_depth,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
     }
 
     if (Q_depth != static_cast<int>(Q_bc_coefs_local.size()))
@@ -1955,7 +1955,7 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
     for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
-        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs = d_Q_bc_coefs[l];
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs = d_Q_bc_coefs[l];
 
         const int patch_data_idx = var_db->mapVariableAndContextToIndex(
             Q_var, getDataContext());

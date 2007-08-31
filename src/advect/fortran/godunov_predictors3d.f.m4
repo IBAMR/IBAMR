@@ -579,10 +579,10 @@ c     Employ Colella's MUSCL limiter.
          Qx = 0.d0
       endif
 
-!     unorm = 0.5d0*(u0(ifirst0-1,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
-            unorm = fourth*fourth*
-     &        ( 9.d0*(u0(ifirst0-1  ,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
-     &        - 1.d0*(u0(ifirst0-1-1,ic1,ic2)+u0(ifirst0-1+2,ic1,ic2)) )
+      unorm = 0.5d0*(u0(ifirst0-1,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
+!     unorm = fourth*fourth*
+!    &     ( 9.d0*(u0(ifirst0-1  ,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
+!    &     - 1.d0*(u0(ifirst0-1-1,ic1,ic2)+u0(ifirst0-1+2,ic1,ic2)) )
 
             do ic0 = ifirst0-1,ilast0
                qL = Q(ic0  ,ic1,ic2)
@@ -602,10 +602,10 @@ c     Employ Colella's MUSCL limiter.
                   Qx = muscldiff(Q(ic0+1-2,ic1,ic2))
                endif
 
-!     unorm = 0.5d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
-               unorm = fourth*fourth*
-     &              ( 9.d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
-     &              - 1.d0*(u0(ic0  ,ic1,ic2)+u0(ic0+3,ic1,ic2)) )
+               unorm = 0.5d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
+!              unorm = fourth*fourth*
+!    &              ( 9.d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
+!    &              - 1.d0*(u0(ic0  ,ic1,ic2)+u0(ic0+3,ic1,ic2)) )
 
                qR = Q(ic0+1,ic1,ic2)
      &              - 0.5d0*(1.d0+unorm*dt/dx0)*Qx
@@ -699,10 +699,10 @@ c     Employ Colella's MUSCL limiter.
          Qx = 0.d0
       endif
 
-!     unorm = 0.5d0*(u0(ifirst0-1,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
-            unorm = fourth*fourth*
-     &        ( 9.d0*(u0(ifirst0-1  ,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
-     &        - 1.d0*(u0(ifirst0-1-1,ic1,ic2)+u0(ifirst0-1+2,ic1,ic2)) )
+      unorm = 0.5d0*(u0(ifirst0-1,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
+!     unorm = fourth*fourth*
+!    &        ( 9.d0*(u0(ifirst0-1  ,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
+!    &        - 1.d0*(u0(ifirst0-1-1,ic1,ic2)+u0(ifirst0-1+2,ic1,ic2)) )
 
             do ic0 = ifirst0-1,ilast0
                qL = Q(ic0  ,ic1,ic2)
@@ -723,10 +723,10 @@ c     Employ Colella's MUSCL limiter.
                   Qx = muscldiff(Q(ic0+1-2,ic1,ic2))
                endif
 
-!     unorm = 0.5d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
-               unorm = fourth*fourth*
-     &              ( 9.d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
-     &              - 1.d0*(u0(ic0  ,ic1,ic2)+u0(ic0+3,ic1,ic2)) )
+               unorm = 0.5d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
+!              unorm = fourth*fourth*
+!    &              ( 9.d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
+!    &              - 1.d0*(u0(ic0  ,ic1,ic2)+u0(ic0+3,ic1,ic2)) )
 
                qR = Q(ic0+1,ic1,ic2)
      &              - 0.5d0*(1.d0+unorm*dt/dx0)*Qx
@@ -790,15 +790,15 @@ c
       do ic2 = ifirst2,ilast2
          do ic1 = ifirst1,ilast1
 
-!     vtan = 0.5d0*(u1(ic1,ic2,ifirst0-1)+u1(ic1+1,ic2,ifirst0-1))
-!     wtan = 0.5d0*(u2(ic2,ifirst0-1,ic1)+u2(ic2+1,ifirst0-1,ic1))
+            vtan = 0.5d0*(u1(ic1,ic2,ifirst0-1)+u1(ic1+1,ic2,ifirst0-1))
+            wtan = 0.5d0*(u2(ic2,ifirst0-1,ic1)+u2(ic2+1,ifirst0-1,ic1))
 
-            vtan = fourth*fourth*
-     &        ( 9.d0*(u1(ic1  ,ic2,ifirst0-1)+u1(ic1+1,ic2,ifirst0-1))
-     &        - 1.d0*(u1(ic1-1,ic2,ifirst0-1)+u1(ic1+2,ic2,ifirst0-1)) )
-            wtan = fourth*fourth*
-     &        ( 9.d0*(u2(ic2  ,ifirst0-1,ic1)+u2(ic2+1,ifirst0-1,ic1))
-     &        - 1.d0*(u2(ic2-1,ifirst0-1,ic1)+u2(ic2+2,ifirst0-1,ic1)) )
+!           vtan = fourth*fourth*
+!    &        ( 9.d0*(u1(ic1  ,ic2,ifirst0-1)+u1(ic1+1,ic2,ifirst0-1))
+!    &        - 1.d0*(u1(ic1-1,ic2,ifirst0-1)+u1(ic1+2,ic2,ifirst0-1)) )
+!           wtan = fourth*fourth*
+!    &        ( 9.d0*(u2(ic2  ,ifirst0-1,ic1)+u2(ic2+1,ifirst0-1,ic1))
+!    &        - 1.d0*(u2(ic2-1,ifirst0-1,ic1)+u2(ic2+2,ifirst0-1,ic1)) )
 
             do ic0 = ifirst0-1,ilast0
                Qy = qtemp1(ic1+1,ic2,ic0)-qtemp1(ic1,ic2,ic0)
@@ -808,15 +808,15 @@ c
      &              - 0.5d0*dt*vtan*Qy/dx1
      &              - 0.5d0*dt*wtan*Qz/dx2
 
-!     vtan = 0.5d0*(u1(ic1,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
-!     wtan = 0.5d0*(u2(ic2,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
+               vtan = 0.5d0*(u1(ic1,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
+               wtan = 0.5d0*(u2(ic2,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
 
-               vtan = fourth*fourth*
-     &              ( 9.d0*(u1(ic1  ,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
-     &              - 1.d0*(u1(ic1-1,ic2,ic0+1)+u1(ic1+2,ic2,ic0+1)) )
-               wtan = fourth*fourth*
-     &              ( 9.d0*(u2(ic2  ,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
-     &              - 1.d0*(u2(ic2-1,ic0+1,ic1)+u2(ic2+2,ic0+1,ic1)) )
+!              vtan = fourth*fourth*
+!    &              ( 9.d0*(u1(ic1  ,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
+!    &              - 1.d0*(u1(ic1-1,ic2,ic0+1)+u1(ic1+2,ic2,ic0+1)) )
+!              wtan = fourth*fourth*
+!    &              ( 9.d0*(u2(ic2  ,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
+!    &              - 1.d0*(u2(ic2-1,ic0+1,ic1)+u2(ic2+2,ic0+1,ic1)) )
 
                Qy = qtemp1(ic1+1,ic2,ic0+1)-qtemp1(ic1,ic2,ic0+1)
                Qz = qtemp2(ic2+1,ic0+1,ic1)-qtemp2(ic2,ic0+1,ic1)
@@ -884,15 +884,15 @@ c
       do ic2 = ifirst2,ilast2
          do ic1 = ifirst1,ilast1
 
-!     vtan = 0.5d0*(u1(ic1,ic2,ifirst0-1)+u1(ic1+1,ic2,ifirst0-1))
-!     wtan = 0.5d0*(u2(ic2,ifirst0-1,ic1)+u2(ic2+1,ifirst0-1,ic1))
+            vtan = 0.5d0*(u1(ic1,ic2,ifirst0-1)+u1(ic1+1,ic2,ifirst0-1))
+            wtan = 0.5d0*(u2(ic2,ifirst0-1,ic1)+u2(ic2+1,ifirst0-1,ic1))
 
-            vtan = fourth*fourth*
-     &        ( 9.d0*(u1(ic1  ,ic2,ifirst0-1)+u1(ic1+1,ic2,ifirst0-1))
-     &        - 1.d0*(u1(ic1-1,ic2,ifirst0-1)+u1(ic1+2,ic2,ifirst0-1)) )
-            wtan = fourth*fourth*
-     &        ( 9.d0*(u2(ic2  ,ifirst0-1,ic1)+u2(ic2+1,ifirst0-1,ic1))
-     &        - 1.d0*(u2(ic2-1,ifirst0-1,ic1)+u2(ic2+2,ifirst0-1,ic1)) )
+!           vtan = fourth*fourth*
+!    &        ( 9.d0*(u1(ic1  ,ic2,ifirst0-1)+u1(ic1+1,ic2,ifirst0-1))
+!    &        - 1.d0*(u1(ic1-1,ic2,ifirst0-1)+u1(ic1+2,ic2,ifirst0-1)) )
+!           wtan = fourth*fourth*
+!    &        ( 9.d0*(u2(ic2  ,ifirst0-1,ic1)+u2(ic2+1,ifirst0-1,ic1))
+!    &        - 1.d0*(u2(ic2-1,ifirst0-1,ic1)+u2(ic2+2,ifirst0-1,ic1)) )
 
             do ic0 = ifirst0-1,ilast0
                Qy = qtemp1(ic1+1,ic2,ic0)-qtemp1(ic1,ic2,ic0)
@@ -935,15 +935,15 @@ c
      &              - 0.5d0*dt*wtan*Qz/dx2
      &              + sixth*(dt**2.0)*(wDzvQy+vDywQz)/(dx1*dx2)
 
-!     vtan = 0.5d0*(u1(ic1,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
-!     wtan = 0.5d0*(u2(ic2,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
+               vtan = 0.5d0*(u1(ic1,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
+               wtan = 0.5d0*(u2(ic2,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
 
-               vtan = fourth*fourth*
-     &              ( 9.d0*(u1(ic1  ,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
-     &              - 1.d0*(u1(ic1-1,ic2,ic0+1)+u1(ic1+2,ic2,ic0+1)) )
-               wtan = fourth*fourth*
-     &              ( 9.d0*(u2(ic2  ,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
-     &              - 1.d0*(u2(ic2-1,ic0+1,ic1)+u2(ic2+2,ic0+1,ic1)) )
+!              vtan = fourth*fourth*
+!    &              ( 9.d0*(u1(ic1  ,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
+!    &              - 1.d0*(u1(ic1-1,ic2,ic0+1)+u1(ic1+2,ic2,ic0+1)) )
+!              wtan = fourth*fourth*
+!    &              ( 9.d0*(u2(ic2  ,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
+!    &              - 1.d0*(u2(ic2-1,ic0+1,ic1)+u2(ic2+2,ic0+1,ic1)) )
 
                Qy = qtemp1(ic1+1,ic2,ic0+1)-qtemp1(ic1,ic2,ic0+1)
                Qz = qtemp2(ic2+1,ic0+1,ic1)-qtemp2(ic2,ic0+1,ic1)

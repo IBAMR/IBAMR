@@ -294,7 +294,7 @@ main(
         }
 #endif
 
-        vector<const solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
+        vector<solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
         U_bc_coefs[0] = &u0_bc_coef;
         U_bc_coefs[1] = &u1_bc_coef;
 #if (NDIM > 2)
@@ -456,6 +456,8 @@ main(
 
             if (viz_dump_data && iteration_num%viz_dump_interval == 0)
             {
+                hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+                var_db->printClassData();
                 if (uses_visit)
                 {
                     tbox::pout << "\nWriting visualization files...\n\n";

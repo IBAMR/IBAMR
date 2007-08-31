@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <29.Aug.2007 01:28:03 griffith@box221.cims.nyu.edu>
+// Last modified: <31.Aug.2007 01:48:11 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -297,7 +297,7 @@ IBHierarchyIntegrator::registerVelocityInitialConditions(
 
 void
 IBHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
-    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs)
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs)
 {
     if (d_is_initialized)
     {
@@ -1024,17 +1024,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_current_data, F_data[ln], X_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
-#if 0  // XXXX
-                // WARNING: The following code ALWAYS assumes that physical
-                // boundaries are reflection boundaries.
-                if (pgeom->getTouchesRegularBoundary())
-                {
-                    LEInteractor::spreadReflectedForces(
-                        f_current_data, F_data[ln], X_data[ln], idx_data,
-                        patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
-                        d_delta_fcn);
-                }
-#endif
             }
 
             // 4. Compute X~(n+1), the preliminary structure configuration at
@@ -1165,23 +1154,9 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
-#if 0  // XXXX
-                // WARNING: the following code ALWAYS assumes that physical
-                // boundaries are reflection boundaries.
-                if (pgeom->getTouchesRegularBoundary())
-                {
-                    LEInteractor::spreadReflectedForces(
-                        f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
-                        patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
-                        d_delta_fcn);
-                }
-#endif
             }
         }
     }
-
-    // Reset the reinterpolation flag.
-    d_reinterpolate_after_regrid = false;
 
     // If an additional body force specification object is provided, compute the
     // body force at the beginning and end of the time step, and add those
@@ -1220,7 +1195,7 @@ IBHierarchyIntegrator::advanceHierarchy(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (initial_time) level->deallocatePatchData(d_V_idx);
+        if (initial_time || d_reinterpolate_after_regrid) level->deallocatePatchData(d_V_idx);
         level->deallocatePatchData(d_F_scratch1_idx);
         level->deallocatePatchData(d_F_scratch2_idx);
     }
@@ -1237,6 +1212,9 @@ IBHierarchyIntegrator::advanceHierarchy(
         }
         computeSourceStrengths(coarsest_ln, finest_ln, current_time, X_data);
     }
+
+    // Reset the reinterpolation flag.
+    d_reinterpolate_after_regrid = false;
 
     // Solve the incompressible Navier-Stokes equations for U(n+1) and P(n+1/2).
     //

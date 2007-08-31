@@ -48,7 +48,9 @@ c
 c     Local variables.
 c
       INTEGER ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_center(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_trunc_lower(0:NDIM-1),ic_trunc_upper(0:NDIM-1)
       INTEGER d,l,s
 
       REAL X_cell(0:NDIM-1),w0(0:3),w1(0:3)
@@ -85,25 +87,25 @@ c
             endif
          enddo
 
-         ic_lower(0) = max(ic_lower(0),ifirst0-nugc0)
-         ic_upper(0) = min(ic_upper(0),ilast0 +nugc0)
+         ic_trunc_lower(0) = max(ic_lower(0),ifirst0-nugc0)
+         ic_trunc_upper(0) = min(ic_upper(0),ilast0 +nugc0)
 
-         ic_lower(1) = max(ic_lower(1),ifirst1-nugc1)
-         ic_upper(1) = min(ic_upper(1),ilast1 +nugc1)
+         ic_trunc_lower(1) = max(ic_lower(1),ifirst1-nugc1)
+         ic_trunc_upper(1) = min(ic_upper(1),ilast1 +nugc1)
 c
 c     Compute the interpolation weights.
 c
 CDEC$ LOOP COUNT(4)
-         do ic0 = ic_lower(0),ic_upper(0)
+         do ic0 = ic_trunc_lower(0),ic_trunc_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w0(ic0-ic_trunc_lower(0)) =
      &           lagrangian_ib4_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 CDEC$ LOOP COUNT(4)
-         do ic1 = ic_lower(1),ic_upper(1)
+         do ic1 = ic_trunc_lower(1),ic_trunc_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w1(ic1-ic_trunc_lower(1)) =
      &           lagrangian_ib4_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
@@ -113,13 +115,13 @@ c
          do d = 0,depth-1
             V(d,s) = 0.d0
 CDEC$ LOOP COUNT(4)
-            do ic1 = ic_lower(1),ic_upper(1)
+            do ic1 = ic_trunc_lower(1),ic_trunc_upper(1)
 CDEC$ LOOP COUNT(4)
-               do ic0 = ic_lower(0),ic_upper(0)
-                  V(d,s) = V(d,s)
-     &                 +w0(ic0-ic_lower(0))*w1(ic1-ic_lower(1))
-     &                 *u(ic0,ic1,d)
-               enddo
+            do ic0 = ic_trunc_lower(0),ic_trunc_upper(0)
+               V(d,s) = V(d,s)
+     &              +w0(ic0-ic_trunc_lower(0))*w1(ic1-ic_trunc_lower(1))
+     &              *u(ic0,ic1,d)
+            enddo
             enddo
          enddo
       enddo
@@ -136,6 +138,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib4_spread2d(
      &     dx,x_lower,x_upper,depth,
+     &     phys_bdry_lower,phys_bdry_upper,
      &     indices,Xshift,nindices,
      &     X,V,
      &     ifirst0,ilast0,ifirst1,ilast1,
@@ -153,6 +156,7 @@ c
 c     Input.
 c
       INTEGER depth
+      INTEGER phys_bdry_lower(0:NDIM-1),phys_bdry_upper(0:NDIM-1)
       INTEGER nindices
       INTEGER ifirst0,ilast0,ifirst1,ilast1
       INTEGER nugc0,nugc1
@@ -172,10 +176,15 @@ c
 c     Local variables.
 c
       INTEGER ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_center(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_trunc_lower(0:NDIM-1),ic_trunc_upper(0:NDIM-1)
+      INTEGER ic_shift(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:3),w1(0:3)
+      REAL X_cell(0:NDIM-1),w,w0(0:3),w1(0:3)
+
+      LOGICAL across_bdry,valid_point
 c
       x_upper(0) = x_upper(0)   ! to prevent warnings about
       x_upper(1) = x_upper(1)   ! x_upper being unused.
@@ -209,25 +218,25 @@ c
             endif
          enddo
 
-         ic_lower(0) = max(ic_lower(0),ifirst0-nugc0)
-         ic_upper(0) = min(ic_upper(0),ilast0 +nugc0)
+         ic_trunc_lower(0) = max(ic_lower(0),ifirst0-nugc0)
+         ic_trunc_upper(0) = min(ic_upper(0),ilast0 +nugc0)
 
-         ic_lower(1) = max(ic_lower(1),ifirst1-nugc1)
-         ic_upper(1) = min(ic_upper(1),ilast1 +nugc1)
+         ic_trunc_lower(1) = max(ic_lower(1),ifirst1-nugc1)
+         ic_trunc_upper(1) = min(ic_upper(1),ilast1 +nugc1)
 c
 c     Compute the spreading weights.
 c
 CDEC$ LOOP COUNT(4)
-         do ic0 = ic_lower(0),ic_upper(0)
+         do ic0 = ic_trunc_lower(0),ic_trunc_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w0(ic0-ic_trunc_lower(0)) =
      &           lagrangian_ib4_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))/dx(0)
          enddo
 CDEC$ LOOP COUNT(4)
-         do ic1 = ic_lower(1),ic_upper(1)
+         do ic1 = ic_trunc_lower(1),ic_trunc_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w1(ic1-ic_trunc_lower(1)) =
      &           lagrangian_ib4_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))/dx(1)
          enddo
@@ -236,15 +245,81 @@ c     Spread V onto u.
 c
          do d = 0,depth-1
 CDEC$ LOOP COUNT(4)
-            do ic1 = ic_lower(1),ic_upper(1)
+            do ic1 = ic_trunc_lower(1),ic_trunc_upper(1)
 CDEC$ LOOP COUNT(4)
-               do ic0 = ic_lower(0),ic_upper(0)
-                  u(ic0,ic1,d) = u(ic0,ic1,d)
-     &                 +w0(ic0-ic_lower(0))*w1(ic1-ic_lower(1))
-     &                 *V(d,s)
-               enddo
+            do ic0 = ic_trunc_lower(0),ic_trunc_upper(0)
+               u(ic0,ic1,d) = u(ic0,ic1,d)
+     &              +w0(ic0-ic_trunc_lower(0))*w1(ic1-ic_trunc_lower(1))
+     &              *V(d,s)
+            enddo
             enddo
          enddo
+c
+c     Fix the spread values in the case of physical boundaries.
+c
+         if ( (ic_lower(0).lt.ifirst0.and.phys_bdry_lower(0).eq.1).or.
+     &        (ic_lower(1).lt.ifirst1.and.phys_bdry_lower(1).eq.1).or.
+     &        (ic_upper(0).gt.ilast0 .and.phys_bdry_upper(0).eq.1).or.
+     &        (ic_upper(1).gt.ilast1 .and.phys_bdry_upper(1).eq.1) )
+     &        then
+
+            do ic1 = ic_lower(1),ic_upper(1)
+               X_cell(1) = x_lower(1)+ (dble(ic1-ifirst1)+0.5d0)*dx(1)
+               do ic0 = ic_lower(0),ic_upper(0)
+                  X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
+                  w = 1.d0
+                  w = w*lagrangian_ib4_delta(
+     &                 (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))/dx(0)
+                  w = w*lagrangian_ib4_delta(
+     &                 (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))/dx(1)
+
+                  across_bdry = .false.
+
+                  if     (ic0 .lt. ifirst0 .and.
+     &                 phys_bdry_lower(0) .eq. 1) then
+                     ic_shift(0) = +2
+                     across_bdry = .true.
+                  elseif (ic0 .gt. ilast0  .and.
+     &                    phys_bdry_upper(0) .eq. 1) then
+                     ic_shift(0) = -2
+                     across_bdry = .true.
+                  else
+                     ic_shift(0) =  0
+                  endif
+
+                  if     (ic1 .lt. ifirst1 .and.
+     &                 phys_bdry_lower(1) .eq. 1) then
+                     ic_shift(1) = +2
+                     across_bdry = .true.
+                  elseif (ic1 .gt. ilast1  .and.
+     &                    phys_bdry_upper(1) .eq. 1) then
+                     ic_shift(1) = -2
+                     across_bdry = .true.
+                  else
+                     ic_shift(1) =  0
+                  endif
+
+                  if ( (ic0+ic_shift(0) .lt. ifirst0) .or.
+     &                 (ic0+ic_shift(0) .gt. ilast0 ) .or.
+     &                 (ic1+ic_shift(1) .lt. ifirst1) .or.
+     &                 (ic1+ic_shift(1) .gt. ilast1 ) ) then
+                     valid_point = .false.
+                  else
+                     valid_point = .true.
+                  endif
+
+                  if (across_bdry .and. valid_point) then
+                     do d = 0,depth-1
+                        u(ic0+ic_shift(0),ic1+ic_shift(1),d) =
+     &                       u(ic0+ic_shift(0),ic1+ic_shift(1),d)
+     &                       + w*V(d,s)
+                     enddo
+                  endif
+
+               enddo
+            enddo
+
+         endif
       enddo
 c
       return

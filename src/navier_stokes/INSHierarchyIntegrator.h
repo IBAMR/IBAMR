@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <29.Aug.2007 17:03:26 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Aug.2007 23:25:08 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -11,6 +11,7 @@
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/HierarchyProjector.h>
+#include <ibamr/INSIntermediateVelocityBcCoef.h>
 
 // STOOLS INCLUDES
 #include <stools/CCPoissonFACOperator.h>
@@ -130,7 +131,7 @@ public:
      */
     void
     registerVelocityPhysicalBcCoefs(
-        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
 
     /*!
      * Supply initial conditions for the (cell centered) pressure.
@@ -1097,7 +1098,8 @@ private:
      */
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
-    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
+    std::vector<INSIntermediateVelocityBcCoef*> d_intermediate_U_bc_coefs;
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set, d_Q_set;
 
     /*
@@ -1119,7 +1121,7 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_var, d_V_var, d_F_U_var, d_F_var, d_F_div_var, d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var, d_Grad_P_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var, d_Grad_Phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var, d_Phi_tilde_var, d_Grad_Phi_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_var, d_u_adv_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_grad_Phi_var;
@@ -1143,9 +1145,11 @@ private:
      */
     int d_u_current_idx, d_u_new_idx, d_u_scratch_idx;
 
-    int d_P_current_idx, d_P_new_idx, d_P_scratch_idx;
-    int d_F_current_idx, d_F_new_idx, d_F_scratch_idx;
-    int d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx;
+    int d_P_current_idx,         d_P_new_idx,         d_P_scratch_idx;
+    int d_Phi_current_idx,       d_Phi_new_idx,       d_Phi_scratch_idx;
+    int d_Phi_tilde_current_idx, d_Phi_tilde_new_idx, d_Phi_tilde_scratch_idx;
+    int d_F_current_idx,         d_F_new_idx,         d_F_scratch_idx;
+    int d_Q_current_idx,         d_Q_new_idx,         d_Q_scratch_idx;
 
     int d_F_div_current_idx, d_F_div_new_idx, d_F_div_scratch_idx;
     int d_Omega_current_idx, d_Omega_new_idx, d_Omega_scratch_idx;
@@ -1164,7 +1168,7 @@ private:
      *
      * Scratch variables have only one context.
      */
-    int d_Grad_P_idx, d_Phi_idx, d_Grad_Phi_idx, d_grad_Phi_idx, d_V_idx;
+    int d_Grad_P_idx, d_Grad_Phi_idx, d_grad_Phi_idx, d_V_idx;
 
     /*
      * Patch data descriptors for all variables managed by the

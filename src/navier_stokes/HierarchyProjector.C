@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <29.Aug.2007 01:56:27 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Aug.2007 20:24:56 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -197,9 +197,9 @@ HierarchyProjector::HierarchyProjector(
 
     // Initialize the Poisson solver.
     static const bool homogeneous_bc = false;
-    d_laplace_op = new INSProjectionLaplaceOperator(
+    d_laplace_op = new STOOLS::CCLaplaceOperator(
         d_object_name+"::Laplace Operator",
-        d_Phi_bc_coef, homogeneous_bc);
+        d_poisson_spec, d_Phi_bc_coef, homogeneous_bc);
 
     d_poisson_solver = new STOOLS::PETScKrylovLinearSolver(d_object_name+"::PETSc Krylov solver", "proj_");
     d_poisson_solver->setMaxIterations(d_max_iterations);
@@ -306,7 +306,7 @@ HierarchyProjector::isManagingHierarchyMathOps() const
 
 void
 HierarchyProjector::setVelocityPhysicalBcCoefs(
-    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
 {
     if (u_bc_coefs.size() != NDIM)
     {
@@ -324,7 +324,7 @@ HierarchyProjector::setVelocityPhysicalBcCoefs(
     return;
 }// setVelocityPhysicalBcCoefs
 
-const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
+const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
 HierarchyProjector::getVelocityPhysicalBcCoefs() const
 {
     return d_u_bc_coefs;

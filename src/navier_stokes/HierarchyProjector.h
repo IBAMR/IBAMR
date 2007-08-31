@@ -2,17 +2,17 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <28.Aug.2007 19:48:35 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Aug.2007 20:17:39 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/INSProjectionBcCoef.h>
-#include <ibamr/INSProjectionLaplaceOperator.h>
 
 // STOOLS INCLUDES
 #include <stools/LinearOperator.h>
+#include <stools/CCLaplaceOperator.h>
 #include <stools/CCPoissonFACOperator.h>
 #include <stools/KrylovLinearSolver.h>
 #include <stools/HierarchyMathOps.h>
@@ -151,14 +151,14 @@ public:
      */
     void
     setVelocityPhysicalBcCoefs(
-        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
 
     /*!
      * Returns a vector of pointers to the SAMRAI::solv::RobinBcCoefStrategy
      * object employed by the projector to specify physical boundary conditions
      * for the velocity.
      */
-    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
     getVelocityPhysicalBcCoefs() const;
 
     /*!
@@ -412,12 +412,12 @@ private:
     double d_abs_residual_tol, d_rel_residual_tol;
 
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
-    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_default_u_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_default_u_bc_coefs;
     INSProjectionBcCoef* d_Phi_bc_coef;
 
     SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> d_poisson_solver;
-    SAMRAI::tbox::Pointer<INSProjectionLaplaceOperator> d_laplace_op;
+    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> d_laplace_op;
     SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> d_poisson_fac_op;
     SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_poisson_fac_pc;
 

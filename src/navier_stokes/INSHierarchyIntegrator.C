@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <29.Aug.2007 17:04:45 griffith@box221.cims.nyu.edu>
+// Last modified: <31.Aug.2007 04:02:31 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -21,6 +21,7 @@
 
 // STOOLS INCLUDES
 #include <stools/CartExtrapPhysBdryOp.h>
+#include <stools/CartRobinPhysBdryOp.h>
 #include <stools/FACPreconditionerLSWrapper.h>
 #include <stools/PETScKrylovLinearSolver.h>
 #include <stools/PatchMathOps.h>
@@ -253,8 +254,9 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
         d_default_U_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_U_bc_coef->setBoundaryValue(2*d+1,0.0);
     }
+
     registerVelocityPhysicalBcCoefs(
-        std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
             NDIM,d_default_U_bc_coef));
 
     // Initialize object with data read from the input and restart databases.
@@ -380,6 +382,10 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
 
     delete d_default_U_bc_coef;
 
+    for (int d = 0; d < NDIM; ++d)
+    {
+        delete d_intermediate_U_bc_coefs[d];
+    }
     return;
 }// ~INSHierarchyIntegrator
 
@@ -399,7 +405,7 @@ INSHierarchyIntegrator::registerVelocityInitialConditions(
 
 void
 INSHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
-    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs)
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs)
 {
     if (d_is_initialized)
     {
@@ -415,6 +421,22 @@ INSHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
 #endif
     d_U_bc_coefs = U_bc_coefs;
     d_hier_projector->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
+
+    if (d_intermediate_U_bc_coefs.empty())
+    {
+        d_intermediate_U_bc_coefs.resize(NDIM,NULL);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            d_intermediate_U_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d,-1,d_U_bc_coefs,false);
+        }
+    }
+    else
+    {
+        for (int d = 0; d < NDIM; ++d)
+        {
+            d_intermediate_U_bc_coefs[d]->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
+        }
+    }
     return;
 }// registerVelocityPhysicalBcCoefs
 
@@ -619,6 +641,11 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         d_Div_u_adv_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Div u_adv");
     }
 
+    if (d_using_hybrid_projection)
+    {
+        d_Phi_tilde_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Phi_tilde");
+    }
+
     if (d_using_hybrid_projection || d_second_order_pressure_update)
     {
         d_sol_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::sol_var");
@@ -650,6 +677,19 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                      d_P_var, cell_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "LINEAR_REFINE");
+
+    registerVariable(d_Phi_current_idx, d_Phi_new_idx, d_Phi_scratch_idx,
+                     d_Phi_var, cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "LINEAR_REFINE");
+
+    if (d_using_hybrid_projection)
+    {
+        registerVariable(d_Phi_tilde_current_idx, d_Phi_tilde_new_idx, d_Phi_tilde_scratch_idx,
+                         d_Phi_tilde_var, cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "LINEAR_REFINE");
+    }
 
     if (!d_F_var.isNull())
     {
@@ -759,7 +799,6 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // INSHierarchyIntegrator.
 
     registerVariable(d_Grad_P_idx, d_Grad_P_var, no_ghosts);
-    registerVariable(d_Phi_idx, d_Phi_var, cell_ghosts);
     registerVariable(d_Grad_Phi_idx, d_Grad_Phi_var, no_ghosts);
     registerVariable(d_grad_Phi_idx, d_grad_Phi_var, face_ghosts);
 
@@ -779,9 +818,12 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_adv_diff_hier_integrator->registerAdvectionVelocity(
         d_u_adv_var, u_adv_is_div_free);
 
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(
+        d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
+
     d_adv_diff_hier_integrator->registerAdvectedAndDiffusedQuantityWithSourceTerm(
         d_U_var, d_nu, d_lambda, d_F_U_var, d_conservation_form,
-        d_U_init, d_U_bc_coefs,
+        d_U_init, U_bc_coefs,
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>(NULL),
         d_grad_Phi_var);
 
@@ -896,8 +938,17 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_U_current_idx, // source
                        d_V_idx,         // temporary work space
                        refine_operator);
+    refine_operator = grid_geom->lookupRefineOperator(
+        d_Phi_var, "CONSTANT_REFINE");
+    d_ralgs["U->V::C->S::CONSTANT_REFINE"]->
+        registerRefine(d_Phi_scratch_idx, // destination
+                       d_Phi_scratch_idx, // source
+                       d_Phi_scratch_idx, // temporary work space
+                       refine_operator);
     d_rstrategies["U->V::C->S::CONSTANT_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
+        new STOOLS::CartRobinPhysBdryOp(d_V_idx, U_bc_coefs, false);
+    //d_rstrategies["U->V::C->S::CONSTANT_REFINE"] =
+    //    new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "CONSTANT");
 
     d_ralgs["V->V::S->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
@@ -907,8 +958,17 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_V_idx, // source
                        d_V_idx, // temporary work space
                        refine_operator);
+    refine_operator = grid_geom->lookupRefineOperator(
+        d_Phi_var, "CONSTANT_REFINE");
+    d_ralgs["V->V::S->S::CONSTANT_REFINE"]->
+        registerRefine(d_Phi_scratch_idx, // destination
+                       d_Phi_scratch_idx, // source
+                       d_Phi_scratch_idx, // temporary work space
+                       refine_operator);
     d_rstrategies["V->V::S->S::CONSTANT_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
+        new STOOLS::CartRobinPhysBdryOp(d_V_idx, U_bc_coefs, false);
+    //d_rstrategies["V->V::S->S::CONSTANT_REFINE"] =
+    //    new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "CONSTANT");
 
     d_ralgs["P->P::C->S::CONSTANT_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
@@ -926,12 +986,12 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     refine_operator = grid_geom->lookupRefineOperator(
         d_Phi_var, "CONSTANT_REFINE");
     d_ralgs["Phi->Phi::S->S::CONSTANT_REFINE"]->
-        registerRefine(d_Phi_idx, // destination
-                       d_Phi_idx, // source
-                       d_Phi_idx, // temporary work space
+        registerRefine(d_Phi_scratch_idx, // destination
+                       d_Phi_scratch_idx, // source
+                       d_Phi_scratch_idx, // temporary work space
                        refine_operator);
     d_rstrategies["Phi->Phi::S->S::CONSTANT_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_Phi_idx, "LINEAR");
+        new STOOLS::CartExtrapPhysBdryOp(d_Phi_scratch_idx, "LINEAR");
 
     d_ralgs["grad_Phi->grad_Phi::S->S::CONSERVATIVE_LINEAR_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
@@ -1080,6 +1140,14 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                             coarsen_operator);
     }
 
+    d_calgs["SYNCH_NEW_VELOCITY_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
+    coarsen_operator = grid_geom->lookupCoarsenOperator(
+        d_U_var, "CONSERVATIVE_COARSEN");
+    d_calgs["SYNCH_NEW_VELOCITY_DATA"]->
+        registerCoarsen(d_U_new_idx, // destination
+                        d_U_new_idx, // source
+                        coarsen_operator);
+
     // Setup the Hierarchy math operations object.
     setHierarchyMathOps(d_adv_diff_hier_integrator->getHierarchyMathOps());
     d_hier_projector->setHierarchyMathOps(d_hier_math_ops);
@@ -1090,7 +1158,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_hybrid_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::hybrid_helmholtz_spec");
         d_hybrid_helmholtz_op = new STOOLS::CCLaplaceOperator(d_object_name+"::hybrid_helmholtz_op",*d_hybrid_helmholtz_spec,NULL);
-        d_hybrid_helmholtz_op->setPhysicalBcCoefs(d_U_bc_coefs);
+        d_hybrid_helmholtz_op->setPhysicalBcCoefs(U_bc_coefs);
         d_hybrid_helmholtz_solver = new STOOLS::PETScKrylovLinearSolver(d_object_name+"::hybrid_helmholtz_solver", "adv_diff_");
         d_hybrid_helmholtz_solver->setMaxIterations(d_helmholtz_max_iterations);
         d_hybrid_helmholtz_solver->setAbsoluteTolerance(d_helmholtz_abs_residual_tol);
@@ -1126,6 +1194,14 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_integrator_time = d_start_time;
         d_integrator_step = 0;
+    }
+
+    // Setup the intermediate velocity bc coef data.
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_intermediate_U_bc_coefs[d]->d_rho = d_rho;
+        d_intermediate_U_bc_coefs[d]->d_dt  = std::numeric_limits<double>::quiet_NaN();
+        d_intermediate_U_bc_coefs[d]->setPhiPatchDataIndex(d_Phi_scratch_idx);
     }
 
     // Indicate that the integrator has been initialized.
@@ -1239,6 +1315,8 @@ INSHierarchyIntegrator::advanceHierarchy(
     if (d_performing_init_cycles)
     {
         d_hier_cc_data_ops->setToScalar(d_P_current_idx, 0.0);
+        d_hier_cc_data_ops->setToScalar(d_Phi_current_idx, 0.0);
+        if (d_using_hybrid_projection) d_hier_cc_data_ops->setToScalar(d_Phi_tilde_current_idx, 0.0);
     }
 
     const int num_cycles = d_performing_init_cycles ?
@@ -1456,7 +1534,7 @@ INSHierarchyIntegrator::regridHierarchy()
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(d_u_scratch_idx, d_integrator_time);
             level->allocatePatchData(d_V_idx, d_integrator_time);
-            level->allocatePatchData(d_Phi_idx, d_integrator_time);
+            level->allocatePatchData(d_Phi_scratch_idx, d_integrator_time);
             level->allocatePatchData(d_Grad_Phi_idx, d_integrator_time);
             level->allocatePatchData(d_grad_Phi_idx, d_integrator_time);
         }
@@ -1471,14 +1549,14 @@ INSHierarchyIntegrator::regridHierarchy()
 
         // Project u^(n,*)->u(n) and re-use grad Phi to project
         // U^(n,*)->U^(n).
-        d_hier_cc_data_ops->setToScalar(d_Phi_idx, 0.0);
+        d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
         d_hier_projector->projectHierarchy(
             initial_time ? 1.0 : d_rho, initial_time ? 1.0 : d_old_dt, d_integrator_time,
-            d_u_current_idx, d_u_var       ,   // u(n)
-            d_Phi_idx      , d_Phi_var     ,   // Phi
-            d_grad_Phi_idx , d_grad_Phi_var,   // grad Phi
-            d_u_current_idx, d_u_var       ,   // u(n,*)
-            d_Q_current_idx, d_Q_var        ); // div u(n)
+            d_u_current_idx  , d_u_var       ,   // u(n)
+            d_Phi_scratch_idx, d_Phi_var     ,   // Phi
+            d_grad_Phi_idx   , d_grad_Phi_var,   // grad Phi
+            d_u_current_idx  , d_u_var       ,   // u(n,*)
+            d_Q_current_idx  , d_Q_var        ); // div u(n)
 
         d_hier_math_ops->interp(
             d_Grad_Phi_idx, d_Grad_Phi_var, // Grad Phi
@@ -1497,7 +1575,7 @@ INSHierarchyIntegrator::regridHierarchy()
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(d_u_scratch_idx);
             level->deallocatePatchData(d_V_idx);
-            level->deallocatePatchData(d_Phi_idx);
+            level->deallocatePatchData(d_Phi_scratch_idx);
             level->deallocatePatchData(d_Grad_Phi_idx);
             level->deallocatePatchData(d_grad_Phi_idx);
         }
@@ -1626,11 +1704,11 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
             d_Q_new_idx, d_Q_var, d_hierarchy, current_time+0.5*dt);
     }
 
-    d_hier_cc_data_ops->setToScalar(d_Phi_idx, 0.0);
+    d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
     d_hier_projector->projectHierarchy(
         d_rho, dt, current_time+0.5*dt,
         d_u_adv_current_idx, d_u_adv_var   ,   // u(adv)
-        d_Phi_idx          , d_Phi_var     ,   // Phi
+        d_Phi_scratch_idx  , d_Phi_var     ,   // Phi
         d_grad_Phi_idx     , d_grad_Phi_var,   // grad Phi
         d_u_adv_current_idx, d_u_adv_var   ,   // u(adv,*)
         d_Q_new_idx        , d_Q_var        ); // div u(adv)
@@ -1714,9 +1792,28 @@ INSHierarchyIntegrator::integrateAdvDiff(
         d_hier_cc_data_ops->add(d_F_U_current_idx, d_F_div_new_idx, d_F_U_current_idx);
     }
 
+    // Setup the intermediate velocity bc coefs.
+    d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_current_idx);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_intermediate_U_bc_coefs[d]->d_current_time = current_time;
+        d_intermediate_U_bc_coefs[d]->d_new_time     = new_time;
+        d_intermediate_U_bc_coefs[d]->d_rho = d_rho;
+        d_intermediate_U_bc_coefs[d]->d_dt  = dt;
+        d_intermediate_U_bc_coefs[d]->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
+        d_intermediate_U_bc_coefs[d]->d_intermediate_velocity_fix = true;
+    }
+
     // Solve the advection-diffusion equation for U^(*).
     d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time);
     d_adv_diff_hier_integrator->synchronizeHierarchy();
+
+    // Reset the intermediate velocity bc coefs to set the "true" boundary
+    // values.
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_intermediate_U_bc_coefs[d]->d_intermediate_velocity_fix = false;
+    }
 
     // Correct the scaling of the face-centered gradient of Phi so that it has
     // the same units as the pressure gradient.
@@ -1770,17 +1867,37 @@ INSHierarchyIntegrator::projectVelocity(
 
     // Compute u^(*) from U^(*).
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > bdry_fill_op = grid_geom->lookupRefineOperator(d_U_var, "CONSTANT_REFINE");
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > bdry_fill_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > bdry_fill_op;
+
+    bdry_fill_op = grid_geom->lookupRefineOperator(d_U_var, "CONSTANT_REFINE");
     bdry_fill_alg->registerRefine(d_V_idx,     // destination
                                   d_U_new_idx, // source
                                   d_V_idx,     // temporary work space
+                                  bdry_fill_op);
+
+    bdry_fill_op = grid_geom->lookupRefineOperator(d_Phi_var, "CONSTANT_REFINE");
+    bdry_fill_alg->registerRefine(d_Phi_scratch_idx, // destination
+                                  d_Phi_scratch_idx, // source
+                                  d_Phi_scratch_idx, // temporary work space
                                   bdry_fill_op);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         bdry_fill_alg->resetSchedule(
             d_rscheds["U->V::C->S::CONSTANT_REFINE"][ln]);
+    }
+
+    // Setup the intermediate velocity bc coefs.
+    d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_current_idx);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_intermediate_U_bc_coefs[d]->d_current_time = current_time;
+        d_intermediate_U_bc_coefs[d]->d_new_time     = new_time;
+        d_intermediate_U_bc_coefs[d]->d_rho = d_rho;
+        d_intermediate_U_bc_coefs[d]->d_dt  = dt;
+        d_intermediate_U_bc_coefs[d]->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
+        d_intermediate_U_bc_coefs[d]->d_intermediate_velocity_fix = true;
     }
 
     d_hier_math_ops->interp(
@@ -1790,6 +1907,13 @@ INSHierarchyIntegrator::projectVelocity(
         d_rscheds["U->V::C->S::CONSTANT_REFINE"],
         new_time);                // data time
 
+    // Reset the intermediate velocity bc coefs to set the "true" boundary
+    // values.
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_intermediate_U_bc_coefs[d]->d_intermediate_velocity_fix = false;
+    }
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         d_ralgs["U->V::C->S::CONSTANT_REFINE"]->resetSchedule(
@@ -1798,14 +1922,15 @@ INSHierarchyIntegrator::projectVelocity(
 
     // Project u^(n,*)->u(n+1) and re-use grad Phi to project
     // U^(n,*)->U^(n+1).
-    d_hier_cc_data_ops->setToScalar(d_Phi_idx, 0.0);
+    d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_current_idx);
     d_hier_projector->projectHierarchy(
         d_rho, dt, new_time,
-        d_u_new_idx    , d_u_var       ,   // u(n+1)
-        d_Phi_idx      , d_Phi_var     ,   // Phi
-        d_grad_Phi_idx , d_grad_Phi_var,   // grad Phi
-        d_u_scratch_idx, d_u_var       ,   // u(n+1,*)
-        d_Q_new_idx    , d_Q_var        ); // div u(n+1)
+        d_u_new_idx      , d_u_var       ,   // u(n+1)
+        d_Phi_scratch_idx, d_Phi_var     ,   // Phi
+        d_grad_Phi_idx   , d_grad_Phi_var,   // grad Phi
+        d_u_scratch_idx  , d_u_var       ,   // u(n+1,*)
+        d_Q_new_idx      , d_Q_var        ); // div u(n+1)
+    d_hier_cc_data_ops->copyData(d_Phi_new_idx, d_Phi_scratch_idx);
 
     d_hier_math_ops->interp(
         d_Grad_Phi_idx, d_Grad_Phi_var, // dst
@@ -1824,6 +1949,14 @@ INSHierarchyIntegrator::projectVelocity(
         bdry_fill_alg->registerRefine(d_V_idx,     // destination
                                       d_U_new_idx, // source
                                       d_V_idx,     // temporary work space
+                                      bdry_fill_op);
+
+        // XXXX This isn't needed here since we arent using the intermediate
+        // velocity fix.
+        bdry_fill_op = grid_geom->lookupRefineOperator(d_Phi_var, "CONSTANT_REFINE");
+        bdry_fill_alg->registerRefine(d_Phi_scratch_idx, // destination
+                                      d_Phi_scratch_idx, // source
+                                      d_Phi_scratch_idx, // temporary work space
                                       bdry_fill_op);
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -2050,9 +2183,24 @@ INSHierarchyIntegrator::updatePressure(
                            << "  unrecongnized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
             }
 
+            // Setup the intermediate velocity bc coefs.
+            d_hier_cc_data_ops->subtract(d_Phi_scratch_idx, d_Phi_tilde_current_idx, d_Phi_current_idx);
+            for (int d = 0; d < NDIM; ++d)
+            {
+                d_intermediate_U_bc_coefs[d]->d_current_time = current_time;
+                d_intermediate_U_bc_coefs[d]->d_new_time     = new_time;
+                d_intermediate_U_bc_coefs[d]->d_rho = d_rho;
+                d_intermediate_U_bc_coefs[d]->d_dt  = dt;
+                d_intermediate_U_bc_coefs[d]->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
+                d_intermediate_U_bc_coefs[d]->d_intermediate_velocity_fix = true;
+            }
+
             // Initialize the linear solver.
+            std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(
+                d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
+
             d_hybrid_helmholtz_op->setPoissonSpecifications(*d_hybrid_helmholtz_spec);
-            d_hybrid_helmholtz_op->setPhysicalBcCoefs(d_U_bc_coefs);
+            d_hybrid_helmholtz_op->setPhysicalBcCoefs(U_bc_coefs);
             d_hybrid_helmholtz_op->setHomogeneousBc(true);
             d_hybrid_helmholtz_op->setTime(new_time);
             d_hybrid_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
@@ -2113,6 +2261,13 @@ INSHierarchyIntegrator::updatePressure(
                            << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << endl);
             }
 
+            // Reset the intermediate velocity bc coefs to set the "true"
+            // boundary values.
+            for (int d = 0; d < NDIM; ++d)
+            {
+                d_intermediate_U_bc_coefs[d]->d_intermediate_velocity_fix = false;
+            }
+
             // Deallocate scratch data.
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
@@ -2128,23 +2283,43 @@ INSHierarchyIntegrator::updatePressure(
         // Store the value of U~^{*} in V.
         d_hier_cc_data_ops->add(d_V_idx, d_U_scratch_idx, d_V_idx);
 
+        // Setup the intermediate velocity bc coefs.
+        d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_tilde_current_idx);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            d_intermediate_U_bc_coefs[d]->d_current_time = current_time;
+            d_intermediate_U_bc_coefs[d]->d_new_time     = new_time;
+            d_intermediate_U_bc_coefs[d]->d_rho = d_rho;
+            d_intermediate_U_bc_coefs[d]->d_dt  = dt;
+            d_intermediate_U_bc_coefs[d]->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
+            d_intermediate_U_bc_coefs[d]->d_intermediate_velocity_fix = true;
+        }
+
         // Interpolate U~(*)->u~(*).
         d_hier_math_ops->interp(
-            d_u_scratch_idx, d_u_var, // u~(n+`,*)
+            d_u_scratch_idx, d_u_var, // u~(n+1,*)
             false,                    // do not synch u~(n+1,*) coarse-fine bdry
             d_V_idx        , d_V_var, // U~(n+1,*)
             d_rscheds["V->V::S->S::CONSTANT_REFINE"],
             new_time);                // data time
 
+        // Reset the intermediate velocity bc coefs to set the "true" boundary
+        // values.
+        for (int d = 0; d < NDIM; ++d)
+        {
+            d_intermediate_U_bc_coefs[d]->d_intermediate_velocity_fix = false;
+        }
+
         // Project U^{*}.
-        d_hier_cc_data_ops->add(d_Phi_idx, d_P_current_idx, d_Phi_idx);
+        d_hier_cc_data_ops->copyData(d_Phi_tilde_scratch_idx, d_Phi_tilde_current_idx);
         d_hier_projector->projectHierarchy(
             d_rho, dt, new_time,
-            d_u_scratch_idx, d_u_var       ,   // u(n)
-            d_Phi_idx      , d_Phi_var     ,   // Phi
-            d_grad_Phi_idx , d_grad_Phi_var,   // grad Phi
-            d_u_scratch_idx, d_u_var       ,   // u(n,*)
-            d_Q_current_idx, d_Q_var        ); // div u(n)
+            d_u_scratch_idx        , d_u_var        ,   // u(n)
+            d_Phi_tilde_scratch_idx, d_Phi_tilde_var,   // Phi_tilde
+            d_grad_Phi_idx         , d_grad_Phi_var ,   // grad Phi
+            d_u_scratch_idx        , d_u_var        ,   // u(n,*)
+            d_Q_current_idx        , d_Q_var         ); // div u(n)
+        d_hier_cc_data_ops->copyData(d_Phi_tilde_new_idx, d_Phi_tilde_scratch_idx);
 
         // Deallocate scratch data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -2154,12 +2329,16 @@ INSHierarchyIntegrator::updatePressure(
         }
     }
 
+    // Use the correct value of Phi to update the pressure.
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Phi_var = (d_using_hybrid_projection ? d_Phi_tilde_var : d_Phi_var);
+    const int Phi_scratch_idx = (d_using_hybrid_projection ? d_Phi_tilde_scratch_idx : d_Phi_scratch_idx);
+
     // Update the pressure.
     if (d_second_order_pressure_update)
     {
         if (d_pressure_projection_type == "modified_pressure_update")
         {
-            d_hier_cc_data_ops->subtract(d_Phi_idx, d_Phi_idx, d_P_current_idx);
+            d_hier_cc_data_ops->subtract(Phi_scratch_idx, Phi_scratch_idx, d_P_current_idx);
         }
 
         if (d_viscous_timestepping_type == "BACKWARD_EULER")
@@ -2183,9 +2362,9 @@ INSHierarchyIntegrator::updatePressure(
             helmholtz_spec.setDConstant(   -0.5*dt*d_nu    );
 
             d_hier_math_ops->laplace(
-                d_sol_idx, d_sol_var,   // dst
-                helmholtz_spec      ,   // Poisson spec
-                d_Phi_idx, d_Phi_var,   // src
+                d_sol_idx      , d_sol_var,   // dst
+                helmholtz_spec            ,   // Poisson spec
+                Phi_scratch_idx, Phi_var  ,   // src
                 d_rscheds["NONE"],
                 current_time         ); // data time
         }
@@ -2242,9 +2421,9 @@ INSHierarchyIntegrator::updatePressure(
             // Setup the rhs data to solve for the second-order update to the
             // pressure.
             d_hier_math_ops->laplace(
-                d_sol_idx, d_sol_var,   // dst
-                helmholtz1_spec     ,   // Poisson spec
-                d_Phi_idx, d_Phi_var,   // src
+                d_sol_idx      , d_sol_var,   // dst
+                helmholtz1_spec           ,   // Poisson spec
+                Phi_scratch_idx, Phi_var  ,   // src
                 d_rscheds["NONE"],
                 current_time         ); // data time
 
@@ -2273,7 +2452,7 @@ INSHierarchyIntegrator::updatePressure(
             }
 
             // Solve the linear system.
-            d_hier_cc_data_ops->copyData(d_sol_idx,d_Phi_idx);
+            d_hier_cc_data_ops->copyData(d_sol_idx,Phi_scratch_idx);
             d_helmholtz_solver->solveSystem(*scalar_sol_vec,*scalar_rhs_vec);
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): residual norm        = " << d_helmholtz_solver->getResidualNorm()  << "\n";
@@ -2308,12 +2487,12 @@ INSHierarchyIntegrator::updatePressure(
         // corresponding to the case of vanishing viscosity).
         if (d_pressure_projection_type == "pressure_increment")
         {
-            d_hier_cc_data_ops->add(d_P_new_idx, d_P_current_idx, d_Phi_idx);
+            d_hier_cc_data_ops->add(d_P_new_idx, d_P_current_idx, Phi_scratch_idx);
         }
         else if (d_pressure_projection_type == "pressure_update" ||
                  d_pressure_projection_type == "modified_pressure_update")
         {
-            d_hier_cc_data_ops->copyData(d_P_new_idx, d_Phi_idx);
+            d_hier_cc_data_ops->copyData(d_P_new_idx, Phi_scratch_idx);
         }
     }
 
@@ -2327,10 +2506,12 @@ INSHierarchyIntegrator::updatePressure(
         d_hier_cc_data_ops->addScalar(d_P_new_idx, d_P_new_idx, -P_mean);
     }
 
-    // Reset the value of P(n-1/2) during the initial timestep.
+    // Reset the value of P(n-1/2) and Phi(n-1/2) during the initial timestep.
     if (override_current_pressure)
     {
         d_hier_cc_data_ops->copyData(d_P_current_idx, d_P_new_idx);
+        d_hier_cc_data_ops->copyData(d_Phi_current_idx, d_Phi_new_idx);
+        if (d_using_hybrid_projection) d_hier_cc_data_ops->copyData(d_Phi_tilde_current_idx, d_Phi_tilde_new_idx);
     }
 
     t_update_pressure->stop();
@@ -2804,6 +2985,20 @@ INSHierarchyIntegrator::initializeLevelData(
             d_P_init->setDataOnPatchLevel(
                 d_P_current_idx, d_P_var, level,
                 init_data_time, initial_time);
+        }
+
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Phi_current_data =
+                patch->getPatchData(d_Phi_current_idx);
+            Phi_current_data->fillAll(0.0);
+            if (d_using_hybrid_projection)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Phi_tilde_current_data =
+                    patch->getPatchData(d_Phi_tilde_current_idx);
+                Phi_tilde_current_data->fillAll(0.0);
+            }
         }
 
         // If an initialization object is provided, initialize the

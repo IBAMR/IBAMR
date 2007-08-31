@@ -49,13 +49,6 @@ LocationIndexRobinBcCoefs_u1 {
    boundary_3 = "value", "0.0"  // upper y boundary condition
 }
 
-LocationIndexRobinBcCoefs_phi {
-   boundary_0 = "slope", "0.0"  // lower x boundary condition
-   boundary_1 = "slope", "0.0"  // upper x boundary condition
-   boundary_2 = "slope", "0.0"  // lower y boundary condition
-   boundary_3 = "slope", "0.0"  // upper y boundary condition
-}
-
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
