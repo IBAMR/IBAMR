@@ -351,11 +351,9 @@ main(
         u1_bc_coef.setBoundarySlope(2, 0.0);  // y lower boundary
         u1_bc_coef.setBoundarySlope(3, 0.0);  // y upper boundary
 
-        vector<const solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
+        vector<solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
         U_bc_coefs[0] = &u0_bc_coef;
         U_bc_coefs[1] = &u1_bc_coef;
-
-        PressureBcCoefs phi_bc_coef("phi_bc_coef");
 
         /*
          * Create body force specification objects.
@@ -398,7 +396,6 @@ main(
                 "HierarchyProjector",
                 input_db->getDatabase("HierarchyProjector"),
                 patch_hierarchy);
-        hier_projector->setPhysicalBcCoef(&phi_bc_coef);
 
         tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator =
             new INSHierarchyIntegrator(

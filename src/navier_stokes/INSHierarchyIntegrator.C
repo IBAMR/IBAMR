@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <31.Aug.2007 04:02:31 griffith@box221.cims.nyu.edu>
+// Last modified: <31.Aug.2007 12:04:30 boyce@bigboy.nyconnect.com>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1627,7 +1627,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
     // Initialize the advection velocity to equal u(n).
     d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
-#if 0
+#if 1
     // Setup the forcing terms for velocity prediction.
     d_hier_cc_data_ops->scale(d_F_U_current_idx, -(1.0/d_rho), d_Grad_P_idx);
 

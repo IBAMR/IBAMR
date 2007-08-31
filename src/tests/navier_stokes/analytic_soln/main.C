@@ -328,8 +328,7 @@ main(
         /*
          * Create boundary condition specification objects (when necessary).
          */
-        vector<const solv::RobinBcCoefStrategy<NDIM>*> u_bc_coefs;
-        solv::RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
+        vector<solv::RobinBcCoefStrategy<NDIM>*> u_bc_coefs;
 
         const hier::IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         const bool periodic_domain = periodic_shift.min() != 0;
@@ -579,13 +578,11 @@ main(
          */
         if (!periodic_domain)
         {
-            for (vector<const solv::RobinBcCoefStrategy<NDIM>*>::const_iterator cit = u_bc_coefs.begin();
+            for (vector<solv::RobinBcCoefStrategy<NDIM>*>::const_iterator cit = u_bc_coefs.begin();
                  cit != u_bc_coefs.end(); ++cit)
             {
                 delete (*cit);
             }
-
-            delete phi_bc_coef;
         }
     }// cleanup all smart Pointers prior to shutdown
 
