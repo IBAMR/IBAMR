@@ -2,13 +2,13 @@
 #define included_INSProjectionBcCoef
 
 // Filename: INSProjectionBcCoef.h
-// Last modified: <28.Aug.2007 20:14:34 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Aug.2007 20:21:08 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <RobinBcCoefStrategy.h>
+// STOOLS INCLUDES
+#include <stools/ExtendedRobinBcCoefStrategy.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -24,7 +24,7 @@ namespace IBAMR
  * implementation of a projection method.
  */
 class INSProjectionBcCoef
-    : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+    : public virtual STOOLS::ExtendedRobinBcCoefStrategy
 {
 public:
     /*!
@@ -39,7 +39,7 @@ public:
      */
     INSProjectionBcCoef(
         const int u_idx,
-        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
         const bool homogneous_bc=false);
 
     /*!
@@ -69,13 +69,6 @@ public:
         const int u_idx);
 
     /*!
-     * \brief Get the intermediate patch data descriptor index for the face- or
-     * side-centered intermediate velocity.
-     */
-    int
-    getIntermediateVelocityPatchDataIndex() const;
-
-    /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
      * physical boundary conditions for the velocity.
      *
@@ -83,28 +76,36 @@ public:
      */
     void
     setVelocityPhysicalBcCoefs(
-        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
 
     /*!
-     * \brief Return a vector of pointers to the
-     * SAMRAI::solv::RobinBcCoefStrategy object employed by the projector to
-     * specify physical boundary conditions for the velocity.
+     * \name Implementation of STOOLS::ExtendedRobinBcCoefStrategy interface.
      */
-    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
-    getVelocityPhysicalBcCoefs() const;
+    //\{
 
     /*!
-     * \brief Set whether to use homogeneous boundary conditions.
+     * \brief Set whether the class is filling homogeneous or inhomogeneous
+     * boundary conditions.
      */
-    void
+    virtual void
     setHomogeneousBc(
         const bool homogeneous_bc);
 
     /*!
-     * \brief Get whether homogeneous boundary conditions are being used.
+     * \return Set of patch data descriptor indices whose values must be
+     * provided in order to set the homogeneous Robin boundary conditions.
      */
-    bool
-    getHomogeneousBc() const;
+    virtual const std::set<int>&
+    getHomogeneousBcFillDataIndices() const;
+
+    /*!
+     * \return Set of patch data descriptor indices whose values must be
+     * provided in order to set the inhomogeneous Robin boundary conditions.
+     */
+    virtual const std::set<int>&
+    getInhomogeneousBcFillDataIndices() const;
+
+    //\}
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
@@ -263,9 +264,15 @@ private:
     int d_u_idx;
 
     /*
+     * Sets of patch data indices required to fill homogeneous and inhomogeneous
+     * boundary conditions.
+     */
+    std::set<int> d_homo_patch_data_idxs, d_inhomo_patch_data_idxs;
+
+    /*
      * The boundary condition specification objects for the updated velocity.
      */
-    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
 
     /*
      * Whether to use homogeneous boundary conditions.

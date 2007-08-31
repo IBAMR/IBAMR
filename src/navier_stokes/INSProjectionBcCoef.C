@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <29.Aug.2007 02:21:54 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Aug.2007 20:19:42 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -38,11 +38,13 @@ namespace IBAMR
 
 INSProjectionBcCoef::INSProjectionBcCoef(
     const int u_idx,
-    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const bool homogeneous_bc)
     : d_rho(std::numeric_limits<double>::quiet_NaN()),
       d_dt(std::numeric_limits<double>::quiet_NaN()),
       d_u_idx(-1),
+      d_homo_patch_data_idxs(),
+      d_inhomo_patch_data_idxs(),
       d_u_bc_coefs(),
       d_homogeneous_bc(false)
 {
@@ -63,18 +65,14 @@ INSProjectionBcCoef::setIntermediateVelocityPatchDataIndex(
     const int u_idx)
 {
     d_u_idx = u_idx;
+    d_inhomo_patch_data_idxs.clear();
+    d_inhomo_patch_data_idxs.insert(d_u_idx);
     return;
 }// setIntermediateVelocityPatchDataIndex
 
-int
-INSProjectionBcCoef::getIntermediateVelocityPatchDataIndex() const
-{
-    return d_u_idx;
-}// getIntermediateVelocityPatchDataIndex()
-
 void
 INSProjectionBcCoef::setVelocityPhysicalBcCoefs(
-    const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
 {
     if (u_bc_coefs.size() != NDIM)
     {
@@ -99,17 +97,17 @@ INSProjectionBcCoef::setHomogeneousBc(
     return;
 }// setHomogeneousBc
 
-bool
-INSProjectionBcCoef::getHomogeneousBc() const
+const std::set<int>&
+INSProjectionBcCoef::getHomogeneousBcFillDataIndices() const
 {
-    return d_homogeneous_bc;
-}// getHomogeneousBc
+    return d_homo_patch_data_idxs;
+}// getHomogeneousBcFillDataIndices
 
-const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
-INSProjectionBcCoef::getVelocityPhysicalBcCoefs() const
+const std::set<int>&
+INSProjectionBcCoef::getInhomogeneousBcFillDataIndices() const
 {
-    return d_u_bc_coefs;
-}// getVelocityPhysicalBcCoefs
+    return d_inhomo_patch_data_idxs;
+}// getInhomogeneousBcFillDataIndices
 
 void
 INSProjectionBcCoef::setBcCoefs(
