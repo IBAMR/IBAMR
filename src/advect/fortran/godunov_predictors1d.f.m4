@@ -5,20 +5,20 @@ define(INTEGER,`integer')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim1d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     A Godunov predictor used to predict face and time centered values
 c     from cell centered values using a Taylor expansion about each cell
 c     center.
-c     
+c
 c     The predictor assumes that Q satisfies an equation of the form
-c     
+c
 c          dQ/dt + u * grad Q = 0
-c     
+c
 c     i.e. Q satisfies an advection equation that is not in conservation
 c     form.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine godunov_predict1d(
      &     dx,dt,
      &     limiter,
@@ -29,7 +29,7 @@ c
      &     nqhalfgc0,
      &     u0,
      &     qhalf0)
-c     
+c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
 include(TOP_SRCDIR/src/advect/fortran/limitertypes.i)dnl
@@ -37,42 +37,42 @@ c
 c     Functions.
 c
       REAL muscldiff,minmod3
-c     
+c
 c     Input.
-c     
+c
       INTEGER ifirst0,ilast0
-      
+
       INTEGER nQgc0
-      
+
       INTEGER nugc0
       INTEGER nqhalfgc0
 
       INTEGER limiter
-      
+
       REAL dx(0:NDIM-1),dt
-      
+
       REAL Q(CELL1dVECG(ifirst,ilast,nQgc))
-      
+
       REAL u0(FACE1dVECG(ifirst,ilast,nugc))
-c     
+c
 c     Input/Output.
-c     
+c
       REAL qhalf0(FACE1dVECG(ifirst,ilast,nqhalfgc))
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER ic0
       REAL Qx,qL,qR
       REAL unorm
-c     
+c
 c     Predict face centered values using a Taylor expansion about each
 c     cell center.
 c
       if     ( limiter.eq.second_order ) then
 c     Employ second order slopes (no limiting).
-         Qx = half*(Q(ifirst0-1+1)-Q(ifirst0-1-1)) 
+         Qx = half*(Q(ifirst0-1+1)-Q(ifirst0-1-1))
       elseif ( limiter.eq.fourth_order ) then
-         Qx = twothird*(Q(ifirst0-1+1)-Q(ifirst0-1-1)) 
+         Qx = twothird*(Q(ifirst0-1+1)-Q(ifirst0-1-1))
      &        - sixth*half*(Q(ifirst0-1+2)-Q(ifirst0-1-2))
       elseif ( limiter.eq.mc_limited ) then
 c     Employ van Leer's MC limiter.
@@ -84,20 +84,20 @@ c     Employ van Leer's MC limiter.
 c     Employ Colella's MUSCL limiter.
          Qx = muscldiff(Q(ifirst0-1-2))
       endif
-      
-!     unorm = 0.5d0*(u0(ifirst0-1  )+u0(ifirst0-1+1))
-      unorm = fourth*fourth*
-     &     ( 9.d0*(u0(ifirst0-1  )+u0(ifirst0-1+1))
-     &     - 1.d0*(u0(ifirst0-1-1)+u0(ifirst0-1+2)) )
-      
+
+      unorm = 0.5d0*(u0(ifirst0-1  )+u0(ifirst0-1+1))
+!     unorm = fourth*fourth*
+!    &     ( 9.d0*(u0(ifirst0-1  )+u0(ifirst0-1+1))
+!    &     - 1.d0*(u0(ifirst0-1-1)+u0(ifirst0-1+2)) )
+
       do ic0 = ifirst0-1,ilast0
          qL = Q(ic0  )
      &        + 0.5d0*(+1.d0-unorm*dt/dx(0))*Qx
-         
+
          if     ( limiter.eq.second_order ) then
             Qx = 0.5d0*(Q(ic0+1+1)-Q(ic0+1-1))
          elseif ( limiter.eq.fourth_order ) then
-            Qx = twothird*(Q(ic0+1+1)-Q(ic0+1-1)) 
+            Qx = twothird*(Q(ic0+1+1)-Q(ic0+1-1))
      &           - sixth*half*(Q(ic0+1+2)-Q(ic0+1-2))
          elseif ( limiter.eq.mc_limited ) then
             Qx = minmod3(
@@ -107,15 +107,15 @@ c     Employ Colella's MUSCL limiter.
          elseif ( limiter.eq.muscl_limited ) then
             Qx = muscldiff(Q(ic0+1-2))
          endif
-         
-!     unorm = 0.5d0*(u0(ic0+1)+u0(ic0+2))
-         unorm = fourth*fourth*
-     &        ( 9.d0*(u0(ic0+1)+u0(ic0+2))
-     &        - 1.d0*(u0(ic0  )+u0(ic0+3)) )
-         
+
+         unorm = 0.5d0*(u0(ic0+1)+u0(ic0+2))
+!        unorm = fourth*fourth*
+!    &        ( 9.d0*(u0(ic0+1)+u0(ic0+2))
+!    &        - 1.d0*(u0(ic0  )+u0(ic0+3)) )
+
          qR = Q(ic0+1)
      &        + 0.5d0*(-1.d0-unorm*dt/dx(0))*Qx
-         
+
          qhalf0(ic0+1) =
      &        0.5d0*(qL+qR)+sign(1.d0,u0(ic0+1))*0.5d0*(qL-qR)
       enddo
@@ -124,20 +124,20 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     A Godunov predictor used to predict face and time centered values
 c     from cell centered values using a Taylor expansion about each cell
 c     center.
-c     
+c
 c     The predictor assumes that Q satisfies an equation of the form
-c     
+c
 c          dQ/dt + u * grad Q = F
-c     
+c
 c     i.e. Q satisfies an advection equation that is not in conservation
 c     form.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine godunov_predictwithsource1d(
      &     dx,dt,
      &     limiter,
@@ -150,7 +150,7 @@ c
      &     nqhalfgc0,
      &     u0,
      &     qhalf0)
-c     
+c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
 include(TOP_SRCDIR/src/advect/fortran/limitertypes.i)dnl
@@ -158,44 +158,44 @@ c
 c     Functions.
 c
       REAL muscldiff,minmod3
-c     
+c
 c     Input.
-c     
+c
       INTEGER ifirst0,ilast0
-      
+
       INTEGER nQgc0
       INTEGER nFgc0
-      
+
       INTEGER nugc0
       INTEGER nqhalfgc0
 
       INTEGER limiter
 
       REAL dx(0:NDIM-1),dt
-      
+
       REAL Q(CELL1dVECG(ifirst,ilast,nQgc))
       REAL F(CELL1dVECG(ifirst,ilast,nFgc))
-      
+
       REAL u0(FACE1dVECG(ifirst,ilast,nugc))
-c     
+c
 c     Input/Output.
-c     
+c
       REAL qhalf0(FACE1dVECG(ifirst,ilast,nqhalfgc))
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER ic0
       REAL Qx,qL,qR
       REAL unorm
-c     
+c
 c     Predict face centered values using a Taylor expansion about each
 c     cell center.
 c
       if     ( limiter.eq.second_order ) then
 c     Employ second order slopes (no limiting).
-         Qx = half*(Q(ifirst0-1+1)-Q(ifirst0-1-1)) 
+         Qx = half*(Q(ifirst0-1+1)-Q(ifirst0-1-1))
       elseif ( limiter.eq.fourth_order ) then
-         Qx = twothird*(Q(ifirst0-1+1)-Q(ifirst0-1-1)) 
+         Qx = twothird*(Q(ifirst0-1+1)-Q(ifirst0-1-1))
      &        - sixth*half*(Q(ifirst0-1+2)-Q(ifirst0-1-2))
       elseif ( limiter.eq.mc_limited ) then
 c     Employ van Leer's MC limiter.
@@ -207,21 +207,21 @@ c     Employ van Leer's MC limiter.
 c     Employ Colella's MUSCL limiter.
          Qx = muscldiff(Q(ifirst0-1-2))
       endif
-      
-!     unorm = 0.5d0*(u0(ifirst0-1  )+u0(ifirst0-1+1))
-      unorm = fourth*fourth*
-     &     ( 9.d0*(u0(ifirst0-1  )+u0(ifirst0-1+1))
-     &     - 1.d0*(u0(ifirst0-1-1)+u0(ifirst0-1+2)) )
-      
+
+      unorm = 0.5d0*(u0(ifirst0-1  )+u0(ifirst0-1+1))
+!     unorm = fourth*fourth*
+!    &     ( 9.d0*(u0(ifirst0-1  )+u0(ifirst0-1+1))
+!    &     - 1.d0*(u0(ifirst0-1-1)+u0(ifirst0-1+2)) )
+
       do ic0 = ifirst0-1,ilast0
          qL = Q(ic0  )
      &        + 0.5d0*(+1.d0-unorm*dt/dx(0))*Qx
      &        + 0.5d0*dt*F(ic0  )
-         
+
          if     ( limiter.eq.second_order ) then
             Qx = 0.5d0*(Q(ic0+1+1)-Q(ic0+1-1))
          elseif ( limiter.eq.fourth_order ) then
-            Qx = twothird*(Q(ic0+1+1)-Q(ic0+1-1)) 
+            Qx = twothird*(Q(ic0+1+1)-Q(ic0+1-1))
      &           - sixth*half*(Q(ic0+1+2)-Q(ic0+1-2))
          elseif ( limiter.eq.mc_limited ) then
             Qx = minmod3(
@@ -231,16 +231,16 @@ c     Employ Colella's MUSCL limiter.
          elseif ( limiter.eq.muscl_limited ) then
             Qx = muscldiff(Q(ic0+1-2))
          endif
-         
-!     unorm = 0.5d0*(u0(ic0+1)+u0(ic0+2))
-         unorm = fourth*fourth*
-     &        ( 9.d0*(u0(ic0+1)+u0(ic0+2))
-     &        - 1.d0*(u0(ic0  )+u0(ic0+3)) )
-         
+
+         unorm = 0.5d0*(u0(ic0+1)+u0(ic0+2))
+!        unorm = fourth*fourth*
+!    &        ( 9.d0*(u0(ic0+1)+u0(ic0+2))
+!    &        - 1.d0*(u0(ic0  )+u0(ic0+3)) )
+
          qR = Q(ic0+1)
      &        + 0.5d0*(-1.d0-unorm*dt/dx(0))*Qx
      &        + 0.5d0*dt*F(ic0+1)
-         
+
          qhalf0(ic0+1) =
      &        0.5d0*(qL+qR)+sign(1.d0,u0(ic0+1))*0.5d0*(qL-qR)
       enddo
