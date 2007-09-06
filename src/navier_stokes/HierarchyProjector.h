@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <30.Aug.2007 20:17:39 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Sep.2007 03:05:03 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -187,6 +187,7 @@ public:
         const double rho,
         const double dt,
         const double time,
+        const std::string& projection_type,
         const int u_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >& u_var,
         const int Phi_idx,

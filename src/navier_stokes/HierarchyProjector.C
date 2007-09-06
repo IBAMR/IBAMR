@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <30.Aug.2007 20:24:56 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Sep.2007 03:05:24 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -352,6 +352,7 @@ HierarchyProjector::projectHierarchy(
     const double rho,
     const double dt,
     const double time,
+    const std::string& projection_type,
     const int u_idx,
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >& u_var,
     const int Phi_idx,
@@ -382,8 +383,7 @@ HierarchyProjector::projectHierarchy(
     //
     // NOTE: These boundary coefficients are also used by the linear operator
     // and by the FAC preconditioner.
-    d_Phi_bc_coef->d_rho = rho;
-    d_Phi_bc_coef->d_dt = dt;
+    d_Phi_bc_coef->setProblemCoefs(rho, dt);
     d_Phi_bc_coef->setIntermediateVelocityPatchDataIndex(d_w_idx);
     d_Phi_bc_coef->setVelocityPhysicalBcCoefs(d_u_bc_coefs);
 

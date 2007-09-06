@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <30.Aug.2007 23:25:08 griffith@box221.cims.nyu.edu>
+// Last modified: <05.Sep.2007 15:52:35 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -12,6 +12,7 @@
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/HierarchyProjector.h>
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
+#include <ibamr/INSProjectionBcCoef.h>
 
 // STOOLS INCLUDES
 #include <stools/CCPoissonFACOperator.h>
@@ -170,7 +171,7 @@ public:
      */
     void
     registerRegridHierarchyCallback(
-        void (*callback)(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >, double, bool, void*),
+        void (*callback)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const double regrid_data_time, const bool initial_time, void* ctx),
         void* ctx);
 
     /*!
@@ -1100,6 +1101,7 @@ private:
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     std::vector<INSIntermediateVelocityBcCoef*> d_intermediate_U_bc_coefs;
+    INSProjectionBcCoef* d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set, d_Q_set;
 
     /*
@@ -1119,7 +1121,7 @@ private:
     /*!
      * State and temporary variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_var, d_V_var, d_F_U_var, d_F_var, d_F_div_var, d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_var, d_U_star_var, d_V_var, d_F_U_var, d_F_var, d_F_div_var, d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var, d_Grad_P_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var, d_Phi_tilde_var, d_Grad_Phi_var;
 
@@ -1145,6 +1147,7 @@ private:
      */
     int d_u_current_idx, d_u_new_idx, d_u_scratch_idx;
 
+    int d_U_star_current_idx,    d_U_star_new_idx,    d_U_star_scratch_idx;
     int d_P_current_idx,         d_P_new_idx,         d_P_scratch_idx;
     int d_Phi_current_idx,       d_Phi_new_idx,       d_Phi_scratch_idx;
     int d_Phi_tilde_current_idx, d_Phi_tilde_new_idx, d_Phi_tilde_scratch_idx;
@@ -1202,15 +1205,15 @@ private:
     int d_helmholtz_max_iterations;
     double d_helmholtz_abs_residual_tol, d_helmholtz_rel_residual_tol;
 
-    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>           d_hybrid_helmholtz_op    , d_helmholtz_op    ;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_hybrid_helmholtz_spec  , d_helmholtz_spec  ;
-    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_hybrid_helmholtz_solver, d_helmholtz_solver;
-    bool d_helmholtz_solvers_need_init;
+    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>           d_helmholtz_op    ;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> d_helmholtz_spec  ;
+    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>          d_helmholtz_solver;
+    bool d_helmholtz_solver_needs_init;
 
     /*!
      * \brief Callback function pointers and callback contexts.
      */
-    std::vector<void (*)(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >, double, bool, void*)> d_regrid_hierarchy_callbacks;
+    std::vector<void (*)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const double regrid_data_time, const bool initial_time, void* ctx)> d_regrid_hierarchy_callbacks;
     std::vector<void*> d_regrid_hierarchy_callback_ctxs;
 
     std::vector<void (*)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const int level_number, const double error_data_time, const int tag_index, const bool initial_time, const bool uses_richardson_extrapolation_too, void* ctx)> d_apply_gradient_detector_callbacks;

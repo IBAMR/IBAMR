@@ -2,7 +2,7 @@
 #define included_INSIntermediateVelocityBcCoef
 
 // Filename: INSIntermediateVelocityBcCoef.h
-// Last modified: <30.Aug.2007 22:14:16 griffith@box221.cims.nyu.edu>
+// Last modified: <05.Sep.2007 18:00:53 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -49,19 +49,22 @@ public:
     virtual
     ~INSIntermediateVelocityBcCoef();
 
-    double d_current_time;
-    double d_new_time;
-    bool d_intermediate_velocity_fix;
+    /*!
+     * \brief Reset the boundary condition specification object so that it
+     * specifies the "true" velocity boundary conditions.
+     */
+    void
+    useTrueVelocityBcCoefs();
 
     /*!
-     * \brief Fluid density rho.
+     * \brief Reset the boundary condition specification object so that it
+     * specifies the "intermediate" velocity boundary conditions.
      */
-    double d_rho;
-
-    /*!
-     * \brief Timestep.
-     */
-    double d_dt;
+    void
+    useIntermediateVelocityBcCoefs(
+        const double current_time,
+        const double new_time,
+        const double rho);
 
     /*!
      * \brief Reset the patch data descriptor index for the cell-centered scalar
@@ -87,6 +90,13 @@ public:
      * \name Implementation of STOOLS::ExtendedRobinBcCoefStrategy interface.
      */
     //\{
+
+    /*!
+     * \brief Set the target data index.
+     */
+    virtual void
+    setTargetPatchDataIndex(
+        const int target_idx);
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
@@ -269,6 +279,11 @@ private:
     const int d_comp_idx;
 
     /*
+     * The patch data index corresponding to the current value of U_star.
+     */
+    int d_target_idx;
+
+    /*
      * The patch data index corresponding to the estimated value of Phi.
      */
     int d_Phi_idx;
@@ -288,6 +303,21 @@ private:
      * Whether to use homogeneous boundary conditions.
      */
     bool d_homogeneous_bc;
+
+    /*
+     * Current time, new time, and timestep size.
+     */
+    double d_current_time, d_new_time;
+
+    /*
+     * Fluid density rho.
+     */
+    double d_rho;
+
+    /*
+     * Whether we are using the "true" or "intermediate" velocity bc coefs.
+     */
+    bool d_using_intermediate_velocity_bc_coefs;
 };
 }// namespace IBAMR
 

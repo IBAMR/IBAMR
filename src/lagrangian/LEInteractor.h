@@ -2,7 +2,7 @@
 #define included_LEInteractor
 
 // Filename: LEInteractor.h
-// Last modified: <31.Aug.2007 01:48:10 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Jul.2007 13:36:40 boyce@bigboy.nyconnect.com>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -158,6 +158,29 @@ public:
         const int Q_depth,
         const double* const X_data,
         const int X_depth,
+        const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        const SAMRAI::hier::Box<NDIM>& box,
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+        const std::string& spread_fcn="IB_4");
+
+    /*!
+     * \brief A version of the spreading functionality that has been modified to
+     * spread forces reflected across physical boundaries with reflection
+     * boundary conditions.
+     *
+     * \warning This routine \em assumes that all physical boundaries are
+     * reflection boundaries.
+     *
+     * \warning Presently, this function \em does \em not work correctly when
+     * curvilinear mesh nodes are in the vicinity of edges or corners in the
+     * physical domain.  NO ERROR IS ISSUED IF SUCH A CASE IS ATTEMPTED!
+     */
+    static void
+    spreadReflectedForces(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_data,
+        const SAMRAI::tbox::Pointer<LNodeLevelData>& F_data,
+        const SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
         const SAMRAI::tbox::Pointer<LNodeIndexData2>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,

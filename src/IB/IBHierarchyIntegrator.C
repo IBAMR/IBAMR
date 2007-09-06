@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <31.Aug.2007 01:48:11 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Sep.2007 12:27:25 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1024,6 +1024,15 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_current_data, F_data[ln], X_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
+#if 1
+                if (pgeom->getTouchesRegularBoundary()) // XXXX
+                {
+                    LEInteractor::spreadReflectedForces(
+                        f_current_data, F_data[ln], X_data[ln], idx_data,
+                        patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
+                        d_delta_fcn);
+                }
+#endif
             }
 
             // 4. Compute X~(n+1), the preliminary structure configuration at
@@ -1154,6 +1163,15 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
+#if 1
+                if (pgeom->getTouchesRegularBoundary()) // XXXX
+                {
+                    LEInteractor::spreadReflectedForces(
+                        f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
+                        patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
+                        d_delta_fcn);
+                }
+#endif
             }
         }
     }

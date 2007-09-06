@@ -2,7 +2,7 @@
 #define included_INSProjectionBcCoef
 
 // Filename: INSProjectionBcCoef.h
-// Last modified: <30.Aug.2007 20:21:08 griffith@box221.cims.nyu.edu>
+// Last modified: <05.Sep.2007 18:12:41 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -49,14 +49,13 @@ public:
     ~INSProjectionBcCoef();
 
     /*!
-     * \brief Fluid density rho.
+     * \brief Reset the problem coefficents required to specify the boundary
+     * conditions for the scalar function phi.
      */
-    double d_rho;
-
-    /*!
-     * \brief Timestep.
-     */
-    double d_dt;
+    void
+    setProblemCoefs(
+        const double rho,
+        const double dt);
 
     /*!
      * \brief Reset the patch data descriptor index for the face- or
@@ -82,6 +81,13 @@ public:
      * \name Implementation of STOOLS::ExtendedRobinBcCoefStrategy interface.
      */
     //\{
+
+    /*!
+     * \brief Set the target data index.
+     */
+    virtual void
+    setTargetPatchDataIndex(
+        const int target_idx);
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
@@ -278,6 +284,16 @@ private:
      * Whether to use homogeneous boundary conditions.
      */
     bool d_homogeneous_bc;
+
+    /*
+     * Fluid density.
+     */
+    double d_rho;
+
+    /*
+     * Timestep size.
+     */
+    double d_dt;
 };
 }// namespace IBAMR
 
