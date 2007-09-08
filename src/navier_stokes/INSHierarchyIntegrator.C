@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <08.Sep.2007 01:40:25 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Sep.2007 16:11:16 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -876,11 +876,15 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         {
             d_visit_writer->registerPlotQuantity(
                 d_P_var->getName(), "SCALAR", d_P_current_idx, 0, d_P_scale);
+#if 0
             d_visit_writer->registerPlotQuantity(
                 d_Phi_var->getName(), "SCALAR", d_Phi_current_idx, 0, d_P_scale);
             if (d_using_hybrid_projection)
+            {
                 d_visit_writer->registerPlotQuantity(
                     d_Phi_tilde_var->getName(), "SCALAR", d_Phi_tilde_current_idx, 0, d_P_scale);
+            }
+#endif
         }
 
         if (!d_F_var.isNull() && d_output_F)
