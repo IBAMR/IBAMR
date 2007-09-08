@@ -271,8 +271,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
         {
             const SAMRAI::hier::Index<NDIM>& i = b();
             if ((!acoef_data.isNull() && SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),0.0)) ||
-                (!bcoef_data.isNull() && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),1.0)) ||
-                (d_using_intermediate_velocity_bc_coefs && fill_time > d_current_time))
+                (!bcoef_data.isNull() && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),1.0)))
             {
                 // Setup the boundary conditions to satisfy div_U = 0 at the
                 // boundary.
@@ -360,6 +359,9 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
             }
         }
     }
+
+    // XXXX
+    return;
 
     // Do not further modify the boundary condition coefficients unless we are
     // setting boundary conditions for U^{*}.

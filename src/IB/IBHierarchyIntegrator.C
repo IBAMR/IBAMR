@@ -1024,7 +1024,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_current_data, F_data[ln], X_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
-#if 1
+#if 0
                 if (pgeom->getTouchesRegularBoundary()) // XXXX
                 {
                     LEInteractor::spreadReflectedForces(
@@ -1163,7 +1163,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
-#if 1
+#if 0
                 if (pgeom->getTouchesRegularBoundary()) // XXXX
                 {
                     LEInteractor::spreadReflectedForces(
