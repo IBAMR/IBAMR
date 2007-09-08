@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <30.Aug.2007 19:50:34 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Sep.2007 01:40:43 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -176,7 +176,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_set_physical_boundary_condit
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = 3;
+static const int CELLG = 4;  // XXXX
 static const int FLUXG = 1;
 
 // Values for cell tagging routines.

@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.C
-// Last modified: <08.Sep.2007 00:40:44 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Sep.2007 01:57:08 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSIntermediateVelocityBcCoef.h"
@@ -99,7 +99,7 @@ INSIntermediateVelocityBcCoef::setPhiPatchDataIndex(
 {
     d_Phi_idx = Phi_idx;
     d_inhomo_patch_data_idxs.clear();
-    //d_inhomo_patch_data_idxs.insert(d_Phi_idx);  // XXXX
+    d_inhomo_patch_data_idxs.insert(d_Phi_idx);
     return;
 }// setPhiPatchDataIndex
 
@@ -244,8 +244,6 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
     // Set the homogeneous boundary conditions.
     if ((d_homogeneous_bc || d_velocity_correction) && !gcoef_data.isNull()) gcoef_data->fillAll(0.0);
 
-    return; // XXXX
-
     // Modify the normal velocity boundary condition to enforce div u = 0 at the
     // boundary to O(dx^2) at "open" boundaries.
     if (bdry_normal_axis == d_comp_idx && !gcoef_data.isNull())
@@ -273,7 +271,8 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
         {
             const SAMRAI::hier::Index<NDIM>& i = b();
             if ((!acoef_data.isNull() && SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),0.0)) ||
-                (!bcoef_data.isNull() && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),1.0)))
+                (!bcoef_data.isNull() && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),1.0)) ||
+                (d_using_intermediate_velocity_bc_coefs && fill_time > d_current_time))
             {
                 // Setup the boundary conditions to satisfy div_U = 0 at the
                 // boundary.
@@ -352,7 +351,6 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
                 if (!bcoef_data.isNull()) (*bcoef_data)(i,0) = 1.0;
                 if (!at_edge_or_corner)
                 {
-
                     (*gcoef_data)(i,0) = (bdry_lower_side ? +1.0 : -1.0)*F;
                 }
                 else

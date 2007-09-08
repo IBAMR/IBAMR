@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <06.Sep.2007 03:05:24 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Sep.2007 01:41:04 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -127,7 +127,7 @@ HierarchyProjector::HierarchyProjector(
     d_F_var   = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::f",1);
     d_w_var   = new SAMRAI::pdat::FaceVariable<NDIM,double>(d_object_name+"::w",1);
 
-    const SAMRAI::hier::IntVector<NDIM> ghosts = 1;
+    const SAMRAI::hier::IntVector<NDIM> ghosts = 2;  // XXXX
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
     d_sol_idx = var_db->registerVariableAndContext(d_sol_var, d_context, ghosts);
