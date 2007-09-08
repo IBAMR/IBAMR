@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <06.Sep.2007 03:07:01 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Sep.2007 00:32:35 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1831,8 +1831,9 @@ INSHierarchyIntegrator::integrateAdvDiff(
     d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_current_idx);
     for (int d = 0; d < NDIM; ++d)
     {
+        static const bool velocity_correction = false;
         d_intermediate_U_bc_coefs[d]->useIntermediateVelocityBcCoefs(
-            current_time, new_time, d_rho);
+            current_time, new_time, d_rho, velocity_correction);
     }
 
     // Solve the advection-diffusion equation for U^(*).
@@ -1909,8 +1910,9 @@ INSHierarchyIntegrator::projectVelocity(
     d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_current_idx);
     for (int d = 0; d < NDIM; ++d)
     {
+        static const bool velocity_correction = false;
         d_intermediate_U_bc_coefs[d]->useIntermediateVelocityBcCoefs(
-            current_time, new_time, d_rho);
+            current_time, new_time, d_rho, velocity_correction);
     }
 
     d_hier_math_ops->interp(
@@ -2239,8 +2241,9 @@ INSHierarchyIntegrator::updatePressure(
         d_hier_cc_data_ops->subtract(d_Phi_scratch_idx, d_Phi_tilde_current_idx, d_Phi_current_idx);
         for (int d = 0; d < NDIM; ++d)
         {
+            static const bool velocity_correction = true;
             d_intermediate_U_bc_coefs[d]->useIntermediateVelocityBcCoefs(
-                current_time, new_time, d_rho);
+                current_time, new_time, d_rho, velocity_correction);
         }
 
         // Initialize the linear solver.
@@ -2249,7 +2252,7 @@ INSHierarchyIntegrator::updatePressure(
 
         d_helmholtz_op->setPoissonSpecifications(*d_helmholtz_spec);
         d_helmholtz_op->setPhysicalBcCoefs(U_bc_coefs);
-        d_helmholtz_op->setHomogeneousBc(true);
+        d_helmholtz_op->setHomogeneousBc(false);
         d_helmholtz_op->setTime(new_time);
         d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
@@ -2323,8 +2326,9 @@ INSHierarchyIntegrator::updatePressure(
         d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_tilde_current_idx);
         for (int d = 0; d < NDIM; ++d)
         {
+            static const bool velocity_correction = false;
             d_intermediate_U_bc_coefs[d]->useIntermediateVelocityBcCoefs(
-                current_time, new_time, d_rho);
+                current_time, new_time, d_rho, velocity_correction);
         }
 
         // Interpolate U~(*)->u~(*).
@@ -2342,8 +2346,8 @@ INSHierarchyIntegrator::updatePressure(
             d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
         }
 
-        // Project U^{*}.
-        d_hier_cc_data_ops->copyData(d_Phi_tilde_scratch_idx, d_Phi_tilde_current_idx);
+        // Project U~^{*}.
+        d_hier_cc_data_ops->add(d_Phi_tilde_scratch_idx, d_P_current_idx, d_Phi_new_idx);
         d_hier_projector->projectHierarchy(
             d_rho, dt, new_time,
             d_pressure_projection_type,

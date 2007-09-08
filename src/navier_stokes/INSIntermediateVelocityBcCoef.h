@@ -2,7 +2,7 @@
 #define included_INSIntermediateVelocityBcCoef
 
 // Filename: INSIntermediateVelocityBcCoef.h
-// Last modified: <05.Sep.2007 18:00:53 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Sep.2007 22:18:37 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -64,7 +64,8 @@ public:
     useIntermediateVelocityBcCoefs(
         const double current_time,
         const double new_time,
-        const double rho);
+        const double rho,
+        const bool velocity_correction);
 
     /*!
      * \brief Reset the patch data descriptor index for the cell-centered scalar
@@ -318,6 +319,11 @@ private:
      * Whether we are using the "true" or "intermediate" velocity bc coefs.
      */
     bool d_using_intermediate_velocity_bc_coefs;
+
+    /*
+     * Whether we are doing a velocity correction or not.
+     */
+    bool d_velocity_correction;
 };
 }// namespace IBAMR
 
