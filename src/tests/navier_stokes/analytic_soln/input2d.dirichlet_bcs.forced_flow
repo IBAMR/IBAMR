@@ -6,37 +6,86 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // physical parameters
-MU = 0.0001
+MU = 0.001
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 2   // maximum number of levels in locally refined grid
+MAX_LEVELS = 3   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 VelocitySolution {
    constant_names = "nu"
    nu = MU/RHO
 
-   function_0 = "1.0 - 2.0*(cos(2.0*PI*(X_0-t))*sin(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
-   function_1 = "1.0 + 2.0*(sin(2.0*PI*(X_0-t))*cos(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
+   function_0 = "X_1*(3*X_1-2)*cos(2*PI*(X_0-sin(2*PI*t*t)))"
+   function_1 = "2*PI*X_1*X_1*(X_1-1)*sin(2*PI*(X_0-sin(2*PI*t*t)))"
 }
 
 PressureSolution {
    constant_names = "nu"
    nu = MU/RHO
 
-   function = "-(cos(4.0*PI*(X_0-t)) + cos(4.0*PI*(X_1-t)))*exp(-16.0*PI*PI*nu*t)"
+   function = "-2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*sin(2*PI*X_1)+4*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*X_1-2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI+2*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*sin(2*PI*X_1)-2*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*X_1+nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI"
+}
+
+ForcingFunction {
+   constant_names = "nu"
+   nu = MU/RHO
+
+   function_0 = "24*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*cos(2*PI*t*t)*t*X_1*X_1-16*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*cos(2*PI*t*t)*t*X_1-6*cos(2*PI*(X_0-sin(2*PI*t*t)))*X_1^4*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI+8*cos(2*PI*(X_0-sin(2*PI*t*t)))*X_1^3*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI-4*cos(2*PI*(X_0-sin(2*PI*t*t)))*X_1*X_1*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI-4*cos(2*PI*t*t)*t*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*sin(2*PI*X_1)+8*cos(2*PI*t*t)*t*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1-4*cos(2*PI*t*t)*t*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI-4*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*sin(2*PI*X_1)+4*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1-2*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI+12*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1*X_1-8*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1-6*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))"
+   function_1 = "-2*PI*(8*PI*PI*cos(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*t*t)*t*X_1^3-8*PI*PI*cos(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*t*t)*t*X_1*X_1-6*PI*X_1^5+10*PI*X_1^4-4*PI*X_1^3+2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*X_1)-2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))-2*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*X_1)+nu*cos(2*PI*(X_0-sin(2*PI*t*t)))-4*nu*PI*PI*sin(2*PI*(X_0-sin(2*PI*t*t)))*X_1^3+4*nu*PI*PI*sin(2*PI*(X_0-sin(2*PI*t*t)))*X_1*X_1+6*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*X_1-2*nu*sin(2*PI*(X_0-sin(2*PI*t*t))))"
+}
+
+VelocityBcCoefs_0 {
+   constant_names = "nu"
+   nu = MU/RHO
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "X_1*(3*X_1-2)*cos(2*PI*(X_0-sin(2*PI*t*t)))"
+   gcoef_function_1 = "X_1*(3*X_1-2)*cos(2*PI*(X_0-sin(2*PI*t*t)))"
+   gcoef_function_2 = "X_1*(3*X_1-2)*cos(2*PI*(X_0-sin(2*PI*t*t)))"
+   gcoef_function_3 = "X_1*(3*X_1-2)*cos(2*PI*(X_0-sin(2*PI*t*t)))"
+}
+
+VelocityBcCoefs_1 {
+   constant_names = "nu"
+   nu = MU/RHO
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "2*PI*X_1*X_1*(X_1-1)*sin(2*PI*(X_0-sin(2*PI*t*t)))"
+   gcoef_function_1 = "2*PI*X_1*X_1*(X_1-1)*sin(2*PI*(X_0-sin(2*PI*t*t)))"
+   gcoef_function_2 = "2*PI*X_1*X_1*(X_1-1)*sin(2*PI*(X_0-sin(2*PI*t*t)))"
+   gcoef_function_3 = "2*PI*X_1*X_1*(X_1-1)*sin(2*PI*(X_0-sin(2*PI*t*t)))"
 }
 
 INSHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 1.0e0    // final simulation time
+   end_time              = 0.5e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = 1        // enable regridding (to test regrid synchronization projection)
+   regrid_interval       = 10000    // enable regridding (to test regrid synchronization projection)
+   dt_max = 0.5/NFINEST
 
    enable_logging = TRUE
 
@@ -48,23 +97,28 @@ INSHierarchyIntegrator {
    vorticity_rel_thresh = 0.25
 
    output_P = TRUE
-   output_F = FALSE
+   output_F = TRUE
    output_Q = FALSE
 
    output_Omega = TRUE
 
    output_Div_U = FALSE
-   output_Div_u = FALSE
-   output_Div_u_adv = FALSE
+   output_Div_u = TRUE
+   output_Div_u_adv = TRUE
 
    mu  = MU
    rho = RHO
 
    velocity_projection_type = "pressure_increment"
-   pressure_projection_type = "pressure_increment"
+   pressure_projection_type = "pressure_update"
 
+   using_synch_projection = FALSE
    second_order_pressure_update = TRUE
    normalize_pressure = TRUE
+
+   helmholtz_max_iterations = 1000
+   helmholtz_abs_residual_tol = 1.0e-30
+   helmholtz_rel_residual_tol = 1.0e-12
 
    num_cycles = 1
    num_init_cycles = 5
@@ -86,6 +140,7 @@ AdvDiffHierarchyIntegrator {
       compute_init_velocity  = TRUE
       compute_half_velocity  = FALSE
       compute_final_velocity = FALSE
+      extrap_type            = "LINEAR"
    }
 
    HyperbolicLevelIntegrator {
@@ -95,10 +150,10 @@ AdvDiffHierarchyIntegrator {
       use_ghosts_to_compute_dt = FALSE
    }
 
-   max_iterations = 25
+   max_iterations = 1000
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-12
-   using_FAC = TRUE
+   using_FAC = FALSE
 
    FACOps {
       fac_max_cycles = 1
@@ -191,7 +246,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         =  0, 0          // lower end of computational domain.
    x_up         =  1, 1          // upper end of computational domain.
-   periodic_dimension = 1, 1
+   periodic_dimension = 1, 0
 }
 
 GriddingAlgorithm {
@@ -222,9 +277,9 @@ GriddingAlgorithm {
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
-      level_0 = [((REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*N/4 + 0),(3*(REF_RATIO^0)*N/4 - 1,3*(REF_RATIO^0)*N/4 - 1)]
-      level_1 = [((REF_RATIO^1)*N/4 + 1,(REF_RATIO^1)*N/4 + 1),(3*(REF_RATIO^1)*N/4 - 2,3*(REF_RATIO^1)*N/4 - 2)]
-      level_2 = [((REF_RATIO^2)*N/4 + 2,(REF_RATIO^2)*N/4 + 2),(3*(REF_RATIO^2)*N/4 - 3,3*(REF_RATIO^2)*N/4 - 3)]
+      level_0 = [((REF_RATIO^0)*N/2 + 0,(REF_RATIO^0)*N/2 + 0),((REF_RATIO^0)*N - 1,(REF_RATIO^0)*N - 1)]
+      level_1 = [((REF_RATIO^1)*N/2 + 1,(REF_RATIO^1)*N/2 + 1),((REF_RATIO^1)*N - 2,(REF_RATIO^1)*N - 1)]
+      level_2 = [((REF_RATIO^2)*N/2 + 2,(REF_RATIO^2)*N/2 + 2),((REF_RATIO^2)*N - 3,(REF_RATIO^2)*N - 1)]
    }
 }
 

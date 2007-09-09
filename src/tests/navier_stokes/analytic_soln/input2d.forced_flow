@@ -13,7 +13,7 @@ RHO = 1.0
 MAX_LEVELS = 2   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 VelocitySolution {
@@ -29,6 +29,14 @@ PressureSolution {
    nu = MU/RHO
 
    function = "-(cos(4.0*PI*(X_0-t)) + cos(4.0*PI*(X_1-t)))*exp(-16.0*PI*PI*nu*t)"
+}
+
+ForcingFunction {
+   constant_names = "nu"
+   nu = MU/RHO
+
+   function_0 = "-4*Pi*exp(-16*PI*PI*nu*t)*(2*sin(2*Pi*(X_0-t))*cos(2*Pi*(X_0-t))-sin(4*Pi*(X_0-t)))"
+   function_1 = "4*Pi*exp(-16*PI*PI*nu*t)*(2*sin(2*Pi*(-X_1+t))*cos(2*Pi*(-X_1+t))-sin(4*Pi*(-X_1+t)))"
 }
 
 INSHierarchyIntegrator {
@@ -48,7 +56,7 @@ INSHierarchyIntegrator {
    vorticity_rel_thresh = 0.25
 
    output_P = TRUE
-   output_F = FALSE
+   output_F = TRUE
    output_Q = FALSE
 
    output_Omega = TRUE
@@ -61,7 +69,7 @@ INSHierarchyIntegrator {
    rho = RHO
 
    velocity_projection_type = "pressure_increment"
-   pressure_projection_type = "pressure_increment"
+   pressure_projection_type = "pressure_update"
 
    second_order_pressure_update = TRUE
    normalize_pressure = TRUE
