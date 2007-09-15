@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <06.Sep.2007 03:05:03 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Sep.2007 20:31:51 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -137,6 +137,8 @@ public:
     ///
     ///      setVelocityPhysicalBcCoefs(),
     ///      getVelocityPhysicalBcCoefs(),
+    ///      setPressurePhysicalBcCoef(),
+    ///      getPressurePhysicalBcCoef(),
     ///      getPoissonSolver()
     ///
     ///  allow other objects to access the Poisson solver and related data used
@@ -160,6 +162,24 @@ public:
      */
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
     getVelocityPhysicalBcCoefs() const;
+
+    /*!
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
+     * physical boundary conditions for the pressure.
+     *
+     * \param P_bc_coef  Boundary condition specification object corresponding to the pressure.
+     */
+    void
+    setPressurePhysicalBcCoef(
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef);
+
+    /*!
+     * Returns a pointer to the SAMRAI::solv::RobinBcCoefStrategy object
+     * employed by the projector to specify physical boundary conditions for the
+     * pressure.
+     */
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
+    getPressurePhysicalBcCoef() const;
 
     /*!
      * Returns a pointer to the concrete linear solver object employed by the
@@ -190,6 +210,8 @@ public:
         const std::string& projection_type,
         const int u_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >& u_var,
+        const int P_idx,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& P_var,
         const int Phi_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Phi_var,
         const int grad_Phi_idx,
@@ -401,8 +423,8 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_var;
-    int d_F_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_var, d_P_var;
+    int d_F_idx, d_P_idx;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_w_var;
     int d_w_idx;
@@ -415,6 +437,8 @@ private:
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_default_u_bc_coefs;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_P_bc_coef;
     INSProjectionBcCoef* d_Phi_bc_coef;
 
     SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> d_poisson_solver;

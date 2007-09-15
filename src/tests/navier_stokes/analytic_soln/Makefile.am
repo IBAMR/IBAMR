@@ -18,6 +18,7 @@ check-local:
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
 	  cp -f $(srcdir)/input2d.dirichlet_bcs $(PWD) ; \
 	  cp -f $(srcdir)/input2d.dirichlet_bcs.forced_flow $(PWD) ; \
+	  cp -f $(srcdir)/input2d.traction_bcs $(PWD) ; \
 	fi ;
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

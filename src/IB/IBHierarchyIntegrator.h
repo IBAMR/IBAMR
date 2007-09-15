@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <30.Aug.2007 19:49:00 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Sep.2007 03:16:54 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -13,10 +13,15 @@
 #include <ibamr/IBInstrumentPanel.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
 #include <ibamr/IBLagrangianSourceStrategy.h>
+#include <ibamr/IBMarker.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/LDataManager.h>
 #include <ibamr/LNodeInitStrategy.h>
 #include <ibamr/LagSiloDataWriter.h>
+
+#if (NDIM == 3)
+#include <ibamr/LagM3dDataWriter.h>
+#endif
 
 // STOOLS INCLUDES
 #include <stools/SetDataStrategy.h>
@@ -27,6 +32,7 @@
 #include <CoarsenSchedule.h>
 #include <GriddingAlgorithm.h>
 #include <HierarchyCellDataOpsReal.h>
+#include <IndexVariable.h>
 #include <IntVector.h>
 #include <LoadBalancer.h>
 #include <PatchHierarchy.h>
@@ -150,6 +156,17 @@ public:
     void
     registerLagSiloDataWriter(
         SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer);
+
+#if (NDIM == 3)
+    /*!
+     * Register a Lagrangian myocardial3d data writer so this class will write
+     * plot files that may be postprocessed with the myocardial3d visualization
+     * program.
+     */
+    void
+    registerLagM3dDataWriter(
+        SAMRAI::tbox::Pointer<LagM3dDataWriter> m3d_writer);
+#endif
 
     /*!
      * Register a load balancer for non-uniform load balancing.
@@ -467,6 +484,21 @@ public:
     ///
     ///  The following routines:
     ///
+    ///      getIBMarkerVar()
+    ///
+    ///  allows access to the various state variables maintained by the
+    ///  integrator.
+    ///
+
+    /*!
+     * Return a pointer to the IBMarker index data state variable.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBMarker> >
+    getIBMarkerVar() const;
+
+    ///
+    ///  The following routines:
+    ///
     ///      getCurrentContext(),
     ///      getNewContext(),
     ///      getOldContext(),
@@ -705,11 +737,14 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
 
     /*
-     * We cache a pointer to the VisIt and Silo data writers to register plot
+     * We cache a pointer to the visualization data writers to register plot
      * variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
     SAMRAI::tbox::Pointer<LagSiloDataWriter> d_silo_writer;
+#if (NDIM == 3)
+     SAMRAI::tbox::Pointer<LagM3dDataWriter> d_m3d_writer;
+#endif
 
     /*
      * We cache a pointer to the load balancer.
@@ -824,6 +859,12 @@ private:
     bool d_do_log;
 
     /*
+     * Input file for initial marker positions, indices, and clouds.
+     */
+    std::string d_mark_input_file_name;
+    std::vector<double> d_mark_init_posns;
+
+    /*
      * Indicates whether the velocity field needs to be re-projected.
      */
     bool d_reinterpolate_after_regrid;
@@ -854,8 +895,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_V_var, d_W_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBMarker> > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
-    int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_Q_idx, d_Q_scratch_idx;
+    int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_mark_idx, d_mark_scratch_idx, d_Q_idx, d_Q_scratch_idx;
 };
 }// namespace IBAMR
 

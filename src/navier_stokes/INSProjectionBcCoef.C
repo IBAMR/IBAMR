@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <08.Sep.2007 18:29:14 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Sep.2007 23:59:33 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -20,8 +20,8 @@
 #include <stools/PhysicalBoundaryUtilities.h>
 
 // SAMRAI INCLUDES
+#include <CellData.h>
 #include <FaceData.h>
-#include <SideData.h>
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
@@ -37,17 +37,26 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSProjectionBcCoef::INSProjectionBcCoef(
+    const int P_idx,
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef,
+    const std::string& projection_type,
     const int u_idx,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const bool homogeneous_bc)
-    : d_u_idx(-1),
+    : d_P_idx(-1),
+      d_P_bc_coef(NULL),
+      d_projection_type(),
+      d_u_idx(-1),
+      d_u_bc_coefs(NDIM,NULL),
       d_homo_patch_data_idxs(),
       d_inhomo_patch_data_idxs(),
-      d_u_bc_coefs(NDIM,NULL),
       d_homogeneous_bc(false),
       d_rho(std::numeric_limits<double>::quiet_NaN()),
       d_dt(std::numeric_limits<double>::quiet_NaN())
 {
+    setCurrentPressurePatchDataIndex(P_idx);
+    setPressurePhysicalBcCoef(P_bc_coef);
+    setProjectionType(projection_type);
     setIntermediateVelocityPatchDataIndex(u_idx);
     setVelocityPhysicalBcCoefs(u_bc_coefs);
     setHomogeneousBc(homogeneous_bc);
@@ -71,12 +80,46 @@ INSProjectionBcCoef::setProblemCoefs(
 }// setProblemCoefs
 
 void
+INSProjectionBcCoef::setCurrentPressurePatchDataIndex(
+    const int P_idx)
+{
+    d_P_idx = P_idx;
+    d_inhomo_patch_data_idxs.clear();
+    if (d_u_idx != -1) d_inhomo_patch_data_idxs.insert(d_u_idx);
+    d_inhomo_patch_data_idxs.insert(d_P_idx);
+    return;
+}// setCurrentPressurePatchDataIndex
+
+void
+INSProjectionBcCoef::setProjectionType(
+    const std::string& projection_type)
+{
+    if (projection_type != "pressure_increment" && projection_type != "pressure_update")
+    {
+        TBOX_ERROR("INSProjectionBcCoef::setProjectionType():\n"
+                   << "  invalid velocity projection type: " << projection_type << "\n"
+                   << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << endl);
+    }
+    d_projection_type = projection_type;
+    return;
+}// setProjectionType
+
+void
+INSProjectionBcCoef::setPressurePhysicalBcCoef(
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef)
+{
+    d_P_bc_coef = P_bc_coef;
+    return;
+}// setPressurePhysicalBcCoef
+
+void
 INSProjectionBcCoef::setIntermediateVelocityPatchDataIndex(
     const int u_idx)
 {
     d_u_idx = u_idx;
     d_inhomo_patch_data_idxs.clear();
     d_inhomo_patch_data_idxs.insert(d_u_idx);
+    if (d_P_idx != -1) d_inhomo_patch_data_idxs.insert(d_P_idx);
     return;
 }// setIntermediateVelocityPatchDataIndex
 
@@ -236,28 +279,62 @@ INSProjectionBcCoef::setBcCoefs_private(
     if (!d_homogeneous_bc && fill_gcoef_data)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data = patch.getPatchData(d_u_idx);
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > P_data = patch.getPatchData(d_P_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
         assert(!u_data.isNull());
-        assert(!acoef_data.isNull() || !bcoef_data.isNull());
+        assert(!P_data.isNull());
+        assert(fill_acoef_data || fill_bcoef_data);
 #endif
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > pcoef_data =
+            (acoef_data.isNull()
+             ? new SAMRAI::pdat::ArrayData<NDIM,double>(bcoef_data->getBox(), bcoef_data->getDepth())
+             : new SAMRAI::pdat::ArrayData<NDIM,double>(acoef_data->getBox(), acoef_data->getDepth()));
+
+        if (d_P_bc_coef != NULL)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > null_data(NULL);
+#if USING_OLD_ROBIN_BC_INTERFACE
+            d_P_bc_coef->setBcCoefs(
+                null_data, pcoef_data, variable, patch, bdry_box, fill_time);
+#else
+            d_P_bc_coef->setBcCoefs(
+                null_data, null_data, pcoef_data, variable, patch, bdry_box, fill_time);
+#endif
+        }
+        else
+        {
+            pcoef_data->fillAll(0.0);
+        }
+
+        const bool using_pressure_increment = (d_projection_type == "pressure_increment");
         for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
         {
             const SAMRAI::hier::Index<NDIM>& i = b();
             const SAMRAI::pdat::FaceIndex<NDIM> i_f(
                 i, bdry_normal_axis, SAMRAI::pdat::FaceIndex<NDIM>::Lower);
 
-            if ((!acoef_data.isNull() && SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),0.0)) ||
-                (!bcoef_data.isNull() && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),1.0)))
+            if ((fill_acoef_data && SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),1.0)) ||
+                (fill_bcoef_data && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),0.0)))
             {
-                (*gcoef_data)(i,0) = (is_lower ? -1.0 : +1.0)*(d_rho/d_dt)*((*u_data)(i_f) - (*gcoef_data)(i,0));
+                SAMRAI::hier::Index<NDIM> i_intr(i), i_bdry(i);
+                if (is_lower)
+                {
+                    i_bdry(bdry_normal_axis) -= 1;
+                }
+                else
+                {
+                    i_intr(bdry_normal_axis) -= 1;
+                }
+
+                const double P_bdry = (using_pressure_increment ? 0.5*((*P_data)(i_intr) + (*P_data)(i_bdry)) : 0.0);
+                (*gcoef_data)(i,0) = (*pcoef_data)(i,0) - P_bdry;
             }
             else
             {
-                (*gcoef_data)(i,0) = 0.0;  // XXXX
+                (*gcoef_data)(i,0) = (is_lower ? -1.0 : +1.0)*(d_rho/d_dt)*((*u_data)(i_f) - (*gcoef_data)(i,0));
             }
         }
     }
-
     return;
 }// setBcCoefs_private
 

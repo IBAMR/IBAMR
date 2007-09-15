@@ -329,10 +329,10 @@ main(
         /*
          * Create boundary condition specification objects (when necessary).
          */
-        vector<solv::RobinBcCoefStrategy<NDIM>*> u_bc_coefs;
-
         const hier::IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         const bool periodic_domain = periodic_shift.min() != 0;
+
+        vector<solv::RobinBcCoefStrategy<NDIM>*> u_bc_coefs;
         if (!periodic_domain)
         {
             for (int d = 0; d < NDIM; ++d)
@@ -349,8 +349,15 @@ main(
                     new muParserRobinBcCoefs(
                         bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry));
             }
-
             time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
+        }
+
+        solv::RobinBcCoefStrategy<NDIM>* P_bc_coef = NULL;
+        if (!periodic_domain && input_db->isDatabase("PressureBcCoef"))
+        {
+            P_bc_coef = new muParserRobinBcCoefs(
+                "PressureBcCoef", input_db->getDatabase("PressureBcCoef"), grid_geometry);
+            time_integrator->registerPressurePhysicalBcCoef(P_bc_coef);
         }
 
         /*
@@ -584,6 +591,7 @@ main(
             {
                 delete (*cit);
             }
+            if (P_bc_coef != NULL) delete P_bc_coef;
         }
     }// cleanup all smart Pointers prior to shutdown
 

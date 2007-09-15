@@ -38,10 +38,11 @@ LNodeIndexVariable2.h \
 LNodeLevelData.h \
 LNodeLevelData.I \
 LNodeInitStrategy.h \
+LagM3dDataWriter.h \
 LagSiloDataWriter.h
 
 libIBAMR_lagrangian2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR_lagrangian2d_a_SOURCES = $(SOURCES)
 
 libIBAMR_lagrangian3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBAMR_lagrangian3d_a_SOURCES = $(SOURCES)
+libIBAMR_lagrangian3d_a_SOURCES = $(SOURCES) LagM3dDataWriter.C

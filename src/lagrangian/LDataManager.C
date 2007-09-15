@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <20.Aug.2007 19:04:27 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Sep.2007 01:21:57 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -22,6 +22,10 @@
 #include <ibamr/LNodeIndexData2.h>
 #include <ibamr/LNodeLevelData.h>
 #include <ibamr/LagSiloDataWriter.h>
+
+#if (NDIM == 3)
+#include <ibamr/LagM3dDataWriter.h>
+#endif
 
 // STOOLS INCLUDES
 #include <stools/PETSC_SAMRAI_ERROR.h>
@@ -441,6 +445,19 @@ LDataManager::registerLagSiloDataWriter(
     d_silo_writer = silo_writer;
     return;
 }// registerLagSiloDataWriter
+
+#if (NDIM == 3)
+void
+LDataManager::registerLagM3dDataWriter(
+    SAMRAI::tbox::Pointer<LagM3dDataWriter> m3d_writer)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(!m3d_writer.isNull());
+#endif
+    d_m3d_writer = m3d_writer;
+    return;
+}// registerLagM3dDataWriter
+#endif
 
 void
 LDataManager::registerLoadBalancer(
@@ -1244,7 +1261,14 @@ LDataManager::endDataRedistribution(
     {
         d_silo_writer->registerLagrangianAO(d_ao, coarsest_ln, finest_ln);
     }
-
+#if (NDIM == 3)
+    // If a myocardial3d data writer is registered with the manager, give it
+    // access to the new application orderings.
+    if (!d_m3d_writer.isNull())
+    {
+        d_m3d_writer->registerLagrangianAO(d_ao, coarsest_ln, finest_ln);
+    }
+#endif
     t_end_data_redistribution->stop();
     return;
 }// endDataRedistribution
@@ -1569,8 +1593,6 @@ LDataManager::initializeLevelData(
         {
             level->allocatePatchData(d_scratch_data, init_data_time);
 
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > _old_level = old_level;
-
             d_lag_node_index_bdry_fill_alg->
                 createSchedule(level, old_level)->fillData(init_data_time);
 
@@ -1758,7 +1780,17 @@ LDataManager::initializeLevelData(
         d_silo_writer->registerLagrangianAO(
             d_ao[level_number], level_number);
     }
-
+#if (NDIM == 3)
+    // If a myocardial3d data writer is registered with the manager, give it
+    // access to the new application ordering.
+    if (!d_m3d_writer.isNull() && d_level_contains_lag_data[level_number])
+    {
+        d_m3d_writer->registerCoordsData(
+            d_lag_quantity_data[level_number][POSN_DATA_NAME], level_number);
+        d_m3d_writer->registerLagrangianAO(
+            d_ao[level_number], level_number);
+    }
+#endif
     t_initialize_level_data->stop();
     return;
 }// initializeLevelData
@@ -1801,7 +1833,22 @@ LDataManager::resetHierarchyConfiguration(
             }
         }
     }
-
+#if (NDIM == 3)
+    // Reset the myocardial3d data writer.
+    if (!d_m3d_writer.isNull())
+    {
+        d_m3d_writer->setPatchHierarchy(hierarchy);
+        d_m3d_writer->resetLevels(d_coarsest_ln, d_finest_ln);
+        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+        {
+            if (d_level_contains_lag_data[ln])
+            {
+                d_m3d_writer->registerCoordsData(
+                    d_lag_quantity_data[ln][POSN_DATA_NAME], ln);
+            }
+        }
+    }
+#endif
     // If we have added or removed a level, resize the schedule vectors.
     d_lag_node_index_bdry_fill_scheds.resize(finest_hier_level+1);
     d_node_count_coarsen_scheds      .resize(finest_hier_level+1);
@@ -2013,6 +2060,9 @@ LDataManager::LDataManager(
       d_finest_ln(-1),
       d_visit_writer(NULL),
       d_silo_writer(NULL),
+#if (NDIM == 3)
+      d_m3d_writer(NULL),
+#endif
       d_load_balancer(NULL),
       d_lag_init(NULL),
       d_level_contains_lag_data(),

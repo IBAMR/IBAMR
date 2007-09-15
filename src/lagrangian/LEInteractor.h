@@ -2,7 +2,7 @@
 #define included_LEInteractor
 
 // Filename: LEInteractor.h
-// Last modified: <04.Jul.2007 13:36:40 boyce@bigboy.nyconnect.com>
+// Last modified: <13.Sep.2007 00:41:41 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -102,6 +102,64 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+        const std::string& interp_fcn="IB_4");
+
+    /*!
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
+     *
+     * \note This method employs periodic boundary conditions where appropriate
+     * and when requested.  X_data must provide the cannonical location of the
+     * node---i.e., each node location must lie within the extents of the
+     * physical domain.
+     *
+     * \note The interpolation operator implements the operation
+     *
+     *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
+     *
+     * This is the standard regularized delta function interpolation operation.
+     *
+     * \warning This method does \em not support periodic offsets for positions.
+     */
+    static void
+    interpolate(
+        std::vector<double>& Q_data,
+        const int Q_depth,
+        const std::vector<double>& X_data,
+        const int X_depth,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        const SAMRAI::hier::Box<NDIM>& box,
+        const std::string& interp_fcn="IB_4");
+
+    /*!
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
+     *
+     * \note This method employs periodic boundary conditions where appropriate
+     * and when requested.  X_data must provide the cannonical location of the
+     * node---i.e., each node location must lie within the extents of the
+     * physical domain.
+     *
+     * \note The interpolation operator implements the operation
+     *
+     *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
+     *
+     * This is the standard regularized delta function interpolation operation.
+     *
+     * \warning This method does \em not support periodic offsets for positions.
+     */
+    static void
+    interpolate(
+        double* const Q_data,
+        const int Q_size,
+        const int Q_depth,
+        const double* const X_data,
+        const int X_size,
+        const int X_depth,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        const SAMRAI::hier::Box<NDIM>& box,
         const std::string& interp_fcn="IB_4");
 
     /*!

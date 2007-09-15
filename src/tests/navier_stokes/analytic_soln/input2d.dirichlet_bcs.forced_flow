@@ -6,14 +6,14 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // physical parameters
-MU = 0.001
+MU = 1.0
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3   // maximum number of levels in locally refined grid
+MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 32                                    // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 VelocitySolution {

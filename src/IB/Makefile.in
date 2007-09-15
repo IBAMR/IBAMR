@@ -67,6 +67,8 @@ am__objects_1 = libIBAMR_IB2d_a-IBBeamForceGen.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
+	libIBAMR_IB2d_a-IBMarker.$(OBJEXT) \
+	libIBAMR_IB2d_a-IBMarkerCoarsenOperator.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBSpringForceGen.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBSpringForceSpec.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBSpringForceSpecFactory.$(OBJEXT) \
@@ -91,6 +93,8 @@ am__objects_2 = libIBAMR_IB3d_a-IBBeamForceGen.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
+	libIBAMR_IB3d_a-IBMarker.$(OBJEXT) \
+	libIBAMR_IB3d_a-IBMarkerCoarsenOperator.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBSpringForceGen.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBSpringForceSpec.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBSpringForceSpecFactory.$(OBJEXT) \
@@ -254,6 +258,8 @@ IBInstrumentationSpecFactory.C \
 IBLagrangianForceStrategy.C \
 IBLagrangianForceStrategySet.C \
 IBLagrangianSourceStrategy.C \
+IBMarker.C \
+IBMarkerCoarsenOperator.C \
 IBSpringForceGen.C \
 IBSpringForceSpec.C \
 IBSpringForceSpecFactory.C \
@@ -278,6 +284,9 @@ IBInstrumentationSpecFactory.h \
 IBLagrangianForceStrategy.h \
 IBLagrangianForceStrategySet.h \
 IBLagrangianSourceStrategy.h \
+IBMarker.h \
+IBMarker.I \
+IBMarkerCoarsenOperator.h \
 IBSpringForceGen.h \
 IBSpringForceSpec.h \
 IBSpringForceSpec.I \
@@ -356,6 +365,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBMarker.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBSpringForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBSpringForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBSpringForceSpecFactory.Po@am__quote@
@@ -376,6 +387,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBMarker.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBSpringForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBSpringForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBSpringForceSpecFactory.Po@am__quote@
@@ -566,6 +579,34 @@ libIBAMR_IB2d_a-IBLagrangianSourceStrategy.obj: IBLagrangianSourceStrategy.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianSourceStrategy.C' object='libIBAMR_IB2d_a-IBLagrangianSourceStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBLagrangianSourceStrategy.obj `if test -f 'IBLagrangianSourceStrategy.C'; then $(CYGPATH_W) 'IBLagrangianSourceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/IBLagrangianSourceStrategy.C'; fi`
+
+libIBAMR_IB2d_a-IBMarker.o: IBMarker.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBMarker.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBMarker.Tpo" -c -o libIBAMR_IB2d_a-IBMarker.o `test -f 'IBMarker.C' || echo '$(srcdir)/'`IBMarker.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBMarker.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBMarker.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBMarker.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarker.C' object='libIBAMR_IB2d_a-IBMarker.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBMarker.o `test -f 'IBMarker.C' || echo '$(srcdir)/'`IBMarker.C
+
+libIBAMR_IB2d_a-IBMarker.obj: IBMarker.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBMarker.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBMarker.Tpo" -c -o libIBAMR_IB2d_a-IBMarker.obj `if test -f 'IBMarker.C'; then $(CYGPATH_W) 'IBMarker.C'; else $(CYGPATH_W) '$(srcdir)/IBMarker.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBMarker.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBMarker.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBMarker.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarker.C' object='libIBAMR_IB2d_a-IBMarker.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBMarker.obj `if test -f 'IBMarker.C'; then $(CYGPATH_W) 'IBMarker.C'; else $(CYGPATH_W) '$(srcdir)/IBMarker.C'; fi`
+
+libIBAMR_IB2d_a-IBMarkerCoarsenOperator.o: IBMarkerCoarsenOperator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBMarkerCoarsenOperator.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.Tpo" -c -o libIBAMR_IB2d_a-IBMarkerCoarsenOperator.o `test -f 'IBMarkerCoarsenOperator.C' || echo '$(srcdir)/'`IBMarkerCoarsenOperator.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarkerCoarsenOperator.C' object='libIBAMR_IB2d_a-IBMarkerCoarsenOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBMarkerCoarsenOperator.o `test -f 'IBMarkerCoarsenOperator.C' || echo '$(srcdir)/'`IBMarkerCoarsenOperator.C
+
+libIBAMR_IB2d_a-IBMarkerCoarsenOperator.obj: IBMarkerCoarsenOperator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBMarkerCoarsenOperator.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.Tpo" -c -o libIBAMR_IB2d_a-IBMarkerCoarsenOperator.obj `if test -f 'IBMarkerCoarsenOperator.C'; then $(CYGPATH_W) 'IBMarkerCoarsenOperator.C'; else $(CYGPATH_W) '$(srcdir)/IBMarkerCoarsenOperator.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarkerCoarsenOperator.C' object='libIBAMR_IB2d_a-IBMarkerCoarsenOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBMarkerCoarsenOperator.obj `if test -f 'IBMarkerCoarsenOperator.C'; then $(CYGPATH_W) 'IBMarkerCoarsenOperator.C'; else $(CYGPATH_W) '$(srcdir)/IBMarkerCoarsenOperator.C'; fi`
 
 libIBAMR_IB2d_a-IBSpringForceGen.o: IBSpringForceGen.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBSpringForceGen.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBSpringForceGen.Tpo" -c -o libIBAMR_IB2d_a-IBSpringForceGen.o `test -f 'IBSpringForceGen.C' || echo '$(srcdir)/'`IBSpringForceGen.C; \
@@ -846,6 +887,34 @@ libIBAMR_IB3d_a-IBLagrangianSourceStrategy.obj: IBLagrangianSourceStrategy.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBLagrangianSourceStrategy.C' object='libIBAMR_IB3d_a-IBLagrangianSourceStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBLagrangianSourceStrategy.obj `if test -f 'IBLagrangianSourceStrategy.C'; then $(CYGPATH_W) 'IBLagrangianSourceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/IBLagrangianSourceStrategy.C'; fi`
+
+libIBAMR_IB3d_a-IBMarker.o: IBMarker.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBMarker.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBMarker.Tpo" -c -o libIBAMR_IB3d_a-IBMarker.o `test -f 'IBMarker.C' || echo '$(srcdir)/'`IBMarker.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBMarker.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBMarker.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBMarker.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarker.C' object='libIBAMR_IB3d_a-IBMarker.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBMarker.o `test -f 'IBMarker.C' || echo '$(srcdir)/'`IBMarker.C
+
+libIBAMR_IB3d_a-IBMarker.obj: IBMarker.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBMarker.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBMarker.Tpo" -c -o libIBAMR_IB3d_a-IBMarker.obj `if test -f 'IBMarker.C'; then $(CYGPATH_W) 'IBMarker.C'; else $(CYGPATH_W) '$(srcdir)/IBMarker.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBMarker.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBMarker.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBMarker.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarker.C' object='libIBAMR_IB3d_a-IBMarker.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBMarker.obj `if test -f 'IBMarker.C'; then $(CYGPATH_W) 'IBMarker.C'; else $(CYGPATH_W) '$(srcdir)/IBMarker.C'; fi`
+
+libIBAMR_IB3d_a-IBMarkerCoarsenOperator.o: IBMarkerCoarsenOperator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBMarkerCoarsenOperator.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.Tpo" -c -o libIBAMR_IB3d_a-IBMarkerCoarsenOperator.o `test -f 'IBMarkerCoarsenOperator.C' || echo '$(srcdir)/'`IBMarkerCoarsenOperator.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarkerCoarsenOperator.C' object='libIBAMR_IB3d_a-IBMarkerCoarsenOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBMarkerCoarsenOperator.o `test -f 'IBMarkerCoarsenOperator.C' || echo '$(srcdir)/'`IBMarkerCoarsenOperator.C
+
+libIBAMR_IB3d_a-IBMarkerCoarsenOperator.obj: IBMarkerCoarsenOperator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBMarkerCoarsenOperator.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.Tpo" -c -o libIBAMR_IB3d_a-IBMarkerCoarsenOperator.obj `if test -f 'IBMarkerCoarsenOperator.C'; then $(CYGPATH_W) 'IBMarkerCoarsenOperator.C'; else $(CYGPATH_W) '$(srcdir)/IBMarkerCoarsenOperator.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarkerCoarsenOperator.C' object='libIBAMR_IB3d_a-IBMarkerCoarsenOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBMarkerCoarsenOperator.obj `if test -f 'IBMarkerCoarsenOperator.C'; then $(CYGPATH_W) 'IBMarkerCoarsenOperator.C'; else $(CYGPATH_W) '$(srcdir)/IBMarkerCoarsenOperator.C'; fi`
 
 libIBAMR_IB3d_a-IBSpringForceGen.o: IBSpringForceGen.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBSpringForceGen.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBSpringForceGen.Tpo" -c -o libIBAMR_IB3d_a-IBSpringForceGen.o `test -f 'IBSpringForceGen.C' || echo '$(srcdir)/'`IBSpringForceGen.C; \

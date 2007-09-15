@@ -80,7 +80,8 @@ am__objects_2 = libIBAMR_lagrangian3d_a-LDataManager.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LNodeLevelData.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LNodeInitStrategy.$(OBJEXT) \
 	libIBAMR_lagrangian3d_a-LagSiloDataWriter.$(OBJEXT)
-am_libIBAMR_lagrangian3d_a_OBJECTS = $(am__objects_2)
+am_libIBAMR_lagrangian3d_a_OBJECTS = $(am__objects_2) \
+	libIBAMR_lagrangian3d_a-LagM3dDataWriter.$(OBJEXT)
 libIBAMR_lagrangian3d_a_OBJECTS =  \
 	$(am_libIBAMR_lagrangian3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
@@ -251,12 +252,13 @@ LNodeIndexVariable2.h \
 LNodeLevelData.h \
 LNodeLevelData.I \
 LNodeInitStrategy.h \
+LagM3dDataWriter.h \
 LagSiloDataWriter.h
 
 libIBAMR_lagrangian2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR_lagrangian2d_a_SOURCES = $(SOURCES)
 libIBAMR_lagrangian3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBAMR_lagrangian3d_a_SOURCES = $(SOURCES)
+libIBAMR_lagrangian3d_a_SOURCES = $(SOURCES) LagM3dDataWriter.C
 all: all-recursive
 
 .SUFFIXES:
@@ -327,6 +329,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeIndexVariable2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeInitStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LNodeLevelData.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LagM3dDataWriter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_lagrangian3d_a-LagSiloDataWriter.Po@am__quote@
 
 .C.o:
@@ -622,6 +625,20 @@ libIBAMR_lagrangian3d_a-LagSiloDataWriter.obj: LagSiloDataWriter.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LagSiloDataWriter.C' object='libIBAMR_lagrangian3d_a-LagSiloDataWriter.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian3d_a-LagSiloDataWriter.obj `if test -f 'LagSiloDataWriter.C'; then $(CYGPATH_W) 'LagSiloDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/LagSiloDataWriter.C'; fi`
+
+libIBAMR_lagrangian3d_a-LagM3dDataWriter.o: LagM3dDataWriter.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian3d_a-LagM3dDataWriter.o -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian3d_a-LagM3dDataWriter.Tpo" -c -o libIBAMR_lagrangian3d_a-LagM3dDataWriter.o `test -f 'LagM3dDataWriter.C' || echo '$(srcdir)/'`LagM3dDataWriter.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LagM3dDataWriter.Tpo" "$(DEPDIR)/libIBAMR_lagrangian3d_a-LagM3dDataWriter.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LagM3dDataWriter.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LagM3dDataWriter.C' object='libIBAMR_lagrangian3d_a-LagM3dDataWriter.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian3d_a-LagM3dDataWriter.o `test -f 'LagM3dDataWriter.C' || echo '$(srcdir)/'`LagM3dDataWriter.C
+
+libIBAMR_lagrangian3d_a-LagM3dDataWriter.obj: LagM3dDataWriter.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_lagrangian3d_a-LagM3dDataWriter.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_lagrangian3d_a-LagM3dDataWriter.Tpo" -c -o libIBAMR_lagrangian3d_a-LagM3dDataWriter.obj `if test -f 'LagM3dDataWriter.C'; then $(CYGPATH_W) 'LagM3dDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/LagM3dDataWriter.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LagM3dDataWriter.Tpo" "$(DEPDIR)/libIBAMR_lagrangian3d_a-LagM3dDataWriter.Po"; else rm -f "$(DEPDIR)/libIBAMR_lagrangian3d_a-LagM3dDataWriter.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LagM3dDataWriter.C' object='libIBAMR_lagrangian3d_a-LagM3dDataWriter.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_lagrangian3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_lagrangian3d_a-LagM3dDataWriter.obj `if test -f 'LagM3dDataWriter.C'; then $(CYGPATH_W) 'LagM3dDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/LagM3dDataWriter.C'; fi`
 uninstall-info-am:
 install-pkg_includeHEADERS: $(pkg_include_HEADERS)
 	@$(NORMAL_INSTALL)

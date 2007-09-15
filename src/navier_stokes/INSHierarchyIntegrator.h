@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <05.Sep.2007 15:52:35 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Sep.2007 20:53:08 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -143,6 +143,13 @@ public:
     void
     registerPressureInitialConditions(
         SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init);
+
+    /*!
+     * Supply physical boundary conditions for the (cell centered) pressure.
+     */
+    void
+    registerPressurePhysicalBcCoef(
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef);
 
     /*!
      * Supply an optional cell centered forcing term.
@@ -1101,6 +1108,8 @@ private:
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     std::vector<INSIntermediateVelocityBcCoef*> d_intermediate_U_bc_coefs;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_P_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     INSProjectionBcCoef* d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set, d_Q_set;
 

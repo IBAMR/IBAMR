@@ -2,7 +2,7 @@
 #define included_LDataManager
 
 // Filename: LDataManager.h
-// Last modified: <13.Jun.2007 17:39:06 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Sep.2007 00:41:51 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -49,6 +49,9 @@ namespace IBAMR
 class LNodeIndexSet;
 class LNodeLevelData;
 class LagSiloDataWriter;
+#if (NDIM == 3)
+class LagM3dDataWriter;
+#endif
 }// namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -167,6 +170,15 @@ public:
     void
     registerLagSiloDataWriter(
         SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer);
+
+#if (NDIM == 3)
+    /*!
+     * \brief Register a myocardial3d data writer with the manager.
+     */
+    void
+    registerLagM3dDataWriter(
+        SAMRAI::tbox::Pointer<LagM3dDataWriter> m3d_writer);
+#endif
 
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
@@ -684,11 +696,14 @@ private:
     int d_coarsest_ln, d_finest_ln;
 
     /*
-     * We cache a pointer to the VisIt and Silo data writers to register plot
+     * We cache a pointer to the visualization data writers to register plot
      * variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
     SAMRAI::tbox::Pointer<LagSiloDataWriter> d_silo_writer;
+#if (NDIM == 3)
+    SAMRAI::tbox::Pointer<LagM3dDataWriter> d_m3d_writer;
+#endif
 
     /*
      * We cache a pointer to the load balancer.

@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <08.Sep.2007 01:41:04 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Sep.2007 00:36:20 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -75,7 +75,9 @@ HierarchyProjector::HierarchyProjector(
       d_volume(0.0),
       d_context(NULL),
       d_F_var(NULL),
+      d_P_var(NULL),
       d_F_idx(-1),
+      d_P_idx(-1),
       d_w_var(NULL),
       d_w_idx(-1),
       d_sol_vec(NULL),
@@ -86,6 +88,8 @@ HierarchyProjector::HierarchyProjector(
       d_poisson_spec(d_object_name+"::Poisson spec"),
       d_u_bc_coefs(NDIM,NULL),
       d_default_u_bc_coefs(),
+      d_P_bc_coef(NULL),
+      d_default_P_bc_coef(),
       d_Phi_bc_coef(NULL),
       d_poisson_solver(NULL),
       d_laplace_op(NULL),
@@ -124,7 +128,8 @@ HierarchyProjector::HierarchyProjector(
 
     d_sol_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::sol",1);
     d_rhs_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::rhs",1);
-    d_F_var   = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::f",1);
+    d_F_var   = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::F",1);
+    d_P_var   = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P",1);
     d_w_var   = new SAMRAI::pdat::FaceVariable<NDIM,double>(d_object_name+"::w",1);
 
     const SAMRAI::hier::IntVector<NDIM> ghosts = 2;  // XXXX
@@ -133,6 +138,7 @@ HierarchyProjector::HierarchyProjector(
     d_sol_idx = var_db->registerVariableAndContext(d_sol_var, d_context, ghosts);
     d_rhs_idx = var_db->registerVariableAndContext(d_rhs_var, d_context, ghosts);
     d_F_idx   = var_db->registerVariableAndContext(  d_F_var, d_context, ghosts);
+    d_P_idx   = var_db->registerVariableAndContext(  d_P_var, d_context, ghosts);
     d_w_idx   = var_db->registerVariableAndContext(  d_w_var, d_context, ghosts);
 
     // Obtain the Hierarchy data operations objects.
@@ -169,8 +175,21 @@ HierarchyProjector::HierarchyProjector(
         d_default_u_bc_coefs.push_back(u_bc_coef);
     }
 
+    // Setup a default pressure boundary condition object to specify homogeneous
+    // Neumann boundary conditions for the pressure.
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* P_bc_coef = new SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>(
+        d_object_name + "::default_P_bc_coef", SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL));
+
+    for (int location_index = 0; location_index < 2*NDIM; ++location_index)
+    {
+        P_bc_coef->setBoundarySlope(location_index,0.0);
+    }
+
+    d_default_P_bc_coef = P_bc_coef;
+
     // Initialize the boundary conditions objects.
-    d_Phi_bc_coef = new INSProjectionBcCoef(d_w_idx,d_default_u_bc_coefs,true);
+    d_Phi_bc_coef = new INSProjectionBcCoef(d_P_idx,d_default_P_bc_coef,"pressure_update",d_w_idx,d_default_u_bc_coefs,true);
+    setPressurePhysicalBcCoef(d_default_P_bc_coef);
     setVelocityPhysicalBcCoefs(d_default_u_bc_coefs);
 
     // Get initialization data for the FAC ops and FAC preconditioners and
@@ -239,12 +258,12 @@ HierarchyProjector::~HierarchyProjector()
 
     // Deallocate other components.
     delete d_Phi_bc_coef;
+    delete d_default_P_bc_coef;
     for (int d = 0; d < NDIM; ++d)
     {
         delete d_default_u_bc_coefs[d];
     }
     d_default_u_bc_coefs.clear();
-
     return;
 }// ~HierarchyProjector
 
@@ -298,6 +317,8 @@ HierarchyProjector::isManagingHierarchyMathOps() const
 ///
 ///      setVelocityPhysicalBcCoefs(),
 ///      getVelocityPhysicalBcCoefs(),
+///      setPressurePhysicalBcCoef(),
+///      getPressurePhysicalBcCoef(),
 ///      getPoissonSolver()
 ///
 ///  allow other objects to access the Poisson solver and related data used by
@@ -330,6 +351,24 @@ HierarchyProjector::getVelocityPhysicalBcCoefs() const
     return d_u_bc_coefs;
 }// getVelocityPhysicalBcCoefs
 
+void
+HierarchyProjector::setPressurePhysicalBcCoef(
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(P_bc_coef != NULL);
+#endif
+    d_P_bc_coef = P_bc_coef;
+    d_Phi_bc_coef->setPressurePhysicalBcCoef(d_P_bc_coef);
+    return;
+}// setPressurePhysicalBcCoef
+
+SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
+HierarchyProjector::getPressurePhysicalBcCoef() const
+{
+    return d_P_bc_coef;
+}// getPressurePhysicalBcCoef
+
 SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>
 HierarchyProjector::getPoissonSolver() const
 {
@@ -355,6 +394,8 @@ HierarchyProjector::projectHierarchy(
     const std::string& projection_type,
     const int u_idx,
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >& u_var,
+    const int P_idx,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& P_var,
     const int Phi_idx,
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Phi_var,
     const int grad_Phi_idx,
@@ -376,6 +417,7 @@ HierarchyProjector::projectHierarchy(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_F_idx, time);
+        level->allocatePatchData(d_P_idx, time);
         level->allocatePatchData(d_w_idx, time);
     }
 
@@ -384,6 +426,9 @@ HierarchyProjector::projectHierarchy(
     // NOTE: These boundary coefficients are also used by the linear operator
     // and by the FAC preconditioner.
     d_Phi_bc_coef->setProblemCoefs(rho, dt);
+    d_Phi_bc_coef->setCurrentPressurePatchDataIndex(d_P_idx);
+    d_Phi_bc_coef->setPressurePhysicalBcCoef(d_P_bc_coef);
+    d_Phi_bc_coef->setProjectionType(projection_type);
     d_Phi_bc_coef->setIntermediateVelocityPatchDataIndex(d_w_idx);
     d_Phi_bc_coef->setVelocityPhysicalBcCoefs(d_u_bc_coefs);
 
@@ -404,6 +449,9 @@ HierarchyProjector::projectHierarchy(
                          w_cf_bdry_synch,  // src1_cf_bdry_synch
                          +rho/dt,          // beta
                          Q_idx, Q_var);    // src2
+
+    // Copy the current pressure data into the scratch data.
+    d_hier_cc_data_ops->copyData(d_P_idx, P_idx, false);
 
     // Copy the intermediate velocity w into the scratch data.
     d_hier_fc_data_ops->copyData(d_w_idx, w_idx, false);
@@ -433,7 +481,6 @@ HierarchyProjector::projectHierarchy(
 
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > Phi_bc_fill_op = d_grid_geom->
         lookupRefineOperator(Phi_var, "CONSTANT_REFINE");
-
     bdry_fill_alg->registerRefine(Phi_idx,  // destination
                                   Phi_idx,  // source
                                   Phi_idx,  // temporary work space
@@ -441,11 +488,17 @@ HierarchyProjector::projectHierarchy(
 
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > w_bc_fill_op = d_grid_geom->
         lookupRefineOperator(d_w_var, "CONSTANT_REFINE");
-
     bdry_fill_alg->registerRefine(d_w_idx,  // destination
                                   d_w_idx,  // source
                                   d_w_idx,  // temporary work space
                                   w_bc_fill_op);
+
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > P_bc_fill_op = d_grid_geom->
+        lookupRefineOperator(d_P_var, "CONSTANT_REFINE");
+    bdry_fill_alg->registerRefine(d_P_idx,  // destination
+                                  d_P_idx,  // source
+                                  d_P_idx,  // temporary work space
+                                  P_bc_fill_op);
 
     d_bc_op->setPatchDataIndex(Phi_idx);
     d_bc_op->setPhysicalBcCoef(d_Phi_bc_coef);
@@ -476,6 +529,7 @@ HierarchyProjector::projectHierarchy(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_F_idx);
+        level->deallocatePatchData(d_P_idx);
         level->deallocatePatchData(d_w_idx);
     }
 
@@ -599,6 +653,13 @@ HierarchyProjector::resetHierarchyConfiguration(
                                                 d_w_idx,  // source
                                                 d_w_idx,  // temporary work space
                                                 w_bc_fill_op);
+
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > P_bc_fill_op = d_grid_geom->
+        lookupRefineOperator(d_P_var, "CONSTANT_REFINE");
+    d_inhomogeneous_bc_fill_alg->registerRefine(d_P_idx,  // destination
+                                                d_P_idx,  // source
+                                                d_P_idx,  // temporary work space
+                                                P_bc_fill_op);
 
     d_bc_op = new STOOLS::CartRobinPhysBdryOp(d_F_idx, d_Phi_bc_coef, false);
     d_bc_refine_strategy = d_bc_op;
