@@ -1,8 +1,8 @@
-#ifndef included_LagM3dDataWriter
-#define included_LagM3dDataWriter
+#ifndef included_LagM3DDataWriter
+#define included_LagM3DDataWriter
 
-// Filename: LagM3dDataWriter.h
-// Last modified: <13.Sep.2007 03:01:27 griffith@box221.cims.nyu.edu>
+// Filename: LagM3DDataWriter.h
+// Last modified: <17.Sep.2007 13:34:40 griffith@box221.cims.nyu.edu>
 // Created on 11 Sep 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -30,11 +30,11 @@
 namespace IBAMR
 {
 /*!
- * \brief Class LagM3dDataWriter provides functionality to output Lagrangian
- * data for visualization via myocardial3d (referred to as m3d throughout the
+ * \brief Class LagM3DDataWriter provides functionality to output Lagrangian
+ * data for visualization via myocardial3D (referred to as m3D throughout the
  * class documentation).
  */
-class LagM3dDataWriter
+class LagM3DDataWriter
     : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
@@ -44,14 +44,14 @@ public:
      * \param object_name          String used for error reporting.
      * \param dump_directory_name  String indicating the directory where visualization data is to be written.
      */
-    LagM3dDataWriter(
+    LagM3DDataWriter(
         const std::string& object_name,
         const std::string& dump_directory_name);
 
     /*!
      * \brief Destructor.
      */
-    ~LagM3dDataWriter();
+    ~LagM3DDataWriter();
 
     /*!
      * \name Methods to set the hierarchy and range of levels.
@@ -112,7 +112,7 @@ public:
         const int level_number);
 
     /*!
-     * \brief Register the coordinates of the curvilinear mesh with the m3d data
+     * \brief Register the coordinates of the curvilinear mesh with the m3D data
      * writer.
      */
     void
@@ -122,12 +122,12 @@ public:
 
     /*!
      * \brief Register a single Lagrangian AO (application ordering) objects
-     * with the m3d data writer.
+     * with the m3D data writer.
      *
      * These AO objects are used to map between (fixed) Lagrangian indices and
      * (time-dependent) PETSc indices.  Each time that the AO objects are reset
      * (e.g., during adaptive regridding), the new AO objects must be supplied
-     * to the m3d data writer.
+     * to the m3D data writer.
      */
     void
     registerLagrangianAO(
@@ -136,12 +136,12 @@ public:
 
     /*!
      * \brief Register a collection of Lagrangian AO (application ordering)
-     * objects with the m3d data writer.
+     * objects with the m3D data writer.
      *
      * These AO objects are used to map between (fixed) Lagrangian indices and
      * (time-dependent) PETSc indices.  Each time that the AO objects are reset
      * (e.g., during adaptive regridding), the new AO objects must be supplied
-     * to the m3d data writer.
+     * to the m3D data writer.
      */
     void
     registerLagrangianAO(
@@ -165,7 +165,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LagM3dDataWriter();
+    LagM3DDataWriter();
 
     /*!
      * \brief Copy constructor.
@@ -174,8 +174,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LagM3dDataWriter(
-        const LagM3dDataWriter& from);
+    LagM3DDataWriter(
+        const LagM3DDataWriter& from);
 
     /*!
      * \brief Assignment operator.
@@ -186,9 +186,9 @@ private:
      *
      * \return A reference to this object.
      */
-    LagM3dDataWriter&
+    LagM3DDataWriter&
     operator=(
-        const LagM3dDataWriter& that);
+        const LagM3DDataWriter& that);
 
     /*!
      * \brief Build the VecScatter objects required to communicate data for
@@ -258,8 +258,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/LagM3dDataWriter.I>
+//#include <ibamr/LagM3DDataWriter.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LagM3dDataWriter
+#endif //#ifndef included_LagM3DDataWriter

@@ -1,8 +1,8 @@
-// Filename: LagM3dDataWriter.C
-// Last modified: <13.Sep.2007 04:33:50 griffith@box221.cims.nyu.edu>
+// Filename: LagM3DDataWriter.C
+// Last modified: <17.Sep.2007 13:34:52 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
-#include "LagM3dDataWriter.h"
+#include "LagM3DDataWriter.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -42,15 +42,15 @@ namespace
 // The rank of the root MPI process and the MPI tag number.
 static const int M3D_MPI_ROOT = 0;
 
-// The name of the myocardial3d dumps and database filenames.
+// The name of the myocardial3D dumps and database filenames.
 static const int M3D_NFG_MAX = 999;
 static const int M3D_NAME_BUFSIZE = 128;
 static const std::string M3D_MENU_FILENAME = "menu.text";
 static const std::string M3D_LIST_FILENAME = "list.text";
-static const std::string M3D_CAT_SCRIPT_FILENAME = "m3d_cat_files.sh";
-static const std::string M3D_PROCESSOR_MARKER_FILE_PREFIX = "m3d";
+static const std::string M3D_CAT_SCRIPT_FILENAME = "m3D_cat_files.sh";
+static const std::string M3D_PROCESSOR_MARKER_FILE_PREFIX = "m3D";
 static const std::string M3D_PROCESSOR_MARKER_FILE_POSTFIX = ".mk";
-static const std::string M3D_PROCESSOR_FIBER_FILE_PREFIX = "m3d";
+static const std::string M3D_PROCESSOR_FIBER_FILE_PREFIX = "m3D";
 static const std::string M3D_PROCESSOR_FIBER_FILE_POSTFIX = ".xf";
 
 void
@@ -157,7 +157,7 @@ build_local_cart_block(
             const int d1 = (d0+1)%NDIM;
             const int d2 = (d1+1)%NDIM;
 
-            // myocardial3d cannot handle headers specifying groups with more
+            // myocardial3D cannot handle headers specifying groups with more
             // than 999 fibers.
             int nfibers_per_group = nelem[d0]*nelem[d1];
             while(nfibers_per_group > M3D_NFG_MAX)
@@ -206,7 +206,7 @@ build_local_cart_block(
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LagM3dDataWriter::LagM3dDataWriter(
+LagM3DDataWriter::LagM3DDataWriter(
     const std::string& object_name,
     const std::string& dump_directory_name)
     : d_object_name(object_name),
@@ -240,9 +240,9 @@ LagM3dDataWriter::LagM3dDataWriter(
 {
     // intentionally blank
     return;
-}// LagM3dDataWriter
+}// LagM3DDataWriter
 
-LagM3dDataWriter::~LagM3dDataWriter()
+LagM3DDataWriter::~LagM3DDataWriter()
 {
     // Destroy any remaining PETSc objects.
     int ierr;
@@ -270,10 +270,10 @@ LagM3dDataWriter::~LagM3dDataWriter()
         }
     }
     return;
-}// ~LagM3dDataWriter
+}// ~LagM3DDataWriter
 
 void
-LagM3dDataWriter::setPatchHierarchy(
+LagM3DDataWriter::setPatchHierarchy(
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -286,7 +286,7 @@ LagM3dDataWriter::setPatchHierarchy(
 }// setPatchHierarchy
 
 void
-LagM3dDataWriter::resetLevels(
+LagM3DDataWriter::resetLevels(
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -373,7 +373,7 @@ LagM3dDataWriter::resetLevels(
 }// resetLevels
 
 void
-LagM3dDataWriter::registerIBMarkerPatchDataIndex(
+LagM3DDataWriter::registerIBMarkerPatchDataIndex(
     const int mark_idx)
 {
     d_mark_idx = mark_idx;
@@ -381,7 +381,7 @@ LagM3dDataWriter::registerIBMarkerPatchDataIndex(
 }// registerIBMarkerPatchDataIndex
 
 void
-LagM3dDataWriter::registerMarkerCloud(
+LagM3DDataWriter::registerMarkerCloud(
     const std::string& name,
     const int nmarks,
     const int first_mark_idx)
@@ -407,7 +407,7 @@ LagM3dDataWriter::registerMarkerCloud(
 }// registerMarkerCloud
 
 void
-LagM3dDataWriter::registerLogicallyCartesianBlock(
+LagM3DDataWriter::registerLogicallyCartesianBlock(
     const std::string& name,
     const SAMRAI::hier::IntVector<NDIM>& nelem,
     const SAMRAI::hier::IntVector<NDIM>& periodic,
@@ -477,7 +477,7 @@ LagM3dDataWriter::registerLogicallyCartesianBlock(
 }// registerLogicallyCartesianBlock
 
 void
-LagM3dDataWriter::registerCoordsData(
+LagM3DDataWriter::registerCoordsData(
     SAMRAI::tbox::Pointer<LNodeLevelData> coords_data,
     const int level_number)
 {
@@ -497,7 +497,7 @@ LagM3dDataWriter::registerCoordsData(
 }// registerCoordsData
 
 void
-LagM3dDataWriter::registerLagrangianAO(
+LagM3DDataWriter::registerLagrangianAO(
     AO& ao,
     const int level_number)
 {
@@ -516,7 +516,7 @@ LagM3dDataWriter::registerLagrangianAO(
 }// registerLagrangianAO
 
 void
-LagM3dDataWriter::registerLagrangianAO(
+LagM3DDataWriter::registerLagrangianAO(
     std::vector<AO>& ao,
     const int coarsest_ln,
     const int finest_ln)
@@ -543,7 +543,7 @@ LagM3dDataWriter::registerLagrangianAO(
 }// registerLagrangianAO
 
 void
-LagM3dDataWriter::writePlotData(
+LagM3DDataWriter::writePlotData(
     const int time_step_number,
     const double simulation_time)
 {
@@ -823,8 +823,8 @@ LagM3dDataWriter::writePlotData(
                                      << std::setw(4) << int(L) << " = NG\n"
                                      << std::setw(4) << num_marker_clouds << " = NUMBER OF CLOUDS\n";
 
-                fiber_header_stream << "  " << std::setw(3) << int(L) << "           = NG\n"
-                                    << "C " << std::setw(3) << num_layers << " " << std::setw(3) << 1 << "     = MAXIMUM-LAYER-NUMBER, STARTING WITH 1\n";
+                fiber_header_stream << " " << std::setw(4) << int(L) << "           = NG\n"
+                                    << "C" << std::setw(4) << num_layers << std::setw(4) << 1 << "     = MAXIMUM-LAYER-NUMBER, STARTING WITH 1\n";
             }
 
             for (int cloud = 0; cloud < d_nclouds; ++cloud)
@@ -845,13 +845,13 @@ LagM3dDataWriter::writePlotData(
                     if ((nelem[0] == 1 && nelem[1] == 1) || (nelem[0] == 1 && nelem[2] == 1) || (nelem[1] == 1 && nelem[2] == 1))
                     {
                         // Output a single fiber.
-                        fiber_header_stream << "C " << std::setw(3) << d_block_ngroups[ln][block] << " " << std::setw(3) << layer_number << "       = NUMBER-OF-GROUPS LAYER-NUMBER\n"
-                                            << "C " << std::setw(3) << group_offset+local_group_counter+1 << " " << std::setw(3) << 1 << " " << std::setw(3) << nelem.getProduct() << "   = GRP NFG NPF\n";
+                        fiber_header_stream << "C" << std::setw(4) << d_block_ngroups[ln][block] << std::setw(4) << layer_number << "       = NUMBER-OF-GROUPS LAYER-NUMBER\n"
+                                            << "C" << std::setw(4) << group_offset+local_group_counter+1 << std::setw(4) << 1 << std::setw(4) << nelem.getProduct() << "   = GRP NFG NPF\n";
                     }
                     else if ((nelem[0] == 1) || (nelem[1] == 1) || (nelem[2] == 1))
                     {
                         // Output a 2D sheet of fibers.
-                        fiber_header_stream << "C " << std::setw(3) << d_block_ngroups[ln][block] << " " << std::setw(3) << layer_number << "       = NUMBER-OF-GROUPS LAYER-NUMBER\n";
+                        fiber_header_stream << "C" << std::setw(4) << d_block_ngroups[ln][block] << std::setw(4) << layer_number << "       = NUMBER-OF-GROUPS LAYER-NUMBER\n";
 
                         for (int d0 = 0; d0 < NDIM; ++d0)
                         {
@@ -862,7 +862,7 @@ LagM3dDataWriter::writePlotData(
                                 {
                                     if (d1 != d0 && nelem[d1] > 1)
                                     {
-                                        fiber_header_stream << "C " << std::setw(3) << group_offset+local_group_counter+1 << " " << std::setw(3) << nelem[d0] << " " << std::setw(3) << nelem[d1] + (periodic[d1] ? 1 : 0) << "   = GRP NFG NPF\n";
+                                        fiber_header_stream << "C" << std::setw(4) << group_offset+local_group_counter+1 << std::setw(4) << nelem[d0] << std::setw(4) << nelem[d1] + (periodic[d1] ? 1 : 0) << "   = GRP NFG NPF\n";
                                         local_group_counter += 1;
                                     }
                                 }
@@ -885,13 +885,13 @@ LagM3dDataWriter::writePlotData(
                             ngroups += split_factor;
                         }
 
-                        fiber_header_stream << "C " << std::setw(3) << ngroups << " " << std::setw(3) << layer_number << "       = NUMBER-OF-GROUPS LAYER-NUMBER\n";
+                        fiber_header_stream << "C" << std::setw(4) << ngroups << std::setw(4) << layer_number << "       = NUMBER-OF-GROUPS LAYER-NUMBER\n";
                         for (int d0 = 0; d0 < NDIM; ++d0)
                         {
                             const int d1 = (d0+1)%NDIM;
                             const int d2 = (d1+1)%NDIM;
 
-                            // myocardial3d cannot handle headers specifying
+                            // myocardial3D cannot handle headers specifying
                             // groups with more than 999 fibers.
                             const int nfibers_group = nelem[d0]*nelem[d1];
                             int split_factor = 1;
@@ -904,10 +904,10 @@ LagM3dDataWriter::writePlotData(
 
                             for (int s = 0; s < split_factor-1; ++s)
                             {
-                                fiber_header_stream << "C " << std::setw(3) << group_offset+local_group_counter+1 << " " << std::setw(3) << split_nfibers_group << " " << std::setw(3) << nelem[d2] + (periodic[d2] ? 1 : 0) << "   = GRP NFG NPF\n";
+                                fiber_header_stream << "C" << std::setw(4) << group_offset+local_group_counter+1 << std::setw(4) << split_nfibers_group << std::setw(4) << nelem[d2] + (periodic[d2] ? 1 : 0) << "   = GRP NFG NPF\n";
                             }
 
-                            fiber_header_stream << "C " << std::setw(3) << group_offset+local_group_counter+1 << " " << std::setw(3) << nfibers_group - (split_factor-1)*split_nfibers_group << " " << std::setw(3) << nelem[d2] + (periodic[d2] ? 1 : 0) << "   = GRP NFG NPF\n";
+                            fiber_header_stream << "C" << std::setw(4) << group_offset+local_group_counter+1 << std::setw(4) << nfibers_group - (split_factor-1)*split_nfibers_group << std::setw(4) << nelem[d2] + (periodic[d2] ? 1 : 0) << "   = GRP NFG NPF\n";
                             local_group_counter += 1;
                         }
                     }
@@ -1091,7 +1091,7 @@ LagM3dDataWriter::writePlotData(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-LagM3dDataWriter::buildVecScatters(
+LagM3DDataWriter::buildVecScatters(
     AO& ao,
     const int level_number)
 {
@@ -1196,6 +1196,6 @@ LagM3dDataWriter::buildVecScatters(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::LagM3dDataWriter>;
+template class SAMRAI::tbox::Pointer<IBAMR::LagM3DDataWriter>;
 
 //////////////////////////////////////////////////////////////////////////////
