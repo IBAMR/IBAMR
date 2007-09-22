@@ -2,7 +2,7 @@
 #define included_LagM3DDataWriter
 
 // Filename: LagM3DDataWriter.h
-// Last modified: <17.Sep.2007 13:34:40 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Sep.2007 19:32:05 griffith@box221.cims.nyu.edu>
 // Created on 11 Sep 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -43,10 +43,17 @@ public:
      *
      * \param object_name          String used for error reporting.
      * \param dump_directory_name  String indicating the directory where visualization data is to be written.
+     * \param experiment_name      String indicating the three leter "experiment name" used by myocardial3D.  (default="amr")
+     * \param experiment_number    Integer indicating the "experiment number" used by myocardial3D.  (default=000)
+     *
+     * \note The value for \p experiment_name must be a three-leter string, and
+     * the value for \p experiment_num must be an integer between 0 and 9999.
      */
     LagM3DDataWriter(
         const std::string& object_name,
-        const std::string& dump_directory_name);
+        const std::string& dump_directory_name,
+        const std::string& experiment_name="amr",
+        const int& experiment_number=0);
 
     /*!
      * \brief Destructor.
@@ -199,6 +206,40 @@ private:
         AO& ao,
         const int level_number);
 
+    /*!
+     * \brief Return the base-name of the marker output file corresponding to
+     * the given timestep number.
+     */
+    std::string
+    getMarkerFileName(
+        const int& time_step_number) const;
+
+    /*!
+     * \brief Return the base-name of the fiber output file corresponding to the
+     * given timestep number.
+     */
+    std::string
+    getFiberFileName(
+        const int& time_step_number) const;
+
+    /*!
+     * \brief Return the name of the menu file.
+     */
+    std::string
+    getMenuFileName() const;
+
+    /*!
+     * \brief Return the name of the list file.
+     */
+    std::string
+    getListFileName() const;
+
+    /*!
+     * \brief Return the name of the cat script file.
+     */
+    std::string
+    getCatScriptFileName() const;
+
     /*
      * The object name is used for error reporting purposes.
      */
@@ -208,6 +249,13 @@ private:
      * The directory where data is to be dumped.
      */
     std::string d_dump_directory_name;
+
+    /*
+     * The experiment name, number, and corresponding filename prefix.
+     */
+    const std::string d_experiment_name;
+    const int d_experiment_number;
+    std::string d_file_prefix;
 
     /*
      * Time step number (passed in by user).

@@ -2,7 +2,7 @@
 #define included_IBMarkerCoarsenOperator
 
 // Filename: IBMarkerCoarsenOperator.h
-// Last modified: <13.Sep.2007 01:59:56 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Sep.2007 21:43:41 griffith@box221.cims.nyu.edu>
 // Created on 13 Sep 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -46,7 +46,7 @@ public:
     virtual bool
     findCoarsenOperator(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
-        const std::string &op_name) const;
+        const std::string& op_name) const;
 
     /*!
      * Return name string identifier of the coarsening operation.

@@ -112,7 +112,7 @@ lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexSet.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexDataFactory2.o \
 lagrangian/libIBAMR_lagrangian3d_a-LDataManager.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndexVariable2.o \
-lagrangian/libIBAMR_lagrangian3d_a-LagM3dDataWriter.o \
+lagrangian/libIBAMR_lagrangian3d_a-LagM3DDataWriter.o \
 lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeInitStrategy.o \

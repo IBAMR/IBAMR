@@ -1,32 +1,59 @@
 #!/usr/bin/perl
-use Env;
 use File::Copy;
+use Env;
+
+# import all possible environment variables.
+Env::import();
+
+# load the ConfigReader module.
+use lib "$HOME/code/IBAMR/bin/modules";
+use ConfigReader::Simple;
 
 # announce that we are running the autostarter.
 print "autostarter.pl:   \n";
 print "autostarter.pl:   ************************************************************\n";
 print "autostarter.pl:   \n";
-print "autostarter.pl:   running the AUTOstarter...\n";
+print "autostarter.pl:   running the AUTO (re-)starter...\n";
 print "autostarter.pl:   \n";
 print "autostarter.pl:   ************************************************************\n";
 print "autostarter.pl:   \n";
 
-# import all possible environment variables.
-Env::import();
-print "autostarter.pl:   using lock file: $LOCK_FILE_NAME\n";
-print "autostarter.pl:   using executable: $EXEC\n";
-print "autostarter.pl:   using options: $OPTIONS\n";
-print "autostarter.pl:   using vizualization directory: $VIZ_DIR\n";
-print "autostarter.pl:   using restart directory: $RESTART_DIR\n";
+# determine the job settings by reading the input file.
+$num_args = $#ARGV + 1;
+if ($num_args != 1) {
+    die "error: usage: autostarter.pl <input file>: $!";
+}
+$input_file = $ARGV[0];
+print "autostarter.pl:   processing input file: $input_file\n";
 print "autostarter.pl:   \n";
 
+$config = ConfigReader::Simple->new($input_file);
+die "error: could not read input file $input_file: $ConfigReader::Simple::ERROR" unless ref $config;
+
+$working_directory = $config->get("working_directory");
+$lock_file_name = $config->get("lock_file_name");
+$executable = $config->get("executable");
+$options = $config->get("options");
+$viz_dir = $config->get("viz_dir");
+$restart_dir = $config->get("restart_dir");
+
+print "autostarter.pl:   using working directory: $working_directory\n";
+print "autostarter.pl:   using lock file: $lock_file_name\n";
+print "autostarter.pl:   using executable: $executable\n";
+print "autostarter.pl:   using options: $options\n";
+print "autostarter.pl:   using vizualization directory: $viz_dir\n";
+print "autostarter.pl:   using restart directory: $restart_dir\n";
+print "autostarter.pl:   \n";
+
+chdir $working_directory || die "error: could not change working directory to $working_directory: $!";
+
 # make sure that the lock file does not exist.
-if (-e $LOCK_FILE_NAME) {
-    die "error: lock file named $LOCK_FILE_NAME already exists: $!";
+if (-e $lock_file_name) {
+    die "error: lock file named $lock_file_name already exists: $!";
 }
 
 # set the restart log file name.
-$restart_log_file = "$PWD/restart.log";
+$restart_log_file = "$working_directory/restart.log";
 
 # determine the timestep of the most recent previous restart.
 $old_restart_num = -1;
@@ -45,11 +72,11 @@ if ($old_restart_num != -1) {
 
 # determine the most recent restart file.
 $restart_num = -1;
-if (-d $RESTART_DIR) {
-    while (defined($next = <$RESTART_DIR/restore.*>)) {
+if (-d $restart_dir) {
+    while (defined($next = <$restart_dir/restore.*>)) {
 	chomp($next);
 	if (-d $next) {
-	    @n = split(/$RESTART_DIR\/restore\./,$next);
+	    @n = split(/$restart_dir\/restore\./,$next);
 	    $num = $n[$n-1];
 	    if ($num > $restart_num) {
 		$restart_num = $num;
@@ -74,19 +101,19 @@ if ($from_restart) {
 
 # if we are restarting, make backups of the VisIt master files.
 if ($from_restart) {
-    $visit_dumps_file = "$VIZ_DIR/dumps.visit";
+    $visit_dumps_file = "$viz_dir/dumps.visit";
     $visit_dumps_backup_file = "$visit_dumps_file.bak";
     if (-e $visit_dumps_file) {
 	move($visit_dumps_file, $visit_dumps_backup_file) || die "error: cannot move $visit_dumps_file to $visit_dumps_backup_file: $!";
     }
 
-    $silo_dumps_file = "$VIZ_DIR/lag_data.visit";
+    $silo_dumps_file = "$viz_dir/lag_data.visit";
     $silo_dumps_backup_file = "$silo_dumps_file.bak";
     if (-e $silo_dumps_file) {
 	move($silo_dumps_file, $silo_dumps_backup_file) || die "error: cannot move $silo_dumps_file to $silo_dumps_backup_file: $!";
     }
 
-    $meter_dumps_file = "$VIZ_DIR/meter_data.visit";
+    $meter_dumps_file = "$viz_dir/meter_data.visit";
     $meter_dumps_backup_file = "$meter_dumps_file.bak";
     if (-e $meter_dumps_file) {
 	move($meter_dumps_file, $meter_dumps_backup_file) || die "error: cannot move $meter_dumps_file to $meter_dumps_backup_file: $!";
@@ -107,9 +134,9 @@ if ($from_restart)
 
 # execute the command.
 if ($from_restart) {
-    $command = "$EXEC $RESTART_DIR $restart_num $OPTIONS";
+    $command = "$executable $restart_dir $restart_num $options";
 } else {
-    $command = "$EXEC $OPTIONS";
+    $command = "$executable $options";
 }
 $command =~ s/\s+/ /g; # remove any extra spaces
 
@@ -118,10 +145,10 @@ print "autostarter.pl:   \n";
 print "autostarter.pl:   ************************************************************\n";
 print "autostarter.pl:   \n";
 
-system($command) == 0 || die "error: $command failed: $!";
+system($command) == 0 || die "error: execution of $command failed";
 
-if (-e $LOCK_FILE_NAME) {
-    die "error: lock file named $LOCK_FILE_NAME exists following command execution: $!";
+if (-e $lock_file_name) {
+    die "error: lock file named $lock_file_name exists following command execution: $!";
 }
 
 print "autostarter.pl:   \n";
@@ -131,7 +158,7 @@ print "autostarter.pl:   successfully executed: $command\n";
 
 # if we started from a restart file, fix the VisIt master files.
 if ($from_restart) {
-    $visit_dumps_file = "$VIZ_DIR/dumps.visit";
+    $visit_dumps_file = "$viz_dir/dumps.visit";
     $visit_dumps_backup_file = "$visit_dumps_file.bak";
     if (-e $visit_dumps_file) {
 	$last = "";
@@ -157,7 +184,7 @@ if ($from_restart) {
     }
     move($visit_dumps_backup_file,$visit_dumps_file);
 
-    $silo_dumps_file = "$VIZ_DIR/lag_data.visit";
+    $silo_dumps_file = "$viz_dir/lag_data.visit";
     $silo_dumps_backup_file = "$silo_dumps_file.bak";
     if (-e $silo_dumps_file) {
 	$last = "";
@@ -183,7 +210,7 @@ if ($from_restart) {
     }
     move($silo_dumps_backup_file,$silo_dumps_file);
 
-    $meter_dumps_file = "$VIZ_DIR/meter_data.visit";
+    $meter_dumps_file = "$viz_dir/meter_data.visit";
     $meter_dumps_backup_file = "$meter_dumps_file.bak";
     if (-e $meter_dumps_file) {
 	$last = "";
@@ -214,7 +241,7 @@ if ($from_restart) {
 print "autostarter.pl:   \n";
 print "autostarter.pl:   ************************************************************\n";
 print "autostarter.pl:   \n";
-print "autostarter.pl:   ...AUTOstarter complete!\n";
+print "autostarter.pl:   ...AUTO (re-)starter complete!\n";
 print "autostarter.pl:   \n";
 print "autostarter.pl:   ************************************************************\n";
 print "autostarter.pl:   \n";

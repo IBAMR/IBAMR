@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <13.Sep.2007 04:25:19 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Sep.2007 13:39:59 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -474,16 +474,16 @@ IBHierarchyIntegrator::registerLagSiloDataWriter(
 
 #if (NDIM == 3)
 void
-IBHierarchyIntegrator::registerLagM3dDataWriter(
-    SAMRAI::tbox::Pointer<LagM3dDataWriter> m3d_writer)
+IBHierarchyIntegrator::registerLagM3DDataWriter(
+    SAMRAI::tbox::Pointer<LagM3DDataWriter> m3D_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!m3d_writer.isNull());
+    assert(!m3D_writer.isNull());
 #endif
-    d_m3d_writer = m3d_writer;
-    d_lag_data_manager->registerLagM3dDataWriter(d_m3d_writer);
+    d_m3D_writer = m3D_writer;
+    d_lag_data_manager->registerLagM3DDataWriter(d_m3D_writer);
     return;
-}// registerLagM3dDataWriter
+}// registerLagM3DDataWriter
 #endif
 
 void

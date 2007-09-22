@@ -2,7 +2,7 @@
 #define included_LDataManager
 
 // Filename: LDataManager.h
-// Last modified: <12.Sep.2007 00:41:51 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Sep.2007 13:39:19 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -50,7 +50,7 @@ class LNodeIndexSet;
 class LNodeLevelData;
 class LagSiloDataWriter;
 #if (NDIM == 3)
-class LagM3dDataWriter;
+class LagM3DDataWriter;
 #endif
 }// namespace IBAMR
 
@@ -173,11 +173,11 @@ public:
 
 #if (NDIM == 3)
     /*!
-     * \brief Register a myocardial3d data writer with the manager.
+     * \brief Register a myocardial3D data writer with the manager.
      */
     void
-    registerLagM3dDataWriter(
-        SAMRAI::tbox::Pointer<LagM3dDataWriter> m3d_writer);
+    registerLagM3DDataWriter(
+        SAMRAI::tbox::Pointer<LagM3DDataWriter> m3D_writer);
 #endif
 
     /*!
@@ -702,7 +702,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
     SAMRAI::tbox::Pointer<LagSiloDataWriter> d_silo_writer;
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<LagM3dDataWriter> d_m3d_writer;
+    SAMRAI::tbox::Pointer<LagM3DDataWriter> d_m3D_writer;
 #endif
 
     /*

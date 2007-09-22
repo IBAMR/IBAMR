@@ -1,5 +1,5 @@
 // Filename: LagM3DDataWriter.C
-// Last modified: <17.Sep.2007 13:34:52 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Sep.2007 19:44:23 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagM3DDataWriter.h"
@@ -23,6 +23,7 @@
 #include <stools/PETSC_SAMRAI_ERROR.h>
 
 // SAMRAI INCLUDES
+#include <CartesianGridGeometry.h>
 #include <IndexData.h>
 #include <tbox/MPI.h>
 #include <tbox/Utilities.h>
@@ -44,14 +45,7 @@ static const int M3D_MPI_ROOT = 0;
 
 // The name of the myocardial3D dumps and database filenames.
 static const int M3D_NFG_MAX = 999;
-static const int M3D_NAME_BUFSIZE = 128;
-static const std::string M3D_MENU_FILENAME = "menu.text";
-static const std::string M3D_LIST_FILENAME = "list.text";
-static const std::string M3D_CAT_SCRIPT_FILENAME = "m3D_cat_files.sh";
-static const std::string M3D_PROCESSOR_MARKER_FILE_PREFIX = "m3D";
-static const std::string M3D_PROCESSOR_MARKER_FILE_POSTFIX = ".mk";
-static const std::string M3D_PROCESSOR_FIBER_FILE_PREFIX = "m3D";
-static const std::string M3D_PROCESSOR_FIBER_FILE_POSTFIX = ".xf";
+static const int M3D_BUFSIZE = 128;
 
 void
 build_local_marker_cloud(
@@ -65,9 +59,9 @@ build_local_marker_cloud(
     {
         for (int d = 0; d < NDIM; ++d)
         {
-            os << "  " << std::fixed << std::setprecision(3) << X[NDIM*k+d];
+            os << std::setw(7) << std::fixed << std::setprecision(3) << X[NDIM*k+d] << " ";
         }
-        os << " " << std::setw(6) << node_offset+k+1 << " " << std::setw(3) << cloud_number+1 << "\n";
+        os << std::setw(4) << node_offset+k+1 << " " << std::setw(2) << cloud_number+1 << "\n";
     }
     return;
 }//build_local_marker_cloud
@@ -88,14 +82,14 @@ build_local_cart_block(
         // Output a single fiber.
         const int fiber_number = fiber_offset+1;
 
-        os << std::setw(5) << fiber_number << std::setw(4) << nelem.getProduct() << "       = FIBER POINTS\n";
+        os << std::setw(7) << fiber_number << " " << std::setw(7) << nelem.getProduct() << " = FIBER POINTS\n";
         for (int k = 0; k < nelem.getProduct(); ++k)
         {
             for (int d = 0; d < NDIM; ++d)
             {
-                os << " " << std::fixed << std::setprecision(3) << X[NDIM*k+d];
+                os << std::setw(7) << std::fixed << std::setprecision(3) << X[NDIM*k+d] << " ";
             }
-            os << " " << std::setw(6) << k+1 << " " << std::setw(6) << fiber_number << " " << std::setw(3) << group_offset+group_counter+1 << " " << std::setw(3) << layer_number << "\n";
+            os << std::setw(4) << k+1 << " " << std::setw(4) << fiber_number << " " << std::setw(4) << group_offset+group_counter+1 << " " << std::setw(4) << layer_number << "\n";
         }
     }
     else if ((nelem[0] == 1) || (nelem[1] == 1) || (nelem[2] == 1))
@@ -116,7 +110,7 @@ build_local_cart_block(
                             const int fiber_number = fiber_offset+fiber_counter+1;
                             fiber_counter += 1;
 
-                            os << std::setw(5) << fiber_number << std::setw(4) << nelem[d1] + (periodic[d1] ? 1 : 0) << "       = FIBER POINTS\n";
+                            os << std::setw(7) << fiber_number << " " << std::setw(7) << nelem[d1] + (periodic[d1] ? 1 : 0) << " = FIBER POINTS\n";
                             for (int k = 0; k < nelem[d1] + (periodic[d1] ? 1 : 0); ++k)
                             {
                                 bool end_of_fiber = false;
@@ -133,9 +127,9 @@ build_local_cart_block(
 
                                 for (int d = 0; d < NDIM; ++d)
                                 {
-                                    os << " " << std::fixed << std::setprecision(3) << X[NDIM*offset+d];
+                                    os << std::setw(7) << std::fixed << std::setprecision(3) << X[NDIM*offset+d] << " ";
                                 }
-                                os << " " << std::setw(6) << offset+1 << " " << std::setw(6) << fiber_number << " " << std::setw(3) << group_offset+group_counter+1 << " " << std::setw(3) << layer_number << "\n";
+                                os << std::setw(4) << k+1 << " " << std::setw(4) << fiber_number << " " << std::setw(4) << group_offset+group_counter+1 << " " << std::setw(4) << layer_number << "\n";
 
                                 if (end_of_fiber) break;
                             }
@@ -157,8 +151,8 @@ build_local_cart_block(
             const int d1 = (d0+1)%NDIM;
             const int d2 = (d1+1)%NDIM;
 
-            // myocardial3D cannot handle headers specifying groups with more
-            // than 999 fibers.
+            // myocardial3D cannot cleanly handle headers specifying groups with
+            // more than 999 fibers.
             int nfibers_per_group = nelem[d0]*nelem[d1];
             while(nfibers_per_group > M3D_NFG_MAX)
             {
@@ -171,7 +165,7 @@ build_local_cart_block(
                 {
                     const int fiber_number = fiber_offset+fiber_counter+1;
                     fiber_counter += 1;
-                    os << std::setw(5) << fiber_number << std::setw(4) << nelem[d2] + (periodic[d2] ? 1 : 0) << "       = FIBER POINTS\n";
+                    os << std::setw(7) << fiber_number << " " << std::setw(7) << nelem[d2] + (periodic[d2] ? 1 : 0) << " = FIBER POINTS\n";
                     for (int k = 0; k < nelem[d2] + (periodic[d2] ? 1 : 0); ++k)
                     {
                         bool end_of_fiber = false;
@@ -189,9 +183,9 @@ build_local_cart_block(
 
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            os << " " << std::fixed << std::setprecision(3) << X[NDIM*offset+d];
+                            os << std::setw(7) << std::fixed << std::setprecision(3) << X[NDIM*offset+d] << " ";
                         }
-                        os << " " << std::setw(6) << offset+1 << " " << std::setw(6) << fiber_number << " " << std::setw(3) << group_offset+group_counter+1 << " " << std::setw(3) << layer_number << "\n";
+                        os << std::setw(4) << k+1 << " " << std::setw(4) << fiber_number << " " << std::setw(4) << group_offset+group_counter+1 << " " << std::setw(4) << layer_number << "\n";
 
                         if (end_of_fiber) break;
                     }
@@ -208,9 +202,14 @@ build_local_cart_block(
 
 LagM3DDataWriter::LagM3DDataWriter(
     const std::string& object_name,
-    const std::string& dump_directory_name)
+    const std::string& dump_directory_name,
+    const std::string& experiment_name,
+    const int& experiment_number)
     : d_object_name(object_name),
       d_dump_directory_name(dump_directory_name),
+      d_experiment_name(experiment_name),
+      d_experiment_number(experiment_number),
+      d_file_prefix(""),
       d_time_step_number(-1),
       d_hierarchy(),
       d_coarsest_ln(0),
@@ -238,7 +237,13 @@ LagM3DDataWriter::LagM3DDataWriter(
       d_dst_vec(d_finest_ln+1),
       d_vec_scatter(d_finest_ln+1)
 {
-    // intentionally blank
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(d_experiment_name.size() == 3);
+    assert((0 <= d_experiment_number) && (d_experiment_number <= 9999));
+#endif
+    std::ostringstream stream;
+    stream << experiment_name << std::setfill('0') << std::setw(4) << d_experiment_number;
+    d_file_prefix = stream.str();
     return;
 }// LagM3DDataWriter
 
@@ -570,7 +575,6 @@ LagM3DDataWriter::writePlotData(
     }
 
     int ierr;
-    char temp_buf[M3D_NAME_BUFSIZE];
     const int mpi_rank = SAMRAI::tbox::MPI::getRank();
     const int mpi_size = SAMRAI::tbox::MPI::getNodes();
 
@@ -639,23 +643,15 @@ LagM3DDataWriter::writePlotData(
     SAMRAI::tbox::Utilities::recursiveMkdir(d_dump_directory_name);
 
     // Determine the local file names.
-    sprintf(temp_buf, "%06d", d_time_step_number);
-    const std::string time_step_number_string = temp_buf;
+    std::ostringstream stream;
+    stream << std::setfill('0') << std::setw(4) << mpi_rank;
+    const std::string mpi_rank_string = stream.str();
 
-    sprintf(temp_buf, "%04d", mpi_rank);
-    const std::string mpi_rank_string = temp_buf;
-
-    std::string marker_file_name;
-    marker_file_name = M3D_PROCESSOR_MARKER_FILE_PREFIX;
-    marker_file_name += time_step_number_string;
-    marker_file_name += M3D_PROCESSOR_MARKER_FILE_POSTFIX;
+    const std::string marker_file_name = getMarkerFileName(time_step_number);
     const std::string local_marker_file_name = marker_file_name + "." + mpi_rank_string;
     const std::string marker_header_file_name = marker_file_name + ".hdr";
 
-    std::string fiber_file_name;
-    fiber_file_name = M3D_PROCESSOR_FIBER_FILE_PREFIX;
-    fiber_file_name += time_step_number_string;
-    fiber_file_name += M3D_PROCESSOR_FIBER_FILE_POSTFIX;
+    const std::string fiber_file_name = getFiberFileName(time_step_number);
     const std::string local_fiber_file_name = fiber_file_name + "." + mpi_rank_string;
     const std::string fiber_header_file_name = fiber_file_name + ".hdr";
 
@@ -802,6 +798,12 @@ LagM3DDataWriter::writePlotData(
         }
     }
 
+    // Determine the length of the computational domain.
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    const double* const grid_xLower = grid_geom->getXLower();
+    const double* const grid_xUpper = grid_geom->getXUpper();
+    const double L = std::max(std::max(grid_xUpper[0]-grid_xLower[0], grid_xUpper[1]-grid_xLower[1]), grid_xUpper[2]-grid_xLower[2]);
+
     // Create the header files.
     local_marker_node_counter = 0;
     local_marker_cloud_counter = 0;
@@ -818,19 +820,18 @@ LagM3DDataWriter::writePlotData(
 
             if (rank == 0)
             {
-                const double L = 10.0;  // XXXX
                 marker_header_stream << "V3   = FORMAT VERSION\n"
                                      << std::setw(4) << int(L) << " = NG\n"
                                      << std::setw(4) << num_marker_clouds << " = NUMBER OF CLOUDS\n";
 
                 fiber_header_stream << " " << std::setw(4) << int(L) << "           = NG\n"
-                                    << "C" << std::setw(4) << num_layers << std::setw(4) << 1 << "     = MAXIMUM-LAYER-NUMBER, STARTING WITH 1\n";
+                                    << "C" << std::setw(4) << num_layers << std::setw(4) << 1 << "       = MAXIMUM-LAYER-NUMBER, STARTING WITH 1\n";
             }
 
             for (int cloud = 0; cloud < d_nclouds; ++cloud)
             {
                 const int nmarks = d_cloud_nmarks[cloud];
-                marker_header_stream << std::setw(4) << nmarks << " = NUMBER OF POINTS IN CLOUD" << std::setw(3) << local_marker_cloud_counter+marker_cloud_offset+1 << "\n";
+                marker_header_stream << std::setw(4) << nmarks << " = NUMBER OF POINTS IN CLOUD" << " " << std::setw(2) << local_marker_cloud_counter+marker_cloud_offset+1 << "\n";
                 local_marker_node_counter += nmarks;
                 local_marker_cloud_counter += 1;
             }
@@ -891,8 +892,8 @@ LagM3DDataWriter::writePlotData(
                             const int d1 = (d0+1)%NDIM;
                             const int d2 = (d1+1)%NDIM;
 
-                            // myocardial3D cannot handle headers specifying
-                            // groups with more than 999 fibers.
+                            // myocardial3D cannot cleanly handle headers
+                            // specifying groups with more than 999 fibers.
                             const int nfibers_group = nelem[d0]*nelem[d1];
                             int split_factor = 1;
                             while(nfibers_group/split_factor > M3D_NFG_MAX)
@@ -918,11 +919,11 @@ LagM3DDataWriter::writePlotData(
 
             if (rank == mpi_size-1)
             {
-                marker_header_stream << std::setw(6) << time_step_number << "          = KLOK\n"
-                                     << std::setw(15) << std::fixed << std::setprecision(8) << simulation_time << std::resetiosflags(std::ios::scientific) << " = TIME\n";
+                marker_header_stream << std::setw(5) << time_step_number << "           = KLOK " << getMarkerFileName(time_step_number) << "\n"
+                                     << std::setw(15) << std::fixed << std::setprecision(9) << simulation_time << std::resetiosflags(std::ios::scientific) << " = TIME\n";
 
                 fiber_header_stream << "C*\n"
-                                    << std::setw(5) << time_step_number << "           = KLOK\n"
+                                    << std::setw(5) << time_step_number << "           = KLOK " << getFiberFileName(time_step_number) << "\n"
                                     << std::setw(15) << std::fixed << std::setprecision(9) << simulation_time << std::resetiosflags(std::ios::scientific) << " = TIME\n"
                                     << std::setw(5) << num_fibers << "           = NUMBER OF FIBERS IN THIS DATA FILE\n";
             }
@@ -939,7 +940,7 @@ LagM3DDataWriter::writePlotData(
     local_layer_counter = 0;
     if (time_step_number == 0)
     {
-        const std::string menu_file_name = d_dump_directory_name + "/" + M3D_MENU_FILENAME;
+        const std::string menu_file_name = d_dump_directory_name + "/" + getMenuFileName();
         for (int rank = 0; rank < mpi_size; ++rank)
         {
             if (rank == mpi_rank)
@@ -1039,7 +1040,7 @@ LagM3DDataWriter::writePlotData(
     if (mpi_rank == M3D_MPI_ROOT)
     {
         // Create or update the list file on the root MPI process.
-        const std::string list_file_name = d_dump_directory_name + "/" + M3D_LIST_FILENAME;
+        const std::string list_file_name = d_dump_directory_name + "/" + getListFileName();
         std::ofstream list_file_stream(list_file_name.c_str(), (time_step_number == 0 ? std::ios::out : std::ios::app));
         if (time_step_number > 0)
         {
@@ -1048,7 +1049,7 @@ LagM3DDataWriter::writePlotData(
         list_file_stream << marker_file_name << "\n" << fiber_file_name << "\n";
 
         // Create or update the cat script on the root MPI process.
-        const std::string cat_file_name = d_dump_directory_name + "/" + M3D_CAT_SCRIPT_FILENAME;
+        const std::string cat_file_name = d_dump_directory_name + "/" + getCatScriptFileName();
         std::ofstream cat_file_stream(cat_file_name.c_str(), (time_step_number == 0 ? std::ios::out : std::ios::app));
         if (time_step_number == 0)
         {
@@ -1059,15 +1060,17 @@ LagM3DDataWriter::writePlotData(
                             << "echo \"WARNING: this script *CAN* clobber existing files in the working directory\"\n"
                             << "echo \"         but DOES NOT modify the constituent source data files\"\n"
                             << "echo\n"
-                            << "read -p \"Press <Enter> to continue...\"\n";
+                            << "read -p \"Press <Enter> to continue...\"\n"
+                            << "echo \"Concatenating files, please wait...\"\n";
         }
 
         // Setup cat commands to create a unified marker file.
         cat_file_stream << "cat " << marker_header_file_name;
         for (int rank = 0; rank < mpi_size; ++rank)
         {
-            sprintf(temp_buf, "%04d", rank);
-            const std::string mpi_rank_string = temp_buf;
+            std::ostringstream stream;
+            stream << std::setfill('0') << std::setw(4) << mpi_rank;
+            const std::string mpi_rank_string = stream.str();
             cat_file_stream << " " << marker_file_name + "." + mpi_rank_string;
         }
         cat_file_stream << " > " << marker_file_name << "\n";
@@ -1076,8 +1079,9 @@ LagM3DDataWriter::writePlotData(
         cat_file_stream << "cat " << fiber_header_file_name;
         for (int rank = 0; rank < mpi_size; ++rank)
         {
-            sprintf(temp_buf, "%04d", rank);
-            const std::string mpi_rank_string = temp_buf;
+            std::ostringstream stream;
+            stream << std::setfill('0') << std::setw(4) << mpi_rank;
+            const std::string mpi_rank_string = stream.str();
             cat_file_stream << " " << fiber_file_name + "." + mpi_rank_string;
         }
         cat_file_stream << " > " << fiber_file_name << "\n";
@@ -1188,6 +1192,56 @@ LagM3DDataWriter::buildVecScatters(
     }
     return;
 }// buildVecScatters
+
+std::string
+LagM3DDataWriter::getMarkerFileName(
+    const int& timestep_number) const
+{
+    std::ostringstream stream;
+    if (timestep_number < 999999)
+    {
+        stream << "_" << std::setfill('0') << std::setw(6) << timestep_number;
+    }
+    else
+    {
+        stream << std::setfill('0') << std::setw(7) << timestep_number;
+    }
+    return d_file_prefix + stream.str() + ".mk";
+}// getMarkerFileName
+
+std::string
+LagM3DDataWriter::getFiberFileName(
+    const int& timestep_number) const
+{
+    std::ostringstream stream;
+    if (timestep_number < 999999)
+    {
+        stream << "_" << std::setfill('0') << std::setw(6) << timestep_number;
+    }
+    else
+    {
+        stream << std::setfill('0') << std::setw(7) << timestep_number;
+    }
+    return d_file_prefix + stream.str() + ".xf";
+}// getFiberFileName
+
+std::string
+LagM3DDataWriter::getMenuFileName() const
+{
+    return "menu." + d_file_prefix;
+}// getMenuFileName
+
+std::string
+LagM3DDataWriter::getListFileName() const
+{
+    return "list." + d_file_prefix;
+}// getListFileName
+
+std::string
+LagM3DDataWriter::getCatScriptFileName() const
+{
+    return "cat." + d_file_prefix + ".sh";
+}// getCatScriptFileName
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

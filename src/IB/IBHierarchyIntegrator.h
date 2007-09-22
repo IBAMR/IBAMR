@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <13.Sep.2007 03:16:54 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Sep.2007 13:39:39 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -20,7 +20,7 @@
 #include <ibamr/LagSiloDataWriter.h>
 
 #if (NDIM == 3)
-#include <ibamr/LagM3dDataWriter.h>
+#include <ibamr/LagM3DDataWriter.h>
 #endif
 
 // STOOLS INCLUDES
@@ -159,13 +159,13 @@ public:
 
 #if (NDIM == 3)
     /*!
-     * Register a Lagrangian myocardial3d data writer so this class will write
-     * plot files that may be postprocessed with the myocardial3d visualization
+     * Register a Lagrangian myocardial3D data writer so this class will write
+     * plot files that may be postprocessed with the myocardial3D visualization
      * program.
      */
     void
-    registerLagM3dDataWriter(
-        SAMRAI::tbox::Pointer<LagM3dDataWriter> m3d_writer);
+    registerLagM3DDataWriter(
+        SAMRAI::tbox::Pointer<LagM3DDataWriter> m3D_writer);
 #endif
 
     /*!
@@ -743,7 +743,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
     SAMRAI::tbox::Pointer<LagSiloDataWriter> d_silo_writer;
 #if (NDIM == 3)
-     SAMRAI::tbox::Pointer<LagM3dDataWriter> d_m3d_writer;
+     SAMRAI::tbox::Pointer<LagM3DDataWriter> d_m3D_writer;
 #endif
 
     /*
