@@ -30,7 +30,7 @@ print "autostarter.pl:   \n";
 $config = ConfigReader::Simple->new($input_file);
 die "error: could not read input file $input_file: $ConfigReader::Simple::ERROR" unless ref $config;
 
-$working_directory = $config->get("working_directory");
+$working_directory = $config->get("working_dir");
 $lock_file_name = $config->get("lock_file_name");
 $executable = $config->get("executable");
 $options = $config->get("options");
