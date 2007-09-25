@@ -2,7 +2,7 @@
 #define included_LagM3DDataWriter
 
 // Filename: LagM3DDataWriter.h
-// Last modified: <17.Sep.2007 19:32:05 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Sep.2007 21:51:24 griffith@box221.cims.nyu.edu>
 // Created on 11 Sep 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -285,14 +285,9 @@ private:
     std::vector<std::vector<int> > d_block_nfibers, d_block_ngroups, d_block_first_lag_idx;
 
     /*
-     * Coordinates and variable data for plotting.
+     * Coordinate data for plotting.
      */
     std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > d_coords_data;
-
-    std::vector<int> d_nvars;
-    std::vector<std::vector<std::string > > d_var_names;
-    std::vector<std::vector<int> > d_var_depths;
-    std::vector<std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > > d_var_data;
 
     /*
      * Data for obtaining local data.

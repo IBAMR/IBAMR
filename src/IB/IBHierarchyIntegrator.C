@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <17.Sep.2007 13:39:59 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Sep.2007 23:13:59 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -934,9 +934,12 @@ IBHierarchyIntegrator::advanceHierarchy(
             }
 
             // Update the marker positions.
-            for (size_t k = 0; k < X_mark.size(); ++k)
+            for (size_t k = 0; k < X_mark.size()/NDIM; ++k)
             {
-                X_mark[k] += dt*U_mark[k];
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X_mark[NDIM*k+d] += dt*U_mark[NDIM*k+d];
+                }
             }
 
             // Store the marker positions and velocities in the scratch marker
@@ -1616,13 +1619,16 @@ IBHierarchyIntegrator::advanceHierarchy(
                 patch, patch_box, d_delta_fcn);
 
             // Update the marker positions.
-            for (size_t k = 0; k < X_mark_new.size(); ++k)
+            for (size_t k = 0; k < X_mark_new.size()/NDIM; ++k)
             {
-                X_mark_new[k] += dt*U_mark_new[k];
-                X_mark_new[k] = 0.5*(X_mark_current[k]+X_mark_new[k]);
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X_mark_new[NDIM*k+d] += dt*U_mark_new[NDIM*k+d];
+                    X_mark_new[NDIM*k+d] = 0.5*(X_mark_current[NDIM*k+d]+X_mark_new[NDIM*k+d]);
+                }
             }
 
-            // Re-interpolate the velocity filed at the final marker positions.
+            // Re-interpolate the velocity field at the final marker positions.
             LEInteractor::interpolate(
                 U_mark_new, NDIM, X_mark_new, NDIM, w_data,
                 patch, patch_box, d_delta_fcn);
@@ -1641,7 +1647,14 @@ IBHierarchyIntegrator::advanceHierarchy(
                     {
                         if (periodic_shift[d] == 0)
                         {
-                            X[d] = std::min(std::max(X[d],xLower[d]+dx[d]),xUpper[d]-dx[d]);
+                            if      (X[d] < xLower[d]+dx[d]-sqrt(std::numeric_limits<double>::epsilon()))
+                            {
+                                X[d] = xLower[d]+dx[d];
+                            }
+                            else if (X[d] > xUpper[d]-dx[d]+sqrt(std::numeric_limits<double>::epsilon()))
+                            {
+                                X[d] = xUpper[d]-dx[d];
+                            }
                         }
                     }
                 }
@@ -2219,6 +2232,32 @@ IBHierarchyIntegrator::initializeLevelData(
                     mark->getPositions().insert(mark->getPositions().end(),X,X+NDIM);
                     mark->getVelocities().insert(mark->getVelocities().end(),U.begin(),U.end());
                     mark->getIndices().push_back(k);
+                }
+            }
+        }
+
+        // Prune any un-needed marker data.
+        const int coarsest_ln = 0;
+        for (int ln = coarsest_ln; ln < level_number; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > next_finer_level = d_hierarchy->getPatchLevel(ln+1);
+            SAMRAI::hier::BoxArray<NDIM> refined_region_boxes = next_finer_level->getBoxes();
+            refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
+                    patch->getPatchData(d_mark_idx);
+                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                {
+                    const SAMRAI::hier::Box<NDIM>& refined_box = refined_region_boxes(i);
+                    const SAMRAI::hier::Box<NDIM> intersection = patch_box * refined_box;
+                    if (!intersection.empty())
+                    {
+                        mark_data->removeInsideBox(intersection);
+                    }
                 }
             }
         }

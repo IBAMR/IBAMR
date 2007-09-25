@@ -1,5 +1,5 @@
 // Filename: LagM3DDataWriter.C
-// Last modified: <17.Sep.2007 19:44:23 griffith@box221.cims.nyu.edu>
+// Last modified: <24.Sep.2007 22:57:57 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagM3DDataWriter.h"
@@ -32,6 +32,9 @@
 #include <algorithm>
 #include <numeric>
 
+// HDF5 INCLUDES
+#include <H5LT.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -43,159 +46,18 @@ namespace
 // The rank of the root MPI process and the MPI tag number.
 static const int M3D_MPI_ROOT = 0;
 
-// The name of the myocardial3D dumps and database filenames.
+// Maximum number of fibers per group.
 static const int M3D_NFG_MAX = 999;
+
+// Buffer sizes.
 static const int M3D_BUFSIZE = 128;
 
-void
-build_local_marker_cloud(
-    std::ostream& os,
-    const int& nmarks,
-    const double* const X,
-    const int& node_offset,
-    const int& cloud_number)
-{
-    for (int k = 0; k < nmarks; ++k)
-    {
-        for (int d = 0; d < NDIM; ++d)
-        {
-            os << std::setw(7) << std::fixed << std::setprecision(3) << X[NDIM*k+d] << " ";
-        }
-        os << std::setw(4) << node_offset+k+1 << " " << std::setw(2) << cloud_number+1 << "\n";
-    }
-    return;
-}//build_local_marker_cloud
-
-void
-build_local_cart_block(
-    std::ostream& os,
-    const SAMRAI::hier::IntVector<NDIM>& nelem,
-    const SAMRAI::hier::IntVector<NDIM>& periodic,
-    const double* const X,
-    const int& fiber_offset,
-    const int& group_offset,
-    const int& layer_number)
-{
-    int group_counter = 0;
-    if ((nelem[0] == 1 && nelem[1] == 1) || (nelem[0] == 1 && nelem[2] == 1) || (nelem[1] == 1 && nelem[2] == 1))
-    {
-        // Output a single fiber.
-        const int fiber_number = fiber_offset+1;
-
-        os << std::setw(7) << fiber_number << " " << std::setw(7) << nelem.getProduct() << " = FIBER POINTS\n";
-        for (int k = 0; k < nelem.getProduct(); ++k)
-        {
-            for (int d = 0; d < NDIM; ++d)
-            {
-                os << std::setw(7) << std::fixed << std::setprecision(3) << X[NDIM*k+d] << " ";
-            }
-            os << std::setw(4) << k+1 << " " << std::setw(4) << fiber_number << " " << std::setw(4) << group_offset+group_counter+1 << " " << std::setw(4) << layer_number << "\n";
-        }
-    }
-    else if ((nelem[0] == 1) || (nelem[1] == 1) || (nelem[2] == 1))
-    {
-        // Output a 2D sheet of fibers.
-        int fiber_counter = 0;
-        for (int d0 = 0; d0 < NDIM; ++d0)
-        {
-            if (nelem[d0] > 1)
-            {
-                // Find the other nontrivial dimension.
-                for (int d1 = 0; d1 < NDIM; ++d1)
-                {
-                    if (d1 != d0 && nelem[d1] > 1)
-                    {
-                        for (int j = 0; j < nelem[d0]; ++j)
-                        {
-                            const int fiber_number = fiber_offset+fiber_counter+1;
-                            fiber_counter += 1;
-
-                            os << std::setw(7) << fiber_number << " " << std::setw(7) << nelem[d1] + (periodic[d1] ? 1 : 0) << " = FIBER POINTS\n";
-                            for (int k = 0; k < nelem[d1] + (periodic[d1] ? 1 : 0); ++k)
-                            {
-                                bool end_of_fiber = false;
-                                if (periodic[d1] && k == nelem[d1])
-                                {
-                                    k = 0;
-                                    end_of_fiber = true;
-                                }
-
-                                int idx[NDIM] = {0 , 0 , 0};
-                                idx[d0] = j;
-                                idx[d1] = k;
-                                const int offset = idx[0] + idx[1]*nelem[0] + idx[2]*nelem[0]*nelem[1];
-
-                                for (int d = 0; d < NDIM; ++d)
-                                {
-                                    os << std::setw(7) << std::fixed << std::setprecision(3) << X[NDIM*offset+d] << " ";
-                                }
-                                os << std::setw(4) << k+1 << " " << std::setw(4) << fiber_number << " " << std::setw(4) << group_offset+group_counter+1 << " " << std::setw(4) << layer_number << "\n";
-
-                                if (end_of_fiber) break;
-                            }
-                        }
-                        group_counter += 1;
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        // Output a 3D volume of fibers.
-        int fiber_counter = 0;
-
-        // Loop over all pairs of dimensions.
-        for (int d0 = 0; d0 < NDIM; ++d0)
-        {
-            const int d1 = (d0+1)%NDIM;
-            const int d2 = (d1+1)%NDIM;
-
-            // myocardial3D cannot cleanly handle headers specifying groups with
-            // more than 999 fibers.
-            int nfibers_per_group = nelem[d0]*nelem[d1];
-            while(nfibers_per_group > M3D_NFG_MAX)
-            {
-                nfibers_per_group /= 2;
-            }
-
-            for (int i = 0; i < nelem[d0]; ++i)
-            {
-                for (int j = 0; j < nelem[d1]; ++j)
-                {
-                    const int fiber_number = fiber_offset+fiber_counter+1;
-                    fiber_counter += 1;
-                    os << std::setw(7) << fiber_number << " " << std::setw(7) << nelem[d2] + (periodic[d2] ? 1 : 0) << " = FIBER POINTS\n";
-                    for (int k = 0; k < nelem[d2] + (periodic[d2] ? 1 : 0); ++k)
-                    {
-                        bool end_of_fiber = false;
-                        if (periodic[d2] && k == nelem[d2])
-                        {
-                            k = 0;
-                            end_of_fiber = true;
-                        }
-
-                        int idx[NDIM] = {0 , 0 , 0};
-                        idx[d0] = i;
-                        idx[d1] = j;
-                        idx[d2] = k;
-                        const int offset = idx[0] + idx[1]*nelem[0] + idx[2]*nelem[0]*nelem[1];
-
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            os << std::setw(7) << std::fixed << std::setprecision(3) << X[NDIM*offset+d] << " ";
-                        }
-                        os << std::setw(4) << k+1 << " " << std::setw(4) << fiber_number << " " << std::setw(4) << group_offset+group_counter+1 << " " << std::setw(4) << layer_number << "\n";
-
-                        if (end_of_fiber) break;
-                    }
-                }
-            }
-            group_counter += 1;
-        }
-    }
-    return;
-}//build_local_cart_block
+// The compression level for the local HDF5 files.
+//
+// NOTE: The deflation level may be any integer in the range [0,9], with lower
+// values indicating lower (faster) compression levels and higher values
+// indicating higher (slower) compression levels.
+static const int M3D_DEFLATE_LEVEL = 4;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -227,10 +89,6 @@ LagM3DDataWriter::LagM3DDataWriter(
       d_block_ngroups(d_finest_ln+1),
       d_block_first_lag_idx(d_finest_ln+1),
       d_coords_data(d_finest_ln+1,SAMRAI::tbox::Pointer<LNodeLevelData>(NULL)),
-      d_nvars(d_finest_ln+1,0),
-      d_var_names(d_finest_ln+1),
-      d_var_depths(d_finest_ln+1),
-      d_var_data(d_finest_ln+1),
       d_ao(d_finest_ln+1),
       d_build_vec_scatters(d_finest_ln+1),
       d_src_vec(d_finest_ln+1),
@@ -363,10 +221,6 @@ LagM3DDataWriter::resetLevels(
     d_block_first_lag_idx.resize(d_finest_ln+1);
 
     d_coords_data.resize(d_finest_ln+1,NULL);
-    d_nvars      .resize(d_finest_ln+1,0);
-    d_var_names  .resize(d_finest_ln+1);
-    d_var_depths .resize(d_finest_ln+1);
-    d_var_data   .resize(d_finest_ln+1);
 
     d_ao                .resize(d_finest_ln+1);
     d_build_vec_scatters.resize(d_finest_ln+1);
@@ -578,12 +432,30 @@ LagM3DDataWriter::writePlotData(
     const int mpi_rank = SAMRAI::tbox::MPI::getRank();
     const int mpi_size = SAMRAI::tbox::MPI::getNodes();
 
+    // Create the dump directory.
+    SAMRAI::tbox::Utilities::recursiveMkdir(d_dump_directory_name);
+
+    // Determine the local file names.
+    std::ostringstream stream;
+    stream << std::setfill('0') << std::setw(4) << mpi_rank;
+    const std::string mpi_rank_string = stream.str();
+
+    const std::string marker_file_name = getMarkerFileName(time_step_number);
+    const std::string local_marker_file_name = marker_file_name + "." + mpi_rank_string;
+    const std::string marker_header_file_name = marker_file_name + ".hdr";
+
+    const std::string fiber_file_name = getFiberFileName(time_step_number);
+    const std::string local_fiber_file_name = fiber_file_name + "." + mpi_rank_string;
+    const std::string fiber_header_file_name = fiber_file_name + ".hdr";
+
     // Determine the marker cloud and fiber offsets.
     int num_local_marker_nodes = std::accumulate(d_cloud_nmarks.begin(), d_cloud_nmarks.end(), 0);
     std::vector<int> num_marker_nodes_proc(mpi_size,0);
     SAMRAI::tbox::MPI::allGather(num_local_marker_nodes, &num_marker_nodes_proc[0]);
     const int marker_node_offset = std::accumulate(
         num_marker_nodes_proc.begin(), num_marker_nodes_proc.begin()+mpi_rank, 0);
+    const int num_marker_nodes = std::accumulate(
+        num_marker_nodes_proc.begin()+mpi_rank, num_marker_nodes_proc.end(), marker_node_offset);
 
     const int num_local_marker_clouds = d_nclouds;
     std::vector<int> num_marker_clouds_proc(mpi_size,0);
@@ -618,6 +490,8 @@ LagM3DDataWriter::writePlotData(
     SAMRAI::tbox::MPI::allGather(num_local_groups, &num_groups_proc[0]);
     const int group_offset = std::accumulate(
         num_groups_proc.begin(), num_groups_proc.begin()+mpi_rank, 0);
+    const int num_groups = std::accumulate(
+        num_groups_proc.begin()+mpi_rank, num_groups_proc.end(), group_offset);
 
     const int num_local_layers = std::accumulate(d_nblocks.begin(), d_nblocks.end(), 0);
     std::vector<int> num_layers_proc(mpi_size,0);
@@ -628,175 +502,6 @@ LagM3DDataWriter::writePlotData(
         num_layers_proc.begin()+mpi_rank, num_layers_proc.end(), layer_offset);
 
     int local_fiber_counter, local_group_counter, local_layer_counter;
-
-    // Construct the VecScatter objectss required to write the plot data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        if (d_build_vec_scatters[ln])
-        {
-            buildVecScatters(d_ao[ln], ln);
-        }
-        d_build_vec_scatters[ln] = false;
-    }
-
-    // Create the dump directory.
-    SAMRAI::tbox::Utilities::recursiveMkdir(d_dump_directory_name);
-
-    // Determine the local file names.
-    std::ostringstream stream;
-    stream << std::setfill('0') << std::setw(4) << mpi_rank;
-    const std::string mpi_rank_string = stream.str();
-
-    const std::string marker_file_name = getMarkerFileName(time_step_number);
-    const std::string local_marker_file_name = marker_file_name + "." + mpi_rank_string;
-    const std::string marker_header_file_name = marker_file_name + ".hdr";
-
-    const std::string fiber_file_name = getFiberFileName(time_step_number);
-    const std::string local_fiber_file_name = fiber_file_name + "." + mpi_rank_string;
-    const std::string fiber_header_file_name = fiber_file_name + ".hdr";
-
-    // Local data streams.
-    std::ofstream local_marker_stream(std::string(d_dump_directory_name + "/" + local_marker_file_name).c_str(), std::ios::out);
-    std::ofstream local_fiber_stream(std::string(d_dump_directory_name + "/" + local_fiber_file_name).c_str(), std::ios::out);
-
-    // Gather marker data.
-    int max_marker_idx = 0;
-    for (int cloud = 0; cloud < d_nclouds; ++cloud)
-    {
-        max_marker_idx = std::max(max_marker_idx,d_cloud_first_mark_idx[cloud]+d_cloud_nmarks[cloud]-1);
-    }
-    SAMRAI::tbox::MPI::maxReduction(&max_marker_idx);
-
-    const int total_num_marks = max_marker_idx+1;
-    std::vector<double> X_marker(NDIM*total_num_marks,0.0);
-    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            if (d_mark_idx != -1)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
-                    patch->getPatchData(d_mark_idx);
-                for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_data); it; it++)
-                {
-                    const IBMarker& mark = it();
-                    const std::vector<double>& X = mark.getPositions();
-                    const std::vector<int>& idx = mark.getIndices();
-                    for (size_t k = 0; k < X.size()/NDIM; ++k)
-                    {
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            X_marker[NDIM*idx[k]+d] = X[NDIM*k+d];  // XXXX add index error checking!
-                        }
-                    }
-                }
-            }
-        }
-    }
-    SAMRAI::tbox::MPI::sumReduction(&X_marker[0], NDIM*max_marker_idx);
-
-    // Add the local clouds to the local marker file.
-    local_marker_node_counter = 0;
-    local_marker_cloud_counter = 0;
-    for (int cloud = 0; cloud < d_nclouds; ++cloud)
-    {
-        const int nmarks = d_cloud_nmarks[cloud];
-        const int first_mark_idx = d_cloud_first_mark_idx[cloud];
-        const double* const X = &X_marker[NDIM*first_mark_idx];
-        build_local_marker_cloud(local_marker_stream, nmarks, X,
-                                 marker_node_offset+local_marker_node_counter,
-                                 marker_cloud_offset+local_marker_cloud_counter);
-        local_marker_node_counter += nmarks;
-        local_marker_cloud_counter += 1;
-    }
-
-    // Add the local fibers to the local fiber file.
-    local_fiber_counter = 0;
-    local_group_counter = 0;
-    local_layer_counter = 0;
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        if (!d_coords_data[ln].isNull())
-        {
-            // Scatter the data from "global" to "local" form.
-            Vec local_X_vec;
-            ierr = VecDuplicate(d_dst_vec[ln][NDIM], &local_X_vec);
-            PETSC_SAMRAI_ERROR(ierr);
-
-            Vec& global_X_vec = d_coords_data[ln]->getGlobalVec();
-            ierr = VecScatterBegin(d_vec_scatter[ln][NDIM], global_X_vec, local_X_vec,
-                                   INSERT_VALUES, SCATTER_FORWARD);
-            PETSC_SAMRAI_ERROR(ierr);
-            ierr = VecScatterEnd(d_vec_scatter[ln][NDIM], global_X_vec, local_X_vec,
-                                 INSERT_VALUES, SCATTER_FORWARD);
-            PETSC_SAMRAI_ERROR(ierr);
-
-            double* local_X_arr;
-            ierr = VecGetArray(local_X_vec, &local_X_arr);
-            PETSC_SAMRAI_ERROR(ierr);
-
-            std::vector<Vec> local_v_vecs;
-            std::vector<double*> local_v_arrs;
-
-            for (int v = 0; v < d_nvars[ln]; ++v)
-            {
-                const int var_depth = d_var_depths[ln][v];
-                Vec local_v_vec;
-                ierr = VecDuplicate(d_dst_vec[ln][var_depth], &local_v_vec);
-                PETSC_SAMRAI_ERROR(ierr);
-
-                Vec& global_v_vec = d_var_data[ln][v]->getGlobalVec();
-                ierr = VecScatterBegin(d_vec_scatter[ln][var_depth], global_v_vec, local_v_vec,
-                                       INSERT_VALUES, SCATTER_FORWARD);
-                PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecScatterEnd(d_vec_scatter[ln][var_depth], global_v_vec, local_v_vec,
-                                     INSERT_VALUES, SCATTER_FORWARD);
-                PETSC_SAMRAI_ERROR(ierr);
-
-                double* local_v_arr;
-                ierr = VecGetArray(local_v_vec, &local_v_arr);
-                PETSC_SAMRAI_ERROR(ierr);
-
-                local_v_vecs.push_back(local_v_vec);
-                local_v_arrs.push_back(local_v_arr);
-            }
-
-            // Keep track of the current offset in the local Vec data.
-            int offset = 0;
-
-            // Add the local blocks to the local fiber file.
-            for (int block = 0; block < d_nblocks[ln]; ++block)
-            {
-                const SAMRAI::hier::IntVector<NDIM>& nelem    = d_block_nelems  [ln][block];
-                const SAMRAI::hier::IntVector<NDIM>& periodic = d_block_periodic[ln][block];
-                const int ntot = nelem.getProduct();
-                const double* const X = local_X_arr + NDIM*offset;
-                const int layer_number = layer_offset+local_layer_counter+1;
-                build_local_cart_block(local_fiber_stream, nelem, periodic, X,
-                                       fiber_offset+local_fiber_counter,
-                                       group_offset+local_group_counter, layer_number);
-                offset += ntot;
-                local_fiber_counter += d_block_nfibers[ln][block];
-                local_group_counter += d_block_ngroups[ln][block];
-                local_layer_counter += 1;
-            }
-
-            // Clean up allocated data.
-            ierr = VecRestoreArray(local_X_vec, &local_X_arr);
-            PETSC_SAMRAI_ERROR(ierr);
-            ierr = VecDestroy(local_X_vec);
-            PETSC_SAMRAI_ERROR(ierr);
-            for (int v = 0; v < d_nvars[ln]; ++v)
-            {
-                ierr = VecRestoreArray(local_v_vecs[v], &local_v_arrs[v]);
-                PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecDestroy(local_v_vecs[v]);
-                PETSC_SAMRAI_ERROR(ierr);
-            }
-        }
-    }
 
     // Determine the length of the computational domain.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -1036,7 +741,7 @@ LagM3DDataWriter::writePlotData(
         SAMRAI::tbox::MPI::barrier();
     }
 
-    // Create list file and cat script.
+    // Create list and cat files.
     if (mpi_rank == M3D_MPI_ROOT)
     {
         // Create or update the list file on the root MPI process.
@@ -1064,29 +769,277 @@ LagM3DDataWriter::writePlotData(
                             << "echo \"Concatenating files, please wait...\"\n";
         }
 
-        // Setup cat commands to create a unified marker file.
+        // Setup commands to create a unified marker file.
+        cat_file_stream << "\n";
+        for (int rank = 0; rank < mpi_size; ++rank)
+        {
+            std::ostringstream stream;
+            stream << std::setfill('0') << std::setw(4) << rank;
+            const std::string rank_string = stream.str();
+            const std::string local_marker_file_name = marker_file_name + "." + rank_string;
+            cat_file_stream << "m3D_hdf5_marker_converter " << local_marker_file_name + ".h5" << " " << local_marker_file_name << "\n";
+        }
+
+        cat_file_stream << "\n";
         cat_file_stream << "cat " << marker_header_file_name;
         for (int rank = 0; rank < mpi_size; ++rank)
         {
             std::ostringstream stream;
-            stream << std::setfill('0') << std::setw(4) << mpi_rank;
-            const std::string mpi_rank_string = stream.str();
-            cat_file_stream << " " << marker_file_name + "." + mpi_rank_string;
+            stream << std::setfill('0') << std::setw(4) << rank;
+            const std::string rank_string = stream.str();
+            cat_file_stream << " " << marker_file_name + "." + rank_string;
         }
         cat_file_stream << " > " << marker_file_name << "\n";
 
-        // Setup cat commands to create a unified fiber file.
+        // Setup commands to create a unified fiber file.
+        cat_file_stream << "\n";
+        for (int rank = 0; rank < mpi_size; ++rank)
+        {
+            std::ostringstream stream;
+            stream << std::setfill('0') << std::setw(4) << rank;
+            const std::string rank_string = stream.str();
+            const std::string local_fiber_file_name = fiber_file_name + "." + rank_string;
+            cat_file_stream << "m3D_hdf5_fiber_converter " << local_fiber_file_name + ".h5" << " " << local_fiber_file_name << "\n";
+        }
+
+        cat_file_stream << "\n";
         cat_file_stream << "cat " << fiber_header_file_name;
         for (int rank = 0; rank < mpi_size; ++rank)
         {
             std::ostringstream stream;
-            stream << std::setfill('0') << std::setw(4) << mpi_rank;
-            const std::string mpi_rank_string = stream.str();
-            cat_file_stream << " " << fiber_file_name + "." + mpi_rank_string;
+            stream << std::setfill('0') << std::setw(4) << rank;
+            const std::string rank_string = stream.str();
+            cat_file_stream << " " << fiber_file_name + "." + rank_string;
         }
         cat_file_stream << " > " << fiber_file_name << "\n";
     }
-    SAMRAI::tbox::MPI::barrier();
+
+    // Construct the VecScatter objectss required to write the plot data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        if (d_build_vec_scatters[ln])
+        {
+            buildVecScatters(d_ao[ln], ln);
+        }
+        d_build_vec_scatters[ln] = false;
+    }
+
+    // Gather marker data.
+    int max_marker_idx = 0;
+    for (int cloud = 0; cloud < d_nclouds; ++cloud)
+    {
+        max_marker_idx = std::max(max_marker_idx,d_cloud_first_mark_idx[cloud]+d_cloud_nmarks[cloud]-1);
+    }
+    SAMRAI::tbox::MPI::maxReduction(&max_marker_idx);
+
+    const int total_num_marks = max_marker_idx+1;
+    std::vector<double> X_marker(NDIM*total_num_marks,0.0);
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            if (d_mark_idx != -1)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
+                    patch->getPatchData(d_mark_idx);
+                for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_data); it; it++)
+                {
+                    const IBMarker& mark = it();
+                    const std::vector<double>& X = mark.getPositions();
+                    const std::vector<int>& idx = mark.getIndices();
+                    for (size_t k = 0; k < X.size()/NDIM; ++k)
+                    {
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            X_marker[NDIM*idx[k]+d] = X[NDIM*k+d];  // XXXX add index error checking!
+                        }
+                    }
+                }
+            }
+        }
+    }
+    SAMRAI::tbox::MPI::sumReduction(&X_marker[0], NDIM*total_num_marks);  // XXXX: this is not the way to do things . . .
+
+    // Create the HDF5 files.
+    const std::string hdf5_marker_file_name = d_dump_directory_name + "/" + local_marker_file_name + ".h5";
+    hid_t marker_file_id = H5Fcreate(hdf5_marker_file_name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    if (marker_file_id < 0)
+    {
+        TBOX_ERROR(d_object_name << "::writePlotData()\n"
+                   << "  could not create marker file: " << marker_file_name << endl);
+    }
+
+    const std::string hdf5_fiber_file_name = d_dump_directory_name + "/" + local_fiber_file_name + ".h5";
+    hid_t fiber_file_id = H5Fcreate(hdf5_fiber_file_name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    if (fiber_file_id < 0)
+    {
+        TBOX_ERROR(d_object_name << "::writePlotData()\n"
+                   << "  could not create fiber file: " << fiber_file_name << endl);
+    }
+
+    // Store information about the data layout in the local HDF5 files.
+    herr_t status;
+
+    // Add the local clouds to the local marker file.
+    hid_t marker_group_id = H5Gcreate(marker_file_id, "/markers", 0);
+
+    status = H5LTset_attribute_int(marker_file_id, "/markers", "num_local_marker_nodes", &num_local_marker_nodes, 1);
+    status = H5LTset_attribute_int(marker_file_id, "/markers", "marker_node_offset", &marker_node_offset, 1);
+    status = H5LTset_attribute_int(marker_file_id, "/markers", "num_marker_nodes", &num_marker_nodes, 1);
+
+    status = H5LTset_attribute_int(marker_file_id, "/markers", "num_local_marker_clouds", &num_local_marker_clouds, 1);
+    status = H5LTset_attribute_int(marker_file_id, "/markers", "marker_cloud_offset", &marker_cloud_offset, 1);
+    status = H5LTset_attribute_int(marker_file_id, "/markers", "num_marker_clouds", &num_marker_clouds, 1);
+
+    local_marker_node_counter = 0;
+    local_marker_cloud_counter = 0;
+    for (int cloud = 0; cloud < d_nclouds; ++cloud)
+    {
+        std::ostringstream dset_name_stream;
+        dset_name_stream << "/markers/cloud_" << std::setw(4) << std::setfill('0') << marker_cloud_offset+local_marker_cloud_counter;
+        const std::string dset_name = dset_name_stream.str();
+
+        const int nmarks = d_cloud_nmarks[cloud];
+        const int first_mark_idx = d_cloud_first_mark_idx[cloud];
+        const double* const X = &X_marker[NDIM*first_mark_idx];
+        const std::vector<float> buffer(X,X+NDIM*nmarks);
+        const int node_offset = marker_node_offset+local_marker_node_counter;
+        const int cloud_number = marker_cloud_offset+local_marker_cloud_counter;
+
+        // Create the dataspace for the dataset.
+        static const int rank = 2;
+        hsize_t dims[rank] = { NDIM , nmarks };
+        hid_t dataspace_id = H5Screate_simple(rank, dims, NULL);
+
+        // Create the dataset with data compression enabled.
+        hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
+        hsize_t cdims[rank] = { NDIM , nmarks };
+        status = H5Pset_chunk(plist_id, rank, cdims);
+        status = H5Pset_deflate(plist_id, M3D_DEFLATE_LEVEL);
+        hid_t dataset_id = H5Dcreate(marker_file_id, dset_name.c_str(), H5T_NATIVE_FLOAT, dataspace_id, H5P_DEFAULT);
+
+        // Write the data and related attirbutes to the dataset.
+        status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &buffer[0]);
+        status = H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "nmarks", &nmarks, 1);
+        status = H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "node_offset", &node_offset, 1);
+        status = H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "cloud_number", &cloud_number, 1);
+        status = H5LTset_attribute_string(marker_file_id, dset_name.c_str(), "cloud_name", d_cloud_names[cloud].c_str());
+
+        // Cleanup HDF5 data.
+        status = H5Dclose(dataset_id);
+        status = H5Pclose(plist_id);
+        status = H5Sclose(dataspace_id);
+
+        // Advance the counters.
+        local_marker_node_counter += nmarks;
+        local_marker_cloud_counter += 1;
+    }
+    status = H5Gclose(marker_group_id);
+    status = H5Fclose(marker_file_id);
+
+    // Add the local fibers to the local fiber file.
+    hid_t fiber_group_id = H5Gcreate(fiber_file_id, "/fibers", 0);
+
+    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_fibers", &num_local_fibers, 1);
+    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "fiber_offset", &fiber_offset, 1);
+    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_fibers", &num_fibers, 1);
+
+    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_groups", &num_local_groups, 1);
+    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "group_offset", &group_offset, 1);
+    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_groups", &num_groups, 1);
+
+    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_layers", &num_local_layers, 1);
+    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "layer_offset", &layer_offset, 1);
+    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_layers", &num_layers, 1);
+
+    local_fiber_counter = 0;
+    local_group_counter = 0;
+    local_layer_counter = 0;
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        if (!d_coords_data[ln].isNull())
+        {
+            // Scatter the data from "global" to "local" form.
+            Vec local_X_vec;
+            ierr = VecDuplicate(d_dst_vec[ln][NDIM], &local_X_vec);
+            PETSC_SAMRAI_ERROR(ierr);
+
+            Vec& global_X_vec = d_coords_data[ln]->getGlobalVec();
+            ierr = VecScatterBegin(d_vec_scatter[ln][NDIM], global_X_vec, local_X_vec,
+                                   INSERT_VALUES, SCATTER_FORWARD);
+            PETSC_SAMRAI_ERROR(ierr);
+            ierr = VecScatterEnd(d_vec_scatter[ln][NDIM], global_X_vec, local_X_vec,
+                                 INSERT_VALUES, SCATTER_FORWARD);
+            PETSC_SAMRAI_ERROR(ierr);
+
+            double* local_X_arr;
+            ierr = VecGetArray(local_X_vec, &local_X_arr);
+            PETSC_SAMRAI_ERROR(ierr);
+
+            // Keep track of the current offset in the local Vec data.
+            int offset = 0;
+
+            // Add the local blocks to the local fiber file.
+            for (int block = 0; block < d_nblocks[ln]; ++block)
+            {
+                std::ostringstream dset_name_stream;
+                dset_name_stream << "/fibers/layer_" << std::setw(4) << std::setfill('0') << layer_offset+local_layer_counter;
+                const std::string dset_name = dset_name_stream.str();
+
+                const SAMRAI::hier::IntVector<NDIM>& nelem    = d_block_nelems  [ln][block];
+                const SAMRAI::hier::IntVector<NDIM>& periodic = d_block_periodic[ln][block];
+                const int ntot = nelem.getProduct();
+                static const int rank = 4;
+                hsize_t dims[rank] = { NDIM , nelem[0] , nelem[1] , nelem[2] };
+
+                const double* const X = local_X_arr + NDIM*offset;
+                const std::vector<float> buffer(X,X+NDIM*ntot);
+                const int fiber_offset = fiber_offset+local_fiber_counter;
+                const int group_offset = group_offset+local_group_counter;
+                const int layer_number = layer_offset+local_layer_counter+1;
+
+                // Create the dataspace for the dataset.
+                hid_t dataspace_id = H5Screate_simple(rank, dims, NULL);
+
+                // Create the dataset with data compression enabled.
+                hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
+                hsize_t cdims[rank] = { NDIM , nelem[0] , nelem[1] , nelem[2] };
+                status = H5Pset_chunk(plist_id, rank, cdims);
+                status = H5Pset_deflate(plist_id, M3D_DEFLATE_LEVEL);
+                hid_t dataset_id = H5Dcreate(fiber_file_id, dset_name.c_str(), H5T_NATIVE_FLOAT, dataspace_id, plist_id);
+
+                // Write the data and related attirbutes to the dataset.
+                status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &buffer[0]);
+                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "nelem", &nelem[0], NDIM);
+                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "periodic", &periodic[0], NDIM);
+                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_offset", &fiber_offset, 1);
+                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "group_offset", &group_offset, 1);
+                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "layer_number", &layer_number, 1);
+                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "nfibers", &d_block_nfibers[ln][block], 1);
+                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "ngroups", &d_block_ngroups[ln][block], 1);
+                status = H5LTset_attribute_string(fiber_file_id, dset_name.c_str(), "layer_name", d_block_names[ln][block].c_str());
+
+                // Cleanup HDF5 data.
+                status = H5Dclose(dataset_id);
+                status = H5Pclose(plist_id);
+                status = H5Sclose(dataspace_id);
+
+                // Advance the counters.
+                offset += ntot;
+                local_fiber_counter += d_block_nfibers[ln][block];
+                local_group_counter += d_block_ngroups[ln][block];
+                local_layer_counter += 1;
+            }
+
+            // Clean up allocated data.
+            ierr = VecRestoreArray(local_X_vec, &local_X_arr);  PETSC_SAMRAI_ERROR(ierr);
+            ierr = VecDestroy(local_X_vec);  PETSC_SAMRAI_ERROR(ierr);
+        }
+    }
+    status = H5Gclose(fiber_group_id);
+    status = H5Fclose(fiber_file_id);
     return;
 }// writePlotData
 
@@ -1136,19 +1089,6 @@ LagM3DDataWriter::buildVecScatters(
                    src_is_idxs[NDIM].begin(),
                    std::bind2nd(std::multiplies<int>(),NDIM));
     d_src_vec[level_number][NDIM] = d_coords_data[level_number]->getGlobalVec();
-
-    for (int v = 0; v < d_nvars[level_number]; ++v)
-    {
-        const int var_depth = d_var_depths[level_number][v];
-        if (src_is_idxs.find(var_depth) == src_is_idxs.end())
-        {
-            src_is_idxs[var_depth].resize(ref_is_idxs.size());
-            std::transform(ref_is_idxs.begin(), ref_is_idxs.end(),
-                           src_is_idxs[var_depth].begin(),
-                           std::bind2nd(std::multiplies<int>(),var_depth));
-            d_src_vec[level_number][var_depth] = d_var_data[level_number][v]->getGlobalVec();
-        }
-    }
 
     // Create the VecScatters to scatter data from the global PETSc Vec to
     // contiguous local subgrids.  VecScatter objects are individually created
