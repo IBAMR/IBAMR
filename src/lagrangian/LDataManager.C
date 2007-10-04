@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <17.Sep.2007 13:39:06 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Oct.2007 19:07:14 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -1705,10 +1705,7 @@ LDataManager::initializeLevelData(
                         const LNodeIndexSet::value_type& node_idx = *n;
                         const int lag_idx   = node_idx->getLagrangianIndex();
                         const int local_idx = node_idx->getLocalPETScIndex();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                        assert(0 <= local_idx &&
-                               local_idx < num_local_nodes);
-#endif
+                        assert(0 <= local_idx && local_idx < num_local_nodes);
                         d_local_lag_indices  [level_number][local_idx] = lag_idx;
                         d_local_petsc_indices[level_number][local_idx] = local_idx + d_node_offset[level_number];
 

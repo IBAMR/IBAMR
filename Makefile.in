@@ -186,12 +186,9 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = stools doc src bin
+SUBDIRS = stools doc src
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = autogen.sh bin/includes.pl \
-	bin/scale_spring_rest_length.pl bin/scale_spring_stiffness.pl \
-	bin/set_spring_rest_length.pl bin/set_spring_stiffness.pl \
-	doc/Doxyfile doc/libstdc++.tag \
+EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/AdvDiffHierarchyIntegrator.h \
 	include/ibamr/AdvDiffHypPatchOps.h \
 	include/ibamr/AdvectHypPatchOps.h include/ibamr/get_version.h \
@@ -242,7 +239,12 @@ EXTRA_DIST = autogen.sh bin/includes.pl \
 	include/ibamr/StashableStream.I sample/IB/input2d \
 	sample/IB/input3d sample/IB/main.C sample/IB/shell2d_64.spring \
 	sample/IB/shell2d_64.vertex sample/IB/sphere3d.spring \
-	sample/IB/sphere3d.vertex
+	sample/IB/sphere3d.vertex src/tools/autostarter.pl \
+	src/tools/farchiver.pl src/tools/includes.pl \
+	src/tools/scale_spring_rest_length.pl \
+	src/tools/scale_spring_stiffness.pl \
+	src/tools/set_spring_rest_length.pl \
+	src/tools/set_spring_stiffness.pl
 all: all-recursive
 
 .SUFFIXES:
@@ -440,7 +442,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/bin $(distdir)/config $(distdir)/doc $(distdir)/include/ibamr $(distdir)/m4 $(distdir)/sample/IB $(distdir)/sample/empty_project $(distdir)/src/utilities
+	$(mkdir_p) $(distdir)/config $(distdir)/doc $(distdir)/include/ibamr $(distdir)/m4 $(distdir)/sample/IB $(distdir)/sample/empty_project $(distdir)/src/tools $(distdir)/src/utilities
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -688,10 +690,10 @@ all-local:
 
 copy_headers:
 	cd stools && $(MAKE) relink_headers
-	cd $(top_srcdir) && bin/includes.pl
+	cd $(top_srcdir) && src/tools/includes.pl
 relink_headers:
 	cd stools && $(MAKE) relink_headers
-	cd $(top_srcdir) && bin/includes.pl --link
+	cd $(top_srcdir) && src/tools/includes.pl --link
 refresh_tags:
 	cd stools && $(MAKE) refresh_tags
 	cd $(top_srcdir) && find . -name "*.[ChIf]" -print | etags -

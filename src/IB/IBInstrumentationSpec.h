@@ -2,7 +2,7 @@
 #define included_IBInstrumentationSpec
 
 // Filename: IBInstrumentationSpec.h
-// Last modified: <14.Jun.2007 18:36:01 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Oct.2007 00:46:44 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -137,13 +137,6 @@ public:
         SAMRAI::tbox::AbstractStream& stream);
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    IBInstrumentationSpec();
-
     /*!
      * \brief Copy constructor.
      *

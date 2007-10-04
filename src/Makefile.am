@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = IB fortran adv_diff advect lagrangian navier_stokes utilities . tests
+SUBDIRS = IB fortran adv_diff advect lagrangian navier_stokes utilities . tests tools
 
 lib_LIBRARIES = libIBAMR.a
 if SAMRAI2D_ENABLED
@@ -21,6 +21,7 @@ IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
 IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
 IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
 IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
+IB/libIBAMR_IB2d_a-IBHDF5Initializer.o \
 IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
 IB/libIBAMR_IB2d_a-IBInstrumentPanel.o \
 IB/libIBAMR_IB2d_a-IBInstrumentationSpec.o \
@@ -78,6 +79,7 @@ IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
 IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
 IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
 IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
+IB/libIBAMR_IB3d_a-IBHDF5Initializer.o \
 IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
 IB/libIBAMR_IB3d_a-IBInstrumentPanel.o \
 IB/libIBAMR_IB3d_a-IBInstrumentationSpec.o \

@@ -1,12 +1,9 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = stools doc src bin
+SUBDIRS = stools doc src
 ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST  = autogen.sh
-EXTRA_DIST += bin/includes.pl
-EXTRA_DIST += bin/scale_spring_rest_length.pl bin/scale_spring_stiffness.pl
-EXTRA_DIST += bin/set_spring_rest_length.pl bin/set_spring_stiffness.pl
 EXTRA_DIST += doc/Doxyfile
 EXTRA_DIST += doc/libstdc++.tag
 EXTRA_DIST += include/ibamr/AdvDiffHierarchyIntegrator.h
@@ -70,6 +67,13 @@ EXTRA_DIST += sample/IB/shell2d_64.spring
 EXTRA_DIST += sample/IB/shell2d_64.vertex
 EXTRA_DIST += sample/IB/sphere3d.spring
 EXTRA_DIST += sample/IB/sphere3d.vertex
+EXTRA_DIST += src/tools/autostarter.pl
+EXTRA_DIST += src/tools/farchiver.pl
+EXTRA_DIST += src/tools/includes.pl
+EXTRA_DIST += src/tools/scale_spring_rest_length.pl
+EXTRA_DIST += src/tools/scale_spring_stiffness.pl
+EXTRA_DIST += src/tools/set_spring_rest_length.pl
+EXTRA_DIST += src/tools/set_spring_stiffness.pl
 
 ## Copy the sample sources to the build directory.
 all-local:
@@ -87,10 +91,10 @@ all-local:
 ## Note that these are for developer use only.
 copy_headers:
 	cd stools && $(MAKE) relink_headers
-	cd $(top_srcdir) && bin/includes.pl
+	cd $(top_srcdir) && src/tools/includes.pl
 relink_headers:
 	cd stools && $(MAKE) relink_headers
-	cd $(top_srcdir) && bin/includes.pl --link
+	cd $(top_srcdir) && src/tools/includes.pl --link
 refresh_tags:
 	cd stools && $(MAKE) refresh_tags
 	cd $(top_srcdir) && find . -name "*.[ChIf]" -print | etags -

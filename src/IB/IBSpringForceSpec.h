@@ -2,7 +2,7 @@
 #define included_IBSpringForceSpec
 
 // Filename: IBSpringForceSpec.h
-// Last modified: <11.Jun.2007 17:03:44 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Oct.2007 00:46:23 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -187,13 +187,6 @@ public:
         SAMRAI::tbox::AbstractStream& stream);
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    IBSpringForceSpec();
-
     /*!
      * \brief Copy constructor.
      *

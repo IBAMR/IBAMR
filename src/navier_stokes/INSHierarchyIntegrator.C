@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <24.Sep.2007 23:21:21 griffith@box221.cims.nyu.edu>
+// Last modified: <25.Sep.2007 22:14:08 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -138,7 +138,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_div_source_term;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 2;  // XXXX
-static const int FACEG = 1;
+static const int FACEG = 2;  // XXXX
 
 // Version of INSHierarchyIntegrator restart file data.
 static const int INS_HIERARCHY_INTEGRATOR_VERSION = 1;

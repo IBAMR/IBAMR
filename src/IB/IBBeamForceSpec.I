@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpec.I
-// Last modified: <11.Jun.2007 17:35:26 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Oct.2007 23:53:27 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -28,7 +28,7 @@ IBBeamForceSpec::getIsRegisteredWithStashableManager()
 inline
 IBBeamForceSpec::IBBeamForceSpec(
     const int master_idx,
-    const std::vector<pair_int_int>& neighbor_idxs,
+    const std::vector<NeighborIdxs>& neighbor_idxs,
     const std::vector<double>& bend_rigidities)
     : d_num_beams(static_cast<int>(neighbor_idxs.size())),
       d_master_idx(master_idx),
@@ -77,13 +77,13 @@ IBBeamForceSpec::getMasterNodeIndex()
     return d_master_idx;
 }// getMasterNodeIndex
 
-inline const std::vector<IBBeamForceSpec::pair_int_int>&
+inline const std::vector<IBBeamForceSpec::NeighborIdxs>&
 IBBeamForceSpec::getNeighborNodeIndices() const
 {
     return d_neighbor_idxs;
 }// getNeighborNodeIndices
 
-inline std::vector<IBBeamForceSpec::pair_int_int>&
+inline std::vector<IBBeamForceSpec::NeighborIdxs>&
 IBBeamForceSpec::getNeighborNodeIndices()
 {
     return d_neighbor_idxs;

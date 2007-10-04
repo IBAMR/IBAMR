@@ -2,7 +2,7 @@
 #define included_IBTargetPointForceSpec
 
 // Filename: IBTargetPointForceSpec.h
-// Last modified: <24.Jun.2007 21:25:51 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Oct.2007 00:46:56 griffith@box221.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -135,13 +135,6 @@ public:
         const std::vector<double>& displacement);
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    IBTargetPointForceSpec();
-
     /*!
      * \brief Copy constructor.
      *

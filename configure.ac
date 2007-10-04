@@ -577,7 +577,6 @@ echo "================"
 AC_CONFIG_SUBDIRS([stools])
 AC_CONFIG_FILES([
   Makefile
-  bin/Makefile
   config/make.inc
   doc/Makefile doc/Doxyfile
   sample/IB/Makefile sample/empty_project/Makefile
@@ -599,5 +598,6 @@ AC_CONFIG_FILES([
   src/tests/navier_stokes/lid_driven_cavity/Makefile
   src/tests/navier_stokes/periodic_shear_layer/Makefile
   src/tests/pIB/Makefile
+  src/tools/Makefile
 ])
 AC_OUTPUT

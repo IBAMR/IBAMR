@@ -1,5 +1,5 @@
 // Filename: LagM3DDataWriter.C
-// Last modified: <24.Sep.2007 22:57:57 griffith@box221.cims.nyu.edu>
+// Last modified: <25.Sep.2007 12:42:31 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagM3DDataWriter.h"
@@ -779,7 +779,6 @@ LagM3DDataWriter::writePlotData(
             const std::string local_marker_file_name = marker_file_name + "." + rank_string;
             cat_file_stream << "m3D_hdf5_marker_converter " << local_marker_file_name + ".h5" << " " << local_marker_file_name << "\n";
         }
-
         cat_file_stream << "\n";
         cat_file_stream << "cat " << marker_header_file_name;
         for (int rank = 0; rank < mpi_size; ++rank)
@@ -790,6 +789,15 @@ LagM3DDataWriter::writePlotData(
             cat_file_stream << " " << marker_file_name + "." + rank_string;
         }
         cat_file_stream << " > " << marker_file_name << "\n";
+        cat_file_stream << "\n";
+        for (int rank = 0; rank < mpi_size; ++rank)
+        {
+            std::ostringstream stream;
+            stream << std::setfill('0') << std::setw(4) << rank;
+            const std::string rank_string = stream.str();
+            const std::string local_marker_file_name = marker_file_name + "." + rank_string;
+            cat_file_stream << "rm -f " << local_marker_file_name << "\n";
+        }
 
         // Setup commands to create a unified fiber file.
         cat_file_stream << "\n";
@@ -812,6 +820,15 @@ LagM3DDataWriter::writePlotData(
             cat_file_stream << " " << fiber_file_name + "." + rank_string;
         }
         cat_file_stream << " > " << fiber_file_name << "\n";
+        cat_file_stream << "\n";
+        for (int rank = 0; rank < mpi_size; ++rank)
+        {
+            std::ostringstream stream;
+            stream << std::setfill('0') << std::setw(4) << rank;
+            const std::string rank_string = stream.str();
+            const std::string local_fiber_file_name = fiber_file_name + "." + rank_string;
+            cat_file_stream << "rm -f " << local_fiber_file_name << "\n";
+        }
     }
 
     // Construct the VecScatter objectss required to write the plot data.

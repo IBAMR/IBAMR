@@ -2,7 +2,7 @@
 #define included_IBBeamForceSpec
 
 // Filename: IBBeamForceSpec.h
-// Last modified: <11.Jun.2007 17:05:00 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Oct.2007 00:46:33 griffith@box221.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -38,7 +38,7 @@ public:
      * \note Use of this typedef appears to be needed to get g++ to parse the
      * default parameters in the class constructor.
      */
-    typedef std::pair<int,int> pair_int_int;
+    typedef std::pair<int,int> NeighborIdxs;
 
     /*!
      * \brief Register this class and its factory class with the singleton
@@ -64,7 +64,7 @@ public:
      */
     IBBeamForceSpec(
         const int master_idx=-1,
-        const std::vector<pair_int_int>& neighbor_idxs=std::vector<pair_int_int>(),
+        const std::vector<NeighborIdxs>& neighbor_idxs=std::vector<NeighborIdxs>(),
         const std::vector<double>& bend_rigidities=std::vector<double>());
 
     /*!
@@ -95,14 +95,14 @@ public:
      * \return A const refrence to the neighbor node indices for the beams
      * attached to the master node.
      */
-    const std::vector<pair_int_int>&
+    const std::vector<NeighborIdxs>&
     getNeighborNodeIndices() const;
 
     /*!
      * \return A non-const refrence to the neighbor node indices for the beams
      * attached to the master node.
      */
-    std::vector<pair_int_int>&
+    std::vector<NeighborIdxs>&
     getNeighborNodeIndices();
 
     /*!
@@ -143,13 +143,6 @@ public:
 
 private:
     /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    IBBeamForceSpec();
-
-    /*!
      * \brief Copy constructor.
      *
      * \note This constructor is not implemented and should not be used.
@@ -187,7 +180,7 @@ private:
      * Data required to define the beam forces.
      */
     int d_num_beams, d_master_idx;
-    std::vector<pair_int_int> d_neighbor_idxs;
+    std::vector<NeighborIdxs> d_neighbor_idxs;
     std::vector<double> d_bend_rigidities;
 };
 }// namespace IBAMR

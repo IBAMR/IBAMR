@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <24.Sep.2007 23:13:59 griffith@box221.cims.nyu.edu>
+// Last modified: <25.Sep.2007 22:39:54 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -551,6 +551,10 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     d_mark_var = new SAMRAI::pdat::IndexVariable<NDIM,IBMarker>(d_object_name+"::mark");
     d_mark_idx = var_db->registerVariableAndContext(d_mark_var, getCurrentContext(), no_ghosts);
     d_mark_scratch_idx = var_db->registerVariableAndContext(d_mark_var, d_scratch, ghosts);
+    if (d_registered_for_restart)
+    {
+        var_db->registerPatchDataForRestart(d_mark_idx);
+    }
 
     if (!d_source_strategy.isNull())
     {

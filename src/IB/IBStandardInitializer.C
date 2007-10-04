@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <21.Jun.2007 14:41:51 boyce@bigboy.nyconnect.com>
+// Last modified: <02.Oct.2007 17:58:26 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -36,9 +36,6 @@
 #include <tbox/MPI.h>
 #include <tbox/RestartManager.h>
 #include <tbox/Utilities.h>
-
-// HDF5 INCLUDES
-#include <H5LT.h>
 
 // C++ STDLIB INCLUDES
 #include <cassert>
@@ -524,6 +521,7 @@ IBStandardInitializer::initializeLagSiloDataWriter(
 void
 IBStandardInitializer::readVertexFiles()
 {
+    std::string line_string;
     const int rank = SAMRAI::tbox::MPI::getRank();
     const int nodes = SAMRAI::tbox::MPI::getNodes();
     int flag = 1;
@@ -549,30 +547,65 @@ IBStandardInitializer::readVertexFiles()
                 d_vertex_offset[ln][j] = d_vertex_offset[ln][j-1]+d_num_vertex[ln][j-1];
             }
 
-            const std::string h5_vertex_filename = d_base_filename[ln][j] + ".vertex.h5";
-            std::ifstream h5_file_stream;
-            h5_file_stream.open(h5_vertex_filename.c_str(), std::ios::in);
-            const bool h5_file_exists = h5_file_stream.is_open();
-            h5_file_stream.close();
+            // Ensure that the file exists.
+            const std::string vertex_filename = d_base_filename[ln][j] + ".vertex";
+            std::ifstream file_stream;
+            file_stream.open(vertex_filename.c_str(), std::ios::in);
+            if (!file_stream.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertex_filename << endl);
 
-            const std::string ascii_vertex_filename = d_base_filename[ln][j] + ".vertex";
-            std::ifstream ascii_file_stream;
-            ascii_file_stream.open(ascii_vertex_filename.c_str(), std::ios::in);
-            const bool ascii_file_exists = ascii_file_stream.is_open();
-            ascii_file_stream.close();
+            SAMRAI::tbox::plog << d_object_name << ":  "
+                               << "processing vertex data from ASCII input filename " << vertex_filename << endl
+                               << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
-            if (h5_file_exists)
+            // The first entry in the file is the number of vertices.
+            if (!std::getline(file_stream, line_string))
             {
-                readVertexFile_h5(ln, j);
-            }
-            else if (ascii_file_exists)
-            {
-                readVertexFile_ascii(ln, j);
+                TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << vertex_filename << endl);
             }
             else
             {
-                TBOX_ERROR(d_object_name << ":\n  Unable to open vertex input file associated with base filename " << d_base_filename[ln][j] << endl);
+                line_string = discard_comments(line_string);
+                std::istringstream line_stream(line_string);
+                if (!(line_stream >> d_num_vertex[ln][j]))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << endl);
+                }
             }
+
+            if (d_num_vertex[ln][j] <= 0)
+            {
+                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << endl);
+            }
+
+            // Each successive line provides the initial position of each vertex
+            // in the input file.
+            d_vertex_posn[ln][j].resize(d_num_vertex[ln][j]*NDIM);
+            for (int k = 0; k < d_num_vertex[ln][j]; ++k)
+            {
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << vertex_filename << endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        if (!(line_stream >> d_vertex_posn[ln][j][k*NDIM+d]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << vertex_filename << endl);
+                        }
+                    }
+                }
+            }
+
+            // Close the input file.
+            file_stream.close();
+
+            SAMRAI::tbox::plog << d_object_name << ":  "
+                               << "read " << d_num_vertex[ln][j] << " vertices from ASCII input filename " << vertex_filename << endl
+                               << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
@@ -585,124 +618,9 @@ IBStandardInitializer::readVertexFiles()
 }// readVertexFiles
 
 void
-IBStandardInitializer::readVertexFile_h5(
-    const int ln,
-    const int j)
-{
-    // Ensure that the file exists.
-    const std::string vertex_filename = d_base_filename[ln][j] + ".vertex.h5";
-    std::ifstream file_stream;
-    file_stream.open(vertex_filename.c_str(), std::ios::in);
-    if (!file_stream.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertex_filename << endl);
-    file_stream.close();
-
-    SAMRAI::tbox::plog << d_object_name << ":  "
-                       << "processing vertex data from HDF5 input filename " << vertex_filename << endl
-                       << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-
-    // Process the HDF5 file.
-    hid_t file_id;
-    int rank;
-    hsize_t dims[2];
-    H5T_class_t class_id;
-    size_t type_size;
-    herr_t status;
-
-    file_id = H5Fopen(vertex_filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
-    if (file_id < 0) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertex_filename << endl);
-
-    if (!H5LTfind_dataset(file_id, "vertex")) TBOX_ERROR(d_object_name << ":\n  Cannot find vertex dataset in input file " << vertex_filename << endl);
-
-    status = H5LTget_dataset_ndims(file_id, "vertex", &rank);
-    if (rank != 2) TBOX_ERROR(d_object_name << ":\n  Invalid dataset rank in input file " << vertex_filename << endl);
-
-    status = H5LTget_dataset_info(file_id, "vertex", &dims[0], &class_id, &type_size);
-    if (dims[0] != NDIM || dims[1] <= 0) TBOX_ERROR(d_object_name << ":\n  Invalid dataset dimension in input file " << vertex_filename << endl);
-
-    d_num_vertex[ln][j] = dims[1];
-    d_vertex_posn[ln][j].resize(d_num_vertex[ln][j]*NDIM);
-    status = H5LTread_dataset_double(file_id, "vertex", &d_vertex_posn[ln][j][0]);
-
-    status = H5Fclose(file_id);
-
-    SAMRAI::tbox::plog << d_object_name << ":  "
-                       << "read " << d_num_vertex[ln][j] << " vertices from HDF5 input filename " << vertex_filename << endl
-                       << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-    return;
-}// readVertexFile_h5
-
-void
-IBStandardInitializer::readVertexFile_ascii(
-    const int ln,
-    const int j)
-{
-    std::string line_string;
-
-    // Ensure that the file exists.
-    const std::string vertex_filename = d_base_filename[ln][j] + ".vertex";
-    std::ifstream file_stream;
-    file_stream.open(vertex_filename.c_str(), std::ios::in);
-    if (!file_stream.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertex_filename << endl);
-
-    SAMRAI::tbox::plog << d_object_name << ":  "
-                       << "processing vertex data from ASCII input filename " << vertex_filename << endl
-                       << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-
-    // The first entry in the file is the number of vertices.
-    if (!std::getline(file_stream, line_string))
-    {
-        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << vertex_filename << endl);
-    }
-    else
-    {
-        line_string = discard_comments(line_string);
-        std::istringstream line_stream(line_string);
-        if (!(line_stream >> d_num_vertex[ln][j]))
-        {
-            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << endl);
-        }
-    }
-
-    if (d_num_vertex[ln][j] <= 0)
-    {
-        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << endl);
-    }
-
-    // Each successive line provides the initial position of each vertex
-    // in the input file.
-    d_vertex_posn[ln][j].resize(d_num_vertex[ln][j]*NDIM);
-    for (int k = 0; k < d_num_vertex[ln][j]; ++k)
-    {
-        if (!std::getline(file_stream, line_string))
-        {
-            TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << vertex_filename << endl);
-        }
-        else
-        {
-            line_string = discard_comments(line_string);
-            std::istringstream line_stream(line_string);
-            for (int d = 0; d < NDIM; ++d)
-            {
-                if (!(line_stream >> d_vertex_posn[ln][j][k*NDIM+d]))
-                {
-                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << vertex_filename << endl);
-                }
-            }
-        }
-    }
-
-    // Close the input file.
-    file_stream.close();
-
-    SAMRAI::tbox::plog << d_object_name << ":  "
-                       << "read " << d_num_vertex[ln][j] << " vertices from ASCII input filename " << vertex_filename << endl
-                       << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-    return;
-}// readVertexFile_ascii
-
-void
 IBStandardInitializer::readSpringFiles()
 {
+    std::string line_string;
     const int rank = SAMRAI::tbox::MPI::getRank();
     const int nodes = SAMRAI::tbox::MPI::getNodes();
     int flag = 1;
@@ -720,30 +638,185 @@ IBStandardInitializer::readSpringFiles()
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
 
-            const std::string h5_spring_filename = d_base_filename[ln][j] + ".spring.h5";
-            std::ifstream h5_file_stream;
-            h5_file_stream.open(h5_spring_filename.c_str(), std::ios::in);
-            const bool h5_file_exists = h5_file_stream.is_open();
-            h5_file_stream.close();
+            // Ensure that the file exists.
+            const std::string spring_filename = d_base_filename[ln][j] + ".spring";
+            std::ifstream file_stream;
+            file_stream.open(spring_filename.c_str(), std::ios::in);
+            if (!file_stream.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << spring_filename << endl);
 
-            const std::string ascii_spring_filename = d_base_filename[ln][j] + ".spring";
-            std::ifstream ascii_file_stream;
-            ascii_file_stream.open(ascii_spring_filename.c_str(), std::ios::in);
-            const bool ascii_file_exists = ascii_file_stream.is_open();
-            ascii_file_stream.close();
+            SAMRAI::tbox::plog << d_object_name << ":  "
+                               << "processing spring data from ASCII input filename " << spring_filename << endl
+                               << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
-            if (h5_file_exists)
+            // The first line in the file indicates the number of edges in the input
+            // file.
+            int num_edges;
+            if (!std::getline(file_stream, line_string))
             {
-                readSpringFile_h5(ln, j);
-            }
-            else if (ascii_file_exists)
-            {
-                readSpringFile_ascii(ln, j);
+                TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << spring_filename << endl);
             }
             else
             {
-                TBOX_WARNING(d_object_name << ":\n  Unable to open spring input file associated with base filename " << d_base_filename[ln][j] << endl);
+                line_string = discard_comments(line_string);
+                std::istringstream line_stream(line_string);
+                if (!(line_stream >> num_edges))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << spring_filename << endl);
+                }
             }
+
+            if (num_edges <= 0)
+            {
+                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << spring_filename << endl);
+            }
+
+            // Each successive line provides the connectivity and material parameter
+            // information for each spring in the structure.
+            for (int k = 0; k < num_edges; ++k)
+            {
+                Edge e;
+                double kappa, length;
+                int force_fcn_idx;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << spring_filename << endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> e.first))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
+                    }
+                    else if ((e.first < 0) || (e.first >= d_num_vertex[ln][j]))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
+                                   << "  vertex index " << e.first << " is out of range" << endl);
+                    }
+
+                    if (!(line_stream >> e.second))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
+                    }
+                    else if ((e.second < 0) || (e.second >= d_num_vertex[ln][j]))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
+                                   << "  vertex index " << e.second << " is out of range" << endl);
+                    }
+
+                    if (!(line_stream >> kappa))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
+                    }
+                    else if (kappa < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
+                                   << "  spring constant is negative" << endl);
+                    }
+
+                    if (!(line_stream >> length))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
+                    }
+                    else if (length < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
+                                   << "  spring resting length is negative" << endl);
+                    }
+
+                    if (!(line_stream >> force_fcn_idx))
+                    {
+                        force_fcn_idx = 0;  // default force function specification.
+                    }
+                }
+
+                // Modify kappa and length according to whether spring forces are
+                // enabled, or whether uniform values are to be employed, for this
+                // particular structure.
+                if (!d_enable_springs[ln][j])
+                {
+                    kappa = 0.0;
+                    length = 0.0;
+                }
+                else
+                {
+                    if (d_using_uniform_spring_stiffness[ln][j])
+                    {
+                        kappa = d_uniform_spring_stiffness[ln][j];
+                    }
+                    if (d_using_uniform_spring_rest_length[ln][j])
+                    {
+                        length = d_uniform_spring_rest_length[ln][j];
+                    }
+                    if (d_using_uniform_spring_force_fcn_idx[ln][j])
+                    {
+                        force_fcn_idx = d_uniform_spring_force_fcn_idx[ln][j];
+                    }
+                }
+
+                // Correct the edge numbers to be in the global Lagrangian indexing
+                // scheme.
+                e.first  += d_vertex_offset[ln][j];
+                e.second += d_vertex_offset[ln][j];
+
+                // Always place the lower index first.
+                if (e.first > e.second)
+                {
+                    std::swap<int>(e.first, e.second);
+                }
+
+                // Check to see if the edge has already been inserted in the edge map.
+                bool duplicate_edge = false;
+                for (std::multimap<int,Edge>::const_iterator it =
+                         d_spring_edge_map[ln][j].lower_bound(e.first);
+                     it != d_spring_edge_map[ln][j].upper_bound(e.first); ++it)
+                {
+                    const Edge& other_e = (*it).second;
+                    if (e.first  == other_e.first &&
+                        e.second == other_e.second)
+                    {
+                        // This is a duplicate edge and should not be inserted into the
+                        // edge map.
+                        duplicate_edge = true;
+
+                        // Ensure that the stiffness and rest length information is
+                        // consistent.
+                        if (!SAMRAI::tbox::Utilities::deq(
+                                (*d_spring_stiffness[ln][j].find(e)).second, kappa) ||
+                            !SAMRAI::tbox::Utilities::deq(
+                                (*d_spring_rest_length[ln][j].find(e)).second, length) ||
+                            !SAMRAI::tbox::Utilities::deq(
+                                (*d_spring_force_fcn_idx[ln][j].find(e)).second, force_fcn_idx))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << spring_filename << endl
+                                       << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << endl
+                                       << "  original spring constant = " << (*d_spring_stiffness[ln][j].find(e)).second << endl
+                                       << "  original resting length = " << (*d_spring_rest_length[ln][j].find(e)).second << endl
+                                       << "  original force function index = " << (*d_spring_force_fcn_idx[ln][j].find(e)).second << endl);
+                        }
+                    }
+                }
+
+                // Initialize the map data corresponding to the present edge.
+                //
+                // Note that in the edge map, each edge is associated with only the
+                // first vertex.
+                if (!duplicate_edge)
+                {
+                    d_spring_edge_map[ln][j].insert(std::make_pair(e.first,e));
+                    d_spring_stiffness[ln][j][e] = kappa;
+                    d_spring_rest_length[ln][j][e] = length;
+                    d_spring_force_fcn_idx[ln][j][e] = force_fcn_idx;
+                }
+            }
+
+            // Close the input file.
+            file_stream.close();
+
+            SAMRAI::tbox::plog << d_object_name << ":  "
+                               << "read " << num_edges << " edges from ASCII input filename " << spring_filename << endl
+                               << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
@@ -756,367 +829,9 @@ IBStandardInitializer::readSpringFiles()
 }// readSpringFiles
 
 void
-IBStandardInitializer::readSpringFile_h5(
-    const int ln,
-    const int j)
-{
-    // Ensure that the file exists.
-    const std::string spring_filename = d_base_filename[ln][j] + ".spring.h5";
-    std::ifstream file_stream;
-    file_stream.open(spring_filename.c_str(), std::ios::in);
-    if (!file_stream.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << spring_filename << endl);
-    file_stream.close();
-
-    SAMRAI::tbox::plog << d_object_name << ":  "
-                       << "processing spring data from HDF5 input filename " << spring_filename << endl
-                       << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-
-    // Process the HDF5 file.
-    hid_t file_id;
-    int rank;
-    hsize_t dims[1];
-    H5T_class_t class_id;
-    size_t type_size;
-    herr_t status;
-
-    file_id = H5Fopen(spring_filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
-    if (file_id < 0) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << spring_filename << endl);
-
-    if (!H5LTfind_dataset(file_id, "e1")) TBOX_ERROR(d_object_name << ":\n  Cannot find e1 dataset in input file " << spring_filename << endl);
-    if (!H5LTfind_dataset(file_id, "e2")) TBOX_ERROR(d_object_name << ":\n  Cannot find e2 dataset in input file " << spring_filename << endl);
-    if (!H5LTfind_dataset(file_id, "stf")) TBOX_ERROR(d_object_name << ":\n  Cannot find stf dataset in input file " << spring_filename << endl);
-    if (!H5LTfind_dataset(file_id, "rst")) TBOX_ERROR(d_object_name << ":\n  Cannot find rst dataset in input file " << spring_filename << endl);
-    if (!H5LTfind_dataset(file_id, "fcn")) TBOX_ERROR(d_object_name << ":\n  Cannot find fcn dataset in input file " << spring_filename << endl);
-
-    status = H5LTget_dataset_ndims(file_id, "e1", &rank);
-    if (rank != 1) TBOX_ERROR(d_object_name << ":\n  Invalid dataset rank in input file " << spring_filename << endl);
-    status = H5LTget_dataset_ndims(file_id, "e2", &rank);
-    if (rank != 1) TBOX_ERROR(d_object_name << ":\n  Invalid dataset rank in input file " << spring_filename << endl);
-    status = H5LTget_dataset_ndims(file_id, "stf", &rank);
-    if (rank != 1) TBOX_ERROR(d_object_name << ":\n  Invalid dataset rank in input file " << spring_filename << endl);
-    status = H5LTget_dataset_ndims(file_id, "rst", &rank);
-    if (rank != 1) TBOX_ERROR(d_object_name << ":\n  Invalid dataset rank in input file " << spring_filename << endl);
-    status = H5LTget_dataset_ndims(file_id, "fcn", &rank);
-    if (rank != 1) TBOX_ERROR(d_object_name << ":\n  Invalid dataset rank in input file " << spring_filename << endl);
-
-    status = H5LTget_dataset_info(file_id, "e1", &dims[0], &class_id, &type_size);
-    if (dims[0] <= 0) TBOX_ERROR(d_object_name << ":\n  Invalid dataset dimension in input file " << spring_filename << endl);
-    std::vector<int> e1(dims[0]);
-    status = H5LTget_dataset_info(file_id, "e2", &dims[0], &class_id, &type_size);
-    if (dims[0] <= 0) TBOX_ERROR(d_object_name << ":\n  Invalid dataset dimension in input file " << spring_filename << endl);
-    std::vector<int> e2(dims[0]);
-    status = H5LTget_dataset_info(file_id, "stf", &dims[0], &class_id, &type_size);
-    if (dims[0] <= 0) TBOX_ERROR(d_object_name << ":\n  Invalid dataset dimension in input file " << spring_filename << endl);
-    std::vector<double> stf(dims[0]);
-    status = H5LTget_dataset_info(file_id, "rst", &dims[0], &class_id, &type_size);
-    if (dims[0] <= 0) TBOX_ERROR(d_object_name << ":\n  Invalid dataset dimension in input file " << spring_filename << endl);
-    std::vector<double> rst(dims[0]);
-    status = H5LTget_dataset_info(file_id, "fcn", &dims[0], &class_id, &type_size);
-    if (dims[0] <= 0) TBOX_ERROR(d_object_name << ":\n  Invalid dataset dimension in input file " << spring_filename << endl);
-    std::vector<int> fcn(dims[0]);
-
-    if ((e1.size() != e2 .size()) ||
-        (e1.size() != stf.size()) ||
-        (e1.size() != rst.size()) ||
-        (e1.size() != fcn.size()))
-    {
-        TBOX_ERROR(d_object_name << ":\n  Invalid dataset dimension in input file " << spring_filename << endl);
-    }
-
-    status = H5LTread_dataset_int(file_id, "e1", &e1[0]);
-    status = H5LTread_dataset_int(file_id, "e2", &e2[0]);
-    status = H5LTread_dataset_double(file_id, "stf", &stf[0]);
-    status = H5LTread_dataset_double(file_id, "rst", &rst[0]);
-    status = H5LTread_dataset_int(file_id, "fcn", &fcn[0]);
-
-    status = H5Fclose(file_id);
-
-    // Setup the edge information.
-    const int num_edges = e1.size();
-    for (int k = 0; k < num_edges; ++k)
-    {
-        Edge e(e1[k],e2[k]);
-        double kappa(stf[k]), length(rst[k]);
-        int force_fcn_idx(fcn[k]);
-
-        // Modify kappa and length according to whether spring forces are
-        // enabled, or whether uniform values are to be employed, for this
-        // particular structure.
-        if (!d_enable_springs[ln][j])
-        {
-            kappa = 0.0;
-            length = 0.0;
-        }
-        else
-        {
-            if (d_using_uniform_spring_stiffness[ln][j])
-            {
-                kappa = d_uniform_spring_stiffness[ln][j];
-            }
-            if (d_using_uniform_spring_rest_length[ln][j])
-            {
-                length = d_uniform_spring_rest_length[ln][j];
-            }
-            if (d_using_uniform_spring_force_fcn_idx[ln][j])
-            {
-                force_fcn_idx = d_uniform_spring_force_fcn_idx[ln][j];
-            }
-        }
-
-        // Correct the edge numbers to be in the global Lagrangian indexing
-        // scheme.
-        e.first  += d_vertex_offset[ln][j];
-        e.second += d_vertex_offset[ln][j];
-
-        // Always place the lower index first.
-        if (e.first > e.second)
-        {
-            std::swap<int>(e.first, e.second);
-        }
-
-        // Check to see if the edge has already been inserted in the edge map.
-        bool duplicate_edge = false;
-        for (std::multimap<int,Edge>::const_iterator it =
-                 d_spring_edge_map[ln][j].lower_bound(e.first);
-             it != d_spring_edge_map[ln][j].upper_bound(e.first); ++it)
-        {
-            const Edge& other_e = (*it).second;
-            if (e.first  == other_e.first &&
-                e.second == other_e.second)
-            {
-                // This is a duplicate edge and should not be inserted into the
-                // edge map.
-                duplicate_edge = true;
-
-                // Ensure that the stiffness and rest length information is
-                // consistent.
-                if (!SAMRAI::tbox::Utilities::deq(
-                        (*d_spring_stiffness[ln][j].find(e)).second, kappa) ||
-                    !SAMRAI::tbox::Utilities::deq(
-                        (*d_spring_rest_length[ln][j].find(e)).second, length) ||
-                    !SAMRAI::tbox::Utilities::deq(
-                        (*d_spring_force_fcn_idx[ln][j].find(e)).second, force_fcn_idx))
-                {
-                    TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << spring_filename << endl
-                               << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << endl
-                               << "  original spring constant = " << (*d_spring_stiffness[ln][j].find(e)).second << endl
-                               << "  original resting length = " << (*d_spring_rest_length[ln][j].find(e)).second << endl
-                               << "  original force function index = " << (*d_spring_force_fcn_idx[ln][j].find(e)).second << endl);
-                }
-            }
-        }
-
-        // Initialize the map data corresponding to the present edge.
-        //
-        // Note that in the edge map, each edge is associated with only the
-        // first vertex.
-        if (!duplicate_edge)
-        {
-            d_spring_edge_map[ln][j].insert(std::make_pair(e.first,e));
-            d_spring_stiffness[ln][j][e] = kappa;
-            d_spring_rest_length[ln][j][e] = length;
-            d_spring_force_fcn_idx[ln][j][e] = force_fcn_idx;
-        }
-    }
-
-    SAMRAI::tbox::plog << d_object_name << ":  "
-                       << "read " << num_edges << " edges from HDF5 input filename " << spring_filename << endl
-                       << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-    return;
-}// readSpringFile_h5
-
-void
-IBStandardInitializer::readSpringFile_ascii(
-    const int ln,
-    const int j)
-{
-    std::string line_string;
-
-    // Ensure that the file exists.
-    const std::string spring_filename = d_base_filename[ln][j] + ".spring";
-    std::ifstream file_stream;
-    file_stream.open(spring_filename.c_str(), std::ios::in);
-    if (!file_stream.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << spring_filename << endl);
-
-    SAMRAI::tbox::plog << d_object_name << ":  "
-                       << "processing spring data from ASCII input filename " << spring_filename << endl
-                       << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-
-    // The first line in the file indicates the number of edges in the input
-    // file.
-    int num_edges;
-    if (!std::getline(file_stream, line_string))
-    {
-        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << spring_filename << endl);
-    }
-    else
-    {
-        line_string = discard_comments(line_string);
-        std::istringstream line_stream(line_string);
-        if (!(line_stream >> num_edges))
-        {
-            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << spring_filename << endl);
-        }
-    }
-
-    if (num_edges <= 0)
-    {
-        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << spring_filename << endl);
-    }
-
-    // Each successive line provides the connectivity and material parameter
-    // information for each spring in the structure.
-    for (int k = 0; k < num_edges; ++k)
-    {
-        Edge e;
-        double kappa, length;
-        int force_fcn_idx;
-        if (!std::getline(file_stream, line_string))
-        {
-            TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << spring_filename << endl);
-        }
-        else
-        {
-            line_string = discard_comments(line_string);
-            std::istringstream line_stream(line_string);
-            if (!(line_stream >> e.first))
-            {
-                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
-            }
-            else if ((e.first < 0) || (e.first >= d_num_vertex[ln][j]))
-            {
-                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
-                           << "  vertex index " << e.first << " is out of range" << endl);
-            }
-
-            if (!(line_stream >> e.second))
-            {
-                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
-            }
-            else if ((e.second < 0) || (e.second >= d_num_vertex[ln][j]))
-            {
-                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
-                           << "  vertex index " << e.second << " is out of range" << endl);
-            }
-
-            if (!(line_stream >> kappa))
-            {
-                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
-            }
-            else if (kappa < 0.0)
-            {
-                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
-                           << "  spring constant is negative" << endl);
-            }
-
-            if (!(line_stream >> length))
-            {
-                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
-            }
-            else if (length < 0.0)
-            {
-                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
-                           << "  spring resting length is negative" << endl);
-            }
-
-            if (!(line_stream >> force_fcn_idx))
-            {
-                force_fcn_idx = 0;  // default force function specification.
-            }
-        }
-
-        // Modify kappa and length according to whether spring forces are
-        // enabled, or whether uniform values are to be employed, for this
-        // particular structure.
-        if (!d_enable_springs[ln][j])
-        {
-            kappa = 0.0;
-            length = 0.0;
-        }
-        else
-        {
-            if (d_using_uniform_spring_stiffness[ln][j])
-            {
-                kappa = d_uniform_spring_stiffness[ln][j];
-            }
-            if (d_using_uniform_spring_rest_length[ln][j])
-            {
-                length = d_uniform_spring_rest_length[ln][j];
-            }
-            if (d_using_uniform_spring_force_fcn_idx[ln][j])
-            {
-                force_fcn_idx = d_uniform_spring_force_fcn_idx[ln][j];
-            }
-        }
-
-        // Correct the edge numbers to be in the global Lagrangian indexing
-        // scheme.
-        e.first  += d_vertex_offset[ln][j];
-        e.second += d_vertex_offset[ln][j];
-
-        // Always place the lower index first.
-        if (e.first > e.second)
-        {
-            std::swap<int>(e.first, e.second);
-        }
-
-        // Check to see if the edge has already been inserted in the edge map.
-        bool duplicate_edge = false;
-        for (std::multimap<int,Edge>::const_iterator it =
-                 d_spring_edge_map[ln][j].lower_bound(e.first);
-             it != d_spring_edge_map[ln][j].upper_bound(e.first); ++it)
-        {
-            const Edge& other_e = (*it).second;
-            if (e.first  == other_e.first &&
-                e.second == other_e.second)
-            {
-                // This is a duplicate edge and should not be inserted into the
-                // edge map.
-                duplicate_edge = true;
-
-                // Ensure that the stiffness and rest length information is
-                // consistent.
-                if (!SAMRAI::tbox::Utilities::deq(
-                        (*d_spring_stiffness[ln][j].find(e)).second, kappa) ||
-                    !SAMRAI::tbox::Utilities::deq(
-                        (*d_spring_rest_length[ln][j].find(e)).second, length) ||
-                    !SAMRAI::tbox::Utilities::deq(
-                        (*d_spring_force_fcn_idx[ln][j].find(e)).second, force_fcn_idx))
-                {
-                    TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << spring_filename << endl
-                               << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << endl
-                               << "  original spring constant = " << (*d_spring_stiffness[ln][j].find(e)).second << endl
-                               << "  original resting length = " << (*d_spring_rest_length[ln][j].find(e)).second << endl
-                               << "  original force function index = " << (*d_spring_force_fcn_idx[ln][j].find(e)).second << endl);
-                }
-            }
-        }
-
-        // Initialize the map data corresponding to the present edge.
-        //
-        // Note that in the edge map, each edge is associated with only the
-        // first vertex.
-        if (!duplicate_edge)
-        {
-            d_spring_edge_map[ln][j].insert(std::make_pair(e.first,e));
-            d_spring_stiffness[ln][j][e] = kappa;
-            d_spring_rest_length[ln][j][e] = length;
-            d_spring_force_fcn_idx[ln][j][e] = force_fcn_idx;
-        }
-    }
-
-    // Close the input file.
-    file_stream.close();
-
-    SAMRAI::tbox::plog << d_object_name << ":  "
-                       << "read " << num_edges << " edges from ASCII input filename " << spring_filename << endl
-                       << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-    return;
-}// readSpringFile_ascii
-
-void
 IBStandardInitializer::readBeamFiles()
 {
+    std::string line_string;
     const int rank = SAMRAI::tbox::MPI::getRank();
     const int nodes = SAMRAI::tbox::MPI::getNodes();
     int flag = 1;
@@ -1133,7 +848,6 @@ IBStandardInitializer::readBeamFiles()
 
             const std::string beam_filename = d_base_filename[ln][j] + ".beam";
             std::ifstream file_stream;
-            std::string line_string;
             file_stream.open(beam_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
             {
@@ -1271,6 +985,7 @@ IBStandardInitializer::readBeamFiles()
 void
 IBStandardInitializer::readTargetPointFiles()
 {
+    std::string line_string;
     const int rank = SAMRAI::tbox::MPI::getRank();
     const int nodes = SAMRAI::tbox::MPI::getNodes();
     int flag = 1;
@@ -1289,7 +1004,6 @@ IBStandardInitializer::readTargetPointFiles()
 
             const std::string target_point_stiffness_filename = d_base_filename[ln][j] + ".target";
             std::ifstream file_stream;
-            std::string line_string;
             file_stream.open(target_point_stiffness_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
             {
@@ -1393,6 +1107,7 @@ IBStandardInitializer::readTargetPointFiles()
 void
 IBStandardInitializer::readBoundaryMassFiles()
 {
+    std::string line_string;
     const int rank = SAMRAI::tbox::MPI::getRank();
     const int nodes = SAMRAI::tbox::MPI::getNodes();
     int flag = 1;
@@ -1413,7 +1128,6 @@ IBStandardInitializer::readBoundaryMassFiles()
 
             const std::string bdry_mass_filename = d_base_filename[ln][j] + ".mass";
             std::ifstream file_stream;
-            std::string line_string;
             file_stream.open(bdry_mass_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
             {
@@ -1443,8 +1157,9 @@ IBStandardInitializer::readBoundaryMassFiles()
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << bdry_mass_filename << endl);
                 }
 
-                // Each successive line indicates the vertex number and spring
-                // constant associated with any massive IB points.
+                // Each successive line indicates the vertex number, mass, and
+                // penalty spring constant associated with any massive IB
+                // points.
                 for (int k = 0; k < num_bdry_mass_pts; ++k)
                 {
                     int n;
@@ -1532,6 +1247,7 @@ IBStandardInitializer::readBoundaryMassFiles()
 void
 IBStandardInitializer::readInstrumentationFiles()
 {
+    std::string line_string;
     const int rank = SAMRAI::tbox::MPI::getRank();
     const int nodes = SAMRAI::tbox::MPI::getNodes();
     int flag = 1;
@@ -1550,7 +1266,6 @@ IBStandardInitializer::readInstrumentationFiles()
 
             const std::string inst_filename = d_base_filename[ln][j] + ".inst";
             std::ifstream file_stream;
-            std::string line_string;
             file_stream.open(inst_filename.c_str(), std::ios::in);
             if (file_stream.is_open() && d_enable_instrumentation[ln][j])
             {

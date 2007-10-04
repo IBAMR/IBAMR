@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <21.Jun.2007 12:08:44 boyce@bigboy.nyconnect.com>
+// Last modified: <26.Sep.2007 16:59:21 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -352,31 +352,11 @@ private:
     void
     readVertexFiles();
 
-    void
-    readVertexFile_h5(
-        const int ln,
-        const int j);
-
-    void
-    readVertexFile_ascii(
-        const int ln,
-        const int j);
-
     /*!
      * \brief Read the spring data from one or more input files.
      */
     void
     readSpringFiles();
-
-    void
-    readSpringFile_h5(
-        const int ln,
-        const int j);
-
-    void
-    readSpringFile_ascii(
-        const int ln,
-        const int j);
 
     /*!
      * \brief Read the beam data from one or more input files.

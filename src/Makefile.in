@@ -72,6 +72,7 @@ libIBAMR2d_a_DEPENDENCIES = IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
 	IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
 	IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
 	IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
+	IB/libIBAMR_IB2d_a-IBHDF5Initializer.o \
 	IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
 	IB/libIBAMR_IB2d_a-IBInstrumentPanel.o \
 	IB/libIBAMR_IB2d_a-IBInstrumentationSpec.o \
@@ -129,6 +130,7 @@ libIBAMR3d_a_DEPENDENCIES = IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
 	IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
 	IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
 	IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
+	IB/libIBAMR_IB3d_a-IBHDF5Initializer.o \
 	IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
 	IB/libIBAMR_IB3d_a-IBInstrumentPanel.o \
 	IB/libIBAMR_IB3d_a-IBInstrumentationSpec.o \
@@ -310,7 +312,7 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = IB fortran adv_diff advect lagrangian navier_stokes utilities . tests
+SUBDIRS = IB fortran adv_diff advect lagrangian navier_stokes utilities . tests tools
 lib_LIBRARIES = libIBAMR.a $(am__append_1) $(am__append_2)
 libIBAMR_a_LIBADD = advect/fortran/godunov_helpers.o adv_diff/libIBAMR_adv_diff_a-TGACoefs.o lagrangian/fortran/lagrangian_delta.o
 libIBAMR_a_SOURCES = # intentionally blank
@@ -320,6 +322,7 @@ IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
 IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
 IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
 IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
+IB/libIBAMR_IB2d_a-IBHDF5Initializer.o \
 IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
 IB/libIBAMR_IB2d_a-IBInstrumentPanel.o \
 IB/libIBAMR_IB2d_a-IBInstrumentationSpec.o \
@@ -377,6 +380,7 @@ IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
 IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
 IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
 IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
+IB/libIBAMR_IB3d_a-IBHDF5Initializer.o \
 IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
 IB/libIBAMR_IB3d_a-IBInstrumentPanel.o \
 IB/libIBAMR_IB3d_a-IBInstrumentationSpec.o \
