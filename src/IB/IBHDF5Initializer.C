@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <03.Oct.2007 20:33:48 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Oct.2007 01:26:34 griffith@box221.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -221,6 +221,13 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
 
     buildLevelDataCache(hierarchy, level_number, init_data_time, can_be_refined, initial_time);
 
+    // Determine the extents of the physical domain.
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    const double* const gridXLower = grid_geom->getXLower();
+    const double* const gridXUpper = grid_geom->getXUpper();
+
+    // Loop over all vertices in the specified level and initialize the data in
+    // the appropriate Cartesian grid patches.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     const int num_filenames = d_filenames[level_number].size();
     int local_idx = -1;
@@ -234,42 +241,79 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             const SAMRAI::hier::Index<NDIM>& i = d_level_cell_idxs[j][k];
             const int patch_num = d_level_patch_nums[j][k];
 
+            // Compute the index information for the present vertex.
             const int current_global_idx = getCannonicalLagrangianIndex(vertex_idx,global_index_offset);
             const int current_local_idx = ++local_idx + local_index_offset;
 
-            // Initialize the position of the present vertex.
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(patch_num);
-            const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const xLower = patch_geom->getXLower();
-            const double* const xUpper = patch_geom->getXUpper();
+            // Ensure the point lies within the physical domain.
             for (int d = 0; d < NDIM; ++d)
             {
-                if (SAMRAI::tbox::Utilities::deq(X[d],xLower[d]))
+                if (SAMRAI::tbox::Utilities::deq(X[d],gridXLower[d]))
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node intersecting lower physical boundary.\n"
-                               << "  please ensure that all nodes are within the computational domain."<< endl);
+                               << "  file name = " << d_filenames[level_number][j] << "\n"
+                               << "  level number = " << level_number << "\n"
+                               << "  vertex index = " << vertex_idx.second << "\n"
+                               << "  please ensure that all nodes are within the computational domain." << endl);
                 }
-                else if (X[d] <= xLower[d])
+                else if (X[d] <= gridXLower[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node below lower physical boundary\n"
-                               << "  please ensure that all nodes are within the computational domain."<< endl);
+                               << "  file name = " << d_filenames[level_number][j] << "\n"
+                               << "  level number = " << level_number << "\n"
+                               << "  vertex index = " << vertex_idx.second << "\n"
+                               << "  please ensure that all nodes are within the computational domain." << endl);
                 }
 
-                if (SAMRAI::tbox::Utilities::deq(X[d],xUpper[d]))
+                if (SAMRAI::tbox::Utilities::deq(X[d],gridXUpper[d]))
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node intersecting upper physical boundary.\n"
-                               << "  please ensure that all nodes are within the computational domain."<< endl);
+                               << "  file name = " << d_filenames[level_number][j] << "\n"
+                               << "  level number = " << level_number << "\n"
+                               << "  vertex index = " << vertex_idx.second << "\n"
+                               << "  please ensure that all nodes are within the computational domain." << endl);
                 }
-                else if (X[d] >= xUpper[d])
+                else if (X[d] >= gridXUpper[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node above upper physical boundary\n"
-                               << "  please ensure that all nodes are within the computational domain."<< endl);
+                               << "  file name = " << d_filenames[level_number][j] << "\n"
+                               << "  level number = " << level_number << "\n"
+                               << "  vertex index = " << vertex_idx.second << "\n"
+                               << "  please ensure that all nodes are within the computational domain." << endl);
                 }
             }
+
+            // Ensure the point lies with the present grid patch.
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(patch_num);
+            const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
+                patch->getPatchGeometry();
+            const double* const patchXLower = patch_geom->getXLower();
+            const double* const patchXUpper = patch_geom->getXUpper();
+            for (int d = 0; d < NDIM; ++d)
+            {
+                if (X[d] < patchXLower[d])
+                {
+                    TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
+                               << "  encountered node below lower patch boundary\n"
+                               << "  file name = " << d_filenames[level_number][j] << "\n"
+                               << "  level number = " << level_number << "\n"
+                               << "  vertex index = " << vertex_idx.second << endl);
+                }
+                else if (X[d] >= patchXUpper[d])
+                {
+                    TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
+                               << "  encountered node above upper patch boundary\n"
+                               << "  file name = " << d_filenames[level_number][j] << "\n"
+                               << "  level number = " << level_number << "\n"
+                               << "  vertex index = " << vertex_idx.second << endl);
+                }
+            }
+
+            // Initialize the position of the present vertex.
             double* const vertex_X = &(*X_data)(current_local_idx);
             std::copy(X.begin(),X.end(),vertex_X);
 
@@ -283,10 +327,8 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
                 std::make_pair(j,k), vertex_idx, global_index_offset);
 
             // Initialize the LNodeIndex data.
-#ifdef DEBUG_CHECK_ASSERTIONS
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
             assert(patch_box.contains(i));
-#endif
             SAMRAI::tbox::Pointer<LNodeIndexData2> index_data = patch->getPatchData(lag_node_index_idx);
             LNodeIndexSet& node_set = (*index_data)(i);
             node_set.push_back(new LNodeIndex(current_global_idx, current_local_idx, &(*X_data)(current_local_idx), vertex_specs));
