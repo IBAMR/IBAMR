@@ -16,7 +16,7 @@ if ( @ARGV && $ARGV[0] eq '--link' ) {
     $link = 1;
 }
 
-$includedir="$dirname/../include/ibamr";
+$includedir="$dirname/../../include/ibamr";
 
 #
 # Get relative path to and from source directory.

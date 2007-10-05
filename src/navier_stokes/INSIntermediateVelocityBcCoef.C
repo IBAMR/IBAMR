@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.C
-// Last modified: <11.Sep.2007 13:04:21 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Oct.2007 22:50:42 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSIntermediateVelocityBcCoef.h"
@@ -34,6 +34,11 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+namespace
+{
+static const bool USE_HIGHER_ORDER_OPEN_BOUNDARY_CONDITIONS = false;
+}
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
@@ -58,6 +63,14 @@ INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
     setPhiPatchDataIndex(Phi_idx);
     setVelocityPhysicalBcCoefs(u_bc_coefs);
     setHomogeneousBc(homogeneous_bc);
+    static bool warned = false;
+    if (!warned)
+    {
+        SAMRAI::tbox::plog << "INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef():\n"
+                           << "  WARNING: second-order traction/open boundary condition handling is " << (USE_HIGHER_ORDER_OPEN_BOUNDARY_CONDITIONS ? "ENABLED" : "DISABLED") << ".\n"
+                           << "           presently, this functionality must be activated/deactivated at compile time.\n\n";
+        warned = true;
+    }
     return;
 }// INSIntermediateVelocityBcCoef
 
@@ -263,120 +276,123 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
     // Enforce homogeneous boundary conditions.
     if (d_homogeneous_bc || d_velocity_correction) gcoef_data->fillAll(0.0);
 
-    // At "open" boundaries, modify the normal velocity boundary conditions to
-    // enforce div u = 0, and modify the tangential velocity boundary conditions
-    // to enforce zero stress.  This is done by specifying a normal flux F at
-    // the boundary.
-    //
-    // Note that this flux F may be non-zero even in the case that we are
-    // employing homogeneous boundary conditions.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U_data =
-        patch.checkAllocated(d_target_idx)
-        ? patch.getPatchData(d_target_idx)
-        : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!U_data.isNull());
-    assert(fill_acoef_data || fill_bcoef_data);
-#endif
-    const SAMRAI::hier::Box<NDIM>& U_ghost_box = U_data->getGhostBox();
-    const SAMRAI::hier::Index<NDIM>& U_ghost_lower = U_ghost_box.lower();
-    const SAMRAI::hier::Index<NDIM>& U_ghost_upper = U_ghost_box.upper();
-    for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+    if (USE_HIGHER_ORDER_OPEN_BOUNDARY_CONDITIONS)
     {
-        const SAMRAI::hier::Index<NDIM>& i = b();
-        if ((fill_acoef_data && SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),0.0)) ||
-            (fill_bcoef_data && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),1.0)))
+        // At "open" boundaries, modify the normal velocity boundary conditions
+        // to enforce div u = 0, and modify the tangential velocity boundary
+        // conditions to enforce zero stress.  This is done by specifying a
+        // normal flux F at the boundary.
+        //
+        // Note that this flux F may be non-zero even in the case that we are
+        // employing homogeneous boundary conditions.
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U_data =
+            patch.checkAllocated(d_target_idx)
+            ? patch.getPatchData(d_target_idx)
+            : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        assert(!U_data.isNull());
+        assert(fill_acoef_data || fill_bcoef_data);
+#endif
+        const SAMRAI::hier::Box<NDIM>& U_ghost_box = U_data->getGhostBox();
+        const SAMRAI::hier::Index<NDIM>& U_ghost_lower = U_ghost_box.lower();
+        const SAMRAI::hier::Index<NDIM>& U_ghost_upper = U_ghost_box.upper();
+        for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
         {
-            // Set the flux to satisfy either div U = 0 or t * sigma * n = 0 at
-            // the boundary.
-            double F = 0.0;
-            bool at_edge_or_corner = false;
-            for (int axis = 0; axis < NDIM; ++axis)
+            const SAMRAI::hier::Index<NDIM>& i = b();
+            if ((fill_acoef_data && SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),0.0)) ||
+                (fill_bcoef_data && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),1.0)))
             {
-                if (axis != bdry_normal_axis)
+                // Set the flux to satisfy either div U = 0 or t * sigma * n = 0
+                // at the boundary.
+                double F = 0.0;
+                bool at_edge_or_corner = false;
+                for (int axis = 0; axis < NDIM; ++axis)
                 {
-                    // Determine the component of the velocity that we are
-                    // differencing.
-                    const int comp_idx = (d_comp_idx == bdry_normal_axis ? axis : bdry_normal_axis);
+                    if (axis != bdry_normal_axis)
+                    {
+                        // Determine the component of the velocity that we are
+                        // differencing.
+                        const int comp_idx = (d_comp_idx == bdry_normal_axis ? axis : bdry_normal_axis);
 
-                    // Setup the basic difference stencil, located inside the
-                    // computational domain.
-                    SAMRAI::hier::Index<NDIM> i_lower(i), i_upper(i);
-                    i_lower(axis) -= 1;
-                    i_upper(axis) += 1;
+                        // Setup the basic difference stencil, located inside
+                        // the computational domain.
+                        SAMRAI::hier::Index<NDIM> i_lower(i), i_upper(i);
+                        i_lower(axis) -= 1;
+                        i_upper(axis) += 1;
 
-                    if (is_lower)
-                    {
-                        // intentionally blank
-                    }
-                    else
-                    {
-                        i_lower(bdry_normal_axis) -= 1;
-                        i_upper(bdry_normal_axis) -= 1;
-                    }
+                        if (is_lower)
+                        {
+                            // intentionally blank
+                        }
+                        else
+                        {
+                            i_lower(bdry_normal_axis) -= 1;
+                            i_upper(bdry_normal_axis) -= 1;
+                        }
 
-                    // Shift the difference stencils near edges and corners in
-                    // the computational domain.
-                    if      (pgeom->getTouchesRegularBoundary(axis,0) && i(axis) <= patch_lower(axis))
-                    {
-                        at_edge_or_corner = true;
-                        i_lower(axis) = patch_lower(axis);
-                        i_upper(axis) = patch_lower(axis)+1;
-                    }
-                    else if (pgeom->getTouchesRegularBoundary(axis,1) && i(axis) >= patch_upper(axis))
-                    {
-                        at_edge_or_corner = true;
-                        i_lower(axis) = patch_upper(axis)-1;
-                        i_upper(axis) = patch_upper(axis);
-                    }
+                        // Shift the difference stencils near edges and corners
+                        // in the computational domain.
+                        if      (pgeom->getTouchesRegularBoundary(axis,0) && i(axis) <= patch_lower(axis))
+                        {
+                            at_edge_or_corner = true;
+                            i_lower(axis) = patch_lower(axis);
+                            i_upper(axis) = patch_lower(axis)+1;
+                        }
+                        else if (pgeom->getTouchesRegularBoundary(axis,1) && i(axis) >= patch_upper(axis))
+                        {
+                            at_edge_or_corner = true;
+                            i_lower(axis) = patch_upper(axis)-1;
+                            i_upper(axis) = patch_upper(axis);
+                        }
 
-                    // Ensure the difference stencil lies within the ghost cell
-                    // region of the patch data.
-                    if      (i_lower(axis) <= U_ghost_lower(axis))
-                    {
-                        i_lower(axis) = U_ghost_lower(axis);
-                        i_upper(axis) = U_ghost_lower(axis)+1;
-                    }
-                    else if (i_upper(axis) >= U_ghost_upper(axis))
-                    {
-                        i_lower(axis) = U_ghost_upper(axis)-1;
-                        i_upper(axis) = U_ghost_upper(axis);
-                    }
+                        // Ensure the difference stencil lies within the ghost
+                        // cell region of the patch data.
+                        if      (i_lower(axis) <= U_ghost_lower(axis))
+                        {
+                            i_lower(axis) = U_ghost_lower(axis);
+                            i_upper(axis) = U_ghost_lower(axis)+1;
+                        }
+                        else if (i_upper(axis) >= U_ghost_upper(axis))
+                        {
+                            i_lower(axis) = U_ghost_upper(axis)-1;
+                            i_upper(axis) = U_ghost_upper(axis);
+                        }
 
-                    if ((d_comp_idx == bdry_normal_axis) || axis == d_comp_idx)
-                    {
-                        F += 0.5*(is_lower ? -1.0 : +1.0)*((*U_data)(i_upper,comp_idx)-(*U_data)(i_lower,comp_idx))/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
-                    }
+                        if ((d_comp_idx == bdry_normal_axis) || axis == d_comp_idx)
+                        {
+                            F += 0.5*(is_lower ? -1.0 : +1.0)*((*U_data)(i_upper,comp_idx)-(*U_data)(i_lower,comp_idx))/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
+                        }
 
-                    // Shift the difference stencil outside the computational
-                    // domain.
-                    if (is_lower)
-                    {
-                        i_lower(bdry_normal_axis) -= 1;
-                        i_upper(bdry_normal_axis) -= 1;
-                    }
-                    else
-                    {
-                        i_lower(bdry_normal_axis) += 1;
-                        i_upper(bdry_normal_axis) += 1;
-                    }
+                        // Shift the difference stencil outside the
+                        // computational domain.
+                        if (is_lower)
+                        {
+                            i_lower(bdry_normal_axis) -= 1;
+                            i_upper(bdry_normal_axis) -= 1;
+                        }
+                        else
+                        {
+                            i_lower(bdry_normal_axis) += 1;
+                            i_upper(bdry_normal_axis) += 1;
+                        }
 
-                    if ((d_comp_idx == bdry_normal_axis) || axis == d_comp_idx)
-                    {
-                        F += 0.5*(is_lower ? -1.0 : +1.0)*((*U_data)(i_upper,comp_idx)-(*U_data)(i_lower,comp_idx))/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
+                        if ((d_comp_idx == bdry_normal_axis) || axis == d_comp_idx)
+                        {
+                            F += 0.5*(is_lower ? -1.0 : +1.0)*((*U_data)(i_upper,comp_idx)-(*U_data)(i_lower,comp_idx))/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
+                        }
                     }
                 }
-            }
 
-            // Set the normal flux away from edges or corners in the
-            // computational domain.
-            if (!at_edge_or_corner)
-            {
-                (*gcoef_data)(i,0) = F;
-            }
-            else
-            {
-                (*gcoef_data)(i,0) = 0.0;
+                // Set the normal flux away from edges or corners in the
+                // computational domain.
+                if (!at_edge_or_corner)
+                {
+                    (*gcoef_data)(i,0) = F;
+                }
+                else
+                {
+                    (*gcoef_data)(i,0) = 0.0;
+                }
             }
         }
     }

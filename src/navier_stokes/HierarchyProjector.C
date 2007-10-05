@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <11.Sep.2007 00:36:20 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Oct.2007 18:20:33 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -49,6 +49,9 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_project_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuration;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
+
+// Number of ghosts cells used for each variable quantity.
+static const int GHOST_CELL_WIDTH = 1;
 
 // Version of HierarchyProjector restart file data.
 static const int HIERARCHY_PROJECTOR_VERSION = 1;
@@ -132,7 +135,7 @@ HierarchyProjector::HierarchyProjector(
     d_P_var   = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P",1);
     d_w_var   = new SAMRAI::pdat::FaceVariable<NDIM,double>(d_object_name+"::w",1);
 
-    const SAMRAI::hier::IntVector<NDIM> ghosts = 2;  // XXXX
+    const SAMRAI::hier::IntVector<NDIM> ghosts = GHOST_CELL_WIDTH;
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
     d_sol_idx = var_db->registerVariableAndContext(d_sol_var, d_context, ghosts);

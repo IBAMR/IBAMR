@@ -31,6 +31,7 @@ IB/libIBAMR_IB2d_a-IBLagrangianForceStrategySet.o \
 IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o \
 IB/libIBAMR_IB2d_a-IBMarker.o \
 IB/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.o \
+IB/libIBAMR_IB2d_a-IBMarkerRefineOperator.o \
 IB/libIBAMR_IB2d_a-IBSpringForceGen.o \
 IB/libIBAMR_IB2d_a-IBSpringForceSpecFactory.o \
 IB/libIBAMR_IB2d_a-IBSpringForceSpec.o \
@@ -89,6 +90,7 @@ IB/libIBAMR_IB3d_a-IBLagrangianForceStrategySet.o \
 IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o \
 IB/libIBAMR_IB3d_a-IBMarker.o \
 IB/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.o \
+IB/libIBAMR_IB3d_a-IBMarkerRefineOperator.o \
 IB/libIBAMR_IB3d_a-IBSpringForceGen.o \
 IB/libIBAMR_IB3d_a-IBSpringForceSpecFactory.o \
 IB/libIBAMR_IB3d_a-IBSpringForceSpec.o \

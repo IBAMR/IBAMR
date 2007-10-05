@@ -1,5 +1,5 @@
 // Filename: IBMarkerCoarsenOperator.C
-// Last modified: <13.Sep.2007 03:27:27 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Oct.2007 23:49:51 griffith@box221.cims.nyu.edu>
 // Created on 30 Sep 2006 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBMarkerCoarsenOperator.h"
@@ -33,6 +33,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+const std::string IBMarkerCoarsenOperator::s_op_name = "IB_MARKER_COARSEN";
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBMarkerCoarsenOperator::IBMarkerCoarsenOperator()
@@ -53,27 +55,26 @@ IBMarkerCoarsenOperator::findCoarsenOperator(
     const std::string &op_name) const
 {
     SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBMarker> > mark_var = var;
-    return !mark_var.isNull();
+    return (!mark_var.isNull() && op_name == s_op_name);
 }// findCoarsenOperator
 
 const std::string&
 IBMarkerCoarsenOperator::getOperatorName() const
 {
-    static const std::string marker_name("IBMarkerCoarsenOperator");
-    return marker_name;
+    return s_op_name;
 }// getOperatorName
 
 int
 IBMarkerCoarsenOperator::getOperatorPriority() const
 {
     return 128;
-}
+}// getOperatorPriority
 
 SAMRAI::hier::IntVector<NDIM>
 IBMarkerCoarsenOperator::getStencilWidth() const
 {
     return 0;
-}
+}// getStencilWidth
 
 void
 IBMarkerCoarsenOperator::coarsen(
@@ -112,19 +113,22 @@ IBMarkerCoarsenOperator::coarsen(
             for (int k = 0; k < num_marks; ++k)
             {
                 const double* const X = &fine_X[NDIM*k];
-
-                const SAMRAI::hier::Index<NDIM> new_cell_idx =
+                const double* const U = &fine_U[NDIM*k];
+                const int& idx = fine_idx[k];
+                const SAMRAI::hier::Index<NDIM> coarse_i =
                     STOOLS::STOOLS_Utilities::getCellIndex(
                         X,coarse_patchXLower,coarse_patchXUpper,coarse_patchDx,coarse_patch_lower,coarse_patch_upper);
-
-                if (!dst_mark_data->isElement(new_cell_idx))
+                if (coarse_box.contains(coarse_i))
                 {
-                    dst_mark_data->appendItem(new_cell_idx, IBMarker());
+                    if (!dst_mark_data->isElement(coarse_i))
+                    {
+                        dst_mark_data->appendItem(coarse_i, IBMarker());
+                    }
+                    IBMarker* const coarse_mark = dst_mark_data->getItem(coarse_i);
+                    coarse_mark->getPositions() .insert(coarse_mark->getPositions() .end(),X,X+NDIM);
+                    coarse_mark->getVelocities().insert(coarse_mark->getVelocities().end(),U,U+NDIM);
+                    coarse_mark->getIndices().push_back(idx);
                 }
-                IBMarker* const coarse_mark = dst_mark_data->getItem(new_cell_idx);
-                coarse_mark->getPositions().insert(coarse_mark->getPositions().end(),X,X+NDIM);
-                coarse_mark->getVelocities().insert(coarse_mark->getVelocities().end(),&fine_U[NDIM*k],&fine_U[NDIM*k]+NDIM);
-                coarse_mark->getIndices().push_back(fine_idx[k]);
             }
         }
     }

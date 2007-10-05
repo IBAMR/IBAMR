@@ -70,6 +70,7 @@ am__objects_1 = libIBAMR_IB2d_a-IBBeamForceGen.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBMarker.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBMarkerCoarsenOperator.$(OBJEXT) \
+	libIBAMR_IB2d_a-IBMarkerRefineOperator.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBSpringForceGen.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBSpringForceSpec.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBSpringForceSpecFactory.$(OBJEXT) \
@@ -97,6 +98,7 @@ am__objects_2 = libIBAMR_IB3d_a-IBBeamForceGen.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBMarker.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBMarkerCoarsenOperator.$(OBJEXT) \
+	libIBAMR_IB3d_a-IBMarkerRefineOperator.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBSpringForceGen.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBSpringForceSpec.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBSpringForceSpecFactory.$(OBJEXT) \
@@ -263,6 +265,7 @@ IBLagrangianForceStrategySet.C \
 IBLagrangianSourceStrategy.C \
 IBMarker.C \
 IBMarkerCoarsenOperator.C \
+IBMarkerRefineOperator.C \
 IBSpringForceGen.C \
 IBSpringForceSpec.C \
 IBSpringForceSpecFactory.C \
@@ -291,6 +294,7 @@ IBLagrangianSourceStrategy.h \
 IBMarker.h \
 IBMarker.I \
 IBMarkerCoarsenOperator.h \
+IBMarkerRefineOperator.h \
 IBSpringForceGen.h \
 IBSpringForceSpec.h \
 IBSpringForceSpec.I \
@@ -372,6 +376,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBMarker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerRefineOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBSpringForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBSpringForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBSpringForceSpecFactory.Po@am__quote@
@@ -395,6 +400,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBMarker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerRefineOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBSpringForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBSpringForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBSpringForceSpecFactory.Po@am__quote@
@@ -627,6 +633,20 @@ libIBAMR_IB2d_a-IBMarkerCoarsenOperator.obj: IBMarkerCoarsenOperator.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarkerCoarsenOperator.C' object='libIBAMR_IB2d_a-IBMarkerCoarsenOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBMarkerCoarsenOperator.obj `if test -f 'IBMarkerCoarsenOperator.C'; then $(CYGPATH_W) 'IBMarkerCoarsenOperator.C'; else $(CYGPATH_W) '$(srcdir)/IBMarkerCoarsenOperator.C'; fi`
+
+libIBAMR_IB2d_a-IBMarkerRefineOperator.o: IBMarkerRefineOperator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBMarkerRefineOperator.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerRefineOperator.Tpo" -c -o libIBAMR_IB2d_a-IBMarkerRefineOperator.o `test -f 'IBMarkerRefineOperator.C' || echo '$(srcdir)/'`IBMarkerRefineOperator.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerRefineOperator.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerRefineOperator.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerRefineOperator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarkerRefineOperator.C' object='libIBAMR_IB2d_a-IBMarkerRefineOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBMarkerRefineOperator.o `test -f 'IBMarkerRefineOperator.C' || echo '$(srcdir)/'`IBMarkerRefineOperator.C
+
+libIBAMR_IB2d_a-IBMarkerRefineOperator.obj: IBMarkerRefineOperator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBMarkerRefineOperator.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerRefineOperator.Tpo" -c -o libIBAMR_IB2d_a-IBMarkerRefineOperator.obj `if test -f 'IBMarkerRefineOperator.C'; then $(CYGPATH_W) 'IBMarkerRefineOperator.C'; else $(CYGPATH_W) '$(srcdir)/IBMarkerRefineOperator.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerRefineOperator.Tpo" "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerRefineOperator.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB2d_a-IBMarkerRefineOperator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarkerRefineOperator.C' object='libIBAMR_IB2d_a-IBMarkerRefineOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBMarkerRefineOperator.obj `if test -f 'IBMarkerRefineOperator.C'; then $(CYGPATH_W) 'IBMarkerRefineOperator.C'; else $(CYGPATH_W) '$(srcdir)/IBMarkerRefineOperator.C'; fi`
 
 libIBAMR_IB2d_a-IBSpringForceGen.o: IBSpringForceGen.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBSpringForceGen.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB2d_a-IBSpringForceGen.Tpo" -c -o libIBAMR_IB2d_a-IBSpringForceGen.o `test -f 'IBSpringForceGen.C' || echo '$(srcdir)/'`IBSpringForceGen.C; \
@@ -949,6 +969,20 @@ libIBAMR_IB3d_a-IBMarkerCoarsenOperator.obj: IBMarkerCoarsenOperator.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarkerCoarsenOperator.C' object='libIBAMR_IB3d_a-IBMarkerCoarsenOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBMarkerCoarsenOperator.obj `if test -f 'IBMarkerCoarsenOperator.C'; then $(CYGPATH_W) 'IBMarkerCoarsenOperator.C'; else $(CYGPATH_W) '$(srcdir)/IBMarkerCoarsenOperator.C'; fi`
+
+libIBAMR_IB3d_a-IBMarkerRefineOperator.o: IBMarkerRefineOperator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBMarkerRefineOperator.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerRefineOperator.Tpo" -c -o libIBAMR_IB3d_a-IBMarkerRefineOperator.o `test -f 'IBMarkerRefineOperator.C' || echo '$(srcdir)/'`IBMarkerRefineOperator.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerRefineOperator.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerRefineOperator.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerRefineOperator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarkerRefineOperator.C' object='libIBAMR_IB3d_a-IBMarkerRefineOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBMarkerRefineOperator.o `test -f 'IBMarkerRefineOperator.C' || echo '$(srcdir)/'`IBMarkerRefineOperator.C
+
+libIBAMR_IB3d_a-IBMarkerRefineOperator.obj: IBMarkerRefineOperator.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBMarkerRefineOperator.obj -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerRefineOperator.Tpo" -c -o libIBAMR_IB3d_a-IBMarkerRefineOperator.obj `if test -f 'IBMarkerRefineOperator.C'; then $(CYGPATH_W) 'IBMarkerRefineOperator.C'; else $(CYGPATH_W) '$(srcdir)/IBMarkerRefineOperator.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerRefineOperator.Tpo" "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerRefineOperator.Po"; else rm -f "$(DEPDIR)/libIBAMR_IB3d_a-IBMarkerRefineOperator.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBMarkerRefineOperator.C' object='libIBAMR_IB3d_a-IBMarkerRefineOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBMarkerRefineOperator.obj `if test -f 'IBMarkerRefineOperator.C'; then $(CYGPATH_W) 'IBMarkerRefineOperator.C'; else $(CYGPATH_W) '$(srcdir)/IBMarkerRefineOperator.C'; fi`
 
 libIBAMR_IB3d_a-IBSpringForceGen.o: IBSpringForceGen.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBSpringForceGen.o -MD -MP -MF "$(DEPDIR)/libIBAMR_IB3d_a-IBSpringForceGen.Tpo" -c -o libIBAMR_IB3d_a-IBSpringForceGen.o `test -f 'IBSpringForceGen.C' || echo '$(srcdir)/'`IBSpringForceGen.C; \

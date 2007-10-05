@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <25.Sep.2007 22:39:54 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Oct.2007 23:29:26 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -19,6 +19,7 @@
 // IBAMR INCLUDES
 #include <ibamr/IBInstrumentationSpec.h>
 #include <ibamr/IBMarkerCoarsenOperator.h>
+#include <ibamr/IBMarkerRefineOperator.h>
 #include <ibamr/LEInteractor.h>
 #include <ibamr/LNodeIndexData2.h>
 
@@ -1842,12 +1843,13 @@ IBHierarchyIntegrator::regridHierarchy()
     mark_bdry_fill_alg->registerRefine(d_mark_scratch_idx, // destination
                                        d_mark_idx,         // source
                                        d_mark_scratch_idx, // temporary work space
-                                       SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> >(NULL));
+                                       new IBMarkerRefineOperator());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
-        mark_bdry_fill_alg->createSchedule(level)->fillData(d_integrator_time);
+        SAMRAI::xfer::RefinePatchStrategy<NDIM>* mark_bdry_fill_op = NULL;
+        mark_bdry_fill_alg->createSchedule(level, ln-1, d_hierarchy,mark_bdry_fill_op)->fillData(d_integrator_time);
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -2130,13 +2132,18 @@ IBHierarchyIntegrator::initializeLevelData(
     {
         level->allocatePatchData(d_mark_scratch_idx, init_data_time);
 
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > mark_bdry_fill_alg =
-            new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-        mark_bdry_fill_alg->registerRefine(d_mark_idx,         // destination
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > fill_after_regrid_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+        fill_after_regrid_alg->registerRefine(d_mark_idx,         // destination
                                            d_mark_idx,         // source
                                            d_mark_scratch_idx, // temporary work space
-                                           SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> >(NULL));
-        mark_bdry_fill_alg->createSchedule(level,old_level)->fillData(init_data_time);
+                                           new IBMarkerRefineOperator());
+        SAMRAI::xfer::RefinePatchStrategy<NDIM>* fill_after_regrid_op = NULL;
+        fill_after_regrid_alg->
+            createSchedule(level,
+                           old_level,
+                           level_number-1,
+                           hierarchy,
+                           fill_after_regrid_op)->fillData(init_data_time);
 
         level->deallocatePatchData(d_mark_scratch_idx);
     }
