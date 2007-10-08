@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <04.Oct.2007 23:29:26 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Oct.2007 15:36:55 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -252,7 +252,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
                 int num_marks;
                 if (!std::getline(file_stream, line_string))
                 {
-                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << d_mark_input_file_name << endl);
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << d_mark_input_file_name << "\n");
                 }
                 else
                 {
@@ -260,13 +260,13 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
                     std::istringstream line_stream(line_string);
                     if (!(line_stream >> num_marks))
                     {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << d_mark_input_file_name << endl);
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << d_mark_input_file_name << "\n");
                     }
                 }
 
                 if (num_marks <= 0)
                 {
-                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << d_mark_input_file_name << endl);
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << d_mark_input_file_name << "\n");
                 }
 
                 // Each successive line provides the initial position of each
@@ -276,7 +276,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
                 {
                     if (!std::getline(file_stream, line_string))
                     {
-                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << d_mark_input_file_name << endl);
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << d_mark_input_file_name << "\n");
                     }
                     else
                     {
@@ -286,7 +286,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
                         {
                             if (!(line_stream >> d_mark_init_posns[k*NDIM+d]))
                             {
-                                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_mark_input_file_name << endl);
+                                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_mark_input_file_name << "\n");
                             }
                         }
                     }
@@ -398,7 +398,7 @@ IBHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
     {
         TBOX_ERROR(d_object_name << "::registerVelocityPhysicalBcCoefs()\n"
                    << "  velocity boundary conditions must be registered prior to initialization\n"
-                   << "  of the hierarchy integrator object." << endl);
+                   << "  of the hierarchy integrator object.\n");
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned l = 0; l < U_bc_coefs.size(); ++l)
@@ -1168,7 +1168,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 }
                 if (d_do_log && !SAMRAI::tbox::Utilities::deq(max_config_displacement,0.0))
                 {
-                    SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy():" << "\n";
+                    SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy():\n";
                     SAMRAI::tbox::plog << "  maximum massive boundary point displacement [present configuration] = " << max_config_displacement << "\n";
                     SAMRAI::tbox::plog << "  maximum massive boundary point displacement [entire simulation] = " << max_displacement << "\n";
                 }
@@ -1837,6 +1837,30 @@ IBHierarchyIntegrator::regridHierarchy()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
+    // Count the number of markers.
+    int num_marks = 0;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
+                patch->getPatchData(d_mark_idx);
+            for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_data); it; it++)
+            {
+                const IBMarker& mark = it();
+                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                if (patch_box.contains(i))
+                {
+                    num_marks += mark.getNumberOfMarkers();
+                }
+            }
+        }
+    }
+    num_marks = SAMRAI::tbox::MPI::sumReduction(num_marks);
+
     // Reset all marker data.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > mark_bdry_fill_alg =
         new SAMRAI::xfer::RefineAlgorithm<NDIM>();
@@ -1976,6 +2000,39 @@ IBHierarchyIntegrator::regridHierarchy()
                 }
             }
         }
+    }
+
+    // Re-count the number of markers.
+    int num_marks_after_regrid = 0;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
+                patch->getPatchData(d_mark_idx);
+            for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_data); it; it++)
+            {
+                const IBMarker& mark = it();
+                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                if (patch_box.contains(i))
+                {
+                    num_marks_after_regrid += mark.getNumberOfMarkers();
+                }
+            }
+        }
+    }
+    num_marks_after_regrid = SAMRAI::tbox::MPI::sumReduction(num_marks_after_regrid);
+
+    // Ensure that we haven't misplaced any of the markers.
+    if (num_marks != num_marks_after_regrid)
+    {
+        TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
+                   << "  number of marker particles changed during regridding\n"
+                   << "  number of markers before regrid = " << num_marks << "\n"
+                   << "  number of markers after  regrid = " << num_marks_after_regrid << "\n");
     }
 
     // Indicate that the force and source strategies need to be re-initialized.
@@ -2132,11 +2189,12 @@ IBHierarchyIntegrator::initializeLevelData(
     {
         level->allocatePatchData(d_mark_scratch_idx, init_data_time);
 
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > fill_after_regrid_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > fill_after_regrid_alg =
+            new SAMRAI::xfer::RefineAlgorithm<NDIM>();
         fill_after_regrid_alg->registerRefine(d_mark_idx,         // destination
-                                           d_mark_idx,         // source
-                                           d_mark_scratch_idx, // temporary work space
-                                           new IBMarkerRefineOperator());
+                                              d_mark_idx,         // source
+                                              d_mark_scratch_idx, // temporary work space
+                                              new IBMarkerRefineOperator());
         SAMRAI::xfer::RefinePatchStrategy<NDIM>* fill_after_regrid_op = NULL;
         fill_after_regrid_alg->
             createSchedule(level,
@@ -2643,24 +2701,24 @@ void
 IBHierarchyIntegrator::printClassData(
     std::ostream& os) const
 {
-    os << "\nIBHierarchyIntegrator::printClassData..." << endl;
-    os << "this = " << const_cast<IBHierarchyIntegrator*>(this) << endl;
+    os << "\nIBHierarchyIntegrator::printClassData...\n";
+    os << "this = " << const_cast<IBHierarchyIntegrator*>(this) << "\n";
     os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << endl;
+       << "d_registered_for_restart = " << d_registered_for_restart << "\n";
     os << "d_delta_fcn = " << d_delta_fcn << "\n"
-       << "d_ghosts = " << d_ghosts << endl;
+       << "d_ghosts = " << d_ghosts << "\n";
     os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
-       << "d_gridding_alg = " << d_gridding_alg.getPointer() << endl;
+       << "d_gridding_alg = " << d_gridding_alg.getPointer() << "\n";
     os << "d_visit_writer = " << d_visit_writer.getPointer() << "\n"
-       << "d_silo_writer = " << d_silo_writer.getPointer() << endl;
-    os << "d_load_balancer = " << d_load_balancer.getPointer() << endl;
-    os << "d_ins_hier_integrator = " << d_ins_hier_integrator.getPointer() << endl;
-    os << "d_lag_data_manager = " << d_lag_data_manager << endl;
-    os << "d_lag_init = " << d_lag_init.getPointer() << endl;
+       << "d_silo_writer = " << d_silo_writer.getPointer() << "\n";
+    os << "d_load_balancer = " << d_load_balancer.getPointer() << "\n";
+    os << "d_ins_hier_integrator = " << d_ins_hier_integrator.getPointer() << "\n";
+    os << "d_lag_data_manager = " << d_lag_data_manager << "\n";
+    os << "d_lag_init = " << d_lag_init.getPointer() << "\n";
     os << "d_body_force_set = " << d_body_force_set.getPointer() << "\n"
        << "d_eluerian_force_set = " << d_eulerian_force_set.getPointer() << "\n"
        << "d_force_strategy = " << d_force_strategy.getPointer() << "\n"
-       << "d_force_strategy_needs_init = " << d_force_strategy_needs_init << endl;
+       << "d_force_strategy_needs_init = " << d_force_strategy_needs_init << "\n";
     os << "d_eluerian_source_set = " << d_eulerian_source_set.getPointer() << "\n"
        << "d_source_strategy = " << d_source_strategy.getPointer() << "\n"
        << "d_source_strategy_needs_init = " << d_source_strategy_needs_init << "\n";
@@ -2674,9 +2732,9 @@ IBHierarchyIntegrator::printClassData(
             os << " ]\n"
                << "d_r_src_" << ln << "_" << n << d_r_src[ln][n] << "\n"
                << "d_P_src_" << ln << "_" << n << d_P_src[ln][n] << "\n"
-               << "d_Q_src_" << ln << "_" << n << d_Q_src[ln][n] << endl;
+               << "d_Q_src_" << ln << "_" << n << d_Q_src[ln][n] << "\n";
         }
-        os << "d_n_src_" << ln << " = " << d_n_src[ln] << endl;
+        os << "d_n_src_" << ln << " = " << d_n_src[ln] << "\n";
     }
     os << "d_using_pIB_method = " << d_using_pIB_method << "\n"
        << "d_gravitational_acceleration = [ ";
@@ -2685,21 +2743,21 @@ IBHierarchyIntegrator::printClassData(
     os << "d_start_time = " << d_start_time << "\n"
        << "d_end_time = " << d_end_time << "\n"
        << "d_grow_dt = " << d_grow_dt << "\n"
-       << "d_max_integrator_steps = " << d_max_integrator_steps << endl;
-    os << "d_num_cycles = " << d_num_cycles << endl;
-    os << "d_num_init_cycles = " << d_num_init_cycles << endl;
-    os << "d_regrid_interval = " << d_regrid_interval << endl;
+       << "d_max_integrator_steps = " << d_max_integrator_steps << "\n";
+    os << "d_num_cycles = " << d_num_cycles << "\n";
+    os << "d_num_init_cycles = " << d_num_init_cycles << "\n";
+    os << "d_regrid_interval = " << d_regrid_interval << "\n";
     os << "d_old_dt = " << d_old_dt << "\n"
        << "d_integrator_time = " << d_integrator_time << "\n"
-       << "d_integrator_step = " << d_integrator_step << endl;
+       << "d_integrator_step = " << d_integrator_step << "\n";
     os << "d_dt_max = " << d_dt_max << "\n"
        << "d_dt_max_time_max = " << d_dt_max_time_max << "\n"
-       << "d_dt_max_time_min = " << d_dt_max_time_min << endl;
-    os << "d_is_initialized = " << d_is_initialized << endl;
-    os << "d_do_log = " << d_do_log << endl;
-    os << "d_reinterpolate_after_regrid = " << d_reinterpolate_after_regrid << endl;
-    os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << endl;
-    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << endl;
+       << "d_dt_max_time_min = " << d_dt_max_time_min << "\n";
+    os << "d_is_initialized = " << d_is_initialized << "\n";
+    os << "d_do_log = " << d_do_log << "\n";
+    os << "d_reinterpolate_after_regrid = " << d_reinterpolate_after_regrid << "\n";
+    os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n";
+    os << "Skipping variables, patch data descriptors, communications algorithms, etc.\n";
     return;
 }// printClassData
 
@@ -2999,7 +3057,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
         }
     }
 
-    SAMRAI::tbox::plog << "    q_integral = " << d_hier_cc_data_ops->integral(d_Q_idx, wgt_idx) << endl;
+    SAMRAI::tbox::plog << "    q_integral = " << d_hier_cc_data_ops->integral(d_Q_idx, wgt_idx) << "\n";
 
     // Synchronize the Cartesian grid source density on the patch hierarchy.
     for (int ln = finest_level; ln > coarsest_level; --ln)

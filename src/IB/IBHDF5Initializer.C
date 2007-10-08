@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <04.Oct.2007 01:26:34 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Oct.2007 15:28:39 griffith@box221.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -192,7 +192,7 @@ IBHDF5Initializer::getLocalNodeCountOnPatchLevel(
     if (!can_be_refined && level_number != d_max_levels-1)
     {
         TBOX_WARNING(d_object_name << "::getLocalNodeCountOnPatchLevel():\n  Input database key `max_levels' = " << d_max_levels << " but finest level in the hierarchy is " << level_number << "\n"
-                     << "  some Lagrangian data may not be properly initialized." << endl);
+                     << "  some Lagrangian data may not be properly initialized.\n");
     }
 
     buildLevelDataCache(hierarchy, level_number, init_data_time, can_be_refined, initial_time);
@@ -216,7 +216,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     if (!can_be_refined && level_number != d_max_levels-1)
     {
         TBOX_WARNING(d_object_name << "::initializeDataOnPatchLevel():\n  Input database key `max_levels' = " << d_max_levels << " but finest level in the hierarchy is " << level_number << "\n"
-                     << "  some Lagrangian data may not be properly initialized." << endl);
+                     << "  some Lagrangian data may not be properly initialized.\n");
     }
 
     buildLevelDataCache(hierarchy, level_number, init_data_time, can_be_refined, initial_time);
@@ -252,38 +252,38 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node intersecting lower physical boundary.\n"
-                               << "  file name = " << d_filenames[level_number][j] << "\n"
                                << "  level number = " << level_number << "\n"
-                               << "  vertex index = " << vertex_idx.second << "\n"
-                               << "  please ensure that all nodes are within the computational domain." << endl);
+                               << "  file name = " << d_filenames[level_number][j] << "\n"
+                               << "  vertex index = " << k << "\n"
+                               << "  please ensure that all nodes are within the computational domain.\n");
                 }
                 else if (X[d] <= gridXLower[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node below lower physical boundary\n"
-                               << "  file name = " << d_filenames[level_number][j] << "\n"
                                << "  level number = " << level_number << "\n"
-                               << "  vertex index = " << vertex_idx.second << "\n"
-                               << "  please ensure that all nodes are within the computational domain." << endl);
+                               << "  file name = " << d_filenames[level_number][j] << "\n"
+                               << "  vertex index = " << k << "\n"
+                               << "  please ensure that all nodes are within the computational domain.\n");
                 }
 
                 if (SAMRAI::tbox::Utilities::deq(X[d],gridXUpper[d]))
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node intersecting upper physical boundary.\n"
-                               << "  file name = " << d_filenames[level_number][j] << "\n"
                                << "  level number = " << level_number << "\n"
-                               << "  vertex index = " << vertex_idx.second << "\n"
-                               << "  please ensure that all nodes are within the computational domain." << endl);
+                               << "  file name = " << d_filenames[level_number][j] << "\n"
+                               << "  vertex index = " << k << "\n"
+                               << "  please ensure that all nodes are within the computational domain.\n");
                 }
                 else if (X[d] >= gridXUpper[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node above upper physical boundary\n"
-                               << "  file name = " << d_filenames[level_number][j] << "\n"
                                << "  level number = " << level_number << "\n"
-                               << "  vertex index = " << vertex_idx.second << "\n"
-                               << "  please ensure that all nodes are within the computational domain." << endl);
+                               << "  file name = " << d_filenames[level_number][j] << "\n"
+                               << "  vertex index = " << k << "\n"
+                               << "  please ensure that all nodes are within the computational domain.\n");
                 }
             }
 
@@ -299,17 +299,17 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node below lower patch boundary\n"
-                               << "  file name = " << d_filenames[level_number][j] << "\n"
                                << "  level number = " << level_number << "\n"
-                               << "  vertex index = " << vertex_idx.second << endl);
+                               << "  file name = " << d_filenames[level_number][j] << "\n"
+                               << "  vertex index = " << k << "\n");
                 }
                 else if (X[d] >= patchXUpper[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node above upper patch boundary\n"
-                               << "  file name = " << d_filenames[level_number][j] << "\n"
                                << "  level number = " << level_number << "\n"
-                               << "  vertex index = " << vertex_idx.second << endl);
+                               << "  file name = " << d_filenames[level_number][j] << "\n"
+                               << "  vertex index = " << k << "\n");
                 }
             }
 
@@ -328,7 +328,17 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
 
             // Initialize the LNodeIndex data.
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            assert(patch_box.contains(i));
+            if (!patch_box.contains(i))
+            {
+                TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
+                           << "  encountered node assigned to incorrect patch\n"
+                           << "  level number = " << level_number << "\n"
+                           << "  file name = " << d_filenames[level_number][j] << "\n"
+                           << "  vertex index = " << k << "\n"
+                           << "  vertex cell index = " << i << "\n"
+                           << "  assigned patch number = " << patch_num << "\n"
+                           << "  assigned patch box = " << patch_box << "\n");
+            }
             SAMRAI::tbox::Pointer<LNodeIndexData2> index_data = patch->getPatchData(lag_node_index_idx);
             LNodeIndexSet& node_set = (*index_data)(i);
             node_set.push_back(new LNodeIndex(current_global_idx, current_local_idx, &(*X_data)(current_local_idx), vertex_specs));
@@ -336,7 +346,13 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     }
 
     // Sanity check.
-    assert(local_node_count = std::accumulate(d_level_num_local_vertex.begin(),d_level_num_local_vertex.end(),0));
+    const int expected_local_node_count = std::accumulate(d_level_num_local_vertex.begin(),d_level_num_local_vertex.end(),0);
+    if (local_node_count != expected_local_node_count)
+    {
+        TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
+                   << "  expected local node count = " << expected_local_node_count << "\n"
+                   << "  actual   local node count = " << local_node_count << "\n");
+    }
 
     // Setup the instrument names.
     std::vector<std::string> all_instrument_names;
@@ -369,7 +385,7 @@ IBHDF5Initializer::initializeMassDataOnPatchLevel(
     const bool initial_time,
     LDataManager* const lag_manager)
 {
-    TBOX_ERROR(d_object_name << "::initializeMassDataOnPatchLevel():\n  Not implemented." << endl);
+    TBOX_ERROR(d_object_name << "::initializeMassDataOnPatchLevel():\n  Not implemented.\n");
     int local_node_count = 0;
     return local_node_count;
 }// initializeMassOnPatchLevel
@@ -396,19 +412,23 @@ IBHDF5Initializer::tagCellsForInitialRefinement(
         cell_idxs.insert(cell_idxs.end(),level_cell_idxs.begin(),level_cell_idxs.end());
         patch_nums.insert(patch_nums.end(),level_patch_nums.begin(),level_patch_nums.end());
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
-    assert(cell_idxs.size() == patch_nums.size());
-#endif
+
     const int num_vertex = cell_idxs.size();
     for (int k = 0; k < num_vertex; ++k)
     {
         const SAMRAI::hier::Index<NDIM>& i = cell_idxs[k];
         const int patch_num = patch_nums[k];
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tag_data = tag_level->getPatch(patch_num)->getPatchData(tag_index);
-#ifdef DEBUG_CHECK_ASSERTIONS
         const SAMRAI::hier::Box<NDIM>& patch_box = tag_data->getBox();
-        assert(patch_box.contains(i));
-#endif
+        if (!patch_box.contains(i))
+        {
+            TBOX_ERROR(d_object_name << "::tagCellsForInitialRefinement():\n"
+                       << "  encountered node assigned to incorrect patch\n"
+                       << "  level number = " << level_number << "\n"
+                       << "  vertex cell index = " << i << "\n"
+                       << "  assigned patch number = " << patch_num << "\n"
+                       << "  assigned patch box = " << patch_box << "\n");
+        }
         (*tag_data)(i) = 1;
     }
     return;
@@ -452,13 +472,13 @@ IBHDF5Initializer::findLocalPatchIndices(
         hid_t file_id = H5Fopen(filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
         if (file_id < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << filename << "\n");
         }
         else
         {
             SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "processing vertex data from input filename " << filename << endl
-                               << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+                               << "processing vertex data from input filename " << filename << "\n"
+                               << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << "\n";
         }
 
         std::vector<SAMRAI::hier::Index<NDIM> > file_cell_idxs;
@@ -501,7 +521,7 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
         hid_t posn_dset = H5Dopen(file_id, posn_dset_name.c_str());
         if (posn_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required vertex dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required vertex dataset in input file " << filename << "\n");
         }
 
         // Read in the dimensions of the dataset.
@@ -513,13 +533,13 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
         H5LTget_dataset_ndims(file_id, posn_dset_name.c_str(), &rank);
         if (rank != 2)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid vertex dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid vertex dataset rank in input file " << filename << "\n");
         }
 
         H5LTget_dataset_info(file_id, posn_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0 || dims[1] != NDIM)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid vertex dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid vertex dataset dimension in input file " << filename << "\n");
         }
         const int num_vertex = dims[0];
 
@@ -605,7 +625,7 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
     {
         TBOX_ERROR(d_object_name << ":\n  Cannot find vertex group in input file " << filename << "\n"
                    << "       base group name = " << base_group_name << "\n"
-                   << "       vertex group name = " << vertex_group_name << endl);
+                   << "       vertex group name = " << vertex_group_name << "\n");
     }
     return;
 }// findLocalPatchIndicesFromHDF5
@@ -677,13 +697,13 @@ IBHDF5Initializer::buildLevelDataCache(
         hid_t file_id = H5Fopen(filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
         if (file_id < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << filename << "\n");
         }
         else
         {
             SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "processing vertex data from input filename " << filename << endl
-                               << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
+                               << "processing vertex data from input filename " << filename << "\n"
+                               << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << "\n";
         }
 
         // Check the file contents.
@@ -717,7 +737,7 @@ IBHDF5Initializer::buildLevelDataCache(
         }
         else
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find vertex group in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find vertex group in input file " << filename << "\n");
         }
 
         if (d_enable_springs[level_number][j] && has_group[SPRING_GROUP])
@@ -732,7 +752,7 @@ IBHDF5Initializer::buildLevelDataCache(
         }
         else
         {
-            TBOX_WARNING(d_object_name << ":\n  Cannot find spring group in input file " << filename << endl);
+            TBOX_WARNING(d_object_name << ":\n  Cannot find spring group in input file " << filename << "\n");
         }
 
         if (d_enable_beams[level_number][j] && has_group[BEAM_GROUP])
@@ -747,7 +767,7 @@ IBHDF5Initializer::buildLevelDataCache(
         }
         else
         {
-            TBOX_WARNING(d_object_name << ":\n  Cannot find beam group in input file " << filename << endl);
+            TBOX_WARNING(d_object_name << ":\n  Cannot find beam group in input file " << filename << "\n");
         }
 
         if (d_enable_target_points[level_number][j] && has_group[TARGET_POINT_GROUP])
@@ -762,7 +782,7 @@ IBHDF5Initializer::buildLevelDataCache(
         }
         else
         {
-            TBOX_WARNING(d_object_name << ":\n  Cannot find target point group in input file " << filename << endl);
+            TBOX_WARNING(d_object_name << ":\n  Cannot find target point group in input file " << filename << "\n");
         }
 
         if (d_enable_instrumentation[level_number][j] && has_group[INSTRUMENTATION_GROUP])
@@ -778,7 +798,7 @@ IBHDF5Initializer::buildLevelDataCache(
         }
         else
         {
-            TBOX_WARNING(d_object_name << ":\n  Cannot find instrumentation group in input file " << filename << endl);
+            TBOX_WARNING(d_object_name << ":\n  Cannot find instrumentation group in input file " << filename << "\n");
         }
 
         H5Fclose(file_id);
@@ -841,7 +861,7 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
         hid_t posn_dset = H5Dopen(file_id, posn_dset_name.c_str());
         if (posn_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required vertex dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required vertex dataset in input file " << filename << "\n");
         }
 
         // Read in the dimensions of the datasets.
@@ -853,13 +873,13 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
         H5LTget_dataset_ndims(file_id, posn_dset_name.c_str(), &rank);
         if (rank != 2)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid vertex dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid vertex dataset rank in input file " << filename << "\n");
         }
 
         H5LTget_dataset_info(file_id, posn_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0 || dims[1] != NDIM)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid vertex dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid vertex dataset dimension in input file " << filename << "\n");
         }
         num_vertex = dims[0];
 
@@ -954,7 +974,7 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
     {
         TBOX_ERROR(d_object_name << ":\n  Cannot find vertex group in input file " << filename << "\n"
                    << "       base group name = " << base_group_name << "\n"
-                   << "       vertex group name = " << vertex_group_name << endl);
+                   << "       vertex group name = " << vertex_group_name << "\n");
     }
     return;
 }// buildLevelVertexDataCacheFromHDF5
@@ -990,31 +1010,31 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
         hid_t node1_idx_dset = H5Dopen(file_id, node1_idx_dset_name.c_str());
         if (node1_idx_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << "\n");
         }
 
         hid_t node2_idx_dset = H5Dopen(file_id, node2_idx_dset_name.c_str());
         if (node2_idx_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << "\n");
         }
 
         hid_t force_fcn_idx_dset = H5Dopen(file_id, force_fcn_idx_dset_name.c_str());
         if (force_fcn_idx_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << "\n");
         }
 
         hid_t stiffness_dset = H5Dopen(file_id, stiffness_dset_name.c_str());
         if (stiffness_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << "\n");
         }
 
         hid_t rest_length_dset = H5Dopen(file_id, rest_length_dset_name.c_str());
         if (rest_length_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << "\n");
         }
 
         // Read in the dimensions of the datasets.
@@ -1026,60 +1046,60 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
         H5LTget_dataset_ndims(file_id, node1_idx_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, node1_idx_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << "\n");
         }
         const int node1_idx_size = dims[0];
 
         H5LTget_dataset_ndims(file_id, node2_idx_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, node2_idx_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << "\n");
         }
         const int node2_idx_size = dims[0];
 
         H5LTget_dataset_ndims(file_id, force_fcn_idx_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, force_fcn_idx_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << "\n");
         }
         const int force_fcn_idx_size = dims[0];
 
         H5LTget_dataset_ndims(file_id, stiffness_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, stiffness_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << "\n");
         }
         const int stiffness_size = dims[0];
 
         H5LTget_dataset_ndims(file_id, rest_length_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, rest_length_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << "\n");
         }
         const int rest_length_size = dims[0];
 
@@ -1088,7 +1108,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
             (node1_idx_size != stiffness_size    ) ||
             (node1_idx_size != rest_length_size  ))
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << "\n");
         }
 
         num_spring = node1_idx_size;
@@ -1194,7 +1214,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
     {
         TBOX_ERROR(d_object_name << ":\n  Cannot find spring group in input file " << filename << "\n"
                    << "       base group name = " << base_group_name << "\n"
-                   << "       spring group name = " << spring_group_name << endl);
+                   << "       spring group name = " << spring_group_name << "\n");
     }
     return;
 }// buildLevelSpringDataCacheFromHDF5
@@ -1229,25 +1249,25 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         hid_t node1_idx_dset = H5Dopen(file_id, node1_idx_dset_name.c_str());
         if (node1_idx_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << "\n");
         }
 
         hid_t node2_idx_dset = H5Dopen(file_id, node2_idx_dset_name.c_str());
         if (node2_idx_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << "\n");
         }
 
         hid_t node3_idx_dset = H5Dopen(file_id, node3_idx_dset_name.c_str());
         if (node3_idx_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << "\n");
         }
 
         hid_t bend_rigidity_dset = H5Dopen(file_id, bend_rigidity_dset_name.c_str());
         if (bend_rigidity_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << "\n");
         }
 
         // Read in the dimensions of the datasets.
@@ -1259,48 +1279,48 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         H5LTget_dataset_ndims(file_id, node1_idx_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, node1_idx_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
         }
         const int node1_idx_size = dims[0];
 
         H5LTget_dataset_ndims(file_id, node2_idx_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, node2_idx_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
         }
         const int node2_idx_size = dims[0];
 
         H5LTget_dataset_ndims(file_id, node3_idx_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, node3_idx_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
         }
         const int node3_idx_size = dims[0];
 
         H5LTget_dataset_ndims(file_id, bend_rigidity_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, bend_rigidity_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
         }
         const int bend_rigidity_size = dims[0];
 
@@ -1308,7 +1328,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
             (node1_idx_size != node3_idx_size    ) ||
             (node1_idx_size != bend_rigidity_size))
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
         }
 
         num_beam = node1_idx_size;
@@ -1406,7 +1426,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
     {
         TBOX_ERROR(d_object_name << ":\n  Cannot find beam group in input file " << filename << "\n"
                    << "       base group name = " << base_group_name << "\n"
-                   << "       beam group name = " << beam_group_name << endl);
+                   << "       beam group name = " << beam_group_name << "\n");
     }
     return;
 }// buildLevelBeamDataCacheFromHDF5
@@ -1439,13 +1459,13 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
         hid_t node_idx_dset = H5Dopen(file_id, node_idx_dset_name.c_str());
         if (node_idx_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required target point dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required target point dataset in input file " << filename << "\n");
         }
 
         hid_t stiffness_dset = H5Dopen(file_id, stiffness_dset_name.c_str());
         if (stiffness_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required target point dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required target point dataset in input file " << filename << "\n");
         }
 
         // Read in the dimensions of the datasets.
@@ -1457,30 +1477,30 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
         H5LTget_dataset_ndims(file_id, node_idx_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, node_idx_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset dimension in input file " << filename << "\n");
         }
         const int node_idx_size = dims[0];
 
         H5LTget_dataset_ndims(file_id, stiffness_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, stiffness_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset dimension in input file " << filename << "\n");
         }
         const int stiffness_size = dims[0];
 
         if (node_idx_size != stiffness_size)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset dimension in input file " << filename << "\n");
         }
 
         num_target_point = node_idx_size;
@@ -1560,7 +1580,7 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
     {
         TBOX_ERROR(d_object_name << ":\n  Cannot find target point group in input file " << filename << "\n"
                    << "       base group name = " << base_group_name << "\n"
-                   << "       target point group name = " << target_point_group_name << endl);
+                   << "       target point group name = " << target_point_group_name << "\n");
     }
     return;
 }// buildLevelTargetPointDataCacheFromHDF5
@@ -1592,7 +1612,7 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
         hid_t num_inst_dset = H5Dopen(file_id, num_inst_dset_name.c_str());
         if (num_inst_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required instrumentation dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required instrumentation dataset in input file " << filename << "\n");
         }
         H5Dclose(num_inst_dset);
 
@@ -1600,7 +1620,7 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
         H5LTread_dataset_int(file_id, num_inst_dset_name.c_str(), &num_inst);
         if (num_inst <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid number of instruments in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid number of instruments in input file " << filename << "\n");
         }
         for (int k = 0; k < num_inst; ++k)
         {
@@ -1620,19 +1640,19 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
         hid_t node_idx_dset = H5Dopen(file_id, node_idx_dset_name.c_str());
         if (node_idx_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required instrumentation dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required instrumentation dataset in input file " << filename << "\n");
         }
 
         hid_t meter_idx_dset = H5Dopen(file_id, meter_idx_dset_name.c_str());
         if (meter_idx_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required instrumentation dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required instrumentation dataset in input file " << filename << "\n");
         }
 
         hid_t meter_node_idx_dset = H5Dopen(file_id, meter_node_idx_dset_name.c_str());
         if (meter_node_idx_dset < 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Cannot find required instrumentation dataset in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required instrumentation dataset in input file " << filename << "\n");
         }
 
         // Read in the dimensions of the datasets.
@@ -1644,42 +1664,42 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
         H5LTget_dataset_ndims(file_id, node_idx_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, node_idx_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset dimension in input file " << filename << "\n");
         }
         const int node_idx_size = dims[0];
 
         H5LTget_dataset_ndims(file_id, meter_idx_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, meter_idx_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset dimension in input file " << filename << "\n");
         }
         const int meter_idx_size = dims[0];
 
         H5LTget_dataset_ndims(file_id, meter_node_idx_dset_name.c_str(), &rank);
         if (rank != 1)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset rank in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset rank in input file " << filename << "\n");
         }
         H5LTget_dataset_info(file_id, meter_node_idx_dset_name.c_str(), dims, &class_id, &type_size);
         if (dims[0] <= 0)
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset dimension in input file " << filename << "\n");
         }
         const int meter_node_idx_size = dims[0];
 
         if ((node_idx_size != meter_idx_size) || (node_idx_size != meter_node_idx_size))
         {
-            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset dimension in input file " << filename << endl);
+            TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset dimension in input file " << filename << "\n");
         }
 
         num_inst_point = node_idx_size;
@@ -1762,7 +1782,7 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
     {
         TBOX_ERROR(d_object_name << ":\n  Cannot find instrumentation group in input file " << filename << "\n"
                    << "       base_group name = " << base_group_name << "\n"
-                   << "       instrumentation group name = " << instrumentation_group_name << endl);
+                   << "       instrumentation group name = " << instrumentation_group_name << "\n");
     }
     return;
 }// buildLevelInstrumentationDataCacheFromHDF5
@@ -2086,8 +2106,8 @@ IBHDF5Initializer::getFromInput(
 
                     if (d_uniform_spring_stiffness[ln][j] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_spring_stiffness' in database " << filename << endl
-                                   << "  spring constant is negative" << endl);
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_spring_stiffness' in database " << filename << "\n"
+                                   << "  spring constant is negative\n");
                     }
                 }
                 if (sub_db->keyExists("uniform_spring_rest_length"))
@@ -2097,8 +2117,8 @@ IBHDF5Initializer::getFromInput(
 
                     if (d_uniform_spring_rest_length[ln][j] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_spring_rest_length' in database " << filename << endl
-                                   << "  spring resting length is negative" << endl);
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_spring_rest_length' in database " << filename << "\n"
+                                   << "  spring resting length is negative\n");
                     }
                 }
                 if (sub_db->keyExists("uniform_spring_force_fcn_idx"))
@@ -2114,8 +2134,8 @@ IBHDF5Initializer::getFromInput(
 
                     if (d_uniform_beam_bend_rigidity[ln][j] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_beam_bend_rigidity' in database " << filename << endl
-                                   << "  beam bending rigidity is negative" << endl);
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_beam_bend_rigidity' in database " << filename << "\n"
+                                   << "  beam bending rigidity is negative\n");
                     }
                 }
 
@@ -2126,8 +2146,8 @@ IBHDF5Initializer::getFromInput(
 
                     if (d_uniform_target_stiffness[ln][j] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_stiffness' in database " << filename << endl
-                                   << "  target point spring constant is negative" << endl);
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_stiffness' in database " << filename << "\n"
+                                   << "  target point spring constant is negative\n");
                     }
                 }
             }
@@ -2136,70 +2156,70 @@ IBHDF5Initializer::getFromInput(
 
     // Output the names of the input files to be read along with additional
     // debugging information.
-    SAMRAI::tbox::pout << d_object_name << ":  Reading from input files: " << endl;
+    SAMRAI::tbox::pout << d_object_name << ":  Reading from input files: \n";
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_filenames = static_cast<int>(d_filenames[ln].size());
         for (int j = 0; j < num_filenames; ++j)
         {
             const std::string& filename = d_filenames[ln][j];
-            SAMRAI::tbox::pout << "  filename: " << filename << endl
-                               << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << endl;
+            SAMRAI::tbox::pout << "  filename: " << filename << "\n"
+                               << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy\n";
             if (!d_enable_springs[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: spring forces are DISABLED for " << filename << endl;
+                SAMRAI::tbox::pout << "  NOTE: spring forces are DISABLED for " << filename << "\n";
             }
             else
             {
                 if (d_using_uniform_spring_stiffness[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << filename << endl
-                                       << "        any stiffness information in input file " << filename << " will be IGNORED" << endl;
+                    SAMRAI::tbox::pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << filename << "\n"
+                                       << "        any stiffness information in input file " << filename << " will be IGNORED\n";
                 }
                 if (d_using_uniform_spring_rest_length[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << filename << endl
-                                       << "        any resting length information in input file " << filename << " will be IGNORED" << endl;
+                    SAMRAI::tbox::pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << filename << "\n"
+                                       << "        any resting length information in input file " << filename << " will be IGNORED\n";
                 }
                 if (d_using_uniform_spring_force_fcn_idx[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform spring force functions are being employed for the structure named " << filename << endl
-                                       << "        any force function index information in input file " << filename << " will be IGNORED" << endl;
+                    SAMRAI::tbox::pout << "  NOTE: uniform spring force functions are being employed for the structure named " << filename << "\n"
+                                       << "        any force function index information in input file " << filename << " will be IGNORED\n";
                 }
             }
 
             if (!d_enable_beams[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: beam forces are DISABLED for " << filename << endl;
+                SAMRAI::tbox::pout << "  NOTE: beam forces are DISABLED for " << filename << "\n";
             }
             else
             {
                 if (d_using_uniform_beam_bend_rigidity[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform beam bending rigidities are being employed for the structure named " << filename << endl
-                                       << "        any stiffness information in input file " << filename << " will be IGNORED" << endl;
+                    SAMRAI::tbox::pout << "  NOTE: uniform beam bending rigidities are being employed for the structure named " << filename << "\n"
+                                       << "        any stiffness information in input file " << filename << " will be IGNORED\n";
                 }
             }
 
             if (!d_enable_target_points[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: target point penalty forces are DISABLED for " << filename << endl;
+                SAMRAI::tbox::pout << "  NOTE: target point penalty forces are DISABLED for " << filename << "\n";
             }
             else
             {
                 if (d_using_uniform_target_stiffness[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << filename << endl
-                                       << "        any target point stiffness information in input file " << filename << " will be IGNORED" << endl;
+                    SAMRAI::tbox::pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << filename << "\n"
+                                       << "        any target point stiffness information in input file " << filename << " will be IGNORED\n";
                 }
             }
 
             if (!d_enable_instrumentation[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: instrumentation is DISABLED for " << filename << endl;
+                SAMRAI::tbox::pout << "  NOTE: instrumentation is DISABLED for " << filename << "\n";
             }
 
-            SAMRAI::tbox::pout << endl;
+            SAMRAI::tbox::pout << "\n";
         }
     }
     return;

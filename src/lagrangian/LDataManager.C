@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <03.Oct.2007 19:07:14 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Oct.2007 15:07:26 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -1561,8 +1561,7 @@ LDataManager::initializeLevelData(
         if (patch_overlaps[k])
         {
             TBOX_ERROR(d_object_name << "::initializeLevelData()\n"
-                       << "  patch " << k << " overlaps another patch!"
-                       << endl);
+                       << "  patch " << k << " overlaps another patch!\n");
         }
     }
 #endif
@@ -1705,7 +1704,12 @@ LDataManager::initializeLevelData(
                         const LNodeIndexSet::value_type& node_idx = *n;
                         const int lag_idx   = node_idx->getLagrangianIndex();
                         const int local_idx = node_idx->getLocalPETScIndex();
-                        assert(0 <= local_idx && local_idx < num_local_nodes);
+                        if (!(0 <= local_idx && local_idx < num_local_nodes))
+                        {
+                            TBOX_ERROR("LDataManager::initializeLevelData()"     << "\n" <<
+                                       "  local_idx       = " << local_idx       << "\n" <<
+                                       "  num_local_nodes = " << num_local_nodes << "\n");
+                        }
                         d_local_lag_indices  [level_number][local_idx] = lag_idx;
                         d_local_petsc_indices[level_number][local_idx] = local_idx + d_node_offset[level_number];
 
