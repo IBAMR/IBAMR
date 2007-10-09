@@ -6,7 +6,7 @@ use Env;
 Env::import();
 
 # load the ConfigReader module.
-use lib "$HOME/code/IBAMR/bin/modules";
+use lib "$HOME/code/IBAMR/src/tools/modules";
 use ConfigReader::Simple;
 
 # announce that we are running the autostarter.
