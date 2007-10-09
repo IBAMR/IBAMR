@@ -1,5 +1,5 @@
 // Filename: LEInteractor.C
-// Last modified: <13.Sep.2007 00:07:29 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Oct.2007 16:43:59 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "LEInteractor.h"
@@ -485,7 +485,8 @@ LEInteractor::interpolate(
         local_indices.push_back(k);
     }
 
-    std::vector<double> periodic_offsets(local_indices.size(),0.0);
+    // This method does not support periodic offsets.
+    std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
 
     // Interpolate.
     t_interpolate_f77->start();
