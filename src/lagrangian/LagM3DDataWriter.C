@@ -1,5 +1,5 @@
 // Filename: LagM3DDataWriter.C
-// Last modified: <25.Sep.2007 12:42:31 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Oct.2007 14:44:14 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagM3DDataWriter.h"
@@ -1013,8 +1013,8 @@ LagM3DDataWriter::writePlotData(
 
                 const double* const X = local_X_arr + NDIM*offset;
                 const std::vector<float> buffer(X,X+NDIM*ntot);
-                const int fiber_offset = fiber_offset+local_fiber_counter;
-                const int group_offset = group_offset+local_group_counter;
+                const int fiber_number = fiber_offset+local_fiber_counter;
+                const int group_number = group_offset+local_group_counter;
                 const int layer_number = layer_offset+local_layer_counter+1;
 
                 // Create the dataspace for the dataset.
@@ -1031,8 +1031,8 @@ LagM3DDataWriter::writePlotData(
                 status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &buffer[0]);
                 status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "nelem", &nelem[0], NDIM);
                 status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "periodic", &periodic[0], NDIM);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_offset", &fiber_offset, 1);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "group_offset", &group_offset, 1);
+                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_number", &fiber_number, 1);
+                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "group_number", &group_number, 1);
                 status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "layer_number", &layer_number, 1);
                 status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "nfibers", &d_block_nfibers[ln][block], 1);
                 status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "ngroups", &d_block_ngroups[ln][block], 1);
