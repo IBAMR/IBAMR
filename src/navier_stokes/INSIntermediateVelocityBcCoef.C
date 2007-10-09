@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.C
-// Last modified: <04.Oct.2007 22:50:42 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Oct.2007 18:43:55 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSIntermediateVelocityBcCoef.h"
@@ -36,7 +36,7 @@ namespace IBAMR
 
 namespace
 {
-static const bool USE_HIGHER_ORDER_OPEN_BOUNDARY_CONDITIONS = false;
+static const bool USE_HIGHER_ORDER_OPEN_BOUNDARY_CONDITIONS = false;  // XXXX: retry this now that bc handling is fixed(?)
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
