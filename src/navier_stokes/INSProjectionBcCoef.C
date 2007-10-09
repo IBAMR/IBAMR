@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <09.Oct.2007 17:03:53 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Oct.2007 17:44:39 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -307,6 +307,12 @@ INSProjectionBcCoef::setBcCoefs_private(
         }
 
         const bool using_pressure_increment = (d_projection_type == "pressure_increment");
+        if (using_pressure_increment)
+        {
+            SAMRAI::tbox::plog << "P_idx = " << d_P_idx << "\n";
+            P_data->print(P_data->getGhostBox());
+        }
+
         for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
         {
             const SAMRAI::hier::Index<NDIM>& i = b();
