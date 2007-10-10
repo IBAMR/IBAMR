@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <10.Oct.2007 00:03:05 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 00:25:41 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1961,6 +1961,9 @@ IBHierarchyIntegrator::regridHierarchy()
                 for (int k = 0; k < num_marks; ++k)
                 {
                     const double* const X = &old_X[NDIM*k];
+                    const double* const U = &old_U[NDIM*k];
+                    const int& idx = old_idx[k];
+
                     double shifted_X[NDIM];
                     for (int d = 0; d < NDIM; ++d)
                     {
@@ -1986,23 +1989,19 @@ IBHierarchyIntegrator::regridHierarchy()
                         {
                             mark_data->appendItem(i, IBMarker());
                         }
-                        IBMarker* const new_mark = mark_data->getItem(i);
-                        new_mark->getPositions().insert(new_mark->getPositions().end(),shifted_X,shifted_X+NDIM);
-                        new_mark->getVelocities().insert(new_mark->getVelocities().end(),&old_U[NDIM*k],&old_U[NDIM*k]+NDIM);
-                        new_mark->getIndices().push_back(old_idx[k]);
+                        IBMarker& new_mark = *(mark_data->getItem(i));
+                        std::vector<double>& new_X = new_mark.getPositions();
+                        std::vector<double>& new_U = new_mark.getVelocities();
+                        std::vector<int>& new_idx = new_mark.getIndices();
+
+                        new_X.insert(new_X.end(),shifted_X,shifted_X+NDIM);
+                        new_U.insert(new_U.end(),U,U+NDIM);
+                        new_idx.push_back(idx);
                     }
                 }
             }
         }
         level->deallocatePatchData(d_mark_scratch_idx);
-    }
-
-    // Re-coarsen all marker data.
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln-1);
-        mark_coarsen_alg->createSchedule(coarser_level, level, NULL)->coarsenData();
     }
 
     // Update the workload pre-regridding.
