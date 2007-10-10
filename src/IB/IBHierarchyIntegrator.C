@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <10.Oct.2007 01:32:08 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 01:53:39 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1872,7 +1872,8 @@ IBHierarchyIntegrator::regridHierarchy()
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln-1);
-        mark_coarsen_alg->createSchedule(coarser_level, level, NULL)->coarsenData();
+        SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* mark_coarsen_op = NULL;
+        mark_coarsen_alg->createSchedule(coarser_level, level, mark_coarsen_op)->coarsenData();
     }
 
     // Reset all marker data.
@@ -1886,7 +1887,7 @@ IBHierarchyIntegrator::regridHierarchy()
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
         SAMRAI::xfer::RefinePatchStrategy<NDIM>* mark_bdry_fill_op = NULL;
-        mark_bdry_fill_alg->createSchedule(level, ln-1, d_hierarchy,mark_bdry_fill_op)->fillData(d_integrator_time);
+        mark_bdry_fill_alg->createSchedule(level, ln-1, d_hierarchy, mark_bdry_fill_op)->fillData(d_integrator_time);
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1908,7 +1909,6 @@ IBHierarchyIntegrator::regridHierarchy()
             for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_scratch_data); it; it++)
             {
                 const IBMarker& old_mark = it();
-                const SAMRAI::hier::IntVector<NDIM>& offset = old_mark.getPeriodicOffset();
                 const std::vector<double>& old_X = old_mark.getPositions();
                 const std::vector<double>& old_U = old_mark.getVelocities();
                 const std::vector<int>& old_idx = old_mark.getIndices();
@@ -1917,19 +1917,12 @@ IBHierarchyIntegrator::regridHierarchy()
                     const double* const X = &old_X[NDIM*k];
                     const double* const U = &old_U[NDIM*k];
                     const int& idx = old_idx[k];
-
-                    double shifted_X[NDIM];
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        shifted_X[d] = X[d] + double(offset(d))*patchDx[d];
-                    }
-
                     const bool patch_owns_node_at_new_loc =
-                        ((  patchXLower[0] <= shifted_X[0])&&(shifted_X[0] < patchXUpper[0]))
+                        ((  patchXLower[0] <= X[0])&&(X[0] < patchXUpper[0]))
 #if (NDIM > 1)
-                        &&((patchXLower[1] <= shifted_X[1])&&(shifted_X[1] < patchXUpper[1]))
+                        &&((patchXLower[1] <= X[1])&&(X[1] < patchXUpper[1]))
 #if (NDIM > 2)
-                        &&((patchXLower[2] <= shifted_X[2])&&(shifted_X[2] < patchXUpper[2]))
+                        &&((patchXLower[2] <= X[2])&&(X[2] < patchXUpper[2]))
 #endif
 #endif
                         ;
@@ -1937,8 +1930,7 @@ IBHierarchyIntegrator::regridHierarchy()
                     {
                         const SAMRAI::hier::Index<NDIM> i =
                             STOOLS::STOOLS_Utilities::getCellIndex(
-                                shifted_X,patchXLower,patchXUpper,patchDx,patch_lower,patch_upper);
-
+                                X,patchXLower,patchXUpper,patchDx,patch_lower,patch_upper);
                         if (!mark_data->isElement(i))
                         {
                             mark_data->appendItem(i, IBMarker());
@@ -1948,13 +1940,9 @@ IBHierarchyIntegrator::regridHierarchy()
                         std::vector<double>& new_U = new_mark.getVelocities();
                         std::vector<int>& new_idx = new_mark.getIndices();
 
-                        new_X.insert(new_X.end(),shifted_X,shifted_X+NDIM);
+                        new_X.insert(new_X.end(),X,X+NDIM);
                         new_U.insert(new_U.end(),U,U+NDIM);
                         new_idx.push_back(idx);
-                    }
-                    else
-                    {
-                        SAMRAI::tbox::plog << "does not own node on level " << ln << " at posn: " << X[0] << " " << X[1] << " " << X[2] << "\n";
                     }
                 }
             }
