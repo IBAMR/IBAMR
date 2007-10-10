@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <09.Oct.2007 23:09:40 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Oct.2007 23:26:50 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1839,6 +1839,7 @@ IBHierarchyIntegrator::regridHierarchy()
 
     // Count the number of markers.
     int num_marks = 0;
+    std::vector<int> num_marks_level(finest_ln+1,0);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1854,12 +1855,13 @@ IBHierarchyIntegrator::regridHierarchy()
                 const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
                 if (patch_box.contains(i))
                 {
-                    num_marks += mark.getNumberOfMarkers();
+                    num_marks_level[ln] += mark.getNumberOfMarkers();
                 }
             }
         }
+        num_marks_level[ln] = SAMRAI::tbox::MPI::sumReduction(num_marks_level[ln]);
+        num_marks += num_marks_level[ln];
     }
-    num_marks = SAMRAI::tbox::MPI::sumReduction(num_marks);
 
     // Coarsen all marker data.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > mark_coarsen_alg = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
@@ -1871,6 +1873,48 @@ IBHierarchyIntegrator::regridHierarchy()
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln-1);
         mark_coarsen_alg->createSchedule(coarser_level, level, NULL)->coarsenData();
+    }
+
+    // Double-check the number of markers per level.
+    int num_marks_after_coarsen = 0;
+    std::vector<int> num_marks_after_coarsen_level(finest_ln+1,0);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
+                patch->getPatchData(d_mark_idx);
+            for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_data); it; it++)
+            {
+                const IBMarker& mark = it();
+                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                if (patch_box.contains(i))
+                {
+                    num_marks_after_coarsen_level[ln] += mark.getNumberOfMarkers();
+                }
+            }
+        }
+        num_marks_after_coarsen_level[ln] = SAMRAI::tbox::MPI::sumReduction(num_marks_after_coarsen_level[ln]);
+        num_marks_after_coarsen += num_marks_after_coarsen_level[ln];
+    }
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        int num_marks_all_finer = 0;
+        for (int ln_finer = ln; ln_finer <= finest_ln; ++ln_finer)
+        {
+            num_marks_all_finer += num_marks_level[ln_finer];
+        }
+        if (num_marks_all_finer != num_marks_after_coarsen_level[ln])
+        {
+            TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
+                       << "  number of marker particles changed during coarsening\n"
+                       << "  number of markers expected = " << num_marks_all_finer << "\n"
+                       << "  number of markers actual   = " << num_marks_after_coarsen_level[ln] << "\n");
+        }
     }
 
     // Reset all marker data.
