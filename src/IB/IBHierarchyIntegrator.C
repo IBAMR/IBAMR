@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <09.Oct.2007 23:26:50 griffith@box221.cims.nyu.edu>
+// Last modified: <09.Oct.2007 23:37:39 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1912,6 +1912,7 @@ IBHierarchyIntegrator::regridHierarchy()
         {
             TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
                        << "  number of marker particles changed during coarsening\n"
+                       << "  level number = " << ln << "\n"
                        << "  number of markers expected = " << num_marks_all_finer << "\n"
                        << "  number of markers actual   = " << num_marks_after_coarsen_level[ln] << "\n");
         }
