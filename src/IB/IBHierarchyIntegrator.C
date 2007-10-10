@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <10.Oct.2007 00:25:41 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 00:42:48 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1952,13 +1952,10 @@ IBHierarchyIntegrator::regridHierarchy()
             {
                 const IBMarker& old_mark = it();
                 const SAMRAI::hier::IntVector<NDIM>& offset = old_mark.getPeriodicOffset();
-
-                const int num_marks = old_mark.getNumberOfMarkers();
                 const std::vector<double>& old_X = old_mark.getPositions();
                 const std::vector<double>& old_U = old_mark.getVelocities();
                 const std::vector<int>& old_idx = old_mark.getIndices();
-
-                for (int k = 0; k < num_marks; ++k)
+                for (int k = 0; k < old_mark.getNumberOfMarkers(); ++k)
                 {
                     const double* const X = &old_X[NDIM*k];
                     const double* const U = &old_U[NDIM*k];
@@ -2328,7 +2325,7 @@ IBHierarchyIntegrator::initializeLevelData(
             for (size_t k = 0; k < d_mark_init_posns.size()/NDIM; ++k)
             {
                 const double* const X = &d_mark_init_posns[NDIM*k];
-                std::vector<double> U(NDIM,0.0);
+                static const std::vector<double> U(NDIM,0.0);
                 const bool patch_owns_node_at_loc =
                     ((  patchXLower[0] <= X[0])&&(X[0] < patchXUpper[0]))
 #if (NDIM > 1)
@@ -2346,10 +2343,14 @@ IBHierarchyIntegrator::initializeLevelData(
                     {
                         mark_data->appendItem(i, IBMarker());
                     }
-                    IBMarker* const mark = mark_data->getItem(i);
-                    mark->getPositions().insert(mark->getPositions().end(),X,X+NDIM);
-                    mark->getVelocities().insert(mark->getVelocities().end(),U.begin(),U.end());
-                    mark->getIndices().push_back(k);
+                    IBMarker& new_mark = *(mark_data->getItem(i));
+                    std::vector<double>& new_X = new_mark.getPositions();
+                    std::vector<double>& new_U = new_mark.getVelocities();
+                    std::vector<int>& new_idx = new_mark.getIndices();
+
+                    new_X.insert(new_X.end(),X,X+NDIM);
+                    new_U.insert(new_U.end(),U.begin(),U.end());
+                    new_idx.push_back(k);
                 }
             }
         }

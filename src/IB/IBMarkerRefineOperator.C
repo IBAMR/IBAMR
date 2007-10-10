@@ -1,5 +1,5 @@
 // Filename: IBMarkerRefineOperator.C
-// Last modified: <10.Oct.2007 00:17:34 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 00:44:50 griffith@box221.cims.nyu.edu>
 // Created on 04 Oct 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBMarkerRefineOperator.h"
@@ -73,7 +73,7 @@ IBMarkerRefineOperator::getOperatorPriority() const
 SAMRAI::hier::IntVector<NDIM>
 IBMarkerRefineOperator::getStencilWidth() const
 {
-    return 0;
+    return 2;
 }// getStencilWidth
 
 void
