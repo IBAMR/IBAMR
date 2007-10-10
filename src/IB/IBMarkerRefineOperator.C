@@ -1,5 +1,5 @@
 // Filename: IBMarkerRefineOperator.C
-// Last modified: <10.Oct.2007 00:53:25 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 18:13:29 griffith@box221.cims.nyu.edu>
 // Created on 04 Oct 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBMarkerRefineOperator.h"
@@ -97,6 +97,10 @@ IBMarkerRefineOperator::refine(
     const double* const fine_patchXUpper = fine_patch_geom->getXUpper();
     const double* const fine_patchDx = fine_patch_geom->getDx();
 
+    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > coarse_patch_geom =
+        coarse.getPatchGeometry();
+    const double* const coarse_patchDx = coarse_patch_geom->getDx();
+
     const SAMRAI::hier::Box<NDIM> coarse_box = SAMRAI::hier::Box<NDIM>::coarsen(fine_box,ratio);
     for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*src_mark_data); it; it++)
     {
@@ -107,14 +111,21 @@ IBMarkerRefineOperator::refine(
             const std::vector<double>& coarse_X = coarse_mark.getPositions();
             const std::vector<double>& coarse_U = coarse_mark.getVelocities();
             const std::vector<int>& coarse_idx = coarse_mark.getIndices();
+            const SAMRAI::hier::IntVector<NDIM>& coarse_offset = coarse_mark.getPeriodicOffset();
+            double X_shifted[NDIM];
             for (int k = 0; k < coarse_mark.getNumberOfMarkers(); ++k)
             {
                 const double* const X = &coarse_X[NDIM*k];
                 const double* const U = &coarse_U[NDIM*k];
                 const int& idx = coarse_idx[k];
-                const SAMRAI::hier::Index<NDIM> fine_i =
-                    STOOLS::STOOLS_Utilities::getCellIndex(
-                        X,fine_patchXLower,fine_patchXUpper,fine_patchDx,fine_patch_lower,fine_patch_upper);
+
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X_shifted[d] = X[d] + double(coarse_offset(d))*coarse_patchDx[d];
+                }
+
+                const SAMRAI::hier::Index<NDIM> fine_i = STOOLS::STOOLS_Utilities::getCellIndex(
+                    X_shifted, fine_patchXLower, fine_patchXUpper, fine_patchDx, fine_patch_lower, fine_patch_upper);
                 if (fine_box.contains(fine_i))
                 {
                     if (!dst_mark_data->isElement(fine_i))
@@ -126,7 +137,7 @@ IBMarkerRefineOperator::refine(
                     std::vector<double>& fine_U = fine_mark.getVelocities();
                     std::vector<int>& fine_idx = fine_mark.getIndices();
 
-                    fine_X.insert(fine_X.end(),X,X+NDIM);
+                    fine_X.insert(fine_X.end(),X_shifted,X_shifted+NDIM);
                     fine_U.insert(fine_U.end(),U,U+NDIM);
                     fine_idx.push_back(idx);
                 }

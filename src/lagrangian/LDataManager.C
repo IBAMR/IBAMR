@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <08.Oct.2007 15:07:26 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 18:13:19 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -783,7 +783,7 @@ LDataManager::beginDataRedistribution(
                     const LNodeIndexSet& old_node_set = (*current_idx_data)(old_cell_idx);
                     const bool patch_owns_node_at_old_loc = patch_box.contains(old_cell_idx);
                     const SAMRAI::hier::IntVector<NDIM>& offset = old_node_set.getPeriodicOffset();
-                    double shifted_X[NDIM];
+                    double X_shifted[NDIM];
 
                     for (LNodeIndexSet::const_iterator n = old_node_set.begin(); n != old_node_set.end(); ++n)
                     {
@@ -791,24 +791,23 @@ LDataManager::beginDataRedistribution(
                         double* const X = node_idx->getNodeLocation();
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            shifted_X[d] = X[d] + double(offset(d))*patchDx[d];
+                            X_shifted[d] = X[d] + double(offset(d))*patchDx[d];
                         }
 
                         const bool patch_owns_node_at_new_loc =
-                            ((  patchXLower[0] <= shifted_X[0])&&(shifted_X[0] < patchXUpper[0]))
+                            ((  patchXLower[0] <= X_shifted[0])&&(X_shifted[0] < patchXUpper[0]))
 #if (NDIM > 1)
-                            &&((patchXLower[1] <= shifted_X[1])&&(shifted_X[1] < patchXUpper[1]))
+                            &&((patchXLower[1] <= X_shifted[1])&&(X_shifted[1] < patchXUpper[1]))
 #if (NDIM > 2)
-                            &&((patchXLower[2] <= shifted_X[2])&&(shifted_X[2] < patchXUpper[2]))
+                            &&((patchXLower[2] <= X_shifted[2])&&(X_shifted[2] < patchXUpper[2]))
 #endif
 #endif
                             ;
 
                         if (patch_owns_node_at_new_loc)
                         {
-                            const SAMRAI::pdat::CellIndex<NDIM> new_cell_idx =
-                                STOOLS::STOOLS_Utilities::getCellIndex(
-                                    shifted_X,patchXLower,patchXUpper,patchDx,patch_lower,patch_upper);
+                            const SAMRAI::pdat::CellIndex<NDIM> new_cell_idx = STOOLS::STOOLS_Utilities::getCellIndex(
+                                X_shifted, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
                             LNodeIndexSet& new_node_set = (*new_idx_data)(new_cell_idx);
                             const LNodeIndexSet::iterator pos = lower_bound(
                                 new_node_set.begin(), new_node_set.end(), node_idx, LNodeIndexLessThan());

@@ -1,5 +1,5 @@
 // Filename: m3D_hdf5_converter.C
-// Last modified: <24.Sep.2007 21:58:56 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 17:38:54 griffith@box221.cims.nyu.edu>
 // Created on 30 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -223,10 +223,10 @@ main(
         status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "nelem", &nelem[0]);
         vector<int> periodic(NDIM);
         status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "periodic", &periodic[0]);
-        int fiber_offset;
-        status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_offset", &fiber_offset);
-        int group_offset;
-        status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "group_offset", &group_offset);
+        int fiber_number;
+        status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_number", &fiber_number);
+        int group_number;
+        status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "group_number", &group_number);
         int layer_number;
         status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "layer_number", &layer_number);
         int nfibers;

@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <10.Oct.2007 01:53:39 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 18:13:08 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1912,25 +1912,33 @@ IBHierarchyIntegrator::regridHierarchy()
                 const std::vector<double>& old_X = old_mark.getPositions();
                 const std::vector<double>& old_U = old_mark.getVelocities();
                 const std::vector<int>& old_idx = old_mark.getIndices();
+                const SAMRAI::hier::IntVector<NDIM>& offset = old_mark.getPeriodicOffset();
+                double X_shifted[NDIM];
                 for (int k = 0; k < old_mark.getNumberOfMarkers(); ++k)
                 {
                     const double* const X = &old_X[NDIM*k];
                     const double* const U = &old_U[NDIM*k];
                     const int& idx = old_idx[k];
+
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        X_shifted[d] = X[d] + double(offset(d))*patchDx[d];
+                    }
+
                     const bool patch_owns_node_at_new_loc =
-                        ((  patchXLower[0] <= X[0])&&(X[0] < patchXUpper[0]))
+                        ((  patchXLower[0] <= X_shifted[0])&&(X_shifted[0] < patchXUpper[0]))
 #if (NDIM > 1)
-                        &&((patchXLower[1] <= X[1])&&(X[1] < patchXUpper[1]))
+                        &&((patchXLower[1] <= X_shifted[1])&&(X_shifted[1] < patchXUpper[1]))
 #if (NDIM > 2)
-                        &&((patchXLower[2] <= X[2])&&(X[2] < patchXUpper[2]))
+                        &&((patchXLower[2] <= X_shifted[2])&&(X_shifted[2] < patchXUpper[2]))
 #endif
 #endif
                         ;
+
                     if (patch_owns_node_at_new_loc)
                     {
-                        const SAMRAI::hier::Index<NDIM> i =
-                            STOOLS::STOOLS_Utilities::getCellIndex(
-                                X,patchXLower,patchXUpper,patchDx,patch_lower,patch_upper);
+                        const SAMRAI::hier::Index<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
+                            X_shifted, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
                         if (!mark_data->isElement(i))
                         {
                             mark_data->appendItem(i, IBMarker());
@@ -1940,7 +1948,7 @@ IBHierarchyIntegrator::regridHierarchy()
                         std::vector<double>& new_U = new_mark.getVelocities();
                         std::vector<int>& new_idx = new_mark.getIndices();
 
-                        new_X.insert(new_X.end(),X,X+NDIM);
+                        new_X.insert(new_X.end(),X_shifted,X_shifted+NDIM);
                         new_U.insert(new_U.end(),U,U+NDIM);
                         new_idx.push_back(idx);
                     }
@@ -2326,7 +2334,7 @@ IBHierarchyIntegrator::initializeLevelData(
                 if (patch_owns_node_at_loc)
                 {
                     const SAMRAI::hier::Index<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
-                        X,patchXLower,patchXUpper,patchDx,patch_lower,patch_upper);
+                        X, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
                     if (!mark_data->isElement(i))
                     {
                         mark_data->appendItem(i, IBMarker());
@@ -2572,10 +2580,8 @@ IBHierarchyIntegrator::applyGradientDetector(
             }
 
             // Determine the approximate source stencil box.
-            const SAMRAI::hier::Index<NDIM> i_center =
-                STOOLS::STOOLS_Utilities::getCellIndex(
-                    d_X_src[finer_level_number][n], xLower, xUpper, dx_finer,
-                    lower, upper);
+            const SAMRAI::hier::Index<NDIM> i_center = STOOLS::STOOLS_Utilities::getCellIndex(
+                d_X_src[finer_level_number][n], xLower, xUpper, dx_finer, lower, upper);
             SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
             for (int d = 0; d < NDIM; ++d)
             {
@@ -2995,10 +3001,8 @@ IBHierarchyIntegrator::computeSourceStrengths(
                     }
 
                     // Determine the approximate source stencil box.
-                    const SAMRAI::hier::Index<NDIM> i_center =
-                        STOOLS::STOOLS_Utilities::getCellIndex(
-                            d_X_src[ln][n], xLower, xUpper, dx,
-                            patch_lower, patch_upper);
+                    const SAMRAI::hier::Index<NDIM> i_center = STOOLS::STOOLS_Utilities::getCellIndex(
+                        d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
                     SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
                     for (int d = 0; d < NDIM; ++d)
                     {
@@ -3222,10 +3226,8 @@ IBHierarchyIntegrator::computeSourcePressures(
                     }
 
                     // Determine the approximate source stencil box.
-                    const SAMRAI::hier::Index<NDIM> i_center =
-                        STOOLS::STOOLS_Utilities::getCellIndex(
-                            d_X_src[ln][n], xLower, xUpper, dx,
-                            patch_lower, patch_upper);
+                    const SAMRAI::hier::Index<NDIM> i_center = STOOLS::STOOLS_Utilities::getCellIndex(
+                        d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
                     SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
                     for (int d = 0; d < NDIM; ++d)
                     {
