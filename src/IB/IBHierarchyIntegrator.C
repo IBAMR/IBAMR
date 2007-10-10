@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <10.Oct.2007 00:42:48 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 00:56:34 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1999,6 +1999,45 @@ IBHierarchyIntegrator::regridHierarchy()
             }
         }
         level->deallocatePatchData(d_mark_scratch_idx);
+    }
+
+
+    // Re-count the number of markers.
+    int num_marks_after_reset = 0;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > next_finer_level =
+            (ln == finest_ln ? SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL) : d_hierarchy->getPatchLevel(ln+1));
+        SAMRAI::hier::BoxArray<NDIM> refined_region_boxes =
+            (ln == finest_ln ? SAMRAI::hier::BoxArray<NDIM>() : next_finer_level->getBoxes());
+        refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
+                patch->getPatchData(d_mark_idx);
+            for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_data); it; it++)
+            {
+                const IBMarker& mark = it();
+                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                if (patch_box.contains(i) && !refined_region_boxes.contains(i))
+                {
+                    num_marks_after_reset += mark.getNumberOfMarkers();
+                }
+            }
+        }
+    }
+    num_marks_after_reset = SAMRAI::tbox::MPI::sumReduction(num_marks_after_reset);
+
+    // Ensure that we haven't misplaced any of the markers.
+    if (num_marks != num_marks_after_reset)
+    {
+        TBOX_ERROR(d_object_name << "::resetHierarchy()\n"
+                   << "  number of marker particles changed during resetding\n"
+                   << "  number of markers before reset = " << num_marks << "\n"
+                   << "  number of markers after  reset = " << num_marks_after_reset << "\n");
     }
 
     // Update the workload pre-regridding.
