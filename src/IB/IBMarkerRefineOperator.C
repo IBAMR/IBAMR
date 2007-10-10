@@ -1,5 +1,5 @@
 // Filename: IBMarkerRefineOperator.C
-// Last modified: <04.Oct.2007 23:49:54 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 00:01:36 griffith@box221.cims.nyu.edu>
 // Created on 04 Oct 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBMarkerRefineOperator.h"
@@ -97,38 +97,34 @@ IBMarkerRefineOperator::refine(
     const double* const fine_patchXUpper = fine_patch_geom->getXUpper();
     const double* const fine_patchDx = fine_patch_geom->getDx();
 
-    const SAMRAI::hier::Box<NDIM> coarse_box = SAMRAI::hier::Box<NDIM>::coarsen(fine_box,ratio);
     for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*src_mark_data); it; it++)
     {
         const SAMRAI::hier::Index<NDIM>& coarse_i = it.getIndex();
-        if (coarse_box.contains(coarse_i))
+        const IBMarker& coarse_mark = it();
+
+        const int num_marks = coarse_mark.getNumberOfMarkers();
+        const std::vector<double>& coarse_X = coarse_mark.getPositions();
+        const std::vector<double>& coarse_U = coarse_mark.getVelocities();
+        const std::vector<int>& coarse_idx = coarse_mark.getIndices();
+
+        for (int k = 0; k < num_marks; ++k)
         {
-            const IBMarker& coarse_mark = it();
-
-            const int num_marks = coarse_mark.getNumberOfMarkers();
-            const std::vector<double>& coarse_X = coarse_mark.getPositions();
-            const std::vector<double>& coarse_U = coarse_mark.getVelocities();
-            const std::vector<int>& coarse_idx = coarse_mark.getIndices();
-
-            for (int k = 0; k < num_marks; ++k)
+            const double* const X = &coarse_X[NDIM*k];
+            const double* const U = &coarse_U[NDIM*k];
+            const int& idx = coarse_idx[k];
+            const SAMRAI::hier::Index<NDIM> fine_i =
+                STOOLS::STOOLS_Utilities::getCellIndex(
+                    X,fine_patchXLower,fine_patchXUpper,fine_patchDx,fine_patch_lower,fine_patch_upper);
+            if (fine_box.contains(fine_i))
             {
-                const double* const X = &coarse_X[NDIM*k];
-                const double* const U = &coarse_U[NDIM*k];
-                const int& idx = coarse_idx[k];
-                const SAMRAI::hier::Index<NDIM> fine_i =
-                    STOOLS::STOOLS_Utilities::getCellIndex(
-                        X,fine_patchXLower,fine_patchXUpper,fine_patchDx,fine_patch_lower,fine_patch_upper);
-                if (fine_box.contains(fine_i))
+                if (!dst_mark_data->isElement(fine_i))
                 {
-                    if (!dst_mark_data->isElement(fine_i))
-                    {
-                        dst_mark_data->appendItem(fine_i, IBMarker());
-                    }
-                    IBMarker* const fine_mark = dst_mark_data->getItem(fine_i);
-                    fine_mark->getPositions() .insert(fine_mark->getPositions() .end(),X,X+NDIM);
-                    fine_mark->getVelocities().insert(fine_mark->getVelocities().end(),U,U+NDIM);
-                    fine_mark->getIndices().push_back(idx);
+                    dst_mark_data->appendItem(fine_i, IBMarker());
                 }
+                IBMarker* const fine_mark = dst_mark_data->getItem(fine_i);
+                fine_mark->getPositions() .insert(fine_mark->getPositions() .end(),X,X+NDIM);
+                fine_mark->getVelocities().insert(fine_mark->getVelocities().end(),U,U+NDIM);
+                fine_mark->getIndices().push_back(idx);
             }
         }
     }

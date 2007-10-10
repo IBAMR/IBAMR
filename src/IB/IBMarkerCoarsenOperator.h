@@ -2,7 +2,7 @@
 #define included_IBMarkerCoarsenOperator
 
 // Filename: IBMarkerCoarsenOperator.h
-// Last modified: <04.Oct.2007 23:26:42 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 00:06:08 griffith@box221.cims.nyu.edu>
 // Created on 13 Sep 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////

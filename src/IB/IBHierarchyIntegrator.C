@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <09.Oct.2007 23:37:39 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 00:03:05 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1901,7 +1901,7 @@ IBHierarchyIntegrator::regridHierarchy()
         num_marks_after_coarsen += num_marks_after_coarsen_level[ln];
     }
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
         int num_marks_all_finer = 0;
         for (int ln_finer = ln; ln_finer <= finest_ln; ++ln_finer)
