@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <10.Oct.2007 00:56:34 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 01:32:08 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1875,49 +1875,6 @@ IBHierarchyIntegrator::regridHierarchy()
         mark_coarsen_alg->createSchedule(coarser_level, level, NULL)->coarsenData();
     }
 
-    // Double-check the number of markers per level.
-    int num_marks_after_coarsen = 0;
-    std::vector<int> num_marks_after_coarsen_level(finest_ln+1,0);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
-                patch->getPatchData(d_mark_idx);
-            for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_data); it; it++)
-            {
-                const IBMarker& mark = it();
-                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
-                if (patch_box.contains(i))
-                {
-                    num_marks_after_coarsen_level[ln] += mark.getNumberOfMarkers();
-                }
-            }
-        }
-        num_marks_after_coarsen_level[ln] = SAMRAI::tbox::MPI::sumReduction(num_marks_after_coarsen_level[ln]);
-        num_marks_after_coarsen += num_marks_after_coarsen_level[ln];
-    }
-
-    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
-    {
-        int num_marks_all_finer = 0;
-        for (int ln_finer = ln; ln_finer <= finest_ln; ++ln_finer)
-        {
-            num_marks_all_finer += num_marks_level[ln_finer];
-        }
-        if (num_marks_all_finer != num_marks_after_coarsen_level[ln])
-        {
-            TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
-                       << "  number of marker particles changed during coarsening\n"
-                       << "  level number = " << ln << "\n"
-                       << "  number of markers expected = " << num_marks_all_finer << "\n"
-                       << "  number of markers actual   = " << num_marks_after_coarsen_level[ln] << "\n");
-        }
-    }
-
     // Reset all marker data.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > mark_bdry_fill_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     mark_bdry_fill_alg->registerRefine(d_mark_scratch_idx, // destination
@@ -1995,6 +1952,10 @@ IBHierarchyIntegrator::regridHierarchy()
                         new_U.insert(new_U.end(),U,U+NDIM);
                         new_idx.push_back(idx);
                     }
+                    else
+                    {
+                        SAMRAI::tbox::plog << "does not own node on level " << ln << " at posn: " << X[0] << " " << X[1] << " " << X[2] << "\n";
+                    }
                 }
             }
         }
@@ -2035,7 +1996,7 @@ IBHierarchyIntegrator::regridHierarchy()
     if (num_marks != num_marks_after_reset)
     {
         TBOX_ERROR(d_object_name << "::resetHierarchy()\n"
-                   << "  number of marker particles changed during resetding\n"
+                   << "  number of marker particles changed during reset\n"
                    << "  number of markers before reset = " << num_marks << "\n"
                    << "  number of markers after  reset = " << num_marks_after_reset << "\n");
     }
@@ -2116,7 +2077,7 @@ IBHierarchyIntegrator::regridHierarchy()
     if (num_marks != num_marks_after_regrid)
     {
         TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
-                   << "  number of marker particles changed during regridding\n"
+                   << "  number of marker particles changed during regrid\n"
                    << "  number of markers before regrid = " << num_marks << "\n"
                    << "  number of markers after  regrid = " << num_marks_after_regrid << "\n");
     }
