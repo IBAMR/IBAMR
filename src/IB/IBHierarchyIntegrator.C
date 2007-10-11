@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <11.Oct.2007 16:33:47 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Oct.2007 17:00:42 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1897,19 +1897,19 @@ IBHierarchyIntegrator::regridHierarchy()
 
     const bool initial_time = SAMRAI::tbox::Utilities::deq(d_integrator_time,d_start_time);
 
-    // Reset marker data pre-regridding.
-    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): resetting marker data.\n";
+    // Collect marker data onto the coarsest level of the grid pre-regridding.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): collecting markers particles onto the coarsest level of the patch hierarchy.\n";
     const int num_marks = (initial_time ? d_mark_init_posns.size()/NDIM : countMarkers(0,d_hierarchy->getFinestLevelNumber()));
-    resetMarkers();
-    const int num_marks_after_reset = countMarkers(0,d_hierarchy->getFinestLevelNumber());
+    collectMarkersOnCoarsestLevel();
+    const int num_marks_after_collection = countMarkers(0,0,false);
 
     // Ensure that we haven't misplaced any of the markers.
-    if (num_marks != num_marks_after_reset)
+    if (num_marks != num_marks_after_collection)
     {
         TBOX_ERROR(d_object_name << "::resetHierarchy()\n"
-                   << "  number of marker particles changed during reset\n"
-                   << "  number of markers before reset = " << num_marks << "\n"
-                   << "  number of markers after  reset = " << num_marks_after_reset << "\n");
+                   << "  number of marker particles changed during collection onto coarsest hierarchy level\n"
+                   << "  number of markers before collection = " << num_marks << "\n"
+                   << "  number of markers after  collection = " << num_marks_after_collection << "\n");
     }
 
     // Update the workload pre-regridding.
@@ -2759,20 +2759,21 @@ IBHierarchyIntegrator::updateIBInstrumentationData(
 }// updateIBInstrumentationData
 
 void
-IBHierarchyIntegrator::resetMarkers()
+IBHierarchyIntegrator::collectMarkersOnCoarsestLevel()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    // Setup a marker coarsening algorithm.
+    // Ensure there are no markers in any refined regions of each level of the
+    // patch hierarchy.
+    pruneDuplicateMarkers(coarsest_ln, finest_ln-1);
+
+    // Setup a marker coarsening algorithm and collect all marker data onto the
+    // coarsest level of the patch hierarchy.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > mark_coarsen_alg = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
     mark_coarsen_alg->registerCoarsen(d_mark_current_idx, // destination
                                       d_mark_current_idx, // source
                                       new IBMarkerCoarsenOperator());
-
-    // Ensure there are no markers in any refined regions of each level of the
-    // patch hierarchy, then coarsen the marker data.
-    pruneDuplicateMarkers(coarsest_ln, finest_ln-1);
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -2781,120 +2782,102 @@ IBHierarchyIntegrator::resetMarkers()
         mark_coarsen_alg->createSchedule(coarser_level, level, mark_coarsen_op)->coarsenData();
     }
 
-    // Reset the assignment of markers to Cartesian grid cells on each level of
-    // the patch hierarchy.
+    // Reset the assignment of markers to Cartesian grid cells on the coarsest
+    // level of the patch hierarchy.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > mark_level_fill_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     mark_level_fill_alg->registerRefine(d_mark_current_idx, // destination
                                         d_mark_current_idx, // source
                                         d_mark_scratch_idx, // temporary work space
-                                        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> >(NULL));
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+                                        NULL);
+
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarsest_level = d_hierarchy->getPatchLevel(coarsest_ln);
+    coarsest_level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
+    mark_level_fill_alg->createSchedule(coarsest_level)->fillData(d_integrator_time);
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(coarsest_level); p; p++)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
-        mark_level_fill_alg->createSchedule(level)->fillData(d_integrator_time);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = coarsest_level->getPatch(p());
+        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
+            patch->getPatchGeometry();
+        const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+        const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+        const double* const patchXLower = patch_geom->getXLower();
+        const double* const patchXUpper = patch_geom->getXUpper();
+        const double* const patchDx = patch_geom->getDx();
+
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > current_mark_data =
+            patch->getPatchData(d_mark_current_idx);
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > new_mark_data = new SAMRAI::pdat::IndexData<NDIM,IBMarker>(
+            current_mark_data->getBox(), current_mark_data->getGhostCellWidth());
+
+        for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*current_mark_data); it; it++)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
-                patch->getPatchGeometry();
-            const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-            const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
-            const double* const patchXLower = patch_geom->getXLower();
-            const double* const patchXUpper = patch_geom->getXUpper();
-            const double* const patchDx = patch_geom->getDx();
+            const IBMarker& old_mark = it();
+            const std::vector<double>& old_X = old_mark.getPositions();
+            const std::vector<double>& old_U = old_mark.getVelocities();
+            const std::vector<int>& old_idx = old_mark.getIndices();
+            const SAMRAI::hier::IntVector<NDIM>& offset = old_mark.getPeriodicOffset();
+            double X_shifted[NDIM];
 
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > current_mark_data =
-                patch->getPatchData(d_mark_current_idx);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > new_mark_data = new SAMRAI::pdat::IndexData<NDIM,IBMarker>(
-                current_mark_data->getBox(), current_mark_data->getGhostCellWidth());
-
-            for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*current_mark_data); it; it++)
+            for (int k = 0; k < old_mark.getNumberOfMarkers(); ++k)
             {
-                const IBMarker& old_mark = it();
-                const std::vector<double>& old_X = old_mark.getPositions();
-                const std::vector<double>& old_U = old_mark.getVelocities();
-                const std::vector<int>& old_idx = old_mark.getIndices();
-                const SAMRAI::hier::IntVector<NDIM>& offset = old_mark.getPeriodicOffset();
-                double X_shifted[NDIM];
-
-                for (int k = 0; k < old_mark.getNumberOfMarkers(); ++k)
+                const double* const X = &old_X[NDIM*k];
+                const double* const U = &old_U[NDIM*k];
+                const int& idx = old_idx[k];
+                for (int d = 0; d < NDIM; ++d)
                 {
-                    const double* const X = &old_X[NDIM*k];
-                    const double* const U = &old_U[NDIM*k];
-                    const int& idx = old_idx[k];
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        X_shifted[d] = X[d] + double(offset(d))*patchDx[d];
-                    }
+                    X_shifted[d] = X[d] + double(offset(d))*patchDx[d];
+                }
 
-                    const bool patch_owns_node_at_new_loc =
-                        ((  patchXLower[0] <= X_shifted[0])&&(X_shifted[0] < patchXUpper[0]))
+                const bool patch_owns_node_at_new_loc =
+                    ((  patchXLower[0] <= X_shifted[0])&&(X_shifted[0] < patchXUpper[0]))
 #if (NDIM > 1)
-                        &&((patchXLower[1] <= X_shifted[1])&&(X_shifted[1] < patchXUpper[1]))
+                    &&((patchXLower[1] <= X_shifted[1])&&(X_shifted[1] < patchXUpper[1]))
 #if (NDIM > 2)
-                        &&((patchXLower[2] <= X_shifted[2])&&(X_shifted[2] < patchXUpper[2]))
+                    &&((patchXLower[2] <= X_shifted[2])&&(X_shifted[2] < patchXUpper[2]))
 #endif
 #endif
-                        ;
+                    ;
 
-                    if (patch_owns_node_at_new_loc)
+                if (patch_owns_node_at_new_loc)
+                {
+                    const SAMRAI::hier::Index<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
+                        X_shifted, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
+                    if (!new_mark_data->isElement(i))
                     {
-                        const SAMRAI::hier::Index<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
-                            X_shifted, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
-                        if (!new_mark_data->isElement(i))
-                        {
-                            new_mark_data->appendItem(i, IBMarker());
-                        }
-                        IBMarker& new_mark = *(new_mark_data->getItem(i));
-                        std::vector<double>& new_X = new_mark.getPositions();
-                        std::vector<double>& new_U = new_mark.getVelocities();
-                        std::vector<int>& new_idx = new_mark.getIndices();
-
-                        new_X.insert(new_X.end(),X_shifted,X_shifted+NDIM);
-                        new_U.insert(new_U.end(),U,U+NDIM);
-                        new_idx.push_back(idx);
+                        new_mark_data->appendItem(i, IBMarker());
                     }
+                    IBMarker& new_mark = *(new_mark_data->getItem(i));
+                    std::vector<double>& new_X = new_mark.getPositions();
+                    std::vector<double>& new_U = new_mark.getVelocities();
+                    std::vector<int>& new_idx = new_mark.getIndices();
+
+                    new_X.insert(new_X.end(),X_shifted,X_shifted+NDIM);
+                    new_U.insert(new_U.end(),U,U+NDIM);
+                    new_idx.push_back(idx);
                 }
             }
-
-            // Swap the old and new patch data pointers.
-            patch->setPatchData(d_mark_current_idx, new_mark_data);
         }
-        level->deallocatePatchData(d_mark_scratch_idx);
-    }
 
-    // Collect all marker data onto the coarsest level of the patch hierarchy.
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln-1);
-        SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* mark_coarsen_op = NULL;
-        mark_coarsen_alg->createSchedule(coarser_level, level, mark_coarsen_op)->coarsenData();
+        // Swap the old and new patch data pointers.
+        patch->setPatchData(d_mark_current_idx, new_mark_data);
     }
+    coarsest_level->deallocatePatchData(d_mark_scratch_idx);
 
-    // Reconstruct the level data by refining from the coarsest level down onto
-    // finer levels.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > refill_mark_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    refill_mark_alg->registerRefine(d_mark_current_idx, // destination
-                                    d_mark_current_idx, // source
-                                    d_mark_scratch_idx, // temporary work space
-                                    new IBMarkerRefineOperator());
+    // Delete marker data on all finer levels of the patch hierarchy.
     for (int ln = coarsest_ln+1; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
-
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = level;
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > src_level = NULL;
-        SAMRAI::xfer::RefinePatchStrategy<NDIM>* refill_mark_op = NULL;
-        refill_mark_alg->createSchedule(dst_level, src_level, ln-1, d_hierarchy, refill_mark_op)->fillData(d_integrator_time);
-
-        level->deallocatePatchData(d_mark_scratch_idx);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > current_mark_data =
+                patch->getPatchData(d_mark_current_idx);
+            current_mark_data->removeAllItems();
+        }
     }
     return;
-}// resetMarkerData
+}// collectMarkersOnCoarsestLevel
 
 void
 IBHierarchyIntegrator::pruneDuplicateMarkers(
