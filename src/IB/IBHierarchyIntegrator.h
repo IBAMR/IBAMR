@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <17.Sep.2007 13:39:39 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Oct.2007 15:19:35 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -655,6 +655,30 @@ private:
         const double data_time);
 
     /*!
+     * Reset the marker data to prepare for regridding the patch hierarchy.
+     */
+    void
+    resetMarkers();
+
+    /*!
+     * Prune marker data in refined regions of the specified levels of the patch
+     * hierarchy.
+     */
+    void
+    pruneDuplicateMarkers(
+        const int coarsest_ln,
+        const int finest_ln);
+
+    /*!
+     * Count the markers.
+     */
+    int
+    countMarkers(
+        const int coarsest_ln,
+        const int finest_ln,
+        const bool skip_refined_regions=true);
+
+    /*!
      * Set the values of the distributed internal sources/sinks on the Cartesian
      * grid hierarchy.
      *
@@ -897,7 +921,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBMarker> > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
-    int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_mark_idx, d_mark_scratch_idx, d_Q_idx, d_Q_scratch_idx;
+    int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_mark_current_idx, d_mark_scratch_idx, d_Q_idx, d_Q_scratch_idx;
 };
 }// namespace IBAMR
 
