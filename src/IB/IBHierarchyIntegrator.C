@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <11.Oct.2007 18:06:17 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Oct.2007 18:13:03 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2788,9 +2788,8 @@ IBHierarchyIntegrator::collectMarkersOnCoarsestLevel()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    const int mark_count = countMarkers(coarsest_ln,finest_ln);
-
-    // Collect all marker data onto the coarsest level of the patch hierarchy.
+    // Collect all marker data onto the coarsest level of the patch hierarchy,
+    // removing finer marker data along the way.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > mark_coarsen_alg = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
     mark_coarsen_alg->registerCoarsen(d_mark_current_idx, // destination
                                       d_mark_current_idx, // source
@@ -2802,7 +2801,6 @@ IBHierarchyIntegrator::collectMarkersOnCoarsestLevel()
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln-1);
         SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* mark_coarsen_op = NULL;
         mark_coarsen_alg->createSchedule(coarser_level, level, mark_coarsen_op)->coarsenData();
-
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -2811,8 +2809,6 @@ IBHierarchyIntegrator::collectMarkersOnCoarsestLevel()
             current_mark_data->removeAllItems();
         }
     }
-
-    assert(mark_count == countMarkers(coarsest_ln,finest_ln,false));
 
     // Reset the assignment of markers to Cartesian grid cells on the coarsest
     // level of the patch hierarchy.
