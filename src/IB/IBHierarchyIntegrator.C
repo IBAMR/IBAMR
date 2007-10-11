@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <11.Oct.2007 18:13:03 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Oct.2007 18:19:42 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2796,11 +2796,10 @@ IBHierarchyIntegrator::collectMarkersOnCoarsestLevel()
                                       new IBMarkerCoarsenOperator());
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
-        pruneDuplicateMarkers(ln-1, ln-1);
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln-1);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarsest_level = d_hierarchy->getPatchLevel(coarsest_ln);
         SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* mark_coarsen_op = NULL;
-        mark_coarsen_alg->createSchedule(coarser_level, level, mark_coarsen_op)->coarsenData();
+        mark_coarsen_alg->createSchedule(coarsest_level, level, mark_coarsen_op)->coarsenData();
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
