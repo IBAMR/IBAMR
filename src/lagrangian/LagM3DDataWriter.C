@@ -1,5 +1,5 @@
 // Filename: LagM3DDataWriter.C
-// Last modified: <09.Oct.2007 14:44:14 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Oct.2007 17:26:31 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagM3DDataWriter.h"
@@ -851,26 +851,30 @@ LagM3DDataWriter::writePlotData(
 
     const int total_num_marks = max_marker_idx+1;
     std::vector<double> X_marker(NDIM*total_num_marks,0.0);
-    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    if (d_mark_idx != -1)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            if (d_mark_idx != -1)
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
-                    patch->getPatchData(d_mark_idx);
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data = patch->getPatchData(d_mark_idx);
                 for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_data); it; it++)
                 {
-                    const IBMarker& mark = it();
-                    const std::vector<double>& X = mark.getPositions();
-                    const std::vector<int>& idx = mark.getIndices();
-                    for (size_t k = 0; k < X.size()/NDIM; ++k)
+                    const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                    if (patch_box.contains(i))
                     {
-                        for (int d = 0; d < NDIM; ++d)
+                        const IBMarker& mark = it();
+                        const std::vector<double>& X = mark.getPositions();
+                        const std::vector<int>& idx = mark.getIndices();
+                        for (size_t k = 0; k < X.size()/NDIM; ++k)
                         {
-                            X_marker[NDIM*idx[k]+d] = X[NDIM*k+d];  // XXXX add index error checking!
+                            for (int d = 0; d < NDIM; ++d)
+                            {
+                                X_marker[NDIM*idx[k]+d] = X[NDIM*k+d];  // XXXX add index error checking!
+                            }
                         }
                     }
                 }

@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <11.Oct.2007 17:00:42 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Oct.2007 17:32:59 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1898,6 +1898,23 @@ IBHierarchyIntegrator::regridHierarchy()
     const bool initial_time = SAMRAI::tbox::Utilities::deq(d_integrator_time,d_start_time);
 
     // Collect marker data onto the coarsest level of the grid pre-regridding.
+    //
+    // The basic strategy for resetting marker data is as follows:
+    //
+    //  (1) Collect all markers onto the coarsest level of the patch hierarchy.
+    //  (2) Re-assign the markers to Cartesian grid cells on the coarsest level
+    //      of the hierarchy based on the current positions of the markers.
+    //  (3) Discard all marker data on finer levels of the patch hierarchy.
+    //  (4) Regrid the patch hierarchy.
+    //  (5) Refine marker data from coarser levels to finer levels.
+    //  (6) Discard duplicate marker data, i.e., markers assigned to refined
+    //      cells on coarser levels of the patch hierarchy.
+    //
+    // Although this strategy may seem overly complicated, if properly
+    // implemented, it prevents markers from "disappearing" when moving between
+    // levels.  Note that each marker is assigned to the finest level of the
+    // patch hierarchy that contains the marker's position at the time of the
+    // regridding operation.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): collecting markers particles onto the coarsest level of the patch hierarchy.\n";
     const int num_marks = (initial_time ? d_mark_init_posns.size()/NDIM : countMarkers(0,d_hierarchy->getFinestLevelNumber()));
     collectMarkersOnCoarsestLevel();
@@ -2160,53 +2177,60 @@ IBHierarchyIntegrator::initializeLevelData(
     // Initialize the marker data, but do so only on the coarsest level of the
     // patch hierarchy.  Marker data on finer levels is initialized via
     // refinement.
-    if (initial_time && level_number == 0 && !d_mark_input_file_name.empty())
+    if (initial_time && !d_mark_input_file_name.empty())
     {
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        if (level_number == 0)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
-                patch->getPatchGeometry();
-            const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-            const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
-            const double* const patchXLower = patch_geom->getXLower();
-            const double* const patchXUpper = patch_geom->getXUpper();
-            const double* const patchDx = patch_geom->getDx();
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
-                patch->getPatchData(d_mark_current_idx);
-            for (size_t k = 0; k < d_mark_init_posns.size()/NDIM; ++k)
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                const double* const X = &d_mark_init_posns[NDIM*k];
-                static const std::vector<double> U(NDIM,0.0);
-                const bool patch_owns_node_at_loc =
-                    ((  patchXLower[0] <= X[0])&&(X[0] < patchXUpper[0]))
-#if (NDIM > 1)
-                    &&((patchXLower[1] <= X[1])&&(X[1] < patchXUpper[1]))
-#if (NDIM > 2)
-                    &&((patchXLower[2] <= X[2])&&(X[2] < patchXUpper[2]))
-#endif
-#endif
-                    ;
-                if (patch_owns_node_at_loc)
-                {
-                    const SAMRAI::hier::Index<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
-                        X, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
-                    if (!mark_data->isElement(i))
-                    {
-                        mark_data->appendItem(i, IBMarker());
-                    }
-                    IBMarker& new_mark = *(mark_data->getItem(i));
-                    std::vector<double>& new_X = new_mark.getPositions();
-                    std::vector<double>& new_U = new_mark.getVelocities();
-                    std::vector<int>& new_idx = new_mark.getIndices();
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
+                    patch->getPatchGeometry();
+                const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+                const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+                const double* const patchXLower = patch_geom->getXLower();
+                const double* const patchXUpper = patch_geom->getXUpper();
+                const double* const patchDx = patch_geom->getDx();
 
-                    new_X.insert(new_X.end(),X,X+NDIM);
-                    new_U.insert(new_U.end(),U.begin(),U.end());
-                    new_idx.push_back(k);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
+                    patch->getPatchData(d_mark_current_idx);
+                for (size_t k = 0; k < d_mark_init_posns.size()/NDIM; ++k)
+                {
+                    const double* const X = &d_mark_init_posns[NDIM*k];
+                    static const std::vector<double> U(NDIM,0.0);
+                    const bool patch_owns_node_at_loc =
+                        ((  patchXLower[0] <= X[0])&&(X[0] < patchXUpper[0]))
+#if (NDIM > 1)
+                        &&((patchXLower[1] <= X[1])&&(X[1] < patchXUpper[1]))
+#if (NDIM > 2)
+                        &&((patchXLower[2] <= X[2])&&(X[2] < patchXUpper[2]))
+#endif
+#endif
+                        ;
+                    if (patch_owns_node_at_loc)
+                    {
+                        const SAMRAI::hier::Index<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
+                            X, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
+                        if (!mark_data->isElement(i))
+                        {
+                            mark_data->appendItem(i, IBMarker());
+                        }
+                        IBMarker& new_mark = *(mark_data->getItem(i));
+                        std::vector<double>& new_X = new_mark.getPositions();
+                        std::vector<double>& new_U = new_mark.getVelocities();
+                        std::vector<int>& new_idx = new_mark.getIndices();
+
+                        new_X.insert(new_X.end(),X,X+NDIM);
+                        new_U.insert(new_U.end(),U.begin(),U.end());
+                        new_idx.push_back(k);
+                    }
                 }
             }
+        }
+        else
+        {
+            pruneDuplicateMarkers(0,level_number-1);
         }
     }
 
@@ -2896,13 +2920,13 @@ IBHierarchyIntegrator::pruneDuplicateMarkers(
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
             SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
                 patch->getPatchData(d_mark_current_idx);
+            const SAMRAI::hier::Box<NDIM>& ghost_box = mark_data->getGhostBox();
             for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
             {
                 const SAMRAI::hier::Box<NDIM>& refined_box = refined_region_boxes(i);
-                const SAMRAI::hier::Box<NDIM> intersection = patch_box * refined_box;
+                const SAMRAI::hier::Box<NDIM> intersection = ghost_box * refined_box;
                 if (!intersection.empty())
                 {
                     mark_data->removeInsideBox(intersection);
