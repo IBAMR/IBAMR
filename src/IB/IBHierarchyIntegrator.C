@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <10.Oct.2007 18:37:01 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Oct.2007 23:59:12 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -941,9 +941,11 @@ IBHierarchyIntegrator::advanceHierarchy(
             // Update the marker positions.
             for (size_t k = 0; k < X_mark.size()/NDIM; ++k)
             {
+                double* const X = &X_mark[NDIM*k];
+                const double* const U = &U_mark[NDIM*k];
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    X_mark[NDIM*k+d] += dt*U_mark[NDIM*k+d];
+                    X[d] += dt*U[d];
                 }
             }
 
@@ -1626,10 +1628,13 @@ IBHierarchyIntegrator::advanceHierarchy(
             // Update the marker positions.
             for (size_t k = 0; k < X_mark_new.size()/NDIM; ++k)
             {
+                double* const X_current = &X_mark_current[NDIM*k];
+                double* const X_new = &X_mark_new[NDIM*k];
+                const double* const U_new = &U_mark_new[NDIM*k];
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    X_mark_new[NDIM*k+d] += dt*U_mark_new[NDIM*k+d];
-                    X_mark_new[NDIM*k+d] = 0.5*(X_mark_current[NDIM*k+d]+X_mark_new[NDIM*k+d]);
+                    X_new[d] += dt*U_new[d];
+                    X_new[d] = 0.5*(X_current[d]+X_new[d]);
                 }
             }
 

@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <25.Jun.2007 15:27:18 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Oct.2007 00:40:52 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -339,8 +339,10 @@ IBInstrumentPanel::IBInstrumentPanel(
       d_max_instrument_name_len(-1),
       d_instrument_names(),
       d_flow_values(),
-      d_pres_values(),
+      d_mean_pres_values(),
+      d_point_pres_values(),
       d_web_patch_map(),
+      d_web_centroid_map(),
       d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
       d_output_log_file(false),
       d_log_file_name(NDIM == 2 ? "inst2d.log" : "inst3d.log"),
@@ -405,10 +407,16 @@ IBInstrumentPanel::getFlowValues() const
 }// getFlowValues
 
 const std::vector<double>&
-IBInstrumentPanel::getPressureValues() const
+IBInstrumentPanel::getMeanPressureValues() const
 {
-    return d_pres_values;
-}// getPressureValues
+    return d_mean_pres_values;
+}// getMeanPressureValues
+
+const std::vector<double>&
+IBInstrumentPanel::getPointwisePressureValues() const
+{
+    return d_point_pres_values;
+}// getPointwisePressureValues
 
 bool
 IBInstrumentPanel::isInstrumented() const
@@ -525,8 +533,9 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
         }
         IBInstrumentationSpec::setInstrumentNames(d_instrument_names);
     }
-    d_flow_values.resize(d_num_meters,std::numeric_limits<double>::quiet_NaN());
-    d_pres_values.resize(d_num_meters,std::numeric_limits<double>::quiet_NaN());
+    d_flow_values      .resize(d_num_meters,std::numeric_limits<double>::quiet_NaN());
+    d_mean_pres_values .resize(d_num_meters,std::numeric_limits<double>::quiet_NaN());
+    d_point_pres_values.resize(d_num_meters,std::numeric_limits<double>::quiet_NaN());
 
     // Open the log file stream.
     d_max_instrument_name_len = 0;
@@ -553,7 +562,8 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
                               << "  y_centroid "
                               << (NDIM == 3 ? "  z_centroid " : "")
                               << "  flow rate   "
-                              << "  pressure    "
+                              << "  mean pres.  "
+                              << "  point pres. "
                               << "\n";
         }
     }
@@ -727,14 +737,20 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         init_meter_elements(d_X_web[m],d_dA_web[m],d_X_perimeter[m],d_X_centroid[m]);
     }
 
-    // Setup the mappings from cell indices to the web patch data.
+    // Setup the mappings from cell indices to the web patch and web centroid
+    // data.
     //
-    // NOTE: Each meter web patch is assigned to precisely one Cartesian grid
-    // cell in precisely one level.  In particular, each web patch is assigned
-    // to whichever grid cell is the finest cell that contains the region of
-    // physical space in which the web patch centroid is located.
+    // NOTE: Each meter web patch/centroid is assigned to precisely one
+    // Cartesian grid cell in precisely one level.  In particular, each web
+    // patch is assigned to whichever grid cell is the finest cell that contains
+    // the region of physical space in which the centroid of the web patch is
+    // located.  Similarly, each web centroid is assigned to which ever grid
+    // cell is the finest cell that contains the region of physical space in
+    // which the web centroid is located.
     d_web_patch_map.clear();
     d_web_patch_map.resize(finest_ln+1);
+    d_web_centroid_map.clear();
+    d_web_centroid_map.resize(finest_ln+1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
@@ -797,6 +813,28 @@ IBInstrumentPanel::initializeHierarchyDependentData(
                     }
                 }
             }
+
+            // Setup the web centroid mapping.
+            const double* const X = d_X_centroid[l].data();
+            const SAMRAI::hier::Index<NDIM> i =
+                STOOLS::STOOLS_Utilities::getCellIndex(
+                    X, domainXLower, domainXUpper, dx,
+                    domain_box_level_lower, domain_box_level_upper);
+            const SAMRAI::hier::Index<NDIM> finer_i =
+                (ln < finest_ln
+                 ? STOOLS::STOOLS_Utilities::getCellIndex(
+                     X, domainXLower, domainXUpper, finer_dx,
+                     finer_domain_box_level_lower, finer_domain_box_level_upper)
+                 : SAMRAI::hier::Index<NDIM>(std::numeric_limits<int>::max()));
+
+            if (level->getBoxes().contains(i) &&
+                (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
+            {
+                WebCentroid c;
+                c.meter_num = l;
+                c.X = &d_X_centroid[l];
+                d_web_centroid_map[ln].insert(std::make_pair(i,c));
+            }
         }
     }
 
@@ -838,12 +876,14 @@ IBInstrumentPanel::readInstrumentData(
     }
 
     // Reset the instrument values.
-    std::fill(d_flow_values.begin(), d_flow_values.end(), 0.0);
-    std::fill(d_pres_values.begin(), d_pres_values.end(), 0.0);
+    std::fill(d_flow_values      .begin(), d_flow_values      .end(), 0.0);
+    std::fill(d_mean_pres_values .begin(), d_mean_pres_values .end(), 0.0);
+    std::fill(d_point_pres_values.begin(), d_point_pres_values.end(), 0.0);
     std::vector<double> A(d_num_meters, 0.0);
 
     // Compute the local contributions to the flux of U through the flow meter,
-    // and the value of P at the centroid of the meter.
+    // the average value of P in the flow meter, and the pointwise value of P at
+    // the centroid of the meter.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
@@ -873,9 +913,9 @@ IBInstrumentPanel::readInstrumentData(
             {
                 const SAMRAI::hier::Index<NDIM>& i = b();
 
-                std::pair<WebPatchMap::const_iterator,WebPatchMap::const_iterator> range =
+                std::pair<WebPatchMap::const_iterator,WebPatchMap::const_iterator> patch_range =
                     d_web_patch_map[ln].equal_range(i);
-                if (range.first != range.second)
+                if (patch_range.first != patch_range.second)
                 {
                     const blitz::TinyVector<double,NDIM> X_cell(
                         xLower[0] + dx[0]*(double(i(0)-patch_lower(0))+0.5),
@@ -885,7 +925,7 @@ IBInstrumentPanel::readInstrumentData(
 #endif
                                                                 );
 
-                    for (WebPatchMap::const_iterator it = range.first; it != range.second; ++it)
+                    for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                     {
                         const int& meter_num = (*it).second.meter_num;
                         const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
@@ -894,9 +934,31 @@ IBInstrumentPanel::readInstrumentData(
                             X, i, X_cell, U_data, patch_lower, patch_upper, xLower, xUpper, dx);
                         const blitz::TinyVector<double,1> P = linear_interp<1>(
                             X, i, X_cell, P_data, patch_lower, patch_upper, xLower, xUpper, dx);
-                        d_flow_values[meter_num] += dot(U,dA);
-                        d_pres_values[meter_num] += P(0)*norm(dA);
-                        A[meter_num] += norm(dA);
+                        d_flow_values     [meter_num] += dot(U,dA);
+                        d_mean_pres_values[meter_num] += P(0)*norm(dA);
+                        A                 [meter_num] += norm(dA);
+                    }
+                }
+
+                std::pair<WebCentroidMap::const_iterator,WebCentroidMap::const_iterator> centroid_range =
+                    d_web_centroid_map[ln].equal_range(i);
+                if (centroid_range.first != centroid_range.second)
+                {
+                    const blitz::TinyVector<double,NDIM> X_cell(
+                        xLower[0] + dx[0]*(double(i(0)-patch_lower(0))+0.5),
+                        xLower[1] + dx[1]*(double(i(1)-patch_lower(1))+0.5)
+#if (NDIM == 3)
+                        ,xLower[2] + dx[2]*(double(i(2)-patch_lower(2))+0.5)
+#endif
+                                                                );
+
+                    for (WebCentroidMap::const_iterator it = centroid_range.first; it != centroid_range.second; ++it)
+                    {
+                        const int& meter_num = (*it).second.meter_num;
+                        const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
+                        const blitz::TinyVector<double,1> P = linear_interp<1>(
+                            X, i, X_cell, P_data, patch_lower, patch_upper, xLower, xUpper, dx);
+                        d_point_pres_values[meter_num] = P(0);
                     }
                 }
             }
@@ -904,14 +966,15 @@ IBInstrumentPanel::readInstrumentData(
     }
 
     // Synchronize the values across all processes.
-    SAMRAI::tbox::MPI::sumReduction(&d_flow_values[0],d_num_meters);
-    SAMRAI::tbox::MPI::sumReduction(&d_pres_values[0],d_num_meters);
-    SAMRAI::tbox::MPI::sumReduction(&A[0],d_num_meters);
+    SAMRAI::tbox::MPI::sumReduction(&d_flow_values      [0],d_num_meters);
+    SAMRAI::tbox::MPI::sumReduction(&d_mean_pres_values [0],d_num_meters);
+    SAMRAI::tbox::MPI::sumReduction(&d_point_pres_values[0],d_num_meters);
+    SAMRAI::tbox::MPI::sumReduction(&A                  [0],d_num_meters);
 
-    // Normalize the pressure.
+    // Normalize the mean pressure.
     for (int m = 0; m < d_num_meters; ++m)
     {
-        d_pres_values[m] /= A[m];
+        d_mean_pres_values[m] /= A[m];
     }
 
     // The patch data descriptor index for the LNodeIndexData.
@@ -1021,7 +1084,7 @@ IBInstrumentPanel::readInstrumentData(
     }
 
     // Output meter data.
-    SAMRAI::tbox::plog << std::string(d_max_instrument_name_len+80,'*') << "\n";
+    SAMRAI::tbox::plog << std::string(d_max_instrument_name_len+94,'*') << "\n";
     SAMRAI::tbox::plog << d_object_name << "::readInstrumentData():\n";
     SAMRAI::tbox::plog << std::string(d_max_instrument_name_len,' ')
                        << "  time       "
@@ -1029,11 +1092,12 @@ IBInstrumentPanel::readInstrumentData(
                        << "  y_centroid "
                        << (NDIM == 3 ? "  z_centroid " : "")
                        << "  flow rate   "
-                       << "  pressure    "
+                       << "  mean pres.  "
+                       << "  point pres. "
                        << "\n";
 
     outputLogData(SAMRAI::tbox::plog);
-    SAMRAI::tbox::plog << std::string(d_max_instrument_name_len+80,'*') << "\n";
+    SAMRAI::tbox::plog << std::string(d_max_instrument_name_len+94,'*') << "\n";
 
     if (d_output_log_file && SAMRAI::tbox::MPI::getRank() == 0)
     {
@@ -1253,7 +1317,10 @@ IBInstrumentPanel::outputLogData(
         os << "  " << d_flow_conv*d_flow_values[m];
 
         os.setf(std::ios_base::scientific); os.setf(std::ios_base::showpos); os.precision(5);
-        os << "  " << d_pres_conv*d_pres_values[m];
+        os << "  " << d_pres_conv*d_mean_pres_values[m];
+
+        os.setf(std::ios_base::scientific); os.setf(std::ios_base::showpos); os.precision(5);
+        os << "  " << d_pres_conv*d_point_pres_values[m];
 
         os << "\n";
 

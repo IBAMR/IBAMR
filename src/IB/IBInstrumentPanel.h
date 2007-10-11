@@ -2,7 +2,7 @@
 #define included_IBInstrumentPanel
 
 // Filename: IBInstrumentPanel.h
-// Last modified: <25.Jun.2007 15:09:18 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Oct.2007 00:25:39 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -75,13 +75,22 @@ public:
     getFlowValues() const;
 
     /*!
-     * \return A const reference to the vector of pressure gauge values.
+     * \return A const reference to the vector of mean pressure values.
      *
      * \note This vector is not initialized until the first call is made to
      * readInstrumentData().
      */
     const std::vector<double>&
-    getPressureValues() const;
+    getMeanPressureValues() const;
+
+    /*!
+     * \return A const reference to the vector of pointwise pressure values.
+     *
+     * \note This vector is not initialized until the first call is made to
+     * readInstrumentData().
+     */
+    const std::vector<double>&
+    getPointwisePressureValues() const;
 
     /*!
      * \return A boolean indicating whether there are any instruments embedded
@@ -212,7 +221,7 @@ private:
     double d_instrument_read_time;
     int d_max_instrument_name_len;
     std::vector<std::string> d_instrument_names;
-    std::vector<double> d_flow_values, d_pres_values;
+    std::vector<double> d_flow_values, d_mean_pres_values, d_point_pres_values;
 
     /*!
      * \brief Data structures employed to manage mappings between cell indices
@@ -248,6 +257,15 @@ private:
 
     typedef std::multimap<SAMRAI::hier::Index<NDIM>,WebPatch,IndexFortranOrder> WebPatchMap;
     std::vector<WebPatchMap> d_web_patch_map;
+
+    struct WebCentroid
+    {
+        int meter_num;
+        const blitz::TinyVector<double,NDIM>* X;
+    };
+
+    typedef std::multimap<SAMRAI::hier::Index<NDIM>,WebCentroid,IndexFortranOrder> WebCentroidMap;
+    std::vector<WebCentroidMap> d_web_centroid_map;
 
     /*
      * The directory where data is to be dumped and the most recent timestep
