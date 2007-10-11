@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <11.Oct.2007 17:57:19 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Oct.2007 18:06:17 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2812,7 +2812,7 @@ IBHierarchyIntegrator::collectMarkersOnCoarsestLevel()
         }
     }
 
-    assert(mark_count == countMarkers(coarsest_ln,finest_ln));
+    assert(mark_count == countMarkers(coarsest_ln,finest_ln,false));
 
     // Reset the assignment of markers to Cartesian grid cells on the coarsest
     // level of the patch hierarchy.
