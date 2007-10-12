@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.C
-// Last modified: <11.Oct.2007 23:14:26 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Oct.2007 02:53:29 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSIntermediateVelocityBcCoef.h"
@@ -256,13 +256,10 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
-    const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-    const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
-
     // Enforce homogeneous boundary conditions.
     if (d_homogeneous_bc || d_velocity_correction) gcoef_data->fillAll(0.0);
 
+#if 0  // XXXX
     // At "open" boundaries, modify the normal velocity boundary conditions to
     // enforce div u = 0, and modify the tangential velocity boundary conditions
     // to enforce zero stress.  This is done by specifying a normal flux F at
@@ -360,6 +357,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
             (*gcoef_data)(i,0) = (is_lower ? +1.0 : -1.0)*F;
         }
     }
+#endif
 
     // Do not further modify the boundary condition coefficients unless we are
     // setting inhomogeneous boundary conditions for the tangential components
