@@ -367,6 +367,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
         return;
     }
 
+#if 0 // XXXX
     // Modify the inhomogeneous coefficients for the tangential components of
     // the intermediate velocity.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Phi_data =
@@ -477,6 +478,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
             (*gcoef_data)(i,0) += 2.0*(dt/d_rho)*t_dot_grad_grad_Phi_dot_n;
         }
     }
+#endif
     return;
 }// setBcCoefs_private
 
