@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <11.Oct.2007 18:19:42 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Oct.2007 01:08:26 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1474,8 +1474,7 @@ IBHierarchyIntegrator::advanceHierarchy(
         // Solve the Navier-Stokes equations for U(n+1), u(n+1), P(n+1/2).  For
         // better or worse, each of the major algorithmic steps of the
         // projection method is separated into its own member function.
-        d_ins_hier_integrator->predictAdvectionVelocity(
-            current_time, new_time);
+        d_ins_hier_integrator->predictAdvectionVelocity(current_time, new_time);
 
         d_ins_hier_integrator->integrateAdvDiff(current_time, new_time);
 
