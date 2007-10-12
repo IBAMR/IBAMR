@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.C
-// Last modified: <11.Oct.2007 22:38:37 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Oct.2007 23:14:26 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSIntermediateVelocityBcCoef.h"
@@ -329,7 +329,9 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
 
                     if ((d_comp_idx == bdry_normal_axis) || axis == d_comp_idx)
                     {
-                        F += 0.5*((*U_data)(i_upper,comp_idx)-(*U_data)(i_lower,comp_idx))/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
+                        const double& U_upper = (*U_data)(i_upper,comp_idx);
+                        const double& U_lower = (*U_data)(i_lower,comp_idx);
+                        F += 0.5*(U_upper-U_lower)/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
                     }
 
                     // Shift the difference stencil outside the computational
@@ -347,7 +349,9 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
 
                     if ((d_comp_idx == bdry_normal_axis) || axis == d_comp_idx)
                     {
-                        F += 0.5*((*U_data)(i_upper,comp_idx)-(*U_data)(i_lower,comp_idx))/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
+                        const double& U_upper = (*U_data)(i_upper,comp_idx);
+                        const double& U_lower = (*U_data)(i_lower,comp_idx);
+                        F += 0.5*(U_upper-U_lower)/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
                     }
                 }
             }
