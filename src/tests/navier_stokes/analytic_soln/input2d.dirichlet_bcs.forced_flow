@@ -103,8 +103,8 @@ INSHierarchyIntegrator {
    output_Omega = TRUE
 
    output_Div_U = FALSE
-   output_Div_u = TRUE
-   output_Div_u_adv = TRUE
+   output_Div_u = FALSE
+   output_Div_u_adv = FALSE
 
    mu  = MU
    rho = RHO
@@ -116,12 +116,12 @@ INSHierarchyIntegrator {
    second_order_pressure_update = TRUE
    normalize_pressure = TRUE
 
+   num_cycles = 1
+   num_init_cycles = 5
+
    helmholtz_max_iterations = 1000
    helmholtz_abs_residual_tol = 1.0e-30
    helmholtz_rel_residual_tol = 1.0e-12
-
-   num_cycles = 1
-   num_init_cycles = 5
 }
 
 GodunovAdvector {
@@ -195,7 +195,7 @@ HierarchyProjector {
       skip_restrict_sol = TRUE
       skip_restrict_residual = FALSE
 
-      ssor_iterations = 1
+      ssor_iterations = 2
 
       coarse_solver_choice = "hypre"
       coarse_solver_tolerance = 1.0e-6
@@ -219,7 +219,7 @@ HierarchyProjector {
       max_cycles = 1
       residual_tol = 1.0e-12
       num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 3
+      num_post_sweeps = 2
    }
 }
 

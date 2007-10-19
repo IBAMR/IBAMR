@@ -2,12 +2,12 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C
+SOURCES = main.C FeedbackForcer.C FeedbackForcer.h
 EXTRA_DIST  = input2d.cylinder input3d.cylinder input3d.sphere
 EXTRA_DIST += generate_cylinder2d.m generate_cylinder3d.m compute_St.m generate_sphere3d.C
 
-EXTRA_DIST += cylinder2d_256.vertex cylinder2d_256.spring
-EXTRA_DIST += cylinder2d_512.vertex cylinder2d_512.spring
+EXTRA_DIST += cylinder2d_256.vertex cylinder2d_512.vertex cylinder2d_1024.vertex
+EXTRA_DIST += cylinder2d_256.spring cylinder2d_512.spring cylinder2d_1024.spring
 EXTRA_DIST += cylinder3d_128.vertex
 EXTRA_DIST += cylinder3d_256.vertex
 EXTRA_DIST += sphere3d_64.vertex sphere3d_64.spring
@@ -30,7 +30,7 @@ endif
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input{2d.cylinder,3d.cylinder,3d.sphere} $(PWD) ; \
-	  cp -f $(srcdir)/cylinder2d_{256,512}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/cylinder2d_{256,512,1024}.{vertex,spring} $(PWD) ; \
 	  cp -f $(srcdir)/cylinder3d_{128,256}.vertex $(PWD) ; \
 	  cp -f $(srcdir)/sphere3d_{64,128}.{vertex,spring} $(PWD) ; \
           cp -f $(srcdir)/compute_St.m $(PWD) ; \

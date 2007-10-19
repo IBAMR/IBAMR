@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <12.Oct.2007 01:08:26 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Oct.2007 18:59:42 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -25,7 +25,6 @@
 
 // STOOLS INCLUDES
 #include <stools/CartExtrapPhysBdryOp.h>
-#include <stools/CartRobinPhysBdryOp.h>
 #include <stools/PETSC_SAMRAI_ERROR.h>
 #include <stools/STOOLS_Utilities.h>
 
@@ -644,11 +643,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                        U_current_idx, // source
                        d_V_idx,       // temporary work space
                        refine_operator);
-    if (!d_U_bc_coefs.empty())
-    {
-        d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] =
-            new STOOLS::CartRobinPhysBdryOp(d_V_idx, d_U_bc_coefs, false);
-    }
+    d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] =
+        new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
 
     const int U_new_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
@@ -664,11 +660,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                        U_new_idx, // source
                        d_W_idx,   // temporary work space
                        refine_operator);
-    if (!d_U_bc_coefs.empty())
-    {
-        d_rstrategies["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"] =
-            new STOOLS::CartRobinPhysBdryOp(d_W_idx, d_U_bc_coefs, false);
-    }
+    d_rstrategies["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"] =
+            new STOOLS::CartExtrapPhysBdryOp(d_W_idx, "LINEAR");
 
     const int U_scratch_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
@@ -732,7 +725,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     F_scratch_idxs.setFlag(d_F_scratch1_idx);
     F_scratch_idxs.setFlag(d_F_scratch2_idx);
     d_force_rstrategy = new STOOLS::CartExtrapPhysBdryOp(
-        F_scratch_idxs, "CONSTANT");
+        F_scratch_idxs, "LINEAR");
 
     if (!d_source_strategy.isNull())
     {

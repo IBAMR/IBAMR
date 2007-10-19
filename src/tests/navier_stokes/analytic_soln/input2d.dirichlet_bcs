@@ -6,7 +6,7 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // physical parameters
-MU = 0.001
+MU = 0.01
 RHO = 1.0
 
 // grid spacing parameters
@@ -109,6 +109,10 @@ INSHierarchyIntegrator {
 
    num_cycles = 1
    num_init_cycles = 5
+
+   helmholtz_max_iterations = 100
+   helmholtz_abs_residual_tol = 1.0e-30
+   helmholtz_rel_residual_tol = 1.0e-12
 }
 
 GodunovAdvector {
@@ -137,10 +141,10 @@ AdvDiffHierarchyIntegrator {
       use_ghosts_to_compute_dt = FALSE
    }
 
-   max_iterations = 25
+   using_FAC = FALSE
+   max_iterations = 100
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-12
-   using_FAC = TRUE
 
    FACOps {
       fac_max_cycles = 1
@@ -182,7 +186,7 @@ HierarchyProjector {
       skip_restrict_sol = TRUE
       skip_restrict_residual = FALSE
 
-      ssor_iterations = 1
+      ssor_iterations = 2
 
       coarse_solver_choice = "hypre"
       coarse_solver_tolerance = 1.0e-6
@@ -206,7 +210,7 @@ HierarchyProjector {
       max_cycles = 1
       residual_tol = 1.0e-12
       num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 3
+      num_post_sweeps = 2
    }
 }
 

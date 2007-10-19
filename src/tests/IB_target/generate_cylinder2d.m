@@ -20,7 +20,7 @@ sprintf('dx/ds = %f\n',dx/ds);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Write out the vertex information
+% Step 1: Write out the vertex information
 vertex_fid = fopen(['cylinder2d_' num2str(NFINEST) '.vertex'], 'w');
 
 % first line is number of vertices in the file

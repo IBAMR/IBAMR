@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <02.Oct.2007 17:58:26 griffith@box221.cims.nyu.edu>
+// Last modified: <19.Oct.2007 01:49:20 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -642,181 +642,182 @@ IBStandardInitializer::readSpringFiles()
             const std::string spring_filename = d_base_filename[ln][j] + ".spring";
             std::ifstream file_stream;
             file_stream.open(spring_filename.c_str(), std::ios::in);
-            if (!file_stream.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << spring_filename << endl);
-
-            SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "processing spring data from ASCII input filename " << spring_filename << endl
-                               << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
-
-            // The first line in the file indicates the number of edges in the input
-            // file.
-            int num_edges;
-            if (!std::getline(file_stream, line_string))
+            if (file_stream.is_open())
             {
-                TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << spring_filename << endl);
-            }
-            else
-            {
-                line_string = discard_comments(line_string);
-                std::istringstream line_stream(line_string);
-                if (!(line_stream >> num_edges))
-                {
-                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << spring_filename << endl);
-                }
-            }
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "processing spring data from ASCII input filename " << spring_filename << endl
+                                   << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
-            if (num_edges <= 0)
-            {
-                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << spring_filename << endl);
-            }
-
-            // Each successive line provides the connectivity and material parameter
-            // information for each spring in the structure.
-            for (int k = 0; k < num_edges; ++k)
-            {
-                Edge e;
-                double kappa, length;
-                int force_fcn_idx;
+                // The first line in the file indicates the number of edges in the input
+                // file.
+                int num_edges;
                 if (!std::getline(file_stream, line_string))
                 {
-                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << spring_filename << endl);
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << spring_filename << endl);
                 }
                 else
                 {
                     line_string = discard_comments(line_string);
                     std::istringstream line_stream(line_string);
-                    if (!(line_stream >> e.first))
+                    if (!(line_stream >> num_edges))
                     {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
-                    }
-                    else if ((e.first < 0) || (e.first >= d_num_vertex[ln][j]))
-                    {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
-                                   << "  vertex index " << e.first << " is out of range" << endl);
-                    }
-
-                    if (!(line_stream >> e.second))
-                    {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
-                    }
-                    else if ((e.second < 0) || (e.second >= d_num_vertex[ln][j]))
-                    {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
-                                   << "  vertex index " << e.second << " is out of range" << endl);
-                    }
-
-                    if (!(line_stream >> kappa))
-                    {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
-                    }
-                    else if (kappa < 0.0)
-                    {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
-                                   << "  spring constant is negative" << endl);
-                    }
-
-                    if (!(line_stream >> length))
-                    {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
-                    }
-                    else if (length < 0.0)
-                    {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
-                                   << "  spring resting length is negative" << endl);
-                    }
-
-                    if (!(line_stream >> force_fcn_idx))
-                    {
-                        force_fcn_idx = 0;  // default force function specification.
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << spring_filename << endl);
                     }
                 }
 
-                // Modify kappa and length according to whether spring forces are
-                // enabled, or whether uniform values are to be employed, for this
-                // particular structure.
-                if (!d_enable_springs[ln][j])
+                if (num_edges <= 0)
                 {
-                    kappa = 0.0;
-                    length = 0.0;
-                }
-                else
-                {
-                    if (d_using_uniform_spring_stiffness[ln][j])
-                    {
-                        kappa = d_uniform_spring_stiffness[ln][j];
-                    }
-                    if (d_using_uniform_spring_rest_length[ln][j])
-                    {
-                        length = d_uniform_spring_rest_length[ln][j];
-                    }
-                    if (d_using_uniform_spring_force_fcn_idx[ln][j])
-                    {
-                        force_fcn_idx = d_uniform_spring_force_fcn_idx[ln][j];
-                    }
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << spring_filename << endl);
                 }
 
-                // Correct the edge numbers to be in the global Lagrangian indexing
-                // scheme.
-                e.first  += d_vertex_offset[ln][j];
-                e.second += d_vertex_offset[ln][j];
-
-                // Always place the lower index first.
-                if (e.first > e.second)
+                // Each successive line provides the connectivity and material parameter
+                // information for each spring in the structure.
+                for (int k = 0; k < num_edges; ++k)
                 {
-                    std::swap<int>(e.first, e.second);
-                }
-
-                // Check to see if the edge has already been inserted in the edge map.
-                bool duplicate_edge = false;
-                for (std::multimap<int,Edge>::const_iterator it =
-                         d_spring_edge_map[ln][j].lower_bound(e.first);
-                     it != d_spring_edge_map[ln][j].upper_bound(e.first); ++it)
-                {
-                    const Edge& other_e = (*it).second;
-                    if (e.first  == other_e.first &&
-                        e.second == other_e.second)
+                    Edge e;
+                    double kappa, length;
+                    int force_fcn_idx;
+                    if (!std::getline(file_stream, line_string))
                     {
-                        // This is a duplicate edge and should not be inserted into the
-                        // edge map.
-                        duplicate_edge = true;
-
-                        // Ensure that the stiffness and rest length information is
-                        // consistent.
-                        if (!SAMRAI::tbox::Utilities::deq(
-                                (*d_spring_stiffness[ln][j].find(e)).second, kappa) ||
-                            !SAMRAI::tbox::Utilities::deq(
-                                (*d_spring_rest_length[ln][j].find(e)).second, length) ||
-                            !SAMRAI::tbox::Utilities::deq(
-                                (*d_spring_force_fcn_idx[ln][j].find(e)).second, force_fcn_idx))
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << spring_filename << endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+                        std::istringstream line_stream(line_string);
+                        if (!(line_stream >> e.first))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << spring_filename << endl
-                                       << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << endl
-                                       << "  original spring constant = " << (*d_spring_stiffness[ln][j].find(e)).second << endl
-                                       << "  original resting length = " << (*d_spring_rest_length[ln][j].find(e)).second << endl
-                                       << "  original force function index = " << (*d_spring_force_fcn_idx[ln][j].find(e)).second << endl);
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
+                        }
+                        else if ((e.first < 0) || (e.first >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
+                                       << "  vertex index " << e.first << " is out of range" << endl);
+                        }
+
+                        if (!(line_stream >> e.second))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
+                        }
+                        else if ((e.second < 0) || (e.second >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
+                                       << "  vertex index " << e.second << " is out of range" << endl);
+                        }
+
+                        if (!(line_stream >> kappa))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
+                        }
+                        else if (kappa < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
+                                       << "  spring constant is negative" << endl);
+                        }
+
+                        if (!(line_stream >> length))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl);
+                        }
+                        else if (length < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << endl
+                                       << "  spring resting length is negative" << endl);
+                        }
+
+                        if (!(line_stream >> force_fcn_idx))
+                        {
+                            force_fcn_idx = 0;  // default force function specification.
                         }
                     }
+
+                    // Modify kappa and length according to whether spring forces are
+                    // enabled, or whether uniform values are to be employed, for this
+                    // particular structure.
+                    if (!d_enable_springs[ln][j])
+                    {
+                        kappa = 0.0;
+                        length = 0.0;
+                    }
+                    else
+                    {
+                        if (d_using_uniform_spring_stiffness[ln][j])
+                        {
+                            kappa = d_uniform_spring_stiffness[ln][j];
+                        }
+                        if (d_using_uniform_spring_rest_length[ln][j])
+                        {
+                            length = d_uniform_spring_rest_length[ln][j];
+                        }
+                        if (d_using_uniform_spring_force_fcn_idx[ln][j])
+                        {
+                            force_fcn_idx = d_uniform_spring_force_fcn_idx[ln][j];
+                        }
+                    }
+
+                    // Correct the edge numbers to be in the global Lagrangian indexing
+                    // scheme.
+                    e.first  += d_vertex_offset[ln][j];
+                    e.second += d_vertex_offset[ln][j];
+
+                    // Always place the lower index first.
+                    if (e.first > e.second)
+                    {
+                        std::swap<int>(e.first, e.second);
+                    }
+
+                    // Check to see if the edge has already been inserted in the edge map.
+                    bool duplicate_edge = false;
+                    for (std::multimap<int,Edge>::const_iterator it =
+                             d_spring_edge_map[ln][j].lower_bound(e.first);
+                         it != d_spring_edge_map[ln][j].upper_bound(e.first); ++it)
+                    {
+                        const Edge& other_e = (*it).second;
+                        if (e.first  == other_e.first &&
+                            e.second == other_e.second)
+                        {
+                            // This is a duplicate edge and should not be inserted into the
+                            // edge map.
+                            duplicate_edge = true;
+
+                            // Ensure that the stiffness and rest length information is
+                            // consistent.
+                            if (!SAMRAI::tbox::Utilities::deq(
+                                    (*d_spring_stiffness[ln][j].find(e)).second, kappa) ||
+                                !SAMRAI::tbox::Utilities::deq(
+                                    (*d_spring_rest_length[ln][j].find(e)).second, length) ||
+                                !SAMRAI::tbox::Utilities::deq(
+                                    (*d_spring_force_fcn_idx[ln][j].find(e)).second, force_fcn_idx))
+                            {
+                                TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << spring_filename << endl
+                                           << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << endl
+                                           << "  original spring constant = " << (*d_spring_stiffness[ln][j].find(e)).second << endl
+                                           << "  original resting length = " << (*d_spring_rest_length[ln][j].find(e)).second << endl
+                                           << "  original force function index = " << (*d_spring_force_fcn_idx[ln][j].find(e)).second << endl);
+                            }
+                        }
+                    }
+
+                    // Initialize the map data corresponding to the present edge.
+                    //
+                    // Note that in the edge map, each edge is associated with only the
+                    // first vertex.
+                    if (!duplicate_edge)
+                    {
+                        d_spring_edge_map[ln][j].insert(std::make_pair(e.first,e));
+                        d_spring_stiffness[ln][j][e] = kappa;
+                        d_spring_rest_length[ln][j][e] = length;
+                        d_spring_force_fcn_idx[ln][j][e] = force_fcn_idx;
+                    }
                 }
 
-                // Initialize the map data corresponding to the present edge.
-                //
-                // Note that in the edge map, each edge is associated with only the
-                // first vertex.
-                if (!duplicate_edge)
-                {
-                    d_spring_edge_map[ln][j].insert(std::make_pair(e.first,e));
-                    d_spring_stiffness[ln][j][e] = kappa;
-                    d_spring_rest_length[ln][j][e] = length;
-                    d_spring_force_fcn_idx[ln][j][e] = force_fcn_idx;
-                }
+                // Close the input file.
+                file_stream.close();
+
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "read " << num_edges << " edges from ASCII input filename " << spring_filename << endl
+                                   << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
             }
-
-            // Close the input file.
-            file_stream.close();
-
-            SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "read " << num_edges << " edges from ASCII input filename " << spring_filename << endl
-                               << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << endl;
 
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);

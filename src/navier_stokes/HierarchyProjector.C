@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <04.Oct.2007 18:20:33 griffith@box221.cims.nyu.edu>
+// Last modified: <19.Oct.2007 01:07:57 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -51,7 +51,8 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuratio
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 
 // Number of ghosts cells used for each variable quantity.
-static const int GHOST_CELL_WIDTH = 1;
+static const int CELLG = 2;
+static const int FACEG = 2;
 
 // Version of HierarchyProjector restart file data.
 static const int HIERARCHY_PROJECTOR_VERSION = 1;
@@ -135,14 +136,15 @@ HierarchyProjector::HierarchyProjector(
     d_P_var   = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P",1);
     d_w_var   = new SAMRAI::pdat::FaceVariable<NDIM,double>(d_object_name+"::w",1);
 
-    const SAMRAI::hier::IntVector<NDIM> ghosts = GHOST_CELL_WIDTH;
+    const SAMRAI::hier::IntVector<NDIM> cell_ghosts = CELLG;
+    const SAMRAI::hier::IntVector<NDIM> face_ghosts = FACEG;
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
-    d_sol_idx = var_db->registerVariableAndContext(d_sol_var, d_context, ghosts);
-    d_rhs_idx = var_db->registerVariableAndContext(d_rhs_var, d_context, ghosts);
-    d_F_idx   = var_db->registerVariableAndContext(  d_F_var, d_context, ghosts);
-    d_P_idx   = var_db->registerVariableAndContext(  d_P_var, d_context, ghosts);
-    d_w_idx   = var_db->registerVariableAndContext(  d_w_var, d_context, ghosts);
+    d_sol_idx = var_db->registerVariableAndContext(d_sol_var, d_context, cell_ghosts);
+    d_rhs_idx = var_db->registerVariableAndContext(d_rhs_var, d_context, cell_ghosts);
+    d_F_idx   = var_db->registerVariableAndContext(  d_F_var, d_context, cell_ghosts);
+    d_P_idx   = var_db->registerVariableAndContext(  d_P_var, d_context, cell_ghosts);
+    d_w_idx   = var_db->registerVariableAndContext(  d_w_var, d_context, face_ghosts);
 
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =

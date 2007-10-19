@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <17.Apr.2007 18:17:33 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Oct.2007 19:00:33 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -443,7 +443,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     F_scratch_idxs.setFlag(d_F_scratch1_idx);
     F_scratch_idxs.setFlag(d_F_scratch2_idx);
     d_force_rstrategy = new STOOLS::CartExtrapPhysBdryOp(
-        F_scratch_idxs, "CONSTANT");
+        F_scratch_idxs, "LINEAR");
 
     d_calgs["U->U::C->C::CONSERVATIVE_COARSEN"] =
         new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();

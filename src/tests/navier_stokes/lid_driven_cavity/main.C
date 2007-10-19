@@ -6,8 +6,6 @@
 #include <petsc.h>
 
 // Headers for basic SAMRAI objects
-#include <PatchLevel.h>
-#include <VariableDatabase.h>
 #include <tbox/Database.h>
 #include <tbox/InputDatabase.h>
 #include <tbox/InputManager.h>
@@ -63,6 +61,7 @@ main(
      */
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
     tbox::MPI::setCommunicator(PETSC_COMM_WORLD);
+    tbox::SAMRAIManager::setMaxNumberPatchDataEntries(1024);
     tbox::SAMRAIManager::startup();
 
     {// cleanup all smart Pointers prior to shutdown
@@ -456,8 +455,6 @@ main(
 
             if (viz_dump_data && iteration_num%viz_dump_interval == 0)
             {
-                hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-                var_db->printClassData();
                 if (uses_visit)
                 {
                     tbox::pout << "\nWriting visualization files...\n\n";

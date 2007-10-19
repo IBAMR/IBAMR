@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <09.Oct.2007 21:22:23 griffith@box221.cims.nyu.edu>
+// Last modified: <18.Oct.2007 23:28:03 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -301,10 +301,6 @@ INSProjectionBcCoef::setBcCoefs_private(
                 null_data, null_data, pcoef_data, variable, patch, bdry_box, fill_time);
 #endif
         }
-        else
-        {
-            pcoef_data->fillAll(0.0);
-        }
 
         const bool using_pressure_increment = (d_projection_type == "pressure_increment");
         for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
@@ -316,17 +312,19 @@ INSProjectionBcCoef::setBcCoefs_private(
             if ((fill_acoef_data && SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),1.0)) ||
                 (fill_bcoef_data && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),0.0)))
             {
-                SAMRAI::hier::Index<NDIM> i_intr(i), i_bdry(i);
+                SAMRAI::hier::Index<NDIM> i_intr0(i), i_intr1(i);
                 if (is_lower)
                 {
-                    i_bdry(bdry_normal_axis) -= 1;
+                    i_intr0(bdry_normal_axis) += 0;
+                    i_intr1(bdry_normal_axis) += 1;
                 }
                 else
                 {
-                    i_intr(bdry_normal_axis) -= 1;
+                    i_intr0(bdry_normal_axis) -= 1;
+                    i_intr1(bdry_normal_axis) -= 2;
                 }
 
-                const double P_bdry = (using_pressure_increment ? 0.5*((*P_data)(i_intr) + (*P_data)(i_bdry)) : 0.0);
+                const double P_bdry = (using_pressure_increment ? 1.5*((*P_data)(i_intr0) - (*P_data)(i_intr1)) : 0.0);
                 (*gcoef_data)(i,0) = (*pcoef_data)(i,0) - P_bdry;
             }
             else

@@ -9,14 +9,14 @@ MUSCL_LIMITED = 3
 PI = 3.14159265358979
 
 // physical parameters
-MU = 1.0
+MU = 0.1
 RHO = 1.0
 
 // grid spacing parameters
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 VelocitySolution {
@@ -50,8 +50,8 @@ VelocityBcCoefs_0 {
 
    gcoef_function_0 = "-cos(X_0)*sin(X_1)*exp(-2*nu*t)"
    gcoef_function_1 = "-cos(X_0)*sin(X_1)*exp(-2*nu*t)"
-   gcoef_function_2 = "0"
-   gcoef_function_3 = "0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
 }
 
 VelocityBcCoefs_1 {
@@ -70,8 +70,8 @@ VelocityBcCoefs_1 {
 
    gcoef_function_0 = "sin(X_0)*cos(X_1)*exp(-2*nu*t)"
    gcoef_function_1 = "sin(X_0)*cos(X_1)*exp(-2*nu*t)"
-   gcoef_function_2 = "0"
-   gcoef_function_3 = "0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
 }
 
 PressureBcCoef {
@@ -118,8 +118,8 @@ INSHierarchyIntegrator {
    output_Omega = TRUE
 
    output_Div_U = FALSE
-   output_Div_u = TRUE
-   output_Div_u_adv = TRUE
+   output_Div_u = FALSE
+   output_Div_u_adv = FALSE
 
    mu  = MU
    rho = RHO
@@ -128,15 +128,15 @@ INSHierarchyIntegrator {
    pressure_projection_type = "pressure_update"
 
    using_synch_projection = FALSE
-   second_order_pressure_update = TRUE
-   normalize_pressure = TRUE
+   second_order_pressure_update = FALSE
+   normalize_pressure = FALSE
+
+   num_cycles = 1
+   num_init_cycles = 5
 
    helmholtz_max_iterations = 1000
    helmholtz_abs_residual_tol = 1.0e-30
    helmholtz_rel_residual_tol = 1.0e-12
-
-   num_cycles = 1
-   num_init_cycles = 1
 }
 
 GodunovAdvector {
@@ -165,10 +165,10 @@ AdvDiffHierarchyIntegrator {
       use_ghosts_to_compute_dt = FALSE
    }
 
+   using_FAC = FALSE
    max_iterations = 1000
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-12
-   using_FAC = FALSE
 
    FACOps {
       fac_max_cycles = 1
@@ -210,7 +210,7 @@ HierarchyProjector {
       skip_restrict_sol = TRUE
       skip_restrict_residual = FALSE
 
-      ssor_iterations = 1
+      ssor_iterations = 2
 
       coarse_solver_choice = "hypre"
       coarse_solver_tolerance = 1.0e-6
@@ -234,7 +234,7 @@ HierarchyProjector {
       max_cycles = 1
       residual_tol = 1.0e-12
       num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 3
+      num_post_sweeps = 2
    }
 }
 
@@ -258,9 +258,9 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         =  0,    0         // lower end of computational domain.
-   x_up         =  2*PI, 0.5*PI    // upper end of computational domain.
+   domain_boxes = [ (0,0) , (4.0*N - 1,N - 1) ]
+   x_lo         =  0,    0           // lower end of computational domain.
+   x_up         =  2.0*PI, 0.5*PI    // upper end of computational domain.
    periodic_dimension = 1, 0
 }
 

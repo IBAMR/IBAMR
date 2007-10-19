@@ -41,6 +41,8 @@
 
 #include <stools/TimeDependentLocationIndexRobinBcCoefs.h>
 
+#include "FeedbackForcer.h"
+
 using namespace IBAMR;
 using namespace SAMRAI;
 using namespace STOOLS;
@@ -400,6 +402,9 @@ main(
                 "IBHierarchyIntegrator",
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
+
+        FeedbackForcer feedback_forcer("feedback_forcer", grid_geometry);
+        time_integrator->registerBodyForceSpecification(tbox::Pointer<SetDataStrategy>(&feedback_forcer,false));
         time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
         tbox::Pointer<IBStandardInitializer> initializer =
@@ -486,6 +491,19 @@ main(
                     time_integrator->getIntegratorTime());
             }
         }
+
+        /*
+         * Set the current velocity data index for the feedback forcer.
+         */
+        hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+        feedback_forcer.d_U_data_idx = var_db->mapVariableAndContextToIndex(
+            navier_stokes_integrator->getVelocityVar(),
+            navier_stokes_integrator->getCurrentContext());
+
+        /*
+         * Set the feedback forcing parmeter.
+         */
+        feedback_forcer.d_kappa = 0.5*input_db->getDouble("RHO")/dt_now;
 
         /*
          * Open files to output the lift and drag coefficients.

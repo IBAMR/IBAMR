@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <10.Sep.2007 20:53:08 griffith@box221.cims.nyu.edu>
+// Last modified: <19.Oct.2007 01:10:02 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -173,8 +173,18 @@ public:
     registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
 
+    ///
+    ///  The following routines:
+    ///
+    ///      registerRegridHierarchyCallback(),
+    ///      registerApplyGradientDetectorCallback()
+    ///
+    ///  allow for the registration of simple callback functions that are
+    ///  executed by the hierarchy integrator.
+    ///
+
     /*!
-     * XXXX Experimental function.
+     * \brief Experimental callback registration function.
      */
     void
     registerRegridHierarchyCallback(
@@ -182,7 +192,7 @@ public:
         void* ctx);
 
     /*!
-     * XXXX Experimental function.
+     * \brief Experimental callback registration function.
      */
     void
     registerApplyGradientDetectorCallback(

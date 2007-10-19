@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.C
-// Last modified: <12.Oct.2007 02:53:29 griffith@box221.cims.nyu.edu>
+// Last modified: <19.Oct.2007 00:23:58 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSIntermediateVelocityBcCoef.h"
@@ -259,7 +259,6 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
     // Enforce homogeneous boundary conditions.
     if (d_homogeneous_bc || d_velocity_correction) gcoef_data->fillAll(0.0);
 
-#if 0  // XXXX
     // At "open" boundaries, modify the normal velocity boundary conditions to
     // enforce div u = 0, and modify the tangential velocity boundary conditions
     // to enforce zero stress.  This is done by specifying a normal flux F at
@@ -324,7 +323,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
                         i_upper(axis) = U_ghost_upper(axis);
                     }
 
-                    if ((d_comp_idx == bdry_normal_axis) || axis == d_comp_idx)
+                    if ((d_comp_idx == bdry_normal_axis) || (d_comp_idx == axis))
                     {
                         const double& U_upper = (*U_data)(i_upper,comp_idx);
                         const double& U_lower = (*U_data)(i_lower,comp_idx);
@@ -344,7 +343,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
                         i_upper(bdry_normal_axis) += 1;
                     }
 
-                    if ((d_comp_idx == bdry_normal_axis) || axis == d_comp_idx)
+                    if ((d_comp_idx == bdry_normal_axis) || (d_comp_idx == axis))
                     {
                         const double& U_upper = (*U_data)(i_upper,comp_idx);
                         const double& U_lower = (*U_data)(i_lower,comp_idx);
@@ -357,7 +356,6 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
             (*gcoef_data)(i,0) = (is_lower ? +1.0 : -1.0)*F;
         }
     }
-#endif
 
     // Do not further modify the boundary condition coefficients unless we are
     // setting inhomogeneous boundary conditions for the tangential components
@@ -367,7 +365,6 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
         return;
     }
 
-#if 0 // XXXX
     // Modify the inhomogeneous coefficients for the tangential components of
     // the intermediate velocity.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Phi_data =
@@ -478,7 +475,6 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
             (*gcoef_data)(i,0) += 2.0*(dt/d_rho)*t_dot_grad_grad_Phi_dot_n;
         }
     }
-#endif
     return;
 }// setBcCoefs_private
 

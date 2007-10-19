@@ -56,14 +56,14 @@ CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES =
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
 @SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT)
-am__objects_1 = main2d-main.$(OBJEXT)
+am__objects_1 = main2d-main.$(OBJEXT) main2d-FeedbackForcer.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(top_builddir)/src/libIBAMR2d.a \
 	$(top_builddir)/src/libIBAMR.a \
 	$(top_builddir)/stools/src/libSTOOLS2d.a \
 	$(top_builddir)/stools/src/libSTOOLS.a
-am__objects_2 = main3d-main.$(OBJEXT)
+am__objects_2 = main3d-main.$(OBJEXT) main3d-FeedbackForcer.$(OBJEXT)
 am_main3d_OBJECTS = $(am__objects_2)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
 main3d_DEPENDENCIES = $(top_builddir)/src/libIBAMR3d.a \
@@ -78,6 +78,10 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES)
 ETAGS = etags
 CTAGS = ctags
@@ -192,12 +196,13 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = main.C
+SOURCES = main.C FeedbackForcer.C FeedbackForcer.h
 EXTRA_DIST = input2d.cylinder input3d.cylinder input3d.sphere \
 	generate_cylinder2d.m generate_cylinder3d.m compute_St.m \
 	generate_sphere3d.C cylinder2d_256.vertex \
-	cylinder2d_256.spring cylinder2d_512.vertex \
-	cylinder2d_512.spring cylinder3d_128.vertex \
+	cylinder2d_512.vertex cylinder2d_1024.vertex \
+	cylinder2d_256.spring cylinder2d_512.spring \
+	cylinder2d_1024.spring cylinder3d_128.vertex \
 	cylinder3d_256.vertex sphere3d_64.vertex sphere3d_64.spring \
 	sphere3d_128.vertex sphere3d_128.spring $(am__append_1)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -255,7 +260,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-FeedbackForcer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-FeedbackForcer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-main.Po@am__quote@
 
 .C.o:
@@ -286,6 +293,20 @@ main2d-main.obj: main.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
 
+main2d-FeedbackForcer.o: FeedbackForcer.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-FeedbackForcer.o -MD -MP -MF "$(DEPDIR)/main2d-FeedbackForcer.Tpo" -c -o main2d-FeedbackForcer.o `test -f 'FeedbackForcer.C' || echo '$(srcdir)/'`FeedbackForcer.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main2d-FeedbackForcer.Tpo" "$(DEPDIR)/main2d-FeedbackForcer.Po"; else rm -f "$(DEPDIR)/main2d-FeedbackForcer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='FeedbackForcer.C' object='main2d-FeedbackForcer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-FeedbackForcer.o `test -f 'FeedbackForcer.C' || echo '$(srcdir)/'`FeedbackForcer.C
+
+main2d-FeedbackForcer.obj: FeedbackForcer.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-FeedbackForcer.obj -MD -MP -MF "$(DEPDIR)/main2d-FeedbackForcer.Tpo" -c -o main2d-FeedbackForcer.obj `if test -f 'FeedbackForcer.C'; then $(CYGPATH_W) 'FeedbackForcer.C'; else $(CYGPATH_W) '$(srcdir)/FeedbackForcer.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main2d-FeedbackForcer.Tpo" "$(DEPDIR)/main2d-FeedbackForcer.Po"; else rm -f "$(DEPDIR)/main2d-FeedbackForcer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='FeedbackForcer.C' object='main2d-FeedbackForcer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-FeedbackForcer.obj `if test -f 'FeedbackForcer.C'; then $(CYGPATH_W) 'FeedbackForcer.C'; else $(CYGPATH_W) '$(srcdir)/FeedbackForcer.C'; fi`
+
 main3d-main.o: main.C
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.o -MD -MP -MF "$(DEPDIR)/main3d-main.Tpo" -c -o main3d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main3d-main.Tpo" "$(DEPDIR)/main3d-main.Po"; else rm -f "$(DEPDIR)/main3d-main.Tpo"; exit 1; fi
@@ -299,6 +320,20 @@ main3d-main.obj: main.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main3d-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
+
+main3d-FeedbackForcer.o: FeedbackForcer.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-FeedbackForcer.o -MD -MP -MF "$(DEPDIR)/main3d-FeedbackForcer.Tpo" -c -o main3d-FeedbackForcer.o `test -f 'FeedbackForcer.C' || echo '$(srcdir)/'`FeedbackForcer.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main3d-FeedbackForcer.Tpo" "$(DEPDIR)/main3d-FeedbackForcer.Po"; else rm -f "$(DEPDIR)/main3d-FeedbackForcer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='FeedbackForcer.C' object='main3d-FeedbackForcer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-FeedbackForcer.o `test -f 'FeedbackForcer.C' || echo '$(srcdir)/'`FeedbackForcer.C
+
+main3d-FeedbackForcer.obj: FeedbackForcer.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-FeedbackForcer.obj -MD -MP -MF "$(DEPDIR)/main3d-FeedbackForcer.Tpo" -c -o main3d-FeedbackForcer.obj `if test -f 'FeedbackForcer.C'; then $(CYGPATH_W) 'FeedbackForcer.C'; else $(CYGPATH_W) '$(srcdir)/FeedbackForcer.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main3d-FeedbackForcer.Tpo" "$(DEPDIR)/main3d-FeedbackForcer.Po"; else rm -f "$(DEPDIR)/main3d-FeedbackForcer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='FeedbackForcer.C' object='main3d-FeedbackForcer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-FeedbackForcer.obj `if test -f 'FeedbackForcer.C'; then $(CYGPATH_W) 'FeedbackForcer.C'; else $(CYGPATH_W) '$(srcdir)/FeedbackForcer.C'; fi`
 uninstall-info-am:
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
@@ -474,7 +509,7 @@ uninstall-am: uninstall-info-am
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input{2d.cylinder,3d.cylinder,3d.sphere} $(PWD) ; \
-	  cp -f $(srcdir)/cylinder2d_{256,512}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/cylinder2d_{256,512,1024}.{vertex,spring} $(PWD) ; \
 	  cp -f $(srcdir)/cylinder3d_{128,256}.vertex $(PWD) ; \
 	  cp -f $(srcdir)/sphere3d_{64,128}.{vertex,spring} $(PWD) ; \
           cp -f $(srcdir)/compute_St.m $(PWD) ; \

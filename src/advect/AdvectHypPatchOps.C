@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <08.Sep.2007 01:40:43 griffith@box221.cims.nyu.edu>
+// Last modified: <19.Oct.2007 01:07:33 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -176,7 +176,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_set_physical_boundary_condit
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = 4;  // XXXX
+static const int CELLG = 4;
 static const int FLUXG = 1;
 
 // Values for cell tagging routines.
@@ -1959,9 +1959,13 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
 
         const int patch_data_idx = var_db->mapVariableAndContextToIndex(
             Q_var, getDataContext());
-
+#if 0 // XXXX
         static const bool homogeneous_bc = false;
         STOOLS::CartRobinPhysBdryOp bc_helper(patch_data_idx, Q_bc_coefs, homogeneous_bc);
+#else
+        (void) Q_bc_coefs;
+        STOOLS::CartExtrapPhysBdryOp bc_helper(patch_data_idx, d_extrap_type);
+#endif
         bc_helper.setPhysicalBoundaryConditions(
             patch, fill_time, ghost_width_to_fill);
     }

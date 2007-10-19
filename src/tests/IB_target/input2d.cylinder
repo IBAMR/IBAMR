@@ -102,6 +102,10 @@ INSHierarchyIntegrator {
 
    num_cycles = 1
    num_init_cycles = 5
+
+   helmholtz_max_iterations = 25
+   helmholtz_abs_residual_tol = 1.0e-30
+   helmholtz_rel_residual_tol = 1.0e-8
 }
 
 GodunovAdvector {
@@ -109,7 +113,7 @@ GodunovAdvector {
 }
 
 AdvDiffHierarchyIntegrator {
-   viscous_timestepping_type = "TGA"
+   viscous_timestepping_type = "CRANK_NICOLSON"
 
    enable_logging = TRUE
 
@@ -119,6 +123,7 @@ AdvDiffHierarchyIntegrator {
       compute_init_velocity  = TRUE
       compute_half_velocity  = FALSE
       compute_final_velocity = FALSE
+      extrap_type            = "LINEAR"
    }
 
    HyperbolicLevelIntegrator {
@@ -130,7 +135,7 @@ AdvDiffHierarchyIntegrator {
 
    max_iterations = 25
    abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-6
+   rel_residual_tol = 1.0e-8
    using_FAC = FALSE
 }
 
@@ -149,7 +154,7 @@ HierarchyProjector {
       skip_restrict_sol = TRUE
       skip_restrict_residual = FALSE
 
-      ssor_iterations = 1
+      ssor_iterations = 2
 
       coarse_solver_choice = "hypre"
       coarse_solver_tolerance = 1.0e-6
@@ -173,7 +178,7 @@ HierarchyProjector {
       max_cycles = 1
       residual_tol = 1.0e-12
       num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 3
+      num_post_sweeps = 2
    }
 }
 

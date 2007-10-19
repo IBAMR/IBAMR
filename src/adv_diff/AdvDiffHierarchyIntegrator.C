@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <04.Oct.2007 18:17:34 griffith@box221.cims.nyu.edu>
+// Last modified: <19.Oct.2007 01:06:59 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -66,7 +66,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = 1;
+static const int CELLG = 2;
 
 // Version of AdvDiffHierarchyIntegrator restart file data.
 static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 1;
