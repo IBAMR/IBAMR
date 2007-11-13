@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.C
-// Last modified: <19.Oct.2007 00:23:58 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Nov.2007 01:03:20 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSIntermediateVelocityBcCoef.h"
@@ -44,8 +44,6 @@ INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
     : d_comp_idx(comp_idx),
       d_target_idx(-1),
       d_Phi_idx(-1),
-      d_homo_patch_data_idxs(),
-      d_inhomo_patch_data_idxs(),
       d_u_bc_coefs(NDIM,NULL),
       d_homogeneous_bc(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
@@ -98,8 +96,6 @@ INSIntermediateVelocityBcCoef::setPhiPatchDataIndex(
     const int Phi_idx)
 {
     d_Phi_idx = Phi_idx;
-    d_inhomo_patch_data_idxs.clear();
-    d_inhomo_patch_data_idxs.insert(d_Phi_idx);
     return;
 }// setPhiPatchDataIndex
 
@@ -131,18 +127,6 @@ INSIntermediateVelocityBcCoef::setHomogeneousBc(
     d_homogeneous_bc = homogeneous_bc;
     return;
 }// setHomogeneousBc
-
-const std::set<int>&
-INSIntermediateVelocityBcCoef::getHomogeneousBcFillDataIndices() const
-{
-    return d_homo_patch_data_idxs;
-}// getHomogeneousBcFillDataIndices
-
-const std::set<int>&
-INSIntermediateVelocityBcCoef::getInhomogeneousBcFillDataIndices() const
-{
-    return d_inhomo_patch_data_idxs;
-}// getInhomogeneousBcFillDataIndices
 
 void
 INSIntermediateVelocityBcCoef::setBcCoefs(

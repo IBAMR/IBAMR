@@ -2,7 +2,7 @@
 #define included_INSProjectionBcCoef
 
 // Filename: INSProjectionBcCoef.h
-// Last modified: <10.Sep.2007 20:32:56 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Nov.2007 01:03:43 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -132,20 +132,6 @@ public:
     virtual void
     setHomogeneousBc(
         const bool homogeneous_bc);
-
-    /*!
-     * \return Set of patch data descriptor indices whose values must be
-     * provided in order to set the homogeneous Robin boundary conditions.
-     */
-    virtual const std::set<int>&
-    getHomogeneousBcFillDataIndices() const;
-
-    /*!
-     * \return Set of patch data descriptor indices whose values must be
-     * provided in order to set the inhomogeneous Robin boundary conditions.
-     */
-    virtual const std::set<int>&
-    getInhomogeneousBcFillDataIndices() const;
 
     //\}
 
@@ -325,12 +311,6 @@ private:
      * The boundary condition specification objects for the updated velocity.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
-
-    /*
-     * Sets of patch data indices required to fill homogeneous and inhomogeneous
-     * boundary conditions.
-     */
-    std::set<int> d_homo_patch_data_idxs, d_inhomo_patch_data_idxs;
 
     /*
      * Whether to use homogeneous boundary conditions.

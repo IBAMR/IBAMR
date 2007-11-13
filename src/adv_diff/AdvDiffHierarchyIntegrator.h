@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <30.Aug.2007 19:49:56 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Nov.2007 23:46:55 griffith@box221.cims.nyu.edu>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -14,7 +14,6 @@
 // STOOLS INCLUDES
 #include <stools/CCLaplaceOperator.h>
 #include <stools/CCPoissonFACOperator.h>
-#include <stools/CartRobinPhysBdryOp.h>
 #include <stools/HierarchyMathOps.h>
 #include <stools/KrylovLinearSolver.h>
 #include <stools/SetDataStrategy.h>
@@ -31,8 +30,6 @@
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <PoissonSpecifications.h>
-#include <RefineAlgorithm.h>
-#include <RefineSchedule.h>
 #include <RobinBcCoefStrategy.h>
 #include <SAMRAIVectorReal.h>
 #include <StandardTagAndInitStrategy.h>
@@ -851,10 +848,6 @@ protected:
     bool d_u_is_div_free;
 
 private:
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;
-    typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* >                                 RefinePatchStrategyMap;
-    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineSchedMap;
-
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;
     typedef std::map<std::string,SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* >                                 CoarsenPatchStrategyMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
@@ -1008,15 +1001,12 @@ private:
     /*
      * Communications algorithms, patch strategies, and schedules.
      */
-    RefineAlgMap           d_ralgs;
-    RefinePatchStrategyMap d_rstrategies;
-    RefineSchedMap         d_rscheds;
-
     CoarsenAlgMap           d_calgs;
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;
 
-    SAMRAI::tbox::Pointer<STOOLS::CartRobinPhysBdryOp> d_bc_op;
+    std::vector<SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
+    SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> d_no_fill_op;
 
     /*
      * Linear solvers and associated data including Poisson specifications,

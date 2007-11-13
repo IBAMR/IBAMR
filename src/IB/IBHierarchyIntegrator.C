@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <17.Oct.2007 18:59:42 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Nov.2007 23:39:13 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -24,7 +24,6 @@
 #include <ibamr/LNodeIndexData2.h>
 
 // STOOLS INCLUDES
-#include <stools/CartExtrapPhysBdryOp.h>
 #include <stools/PETSC_SAMRAI_ERROR.h>
 #include <stools/STOOLS_Utilities.h>
 
@@ -41,7 +40,6 @@
 #include <IndexData.h>
 #include <Patch.h>
 #include <PatchCellDataOpsReal.h>
-#include <RefineOperator.h>
 #include <VariableDatabase.h>
 #include <tbox/RestartManager.h>
 #include <tbox/Timer.h>

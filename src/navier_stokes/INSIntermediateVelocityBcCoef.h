@@ -2,7 +2,7 @@
 #define included_INSIntermediateVelocityBcCoef
 
 // Filename: INSIntermediateVelocityBcCoef.h
-// Last modified: <07.Sep.2007 22:18:37 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Nov.2007 01:03:29 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -106,20 +106,6 @@ public:
     virtual void
     setHomogeneousBc(
         const bool homogeneous_bc);
-
-    /*!
-     * \return Set of patch data descriptor indices whose values must be
-     * provided in order to set the homogeneous Robin boundary conditions.
-     */
-    virtual const std::set<int>&
-    getHomogeneousBcFillDataIndices() const;
-
-    /*!
-     * \return Set of patch data descriptor indices whose values must be
-     * provided in order to set the inhomogeneous Robin boundary conditions.
-     */
-    virtual const std::set<int>&
-    getInhomogeneousBcFillDataIndices() const;
 
     //\}
 
@@ -288,12 +274,6 @@ private:
      * The patch data index corresponding to the estimated value of Phi.
      */
     int d_Phi_idx;
-
-    /*
-     * Sets of patch data indices required to fill homogeneous and inhomogeneous
-     * boundary conditions.
-     */
-    std::set<int> d_homo_patch_data_idxs, d_inhomo_patch_data_idxs;
 
     /*
      * The boundary condition specification objects for the updated velocity.

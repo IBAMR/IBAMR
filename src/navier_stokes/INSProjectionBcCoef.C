@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <18.Oct.2007 23:28:03 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Nov.2007 01:04:14 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -48,8 +48,6 @@ INSProjectionBcCoef::INSProjectionBcCoef(
       d_projection_type(),
       d_u_idx(-1),
       d_u_bc_coefs(NDIM,NULL),
-      d_homo_patch_data_idxs(),
-      d_inhomo_patch_data_idxs(),
       d_homogeneous_bc(false),
       d_rho(std::numeric_limits<double>::quiet_NaN()),
       d_dt(std::numeric_limits<double>::quiet_NaN())
@@ -84,9 +82,6 @@ INSProjectionBcCoef::setCurrentPressurePatchDataIndex(
     const int P_idx)
 {
     d_P_idx = P_idx;
-    d_inhomo_patch_data_idxs.clear();
-    if (d_u_idx != -1) d_inhomo_patch_data_idxs.insert(d_u_idx);
-    d_inhomo_patch_data_idxs.insert(d_P_idx);
     return;
 }// setCurrentPressurePatchDataIndex
 
@@ -117,9 +112,6 @@ INSProjectionBcCoef::setIntermediateVelocityPatchDataIndex(
     const int u_idx)
 {
     d_u_idx = u_idx;
-    d_inhomo_patch_data_idxs.clear();
-    d_inhomo_patch_data_idxs.insert(d_u_idx);
-    if (d_P_idx != -1) d_inhomo_patch_data_idxs.insert(d_P_idx);
     return;
 }// setIntermediateVelocityPatchDataIndex
 
@@ -151,18 +143,6 @@ INSProjectionBcCoef::setHomogeneousBc(
     d_homogeneous_bc = homogeneous_bc;
     return;
 }// setHomogeneousBc
-
-const std::set<int>&
-INSProjectionBcCoef::getHomogeneousBcFillDataIndices() const
-{
-    return d_homo_patch_data_idxs;
-}// getHomogeneousBcFillDataIndices
-
-const std::set<int>&
-INSProjectionBcCoef::getInhomogeneousBcFillDataIndices() const
-{
-    return d_inhomo_patch_data_idxs;
-}// getInhomogeneousBcFillDataIndices
 
 void
 INSProjectionBcCoef::setBcCoefs(

@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <10.Sep.2007 20:31:51 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Nov.2007 00:50:52 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -29,8 +29,6 @@
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <PoissonSpecifications.h>
-#include <RefineAlgorithm.h>
-#include <RefineSchedule.h>
 #include <RobinBcCoefStrategy.h>
 #include <SAMRAIVectorReal.h>
 #include <StandardTagAndInitStrategy.h>
@@ -323,9 +321,6 @@ public:
         std::ostream& os) const;
 
 private:
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >               RefineAlgMap;
-    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > >  RefineSchedMap;
-
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
 
@@ -417,17 +412,16 @@ private:
     int d_wgt_idx;
     double d_volume;
 
+    SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> d_hier_bdry_fill_op, d_no_fill_op;
+
     /*
      * The Poisson solver and associated data including Poisson specifications,
      * boundary conditions, and the solver configuation database.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_var, d_P_var;
-    int d_F_idx, d_P_idx;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_w_var;
-    int d_w_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_var;
+    int d_F_idx;
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
 
@@ -452,14 +446,6 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var;
     int d_sol_idx, d_rhs_idx;
-
-    /*
-     * Cached communications algorithms and schedules.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_inhomogeneous_bc_fill_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_inhomogeneous_bc_fill_scheds;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_bc_refine_strategy;
-    SAMRAI::tbox::Pointer<STOOLS::CartRobinPhysBdryOp> d_bc_op;
 };
 }// namespace IBAMR
 
