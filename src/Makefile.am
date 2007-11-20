@@ -1,7 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = fortran adv_diff advect lagrangian navier_stokes utilities . tests tools
-###SUBDIRS = IB fortran adv_diff advect lagrangian navier_stokes utilities . tests tools
+SUBDIRS = IB fortran adv_diff advect lagrangian navier_stokes utilities . tests tools
 
 lib_LIBRARIES = libIBAMR.a
 if SAMRAI2D_ENABLED
@@ -17,6 +16,30 @@ libIBAMR_a_SOURCES = # intentionally blank
 
 ## Dimension-dependent libraries
 libIBAMR2d_a_LIBADD = \
+IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
+IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
+IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
+IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
+IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
+IB/libIBAMR_IB2d_a-IBHDF5Initializer.o \
+IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
+IB/libIBAMR_IB2d_a-IBInstrumentPanel.o \
+IB/libIBAMR_IB2d_a-IBInstrumentationSpec.o \
+IB/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.o \
+IB/libIBAMR_IB2d_a-IBLagrangianForceStrategy.o \
+IB/libIBAMR_IB2d_a-IBLagrangianForceStrategySet.o \
+IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o \
+IB/libIBAMR_IB2d_a-IBMarker.o \
+IB/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.o \
+IB/libIBAMR_IB2d_a-IBMarkerRefineOperator.o \
+IB/libIBAMR_IB2d_a-IBSpringForceGen.o \
+IB/libIBAMR_IB2d_a-IBSpringForceSpecFactory.o \
+IB/libIBAMR_IB2d_a-IBSpringForceSpec.o \
+IB/libIBAMR_IB2d_a-IBStandardForceGen.o \
+IB/libIBAMR_IB2d_a-IBStandardInitializer.o \
+IB/libIBAMR_IB2d_a-IBTargetPointForceGen.o \
+IB/libIBAMR_IB2d_a-IBTargetPointForceSpecFactory.o \
+IB/libIBAMR_IB2d_a-IBTargetPointForceSpec.o \
 adv_diff/fortran/adv_diff_consdiff2d.o \
 adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o \
 adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o \
@@ -51,33 +74,31 @@ utilities/libIBAMR_utilities2d_a-StashableStream.o \
 utilities/libIBAMR_utilities2d_a-get_version.o
 libIBAMR2d_a_SOURCES = # intentionally blank
 
-#IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
-#IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
-#IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
-#IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
-#IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
-#IB/libIBAMR_IB2d_a-IBHDF5Initializer.o \
-#IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
-#IB/libIBAMR_IB2d_a-IBInstrumentPanel.o \
-#IB/libIBAMR_IB2d_a-IBInstrumentationSpec.o \
-#IB/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.o \
-#IB/libIBAMR_IB2d_a-IBLagrangianForceStrategy.o \
-#IB/libIBAMR_IB2d_a-IBLagrangianForceStrategySet.o \
-#IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o \
-#IB/libIBAMR_IB2d_a-IBMarker.o \
-#IB/libIBAMR_IB2d_a-IBMarkerCoarsenOperator.o \
-#IB/libIBAMR_IB2d_a-IBMarkerRefineOperator.o \
-#IB/libIBAMR_IB2d_a-IBSpringForceGen.o \
-#IB/libIBAMR_IB2d_a-IBSpringForceSpecFactory.o \
-#IB/libIBAMR_IB2d_a-IBSpringForceSpec.o \
-#IB/libIBAMR_IB2d_a-IBStandardForceGen.o \
-#IB/libIBAMR_IB2d_a-IBStandardInitializer.o \
-#IB/libIBAMR_IB2d_a-IBTargetPointForceGen.o \
-#IB/libIBAMR_IB2d_a-IBTargetPointForceSpecFactory.o \
-#IB/libIBAMR_IB2d_a-IBTargetPointForceSpec.o \
-#
-
 libIBAMR3d_a_LIBADD = \
+IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
+IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
+IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
+IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
+IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
+IB/libIBAMR_IB3d_a-IBHDF5Initializer.o \
+IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
+IB/libIBAMR_IB3d_a-IBInstrumentPanel.o \
+IB/libIBAMR_IB3d_a-IBInstrumentationSpec.o \
+IB/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.o \
+IB/libIBAMR_IB3d_a-IBLagrangianForceStrategy.o \
+IB/libIBAMR_IB3d_a-IBLagrangianForceStrategySet.o \
+IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o \
+IB/libIBAMR_IB3d_a-IBMarker.o \
+IB/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.o \
+IB/libIBAMR_IB3d_a-IBMarkerRefineOperator.o \
+IB/libIBAMR_IB3d_a-IBSpringForceGen.o \
+IB/libIBAMR_IB3d_a-IBSpringForceSpecFactory.o \
+IB/libIBAMR_IB3d_a-IBSpringForceSpec.o \
+IB/libIBAMR_IB3d_a-IBStandardForceGen.o \
+IB/libIBAMR_IB3d_a-IBStandardInitializer.o \
+IB/libIBAMR_IB3d_a-IBTargetPointForceGen.o \
+IB/libIBAMR_IB3d_a-IBTargetPointForceSpecFactory.o \
+IB/libIBAMR_IB3d_a-IBTargetPointForceSpec.o \
 adv_diff/fortran/adv_diff_consdiff3d.o \
 adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o \
 adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o \
@@ -112,30 +133,3 @@ utilities/libIBAMR_utilities3d_a-Stashable.o \
 utilities/libIBAMR_utilities3d_a-StashableStream.o \
 utilities/libIBAMR_utilities3d_a-get_version.o
 libIBAMR3d_a_SOURCES = # intentionally blank
-
-
-#IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
-#IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
-#IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
-#IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
-#IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
-#IB/libIBAMR_IB3d_a-IBHDF5Initializer.o \
-#IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
-#IB/libIBAMR_IB3d_a-IBInstrumentPanel.o \
-#IB/libIBAMR_IB3d_a-IBInstrumentationSpec.o \
-#IB/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.o \
-#IB/libIBAMR_IB3d_a-IBLagrangianForceStrategy.o \
-#IB/libIBAMR_IB3d_a-IBLagrangianForceStrategySet.o \
-#IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o \
-#IB/libIBAMR_IB3d_a-IBMarker.o \
-#IB/libIBAMR_IB3d_a-IBMarkerCoarsenOperator.o \
-#IB/libIBAMR_IB3d_a-IBMarkerRefineOperator.o \
-#IB/libIBAMR_IB3d_a-IBSpringForceGen.o \
-#IB/libIBAMR_IB3d_a-IBSpringForceSpecFactory.o \
-#IB/libIBAMR_IB3d_a-IBSpringForceSpec.o \
-#IB/libIBAMR_IB3d_a-IBStandardForceGen.o \
-#IB/libIBAMR_IB3d_a-IBStandardInitializer.o \
-#IB/libIBAMR_IB3d_a-IBTargetPointForceGen.o \
-#IB/libIBAMR_IB3d_a-IBTargetPointForceSpecFactory.o \
-#IB/libIBAMR_IB3d_a-IBTargetPointForceSpec.o \
-#

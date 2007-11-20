@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <07.Nov.2007 23:39:11 griffith@box221.cims.nyu.edu>
+// Last modified: <20.Nov.2007 17:18:16 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -37,6 +37,8 @@
 #include <LoadBalancer.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
+#include <RefineAlgorithm.h>
+#include <RefineSchedule.h>
 #include <VariableContext.h>
 #include <VisItDataWriter.h>
 #include <tbox/Database.h>
@@ -587,6 +589,10 @@ public:
         std::ostream& os) const;
 
 private:
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;
+    typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* >                                 RefinePatchStrategyMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineSchedMap;
+
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;
     typedef std::map<std::string,SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* >                                 CoarsenPatchStrategyMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
@@ -762,7 +768,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
     SAMRAI::tbox::Pointer<LagSiloDataWriter> d_silo_writer;
 #if (NDIM == 3)
-     SAMRAI::tbox::Pointer<LagM3DDataWriter> d_m3D_writer;
+    SAMRAI::tbox::Pointer<LagM3DDataWriter> d_m3D_writer;
 #endif
 
     /*
@@ -896,9 +902,17 @@ private:
     /*
      * Communications algorithms and schedules.
      */
+    RefineAlgMap           d_ralgs;
+    RefinePatchStrategyMap d_rstrategies;
+    RefineSchedMap         d_rscheds;
+
     CoarsenAlgMap           d_calgs;
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;
+
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_force_ralg, d_source_ralg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_force_rstrategy, d_source_rstrategy;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_force_rscheds, d_source_rscheds;
 
     /*
      * Variables and variable contexts.
