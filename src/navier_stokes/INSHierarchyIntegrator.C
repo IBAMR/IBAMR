@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <12.Nov.2007 22:00:18 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Nov.2007 15:52:38 boyce@trasnaform2.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -263,7 +263,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
         d_default_P_bc_coef->setBoundarySlope(2*d+1,0.0);
     }
 
-    d_Phi_bc_coef = new INSProjectionBcCoef(-1,NULL,"pressure_update",-1,std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,NULL),true);
+    d_Phi_bc_coef = new INSProjectionBcCoef(-1,NULL,"pressure_update",-1,std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),true);
 
     registerVelocityPhysicalBcCoefs(
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
@@ -1449,6 +1449,7 @@ INSHierarchyIntegrator::regridHierarchy()
         // Project u^(n,*)->u(n) and re-use grad Phi to project
         // U^(n,*)->U^(n).
         d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
+        assert(false);  // XXXX
         d_hier_projector->projectHierarchy(
             initial_time ? 1.0 : d_rho, initial_time ? 1.0 : d_old_dt, d_integrator_time,
             d_velocity_projection_type,
@@ -1659,6 +1660,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     }
 
     d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
+    assert(false);  // XXXX
     d_hier_projector->projectHierarchy(
         d_rho, dt, current_time+0.5*dt,
         d_velocity_projection_type,
@@ -1822,6 +1824,7 @@ INSHierarchyIntegrator::projectVelocity(
 
     // Project u^(n,*)->u(n+1) and re-use grad Phi to project
     // U^(n,*)->U^(n+1).
+    assert(false);  // XXXX
     d_hier_projector->projectHierarchy(
         d_rho, dt, new_time,
         d_velocity_projection_type,
@@ -2147,6 +2150,7 @@ INSHierarchyIntegrator::updatePressure(
 
         // Project U~^{*}.
         d_hier_cc_data_ops->add(d_Phi_tilde_scratch_idx, d_P_current_idx, d_Phi_new_idx);
+        assert(false);  // XXXX
         d_hier_projector->projectHierarchy(
             d_rho, dt, new_time,
             d_pressure_projection_type,

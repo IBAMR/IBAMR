@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <08.Nov.2007 01:04:14 griffith@box221.cims.nyu.edu>
+// Last modified: <23.Nov.2007 01:24:12 boyce@trasnaform2.local>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -47,7 +47,7 @@ INSProjectionBcCoef::INSProjectionBcCoef(
       d_P_bc_coef(NULL),
       d_projection_type(),
       d_u_idx(-1),
-      d_u_bc_coefs(NDIM,NULL),
+      d_u_bc_coefs(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_homogeneous_bc(false),
       d_rho(std::numeric_limits<double>::quiet_NaN()),
       d_dt(std::numeric_limits<double>::quiet_NaN())
@@ -286,8 +286,7 @@ INSProjectionBcCoef::setBcCoefs_private(
         for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
         {
             const SAMRAI::hier::Index<NDIM>& i = b();
-            const SAMRAI::pdat::FaceIndex<NDIM> i_f(
-                i, bdry_normal_axis, SAMRAI::pdat::FaceIndex<NDIM>::Lower);
+            const SAMRAI::pdat::FaceIndex<NDIM> i_f(i, bdry_normal_axis, SAMRAI::pdat::FaceIndex<NDIM>::Lower);
 
             if ((fill_acoef_data && SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),1.0)) ||
                 (fill_bcoef_data && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),0.0)))

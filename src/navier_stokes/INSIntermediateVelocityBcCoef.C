@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.C
-// Last modified: <08.Nov.2007 01:03:20 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Nov.2007 15:53:55 boyce@trasnaform2.local>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSIntermediateVelocityBcCoef.h"
@@ -44,7 +44,7 @@ INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
     : d_comp_idx(comp_idx),
       d_target_idx(-1),
       d_Phi_idx(-1),
-      d_u_bc_coefs(NDIM,NULL),
+      d_u_bc_coefs(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_homogeneous_bc(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),

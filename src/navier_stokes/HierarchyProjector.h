@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <08.Nov.2007 00:50:52 griffith@box221.cims.nyu.edu>
+// Last modified: <23.Nov.2007 01:40:42 boyce@trasnaform2.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////

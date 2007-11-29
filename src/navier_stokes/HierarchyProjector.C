@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <08.Nov.2007 15:00:14 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Nov.2007 15:51:50 boyce@trasnaform2.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -92,7 +92,7 @@ HierarchyProjector::HierarchyProjector(
       d_abs_residual_tol(1.0e-12),
       d_rel_residual_tol(1.0e-8),
       d_poisson_spec(d_object_name+"::Poisson spec"),
-      d_u_bc_coefs(NDIM,NULL),
+      d_u_bc_coefs(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_default_u_bc_coefs(),
       d_P_bc_coef(NULL),
       d_default_P_bc_coef(),
