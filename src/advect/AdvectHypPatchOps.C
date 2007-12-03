@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <19.Oct.2007 01:07:33 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Dec.2007 23:54:18 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -15,11 +15,6 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
-
-// STOOLS INCLUDES
-#include <stools/CartExtrapPhysBdryOp.h>
-#include <stools/CartRobinPhysBdryOp.h>
-#include <stools/PhysicalBoundaryUtilities.h>
 
 // SAMRAI INCLUDES
 #include <BoundaryBox.h>
@@ -187,26 +182,6 @@ static const int FALSE_VAL = 0;
 
 // Version of AdvectHypPatchOps restart file data.
 static const int ADVECT_HYP_PATCH_OPS_VERSION = 1;
-
-inline double
-compute_linear_extrap(
-    SAMRAI::pdat::CellData<NDIM,double>& patch_data,
-    const SAMRAI::pdat::CellIndex<NDIM>& i,
-    const SAMRAI::pdat::CellIndex<NDIM>& i_intr,
-    const SAMRAI::hier::IntVector<NDIM>& i_shft,
-    const int depth)
-{
-    double ret_val = patch_data(i_intr,depth);
-    for (int d = 0; d < NDIM; ++d)
-    {
-        SAMRAI::pdat::CellIndex<NDIM> i_intr_shft = i_intr;
-        i_intr_shft(d) += i_shft(d);
-        const double du = patch_data(i_intr,depth) - patch_data(i_intr_shft,depth);
-        const double delta = abs(i(d)-i_intr(d));
-        ret_val += du*delta;
-    }
-    return ret_val;
-}// compute_linear_extrap
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -219,8 +194,6 @@ AdvectHypPatchOps::AdvectHypPatchOps(
     bool register_for_restart)
     : d_integrator(NULL),
       d_godunov_advector(godunov_advector),
-      d_advance_soln(false),
-      d_initialize_soln(false),
       d_Q_vars(),
       d_F_vars(),
       d_grad_vars(),
@@ -242,6 +215,8 @@ AdvectHypPatchOps::AdvectHypPatchOps(
       d_registered_for_restart(register_for_restart),
       d_grid_geometry(grid_geom),
       d_visit_writer(NULL),
+      d_extrap_bc_helper(),
+      d_coarse_fine_bdry_op(NULL),
       d_ghosts(CELLG),
       d_flux_ghosts(FLUXG),
       d_extrap_type("CONSTANT"),
@@ -320,6 +295,14 @@ AdvectHypPatchOps::getName() const
 {
     return d_object_name;
 }// getName
+
+void
+AdvectHypPatchOps::registerCoarseFineBoundaryRefinePatchStrategy(
+    SAMRAI::tbox::Pointer<STOOLS::CoarseFineBoundaryRefinePatchStrategy> coarse_fine_bdry_op)
+{
+    d_coarse_fine_bdry_op = coarse_fine_bdry_op;
+    return;
+}// registerCoarseFineBoundaryRefinePatchStrategy
 
 ///
 ///  The following routines:
@@ -552,9 +535,6 @@ AdvectHypPatchOps::registerVisItDataWriter(
 ///
 ///  The following routines:
 ///
-///      setupAdvancePatchState(),
-///      setupInitializePatchState(),
-///      clearPatchState(),
 ///      registerModelVariables(),
 ///      initializeDataOnPatch(),
 ///      computeStableDtOnPatch(),
@@ -568,56 +548,6 @@ AdvectHypPatchOps::registerVisItDataWriter(
 ///  are concrete implementations of functions declared in the
 ///  SAMRAI::algs::HyperbolicPatchStrategy abstract base class.
 ///
-
-void
-AdvectHypPatchOps::setupAdvancePatchState(
-    const double current_time,
-    const double new_time,
-    const bool first_step,
-    const bool last_step,
-    const bool regrid_advance)
-{
-    if (d_advance_soln)
-    {
-        TBOX_ERROR(d_object_name << "::setupAdvancePatchState()\n"
-                   << "  patch strategy state already set to advance solution" << endl);
-    }
-    if (d_initialize_soln)
-    {
-        TBOX_ERROR(d_object_name << "::setupAdvancePatchState()\n"
-                   << "  patch strategy state already set to initialize solution" << endl);
-    }
-    d_advance_soln = true;
-    return;
-}// setupAdvancePatchState
-
-void
-AdvectHypPatchOps::setupInitializePatchState(
-    const double init_data_time,
-    const bool can_be_refined,
-    const bool initial_time)
-{
-    if (d_advance_soln)
-    {
-        TBOX_ERROR(d_object_name << "::setupInitializePatchState()\n"
-                   << "  patch strategy state already set to advance solution" << endl);
-    }
-    if (d_initialize_soln)
-    {
-        TBOX_ERROR(d_object_name << "::setupInitializePatchState()\n"
-                   << "  patch strategy state already set to initialize solution" << endl);
-    }
-    d_initialize_soln = true;
-    return;
-}// setupInitializePatchState
-
-void
-AdvectHypPatchOps::clearPatchState()
-{
-    d_advance_soln = false;
-    d_initialize_soln = false;
-    return;
-}// clearPatchState
 
 void
 AdvectHypPatchOps::registerModelVariables(
@@ -646,9 +576,9 @@ AdvectHypPatchOps::registerModelVariables(
 #if (NDIM > 1)
         if (!d_visit_writer.isNull())
         {
-            const int qidx = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase()->
-                mapVariableAndContextToIndex(Q_var,
-                                             d_integrator->getPlotContext());
+            const int Q_idx = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase()->
+                mapVariableAndContextToIndex(
+                    Q_var, d_integrator->getPlotContext());
 
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
                 Q_var->getPatchDataFactory();
@@ -658,14 +588,14 @@ AdvectHypPatchOps::registerModelVariables(
             if (depth == 1)
             {
                 d_visit_writer->registerPlotQuantity(
-                    Q_var->getName(), "SCALAR", qidx);
+                    Q_var->getName(), "SCALAR", Q_idx);
             }
             else
             {
                 if (depth == NDIM)
                 {
                     d_visit_writer->registerPlotQuantity(
-                        Q_var->getName(), "VECTOR", qidx);
+                        Q_var->getName(), "VECTOR", Q_idx);
                 }
 
                 for (int d = 0; d < depth; ++d)
@@ -673,7 +603,7 @@ AdvectHypPatchOps::registerModelVariables(
                     std::ostringstream stream;
                     stream << d;
                     d_visit_writer->registerPlotQuantity(
-                        Q_var->getName()+"_"+stream.str(), "SCALAR", qidx, d);
+                        Q_var->getName()+"_"+stream.str(), "SCALAR", Q_idx, d);
                 }
             }
         }
@@ -780,8 +710,8 @@ AdvectHypPatchOps::initializeDataOnPatch(
 
             if (!Q_init.isNull())
             {
-                Q_init->setDataOnPatch(Q_idx, Q_var, patch,
-                                       data_time, initial_time);
+                Q_init->setDataOnPatch(
+                    Q_idx, Q_var, patch, data_time, initial_time);
             }
             else
             {
@@ -809,8 +739,8 @@ AdvectHypPatchOps::initializeDataOnPatch(
 
                 if (!F_set.isNull())
                 {
-                    F_set->setDataOnPatch(F_idx, F_var, patch,
-                                          data_time, initial_time);
+                    F_set->setDataOnPatch(
+                        F_idx, F_var, patch, data_time, initial_time);
                 }
                 else
                 {
@@ -832,8 +762,8 @@ AdvectHypPatchOps::initializeDataOnPatch(
 
         if (!d_u_set.isNull())
         {
-            d_u_set->setDataOnPatch(u_idx, d_u_var, patch,
-                                    data_time, initial_time);
+            d_u_set->setDataOnPatch(
+                u_idx, d_u_var, patch, data_time, initial_time);
         }
         else
         {
@@ -922,8 +852,8 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     }
 
     // For incompressible flow problems, we allow for the specification of an
-    // auxiliary gradient that is used to (approximately) enforce the
-    // incompressibility constraint.
+    // auxiliary gradient that is used to enforce the incompressibility
+    // constraint in an extremely approximate manner.
     for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
     {
         if (!d_grad_vars[l].isNull())
@@ -938,8 +868,7 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     }
 
     // Update the advection velocity.
-    if (!d_u_set.isNull() && d_u_set->isTimeDependent() &&
-        d_compute_half_velocity)
+    if (!d_u_set.isNull() && d_u_set->isTimeDependent() && d_compute_half_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
@@ -1179,13 +1108,47 @@ AdvectHypPatchOps::preprocessAdvanceLevelState(
     (void) regrid_advance;
 
     // Update the advection velocity.
-    if (!d_u_set.isNull() && d_u_set->isTimeDependent() &&
-        d_compute_init_velocity)
+    if (!d_u_set.isNull() && d_u_set->isTimeDependent() && d_compute_init_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, d_integrator->getScratchContext());
         d_u_set->setDataOnPatchLevel(u_idx, d_u_var, level, current_time);
+    }
+
+    if (!d_coarse_fine_bdry_op.isNull() && level->inHierarchy())
+    {
+        // Determine the patch data indices which require further modification
+        // at coarse-fine interfaces.
+        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+        SAMRAI::hier::ComponentSelector patch_data_indices;
+
+        typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
+        for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+            const int Q_data_idx = var_db->mapVariableAndContextToIndex(
+                Q_var, d_integrator->getScratchContext());
+            patch_data_indices.setFlag(Q_data_idx);
+
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+            if (!F_var.isNull())
+            {
+                const int F_data_idx = var_db->mapVariableAndContextToIndex(
+                    F_var, d_integrator->getScratchContext());
+                patch_data_indices.setFlag(F_data_idx);
+            }
+        }
+
+        d_coarse_fine_bdry_op->setPatchDataIndices(patch_data_indices);
+
+        const SAMRAI::hier::IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill = CELLG;
+            d_coarse_fine_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
+        }
     }
 
     t_preprocess_advance_level_state->stop();
@@ -1284,8 +1247,7 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
     }
 
     // Update the advection velocity.
-    if (!d_u_set.isNull() && d_u_set->isTimeDependent() &&
-        d_compute_final_velocity)
+    if (!d_u_set.isNull() && d_u_set->isTimeDependent() && d_compute_final_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
@@ -1350,8 +1312,7 @@ AdvectHypPatchOps::tagRichardsonExtrapolationCells(
             double time_max = (error_level_number < size
                                ? d_rich_time_max[error_level_number]
                                : d_rich_time_max[size-1]);
-            time_allowed =
-                (time_min <= regrid_time) && (time_max > regrid_time);
+            time_allowed = (time_min <= regrid_time) && (time_max > regrid_time);
 
             if (time_allowed)
             {
@@ -1544,8 +1505,7 @@ AdvectHypPatchOps::tagGradientDetectorCells(
             double time_max = (error_level_number < size
                                ? d_dev_time_max[error_level_number]
                                : d_dev_time_max[size-1]);
-            time_allowed =
-                (time_min <= regrid_time) && (time_max > regrid_time);
+            time_allowed = (time_min <= regrid_time) && (time_max > regrid_time);
 
             if (time_allowed)
             {
@@ -1600,8 +1560,7 @@ AdvectHypPatchOps::tagGradientDetectorCells(
             double time_max = (error_level_number < size
                                ? d_grad_time_max[error_level_number]
                                : d_grad_time_max[size-1]);
-            time_allowed =
-                (time_min <= regrid_time) && (time_max > regrid_time);
+            time_allowed = (time_min <= regrid_time) && (time_max > regrid_time);
 
             if (time_allowed)
             {
@@ -1673,7 +1632,10 @@ AdvectHypPatchOps::tagGradientDetectorCells(
 ///
 ///  The following routines:
 ///
-///      setPhysicalBoundaryConditions()
+///      setPhysicalBoundaryConditions(),
+///      getRefineOpStencilWidth(),
+///      preprocessRefine(),
+///      postprocessRefine()
 ///
 ///  are concrete implementations of functions declared in the
 ///  SAMRAI::xfer::RefinePatchStrategy abstract base class.
@@ -1687,48 +1649,83 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
 {
     t_set_physical_boundary_conditions->start();
 
+    // Extrapolate the interior data to set the ghost cell values for the state
+    // variables and for any forcing terms.
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
 
-    if (d_initialize_soln)
+    const int u_data_idx = var_db->mapVariableAndContextToIndex(
+        d_u_var, d_integrator->getScratchContext());
+    d_extrap_bc_helper.setExtrapolationType(d_extrap_type);
+    d_extrap_bc_helper.setPatchDataIndex(u_data_idx);
+    d_extrap_bc_helper.setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
+
+    SAMRAI::hier::ComponentSelector patch_data_indices;
+    typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
+    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
     {
-        // Set physical boundary conditions at all physical boundaries via
-        // linear extrapolation.  (This is equivalent to using interpolation
-        // stencils which have been "shifted" at physical boundaries.)
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+        const int Q_data_idx = var_db->mapVariableAndContextToIndex(
+            Q_var, d_integrator->getScratchContext());
+        patch_data_indices.setFlag(Q_data_idx);
+
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+        if (!F_var.isNull())
+        {
+            const int F_data_idx = var_db->mapVariableAndContextToIndex(
+                F_var, d_integrator->getScratchContext());
+            patch_data_indices.setFlag(F_data_idx);
+        }
+    }
+
+    d_extrap_bc_helper.setExtrapolationType(d_extrap_type);
+    d_extrap_bc_helper.setPatchDataIndices(patch_data_indices);
+    d_extrap_bc_helper.setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
+
+    if (!d_coarse_fine_bdry_op.isNull())
+    {
+        d_coarse_fine_bdry_op->setPatchDataIndices(patch_data_indices);
+        d_coarse_fine_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
+    }
+
+    t_set_physical_boundary_conditions->stop();
+    return;
+}// setPhysicalBoundaryConditions
+
+SAMRAI::hier::IntVector<NDIM>
+AdvectHypPatchOps::getRefineOpStencilWidth() const
+{
+    if (!d_coarse_fine_bdry_op.isNull())
+    {
+        return d_coarse_fine_bdry_op->getRefineOpStencilWidth();
+    }
+    else
+    {
+        return 0;
+    }
+}// getRefineOpStencilWidth
+
+void
+AdvectHypPatchOps::preprocessRefine(
+    SAMRAI::hier::Patch<NDIM>& fine,
+    const SAMRAI::hier::Patch<NDIM>& coarse,
+    const SAMRAI::hier::Box<NDIM>& fine_box,
+    const SAMRAI::hier::IntVector<NDIM>& ratio)
+{
+    if (!d_coarse_fine_bdry_op.isNull())
+    {
+        // Determine the patch data indices which require further modification
+        // at coarse-fine interfaces.
+        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         SAMRAI::hier::ComponentSelector patch_data_indices;
+
+        typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
         for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
             const int Q_data_idx = var_db->mapVariableAndContextToIndex(
                 Q_var, getDataContext());
             patch_data_indices.setFlag(Q_data_idx);
-        }
-        STOOLS::CartExtrapPhysBdryOp bc_helper(patch_data_indices, "LINEAR");
-        bc_helper.setPhysicalBoundaryConditions(
-            patch, fill_time, ghost_width_to_fill);
-    }
-    else
-    {
-        // First, extrapolate physical boundary values for the advection
-        // velocity.
-        setAdvectionVelocityBoundaryConditions(
-            patch, fill_time, ghost_width_to_fill);
 
-        // Second, at inflow boundaries, use the Robin boundary condition data
-        // to set the ghost cell values.
-        setInflowBoundaryConditions(
-            patch, fill_time, ghost_width_to_fill);
-
-        // Third, at outflow boundaries, extrapolate the interior data to set
-        // the ghost cell values.
-        setOutflowBoundaryConditions(
-            patch, fill_time, ghost_width_to_fill);
-
-        // Fourth, extrapolate the boundary values for any forcing terms at all
-        // physical boundaries.
-        SAMRAI::hier::ComponentSelector patch_data_indices;
-        for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
-        {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
             if (!F_var.isNull())
             {
@@ -1737,14 +1734,49 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
                 patch_data_indices.setFlag(F_data_idx);
             }
         }
-        STOOLS::CartExtrapPhysBdryOp bc_helper(patch_data_indices, d_extrap_type);
-        bc_helper.setPhysicalBoundaryConditions(
-            patch, fill_time, ghost_width_to_fill);
-    }
 
-    t_set_physical_boundary_conditions->stop();
+        d_coarse_fine_bdry_op->setPatchDataIndices(patch_data_indices);
+        d_coarse_fine_bdry_op->preprocessRefine(fine, coarse, fine_box, ratio);
+    }
     return;
-}// setPhysicalBoundaryConditions
+}// preprocessRefine
+
+void
+AdvectHypPatchOps::postprocessRefine(
+    SAMRAI::hier::Patch<NDIM>& fine,
+    const SAMRAI::hier::Patch<NDIM>& coarse,
+    const SAMRAI::hier::Box<NDIM>& fine_box,
+    const SAMRAI::hier::IntVector<NDIM>& ratio)
+{
+    if (!d_coarse_fine_bdry_op.isNull())
+    {
+        // Determine the patch data indices which require further modification
+        // at coarse-fine interfaces.
+        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+        SAMRAI::hier::ComponentSelector patch_data_indices;
+
+        typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
+        for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+            const int Q_data_idx = var_db->mapVariableAndContextToIndex(
+                Q_var, getDataContext());
+            patch_data_indices.setFlag(Q_data_idx);
+
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+            if (!F_var.isNull())
+            {
+                const int F_data_idx = var_db->mapVariableAndContextToIndex(
+                    F_var, getDataContext());
+                patch_data_indices.setFlag(F_data_idx);
+            }
+        }
+
+        d_coarse_fine_bdry_op->setPatchDataIndices(patch_data_indices);
+        d_coarse_fine_bdry_op->postprocessRefine(fine, coarse, fine_box, ratio);
+    }
+    return;
+}// postprocessRefine
 
 ///
 ///  The following routines:
@@ -1765,8 +1797,7 @@ AdvectHypPatchOps::putToDatabase(
     assert(!db.isNull());
 #endif
 
-    db->putInteger("ADVECT_HYP_PATCH_OPS_VERSION",
-                   ADVECT_HYP_PATCH_OPS_VERSION);
+    db->putInteger("ADVECT_HYP_PATCH_OPS_VERSION", ADVECT_HYP_PATCH_OPS_VERSION);
 
     db->putIntegerArray("d_ghosts", static_cast<int*>(d_ghosts), NDIM);
     db->putIntegerArray("d_flux_ghosts", static_cast<int*>(d_flux_ghosts), NDIM);
@@ -1928,209 +1959,6 @@ AdvectHypPatchOps::getQIntegralData(
     }
 }// getQIntegralData
 
-void
-AdvectHypPatchOps::setAdvectionVelocityBoundaryConditions(
-    SAMRAI::hier::Patch<NDIM>& patch,
-    const double fill_time,
-    const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill)
-{
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    const int u_data_idx = var_db->mapVariableAndContextToIndex(
-        d_u_var, getDataContext());
-    STOOLS::CartExtrapPhysBdryOp bc_helper(
-        u_data_idx, d_extrap_type);
-    bc_helper.setPhysicalBoundaryConditions(
-        patch, fill_time, ghost_width_to_fill);
-    return;
-}// setAdvectionVelocityBoundaryConditions
-
-void
-AdvectHypPatchOps::setInflowBoundaryConditions(
-    SAMRAI::hier::Patch<NDIM>& patch,
-    const double fill_time,
-    const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill)
-{
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs = d_Q_bc_coefs[l];
-
-        const int patch_data_idx = var_db->mapVariableAndContextToIndex(
-            Q_var, getDataContext());
-#if 0 // XXXX
-        static const bool homogeneous_bc = false;
-        STOOLS::CartRobinPhysBdryOp bc_helper(patch_data_idx, Q_bc_coefs, homogeneous_bc);
-#else
-        (void) Q_bc_coefs;
-        STOOLS::CartExtrapPhysBdryOp bc_helper(patch_data_idx, d_extrap_type);
-#endif
-        bc_helper.setPhysicalBoundaryConditions(
-            patch, fill_time, ghost_width_to_fill);
-    }
-    return;
-}// setInflowBoundaryConditions
-
-void
-AdvectHypPatchOps::setOutflowBoundaryConditions(
-    SAMRAI::hier::Patch<NDIM>& patch,
-    const double fill_time,
-    const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill)
-{
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
-    const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
-    const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-    const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
-
-    const int extrap_type = (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : -1));
-    if (extrap_type != 0 && extrap_type != 1)
-    {
-        TBOX_ERROR("AdvectHypPatchOps::setOutflowBoundaryConditions():\n"
-                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR" << endl);
-    }
-
-    std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > > bdry_fill_boxes;
-
-#if (NDIM > 1)
-#if (NDIM > 2)
-    // Compute the codimension three boundary fill boxes.
-    const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim3_boxes =
-        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch);
-    const int n_physical_codim3_boxes = physical_codim3_boxes.size();
-    for (int n = 0; n < n_physical_codim3_boxes; ++n)
-    {
-        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim3_boxes[n];
-        const SAMRAI::hier::Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(
-            bdry_box, patch_box, ghost_width_to_fill);
-        const int location_index = bdry_box.getLocationIndex();
-        const int codim = 3;
-
-        bdry_fill_boxes.push_back(
-            std::make_pair(bdry_fill_box, std::make_pair(location_index,codim)));
-    }
-#endif
-    // Compute the codimension two boundary fill boxes.
-    const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim2_boxes =
-        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
-    const int n_physical_codim2_boxes = physical_codim2_boxes.size();
-    for (int n = 0; n < n_physical_codim2_boxes; ++n)
-    {
-        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim2_boxes[n];
-        const SAMRAI::hier::Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(
-            bdry_box, patch_box, ghost_width_to_fill);
-        const int location_index = bdry_box.getLocationIndex();
-        const int codim = 2;
-
-        bdry_fill_boxes.push_back(
-            std::make_pair(bdry_fill_box, std::make_pair(location_index,codim)));
-    }
-#endif
-    // Compute the codimension one boundary fill boxes.
-    const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
-        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
-    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    for (int n = 0; n < n_physical_codim1_boxes; ++n)
-    {
-        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-        const SAMRAI::hier::Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(
-            bdry_box, patch_box, ghost_width_to_fill);
-        const int location_index = bdry_box.getLocationIndex();
-        const int codim = 1;
-
-        bdry_fill_boxes.push_back(
-            std::make_pair(bdry_fill_box, std::make_pair(location_index,codim)));
-    }
-
-    // Loop over the boundary fill boxes and extrapolate the data at outflow
-    // boundaries only.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data =
-        patch.getPatchData(d_u_var, getDataContext());
-    typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > patch_data =
-            patch.getPatchData(Q_var, getDataContext());
-        const SAMRAI::hier::Box<NDIM>& ghost_box = patch_data->getGhostBox();
-
-        // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > >::const_iterator
-                 it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end(); ++it)
-        {
-            const SAMRAI::hier::Box<NDIM>& bdry_fill_box = (*it).first;
-            const int location_index = (*it).second.first;
-            const int codim = (*it).second.second;
-#if (NDIM == 2)
-            const bool is_lower[NDIM] = { STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
-                                          STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, 1) };
-            const bool is_upper[NDIM] = { STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
-                                          STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) };
-#endif
-#if (NDIM == 3)
-            const bool is_lower[NDIM] = { STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
-                                          STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, 1) ,
-                                          STOOLS::PhysicalBoundaryUtilities::isLower(location_index, codim, 2) };
-            const bool is_upper[NDIM] = { STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
-                                          STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) ,
-                                          STOOLS::PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) };
-#endif
-            // Loop over the boundary box indices and compute the nearest
-            // interior index.
-            for (int depth = 0; depth < patch_data->getDepth(); ++depth)
-            {
-                for (SAMRAI::pdat::CellIterator<NDIM> b(bdry_fill_box*ghost_box); b; b++)
-                {
-                    const SAMRAI::pdat::CellIndex<NDIM>& i = b();
-                    SAMRAI::pdat::CellIndex<NDIM> i_intr = i;
-                    SAMRAI::hier::IntVector<NDIM> i_shft = 0;
-
-                    bool is_outflow_bdry = false;
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        if (is_lower[d])
-                        {
-                            i_intr(d) = patch_lower(d);
-                            i_shft(d) = +1; // use interior data for extrapolation
-
-                            const SAMRAI::pdat::FaceIndex<NDIM> i_face(
-                                i_intr, d, SAMRAI::pdat::FaceIndex<NDIM>::Lower);
-                            is_outflow_bdry = is_outflow_bdry || (*u_data)(i_face) <= 0.0;
-                        }
-                        else if (is_upper[d])
-                        {
-                            i_intr(d) = patch_upper(d);
-                            i_shft(d) = -1; // use interior data for extrapolation
-
-                            const SAMRAI::pdat::FaceIndex<NDIM> i_face(
-                                i_intr, d, SAMRAI::pdat::FaceIndex<NDIM>::Upper);
-                            is_outflow_bdry = is_outflow_bdry || (*u_data)(i_face) >= 0.0;
-                        }
-                    }
-
-                    // Perform either constant or linear extrapolation.
-                    if (is_outflow_bdry)
-                    {
-                        switch (extrap_type)
-                        {
-                            case 0:
-                                (*patch_data)(i,depth) = (*patch_data)(i_intr,depth);
-                                break;
-                            case 1:
-                                (*patch_data)(i,depth) = compute_linear_extrap(
-                                    *patch_data, i, i_intr, i_shft, depth);
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return;
-}// setOutflowBoundaryConditions
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -2143,19 +1971,16 @@ AdvectHypPatchOps::getFromInput(
 #endif
     (void) is_from_restart;
 
-    d_compute_init_velocity  = db->getBoolWithDefault(
-        "compute_init_velocity" , d_compute_init_velocity);
-    d_compute_half_velocity  = db->getBoolWithDefault(
-        "compute_half_velocity" , d_compute_half_velocity);
-    d_compute_final_velocity = db->getBoolWithDefault(
-        "compute_final_velocity", d_compute_final_velocity);
+    d_compute_init_velocity  = db->getBoolWithDefault("compute_init_velocity" , d_compute_init_velocity);
+    d_compute_half_velocity  = db->getBoolWithDefault("compute_half_velocity" , d_compute_half_velocity);
+    d_compute_final_velocity = db->getBoolWithDefault("compute_final_velocity", d_compute_final_velocity);
 
     d_extrap_type = db->getStringWithDefault("extrap_type", d_extrap_type);
-    if (!(d_extrap_type == "CONSTANT" || d_extrap_type == "LINEAR"))
+    if (!(d_extrap_type == "CONSTANT" || d_extrap_type == "LINEAR" || d_extrap_type == "QUADRATIC"))
     {
         TBOX_ERROR("AdvectHypPatchOps::getFromInput():\n"
                    << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR" << endl);
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << endl);
     }
 
     if (db->keyExists("Refinement_data"))
@@ -2166,8 +1991,7 @@ AdvectHypPatchOps::getFromInput(
 
         if (refine_db->keyExists("refine_criteria"))
         {
-            d_refinement_criteria =
-                refine_db->getStringArray("refine_criteria");
+            d_refinement_criteria = refine_db->getStringArray("refine_criteria");
         }
         else
         {

@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <22.Nov.2007 15:52:38 boyce@trasnaform2.local>
+// Last modified: <03.Dec.2007 00:00:25 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1449,7 +1449,6 @@ INSHierarchyIntegrator::regridHierarchy()
         // Project u^(n,*)->u(n) and re-use grad Phi to project
         // U^(n,*)->U^(n).
         d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
-        assert(false);  // XXXX
         d_hier_projector->projectHierarchy(
             initial_time ? 1.0 : d_rho, initial_time ? 1.0 : d_old_dt, d_integrator_time,
             d_velocity_projection_type,
@@ -1660,7 +1659,6 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     }
 
     d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
-    assert(false);  // XXXX
     d_hier_projector->projectHierarchy(
         d_rho, dt, current_time+0.5*dt,
         d_velocity_projection_type,
@@ -1824,7 +1822,6 @@ INSHierarchyIntegrator::projectVelocity(
 
     // Project u^(n,*)->u(n+1) and re-use grad Phi to project
     // U^(n,*)->U^(n+1).
-    assert(false);  // XXXX
     d_hier_projector->projectHierarchy(
         d_rho, dt, new_time,
         d_velocity_projection_type,
@@ -2150,7 +2147,6 @@ INSHierarchyIntegrator::updatePressure(
 
         // Project U~^{*}.
         d_hier_cc_data_ops->add(d_Phi_tilde_scratch_idx, d_P_current_idx, d_Phi_new_idx);
-        assert(false);  // XXXX
         d_hier_projector->projectHierarchy(
             d_rho, dt, new_time,
             d_pressure_projection_type,
@@ -2860,26 +2856,26 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
 
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(
         d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
-    InterpolationTransactionComponent V_transaction_comp(d_V_idx, "CONSERVATIVE_COARSEN", "LINEAR", U_bc_coefs);
+    InterpolationTransactionComponent V_transaction_comp(d_V_idx, "CONSERVATIVE_COARSEN", "LINEAR", false, U_bc_coefs);
     d_V_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
     d_V_hier_bdry_fill_op->initializeOperatorState(V_transaction_comp, d_hierarchy);
 
-    InterpolationTransactionComponent P_transaction_comp(d_P_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT");
+    InterpolationTransactionComponent P_transaction_comp(d_P_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT", false);
     d_P_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
     d_P_hier_bdry_fill_op->initializeOperatorState(P_transaction_comp, d_hierarchy);
 
-    InterpolationTransactionComponent Phi_transaction_comp(d_Phi_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT");
+    InterpolationTransactionComponent Phi_transaction_comp(d_Phi_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT", false);
     d_Phi_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
     d_Phi_hier_bdry_fill_op->initializeOperatorState(Phi_transaction_comp, d_hierarchy);
 
     if (d_using_hybrid_projection)
     {
-        InterpolationTransactionComponent Phi_tilde_transaction_comp(d_Phi_tilde_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT");
+        InterpolationTransactionComponent Phi_tilde_transaction_comp(d_Phi_tilde_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT", false);
         d_Phi_tilde_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
         d_Phi_tilde_hier_bdry_fill_op->initializeOperatorState(Phi_tilde_transaction_comp, d_hierarchy);
     }
 
-    InterpolationTransactionComponent regrid_Phi_transaction_comp(d_Phi_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT", d_Phi_bc_coef);
+    InterpolationTransactionComponent regrid_Phi_transaction_comp(d_Phi_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT", false, d_Phi_bc_coef);
     d_regrid_Phi_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
     d_regrid_Phi_hier_bdry_fill_op->initializeOperatorState(regrid_Phi_transaction_comp, d_hierarchy);
 

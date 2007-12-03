@@ -2,7 +2,7 @@
 #define included_AdvectHypPatchOps
 
 // Filename: AdvectHypPatchOps.h
-// Last modified: <30.Aug.2007 19:50:15 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Nov.2007 19:07:37 griffith@box221.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -11,6 +11,8 @@
 #include <ibamr/GodunovAdvector.h>
 
 // STOOLS INCLUDES
+#include <stools/CartExtrapPhysBdryOp.h>
+#include <stools/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <stools/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
@@ -113,6 +115,19 @@ public:
      */
     const std::string&
     getName() const;
+
+    /*!
+     * Register a coarse-fine interface refine patch strategy with the advection
+     * patch strategy.
+     *
+     * \note Support for sophisticated coarse-fine interface discretizations is
+     * still experimental.  Note that it is the caller's reposibility to ensure
+     * that the coarse-fine boundary data associated with the coarse-fine
+     * interface operator remains consistent.
+     */
+    void
+    registerCoarseFineBoundaryRefinePatchStrategy(
+        SAMRAI::tbox::Pointer<STOOLS::CoarseFineBoundaryRefinePatchStrategy> coarse_fine_bdry_op);
 
     ///
     ///  The following routines:
@@ -303,9 +318,6 @@ public:
     ///
     ///  The following routines:
     ///
-    ///      setupAdvancePatchState(),
-    ///      setupInitializePatchState(),
-    ///      clearPatchState(),
     ///      registerModelVariables(),
     ///      initializeDataOnPatch(),
     ///      computeStableDtOnPatch(),
@@ -319,51 +331,6 @@ public:
     ///  are concrete implementations of functions declared in the
     ///  SAMRAI::algs::HyperbolicPatchStrategy abstract base class.
     ///
-
-    /*!
-     * Indicate that the patch strategy is presently being used to advance the
-     * solution state forward in time.
-     *
-     * This method is used by class AdvectHypPatchOps to determine the manner in
-     * which physical boundary conditions are determined.  In particular, when
-     * advancing the solution forward in time, appropriate boundary conditions
-     * are determined at inflow boundaries by making use of the boundary
-     * condition specification objects.  At outflow boundaries, constant or
-     * linear extrapolation is employed to set physical boundary ghost cell
-     * values.
-     */
-    virtual void
-    setupAdvancePatchState(
-        const double current_time,
-        const double new_time,
-        const bool first_step,
-        const bool last_step,
-        const bool regrid_advance);
-
-    /*!
-     * Indicate that the patch strategy is presently being used to initialize
-     * data on the patch hierarchy, either at the initial simulation time, or
-     * later times during the adaptive regridding process.
-     *
-     * This method is used by class AdvectHypPatchOps to determine the manner in
-     * which physical boundary conditions are determined.  In particular, when
-     * (re-)initializing the solution, constant or linear extrapolation is
-     * employed to physical boundary ghost cell values at all physical
-     * boundaries.
-     */
-    virtual void
-    setupInitializePatchState(
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time);
-
-    /*!
-     * Indicate that the patch strategy is not presently being used either to
-     * advance the solution data forward in time, or to initialize data on the
-     * patch hierarchy.
-     */
-    virtual void
-    clearPatchState();
 
     /*!
      * \brief Register AdvectHypPatchOps model variables with the
@@ -495,7 +462,10 @@ public:
     ///
     ///  The following routines:
     ///
-    ///      setPhysicalBoundaryConditions()
+    ///      setPhysicalBoundaryConditions(),
+    ///      getRefineOpStencilWidth(),
+    ///      preprocessRefine(),
+    ///      postprocessRefine()
     ///
     ///  are concrete implementations of functions declared in the
     ///  xfer::RefinePatchStrategy abstract base class.
@@ -510,6 +480,33 @@ public:
         SAMRAI::hier::Patch<NDIM>& patch,
         const double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+
+    /*!
+     * \brief Return maximum stencil width needed over user-defined data
+     * interpolation operations.
+     */
+    virtual SAMRAI::hier::IntVector<NDIM>
+    getRefineOpStencilWidth() const;
+
+    /*!
+     * \brief Preprocess data refine operations.
+     */
+    virtual void
+    preprocessRefine(
+        SAMRAI::hier::Patch<NDIM>& fine,
+        const SAMRAI::hier::Patch<NDIM>& coarse,
+        const SAMRAI::hier::Box<NDIM>& fine_box,
+        const SAMRAI::hier::IntVector<NDIM>& ratio);
+
+    /*!
+     * Postprocess data refine operations.
+     */
+    virtual void
+    postprocessRefine(
+        SAMRAI::hier::Patch<NDIM>& fine,
+        const SAMRAI::hier::Patch<NDIM>& coarse,
+        const SAMRAI::hier::Box<NDIM>& fine_box,
+        const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     ///
     ///  The following routines:
@@ -567,36 +564,6 @@ protected:
         SAMRAI::hier::Patch<NDIM>& patch,
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context);
 
-    /*!
-     * \brief Set the advection velocity data in ghost cells via constant or
-     * linear extrapolation at all physical boundaries.
-     */
-    virtual void
-    setAdvectionVelocityBoundaryConditions(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
-
-    /*!
-     * \brief Set the data in ghost cells via constant or linear extrapolation
-     * at inflow boundaries.
-     */
-    virtual void
-    setInflowBoundaryConditions(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
-
-    /*!
-     * \brief Set the data in ghost cells via constant or linear extrapolation
-     * at outflow boundaries.
-     */
-    virtual void
-    setOutflowBoundaryConditions(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
-
     /*
      * The SAMRAI::algs::HyperbolicLevelIntegrator that is using the patch
      * strategy.
@@ -607,13 +574,6 @@ protected:
      * The GodunovAdvector being used to advect the cell-centered quantities Q.
      */
     SAMRAI::tbox::Pointer<GodunovAdvector> d_godunov_advector;
-
-    /*
-     * Boolean values that indicate whether we are presently advancing the
-     * solution forward in time or initializing the solution (either at the
-     * initial time, or during adaptive regridding).
-     */
-    bool d_advance_soln, d_initialize_soln;
 
     /*
      * Advected quantities Q, source terms F (possibly NULL) and the optional
@@ -725,6 +685,12 @@ private:
 #if (NDIM>1)
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
 #endif
+
+    /*
+     * Boundary condition extrapolation helpers.
+     */
+    STOOLS::CartExtrapPhysBdryOp d_extrap_bc_helper;
+    SAMRAI::tbox::Pointer<STOOLS::CoarseFineBoundaryRefinePatchStrategy> d_coarse_fine_bdry_op;
 
     /*
      *  Parameters for numerical method:

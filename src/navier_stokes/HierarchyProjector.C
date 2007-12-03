@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <22.Nov.2007 15:51:50 boyce@trasnaform2.local>
+// Last modified: <03.Dec.2007 00:02:43 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -60,6 +60,10 @@ static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "CONSTANT";
 
+// Whether to enforce consistent interpolated values at Type 2 coarse-fine
+// interface ghost cells.
+static const bool CONSISTENT_TYPE_2_BDRY = false;
+
 // Version of HierarchyProjector restart file data.
 static const int HIERARCHY_PROJECTOR_VERSION = 1;
 }
@@ -86,6 +90,10 @@ HierarchyProjector::HierarchyProjector(
       d_context(NULL),
       d_F_var(NULL),
       d_F_idx(-1),
+      d_P_var(NULL),
+      d_P_idx(-1),
+      d_w_var(NULL),
+      d_w_idx(-1),
       d_sol_vec(NULL),
       d_rhs_vec(NULL),
       d_max_iterations(50),
@@ -131,6 +139,8 @@ HierarchyProjector::HierarchyProjector(
     d_sol_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::sol",1);
     d_rhs_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::rhs",1);
     d_F_var   = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::F",1);
+    d_P_var   = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P",1);
+    d_w_var   = new SAMRAI::pdat::FaceVariable<NDIM,double>(d_object_name+"::w",1);
 
     const SAMRAI::hier::IntVector<NDIM> cell_ghosts = CELLG;
     const SAMRAI::hier::IntVector<NDIM> face_ghosts = FACEG;
@@ -139,6 +149,20 @@ HierarchyProjector::HierarchyProjector(
     d_sol_idx = var_db->registerVariableAndContext(d_sol_var, d_context, cell_ghosts);
     d_rhs_idx = var_db->registerVariableAndContext(d_rhs_var, d_context, cell_ghosts);
     d_F_idx   = var_db->registerVariableAndContext(  d_F_var, d_context, cell_ghosts);
+    d_P_idx   = var_db->registerVariableAndContext(  d_P_var, d_context, cell_ghosts);
+    d_w_idx   = var_db->registerVariableAndContext(  d_w_var, d_context, face_ghosts);
+
+    // Initialize communications algorithms.
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator;
+
+    refine_operator = grid_geom->lookupRefineOperator(d_w_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_velocity_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    d_velocity_ralg->registerRefine(d_w_idx,  // destination
+                                    d_w_idx,  // source
+                                    d_w_idx,  // temporary work space
+                                    refine_operator);
+    d_velocity_rstrategy = new STOOLS::CartExtrapPhysBdryOp(d_w_idx, "LINEAR");
 
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =
@@ -187,7 +211,7 @@ HierarchyProjector::HierarchyProjector(
     d_default_P_bc_coef = P_bc_coef;
 
     // Initialize the boundary conditions objects.
-    d_Phi_bc_coef = new INSProjectionBcCoef(-1,d_default_P_bc_coef,"pressure_update",-1,d_default_u_bc_coefs,true);
+    d_Phi_bc_coef = new INSProjectionBcCoef(d_P_idx,d_default_P_bc_coef,"pressure_update",d_w_idx,d_default_u_bc_coefs,true);
     setPressurePhysicalBcCoef(d_default_P_bc_coef);
     setVelocityPhysicalBcCoefs(d_default_u_bc_coefs);
 
@@ -410,10 +434,28 @@ HierarchyProjector::projectHierarchy(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Allocate temporary data.
+    SAMRAI::hier::ComponentSelector scratch_idxs;
+    scratch_idxs.setFlag(d_F_idx);
+    scratch_idxs.setFlag(d_P_idx);
+    scratch_idxs.setFlag(d_w_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_F_idx, time);
+       level->allocatePatchData(scratch_idxs, time);
+    }
+
+    // Fill the pressure data if we are using a pressure-increment projection.
+    if (projection_type == "pressure_increment")
+    {
+        d_hier_cc_data_ops->copyData(d_P_idx, P_idx);
+        d_P_hier_bdry_fill_op->fillData(time);
+    }
+
+    // Fill the intermediate velocity data.
+    d_hier_fc_data_ops->copyData(d_w_idx, w_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        d_velocity_rscheds[ln]->fillData(time);
     }
 
     // Setup the boundary coefficient specification object.
@@ -421,10 +463,10 @@ HierarchyProjector::projectHierarchy(
     // NOTE: These boundary coefficients are also used by the linear operator
     // and by the FAC preconditioner objects associated with this class.
     d_Phi_bc_coef->setProblemCoefs(rho, dt);
-    d_Phi_bc_coef->setCurrentPressurePatchDataIndex(P_idx);
+    d_Phi_bc_coef->setCurrentPressurePatchDataIndex(d_P_idx);
     d_Phi_bc_coef->setPressurePhysicalBcCoef(d_P_bc_coef);
     d_Phi_bc_coef->setProjectionType(projection_type);
-    d_Phi_bc_coef->setIntermediateVelocityPatchDataIndex(w_idx);
+    d_Phi_bc_coef->setIntermediateVelocityPatchDataIndex(d_w_idx);
     d_Phi_bc_coef->setVelocityPhysicalBcCoefs(d_u_bc_coefs);
 
     // Setup the linear operator.
@@ -468,13 +510,13 @@ HierarchyProjector::projectHierarchy(
 
     // Setup the interpolation transaction information.
     typedef STOOLS::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, d_Phi_bc_coef);
-    d_hier_bdry_fill_op->resetTransactionComponent(transaction_comp);
+    InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    d_Phi_hier_bdry_fill_op->resetTransactionComponent(Phi_transaction_comp);
 
     // Fill the physical boundary conditions for Phi.
     d_Phi_bc_coef->setHomogeneousBc(false);
-    d_hier_bdry_fill_op->setHomogeneousBc(false);
-    d_hier_bdry_fill_op->fillData(time);
+    d_Phi_hier_bdry_fill_op->setHomogeneousBc(false);
+    d_Phi_hier_bdry_fill_op->fillData(time);
     d_Phi_bc_coef->setHomogeneousBc(true);
 
     // Set u = w - (dt/rho)*grad Phi.
@@ -492,7 +534,7 @@ HierarchyProjector::projectHierarchy(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(d_F_idx);
+        level->deallocatePatchData(scratch_idxs);
     }
 
     t_project_hierarchy->stop();
@@ -600,9 +642,24 @@ HierarchyProjector::resetHierarchyConfiguration(
 
     // Initialize the interpolation operators.
     typedef STOOLS::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, d_Phi_bc_coef);
-    d_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill_op->initializeOperatorState(transaction_comp, d_hierarchy);
+
+    InterpolationTransactionComponent P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    d_P_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
+    d_P_hier_bdry_fill_op->initializeOperatorState(P_transaction_comp, d_hierarchy);
+
+    InterpolationTransactionComponent Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    d_Phi_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
+    d_Phi_hier_bdry_fill_op->initializeOperatorState(Phi_transaction_comp, d_hierarchy);
+
+    // (Re)build refine communication schedules.  These are created for all
+    // levels in the hierarchy.
+    d_velocity_rscheds.resize(finest_hier_level+1);
+    for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        d_velocity_rscheds[ln] = d_velocity_ralg->createSchedule(
+            level, ln-1, hierarchy, d_velocity_rstrategy);
+    }
 
     t_reset_hierarchy_configuration->stop();
     return;

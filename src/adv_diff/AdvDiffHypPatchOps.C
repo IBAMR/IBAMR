@@ -1,5 +1,5 @@
 // Filename: AdvDiffHypPatchOps.C
-// Last modified: <23.May.2007 10:06:52 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Nov.2007 18:53:38 griffith@box221.cims.nyu.edu>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHypPatchOps.h"
@@ -342,6 +342,8 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
     return;
 }// conservativeDifferenceOnPatch
 
+#if 0
+// NOTE: Should the following method be removed?
 void
 AdvDiffHypPatchOps::preprocessAdvanceLevelState(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
@@ -359,8 +361,7 @@ AdvDiffHypPatchOps::preprocessAdvanceLevelState(
     (void) regrid_advance;
 
     // Update the advection velocity.
-    if (!d_u_set.isNull() && d_u_set->isTimeDependent() &&
-        d_compute_init_velocity)
+    if (!d_u_set.isNull() && d_u_set->isTimeDependent() && d_compute_init_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
@@ -371,6 +372,7 @@ AdvDiffHypPatchOps::preprocessAdvanceLevelState(
     t_preprocess_advance_level_state->stop();
     return;
 }// preprocessAdvanceLevelState
+#endif
 
 void
 AdvDiffHypPatchOps::postprocessAdvanceLevelState(
@@ -388,8 +390,7 @@ AdvDiffHypPatchOps::postprocessAdvanceLevelState(
     (void) regrid_advance;
 
     // Update the advection velocity.
-    if (!d_u_set.isNull() && d_u_set->isTimeDependent() &&
-        d_compute_final_velocity)
+    if (!d_u_set.isNull() && d_u_set->isTimeDependent() && d_compute_final_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(

@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <12.Nov.2007 21:44:37 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Dec.2007 23:13:19 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -73,6 +73,10 @@ static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
+
+// Whether to enforce consistent interpolated values at Type 2 coarse-fine
+// interface ghost cells.
+static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Version of AdvDiffHierarchyIntegrator restart file data.
 static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 1;
@@ -1585,7 +1589,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
 
         // Setup the interpolation transaction information.
         typedef STOOLS::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent transaction_comp(Q_temp_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, d_Q_bc_coefs[l]);
+        InterpolationTransactionComponent transaction_comp(Q_temp_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Q_bc_coefs[l]);
 
         // Initialize the interpolation operators.
         d_hier_bdry_fill_ops[l] = new STOOLS::HierarchyGhostCellInterpolation();

@@ -2,7 +2,7 @@
 #define included_AdvDiffHypPatchOps
 
 // Filename: AdvDiffHypPatchOps.h
-// Last modified: <17.Apr.2007 19:43:48 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Nov.2007 18:53:41 griffith@box221.cims.nyu.edu>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -87,6 +87,9 @@ public:
         const double dt,
         bool at_synchronization);
 
+#if 0
+    // NOTE: Should the following method be removed?
+
     /*!
      * Compute the values of any time-dependent source terms for use by the
      * explicit predictor.
@@ -107,6 +110,7 @@ public:
         bool first_step,
         bool last_step,
         bool regrid_advance);
+#endif
 
     /*!
      * Add source terms to the updated solution.

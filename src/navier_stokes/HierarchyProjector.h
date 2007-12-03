@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <23.Nov.2007 01:40:42 boyce@trasnaform2.local>
+// Last modified: <29.Nov.2007 23:04:08 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -412,7 +412,14 @@ private:
     int d_wgt_idx;
     double d_volume;
 
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> d_hier_bdry_fill_op, d_no_fill_op;
+    /*
+     * Cached communications algorithms and schedules.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_velocity_ralg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_velocity_rstrategy;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_velocity_rscheds;
+
+    SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> d_P_hier_bdry_fill_op, d_Phi_hier_bdry_fill_op, d_no_fill_op;
 
     /*
      * The Poisson solver and associated data including Poisson specifications,
@@ -422,6 +429,12 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_var;
     int d_F_idx;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var;
+    int d_P_idx;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_w_var;
+    int d_w_idx;
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
 
