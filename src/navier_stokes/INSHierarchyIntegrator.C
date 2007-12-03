@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <03.Dec.2007 00:00:25 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Dec.2007 01:51:33 boyce@trasnaform2.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -139,6 +139,13 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_div_source_term;
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 2;
 static const int FACEG = 1;
+
+// Type of coarsening to perform prior to setting coarse-fine boundary and
+// physical boundary ghost cell values.
+static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
+
+// Type of extrapolation to use at physical boundaries.
+static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 
 // Version of INSHierarchyIntegrator restart file data.
 static const int INS_HIERARCHY_INTEGRATOR_VERSION = 1;
@@ -1485,9 +1492,15 @@ INSHierarchyIntegrator::regridHierarchy()
         d_Phi_bc_coef->setIntermediateVelocityPatchDataIndex(d_u_scratch_idx);
         d_Phi_bc_coef->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
 
+        // Fill P boundary data.
+        d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_current_idx);
+        d_P_hier_bdry_fill_op->fillData(d_integrator_time);
+
+        // Fill u boundary data.
+        // XXXX
+
         // Re-use the most recent value of Phi to "re-project" the velocity field.
         d_Phi_bc_coef->setHomogeneousBc(false);
-        d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_current_idx);
         d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_current_idx);
         const bool grad_Phi_cf_bdry_synch = true;
         d_hier_math_ops->grad(
@@ -2856,26 +2869,26 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
 
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(
         d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
-    InterpolationTransactionComponent V_transaction_comp(d_V_idx, "CONSERVATIVE_COARSEN", "LINEAR", false, U_bc_coefs);
+    InterpolationTransactionComponent V_transaction_comp(d_V_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false, U_bc_coefs);
     d_V_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
     d_V_hier_bdry_fill_op->initializeOperatorState(V_transaction_comp, d_hierarchy);
 
-    InterpolationTransactionComponent P_transaction_comp(d_P_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT", false);
+    InterpolationTransactionComponent P_transaction_comp(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false);
     d_P_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
     d_P_hier_bdry_fill_op->initializeOperatorState(P_transaction_comp, d_hierarchy);
 
-    InterpolationTransactionComponent Phi_transaction_comp(d_Phi_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT", false);
+    InterpolationTransactionComponent Phi_transaction_comp(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false);
     d_Phi_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
     d_Phi_hier_bdry_fill_op->initializeOperatorState(Phi_transaction_comp, d_hierarchy);
 
     if (d_using_hybrid_projection)
     {
-        InterpolationTransactionComponent Phi_tilde_transaction_comp(d_Phi_tilde_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT", false);
+        InterpolationTransactionComponent Phi_tilde_transaction_comp(d_Phi_tilde_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false);
         d_Phi_tilde_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
         d_Phi_tilde_hier_bdry_fill_op->initializeOperatorState(Phi_tilde_transaction_comp, d_hierarchy);
     }
 
-    InterpolationTransactionComponent regrid_Phi_transaction_comp(d_Phi_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT", false, d_Phi_bc_coef);
+    InterpolationTransactionComponent regrid_Phi_transaction_comp(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false, d_Phi_bc_coef);
     d_regrid_Phi_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
     d_regrid_Phi_hier_bdry_fill_op->initializeOperatorState(regrid_Phi_transaction_comp, d_hierarchy);
 

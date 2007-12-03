@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <02.Dec.2007 23:11:13 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Dec.2007 01:41:29 boyce@trasnaform2.local>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -302,14 +302,8 @@ INSProjectionBcCoef::setBcCoefs_private(
                 }
 
                 const double P_bdry = (using_pressure_increment ? 0.5*((*P_data)(i_intr) + (*P_data)(i_bdry)) : 0.0);
-                if (d_P_bc_coef != NULL)
-                {
-                    (*gcoef_data)(i,0) = (*pcoef_data)(i,0) - P_bdry;
-                }
-                else
-                {
-                    (*gcoef_data)(i,0) = 0.0 - P_bdry;
-                }
+                const double& P_bc_coef = (d_P_bc_coef != NULL ? (*pcoef_data)(i,0) : 0.0);
+                (*gcoef_data)(i,0) = P_bc_coef - P_bdry;
             }
             else
             {
