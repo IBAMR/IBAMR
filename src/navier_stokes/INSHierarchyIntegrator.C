@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <03.Dec.2007 01:51:33 boyce@trasnaform2.local>
+// Last modified: <03.Dec.2007 21:11:06 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -145,7 +145,7 @@ static const int FACEG = 1;
 static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
+static const std::string BDRY_EXTRAP_TYPE = "QUADRATIC";
 
 // Version of INSHierarchyIntegrator restart file data.
 static const int INS_HIERARCHY_INTEGRATOR_VERSION = 1;
@@ -990,7 +990,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_grad_Phi_idx, // temporary work space
                        refine_operator);
     d_rstrategies["grad_Phi->grad_Phi::S->S::CONSERVATIVE_LINEAR_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_grad_Phi_idx, "LINEAR");
+        new STOOLS::CartExtrapPhysBdryOp(d_grad_Phi_idx, BDRY_EXTRAP_TYPE);
 
     d_ralgs["predictAdvectionVelocity"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
@@ -1019,7 +1019,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     patch_data_indices.setFlag(d_U_scratch_idx);
     patch_data_indices.setFlag(d_F_U_scratch_idx);
     d_rstrategies["predictAdvectionVelocity"] =
-        new STOOLS::CartExtrapPhysBdryOp(patch_data_indices, "LINEAR");
+        new STOOLS::CartExtrapPhysBdryOp(patch_data_indices, BDRY_EXTRAP_TYPE);
 
     // Create several coarsening communications algorithms, used in
     // synchronizing refined regions of coarse data with the underlying fine
@@ -2497,7 +2497,7 @@ INSHierarchyIntegrator::initializeLevelData(
         level->allocatePatchData(d_scratch_data, init_data_time);
 
         STOOLS::CartExtrapPhysBdryOp fill_after_regrid_bc_op(
-            d_fill_after_regrid_bc_idxs, "LINEAR");
+            d_fill_after_regrid_bc_idxs, BDRY_EXTRAP_TYPE);
         d_fill_after_regrid->
             createSchedule(level,
                            old_level,
@@ -2595,7 +2595,7 @@ INSHierarchyIntegrator::initializeLevelData(
                                  d_U_current_idx, // source
                                  d_U_scratch_idx, // temporary work space
                                  refine_operator);
-            STOOLS::CartExtrapPhysBdryOp bc_op(d_U_scratch_idx, "LINEAR");
+            STOOLS::CartExtrapPhysBdryOp bc_op(d_U_scratch_idx, BDRY_EXTRAP_TYPE);
             ralg->createSchedule(level, level_number-1, hierarchy, &bc_op)->fillData(init_data_time);
 
             STOOLS::PatchMathOps patch_math_ops;

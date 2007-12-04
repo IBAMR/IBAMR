@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <02.Dec.2007 23:54:18 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Dec.2007 14:53:47 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -15,6 +15,10 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// STOOLS INCLUDES
+#include <stools/ExtendedRobinBcCoefStrategy.h>
+#include <stools/PhysicalBoundaryUtilities.h>
 
 // SAMRAI INCLUDES
 #include <BoundaryBox.h>
@@ -865,6 +869,13 @@ AdvectHypPatchOps::computeFluxesOnPatch(
             d_godunov_advector->enforceIncompressibility(
                 *q_integral_data, *u_data, *grad_data, patch);
         }
+    }
+
+    // Set physical boundary conditions for the face-centered predicted values
+    // at inflow boundaries only.
+    if (pgeom->getTouchesRegularBoundary())
+    {
+        setInflowBoundaryConditions(patch, time+0.5*dt);
     }
 
     // Update the advection velocity.
@@ -1960,6 +1971,126 @@ AdvectHypPatchOps::getQIntegralData(
 }// getQIntegralData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+AdvectHypPatchOps::setInflowBoundaryConditions(
+    SAMRAI::hier::Patch<NDIM>& patch,
+    const double fill_time)
+{
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+
+    // There is nothing to do if the patch does not touch a regular (physical)
+    // boundary.
+    if (!pgeom->getTouchesRegularBoundary()) return;
+
+    // Compute the codimension one boundary boxes.
+    const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
+        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+
+    // There is nothing to do if the patch does not have any codimension one
+    // boundary boxes.
+    if (physical_codim1_boxes.empty()) return;
+
+    // Loop over the boundary fill boxes and set boundary conditions at inflow
+    // boundaries only.
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data =
+        patch.getPatchData(d_u_var, getDataContext());
+    const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
+    const double* const dx = pgeom->getDx();
+    typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
+    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+        const int Q_data_idx = var_db->mapVariableAndContextToIndex(
+            Q_var, d_integrator->getScratchContext());
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > q_integral_data =
+            getQIntegralData(l, patch, getDataContext());
+
+        // Setup any extended Robin BC coef objects.
+        for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
+        {
+            STOOLS::ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<STOOLS::ExtendedRobinBcCoefStrategy*>(d_Q_bc_coefs[l][depth]);
+            if (extended_bc_coef != NULL)
+            {
+                extended_bc_coef->setHomogeneousBc(false);
+                extended_bc_coef->setTargetPatchDataIndex(Q_data_idx);
+            }
+        }
+
+        // Set the boundary conditions.
+        for (std::vector<SAMRAI::hier::BoundaryBox<NDIM> >::const_iterator cit = physical_codim1_boxes.begin();
+             cit != physical_codim1_boxes.end(); ++cit)
+        {
+            const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = (*cit);
+            const int location_index   = bdry_box.getLocationIndex();
+            const int bdry_normal_axis = location_index/2;
+            const bool is_lower        = location_index%2 == 0;
+
+            static const SAMRAI::hier::IntVector<NDIM> gcw_to_fill = 1;
+            const SAMRAI::hier::Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
+            const SAMRAI::hier::BoundaryBox<NDIM> trimmed_bdry_box(
+                bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
+            const SAMRAI::hier::Box<NDIM> bc_coef_box = STOOLS::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+            // Loop over the boundary box indices and compute the nearest
+            // interior index.
+            for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > acoef_data =
+                    new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > bcoef_data =
+                    new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > gcoef_data =
+                    new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+#if USING_OLD_ROBIN_BC_INTERFACE
+                // In the old interface, beta = (1-alpha).
+                d_Q_bc_coefs[l][depth]->setBcCoefs(
+                    acoef_data, gcoef_data, Q_var,
+                    patch, trimmed_bdry_box, fill_time);
+                array_ops.scale(*bcoef_data, -1.0, *acoef_data, bc_coef_box);
+                array_ops.addScalar(*bcoef_data, *bcoef_data, 1.0, bc_coef_box);
+#else
+                d_Q_bc_coefs[l][depth]->setBcCoefs(
+                    acoef_data, bcoef_data, gcoef_data, Q_var,
+                    patch, trimmed_bdry_box, fill_time);
+#endif
+
+                for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+                {
+                    const SAMRAI::hier::Index<NDIM>& i = b();
+                    const SAMRAI::pdat::FaceIndex<NDIM> i_f(i, bdry_normal_axis, SAMRAI::pdat::FaceIndex<NDIM>::Lower);
+
+                    bool is_inflow_bdry = (is_lower && (*u_data)(i_f) > 0.0) || (!is_lower && (*u_data)(i_f) < 0.0);
+                    if (is_inflow_bdry)
+                    {
+                        const double& a = (*acoef_data)(i,0);
+                        const double& b = (*bcoef_data)(i,0);
+                        const double& g = (*gcoef_data)(i,0);
+                        const double& h = dx[bdry_normal_axis];
+
+                        SAMRAI::hier::Index<NDIM> i_intr(i);
+                        if (is_lower)
+                        {
+                            // intentionally blank
+                        }
+                        else
+                        {
+                            i_intr(bdry_normal_axis) -= 1;
+                        }
+
+                        const SAMRAI::pdat::FaceIndex<NDIM> i_f_bdry(i_intr, bdry_normal_axis, (is_lower ? SAMRAI::pdat::FaceIndex<NDIM>::Lower : SAMRAI::pdat::FaceIndex<NDIM>::Upper));
+                        const SAMRAI::pdat::FaceIndex<NDIM> i_f_intr(i_intr, bdry_normal_axis, (is_lower ? SAMRAI::pdat::FaceIndex<NDIM>::Upper : SAMRAI::pdat::FaceIndex<NDIM>::Lower));
+                        const double& q_i = (*q_integral_data)(i_f_intr,depth);
+                        const double q_b = (b*q_i + g*h)/(a*h + b);
+                        (*q_integral_data)(i_f_bdry,depth) = q_b;
+                    }
+                }
+            }
+        }
+    }
+    return;
+}// setInflowBoundaryConditions
 
 void
 AdvectHypPatchOps::getFromInput(

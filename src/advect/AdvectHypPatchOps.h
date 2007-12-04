@@ -2,7 +2,7 @@
 #define included_AdvectHypPatchOps
 
 // Filename: AdvectHypPatchOps.h
-// Last modified: <30.Nov.2007 19:07:37 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Dec.2007 14:19:43 griffith@box221.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -652,6 +652,15 @@ private:
     AdvectHypPatchOps&
     operator=(
         const AdvectHypPatchOps& that);
+
+    /*
+     * Set physical boundary conditions at inflow boundaries for predicted
+     * face-centered quantities.
+     */
+    void
+    setInflowBoundaryConditions(
+        SAMRAI::hier::Patch<NDIM>& patch,
+        const double fill_time);
 
     /*
      * These private member functions read data from input and restart.  When

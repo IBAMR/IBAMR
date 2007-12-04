@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <07.Nov.2007 23:39:13 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Dec.2007 21:11:57 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -642,7 +642,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_V_idx,       // temporary work space
                        refine_operator);
     d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
+        new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "QUADRATIC");
 
     const int U_new_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
@@ -659,7 +659,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_W_idx,   // temporary work space
                        refine_operator);
     d_rstrategies["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"] =
-            new STOOLS::CartExtrapPhysBdryOp(d_W_idx, "LINEAR");
+            new STOOLS::CartExtrapPhysBdryOp(d_W_idx, "QUADRATIC");
 
     const int U_scratch_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
@@ -696,7 +696,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     instrumentation_data_fill_bc_idxs.setFlag(P_scratch_idx);
     d_rstrategies["INSTRUMENTATION_DATA_FILL"] =
         new STOOLS::CartExtrapPhysBdryOp(
-            instrumentation_data_fill_bc_idxs, "LINEAR");
+            instrumentation_data_fill_bc_idxs, "QUADRATIC");
 
     // NOTE: When using conservative averaging to coarsen the velocity from
     // finer levels to coarser levels, the appropriate prolongation operator for
@@ -723,7 +723,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     F_scratch_idxs.setFlag(d_F_scratch1_idx);
     F_scratch_idxs.setFlag(d_F_scratch2_idx);
     d_force_rstrategy = new STOOLS::CartExtrapPhysBdryOp(
-        F_scratch_idxs, "LINEAR");
+        F_scratch_idxs, "QUADRATIC");
 
     if (!d_source_strategy.isNull())
     {
@@ -735,7 +735,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                                       d_Q_scratch_idx,  // temporary work space
                                       refine_operator);
         d_source_rstrategy = new STOOLS::CartExtrapPhysBdryOp(
-            d_Q_scratch_idx, "LINEAR");
+            d_Q_scratch_idx, "QUADRATIC");
     }
 
     d_calgs["U->U::C->C::CONSERVATIVE_COARSEN"] =
