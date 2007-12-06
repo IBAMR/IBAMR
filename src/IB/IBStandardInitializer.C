@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <19.Oct.2007 01:49:20 griffith@box221.cims.nyu.edu>
+// Last modified: <05.Dec.2007 20:32:51 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -164,12 +164,6 @@ IBStandardInitializer::IBStandardInitializer(
         // Wait for all processes to finish.
         SAMRAI::tbox::MPI::barrier();
     }
-    else
-    {
-        SAMRAI::tbox::pout << "!!!!!!!!!!\n";
-        SAMRAI::tbox::pout << "!!!!!!!!!! WARNING: silo data is not properly registered by class IBStandardInitializer for restarted runs\n";
-        SAMRAI::tbox::pout << "!!!!!!!!!!\n";
-    }
     return;
 }// IBStandardInitializer
 
@@ -190,15 +184,22 @@ IBStandardInitializer::registerLagSiloDataWriter(
     // Cache a pointer to the data writer.
     d_silo_writer = silo_writer;
 
-    // Initialize the Silo data writer.
-    for (int ln = 0; ln < d_max_levels; ++ln)
+    // Check to see if we are starting from a restart file.
+    SAMRAI::tbox::RestartManager* restart_manager = SAMRAI::tbox::RestartManager::getManager();
+    const bool is_from_restart = restart_manager->isFromRestart();
+
+    // Initialize the Silo data writer only if we are not starting from a
+    // restart file.
+    if (!is_from_restart)
     {
-        if (d_level_is_initialized[ln])
+        for (int ln = 0; ln < d_max_levels; ++ln)
         {
-            initializeLagSiloDataWriter(ln);
+            if (d_level_is_initialized[ln])
+            {
+                initializeLagSiloDataWriter(ln);
+            }
         }
     }
-
     return;
 }// registerLagSiloDataWriter
 

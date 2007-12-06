@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <03.Dec.2007 21:11:06 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Dec.2007 16:03:46 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1451,7 +1451,7 @@ INSHierarchyIntegrator::regridHierarchy()
             d_u_scratch_idx, d_u_var, // u(n,*)
             false,                    // do not synch u(n,*) coarse-fine bdry
             d_V_idx        , d_V_var, // U(n,*)
-            d_V_hier_bdry_fill_op, d_integrator_time);
+            d_V_phys_bc_bdry_fill_op, d_integrator_time);
 
         // Project u^(n,*)->u(n) and re-use grad Phi to project
         // U^(n,*)->U^(n).
@@ -1482,7 +1482,7 @@ INSHierarchyIntegrator::regridHierarchy()
             d_u_scratch_idx, d_u_var, // u(n,*)
             false,                    // do not synch u(n,*) coarse-fine bdry
             d_V_idx        , d_V_var, // U(n,*)
-            d_V_hier_bdry_fill_op, d_integrator_time);
+            d_V_phys_bc_bdry_fill_op, d_integrator_time);
 
         // Setup the boundary coefficient specification object.
         d_Phi_bc_coef->setProblemCoefs(d_rho, d_old_dt);
@@ -1620,7 +1620,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     spec.setDConstant( d_nu    );
 
     d_hier_cc_data_ops->copyData(d_V_idx, d_U_current_idx);
-    d_V_hier_bdry_fill_op->fillData(current_time);
+    d_V_phys_bc_bdry_fill_op->fillData(current_time);
     for (int d = 0; d < NDIM; ++d)
     {
         d_hier_math_ops->laplace(
@@ -1824,7 +1824,7 @@ INSHierarchyIntegrator::projectVelocity(
         d_u_scratch_idx, d_u_var, // u(*)
         false,                    // do not synch u(*) coarse-fine bdry
         d_V_idx        , d_V_var, // U(*)
-        d_V_hier_bdry_fill_op, new_time);
+        d_V_phys_bc_bdry_fill_op, new_time);
 
     // Reset the intermediate velocity bc coefs to set the "true" boundary
     // values.
@@ -1857,7 +1857,7 @@ INSHierarchyIntegrator::projectVelocity(
     if (!d_Omega_var.isNull() || !d_Div_U_var.isNull())
     {
         d_hier_cc_data_ops->copyData(d_V_idx, d_U_new_idx);
-        d_V_hier_bdry_fill_op->fillData(new_time);
+        d_V_extrap_bdry_fill_op->fillData(new_time);
 
         if (!d_Omega_var.isNull())
         {
@@ -2149,7 +2149,7 @@ INSHierarchyIntegrator::updatePressure(
             d_u_scratch_idx, d_u_var, // u~(n+1,*)
             false,                    // do not synch u~(n+1,*) coarse-fine bdry
             d_V_idx        , d_V_var, // U~(n+1,*)
-            d_V_hier_bdry_fill_op, new_time);
+            d_V_phys_bc_bdry_fill_op, new_time);
 
         // Reset the intermediate velocity bc coefs to set the "true" boundary
         // values.
@@ -2869,9 +2869,13 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
 
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(
         d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
-    InterpolationTransactionComponent V_transaction_comp(d_V_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false, U_bc_coefs);
-    d_V_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
-    d_V_hier_bdry_fill_op->initializeOperatorState(V_transaction_comp, d_hierarchy);
+    InterpolationTransactionComponent V_phys_bc_transaction_comp(d_V_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false, U_bc_coefs);
+    d_V_phys_bc_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
+    d_V_phys_bc_bdry_fill_op->initializeOperatorState(V_phys_bc_transaction_comp, d_hierarchy);
+
+    InterpolationTransactionComponent V_extrap_transaction_comp(d_V_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false);
+    d_V_extrap_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
+    d_V_extrap_bdry_fill_op->initializeOperatorState(V_extrap_transaction_comp, d_hierarchy);
 
     InterpolationTransactionComponent P_transaction_comp(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false);
     d_P_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();

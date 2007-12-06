@@ -2,7 +2,7 @@
 #define included_LagSiloDataWriter
 
 // Filename: LagSiloDataWriter.h
-// Last modified: <25.Jun.2007 00:35:13 griffith@box221.cims.nyu.edu>
+// Last modified: <05.Dec.2007 20:59:22 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -13,8 +13,8 @@
 // SAMRAI INCLUDES
 #include <IntVector.h>
 #include <PatchHierarchy.h>
-#include <tbox/DescribedClass.h>
 #include <tbox/Pointer.h>
+#include <tbox/Serializable.h>
 
 // PETSC INCLUDES
 #include <petscvec.h>
@@ -38,23 +38,28 @@ namespace IBAMR
  * HREF="http://www.llnl.gov/bdiv/meshtv/manuals/silo.pdf">here</A>.
  */
 class LagSiloDataWriter
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
      * \brief Constructor.
      *
-     * \param object_name          String used for error reporting.
-     * \param dump_directory_name  String indicating the directory where visualization data is to be written.
+     * \param object_name           String used for error reporting.
+     * \param dump_directory_name   String indicating the directory where visualization data is to be written.
+     * \param register_for_restart  Boolean indicating whether to register this object with the restart manager.
      */
     LagSiloDataWriter(
         const std::string& object_name,
-        const std::string& dump_directory_name);
+        const std::string& dump_directory_name,
+        bool register_for_restart=true);
 
     /*!
-     * \brief Destructor.
+     * \brief Virtual destructor.
+     *
+     * The destructor for IBHierarchyIntegrator unregisters the integrator
+     * object with the restart manager when so registered.
      */
-    ~LagSiloDataWriter();
+    virtual ~LagSiloDataWriter();
 
     /*!
      * \name Methods to set the hierarchy and range of levels.
@@ -189,6 +194,24 @@ public:
         const int time_step_number,
         const double simulation_time);
 
+    ///
+    ///  The following routines:
+    ///
+    ///      putToDatabase()
+    ///
+    ///  are concrete implementations of functions declared in the
+    ///  SAMRAI::tbox::Serializable abstract base class.
+    ///
+
+    /*!
+     * Write out object state to the given database.
+     *
+     * When assertion checking is active, database pointer must be non-null.
+     */
+    virtual void
+    putToDatabase(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
 protected:
 
 private:
@@ -231,10 +254,29 @@ private:
         AO& ao,
         const int level_number);
 
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.  The database from which the restart data is read is determined
+     * by the object_name specified in the constructor.
+     *
+     * Unrecoverable Errors:
+     *
+     *    -   The database corresponding to object_name is not found in the
+     *        restart file.
+     *
+     *    -   The class version number and restart version number do not match.
+     *
+     */
+    void
+    getFromRestart();
+
     /*
-     * The object name is used for error reporting purposes.
+     * The object name is used as a handle to databases stored in restart files
+     * and for error reporting purposes.  The boolean is used to control restart
+     * file writing operations.
      */
     std::string d_object_name;
+    bool d_registered_for_restart;
 
     /*
      * The directory where data is to be dumped.

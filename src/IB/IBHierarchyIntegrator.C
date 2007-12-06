@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <03.Dec.2007 21:11:57 griffith@box221.cims.nyu.edu>
+// Last modified: <05.Dec.2007 20:18:03 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2564,7 +2564,10 @@ IBHierarchyIntegrator::putToDatabase(
 
     db->putString("d_delta_fcn", d_delta_fcn);
     db->putInteger("d_total_flow_volume_sz", d_total_flow_volume.size());
-    db->putDoubleArray("d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
+    if (!d_total_flow_volume.empty())
+    {
+        db->putDoubleArray("d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
+    }
     db->putBool("d_using_pIB_method", d_using_pIB_method);
     db->putDoubleArray("d_gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
     db->putDouble("d_start_time", d_start_time);
@@ -3407,7 +3410,10 @@ IBHierarchyIntegrator::getFromRestart()
     d_delta_fcn = db->getString("d_delta_fcn");
     const int total_flow_volume_sz = db->getInteger("d_total_flow_volume_sz");
     d_total_flow_volume.resize(total_flow_volume_sz, std::numeric_limits<double>::quiet_NaN());
-    db->getDoubleArray("d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
+    if (!d_total_flow_volume.empty())
+    {
+        db->getDoubleArray("d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
+    }
     d_using_pIB_method = db->getBool("d_using_pIB_method");
     db->getDoubleArray("d_gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
     d_start_time = db->getDouble("d_start_time");

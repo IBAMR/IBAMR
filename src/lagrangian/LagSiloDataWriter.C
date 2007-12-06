@@ -1,5 +1,5 @@
 // Filename: LagSiloDataWriter.C
-// Last modified: <20.Aug.2007 19:04:32 griffith@box221.cims.nyu.edu>
+// Last modified: <05.Dec.2007 22:22:30 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagSiloDataWriter.h"
@@ -21,6 +21,7 @@
 
 // SAMRAI INCLUDES
 #include <tbox/MPI.h>
+#include <tbox/RestartManager.h>
 #include <tbox/Utilities.h>
 
 // SILO INCLUDES
@@ -55,6 +56,9 @@ static const std::string SILO_SUMMARY_FILE_PREFIX= "lag_data.cycle_";
 static const std::string SILO_SUMMARY_FILE_POSTFIX = ".summary.silo";
 static const std::string SILO_PROCESSOR_FILE_PREFIX = "lag_data.proc_";
 static const std::string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
+
+// Version of LagSiloDataWriter restart file data.
+static const int LAG_SILO_DATA_WRITER_VERSION = 1;
 
 #if HAVE_LIBSILO
 /*!
@@ -502,8 +506,10 @@ build_local_ucd_mesh(
 
 LagSiloDataWriter::LagSiloDataWriter(
     const std::string& object_name,
-    const std::string& dump_directory_name)
+    const std::string& dump_directory_name,
+    bool register_for_restart)
     : d_object_name(object_name),
+      d_registered_for_restart(register_for_restart),
       d_dump_directory_name(dump_directory_name),
       d_time_step_number(-1),
       d_hierarchy(),
@@ -544,11 +550,28 @@ LagSiloDataWriter::LagSiloDataWriter(
 #else
     TBOX_WARNING("LagSiloDataWriter::LagSiloDataWriter(): SILO is not installed; cannot write data." << endl);
 #endif
+    if (d_registered_for_restart)
+    {
+        SAMRAI::tbox::RestartManager::getManager()->
+            registerRestartItem(d_object_name, this);
+    }
+
+    // Initialize object with data read from the restart database.
+    const bool from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
+    if (from_restart)
+    {
+        getFromRestart();
+    }
     return;
 }// LagSiloDataWriter
 
 LagSiloDataWriter::~LagSiloDataWriter()
 {
+    if (d_registered_for_restart)
+    {
+        SAMRAI::tbox::RestartManager::getManager()->unregisterRestartItem(d_object_name);
+    }
+
     // Destroy any remaining PETSc objects.
     int ierr;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -1822,6 +1845,143 @@ LagSiloDataWriter::writePlotData(
     return;
 }// writePlotData
 
+///
+///  The following routines:
+///
+///      putToDatabase()
+///
+///  are concrete implementations of functions declared in the
+///  SAMRAI::tbox::Serializable abstract base class.
+///
+
+void
+LagSiloDataWriter::putToDatabase(
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(!db.isNull());
+#endif
+    db->putInteger("LAG_SILO_DATA_WRITER_VERSION",
+                   LAG_SILO_DATA_WRITER_VERSION);
+
+    db->putInteger("d_coarsest_ln", d_coarsest_ln);
+    db->putInteger("d_finest_ln", d_finest_ln);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        std::ostringstream ln_stream;
+        ln_stream << "_" << ln;
+        const std::string ln_string = ln_stream.str();
+
+        db->putInteger("d_nclouds"+ln_string, d_nclouds[ln]);
+        if (d_nclouds[ln] > 0)
+        {
+            db->putStringArray("d_cloud_names"+ln_string, &d_cloud_names[ln][0], d_cloud_names[ln].size());
+            db->putIntegerArray("d_cloud_nmarks"+ln_string, &d_cloud_nmarks[ln][0], d_cloud_nmarks[ln].size());
+            db->putIntegerArray("d_cloud_first_lag_idx"+ln_string, &d_cloud_first_lag_idx[ln][0], d_cloud_first_lag_idx[ln].size());
+        }
+
+        db->putInteger("d_nblocks"+ln_string, d_nblocks[ln]);
+        if (d_nblocks[ln] > 0)
+        {
+            db->putStringArray("d_block_names"+ln_string, &d_block_names[ln][0], d_block_names[ln].size());
+
+            std::vector<int> flattened_block_nelems;
+            flattened_block_nelems.reserve(NDIM*d_block_nelems.size());
+            for (std::vector<SAMRAI::hier::IntVector<NDIM> >::const_iterator cit = d_block_nelems[ln].begin();
+                 cit != d_block_nelems[ln].end(); ++cit)
+            {
+                flattened_block_nelems.insert(flattened_block_nelems.end(), &(*cit)[0], &(*cit)[0]+NDIM);
+            }
+            db->putIntegerArray("flattened_block_nelems"+ln_string, &flattened_block_nelems[0], flattened_block_nelems.size());
+
+            std::vector<int> flattened_block_periodic;
+            flattened_block_periodic.reserve(NDIM*d_block_periodic.size());
+            for (std::vector<SAMRAI::hier::IntVector<NDIM> >::const_iterator cit = d_block_periodic[ln].begin();
+                 cit != d_block_periodic[ln].end(); ++cit)
+            {
+                flattened_block_periodic.insert(flattened_block_periodic.end(), &(*cit)[0], &(*cit)[0]+NDIM);
+            }
+            db->putIntegerArray("flattened_block_periodic"+ln_string, &flattened_block_periodic[0], flattened_block_periodic.size());
+
+            db->putIntegerArray("d_block_first_lag_idx"+ln_string, &d_block_first_lag_idx[ln][0], d_block_first_lag_idx[ln].size());
+        }
+
+        db->putInteger("d_nmbs"+ln_string, d_nmbs[ln]);
+        if (d_nmbs[ln] > 0)
+        {
+            db->putStringArray("d_mb_names"+ln_string, &d_mb_names[ln][0], d_mb_names[ln].size());
+
+            for (int mb = 0; mb < d_nmbs[ln]; ++mb)
+            {
+                std::ostringstream mb_stream;
+                mb_stream << "_" << mb;
+                const std::string mb_string = mb_stream.str();
+
+                db->putInteger("d_mb_nblocks"+ln_string+mb_string, d_mb_nblocks[ln][mb]);
+                if (d_mb_nblocks[ln][mb] > 0)
+                {
+                    std::vector<int> flattened_mb_nelems;
+                    flattened_mb_nelems.reserve(NDIM*d_mb_nelems.size());
+                    for (std::vector<SAMRAI::hier::IntVector<NDIM> >::const_iterator cit = d_mb_nelems[ln][mb].begin();
+                         cit != d_mb_nelems[ln][mb].end(); ++cit)
+                    {
+                        flattened_mb_nelems.insert(flattened_mb_nelems.end(), &(*cit)[0], &(*cit)[0]+NDIM);
+                    }
+                    db->putIntegerArray("flattened_mb_nelems"+ln_string+mb_string, &flattened_mb_nelems[0], flattened_mb_nelems.size());
+
+                    std::vector<int> flattened_mb_periodic;
+                    flattened_mb_periodic.reserve(NDIM*d_mb_periodic.size());
+                    for (std::vector<SAMRAI::hier::IntVector<NDIM> >::const_iterator cit = d_mb_periodic[ln][mb].begin();
+                         cit != d_mb_periodic[ln][mb].end(); ++cit)
+                    {
+                        flattened_mb_periodic.insert(flattened_mb_periodic.end(), &(*cit)[0], &(*cit)[0]+NDIM);
+                    }
+                    db->putIntegerArray("flattened_mb_periodic"+ln_string+mb_string, &flattened_mb_periodic[0], flattened_mb_periodic.size());
+
+                    db->putIntegerArray("d_mb_first_lag_idx"+ln_string+mb_string, &d_mb_first_lag_idx[ln][mb][0], d_mb_first_lag_idx[ln][mb].size());
+                }
+            }
+        }
+
+        db->putInteger("d_nucd_meshes"+ln_string, d_nucd_meshes[ln]);
+        if (d_nucd_meshes[ln] > 0)
+        {
+            db->putStringArray("d_ucd_mesh_names"+ln_string, &d_ucd_mesh_names[ln][0], d_ucd_mesh_names[ln].size());
+
+            for (int mesh = 0; mesh < d_nucd_meshes[ln]; ++mesh)
+            {
+                std::ostringstream mesh_stream;
+                mesh_stream << "_" << mesh;
+                const std::string mesh_string = mesh_stream.str();
+
+                std::vector<int> ucd_mesh_vertices_vector;
+                ucd_mesh_vertices_vector.reserve(d_ucd_mesh_vertices[ln][mesh].size());
+                for (std::set<int>::const_iterator cit = d_ucd_mesh_vertices[ln][mesh].begin();
+                     cit != d_ucd_mesh_vertices[ln][mesh].end(); ++cit)
+                {
+                    ucd_mesh_vertices_vector.push_back(*cit);
+                }
+                db->putInteger("ucd_mesh_vertices_vector.size()"+ln_string+mesh_string, ucd_mesh_vertices_vector.size());
+                db->putIntegerArray("ucd_mesh_vertices_vector"+ln_string+mesh_string, &ucd_mesh_vertices_vector[0], ucd_mesh_vertices_vector.size());
+
+                std::vector<int> ucd_mesh_edge_maps_vector;
+                ucd_mesh_edge_maps_vector.reserve(3*d_ucd_mesh_edge_maps[ln][mesh].size());
+                for (std::multimap<int,std::pair<int,int> >::const_iterator cit = d_ucd_mesh_edge_maps[ln][mesh].begin();
+                     cit != d_ucd_mesh_edge_maps[ln][mesh].end(); ++cit)
+                {
+                    ucd_mesh_edge_maps_vector.push_back((*cit).first);
+                    ucd_mesh_edge_maps_vector.push_back((*cit).second.first);
+                    ucd_mesh_edge_maps_vector.push_back((*cit).second.second);
+                }
+                db->putInteger("ucd_mesh_edge_maps_vector.size()"+ln_string+mesh_string, ucd_mesh_edge_maps_vector.size());
+                db->putIntegerArray("ucd_mesh_edge_maps_vector"+ln_string+mesh_string, &ucd_mesh_edge_maps_vector[0], ucd_mesh_edge_maps_vector.size());
+            }
+        }
+    }
+    return;
+}// putToDatabase
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
@@ -1960,6 +2120,175 @@ LagSiloDataWriter::buildVecScatters(
     }
     return;
 }// buildVecScatters
+
+void
+LagSiloDataWriter::getFromRestart()
+{
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> restart_db =
+        SAMRAI::tbox::RestartManager::getManager()->getRootDatabase();
+
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db;
+    if (restart_db->isDatabase(d_object_name))
+    {
+        db = restart_db->getDatabase(d_object_name);
+    }
+    else
+    {
+        TBOX_ERROR("Restart database corresponding to "
+                   << d_object_name << " not found in restart file.");
+    }
+
+    int ver = db->getInteger("LAG_SILO_DATA_WRITER_VERSION");
+    if (ver != LAG_SILO_DATA_WRITER_VERSION)
+    {
+        TBOX_ERROR(d_object_name << ":  "
+                   << "Restart file version different than class version.");
+    }
+
+    const int coarsest_ln = db->getInteger("d_coarsest_ln");
+    const int finest_ln = db->getInteger("d_finest_ln");
+    resetLevels(coarsest_ln, finest_ln);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        std::ostringstream ln_stream;
+        ln_stream << "_" << ln;
+        const std::string ln_string = ln_stream.str();
+
+        d_nclouds[ln] = db->getInteger("d_nclouds"+ln_string);
+        if (d_nclouds[ln] > 0)
+        {
+            d_cloud_names[ln].resize(d_nclouds[ln]);
+            db->getStringArray("d_cloud_names"+ln_string, &d_cloud_names[ln][0], d_cloud_names[ln].size());
+
+            d_cloud_nmarks[ln].resize(d_nclouds[ln]);
+            db->getIntegerArray("d_cloud_nmarks"+ln_string, &d_cloud_nmarks[ln][0], d_cloud_nmarks[ln].size());
+
+            d_cloud_first_lag_idx[ln].resize(d_nclouds[ln]);
+            db->getIntegerArray("d_cloud_first_lag_idx"+ln_string, &d_cloud_first_lag_idx[ln][0], d_cloud_first_lag_idx[ln].size());
+        }
+
+        d_nblocks[ln] = db->getInteger("d_nblocks"+ln_string);
+        if (d_nblocks[ln] > 0)
+        {
+            d_block_names[ln].resize(d_nblocks[ln]);
+            db->getStringArray("d_block_names"+ln_string, &d_block_names[ln][0], d_block_names[ln].size());
+
+            d_block_nelems[ln].resize(d_nblocks[ln]);
+            std::vector<int> flattened_block_nelems;
+            flattened_block_nelems.resize(NDIM*d_block_nelems.size());
+            db->getIntegerArray("flattened_block_nelems"+ln_string, &flattened_block_nelems[0], flattened_block_nelems.size());
+            for (unsigned l = 0; l < d_block_nelems[ln].size(); ++l)
+            {
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    d_block_nelems[ln][l](d) = flattened_block_nelems[NDIM*l+d];
+                }
+            }
+
+            d_block_periodic[ln].resize(d_nblocks[ln]);
+            std::vector<int> flattened_block_periodic;
+            flattened_block_periodic.resize(NDIM*d_block_periodic.size());
+            db->getIntegerArray("flattened_block_periodic"+ln_string, &flattened_block_periodic[0], flattened_block_periodic.size());
+            for (unsigned l = 0; l < d_block_periodic[ln].size(); ++l)
+            {
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    d_block_periodic[ln][l](d) = flattened_block_periodic[NDIM*l+d];
+                }
+            }
+
+            d_block_first_lag_idx[ln].resize(d_nblocks[ln]);
+            db->getIntegerArray("d_block_first_lag_idx"+ln_string, &d_block_first_lag_idx[ln][0], d_block_first_lag_idx[ln].size());
+        }
+
+        d_nmbs[ln] = db->getInteger("d_nmbs"+ln_string);
+        if (d_nmbs[ln] > 0)
+        {
+            d_mb_names[ln].resize(d_nmbs[ln]);
+            db->getStringArray("d_mb_names"+ln_string, &d_mb_names[ln][0], d_mb_names[ln].size());
+
+            d_mb_nblocks.resize(d_nmbs[ln]);
+            d_mb_nelems.resize(d_nmbs[ln]);
+            d_mb_periodic.resize(d_nmbs[ln]);
+            d_mb_first_lag_idx.resize(d_nmbs[ln]);
+            for (int mb = 0; mb < d_nmbs[ln]; ++mb)
+            {
+                std::ostringstream mb_stream;
+                mb_stream << "_" << mb;
+                const std::string mb_string = mb_stream.str();
+
+                d_mb_nblocks[ln][mb] = db->getInteger("d_mb_nblocks"+ln_string+mb_string);
+                if (d_mb_nblocks[ln][mb] > 0)
+                {
+                    d_mb_nelems[ln][mb].resize(d_mb_nblocks[ln][mb]);
+                    std::vector<int> flattened_mb_nelems;
+                    flattened_mb_nelems.resize(NDIM*d_mb_nelems.size());
+                    db->getIntegerArray("flattened_mb_nelems"+ln_string+mb_string, &flattened_mb_nelems[0], flattened_mb_nelems.size());
+                    for (unsigned l = 0; l < d_mb_nelems[ln][mb].size(); ++l)
+                    {
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            d_mb_nelems[ln][mb][l](d) = flattened_mb_nelems[NDIM*l+d];
+                        }
+                    }
+
+                    d_mb_periodic[ln][mb].resize(d_mb_nblocks[ln][mb]);
+                    std::vector<int> flattened_mb_periodic;
+                    flattened_mb_periodic.resize(NDIM*d_mb_periodic.size());
+                    db->getIntegerArray("flattened_mb_periodic"+ln_string+mb_string, &flattened_mb_periodic[0], flattened_mb_periodic.size());
+                    for (unsigned l = 0; l < d_mb_periodic[ln][mb].size(); ++l)
+                    {
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            d_mb_periodic[ln][mb][l](d) = flattened_mb_periodic[NDIM*l+d];
+                        }
+                    }
+
+                    d_mb_first_lag_idx[ln][mb].resize(d_mb_nblocks[ln][mb]);
+                    db->getIntegerArray("d_mb_first_lag_idx"+ln_string+mb_string, &d_mb_first_lag_idx[ln][mb][0], d_mb_first_lag_idx[ln][mb].size());
+                }
+            }
+        }
+
+        d_nucd_meshes[ln] = db->getInteger("d_nucd_meshes"+ln_string);
+        if (d_nucd_meshes[ln] > 0)
+        {
+            d_ucd_mesh_names[ln].resize(d_nucd_meshes[ln]);
+            db->getStringArray("d_ucd_mesh_names"+ln_string, &d_ucd_mesh_names[ln][0], d_ucd_mesh_names[ln].size());
+
+            d_ucd_mesh_vertices[ln].resize(d_nucd_meshes[ln]);
+            d_ucd_mesh_edge_maps[ln].resize(d_nucd_meshes[ln]);
+            for (int mesh = 0; mesh < d_nucd_meshes[ln]; ++mesh)
+            {
+                std::ostringstream mesh_stream;
+                mesh_stream << "_" << mesh;
+                const std::string mesh_string = mesh_stream.str();
+
+                const int ucd_mesh_vertices_vector_size = db->getInteger("ucd_mesh_vertices_vector.size()"+ln_string+mesh_string);
+                std::vector<int> ucd_mesh_vertices_vector(ucd_mesh_vertices_vector_size);
+                db->getIntegerArray("ucd_mesh_vertices_vector"+ln_string+mesh_string, &ucd_mesh_vertices_vector[0], ucd_mesh_vertices_vector.size());
+                d_ucd_mesh_vertices[ln][mesh].insert(
+                    ucd_mesh_vertices_vector.begin(), ucd_mesh_vertices_vector.end());
+
+                const int ucd_mesh_edge_maps_vector_size = db->getInteger("ucd_mesh_edge_maps_vector.size()"+ln_string+mesh_string);
+                std::vector<int> ucd_mesh_edge_maps_vector(ucd_mesh_edge_maps_vector_size);
+                db->getIntegerArray("ucd_mesh_edge_maps_vector"+ln_string+mesh_string, &ucd_mesh_edge_maps_vector[0], ucd_mesh_edge_maps_vector.size());
+                for (int l = 0; l < ucd_mesh_edge_maps_vector_size/3; ++l)
+                {
+                    const int idx1 = ucd_mesh_edge_maps_vector[3*l];
+                    const std::pair<int,int> e(ucd_mesh_edge_maps_vector[3*l+1],
+                                               ucd_mesh_edge_maps_vector[3*l+2]);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                    assert(idx1 == e.first);
+#endif
+                    d_ucd_mesh_edge_maps[ln][mesh].insert(std::make_pair(idx1,e));
+                }
+            }
+        }
+   }
+    return;
+}// getFromRestart
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

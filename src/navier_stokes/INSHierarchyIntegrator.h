@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <08.Nov.2007 15:16:09 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Dec.2007 16:02:46 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1109,7 +1109,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
 
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> d_V_hier_bdry_fill_op, d_P_hier_bdry_fill_op, d_Phi_hier_bdry_fill_op, d_Phi_tilde_hier_bdry_fill_op, d_regrid_Phi_hier_bdry_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> d_V_phys_bc_bdry_fill_op, d_V_extrap_bdry_fill_op, d_P_hier_bdry_fill_op, d_Phi_hier_bdry_fill_op, d_Phi_tilde_hier_bdry_fill_op, d_regrid_Phi_hier_bdry_fill_op, d_no_fill_op;
 
     /*
      * Objects to set initial conditions (note that the initial value of the
