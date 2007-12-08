@@ -355,6 +355,8 @@ main(
         U_bc_coefs[0] = &u0_bc_coef;
         U_bc_coefs[1] = &u1_bc_coef;
 
+        PressureBcCoefs P_bc_coef("PressureBcCoefs");
+
         /*
          * Create body force specification objects.
          */
@@ -421,6 +423,7 @@ main(
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
         time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
+        navier_stokes_integrator->registerPressurePhysicalBcCoef(&P_bc_coef);
         time_integrator->registerBodyForceSpecification(F_set);
 
         tbox::Pointer<IBStandardInitializer> initializer =

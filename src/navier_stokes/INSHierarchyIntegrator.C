@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <04.Dec.2007 16:03:46 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Dec.2007 21:42:18 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -146,6 +146,10 @@ static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "QUADRATIC";
+
+// Whether to enforce consistent interpolated values at Type 2 coarse-fine
+// interface ghost cells.
+static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Version of INSHierarchyIntegrator restart file data.
 static const int INS_HIERARCHY_INTEGRATOR_VERSION = 1;
@@ -992,6 +996,17 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_rstrategies["grad_Phi->grad_Phi::S->S::CONSERVATIVE_LINEAR_REFINE"] =
         new STOOLS::CartExtrapPhysBdryOp(d_grad_Phi_idx, BDRY_EXTRAP_TYPE);
 
+    d_ralgs["u::S->S::CONSERVATIVE_LINEAR_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    refine_operator = grid_geom->lookupRefineOperator(
+        d_u_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_ralgs["u::S->S::CONSERVATIVE_LINEAR_REFINE"]->
+        registerRefine(d_u_scratch_idx, // destination
+                       d_u_scratch_idx, // source
+                       d_u_scratch_idx, // temporary work space
+                       refine_operator);
+    d_rstrategies["u::S->S::CONSERVATIVE_LINEAR_REFINE"] =
+        new STOOLS::CartExtrapPhysBdryOp(d_u_scratch_idx, BDRY_EXTRAP_TYPE);
+
     d_ralgs["predictAdvectionVelocity"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
         d_u_adv_var, "CONSERVATIVE_LINEAR_REFINE");
@@ -1445,17 +1460,24 @@ INSHierarchyIntegrator::regridHierarchy()
     // approximately divergence free values for U(n) and u(n).
     if ((d_using_synch_projection && d_reproject_after_regrid) || initial_time)
     {
+        // Reset the intermediate velocity bc coefs to set the "true" boundary
+        // values.
+        for (int d = 0; d < NDIM; ++d)
+        {
+            d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
+        }
+
         // Interpolate U(*)->u(*).
         d_hier_cc_data_ops->copyData(d_V_idx, d_U_current_idx);
         d_hier_math_ops->interp(
             d_u_scratch_idx, d_u_var, // u(n,*)
             false,                    // do not synch u(n,*) coarse-fine bdry
             d_V_idx        , d_V_var, // U(n,*)
-            d_V_phys_bc_bdry_fill_op, d_integrator_time);
+            d_V_bdry_fill_op, d_integrator_time);
 
         // Project u^(n,*)->u(n) and re-use grad Phi to project
         // U^(n,*)->U^(n).
-        d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
+        d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0, false);
         d_hier_projector->projectHierarchy(
             initial_time ? 1.0 : d_rho, initial_time ? 1.0 : d_old_dt, d_integrator_time,
             d_velocity_projection_type,
@@ -1476,13 +1498,40 @@ INSHierarchyIntegrator::regridHierarchy()
     }
     else if (d_reproject_after_regrid && !initial_time)
     {
-        // Interpolate U(*)->u(*).
+        // Setup the intermediate velocity bc coefs.
+        d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_current_idx);
+        d_Phi_hier_bdry_fill_op->fillData(d_integrator_time);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            static const bool velocity_correction = false;
+            d_intermediate_U_bc_coefs[d]->useIntermediateVelocityBcCoefs(
+                d_integrator_time-d_old_dt, d_integrator_time, d_rho, velocity_correction);
+        }
+
+        // Compute u^(*) from U^(*).
         d_hier_cc_data_ops->copyData(d_V_idx, d_U_star_current_idx);
         d_hier_math_ops->interp(
-            d_u_scratch_idx, d_u_var, // u(n,*)
-            false,                    // do not synch u(n,*) coarse-fine bdry
-            d_V_idx        , d_V_var, // U(n,*)
-            d_V_phys_bc_bdry_fill_op, d_integrator_time);
+            d_u_scratch_idx, d_u_var, // u(*)
+            false,                    // do not synch u(*) coarse-fine bdry
+            d_V_idx        , d_V_var, // U(*)
+            d_V_bdry_fill_op, d_integrator_time);
+
+        // Reset the intermediate velocity bc coefs to set the "true" boundary
+        // values.
+        for (int d = 0; d < NDIM; ++d)
+        {
+            d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
+        }
+
+        // Fill P boundary data.
+        d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_current_idx);
+        d_P_hier_bdry_fill_op->fillData(d_integrator_time);
+
+        // Fill u boundary data.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            d_rscheds["u::S->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(d_integrator_time);
+        }
 
         // Setup the boundary coefficient specification object.
         d_Phi_bc_coef->setProblemCoefs(d_rho, d_old_dt);
@@ -1491,13 +1540,6 @@ INSHierarchyIntegrator::regridHierarchy()
         d_Phi_bc_coef->setProjectionType(d_velocity_projection_type);
         d_Phi_bc_coef->setIntermediateVelocityPatchDataIndex(d_u_scratch_idx);
         d_Phi_bc_coef->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
-
-        // Fill P boundary data.
-        d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_current_idx);
-        d_P_hier_bdry_fill_op->fillData(d_integrator_time);
-
-        // Fill u boundary data.
-        // XXXX
 
         // Re-use the most recent value of Phi to "re-project" the velocity field.
         d_Phi_bc_coef->setHomogeneousBc(false);
@@ -1619,8 +1661,13 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     spec.setCConstant(-d_lambda);
     spec.setDConstant( d_nu    );
 
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
+    }
     d_hier_cc_data_ops->copyData(d_V_idx, d_U_current_idx);
-    d_V_phys_bc_bdry_fill_op->fillData(current_time);
+    d_V_bdry_fill_op->fillData(current_time);
+
     for (int d = 0; d < NDIM; ++d)
     {
         d_hier_math_ops->laplace(
@@ -1758,6 +1805,7 @@ INSHierarchyIntegrator::integrateAdvDiff(
 
     // Setup the intermediate velocity bc coefs.
     d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_current_idx);
+    d_Phi_hier_bdry_fill_op->fillData(current_time);
     for (int d = 0; d < NDIM; ++d)
     {
         static const bool velocity_correction = false;
@@ -1811,6 +1859,7 @@ INSHierarchyIntegrator::projectVelocity(
 
     // Setup the intermediate velocity bc coefs.
     d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_current_idx);
+    d_Phi_hier_bdry_fill_op->fillData(current_time);
     for (int d = 0; d < NDIM; ++d)
     {
         static const bool velocity_correction = false;
@@ -1824,7 +1873,7 @@ INSHierarchyIntegrator::projectVelocity(
         d_u_scratch_idx, d_u_var, // u(*)
         false,                    // do not synch u(*) coarse-fine bdry
         d_V_idx        , d_V_var, // U(*)
-        d_V_phys_bc_bdry_fill_op, new_time);
+        d_V_bdry_fill_op, new_time);
 
     // Reset the intermediate velocity bc coefs to set the "true" boundary
     // values.
@@ -1857,7 +1906,7 @@ INSHierarchyIntegrator::projectVelocity(
     if (!d_Omega_var.isNull() || !d_Div_U_var.isNull())
     {
         d_hier_cc_data_ops->copyData(d_V_idx, d_U_new_idx);
-        d_V_extrap_bdry_fill_op->fillData(new_time);
+        d_V_bdry_fill_op->fillData(new_time);
 
         if (!d_Omega_var.isNull())
         {
@@ -2052,6 +2101,7 @@ INSHierarchyIntegrator::updatePressure(
         // Setup the intermediate velocity bc coefs.
         d_hier_cc_data_ops->add(d_Phi_scratch_idx, d_Phi_tilde_current_idx, d_Phi_new_idx);
         d_hier_cc_data_ops->subtract(d_Phi_scratch_idx, d_Phi_scratch_idx, d_Phi_current_idx);
+        d_Phi_hier_bdry_fill_op->fillData(current_time);
         for (int d = 0; d < NDIM; ++d)
         {
             static const bool velocity_correction = true;
@@ -2137,6 +2187,7 @@ INSHierarchyIntegrator::updatePressure(
 
         // Setup the intermediate velocity bc coefs.
         d_hier_cc_data_ops->add(d_Phi_scratch_idx, d_Phi_tilde_current_idx, d_Phi_new_idx);
+        d_Phi_hier_bdry_fill_op->fillData(current_time);
         for (int d = 0; d < NDIM; ++d)
         {
             static const bool velocity_correction = false;
@@ -2149,7 +2200,7 @@ INSHierarchyIntegrator::updatePressure(
             d_u_scratch_idx, d_u_var, // u~(n+1,*)
             false,                    // do not synch u~(n+1,*) coarse-fine bdry
             d_V_idx        , d_V_var, // U~(n+1,*)
-            d_V_phys_bc_bdry_fill_op, new_time);
+            d_V_bdry_fill_op, new_time);
 
         // Reset the intermediate velocity bc coefs to set the "true" boundary
         // values.
@@ -2175,7 +2226,6 @@ INSHierarchyIntegrator::updatePressure(
     // Use the correct value of Phi to update the pressure.
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Phi_var = (d_using_hybrid_projection ? d_Phi_tilde_var : d_Phi_var);
     const int Phi_scratch_idx = (d_using_hybrid_projection ? d_Phi_tilde_scratch_idx : d_Phi_scratch_idx);
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> Phi_hier_bdry_fill_op = (d_using_hybrid_projection ? d_Phi_tilde_hier_bdry_fill_op : d_Phi_hier_bdry_fill_op);
 
     // Update the pressure.
     if (d_second_order_pressure_update)
@@ -2204,7 +2254,7 @@ INSHierarchyIntegrator::updatePressure(
                 d_sol_idx      , d_sol_var,   // dst
                 helmholtz_spec            ,   // Poisson spec
                 Phi_scratch_idx, Phi_var  ,   // src
-                d_Phi_hier_bdry_fill_op,  current_time);
+                d_no_fill_op, current_time);
         }
         else if (d_viscous_timestepping_type == "TGA")
         {
@@ -2869,30 +2919,19 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
 
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(
         d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
-    InterpolationTransactionComponent V_phys_bc_transaction_comp(d_V_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false, U_bc_coefs);
-    d_V_phys_bc_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
-    d_V_phys_bc_bdry_fill_op->initializeOperatorState(V_phys_bc_transaction_comp, d_hierarchy);
+    InterpolationTransactionComponent V_transaction_comp(d_V_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, U_bc_coefs);
+    d_V_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
+    d_V_bdry_fill_op->initializeOperatorState(V_transaction_comp, d_hierarchy);
 
-    InterpolationTransactionComponent V_extrap_transaction_comp(d_V_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false);
-    d_V_extrap_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
-    d_V_extrap_bdry_fill_op->initializeOperatorState(V_extrap_transaction_comp, d_hierarchy);
-
-    InterpolationTransactionComponent P_transaction_comp(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false);
+    InterpolationTransactionComponent P_transaction_comp(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
     d_P_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
     d_P_hier_bdry_fill_op->initializeOperatorState(P_transaction_comp, d_hierarchy);
 
-    InterpolationTransactionComponent Phi_transaction_comp(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false);
+    InterpolationTransactionComponent Phi_transaction_comp(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
     d_Phi_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
     d_Phi_hier_bdry_fill_op->initializeOperatorState(Phi_transaction_comp, d_hierarchy);
 
-    if (d_using_hybrid_projection)
-    {
-        InterpolationTransactionComponent Phi_tilde_transaction_comp(d_Phi_tilde_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false);
-        d_Phi_tilde_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
-        d_Phi_tilde_hier_bdry_fill_op->initializeOperatorState(Phi_tilde_transaction_comp, d_hierarchy);
-    }
-
-    InterpolationTransactionComponent regrid_Phi_transaction_comp(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, false, d_Phi_bc_coef);
+    InterpolationTransactionComponent regrid_Phi_transaction_comp(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
     d_regrid_Phi_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
     d_regrid_Phi_hier_bdry_fill_op->initializeOperatorState(regrid_Phi_transaction_comp, d_hierarchy);
 
