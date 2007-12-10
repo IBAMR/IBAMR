@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <07.Dec.2007 21:42:18 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Dec.2007 00:54:32 boyce@trasnaform2.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -914,13 +914,13 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         {
             d_visit_writer->registerPlotQuantity(
                 d_P_var->getName(), "SCALAR", d_P_current_idx, 0, d_P_scale);
-//          d_visit_writer->registerPlotQuantity(
-//              d_Phi_var->getName(), "SCALAR", d_Phi_current_idx, 0, d_P_scale);
-//          if (d_using_hybrid_projection)
-//          {
-//              d_visit_writer->registerPlotQuantity(
-//                  d_Phi_tilde_var->getName(), "SCALAR", d_Phi_tilde_current_idx, 0, d_P_scale);
-//          }
+            d_visit_writer->registerPlotQuantity(
+                d_Phi_var->getName(), "SCALAR", d_Phi_current_idx, 0, d_P_scale);
+            if (d_using_hybrid_projection)
+            {
+                d_visit_writer->registerPlotQuantity(
+                    d_Phi_tilde_var->getName(), "SCALAR", d_Phi_tilde_current_idx, 0, d_P_scale);
+            }
         }
 
         if (!d_F_var.isNull() && d_output_F)
@@ -1902,46 +1902,40 @@ INSHierarchyIntegrator::projectVelocity(
         false);                         // do not re-synch grad Phi coarse-fine bdry
     d_hier_cc_data_ops->axpy(d_U_new_idx, -dt/d_rho, d_Grad_Phi_idx, d_U_star_new_idx);
 
-    // Optionally compute some auxiliary quantities.
+    // Optionally compute auxiliary quantities.
     if (!d_Omega_var.isNull() || !d_Div_U_var.isNull())
     {
         d_hier_cc_data_ops->copyData(d_V_idx, d_U_new_idx);
         d_V_bdry_fill_op->fillData(new_time);
+    }
 
-        if (!d_Omega_var.isNull())
-        {
-            d_hier_math_ops->curl(
-                d_Omega_new_idx, d_Omega_var, // dst
-                d_V_idx        , d_V_var    , // src
-                d_no_fill_op, new_time);
-        }
-
-        if (!d_Div_U_var.isNull())
-        {
-            d_hier_math_ops->div(
-                d_Div_U_new_idx, d_Div_U_var, // dst
-                1.0,                          // alpha
-                d_V_idx        , d_V_var    , // src
-                d_no_fill_op, new_time);
-        }
-
-        if (!d_Omega_var.isNull())
-        {
+    if (!d_Omega_var.isNull())
+    {
+        d_hier_math_ops->curl(
+            d_Omega_new_idx, d_Omega_var, // dst
+            d_V_idx        , d_V_var    , // src
+            d_no_fill_op, new_time);
 #if (NDIM == 2)
-            d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_new_idx);
+        d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_new_idx);
 #endif
 #if (NDIM == 3)
-            d_hier_math_ops->pointwise_L2Norm(
-                d_Omega_Norm_idx, d_Omega_Norm_var, // dst
-                d_Omega_new_idx , d_Omega_var);     // src
+        d_hier_math_ops->pointwise_L2Norm(
+            d_Omega_Norm_idx, d_Omega_Norm_var, // dst
+            d_Omega_new_idx , d_Omega_var);     // src
 
-            d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_Norm_idx);
+        d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_Norm_idx);
 #endif
-        }
+
     }
 
     if (!d_Div_U_var.isNull())
     {
+        d_hier_math_ops->div(
+            d_Div_U_new_idx, d_Div_U_var, // dst
+            1.0,                          // alpha
+            d_V_idx        , d_V_var    , // src
+            d_no_fill_op, new_time);
+
         if (d_do_log) SAMRAI::tbox::plog << "||Div U||_1  = "
                                          << d_hier_cc_data_ops->L1Norm(d_Div_U_new_idx, d_wgt_idx)
                                          << endl;
