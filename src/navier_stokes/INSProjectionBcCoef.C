@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <03.Dec.2007 19:10:45 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Dec.2007 19:10:02 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -229,8 +229,18 @@ INSProjectionBcCoef::setBcCoefs_private(
     const int bdry_normal_axis = location_index/2;
     const bool is_lower        = location_index%2 == 0;
 
-    const SAMRAI::hier::Box<NDIM> bc_coef_box =
-        STOOLS::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(bdry_box);
+    // Trim the boundary condition coefficient box so that it does not stick out
+    // past the patch boundary.
+    const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
+    SAMRAI::hier::Box<NDIM> bc_coef_box = STOOLS::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(bdry_box);
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        if (axis != bdry_normal_axis)
+        {
+            bc_coef_box.lower()(axis) = patch_box.lower()(axis);
+            bc_coef_box.upper()(axis) = patch_box.upper()(axis);
+        }
+    }
 
     const bool fill_acoef_data = !acoef_data.isNull();
     const bool fill_bcoef_data = !bcoef_data.isNull();

@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.C
-// Last modified: <07.Dec.2007 19:50:01 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Dec.2007 19:06:34 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSIntermediateVelocityBcCoef.h"
@@ -27,6 +27,57 @@
 // C++ STDLIB INCLUDES
 #include <cassert>
 #include <limits>
+
+// FORTRAN ROUTINES
+#if (NDIM == 2)
+#define NAVIER_STOKES_OPEN_BC_COEFS_F77 F77_FUNC(navier_stokes_open_bc_coefs2d,NAVIER_STOKES_OPEN_BC_COEFS2D)
+#define NAVIER_STOKES_TANGENTIAL_BC_COEFS_F77 F77_FUNC(navier_stokes_tangential_bc_coefs2d,NAVIER_STOKES_TANGENTIAL_BC_COEFS2D)
+#endif
+#if (NDIM == 3)
+#define NAVIER_STOKES_OPEN_BC_COEFS_F77 F77_FUNC(navier_stokes_open_bc_coefs3d,NAVIER_STOKES_OPEN_BC_COEFS3D)
+#define NAVIER_STOKES_TANGENTIAL_BC_COEFS_F77 F77_FUNC(navier_stokes_tangential_bc_coefs3d,NAVIER_STOKES_TANGENTIAL_BC_COEFS3D)
+#endif
+
+// Function interfaces
+extern "C"
+{
+    void
+    NAVIER_STOKES_OPEN_BC_COEFS_F77(
+        const double* U, const int& U_gcw,
+        const double* acoef, const double* bcoef, double* gcoef,
+        const int& ilower0, const int& iupper0,
+        const int& ilower1, const int& iupper1,
+#if (NDIM == 3)
+        const int& ilower2, const int& iupper2,
+#endif
+        const int& blower0, const int& bupper0,
+        const int& blower1, const int& bupper1,
+#if (NDIM == 3)
+        const int& blower2, const int& bupper2,
+#endif
+        const int& location_index,
+        const int& bdry_normal_axis,
+        const int& comp_idx,
+        const double* dx);
+
+    void
+    NAVIER_STOKES_TANGENTIAL_BC_COEFS_F77(
+        const double* Phi, const int& Phi_gcw,
+        const double* acoef, const double* bcoef, double* gcoef,
+        const int& ilower0, const int& iupper0,
+        const int& ilower1, const int& iupper1,
+#if (NDIM == 3)
+        const int& ilower2, const int& iupper2,
+#endif
+        const int& blower0, const int& bupper0,
+        const int& blower1, const int& bupper1,
+#if (NDIM == 3)
+        const int& blower2, const int& bupper2,
+#endif
+        const int& location_index,
+        const int& comp_idx,
+        const double& rho, const double* dx, const double& dt);
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -211,14 +262,10 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
 #endif
     const int location_index   = bdry_box.getLocationIndex();
     const int bdry_normal_axis = location_index/2;
-    const bool is_lower        = location_index%2 == 0;
+//  const bool is_lower        = location_index%2 == 0;
 
-    const SAMRAI::hier::Box<NDIM> bc_coef_box =
-        STOOLS::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(bdry_box);
-
-    const bool fill_acoef_data = !acoef_data.isNull();
-    const bool fill_bcoef_data = !bcoef_data.isNull();
-    const bool fill_gcoef_data = !gcoef_data.isNull();
+    const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
+    const SAMRAI::hier::Box<NDIM>& bc_coef_box = acoef_data->getBox();
 
     // Set the "true" velocity bc coefs.
 #if USING_OLD_ROBIN_BC_INTERFACE
@@ -230,11 +277,8 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
 #endif
 
     // We do not make any further modifications to the values of acoef_data and
-    // bcoef_data.
-    if (!fill_gcoef_data)
-    {
-        return;
-    }
+    // bcoef_data beyond this point.
+    if (gcoef_data.isNull()) return;
 
     // Patch box information.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
@@ -256,90 +300,112 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
         : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL);
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!U_data.isNull());
-    assert(fill_acoef_data || fill_bcoef_data);
+    assert(U_data->getGhostCellWidth().max() == U_data->getGhostCellWidth().min());
+    assert(!acoef_data.isNull());
+    assert(!bcoef_data.isNull());
+    assert(bc_coef_box == acoef_data->getBox());
+    assert(bc_coef_box == bcoef_data->getBox());
+    assert(bc_coef_box == gcoef_data->getBox());
 #endif
-    const SAMRAI::hier::Box<NDIM>& U_ghost_box = U_data->getGhostBox();
-    const SAMRAI::hier::Index<NDIM>& U_ghost_lower = U_ghost_box.lower();
-    const SAMRAI::hier::Index<NDIM>& U_ghost_upper = U_ghost_box.upper();
-    for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
-    {
-        const SAMRAI::hier::Index<NDIM>& i = b();
-        if ((fill_acoef_data && SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),0.0)) ||
-            (fill_bcoef_data && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),1.0)))
-        {
-            // Compute the flux to satisfy either div U = 0 or t * sigma * n = 0
-            // at the boundary.
-            double F = 0.0;
-            for (int axis = 0; axis < NDIM; ++axis)
-            {
-                if (axis != bdry_normal_axis)
-                {
-                    // Determine the component of the velocity that we are
-                    // differencing.
-                    const int comp_idx = (d_comp_idx == bdry_normal_axis ? axis : bdry_normal_axis);
+    const int U_ghosts = (U_data->getGhostCellWidth()).max();
+    NAVIER_STOKES_OPEN_BC_COEFS_F77(
+        U_data->getPointer(), U_ghosts,
+        acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
+        patch_box.lower(0), patch_box.upper(0),
+        patch_box.lower(1), patch_box.upper(1),
+#if (NDIM == 3)
+        patch_box.lower(2), patch_box.upper(2),
+#endif
+        bc_coef_box.lower(0), bc_coef_box.upper(0),
+        bc_coef_box.lower(1), bc_coef_box.upper(1),
+#if (NDIM == 3)
+        bc_coef_box.lower(2), bc_coef_box.upper(2),
+#endif
+        location_index, bdry_normal_axis, d_comp_idx,
+        dx);
 
-                    // Setup the basic difference stencil, located inside the
-                    // computational domain.
-                    SAMRAI::hier::Index<NDIM> i_lower(i), i_upper(i);
-                    i_lower(axis) -= 1;
-                    i_upper(axis) += 1;
-
-                    if (is_lower)
-                    {
-                        // intentionally blank
-                    }
-                    else
-                    {
-                        i_lower(bdry_normal_axis) -= 1;
-                        i_upper(bdry_normal_axis) -= 1;
-                    }
-
-                    // Ensure the difference stencil lies within the ghost cell
-                    // region of the patch data.
-                    if      (i_lower(axis) <= U_ghost_lower(axis))
-                    {
-                        i_lower(axis) = U_ghost_lower(axis);
-                        i_upper(axis) = U_ghost_lower(axis)+1;
-                    }
-                    else if (i_upper(axis) >= U_ghost_upper(axis))
-                    {
-                        i_lower(axis) = U_ghost_upper(axis)-1;
-                        i_upper(axis) = U_ghost_upper(axis);
-                    }
-
-                    if ((d_comp_idx == bdry_normal_axis) || (d_comp_idx == axis))
-                    {
-                        const double& U_upper = (*U_data)(i_upper,comp_idx);
-                        const double& U_lower = (*U_data)(i_lower,comp_idx);
-                        F += 0.5*(U_upper-U_lower)/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
-                    }
-
-                    // Shift the difference stencil outside the computational
-                    // domain.
-                    if (is_lower)
-                    {
-                        i_lower(bdry_normal_axis) -= 1;
-                        i_upper(bdry_normal_axis) -= 1;
-                    }
-                    else
-                    {
-                        i_lower(bdry_normal_axis) += 1;
-                        i_upper(bdry_normal_axis) += 1;
-                    }
-
-                    if ((d_comp_idx == bdry_normal_axis) || (d_comp_idx == axis))
-                    {
-                        const double& U_upper = (*U_data)(i_upper,comp_idx);
-                        const double& U_lower = (*U_data)(i_lower,comp_idx);
-                        F += 0.5*(U_upper-U_lower)/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
-                    }
-                }
-            }
-
-            // Set the normal flux.
-            (*gcoef_data)(i,0) = (is_lower ? +1.0 : -1.0)*F;
-        }
-    }
+//     const SAMRAI::hier::Box<NDIM>& U_ghost_box = U_data->getGhostBox();
+//     const SAMRAI::hier::Index<NDIM>& U_ghost_lower = U_ghost_box.lower();
+//     const SAMRAI::hier::Index<NDIM>& U_ghost_upper = U_ghost_box.upper();
+//     for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+//     {
+//         const SAMRAI::hier::Index<NDIM>& i = b();
+//         if ((fill_acoef_data && SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),0.0)) ||
+//             (fill_bcoef_data && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),1.0)))
+//         {
+//             // Compute the flux to satisfy either div U = 0 or t * sigma * n = 0
+//             // at the boundary.
+//             double F = 0.0;
+//             for (int axis = 0; axis < NDIM; ++axis)
+//             {
+//                 if (axis != bdry_normal_axis)
+//                 {
+//                     // Determine the component of the velocity that we are
+//                     // differencing.
+//                     const int comp_idx = (d_comp_idx == bdry_normal_axis ? axis : bdry_normal_axis);
+//
+//                     // Setup the basic difference stencil, located inside the
+//                     // computational domain.
+//                     SAMRAI::hier::Index<NDIM> i_lower(i), i_upper(i);
+//                     i_lower(axis) -= 1;
+//                     i_upper(axis) += 1;
+//
+//                     if (is_lower)
+//                     {
+//                         // intentionally blank
+//                     }
+//                     else
+//                     {
+//                         i_lower(bdry_normal_axis) -= 1;
+//                         i_upper(bdry_normal_axis) -= 1;
+//                     }
+//
+//                     // Ensure the difference stencil lies within the ghost cell
+//                     // region of the patch data.
+//                     if      (i_lower(axis) <= U_ghost_lower(axis))
+//                     {
+//                         i_lower(axis) = U_ghost_lower(axis);
+//                         i_upper(axis) = U_ghost_lower(axis)+1;
+//                     }
+//                     else if (i_upper(axis) >= U_ghost_upper(axis))
+//                     {
+//                         i_lower(axis) = U_ghost_upper(axis)-1;
+//                         i_upper(axis) = U_ghost_upper(axis);
+//                     }
+//
+//                     if ((d_comp_idx == bdry_normal_axis) || (d_comp_idx == axis))
+//                     {
+//                         const double& U_upper = (*U_data)(i_upper,comp_idx);
+//                         const double& U_lower = (*U_data)(i_lower,comp_idx);
+//                         F += 0.5*(U_upper-U_lower)/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
+//                     }
+//
+//                     // Shift the difference stencil outside the computational
+//                     // domain.
+//                     if (is_lower)
+//                     {
+//                         i_lower(bdry_normal_axis) -= 1;
+//                         i_upper(bdry_normal_axis) -= 1;
+//                     }
+//                     else
+//                     {
+//                         i_lower(bdry_normal_axis) += 1;
+//                         i_upper(bdry_normal_axis) += 1;
+//                     }
+//
+//                     if ((d_comp_idx == bdry_normal_axis) || (d_comp_idx == axis))
+//                     {
+//                         const double& U_upper = (*U_data)(i_upper,comp_idx);
+//                         const double& U_lower = (*U_data)(i_lower,comp_idx);
+//                         F += 0.5*(U_upper-U_lower)/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
+//                     }
+//                 }
+//             }
+//
+//             // Set the normal flux.
+//             (*gcoef_data)(i,0) = (is_lower ? +1.0 : -1.0)*F;
+//         }
+//     }
 
     // Do not further modify the boundary condition coefficients unless we are
     // setting inhomogeneous boundary conditions for the tangential components
@@ -357,108 +423,131 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
         : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL);
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(!Phi_data.isNull());
-    assert(fill_acoef_data || fill_bcoef_data);
+    assert(Phi_data->getGhostCellWidth().max() == Phi_data->getGhostCellWidth().min());
+    assert(!acoef_data.isNull());
+    assert(!bcoef_data.isNull());
+    assert(bc_coef_box == acoef_data->getBox());
+    assert(bc_coef_box == bcoef_data->getBox());
+    assert(bc_coef_box == gcoef_data->getBox());
 #endif
-    const SAMRAI::hier::Box<NDIM>& Phi_ghost_box = Phi_data->getGhostBox();
-    const SAMRAI::hier::Index<NDIM>& Phi_ghost_lower = Phi_ghost_box.lower();
-    const SAMRAI::hier::Index<NDIM>& Phi_ghost_upper = Phi_ghost_box.upper();
+    const int Phi_ghosts = (Phi_data->getGhostCellWidth()).max();
     const double dt = d_new_time - d_current_time;
-    for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
-    {
-        const SAMRAI::hier::Index<NDIM>& i = b();
-        if ((fill_acoef_data && SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),1.0)) ||
-            (fill_bcoef_data && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),0.0)))
-        {
-            // Set the boundary condition coefficients to satisfy U*t = g at the
-            // boundary.
-            const int axis = d_comp_idx;
+    NAVIER_STOKES_TANGENTIAL_BC_COEFS_F77(
+        Phi_data->getPointer(), Phi_ghosts,
+        acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
+        patch_box.lower(0), patch_box.upper(0),
+        patch_box.lower(1), patch_box.upper(1),
+#if (NDIM == 3)
+        patch_box.lower(2), patch_box.upper(2),
+#endif
+        bc_coef_box.lower(0), bc_coef_box.upper(0),
+        bc_coef_box.lower(1), bc_coef_box.upper(1),
+#if (NDIM == 3)
+        bc_coef_box.lower(2), bc_coef_box.upper(2),
+#endif
+        location_index, d_comp_idx,
+        d_rho, dx, dt);
 
-            // Setup the basic difference stencil, located inside the
-            // computational domain.
-            SAMRAI::hier::Index<NDIM> i_lower(i), i_upper(i);
-            i_lower(axis) -= 1;
-            i_upper(axis) += 1;
-
-            if (!is_lower)
-            {
-                i_lower(bdry_normal_axis) -= 1;
-                i_upper(bdry_normal_axis) -= 1;
-            }
-
-            // Ensure the difference stencil lies within the ghost cell
-            // region of the patch data.
-            if      (i_lower(axis) <= Phi_ghost_lower(axis))
-            {
-                i_lower(axis) = Phi_ghost_lower(axis);
-                i_upper(axis) = Phi_ghost_lower(axis)+1;
-            }
-            else if (i_upper(axis) >= Phi_ghost_upper(axis))
-            {
-                i_lower(axis) = Phi_ghost_upper(axis)-1;
-                i_upper(axis) = Phi_ghost_upper(axis);
-            }
-
-            const double grad_Phi = ((*Phi_data)(i_upper)-(*Phi_data)(i_lower))/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
-
-            // Approximately enforce U*t = g.
-            (*gcoef_data)(i,0) += (dt/d_rho)*grad_Phi;
-        }
-        else
-        {
-            // Set the boundary condition coefficeints to satisfy zero
-            // tangential stress at the boundary.
-            const int axis = d_comp_idx;
-
-            // Setup the basic difference stencil.
-            SAMRAI::hier::Index<NDIM> i_intr_lower(i), i_bdry_lower(i), i_intr_upper(i), i_bdry_upper(i);
-
-            i_intr_lower(axis) -= 1;
-            i_bdry_lower(axis) -= 1;
-
-            i_intr_upper(axis) += 1;
-            i_bdry_upper(axis) += 1;
-
-            if (is_lower)
-            {
-                i_bdry_lower(bdry_normal_axis) -= 1;
-                i_bdry_upper(bdry_normal_axis) -= 1;
-            }
-            else
-            {
-                i_intr_lower(bdry_normal_axis) -= 1;
-                i_intr_upper(bdry_normal_axis) -= 1;
-            }
-
-            // Ensure the difference stencil lies within the ghost cell
-            // region of the patch data.
-            if      (i_intr_lower(axis) <= Phi_ghost_lower(axis) ||
-                     i_bdry_lower(axis) <= Phi_ghost_lower(axis))
-            {
-                i_intr_lower(axis) = Phi_ghost_lower(axis);
-                i_bdry_lower(axis) = Phi_ghost_lower(axis);
-
-                i_intr_upper(axis) = Phi_ghost_lower(axis)+1;
-                i_bdry_upper(axis) = Phi_ghost_lower(axis)+1;
-            }
-            else if (i_intr_upper(axis) >= Phi_ghost_upper(axis) ||
-                     i_bdry_upper(axis) >= Phi_ghost_upper(axis))
-            {
-                i_intr_lower(axis) = Phi_ghost_upper(axis)-1;
-                i_bdry_lower(axis) = Phi_ghost_upper(axis)-1;
-
-                i_intr_upper(axis) = Phi_ghost_upper(axis);
-                i_bdry_upper(axis) = Phi_ghost_upper(axis);
-            }
-
-            const double t_dot_grad_grad_Phi_dot_n =
-                (((*Phi_data)(i_bdry_upper)-(*Phi_data)(i_intr_upper))/(double(i_bdry_upper(bdry_normal_axis)-i_intr_upper(bdry_normal_axis))*dx[bdry_normal_axis]) -
-                 ((*Phi_data)(i_bdry_lower)-(*Phi_data)(i_intr_lower))/(double(i_bdry_lower(bdry_normal_axis)-i_intr_lower(bdry_normal_axis))*dx[bdry_normal_axis]))/
-                (2.0*double(i_intr_upper(axis)-i_intr_lower(axis))*dx[axis]);
-
-            // Approximately enforce the tangential stress boundary condition.
-            (*gcoef_data)(i,0) += 2.0*(dt/d_rho)*t_dot_grad_grad_Phi_dot_n;
-        }
-    }
+//     const SAMRAI::hier::Box<NDIM>& Phi_ghost_box = Phi_data->getGhostBox();
+//     const SAMRAI::hier::Index<NDIM>& Phi_ghost_lower = Phi_ghost_box.lower();
+//     const SAMRAI::hier::Index<NDIM>& Phi_ghost_upper = Phi_ghost_box.upper();
+//     const double dt = d_new_time - d_current_time;
+//     for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+//     {
+//         const SAMRAI::hier::Index<NDIM>& i = b();
+//         if (SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),1.0) ||
+//             SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),0.0))
+//         {
+//             // Set the boundary condition coefficients to satisfy U*t = g at the
+//             // boundary.
+//             const int axis = d_comp_idx;
+//
+//             // Setup the basic difference stencil, located inside the
+//             // computational domain.
+//             SAMRAI::hier::Index<NDIM> i_lower(i), i_upper(i);
+//             i_lower(axis) -= 1;
+//             i_upper(axis) += 1;
+//
+//             if (!is_lower)
+//             {
+//                 i_lower(bdry_normal_axis) -= 1;
+//                 i_upper(bdry_normal_axis) -= 1;
+//             }
+//
+//             // Ensure the difference stencil lies within the ghost cell
+//             // region of the patch data.
+//             if      (i_lower(axis) <= Phi_ghost_lower(axis))
+//             {
+//                 i_lower(axis) = Phi_ghost_lower(axis);
+//                 i_upper(axis) = Phi_ghost_lower(axis)+1;
+//             }
+//             else if (i_upper(axis) >= Phi_ghost_upper(axis))
+//             {
+//                 i_lower(axis) = Phi_ghost_upper(axis)-1;
+//                 i_upper(axis) = Phi_ghost_upper(axis);
+//             }
+//
+//             const double grad_Phi = ((*Phi_data)(i_upper)-(*Phi_data)(i_lower))/(double(i_upper(axis)-i_lower(axis))*dx[axis]);
+//
+//             // Approximately enforce U*t = g.
+//             (*gcoef_data)(i,0) += (dt/d_rho)*grad_Phi;
+//         }
+//         else
+//         {
+//             // Set the boundary condition coefficeints to satisfy zero
+//             // tangential stress at the boundary.
+//             const int axis = d_comp_idx;
+//
+//             // Setup the basic difference stencil.
+//             SAMRAI::hier::Index<NDIM> i_intr_lower(i), i_bdry_lower(i), i_intr_upper(i), i_bdry_upper(i);
+//
+//             i_intr_lower(axis) -= 1;
+//             i_bdry_lower(axis) -= 1;
+//
+//             i_intr_upper(axis) += 1;
+//             i_bdry_upper(axis) += 1;
+//
+//             if (is_lower)
+//             {
+//                 i_bdry_lower(bdry_normal_axis) -= 1;
+//                 i_bdry_upper(bdry_normal_axis) -= 1;
+//             }
+//             else
+//             {
+//                 i_intr_lower(bdry_normal_axis) -= 1;
+//                 i_intr_upper(bdry_normal_axis) -= 1;
+//             }
+//
+//             // Ensure the difference stencil lies within the ghost cell
+//             // region of the patch data.
+//             if      (i_intr_lower(axis) <= Phi_ghost_lower(axis) ||
+//                      i_bdry_lower(axis) <= Phi_ghost_lower(axis))
+//             {
+//                 i_intr_lower(axis) = Phi_ghost_lower(axis);
+//                 i_bdry_lower(axis) = Phi_ghost_lower(axis);
+//
+//                 i_intr_upper(axis) = Phi_ghost_lower(axis)+1;
+//                 i_bdry_upper(axis) = Phi_ghost_lower(axis)+1;
+//             }
+//             else if (i_intr_upper(axis) >= Phi_ghost_upper(axis) ||
+//                      i_bdry_upper(axis) >= Phi_ghost_upper(axis))
+//             {
+//                 i_intr_lower(axis) = Phi_ghost_upper(axis)-1;
+//                 i_bdry_lower(axis) = Phi_ghost_upper(axis)-1;
+//
+//                 i_intr_upper(axis) = Phi_ghost_upper(axis);
+//                 i_bdry_upper(axis) = Phi_ghost_upper(axis);
+//             }
+//
+//             const double t_dot_grad_grad_Phi_dot_n =
+//                 (((*Phi_data)(i_bdry_upper)-(*Phi_data)(i_intr_upper))/(double(i_bdry_upper(bdry_normal_axis)-i_intr_upper(bdry_normal_axis))*dx[bdry_normal_axis]) -
+//                  ((*Phi_data)(i_bdry_lower)-(*Phi_data)(i_intr_lower))/(double(i_bdry_lower(bdry_normal_axis)-i_intr_lower(bdry_normal_axis))*dx[bdry_normal_axis]))/
+//                 (2.0*double(i_intr_upper(axis)-i_intr_lower(axis))*dx[axis]);
+//
+//             // Approximately enforce the tangential stress boundary condition.
+//             (*gcoef_data)(i,0) += 2.0*(dt/d_rho)*t_dot_grad_grad_Phi_dot_n;
+//         }
+//     }
     return;
 }// setBcCoefs_private
 

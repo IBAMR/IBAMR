@@ -4,7 +4,7 @@ c
 c     Created on 21 May 2007
 c             by Boyce Griffith (griffith@box221.cims.nyu.edu).
 c
-c     Last modified: <26.Aug.2007 02:35:05 boyce@bigboy.nyconnect.com>
+c     Last modified: <14.Dec.2007 18:15:04 griffith@box221.cims.nyu.edu>
 c
 define(NDIM,3)dnl
 define(REAL,`double precision')dnl
@@ -13,30 +13,30 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Set cell centered normal velocity boundary values by approximating
-c     div(u) = 0 at the boundary.
+c     Modify boundary conditions to enforce incompressibility or
+c     no-stress at physical boundaries.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine navier_stokes_normal_velocity3d(
+      subroutine navier_stokes_open_bc_coefs3d(
      &     U,U_gcw,
-     &     V,V_gcw,
-     &     W,W_gcw,
-     &     location_index,
+     &     acoef,bcoef,gcoef,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     blower0,bupper0,
      &     blower1,bupper1,
-     &     blower2,bupper2)
+     &     blower2,bupper2,
+     &     location_index,
+     &     bdry_normal_axis,
+     &     comp_idx,
+     &     dx)
 c
       implicit none
 c
 c     Input.
 c
-      INTEGER U_gcw,V_gcw,W_gcw
-
-      INTEGER location_index
+      INTEGER U_gcw
 
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
@@ -45,61 +45,521 @@ c
       INTEGER blower0,bupper0
       INTEGER blower1,bupper1
       INTEGER blower2,bupper2
+
+      INTEGER location_index,bdry_normal_axis,comp_idx
+
+      REAL U(CELL3d(ilower,iupper,U_gcw),0:NDIM-1)
+
+      REAL acoef(blower0:bupper0,
+     &           blower1:bupper1,
+     &           blower2:bupper2)
+      REAL bcoef(blower0:bupper0,
+     &           blower1:bupper1,
+     &           blower2:bupper2)
+
+      REAL dx(0:NDIM-1)
 c
 c     Input/Output.
 c
-      REAL U(CELL3d(ilower,iupper,U_gcw))
-      REAL V(CELL3d(ilower,iupper,V_gcw))
-      REAL W(CELL3d(ilower,iupper,W_gcw))
+      REAL gcoef(blower0:bupper0,
+     &           blower1:bupper1,
+     &           blower2:bupper2)
 c
 c     Local variables.
 c
-      INTEGER i,j,k
+      INTEGER i,i_intr,i_bdry,i_s
+      INTEGER j,j_intr,j_bdry,j_s
+      INTEGER k,k_intr,k_bdry,k_s
+      REAL F,sgn
 c
-c     Correct the values along the upper/lower x side of the patch.
+c     Initialize index variables to yield errors in most cases.
 c
-      if (location_index .eq. 0) then
-         i = ilower0            ! interior index
-         do k = blower2,bupper2
-            do j = blower1,bupper1
+      i      = 2**15
+      i_intr = 2**15
+      i_bdry = 2**15
+      i_s    = 2**15
+
+      j      = 2**15
+      j_intr = 2**15
+      j_bdry = 2**15
+      j_s    = 2**15
+
+      k      = 2**15
+      k_intr = 2**15
+      k_bdry = 2**15
+      k_s    = 2**15
+c
+c     Set the boundary condition coefficients.
+c
+c     At "open" boundaries, modify the normal velocity boundary
+c     conditions to enforce div u = 0, and modify the tangential
+c     velocity boundary conditions to enforce zero stress.  This is done
+c     by specifying a normal flux F at the boundary.
+c
+      if ( (location_index .eq. 0) .or.
+     &     (location_index .eq. 1) ) then
+
+         if (location_index .eq. 0) then
+            sgn = +1.d0
+            i_intr = ilower0
+            i_bdry = ilower0-1
+            i_s    = ilower0
+         else
+            sgn = -1.d0
+            i_intr = iupper0
+            i_bdry = iupper0+1
+            i_s    = iupper0+1
+         endif
+
+         if (comp_idx .eq. 0) then
+c
+c     Set F to enforce div u = 0.
+c
+            do k = ilower2,iupper2
+               do j = ilower1,iupper1
+                  if ( abs(acoef(i_s,j,k)       ) .lt. 1.0d-12 .or.
+     &                 abs(bcoef(i_s,j,k) - 1.d0) .lt. 1.0d-12 ) then
+                     F =  (0.25d0/dx(1))*(
+     &                    + U(i_intr,j+1,k,1)
+     &                    - U(i_intr,j-1,k,1)
+     &                    + U(i_bdry,j+1,k,1)
+     &                    - U(i_bdry,j-1,k,1)) +
+     &                    (0.25d0/dx(2))*(
+     &                    + U(i_intr,j,k+1,2)
+     &                    - U(i_intr,j,k-1,2)
+     &                    + U(i_bdry,j,k+1,2)
+     &                    - U(i_bdry,j,k-1,2))
+                     gcoef(i_s,j,k) = sgn*F
+                  endif
+               enddo
+            enddo
+
+         elseif (comp_idx .eq. 1) then
+c
+c     Set F to enforce t * sigma * n = 0.
+c
+            do k = ilower2,iupper2
+               do j = ilower1,iupper1
+                  if ( abs(acoef(i_s,j,k)       ) .lt. 1.0d-12 .or.
+     &                 abs(bcoef(i_s,j,k) - 1.d0) .lt. 1.0d-12 ) then
+                     F = (0.25d0/dx(1))*(
+     &                    + U(i_intr,j+1,k,bdry_normal_axis)
+     &                    - U(i_intr,j-1,k,bdry_normal_axis)
+     &                    + U(i_bdry,j+1,k,bdry_normal_axis)
+     &                    - U(i_bdry,j-1,k,bdry_normal_axis))
+                     gcoef(i_s,j,k) = sgn*F
+                  endif
+               enddo
+            enddo
+
+         elseif (comp_idx .eq. 2) then
+c
+c     Set F to enforce t * sigma * n = 0.
+c
+            do k = ilower2,iupper2
+               do j = ilower1,iupper1
+                  if ( abs(acoef(i_s,j,k)       ) .lt. 1.0d-12 .or.
+     &                 abs(bcoef(i_s,j,k) - 1.d0) .lt. 1.0d-12 ) then
+                     F = (0.25d0/dx(2))*(
+     &                    + U(i_intr,j,k+1,bdry_normal_axis)
+     &                    - U(i_intr,j,k-1,bdry_normal_axis)
+     &                    + U(i_bdry,j,k+1,bdry_normal_axis)
+     &                    - U(i_bdry,j,k-1,bdry_normal_axis))
+                     gcoef(i_s,j,k) = sgn*F
+                  endif
+               enddo
+            enddo
+
+         endif
+
+      elseif ( (location_index .eq. 2) .or.
+     &         (location_index .eq. 3) ) then
+
+         if (location_index .eq. 2) then
+            sgn = +1.d0
+            j_intr = ilower1
+            j_bdry = ilower1-1
+            j_s    = ilower1
+         else
+            sgn = -1.d0
+            j_intr = iupper1
+            j_bdry = iupper1+1
+            j_s    = iupper1+1
+         endif
+
+         if (comp_idx .eq. 0) then
+c
+c     Set F to enforce t * sigma * n = 0.
+c
+            do k = ilower2,iupper2
+               do i = ilower0,iupper0
+                  if ( abs(acoef(i,j_s,k)       ) .lt. 1.0d-12 .or.
+     &                 abs(bcoef(i,j_s,k) - 1.d0) .lt. 1.0d-12 ) then
+                     F = (0.25d0/dx(0))*(
+     &                    + U(i+1,j_intr,k,bdry_normal_axis)
+     &                    - U(i-1,j_intr,k,bdry_normal_axis)
+     &                    + U(i+1,j_bdry,k,bdry_normal_axis)
+     &                    - U(i-1,j_bdry,k,bdry_normal_axis))
+                     gcoef(i,j_s,k) = sgn*F
+                  endif
+               enddo
+            enddo
+
+         elseif (comp_idx .eq. 1) then
+c
+c     Set F to enforce div u = 0.
+c
+            do k = ilower2,iupper2
+               do i = ilower0,iupper0
+                  if ( abs(acoef(i,j_s,k)       ) .lt. 1.0d-12 .or.
+     &                 abs(bcoef(i,j_s,k) - 1.d0) .lt. 1.0d-12 ) then
+                     F =  (0.25d0/dx(0))*(
+     &                    + U(i+1,j_intr,k,0)
+     &                    - U(i-1,j_intr,k,0)
+     &                    + U(i+1,j_bdry,k,0)
+     &                    - U(i-1,j_bdry,k,0)) +
+     &                    (0.25d0/dx(2))*(
+     &                    + U(i,j_intr,k+1,2)
+     &                    - U(i,j_intr,k-1,2)
+     &                    + U(i,j_bdry,k+1,2)
+     &                    - U(i,j_bdry,k-1,2))
+                     gcoef(i,j_s,k) = sgn*F
+                  endif
+               enddo
+            enddo
+
+         elseif (comp_idx .eq. 2) then
+c
+c     Set F to enforce t * sigma * n = 0.
+c
+            do k = ilower2,iupper2
+               do i = ilower0,iupper0
+                  if ( abs(acoef(i,j_s,k)       ) .lt. 1.0d-12 .or.
+     &                 abs(bcoef(i,j_s,k) - 1.d0) .lt. 1.0d-12 ) then
+                     F = (0.25d0/dx(2))*(
+     &                    + U(i,j_intr,k+1,bdry_normal_axis)
+     &                    - U(i,j_intr,k-1,bdry_normal_axis)
+     &                    + U(i,j_bdry,k+1,bdry_normal_axis)
+     &                    - U(i,j_bdry,k-1,bdry_normal_axis))
+                     gcoef(i,j_s,k) = sgn*F
+                  endif
+               enddo
+            enddo
+
+         endif
+
+      elseif ( (location_index .eq. 4) .or.
+     &         (location_index .eq. 5) ) then
+
+         if (location_index .eq. 4) then
+            sgn = +1.d0
+            k_intr = ilower2
+            k_bdry = ilower2-1
+            k_s    = ilower2
+         else
+            sgn = -1.d0
+            k_intr = iupper2
+            k_bdry = iupper2+1
+            k_s    = iupper2+1
+         endif
+
+         if (comp_idx .eq. 0) then
+c
+c     Set F to enforce t * sigma * n = 0.
+c
+            do j = ilower1,iupper1
+               do i = ilower0,iupper0
+                  if ( abs(acoef(i,j,k_s)       ) .lt. 1.0d-12 .or.
+     &                 abs(bcoef(i,j,k_s) - 1.d0) .lt. 1.0d-12 ) then
+                     F = (0.25d0/dx(0))*(
+     &                    + U(i+1,j,k_intr,bdry_normal_axis)
+     &                    - U(i-1,j,k_intr,bdry_normal_axis)
+     &                    + U(i+1,j,k_bdry,bdry_normal_axis)
+     &                    - U(i-1,j,k_bdry,bdry_normal_axis))
+                     gcoef(i,j,k_s) = sgn*F
+                  endif
+               enddo
+            enddo
+
+         elseif (comp_idx .eq. 1) then
+c
+c     Set F to enforce t * sigma * n = 0.
+c
+            do j = ilower1,iupper1
+               do i = ilower0,iupper0
+                  if ( abs(acoef(i,j,k_s)       ) .lt. 1.0d-12 .or.
+     &                 abs(bcoef(i,j,k_s) - 1.d0) .lt. 1.0d-12 ) then
+                     F = (0.25d0/dx(1))*(
+     &                    + U(i,j+1,k_intr,bdry_normal_axis)
+     &                    - U(i,j-1,k_intr,bdry_normal_axis)
+     &                    + U(i,j+1,k_bdry,bdry_normal_axis)
+     &                    - U(i,j-1,k_bdry,bdry_normal_axis))
+                     gcoef(i,j,k_s) = sgn*F
+                  endif
+               enddo
+            enddo
+
+         elseif (comp_idx .eq. 2) then
+c
+c     Set F to enforce div u = 0.
+c
+            do j = ilower1,iupper1
+               do i = ilower0,iupper0
+                  if ( abs(acoef(i,j,k_s)       ) .lt. 1.0d-12 .or.
+     &                 abs(bcoef(i,j,k_s) - 1.d0) .lt. 1.0d-12 ) then
+                     F =  (0.25d0/dx(0))*(
+     &                    + U(i+1,j,k_intr,0)
+     &                    - U(i-1,j,k_intr,0)
+     &                    + U(i+1,j,k_bdry,0)
+     &                    - U(i-1,j,k_bdry,0)) +
+     &                    (0.25d0/dx(1))*(
+     &                    + U(i,j+1,k_intr,1)
+     &                    - U(i,j-1,k_intr,1)
+     &                    + U(i,j+1,k_bdry,1)
+     &                    - U(i,j-1,k_bdry,1))
+                     gcoef(i,j,k_s) = sgn*F
+                  endif
+               enddo
+            enddo
+
+         endif
+
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Modify boundary conditions to enforce tangential boundary
+c     conditions at physical boundaries using lagged values of phi.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine navier_stokes_tangential_bc_coefs3d(
+     &     Phi,Phi_gcw,
+     &     acoef,bcoef,gcoef,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     blower0,bupper0,
+     &     blower1,bupper1,
+     &     blower2,bupper2,
+     &     location_index,
+     &     comp_idx,
+     &     rho,dx,dt)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER Phi_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+
+      INTEGER blower0,bupper0
+      INTEGER blower1,bupper1
+      INTEGER blower2,bupper2
+
+      INTEGER location_index,comp_idx
+
+      REAL Phi(CELL3d(ilower,iupper,Phi_gcw))
+
+      REAL acoef(blower0:bupper0,
+     &           blower1:bupper1,
+     &           blower2:bupper2)
+      REAL bcoef(blower0:bupper0,
+     &           blower1:bupper1,
+     &           blower2:bupper2)
+
+      REAL rho
+      REAL dx(0:NDIM-1)
+      REAL dt
+c
+c     Input/Output.
+c
+      REAL gcoef(blower0:bupper0,
+     &           blower1:bupper1,
+     &           blower2:bupper2)
+c
+c     Local variables.
+c
+      INTEGER i,i_intr,i_bdry,i_s
+      INTEGER j,j_intr,j_bdry,j_s
+      INTEGER k,k_intr,k_bdry,k_s
+      REAL grad_Phi,t_grad_grad_Phi_n,sgn
+c
+c     Initialize index variables to yield errors in most cases.
+c
+      i      = 2**15
+      i_intr = 2**15
+      i_bdry = 2**15
+      i_s    = 2**15
+
+      j      = 2**15
+      j_intr = 2**15
+      j_bdry = 2**15
+      j_s    = 2**15
+
+      k      = 2**15
+      k_intr = 2**15
+      k_bdry = 2**15
+      k_s    = 2**15
+c
+c     Set the boundary condition coefficients.
+c
+      if ( (location_index .eq. 0) .or.
+     &     (location_index .eq. 1) ) then
+
+         if (location_index .eq. 0) then
+            sgn = -1.d0
+            i_intr = ilower0
+            i_bdry = ilower0-1
+            i_s    = ilower0
+         else
+            sgn = +1.d0
+            i_intr = iupper0
+            i_bdry = iupper0+1
+            i_s    = iupper0+1
+         endif
+
+         do k = ilower2,iupper2
+            do j = ilower1,iupper1
+               if ( abs(acoef(i_s,j,k) - 1.d0) .lt. 1.0d-12 .or.
+     &              abs(bcoef(i_s,j,k)       ) .lt. 1.0d-12 ) then
+
+                  if (comp_idx .eq. 1) then
+                     grad_Phi = (0.5d0/dx(1))*(
+     &                    Phi(i_intr,j+1,k) - Phi(i_intr,j-1,k))
+                     gcoef(i_s,j,k) = gcoef(i_s,j,k) + (dt/rho)*grad_Phi
+                  elseif (comp_idx .eq. 2) then
+                     grad_Phi = (0.5d0/dx(2))*(
+     &                    Phi(i_intr,j,k+1) - Phi(i_intr,j,k-1))
+                     gcoef(i_s,j,k) = gcoef(i_s,j,k) + (dt/rho)*grad_Phi
+                  endif
+
+               else
+
+                  if (comp_idx .eq. 1) then
+                     t_grad_grad_Phi_n = (0.5d0*sgn/dx(1))*(
+     &                    +(Phi(i_bdry,j+1,k)-Phi(i_intr,j+1,k))/dx(0)
+     &                    +(Phi(i_bdry,j-1,k)-Phi(i_intr,j-1,k))/dx(0))
+                     gcoef(i_s,j,k) = gcoef(i_s,j,k) +
+     &                    (dt/rho)*t_grad_grad_Phi_n
+                  elseif (comp_idx .eq. 2) then
+                     t_grad_grad_Phi_n = (0.5d0*sgn/dx(2))*(
+     &                    +(Phi(i_bdry,j,k+1)-Phi(i_intr,j,k+1))/dx(0)
+     &                    +(Phi(i_bdry,j,k-1)-Phi(i_intr,j,k-1))/dx(0))
+                     gcoef(i_s,j,k) = gcoef(i_s,j,k) +
+     &                    (dt/rho)*t_grad_grad_Phi_n
+                  endif
+
+               endif
             enddo
          enddo
-      elseif (location_index .eq. 1) then
-         i = iupper0            ! interior index
-         do k = blower2,bupper2
-            do j = blower1,bupper1
+
+      elseif ( (location_index .eq. 2) .or.
+     &         (location_index .eq. 3) ) then
+
+         if (location_index .eq. 2) then
+            sgn = -1.d0
+            j_intr = ilower1
+            j_bdry = ilower1-1
+            j_s    = ilower1
+         else
+            sgn = +1.d0
+            j_intr = iupper1
+            j_bdry = iupper1+1
+            j_s    = iupper1+1
+         endif
+
+         do k = ilower2,iupper2
+            do i = ilower0,iupper0
+               if ( abs(acoef(i,j_s,k) - 1.d0) .lt. 1.0d-12 .or.
+     &              abs(bcoef(i,j_s,k)       ) .lt. 1.0d-12 ) then
+
+                  if (comp_idx .eq. 0) then
+                     grad_Phi = (0.5d0/dx(0))*(
+     &                    Phi(i+1,j_intr,k) - Phi(i-1,j_intr,k))
+                     gcoef(i,j_s,k) = gcoef(i,j_s,k) + (dt/rho)*grad_Phi
+                  elseif (comp_idx .eq. 2) then
+                     grad_Phi = (0.5d0/dx(2))*(
+     &                    Phi(i,j_intr,k+1) - Phi(i,j_intr,k-1))
+                     gcoef(i,j_s,k) = gcoef(i,j_s,k) + (dt/rho)*grad_Phi
+                  endif
+
+               else
+
+                  if (comp_idx .eq. 0) then
+                     t_grad_grad_Phi_n = (0.5d0*sgn/dx(0))*(
+     &                    +(Phi(i+1,j_bdry,k)-Phi(i+1,j_intr,k))/dx(1)
+     &                    +(Phi(i-1,j_bdry,k)-Phi(i-1,j_intr,k))/dx(1))
+                     gcoef(i,j_s,k) = gcoef(i,j_s,k) +
+     &                    (dt/rho)*t_grad_grad_Phi_n
+                  elseif (comp_idx .eq. 2) then
+                     t_grad_grad_Phi_n = (0.5d0*sgn/dx(2))*(
+     &                    +(Phi(i,j_bdry,k+1)-Phi(i,j_intr,k+1))/dx(1)
+     &                    +(Phi(i,j_bdry,k-1)-Phi(i,j_intr,k-1))/dx(1))
+                     gcoef(i,j_s,k) = gcoef(i,j_s,k) +
+     &                    (dt/rho)*t_grad_grad_Phi_n
+                  endif
+
+               endif
             enddo
          enddo
-c
-c     Correct the values along the upper/lower y side of the patch.
-c
-      elseif (location_index .eq. 2) then
-         j = ilower1            ! interior index
-         do k = blower2,bupper2
-            do i = blower0,bupper0
+
+      elseif ( (location_index .eq. 4) .or.
+     &         (location_index .eq. 5) ) then
+
+         if (location_index .eq. 4) then
+            sgn = -1.d0
+            k_intr = ilower2
+            k_bdry = ilower2-1
+            k_s    = ilower2
+         else
+            sgn = +1.d0
+            k_intr = iupper2
+            k_bdry = iupper2+1
+            k_s    = iupper2+1
+         endif
+
+         do j = ilower1,iupper1
+            do i = ilower0,iupper0
+               if ( abs(acoef(i,j,k_s) - 1.d0) .lt. 1.0d-12 .or.
+     &              abs(bcoef(i,j,k_s)       ) .lt. 1.0d-12 ) then
+
+                  if (comp_idx .eq. 0) then
+                     grad_Phi = (0.5d0/dx(0))*(
+     &                    Phi(i+1,j,k_intr) - Phi(i-1,j,k_intr))
+                     gcoef(i,j,k_s) = gcoef(i,j,k_s) + (dt/rho)*grad_Phi
+                  elseif (comp_idx .eq. 1) then
+                     grad_Phi = (0.5d0/dx(2))*(
+     &                    Phi(i,j+1,k_intr) - Phi(i,j-1,k_intr))
+                     gcoef(i,j,k_s) = gcoef(i,j,k_s) + (dt/rho)*grad_Phi
+                  endif
+
+               else
+
+                  if (comp_idx .eq. 0) then
+                     t_grad_grad_Phi_n = (0.5d0*sgn/dx(0))*(
+     &                    +(Phi(i+1,j,k_bdry)-Phi(i+1,j,k_intr))/dx(2)
+     &                    +(Phi(i-1,j,k_bdry)-Phi(i-1,j,k_intr))/dx(2))
+                     gcoef(i,j,k_s) = gcoef(i,j,k_s) +
+     &                    (dt/rho)*t_grad_grad_Phi_n
+                  elseif (comp_idx .eq. 1) then
+                     t_grad_grad_Phi_n = (0.5d0*sgn/dx(1))*(
+     &                    +(Phi(i,j+1,k_bdry)-Phi(i,j+1,k_intr))/dx(2)
+     &                    +(Phi(i,j-1,k_bdry)-Phi(i,j-1,k_intr))/dx(2))
+                     gcoef(i,j,k_s) = gcoef(i,j,k_s) +
+     &                    (dt/rho)*t_grad_grad_Phi_n
+                  endif
+
+               endif
             enddo
          enddo
-      elseif (location_index .eq. 3) then
-         j = iupper1            ! interior index
-         do k = blower2,bupper2
-            do i = blower0,bupper0
-            enddo
-         enddo
-c
-c     Correct the values along the upper/lower z side of the patch.
-c
-      elseif (location_index .eq. 4) then
-         k = ilower2            ! interior index
-         do j = blower1,bupper1
-            do i = blower0,bupper0
-            enddo
-         enddo
-      elseif (location_index .eq. 5) then
-         k = iupper2            ! interior index
-         do j = blower1,bupper1
-            do i = blower0,bupper0
-            enddo
-         enddo
+
       endif
 c
       return

@@ -60,6 +60,7 @@ lagrangian/libIBAMR_lagrangian2d_a-LNodeIndexVariable2.o \
 lagrangian/libIBAMR_lagrangian2d_a-LagSiloDataWriter.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeLevelData.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeInitStrategy.o \
+navier_stokes/fortran/navier_stokes_bdryop2d.o \
 navier_stokes/fortran/navier_stokes_stabledt2d.o \
 navier_stokes/fortran/navier_stokes_divsource2d.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
@@ -120,6 +121,7 @@ lagrangian/libIBAMR_lagrangian3d_a-LagM3DDataWriter.o \
 lagrangian/libIBAMR_lagrangian3d_a-LagSiloDataWriter.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeLevelData.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeInitStrategy.o \
+navier_stokes/fortran/navier_stokes_bdryop3d.o \
 navier_stokes/fortran/navier_stokes_stabledt3d.o \
 navier_stokes/fortran/navier_stokes_divsource3d.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o \

@@ -24,4 +24,4 @@ libIBAMR_navier_stokes_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
 libIBAMR_navier_stokes_fortran2d_a_SOURCES = navier_stokes_bdryop2d.f navier_stokes_divsource2d.f navier_stokes_stabledt2d.f
 
 libIBAMR_navier_stokes_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_navier_stokes_fortran3d_a_SOURCES = navier_stokes_bdryop2d.f navier_stokes_divsource3d.f navier_stokes_stabledt3d.f
+libIBAMR_navier_stokes_fortran3d_a_SOURCES = navier_stokes_bdryop3d.f navier_stokes_divsource3d.f navier_stokes_stabledt3d.f

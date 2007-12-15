@@ -128,6 +128,20 @@ AC_SUBST(HAVE_DOT,$HAVE_DOT)
 AC_SUBST(DOT,$DOT)
 AC_SUBST(DOT_PATH,$DOT_PATH)
 
+# Checks to see whether large ghost cell widths should be enabled.
+AC_ARG_ENABLE([large-ghost-cell-width],
+  AS_HELP_STRING(--enable-large-ghost-cell-width,[enable the use of large ghost cell regions (this feature must be enabled for certain types of physical boundary condition routines to function properly) @<:@default=no@:>@]),
+  [LARGE_GHOST_CELL_WIDTH=$enablevar], [LARGE_GHOST_CELL_WIDTH=no])
+AM_CONDITIONAL([LARGE_GHOST_CELL_WIDTH_ENABLED],[test "$LARGE_GHOST_CELL_WIDTH" == "yes"])
+if test "$LARGE_GHOST_CELL_WIDTH" == "yes" ; then
+  echo "large ghost cell widths are ENABLED"
+  AC_DEFINE([USING_LARGE_GHOST_CELL_WIDTH],[true],[Boolean value indicating whether we are using large ghost cell widths])
+else
+  echo "large ghost cell widths are DISABLED --- certain physical boundary condition handling routines may not function properly"
+  echo "if you wish to enable support for large ghost cell widths, specify --enable-large-ghost-cell-width=yes"
+  AC_DEFINE([USING_LARGE_GHOST_CELL_WIDTH],[false],[Boolean value indicating whether we are using large ghost cell widths])
+fi
+
 # Checks to see whether large data files should be included in the
 # distribution.
 AC_ARG_ENABLE([large-data-files],

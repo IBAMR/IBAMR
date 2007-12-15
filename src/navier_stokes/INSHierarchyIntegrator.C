@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <10.Dec.2007 00:54:32 boyce@trasnaform2.local>
+// Last modified: <14.Dec.2007 19:30:42 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -137,8 +137,8 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_div_source_term;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = 2;
-static const int FACEG = 1;
+static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int FACEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
@@ -914,13 +914,13 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         {
             d_visit_writer->registerPlotQuantity(
                 d_P_var->getName(), "SCALAR", d_P_current_idx, 0, d_P_scale);
-            d_visit_writer->registerPlotQuantity(
-                d_Phi_var->getName(), "SCALAR", d_Phi_current_idx, 0, d_P_scale);
-            if (d_using_hybrid_projection)
-            {
-                d_visit_writer->registerPlotQuantity(
-                    d_Phi_tilde_var->getName(), "SCALAR", d_Phi_tilde_current_idx, 0, d_P_scale);
-            }
+//          d_visit_writer->registerPlotQuantity(
+//              d_Phi_var->getName(), "SCALAR", d_Phi_current_idx, 0, d_P_scale);
+//          if (d_using_hybrid_projection)
+//          {
+//              d_visit_writer->registerPlotQuantity(
+//                  d_Phi_tilde_var->getName(), "SCALAR", d_Phi_tilde_current_idx, 0, d_P_scale);
+//          }
         }
 
         if (!d_F_var.isNull() && d_output_F)

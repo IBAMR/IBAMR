@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <03.Dec.2007 21:09:14 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Dec.2007 19:30:26 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -50,8 +50,8 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuratio
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = 2;
-static const int FACEG = 2;
+static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int FACEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.

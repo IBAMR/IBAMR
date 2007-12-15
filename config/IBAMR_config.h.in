@@ -271,6 +271,9 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
+/* Boolean value indicating whether we are using large ghost cell widths */
+#undef USING_LARGE_GHOST_CELL_WIDTH
+
 /* Flag indicating whether we are using the RobinBcCoefStrategy interface from
    SAMRAI 2.1 */
 #undef USING_OLD_ROBIN_BC_INTERFACE
