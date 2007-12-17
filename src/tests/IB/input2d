@@ -80,10 +80,19 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
+   velocity_projection_type = "pressure_increment"
+   pressure_projection_type = "pressure_update"
+
+   using_synch_projection = FALSE
    second_order_pressure_update = TRUE
+   normalize_pressure = TRUE
 
    num_cycles = 1
    num_init_cycles = 5
+
+   helmholtz_max_iterations = 25
+   helmholtz_abs_residual_tol = 1.0e-30
+   helmholtz_rel_residual_tol = 1.0e-6
 }
 
 GodunovAdvector {
@@ -91,6 +100,8 @@ GodunovAdvector {
 }
 
 AdvDiffHierarchyIntegrator {
+   viscous_timestepping_type = "CRANK_NICOLSON"
+
    enable_logging = TRUE
 
    tag_buffer = 1
@@ -135,7 +146,7 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
+      cf_discretization   = "LINEAR_REFINE"
 
       hypre_solver {
          solver_type = "PFMG"
@@ -169,7 +180,7 @@ Main {
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval      =  0          // zero to turn off
+   restart_interval      = 0           // zero to turn off
    restart_write_dirname = "restart_IB2d"
 
 // timer dump parameters

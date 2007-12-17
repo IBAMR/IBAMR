@@ -10,33 +10,37 @@ MU = 1.0
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
+MAX_LEVELS = 2   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
 N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
+// exact solution function expressions
+U = "X_1*(3*X_1-2)*cos(2*PI*(X_0-sin(2*PI*t*t)))"
+V = "2*PI*X_1*X_1*(X_1-1)*sin(2*PI*(X_0-sin(2*PI*t*t)))"
+P = "-2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*sin(2*PI*X_1)+4*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*X_1-2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI+2*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*sin(2*PI*X_1)-2*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*X_1+nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI"
+F_U = "24*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*cos(2*PI*t*t)*t*X_1*X_1-16*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*cos(2*PI*t*t)*t*X_1-6*cos(2*PI*(X_0-sin(2*PI*t*t)))*X_1^4*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI+8*cos(2*PI*(X_0-sin(2*PI*t*t)))*X_1^3*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI-4*cos(2*PI*(X_0-sin(2*PI*t*t)))*X_1*X_1*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI-4*cos(2*PI*t*t)*t*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*sin(2*PI*X_1)+8*cos(2*PI*t*t)*t*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1-4*cos(2*PI*t*t)*t*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI-4*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*sin(2*PI*X_1)+4*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1-2*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI+12*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1*X_1-8*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1-6*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))"
+F_V = "-2*PI*(8*PI*PI*cos(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*t*t)*t*X_1^3-8*PI*PI*cos(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*t*t)*t*X_1*X_1-6*PI*X_1^5+10*PI*X_1^4-4*PI*X_1^3+2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*X_1)-2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))-2*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*X_1)+nu*cos(2*PI*(X_0-sin(2*PI*t*t)))-4*nu*PI*PI*sin(2*PI*(X_0-sin(2*PI*t*t)))*X_1^3+4*nu*PI*PI*sin(2*PI*(X_0-sin(2*PI*t*t)))*X_1*X_1+6*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*X_1-2*nu*sin(2*PI*(X_0-sin(2*PI*t*t))))"
+
 VelocitySolution {
    constant_names = "nu"
    nu = MU/RHO
-
-   function_0 = "X_1*(3*X_1-2)*cos(2*PI*(X_0-sin(2*PI*t*t)))"
-   function_1 = "2*PI*X_1*X_1*(X_1-1)*sin(2*PI*(X_0-sin(2*PI*t*t)))"
+   function_0 = U
+   function_1 = V
 }
 
 PressureSolution {
    constant_names = "nu"
    nu = MU/RHO
-
-   function = "-2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*sin(2*PI*X_1)+4*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*X_1-2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI+2*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*sin(2*PI*X_1)-2*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*X_1+nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI"
+   function = P
 }
 
 ForcingFunction {
    constant_names = "nu"
    nu = MU/RHO
-
-   function_0 = "24*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*cos(2*PI*t*t)*t*X_1*X_1-16*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*cos(2*PI*t*t)*t*X_1-6*cos(2*PI*(X_0-sin(2*PI*t*t)))*X_1^4*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI+8*cos(2*PI*(X_0-sin(2*PI*t*t)))*X_1^3*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI-4*cos(2*PI*(X_0-sin(2*PI*t*t)))*X_1*X_1*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI-4*cos(2*PI*t*t)*t*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*sin(2*PI*X_1)+8*cos(2*PI*t*t)*t*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1-4*cos(2*PI*t*t)*t*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI-4*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*sin(2*PI*X_1)+4*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1-2*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI+12*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1*X_1-8*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1-6*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))"
-   function_1 = "-2*PI*(8*PI*PI*cos(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*t*t)*t*X_1^3-8*PI*PI*cos(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*t*t)*t*X_1*X_1-6*PI*X_1^5+10*PI*X_1^4-4*PI*X_1^3+2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*X_1)-2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))-2*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*X_1)+nu*cos(2*PI*(X_0-sin(2*PI*t*t)))-4*nu*PI*PI*sin(2*PI*(X_0-sin(2*PI*t*t)))*X_1^3+4*nu*PI*PI*sin(2*PI*(X_0-sin(2*PI*t*t)))*X_1*X_1+6*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*X_1-2*nu*sin(2*PI*(X_0-sin(2*PI*t*t))))"
+   function_0 = F_U
+   function_1 = F_V
 }
 
 VelocityBcCoefs_0 {
@@ -53,10 +57,10 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "X_1*(3*X_1-2)*cos(2*PI*(X_0-sin(2*PI*t*t)))"
-   gcoef_function_1 = "X_1*(3*X_1-2)*cos(2*PI*(X_0-sin(2*PI*t*t)))"
-   gcoef_function_2 = "X_1*(3*X_1-2)*cos(2*PI*(X_0-sin(2*PI*t*t)))"
-   gcoef_function_3 = "X_1*(3*X_1-2)*cos(2*PI*(X_0-sin(2*PI*t*t)))"
+   gcoef_function_0 = U
+   gcoef_function_1 = U
+   gcoef_function_2 = U
+   gcoef_function_3 = U
 }
 
 VelocityBcCoefs_1 {
@@ -73,10 +77,10 @@ VelocityBcCoefs_1 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "2*PI*X_1*X_1*(X_1-1)*sin(2*PI*(X_0-sin(2*PI*t*t)))"
-   gcoef_function_1 = "2*PI*X_1*X_1*(X_1-1)*sin(2*PI*(X_0-sin(2*PI*t*t)))"
-   gcoef_function_2 = "2*PI*X_1*X_1*(X_1-1)*sin(2*PI*(X_0-sin(2*PI*t*t)))"
-   gcoef_function_3 = "2*PI*X_1*X_1*(X_1-1)*sin(2*PI*(X_0-sin(2*PI*t*t)))"
+   gcoef_function_0 = V
+   gcoef_function_1 = V
+   gcoef_function_2 = V
+   gcoef_function_3 = V
 }
 
 INSHierarchyIntegrator {
@@ -84,7 +88,7 @@ INSHierarchyIntegrator {
    end_time              = 0.5e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = 10000    // enable regridding (to test regrid synchronization projection)
+   regrid_interval       = 10000    // disable regridding
    dt_max = 0.5/NFINEST
 
    enable_logging = TRUE
@@ -150,34 +154,10 @@ AdvDiffHierarchyIntegrator {
       use_ghosts_to_compute_dt = FALSE
    }
 
+   using_FAC = FALSE
    max_iterations = 1000
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-12
-   using_FAC = FALSE
-
-   FACOps {
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
-      coarse_solver_choice = "block_jacobi"
-      coarse_solver_tolerance = 1.0e-6
-      coarse_solver_max_iterations = 1
-      prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
-   }
-
-   FACPreconditioners {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 3
-   }
 }
 
 HierarchyProjector {
@@ -201,7 +181,7 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
+      cf_discretization   = "LINEAR_REFINE"
 
       hypre_solver {
          solver_type = "PFMG"

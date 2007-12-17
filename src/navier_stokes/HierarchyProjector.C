@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <14.Dec.2007 19:30:26 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Dec.2007 19:19:17 boyce@trasnaform2.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -58,7 +58,7 @@ static const int FACEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "QUADRATIC";
+static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.

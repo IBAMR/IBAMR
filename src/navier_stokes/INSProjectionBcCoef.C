@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <14.Dec.2007 19:10:02 griffith@box221.cims.nyu.edu>
+// Last modified: <16.Dec.2007 17:50:56 boyce@trasnaform2.local>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -27,6 +27,54 @@
 // C++ STDLIB INCLUDES
 #include <cassert>
 #include <limits>
+
+// FORTRAN ROUTINES
+#if (NDIM == 2)
+#define NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_F77 F77_FUNC_(navier_stokes_homogeneous_projection_bc_coefs2d,NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS2D)
+#define NAVIER_STOKES_INHOMOGENEOUS_PROJECTION_BC_COEFS_F77 F77_FUNC_(navier_stokes_inhomogeneous_projection_bc_coefs2d,NAVIER_STOKES_INHOMOGENEOUS_PROJECTION_BC_COEFS2D)
+#endif
+#if (NDIM == 3)
+#define NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_F77 F77_FUNC_(navier_stokes_homogeneous_projection_bc_coefs3d,NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS3D)
+#define NAVIER_STOKES_INHOMOGENEOUS_PROJECTION_BC_COEFS_F77 F77_FUNC_(navier_stokes_inhomogeneous_projection_bc_coefs3d,NAVIER_STOKES_INHOMOGENEOUS_PROJECTION_BC_COEFS3D)
+#endif
+
+// Function interfaces
+extern "C"
+{
+    void
+    NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_F77(
+        double* acoef, double* bcoef,
+        const int& blower0, const int& bupper0,
+        const int& blower1, const int& bupper1
+#if (NDIM == 3)
+        ,const int& blower2, const int& bupper2
+#endif
+                                    );
+    void
+
+    NAVIER_STOKES_INHOMOGENEOUS_PROJECTION_BC_COEFS_F77(
+        const double* u0, const double* u1,
+#if (NDIM == 3)
+        const double* u2,
+#endif
+        const int& u_gcw,
+        const double* P, const int& P_gcw,
+        const double* acoef, const double* bcoef, double* gcoef, const double* P_bdry,
+        const int& ilower0, const int& iupper0,
+        const int& ilower1, const int& iupper1,
+#if (NDIM == 3)
+        const int& ilower2, const int& iupper2,
+#endif
+        const int& blower0, const int& bupper0,
+        const int& blower1, const int& bupper1,
+#if (NDIM == 3)
+        const int& blower2, const int& bupper2,
+#endif
+        const int& location_index,
+        const int& using_pressure_increment,
+        const double& rho,
+        const double& dt);
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -227,24 +275,9 @@ INSProjectionBcCoef::setBcCoefs_private(
 #endif
     const int location_index   = bdry_box.getLocationIndex();
     const int bdry_normal_axis = location_index/2;
-    const bool is_lower        = location_index%2 == 0;
-
-    // Trim the boundary condition coefficient box so that it does not stick out
-    // past the patch boundary.
+//  const bool is_lower        = location_index%2 == 0;
     const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
-    SAMRAI::hier::Box<NDIM> bc_coef_box = STOOLS::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(bdry_box);
-    for (int axis = 0; axis < NDIM; ++axis)
-    {
-        if (axis != bdry_normal_axis)
-        {
-            bc_coef_box.lower()(axis) = patch_box.lower()(axis);
-            bc_coef_box.upper()(axis) = patch_box.upper()(axis);
-        }
-    }
-
-    const bool fill_acoef_data = !acoef_data.isNull();
-    const bool fill_bcoef_data = !bcoef_data.isNull();
-    const bool fill_gcoef_data = !gcoef_data.isNull();
+    const SAMRAI::hier::Box<NDIM>& bc_coef_box = acoef_data->getBox();
 
     // Set the normal velocity bc coefs.
 #if USING_OLD_ROBIN_BC_INTERFACE
@@ -255,72 +288,82 @@ INSProjectionBcCoef::setBcCoefs_private(
         acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 #endif
 
-    // Loop over the boundary box and reset the homogeneous coefficients.
-    for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
-    {
-        const SAMRAI::hier::Index<NDIM>& i = b();
+    // Set the corresponding projection Poisson problem homogeneous Robin
+    // coefficients.
+#ifdef DEBUG_CHECK_ASSERTIONS
+    assert(!acoef_data.isNull());
+    assert(!bcoef_data.isNull());
+    assert(bc_coef_box == acoef_data->getBox());
+    assert(bc_coef_box == bcoef_data->getBox());
+#endif
+    NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_F77(
+        acoef_data->getPointer(), bcoef_data->getPointer(),
+        bc_coef_box.lower(0), bc_coef_box.upper(0),
+        bc_coef_box.lower(1), bc_coef_box.upper(1)
+#if (NDIM == 3)
+        ,bc_coef_box.lower(2), bc_coef_box.upper(2)
+#endif
+                                                      );
 
-        if (fill_acoef_data) (*acoef_data)(i,0) = 1.0-(*acoef_data)(i,0);
-        if (fill_bcoef_data) (*bcoef_data)(i,0) = 1.0-(*bcoef_data)(i,0);
-        if (fill_gcoef_data && d_homogeneous_bc) (*gcoef_data)(i,0) = 0.0;
-    }
+    if (d_homogeneous_bc && !gcoef_data.isNull()) gcoef_data->fillAll(0.0);
+
+    // Do not further modify the boundary condition coefficients unless we are
+    // setting inhomogeneous boundary conditions.
+    if (d_homogeneous_bc) return;
 
     // Loop over the boundary box and reset the inhomogeneous coefficients.
-    if (!d_homogeneous_bc && fill_gcoef_data)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data = patch.getPatchData(d_u_idx);
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > P_data = patch.getPatchData(d_P_idx);
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data = patch.getPatchData(d_u_idx);
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > P_data = patch.getPatchData(d_P_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(!u_data.isNull());
-        assert(!P_data.isNull());
-        assert(fill_acoef_data || fill_bcoef_data);
+    assert(!u_data.isNull());
+    assert(u_data->getGhostCellWidth().max() == u_data->getGhostCellWidth().min());
+    assert(!P_data.isNull());
+    assert(P_data->getGhostCellWidth().max() == P_data->getGhostCellWidth().min());
+    assert(!gcoef_data.isNull());
+    assert(bc_coef_box == gcoef_data->getBox());
 #endif
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > pcoef_data =
-            (acoef_data.isNull()
-             ? new SAMRAI::pdat::ArrayData<NDIM,double>(bcoef_data->getBox(), bcoef_data->getDepth())
-             : new SAMRAI::pdat::ArrayData<NDIM,double>(acoef_data->getBox(), acoef_data->getDepth()));
 
-        if (d_P_bc_coef != NULL)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > null_data(NULL);
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > acoef_data_P =
+        new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > bcoef_data_P =
+        new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > gcoef_data_P =
+        new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+
+    if (d_P_bc_coef != NULL)
+    {
 #if USING_OLD_ROBIN_BC_INTERFACE
-            d_P_bc_coef->setBcCoefs(
-                null_data, pcoef_data, variable, patch, bdry_box, fill_time);
+        d_P_bc_coef->setBcCoefs(
+            acoef_data_P, gcoef_data_P, variable, patch, bdry_box, fill_time);
 #else
-            d_P_bc_coef->setBcCoefs(
-                null_data, null_data, pcoef_data, variable, patch, bdry_box, fill_time);
+        d_P_bc_coef->setBcCoefs(
+            acoef_data_P, bcoef_data_P, gcoef_data_P, variable, patch, bdry_box, fill_time);
 #endif
-        }
-
-        const bool using_pressure_increment = (d_projection_type == "pressure_increment");
-        for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
-        {
-            const SAMRAI::hier::Index<NDIM>& i = b();
-            const SAMRAI::pdat::FaceIndex<NDIM> i_f(i, bdry_normal_axis, SAMRAI::pdat::FaceIndex<NDIM>::Lower);
-
-            if ((fill_acoef_data && SAMRAI::tbox::Utilities::deq((*acoef_data)(i,0),1.0)) ||
-                (fill_bcoef_data && SAMRAI::tbox::Utilities::deq((*bcoef_data)(i,0),0.0)))
-            {
-                SAMRAI::hier::Index<NDIM> i_intr(i), i_bdry(i);
-                if (is_lower)
-                {
-                    i_bdry(bdry_normal_axis) -= 1;
-                }
-                else
-                {
-                    i_intr(bdry_normal_axis) -= 1;
-                }
-
-                const double P_bdry = (using_pressure_increment ? 0.5*((*P_data)(i_intr) + (*P_data)(i_bdry)) : 0.0);
-                const double& P_bc_coef = (d_P_bc_coef != NULL ? (*pcoef_data)(i,0) : 0.0);
-                (*gcoef_data)(i,0) = P_bc_coef - P_bdry;
-            }
-            else
-            {
-                (*gcoef_data)(i,0) = (is_lower ? -1.0 : +1.0)*(d_rho/d_dt)*((*u_data)(i_f) - (*gcoef_data)(i,0));
-            }
-        }
     }
+
+    const int u_ghosts = (u_data->getGhostCellWidth()).max();
+    const int P_ghosts = (P_data->getGhostCellWidth()).max();
+    const int using_pressure_increment = (d_projection_type == "pressure_increment" ? 1 : 0);
+    NAVIER_STOKES_INHOMOGENEOUS_PROJECTION_BC_COEFS_F77(
+        u_data->getPointer(0), u_data->getPointer(1),
+#if (NDIM == 3)
+        u_data->getPointer(2),
+#endif
+        u_ghosts,
+        P_data->getPointer(), P_ghosts,
+        acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(), gcoef_data_P->getPointer(),
+        patch_box.lower(0), patch_box.upper(0),
+        patch_box.lower(1), patch_box.upper(1),
+#if (NDIM == 3)
+        patch_box.lower(2), patch_box.upper(2),
+#endif
+        bc_coef_box.lower(0), bc_coef_box.upper(0),
+        bc_coef_box.lower(1), bc_coef_box.upper(1),
+#if (NDIM == 3)
+        bc_coef_box.lower(2), bc_coef_box.upper(2),
+#endif
+        location_index, using_pressure_increment,
+        d_rho, d_dt);
     return;
 }// setBcCoefs_private
 

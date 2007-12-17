@@ -96,7 +96,7 @@ IBStandardForceGen {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 4 , 4 , 8
+   tag_buffer = 4
 
    conservation_form = FALSE
 
@@ -117,11 +117,19 @@ INSHierarchyIntegrator {
    rho = RHO
    lambda = RHO*G/V0
 
-   second_order_pressure_update = FALSE
+   velocity_projection_type = "pressure_increment"
+   pressure_projection_type = "pressure_update"
+
+   using_synch_projection = FALSE
+   second_order_pressure_update = TRUE
    normalize_pressure = FALSE
 
    num_cycles = 1
    num_init_cycles = 5
+
+   helmholtz_max_iterations = 25
+   helmholtz_abs_residual_tol = 1.0e-30
+   helmholtz_rel_residual_tol = 1.0e-6
 }
 
 GodunovAdvector {
@@ -173,7 +181,7 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
+      cf_discretization   = "LINEAR_REFINE"
 
       hypre_solver {
          solver_type = "PFMG"

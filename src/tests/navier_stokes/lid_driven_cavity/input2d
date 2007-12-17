@@ -49,8 +49,10 @@ INSHierarchyIntegrator {
 
    velocity_projection_type = "pressure_increment"
    pressure_projection_type = "pressure_update"
-   second_order_pressure_update = TRUE
+
    using_synch_projection = FALSE
+   second_order_pressure_update = TRUE
+   normalize_pressure = TRUE
 
    num_cycles = 1
    num_init_cycles = 5
@@ -89,30 +91,6 @@ AdvDiffHierarchyIntegrator {
    max_iterations = 100
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-12
-
-   FACOps {
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
-      coarse_solver_choice = "block_jacobi"
-      coarse_solver_tolerance = 1.0e-6
-      coarse_solver_max_iterations = 1
-      prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
-   }
-
-   FACPreconditioners {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 3
-   }
 }
 
 HierarchyProjector {
@@ -136,7 +114,7 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
+      cf_discretization   = "LINEAR_REFINE"
 
       hypre_solver {
          solver_type = "PFMG"

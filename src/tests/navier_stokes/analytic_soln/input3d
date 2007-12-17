@@ -16,16 +16,21 @@ REF_RATIO  = 2   // refinement ratio between levels
 N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
+// exact solution function expressions
+U = "1.0 + exp(-4.0*PI*PI*nu*t)*(C*cos(2*PI*(X_1-t)) + A*sin(2*PI*(X_2-t)))"
+V = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*sin(2*PI*(X_0-t)) + A*cos(2*PI*(X_2-t)))"
+W = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*cos(2*PI*(X_0-t)) + C*sin(2*PI*(X_1-t)))"
+P = "-exp(-8.0*PI*PI*nu*t)*(A*C*cos(2*PI*(X_1-t))*sin(2*PI*(X_2-t)) + A*B*sin(2*PI*(X_0-t))*cos(2*PI*(X_2-t)) + B*C*cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))"
+
 VelocitySolution {
    constant_names = "nu" , "A" , "B" , "C"
    nu = MU/RHO
    A = 1.0
    B = 1.0
    C = 1.0
-
-   function_0 = "1.0 + exp(-4.0*PI*PI*nu*t)*(C*cos(2*PI*(X_1-t)) + A*sin(2*PI*(X_2-t)))"
-   function_1 = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*sin(2*PI*(X_0-t)) + A*cos(2*PI*(X_2-t)))"
-   function_2 = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*cos(2*PI*(X_0-t)) + C*sin(2*PI*(X_1-t)))"
+   function_0 = U
+   function_1 = V
+   function_2 = W
 }
 
 PressureSolution {
@@ -34,8 +39,7 @@ PressureSolution {
    A = 1.0
    B = 1.0
    C = 1.0
-
-   function = "-exp(-8.0*PI*PI*nu*t)*(A*C*cos(2*PI*(X_1-t))*sin(2*PI*(X_2-t)) + A*B*sin(2*PI*(X_0-t))*cos(2*PI*(X_2-t)) + B*C*cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))"
+   function = P
 }
 
 INSHierarchyIntegrator {
@@ -43,7 +47,7 @@ INSHierarchyIntegrator {
    end_time              = 1.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = 1        // enable regridding (to test regrid synchronization projection)
+   regrid_interval       = 10000    // disable regridding
 
    enable_logging = TRUE
 
@@ -58,7 +62,7 @@ INSHierarchyIntegrator {
    output_F = FALSE
    output_Q = FALSE
 
-   output_Omega = TRUE
+   output_Omega = FALSE
 
    output_Div_U = FALSE
    output_Div_u = FALSE
@@ -67,11 +71,19 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   second_order_pressure_update = FALSE
+   velocity_projection_type = "pressure_increment"
+   pressure_projection_type = "pressure_update"
+
+   using_synch_projection = FALSE
+   second_order_pressure_update = TRUE
    normalize_pressure = TRUE
 
    num_cycles = 1
    num_init_cycles = 5
+
+   helmholtz_max_iterations = 25
+   helmholtz_abs_residual_tol = 1.0e-30
+   helmholtz_rel_residual_tol = 1.0e-12
 }
 
 GodunovAdvector {
@@ -79,7 +91,7 @@ GodunovAdvector {
 }
 
 AdvDiffHierarchyIntegrator {
-   viscous_timestepping_type = "TGA"
+   viscous_timestepping_type = "CRANK_NICOLSON"
 
    enable_logging = TRUE
 
@@ -92,8 +104,8 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.9975e0  // max cfl factor used in problem
-      cfl_init                 = 0.9975e0  // initial cfl factor
+      cfl                      = 0.975e0  // max cfl factor used in problem
+      cfl_init                 = 0.975e0  // initial cfl factor
       lag_dt_computation       = FALSE
       use_ghosts_to_compute_dt = FALSE
    }
@@ -117,7 +129,7 @@ AdvDiffHierarchyIntegrator {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
+      cf_discretization   = "LINEAR_REFINE"
    }
 
    FACPreconditioners {
@@ -149,7 +161,7 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
+      cf_discretization   = "LINEAR_REFINE"
 
       hypre_solver {
          solver_type = "PFMG"

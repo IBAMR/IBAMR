@@ -34,7 +34,7 @@ AdvDiffHierarchyIntegrator {
       compute_init_velocity  = TRUE
       compute_half_velocity  = TRUE
       compute_final_velocity = FALSE
-      extrap_type = "CONSTANT"
+      extrap_type = "LINEAR"
 
       Refinement_data {
          refine_criteria = "QVAL_GRADIENT"
@@ -71,7 +71,7 @@ AdvDiffHierarchyIntegrator {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
+      cf_discretization   = "LINEAR_REFINE"
    }
 
    FACPreconditioners {

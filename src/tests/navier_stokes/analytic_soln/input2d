@@ -16,19 +16,22 @@ REF_RATIO  = 2   // refinement ratio between levels
 N = 128                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
+// exact solution function expressions
+U = "1.0 - 2.0*(cos(2.0*PI*(X_0-t))*sin(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
+V = "1.0 + 2.0*(sin(2.0*PI*(X_0-t))*cos(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
+P = "-(cos(4.0*PI*(X_0-t)) + cos(4.0*PI*(X_1-t)))*exp(-16.0*PI*PI*nu*t)"
+
 VelocitySolution {
    constant_names = "nu"
    nu = MU/RHO
-
-   function_0 = "1.0 - 2.0*(cos(2.0*PI*(X_0-t))*sin(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
-   function_1 = "1.0 + 2.0*(sin(2.0*PI*(X_0-t))*cos(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
+   function_0 = U
+   function_1 = V
 }
 
 PressureSolution {
    constant_names = "nu"
    nu = MU/RHO
-
-   function = "-(cos(4.0*PI*(X_0-t)) + cos(4.0*PI*(X_1-t)))*exp(-16.0*PI*PI*nu*t)"
+   function = P
 }
 
 INSHierarchyIntegrator {
@@ -36,7 +39,7 @@ INSHierarchyIntegrator {
    end_time              = 1.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = 1        // enable regridding (to test regrid synchronization projection)
+   regrid_interval       = 10000    // disable regridding
 
    enable_logging = TRUE
 
@@ -61,13 +64,18 @@ INSHierarchyIntegrator {
    rho = RHO
 
    velocity_projection_type = "pressure_increment"
-   pressure_projection_type = "pressure_increment"
+   pressure_projection_type = "pressure_update"
 
+   using_synch_projection = FALSE
    second_order_pressure_update = TRUE
    normalize_pressure = TRUE
 
    num_cycles = 1
    num_init_cycles = 5
+
+   helmholtz_max_iterations = 25
+   helmholtz_abs_residual_tol = 1.0e-30
+   helmholtz_rel_residual_tol = 1.0e-12
 }
 
 GodunovAdvector {
@@ -114,7 +122,7 @@ AdvDiffHierarchyIntegrator {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
+      cf_discretization   = "LINEAR_REFINE"
    }
 
    FACPreconditioners {
@@ -146,7 +154,7 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
+      cf_discretization   = "LINEAR_REFINE"
 
       hypre_solver {
          solver_type = "PFMG"
