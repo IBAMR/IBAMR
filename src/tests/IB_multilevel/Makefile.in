@@ -35,12 +35,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
-@DATA_FILES_ENABLED_TRUE@am__append_1 = shell2d_crse_512.vertex \
-@DATA_FILES_ENABLED_TRUE@	shell2d_crse_512.spring \
-@DATA_FILES_ENABLED_TRUE@	shell2d_fine_512.vertex \
-@DATA_FILES_ENABLED_TRUE@	shell2d_fine_512.spring
 check_PROGRAMS = $(am__EXEEXT_1)
-@SAMRAI2D_ENABLED_TRUE@am__append_2 = main2d
+@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
 subdir = src/tests/IB_multilevel
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -90,8 +86,6 @@ CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
-DATA_FILES_ENABLED_FALSE = @DATA_FILES_ENABLED_FALSE@
-DATA_FILES_ENABLED_TRUE = @DATA_FILES_ENABLED_TRUE@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DOT = @DOT@
@@ -113,8 +107,6 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LAPACK_LIBS = @LAPACK_LIBS@
-LARGE_GHOST_CELL_WIDTH_ENABLED_FALSE = @LARGE_GHOST_CELL_WIDTH_ENABLED_FALSE@
-LARGE_GHOST_CELL_WIDTH_ENABLED_TRUE = @LARGE_GHOST_CELL_WIDTH_ENABLED_TRUE@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
@@ -189,7 +181,7 @@ EXTRA_DIST = input2d generate_mesh2d.m shell2d_crse_128.vertex \
 	shell2d_crse_128.spring shell2d_fine_128.vertex \
 	shell2d_fine_128.spring shell2d_crse_256.vertex \
 	shell2d_crse_256.spring shell2d_fine_256.vertex \
-	shell2d_fine_256.spring $(am__append_1)
+	shell2d_fine_256.spring
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/stools/src/libSTOOLS2d.a $(top_builddir)/stools/src/libSTOOLS.a
 main2d_SOURCES = $(SOURCES)

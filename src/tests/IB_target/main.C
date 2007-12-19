@@ -41,6 +41,8 @@
 
 #include <stools/TimeDependentLocationIndexRobinBcCoefs.h>
 
+#include "VelocityBcCoefs.h"
+
 #define USE_FEEDBACK_FORCING 0
 
 #if (USE_FEEDBACK_FORCING == 1)
@@ -298,59 +300,6 @@ main(
         }
 
         /*
-         * Create boundary condition specification objects.
-         */
-        TimeDependentLocationIndexRobinBcCoefs u0_bc_coef(
-            "u0_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        for (int i = 0; i < 2*NDIM; ++i)
-        {
-            u0_bc_coef.setBoundaryTimeConstant(i,1.6);
-        }
-        u0_bc_coef.setBoundaryInitialValue(0,0.0);  // x lower boundary
-        u0_bc_coef.setBoundaryInitialSlope(1,0.0);  // x upper boundary
-        u0_bc_coef.setBoundaryInitialSlope(2,0.0);  // y lower boundary
-        u0_bc_coef.setBoundaryInitialSlope(3,0.0);  // y upper boundary
-#if (NDIM > 2)
-        u0_bc_coef.setBoundaryInitialSlope(4,0.0);  // z lower boundary
-        u0_bc_coef.setBoundaryInitialSlope(5,0.0);  // z upper boundary
-#endif
-        u0_bc_coef.setBoundaryFinalValue(0,1.0);  // x lower boundary
-        u0_bc_coef.setBoundaryFinalSlope(1,0.0);  // x upper boundary
-        u0_bc_coef.setBoundaryFinalSlope(2,0.0);  // y lower boundary
-        u0_bc_coef.setBoundaryFinalSlope(3,0.0);  // y upper boundary
-#if (NDIM > 2)
-        u0_bc_coef.setBoundaryFinalSlope(4,0.0);  // z lower boundary
-        u0_bc_coef.setBoundaryFinalSlope(5,0.0);  // z upper boundary
-#endif
-        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
-            "u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        u1_bc_coef.setBoundaryValue(0,0.0);  // x lower boundary
-        u1_bc_coef.setBoundarySlope(1,0.0);  // x upper boundary
-        u1_bc_coef.setBoundaryValue(2,0.0);  // y lower boundary
-        u1_bc_coef.setBoundaryValue(3,0.0);  // y upper boundary
-#if (NDIM > 2)
-        u1_bc_coef.setBoundarySlope(4,0.0);  // z lower boundary
-        u1_bc_coef.setBoundarySlope(5,0.0);  // z upper boundary
-#endif
-#if (NDIM > 2)
-        solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef(
-            "u2_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        u2_bc_coef.setBoundaryValue(0,0.0);  // x lower boundary
-        u2_bc_coef.setBoundarySlope(1,0.0);  // x upper boundary
-        u2_bc_coef.setBoundarySlope(2,0.0);  // y lower boundary
-        u2_bc_coef.setBoundarySlope(3,0.0);  // y upper boundary
-        u2_bc_coef.setBoundaryValue(4,0.0);  // z lower boundary
-        u2_bc_coef.setBoundaryValue(5,0.0);  // z upper boundary
-#endif
-
-        vector<solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
-        U_bc_coefs[0] = &u0_bc_coef;
-        U_bc_coefs[1] = &u1_bc_coef;
-#if (NDIM > 2)
-        U_bc_coefs[2] = &u2_bc_coef;
-#endif
-
-        /*
          * Create major algorithm and data objects which comprise the
          * application.  Each object will be initialized either from input data
          * or restart files, or a combination of both.  Refer to each class
@@ -406,6 +355,36 @@ main(
                 "IBHierarchyIntegrator",
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
+
+        VelocityBcCoefs u0_bc_coef(
+            "u0_bc_coef", grid_geometry);
+        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
+            "u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        u1_bc_coef.setBoundaryValue(0,0.0);  // x lower boundary
+        u1_bc_coef.setBoundarySlope(1,0.0);  // x upper boundary
+        u1_bc_coef.setBoundaryValue(2,0.0);  // y lower boundary
+        u1_bc_coef.setBoundaryValue(3,0.0);  // y upper boundary
+#if (NDIM > 2)
+        u1_bc_coef.setBoundarySlope(4,0.0);  // z lower boundary
+        u1_bc_coef.setBoundarySlope(5,0.0);  // z upper boundary
+#endif
+#if (NDIM > 2)
+        solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef(
+            "u2_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        u2_bc_coef.setBoundaryValue(0,0.0);  // x lower boundary
+        u2_bc_coef.setBoundarySlope(1,0.0);  // x upper boundary
+        u2_bc_coef.setBoundarySlope(2,0.0);  // y lower boundary
+        u2_bc_coef.setBoundarySlope(3,0.0);  // y upper boundary
+        u2_bc_coef.setBoundaryValue(4,0.0);  // z lower boundary
+        u2_bc_coef.setBoundaryValue(5,0.0);  // z upper boundary
+#endif
+
+        vector<solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
+        U_bc_coefs[0] = &u0_bc_coef;
+        U_bc_coefs[1] = &u1_bc_coef;
+#if (NDIM > 2)
+        U_bc_coefs[2] = &u2_bc_coef;
+#endif
 
 #if (USE_FEEDBACK_FORCING == 1)
         FeedbackForcer feedback_forcer("feedback_forcer", grid_geometry);

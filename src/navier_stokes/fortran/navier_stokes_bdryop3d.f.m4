@@ -4,7 +4,7 @@ c
 c     Created on 21 May 2007
 c             by Boyce Griffith (griffith@box221.cims.nyu.edu).
 c
-c     Last modified: <16.Dec.2007 17:44:41 boyce@trasnaform2.local>
+c     Last modified: <17.Dec.2007 15:57:20 griffith@box221.cims.nyu.edu>
 c
 define(NDIM,3)dnl
 define(REAL,`double precision')dnl
@@ -632,7 +632,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine navier_stokes_inhomogeneous_projection_bc_coefs3d(
-     &     u0,u1,u_gcw,
+     &     u0,u1,u2,u_gcw,
      &     P,P_gcw,
      &     acoef,bcoef,gcoef,P_bdry,
      &     ilower0,iupper0,

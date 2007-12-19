@@ -311,7 +311,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all stools"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar FLIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE F77 FFLAGS ac_ct_F77 MPICC MPILIBS MPICXX CXXCPP EGREP RANLIB ac_ct_RANLIB M4 DOXYGEN HAVE_DOXYGEN DOXYGEN_PATH DOT HAVE_DOT DOT_PATH LARGE_GHOST_CELL_WIDTH_ENABLED_TRUE LARGE_GHOST_CELL_WIDTH_ENABLED_FALSE DATA_FILES_ENABLED_TRUE DATA_FILES_ENABLED_FALSE BLAS_LIBS LAPACK_LIBS SAMRAI_DIR SAMRAI_FORTDIR SAMRAI2D_ENABLED_TRUE SAMRAI2D_ENABLED_FALSE SAMRAI3D_ENABLED_TRUE SAMRAI3D_ENABLED_FALSE PETSC_DIR PETSC_ARCH subdirs LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar FLIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE F77 FFLAGS ac_ct_F77 MPICC MPILIBS MPICXX CXXCPP EGREP RANLIB ac_ct_RANLIB M4 DOXYGEN HAVE_DOXYGEN DOXYGEN_PATH DOT HAVE_DOT DOT_PATH BLAS_LIBS LAPACK_LIBS SAMRAI_DIR SAMRAI_FORTDIR SAMRAI2D_ENABLED_TRUE SAMRAI2D_ENABLED_FALSE SAMRAI3D_ENABLED_TRUE SAMRAI3D_ENABLED_FALSE PETSC_DIR PETSC_ARCH subdirs LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -896,9 +896,12 @@ Optional Features:
                           feature must be enabled for certain types of
                           physical boundary condition routines to function
                           properly) [default=no]
-  --enable-large-data-files
-                          enable the inclusion of all data files in the final
-                          distribution [default=no]
+  --enable-expensive-cf-interpolation
+                          enable the use of the expensive version of the
+                          quadratic coarse-fine interface interpolation code
+                          (this feature must be enabled for certain use cases,
+                          e.g. general anisotropic diffusion tensors)
+                          [default=no]
   --enable-samrai-2d      enable optional support for two-dimensional SAMRAI
                           objects [default=yes]
   --enable-samrai-3d      enable optional support for three-dimensional SAMRAI
@@ -3533,7 +3536,7 @@ fi
 
 
 # Provide some information about the compiler.
-echo "$as_me:3536:" \
+echo "$as_me:3539:" \
      "checking for Fortran 77 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -3729,7 +3732,7 @@ _ACEOF
 # flags.
 ac_save_FFLAGS=$FFLAGS
 FFLAGS="$FFLAGS $ac_verb"
-(eval echo $as_me:3732: \"$ac_link\") >&5
+(eval echo $as_me:3735: \"$ac_link\") >&5
 ac_f77_v_output=`eval $ac_link 5>&1 2>&1 | grep -v 'Driving:'`
 echo "$ac_f77_v_output" >&5
 FFLAGS=$ac_save_FFLAGS
@@ -3807,7 +3810,7 @@ _ACEOF
 # flags.
 ac_save_FFLAGS=$FFLAGS
 FFLAGS="$FFLAGS $ac_cv_prog_f77_v"
-(eval echo $as_me:3810: \"$ac_link\") >&5
+(eval echo $as_me:3813: \"$ac_link\") >&5
 ac_f77_v_output=`eval $ac_link 5>&1 2>&1 | grep -v 'Driving:'`
 echo "$ac_f77_v_output" >&5
 FFLAGS=$ac_save_FFLAGS
@@ -6916,30 +6919,22 @@ DOT_PATH=$DOT_PATH
 # Check whether --enable-large-ghost-cell-width or --disable-large-ghost-cell-width was given.
 if test "${enable_large_ghost_cell_width+set}" = set; then
   enableval="$enable_large_ghost_cell_width"
-  LARGE_GHOST_CELL_WIDTH=$enablevar
+  LARGE_GHOST_CELL_WIDTH=$enable_large_ghost_cell_width
 else
   LARGE_GHOST_CELL_WIDTH=no
 fi;
 
-
-if test "$LARGE_GHOST_CELL_WIDTH" == "yes"; then
-  LARGE_GHOST_CELL_WIDTH_ENABLED_TRUE=
-  LARGE_GHOST_CELL_WIDTH_ENABLED_FALSE='#'
-else
-  LARGE_GHOST_CELL_WIDTH_ENABLED_TRUE='#'
-  LARGE_GHOST_CELL_WIDTH_ENABLED_FALSE=
-fi
-
 if test "$LARGE_GHOST_CELL_WIDTH" == "yes" ; then
-  echo "large ghost cell widths are ENABLED"
+  echo "large ghost cell widths are ENABLED!"
 
 cat >>confdefs.h <<\_ACEOF
 #define USING_LARGE_GHOST_CELL_WIDTH true
 _ACEOF
 
 else
-  echo "large ghost cell widths are DISABLED --- certain physical boundary condition handling routines may not function properly"
-  echo "if you wish to enable support for large ghost cell widths, specify --enable-large-ghost-cell-width=yes"
+  echo "large ghost cell widths are DISABLED!"
+  echo "  certain physical boundary condition handling routines may not function properly"
+  echo "  if you wish to enable support for large ghost cell widths, specify --enable-large-ghost-cell-width=yes"
 
 cat >>confdefs.h <<\_ACEOF
 #define USING_LARGE_GHOST_CELL_WIDTH false
@@ -6947,29 +6942,32 @@ _ACEOF
 
 fi
 
-# Checks to see whether large data files should be included in the
-# distribution.
-# Check whether --enable-large-data-files or --disable-large-data-files was given.
-if test "${enable_large_data_files+set}" = set; then
-  enableval="$enable_large_data_files"
-  DATA_FILES=$enableval
+# Checks to see whether expensive coarse-fine interface code should be
+# enabled.
+# Check whether --enable-expensive-cf-interpolation or --disable-expensive-cf-interpolation was given.
+if test "${enable_expensive_cf_interpolation+set}" = set; then
+  enableval="$enable_expensive_cf_interpolation"
+  EXPENSIVE_CF_INTERPOLATION=$enable_expensive_cf_interpolation
 else
-  DATA_FILES="no"
+  EXPENSIVE_CF_INTERPOLATION=no
 fi;
 
+if test "$EXPENSIVE_CF_INTERPOLATION" == "yes" ; then
+  echo "expensive version of the quadratic coarse-fine interface interpolation code is ENABLED!"
 
-if test "$DATA_FILES" == "yes"; then
-  DATA_FILES_ENABLED_TRUE=
-  DATA_FILES_ENABLED_FALSE='#'
+cat >>confdefs.h <<\_ACEOF
+#define USING_EXPENSIVE_CF_INTERPOLATION true
+_ACEOF
+
 else
-  DATA_FILES_ENABLED_TRUE='#'
-  DATA_FILES_ENABLED_FALSE=
-fi
+  echo "expensive version of the quadratic coarse-fine interface interpolation code is DISABLED!"
+  echo "  this feature must be enabled for certain use cases, e.g. general anisotropic diffusion tensors"
+  echo "  if you wish to enable support for large ghost cell widths, specify --enable-expensive-cf-interpolation=yes"
 
-if test "$DATA_FILES" != "yes" ; then
-  { echo "$as_me:$LINENO: WARNING: not including large data files in final distribution" >&5
-echo "$as_me: WARNING: not including large data files in final distribution" >&2;}
-  echo "if you wish to include all data files in final distribution, specify --enable-large-data-files=yes"
+cat >>confdefs.h <<\_ACEOF
+#define USING_EXPENSIVE_CF_INTERPOLATION false
+_ACEOF
+
 fi
 
 ###########################################################################
@@ -15587,20 +15585,6 @@ echo "$as_me: error: conditional \"am__fastdepCXX\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
-if test -z "${LARGE_GHOST_CELL_WIDTH_ENABLED_TRUE}" && test -z "${LARGE_GHOST_CELL_WIDTH_ENABLED_FALSE}"; then
-  { { echo "$as_me:$LINENO: error: conditional \"LARGE_GHOST_CELL_WIDTH_ENABLED\" was never defined.
-Usually this means the macro was only invoked conditionally." >&5
-echo "$as_me: error: conditional \"LARGE_GHOST_CELL_WIDTH_ENABLED\" was never defined.
-Usually this means the macro was only invoked conditionally." >&2;}
-   { (exit 1); exit 1; }; }
-fi
-if test -z "${DATA_FILES_ENABLED_TRUE}" && test -z "${DATA_FILES_ENABLED_FALSE}"; then
-  { { echo "$as_me:$LINENO: error: conditional \"DATA_FILES_ENABLED\" was never defined.
-Usually this means the macro was only invoked conditionally." >&5
-echo "$as_me: error: conditional \"DATA_FILES_ENABLED\" was never defined.
-Usually this means the macro was only invoked conditionally." >&2;}
-   { (exit 1); exit 1; }; }
-fi
 if test -z "${SAMRAI2D_ENABLED_TRUE}" && test -z "${SAMRAI2D_ENABLED_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"SAMRAI2D_ENABLED\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
@@ -16239,10 +16223,6 @@ s,@DOXYGEN_PATH@,$DOXYGEN_PATH,;t t
 s,@DOT@,$DOT,;t t
 s,@HAVE_DOT@,$HAVE_DOT,;t t
 s,@DOT_PATH@,$DOT_PATH,;t t
-s,@LARGE_GHOST_CELL_WIDTH_ENABLED_TRUE@,$LARGE_GHOST_CELL_WIDTH_ENABLED_TRUE,;t t
-s,@LARGE_GHOST_CELL_WIDTH_ENABLED_FALSE@,$LARGE_GHOST_CELL_WIDTH_ENABLED_FALSE,;t t
-s,@DATA_FILES_ENABLED_TRUE@,$DATA_FILES_ENABLED_TRUE,;t t
-s,@DATA_FILES_ENABLED_FALSE@,$DATA_FILES_ENABLED_FALSE,;t t
 s,@BLAS_LIBS@,$BLAS_LIBS,;t t
 s,@LAPACK_LIBS@,$LAPACK_LIBS,;t t
 s,@SAMRAI_DIR@,$SAMRAI_DIR,;t t

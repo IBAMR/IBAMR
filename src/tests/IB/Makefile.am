@@ -6,18 +6,11 @@ SOURCES = main.C
 EXTRA_DIST  = input2d input3d
 EXTRA_DIST += generate_mesh2d.m
 
-EXTRA_DIST += curve2d_64.vertex curve2d_64.spring
-EXTRA_DIST += curve2d_128.vertex curve2d_128.spring
-EXTRA_DIST += curve2d_256.vertex curve2d_256.spring
-EXTRA_DIST += shell2d_64.vertex shell2d_64.spring
-EXTRA_DIST += shell2d_128.vertex shell2d_128.spring
-EXTRA_DIST += shell2d_256.vertex shell2d_256.spring
+EXTRA_DIST += curve2d_64.vertex curve2d_128.vertex curve2d_256.vertex
+EXTRA_DIST += curve2d_64.spring curve2d_128.spring curve2d_256.spring
+EXTRA_DIST += shell2d_64.vertex shell2d_128.vertex shell2d_256.vertex
+EXTRA_DIST += shell2d_64.spring shell2d_128.spring shell2d_256.spring
 EXTRA_DIST += sphere3d.vertex sphere3d.spring
-
-if DATA_FILES_ENABLED
-EXTRA_DIST += curve2d_512.vertex curve2d_512.spring
-EXTRA_DIST += shell2d_512.vertex shell2d_512.spring
-endif
 
 check_PROGRAMS =
 if SAMRAI2D_ENABLED

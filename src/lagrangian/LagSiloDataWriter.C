@@ -1,5 +1,5 @@
 // Filename: LagSiloDataWriter.C
-// Last modified: <05.Dec.2007 22:22:30 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Dec.2007 19:12:38 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagSiloDataWriter.h"
@@ -2176,7 +2176,7 @@ LagSiloDataWriter::getFromRestart()
 
             d_block_nelems[ln].resize(d_nblocks[ln]);
             std::vector<int> flattened_block_nelems;
-            flattened_block_nelems.resize(NDIM*d_block_nelems.size());
+            flattened_block_nelems.resize(NDIM*d_block_nelems[ln].size());
             db->getIntegerArray("flattened_block_nelems"+ln_string, &flattened_block_nelems[0], flattened_block_nelems.size());
             for (unsigned l = 0; l < d_block_nelems[ln].size(); ++l)
             {
@@ -2188,7 +2188,7 @@ LagSiloDataWriter::getFromRestart()
 
             d_block_periodic[ln].resize(d_nblocks[ln]);
             std::vector<int> flattened_block_periodic;
-            flattened_block_periodic.resize(NDIM*d_block_periodic.size());
+            flattened_block_periodic.resize(NDIM*d_block_periodic[ln].size());
             db->getIntegerArray("flattened_block_periodic"+ln_string, &flattened_block_periodic[0], flattened_block_periodic.size());
             for (unsigned l = 0; l < d_block_periodic[ln].size(); ++l)
             {
@@ -2223,7 +2223,7 @@ LagSiloDataWriter::getFromRestart()
                 {
                     d_mb_nelems[ln][mb].resize(d_mb_nblocks[ln][mb]);
                     std::vector<int> flattened_mb_nelems;
-                    flattened_mb_nelems.resize(NDIM*d_mb_nelems.size());
+                    flattened_mb_nelems.resize(NDIM*d_mb_nelems[ln][mb].size());
                     db->getIntegerArray("flattened_mb_nelems"+ln_string+mb_string, &flattened_mb_nelems[0], flattened_mb_nelems.size());
                     for (unsigned l = 0; l < d_mb_nelems[ln][mb].size(); ++l)
                     {
@@ -2235,7 +2235,7 @@ LagSiloDataWriter::getFromRestart()
 
                     d_mb_periodic[ln][mb].resize(d_mb_nblocks[ln][mb]);
                     std::vector<int> flattened_mb_periodic;
-                    flattened_mb_periodic.resize(NDIM*d_mb_periodic.size());
+                    flattened_mb_periodic.resize(NDIM*d_mb_periodic[ln][mb].size());
                     db->getIntegerArray("flattened_mb_periodic"+ln_string+mb_string, &flattened_mb_periodic[0], flattened_mb_periodic.size());
                     for (unsigned l = 0; l < d_mb_periodic[ln][mb].size(); ++l)
                     {

@@ -1,5 +1,5 @@
 // Filename: FeedbackForcer.C
-// Last modified: <19.Oct.2007 01:34:23 griffith@box221.cims.nyu.edu>
+// Last modified: <18.Dec.2007 19:21:24 griffith@box221.cims.nyu.edu>
 // Created on 19 Oct 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "FeedbackForcer.h"
@@ -86,10 +86,10 @@ FeedbackForcer::setDataOnPatch(
 
     if (initial_time) return;
 
-    static const double U_init = 0.0;
-    static const double U_final = 1.0;
-    static const double tau = 1.6;
-    const double U_oo = U_init + (U_final-U_init)*(1.0/(1.0+tanh(2.0)))*(tanh(4.0*data_time/tau-2.0)+tanh(2.0));
+    static const double T_ramp1 = 20.0;
+    static const double T_ramp2 = 25.0;
+    const double T_wgt1 =       (1.0/(1.0+tanh(2.0)))*(tanh(4.0*data_time/T_ramp1-2.0)+tanh(2.0));
+    const double T_wgt2 = 1.0 - (1.0/(1.0+tanh(2.0)))*(tanh(4.0*data_time/T_ramp2-2.0)+tanh(2.0));
 
     const hier::Box<NDIM>& patch_box = patch.getBox();
     const hier::Index<NDIM>& patch_lower = patch_box.lower();
@@ -97,8 +97,15 @@ FeedbackForcer::setDataOnPatch(
     const double* const XLower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
-    const double* const dx_coarsest = d_grid_geometry->getDx();
+    const double* const grid_XUpper = d_grid_geometry->getXUpper();
     const double* const grid_XLower = d_grid_geometry->getXLower();
+    double L[NDIM];
+    for (int d = 0; d < NDIM; ++d)
+    {
+        L[d] = grid_XUpper[d] - grid_XLower[d];
+    }
+
+    const double* const dx_coarsest = d_grid_geometry->getDx();
     const double H = dx_coarsest[0];
     const double R = 4.0*H;
     const int offset = int(R/dx[0])-1;
@@ -121,6 +128,7 @@ FeedbackForcer::setDataOnPatch(
         // Penalize deviations from the specified normal and
         // tangential velocity boundary conditions.
         const double edge_grader = delta_4((X[0]-grid_XLower[0])/(0.5*R))/delta_4(0.0);
+        const double U_oo = T_wgt1*(1.0 + T_wgt2*0.5*sin(2.0*M_PI*X[1]/L[1]));
         (*F_data)(i,0) = d_kappa*edge_grader*(U_oo - (*U_data)(i,0));
     }
     return;

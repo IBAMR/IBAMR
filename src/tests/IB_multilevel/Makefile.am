@@ -11,11 +11,6 @@ EXTRA_DIST += shell2d_fine_128.vertex shell2d_fine_128.spring
 EXTRA_DIST += shell2d_crse_256.vertex shell2d_crse_256.spring
 EXTRA_DIST += shell2d_fine_256.vertex shell2d_fine_256.spring
 
-if DATA_FILES_ENABLED
-EXTRA_DIST += shell2d_crse_512.vertex shell2d_crse_512.spring
-EXTRA_DIST += shell2d_fine_512.vertex shell2d_fine_512.spring
-endif
-
 check_PROGRAMS =
 if SAMRAI2D_ENABLED
 check_PROGRAMS += main2d

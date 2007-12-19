@@ -131,27 +131,32 @@ AC_SUBST(DOT_PATH,$DOT_PATH)
 # Checks to see whether large ghost cell widths should be enabled.
 AC_ARG_ENABLE([large-ghost-cell-width],
   AS_HELP_STRING(--enable-large-ghost-cell-width,[enable the use of large ghost cell regions (this feature must be enabled for certain types of physical boundary condition routines to function properly) @<:@default=no@:>@]),
-  [LARGE_GHOST_CELL_WIDTH=$enablevar], [LARGE_GHOST_CELL_WIDTH=no])
-AM_CONDITIONAL([LARGE_GHOST_CELL_WIDTH_ENABLED],[test "$LARGE_GHOST_CELL_WIDTH" == "yes"])
+  [LARGE_GHOST_CELL_WIDTH=$enable_large_ghost_cell_width], [LARGE_GHOST_CELL_WIDTH=no])
+
 if test "$LARGE_GHOST_CELL_WIDTH" == "yes" ; then
-  echo "large ghost cell widths are ENABLED"
+  echo "large ghost cell widths are ENABLED!"
   AC_DEFINE([USING_LARGE_GHOST_CELL_WIDTH],[true],[Boolean value indicating whether we are using large ghost cell widths])
 else
-  echo "large ghost cell widths are DISABLED --- certain physical boundary condition handling routines may not function properly"
-  echo "if you wish to enable support for large ghost cell widths, specify --enable-large-ghost-cell-width=yes"
+  echo "large ghost cell widths are DISABLED!"
+  echo "  certain physical boundary condition handling routines may not function properly"
+  echo "  if you wish to enable support for large ghost cell widths, specify --enable-large-ghost-cell-width=yes"
   AC_DEFINE([USING_LARGE_GHOST_CELL_WIDTH],[false],[Boolean value indicating whether we are using large ghost cell widths])
 fi
 
-# Checks to see whether large data files should be included in the
-# distribution.
-AC_ARG_ENABLE([large-data-files],
-  AS_HELP_STRING([--enable-large-data-files],[enable the inclusion of all data files in the final distribution @<:@default=no@:>@]),
-  [DATA_FILES=$enableval],
-  [DATA_FILES="no"])
-AM_CONDITIONAL([DATA_FILES_ENABLED],[test "$DATA_FILES" == "yes"])
-if test "$DATA_FILES" != "yes" ; then
-  AC_MSG_WARN([not including large data files in final distribution])
-  echo "if you wish to include all data files in final distribution, specify --enable-large-data-files=yes"
+# Checks to see whether expensive coarse-fine interface code should be
+# enabled.
+AC_ARG_ENABLE([expensive-cf-interpolation],
+  AS_HELP_STRING(--enable-expensive-cf-interpolation,[enable the use of the expensive version of the quadratic coarse-fine interface interpolation code (this feature must be enabled for certain use cases, e.g. general anisotropic diffusion tensors) @<:@default=no@:>@]),
+  [EXPENSIVE_CF_INTERPOLATION=$enable_expensive_cf_interpolation], [EXPENSIVE_CF_INTERPOLATION=no])
+
+if test "$EXPENSIVE_CF_INTERPOLATION" == "yes" ; then
+  echo "expensive version of the quadratic coarse-fine interface interpolation code is ENABLED!"
+  AC_DEFINE([USING_EXPENSIVE_CF_INTERPOLATION],[true],[Boolean value indicating whether we are using the expensive version of the quadratic coarse-fine interface code])
+else
+  echo "expensive version of the quadratic coarse-fine interface interpolation code is DISABLED!"
+  echo "  this feature must be enabled for certain use cases, e.g. general anisotropic diffusion tensors"
+  echo "  if you wish to enable support for large ghost cell widths, specify --enable-expensive-cf-interpolation=yes"
+  AC_DEFINE([USING_EXPENSIVE_CF_INTERPOLATION],[false],[Boolean value indicating whether we are using the expensive version of the quadratic coarse-fine interface code])
 fi
 
 ###########################################################################
