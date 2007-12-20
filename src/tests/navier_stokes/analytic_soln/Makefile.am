@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.C
-EXTRA_DIST = input2d input3d
+EXTRA_DIST = input2d input2d.dirichlet_bcs input2d.dirichlet_bcs.forced_flow input3d
 
 check_PROGRAMS =
 if SAMRAI2D_ENABLED
