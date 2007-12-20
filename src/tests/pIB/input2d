@@ -142,6 +142,7 @@ AdvDiffHierarchyIntegrator {
    tag_buffer = 1
 
    AdvDiffHypPatchOps {
+      extrap_type = "LINEAR"
       compute_init_velocity  = TRUE
       compute_half_velocity  = FALSE
       compute_final_velocity = FALSE

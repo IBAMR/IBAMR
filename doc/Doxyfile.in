@@ -499,6 +499,7 @@ EXCLUDE_PATTERNS       = */include/*.C \
                          */src/*.[hI] \
                          */tests/* \
                          */examples/* \
+                         */tools/* \
                          *~ \
                          *.m4
 

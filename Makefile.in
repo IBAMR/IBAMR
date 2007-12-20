@@ -189,8 +189,9 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/AdvDiffHierarchyIntegrator.h \
 	include/ibamr/AdvDiffHypPatchOps.h \
-	include/ibamr/AdvectHypPatchOps.h include/ibamr/get_version.h \
-	include/ibamr/GodunovAdvector.h \
+	include/ibamr/AdvectHypPatchOps.h \
+	include/ibamr/ArrayData_specialized_LNodeIndexSet.I \
+	include/ibamr/get_version.h include/ibamr/GodunovAdvector.h \
 	include/ibamr/HierarchyProjector.h \
 	include/ibamr/IBBeamForceGen.h \
 	include/ibamr/IBBeamForceSpecFactory.h \
@@ -198,15 +199,18 @@ EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/IBBeamForceSpec.I \
 	include/ibamr/IBEulerianForceSetter.h \
 	include/ibamr/IBEulerianSourceSetter.h \
+	include/ibamr/IBHDF5Initializer.h \
 	include/ibamr/IBHierarchyIntegrator.h \
-	include/ibamr/IBImplicitHierarchyIntegrator.h \
-	include/ibamr/IBInstrumentPanel.h \
 	include/ibamr/IBInstrumentationSpecFactory.h \
 	include/ibamr/IBInstrumentationSpec.h \
 	include/ibamr/IBInstrumentationSpec.I \
+	include/ibamr/IBInstrumentPanel.h \
 	include/ibamr/IBLagrangianForceStrategy.h \
 	include/ibamr/IBLagrangianForceStrategySet.h \
 	include/ibamr/IBLagrangianSourceStrategy.h \
+	include/ibamr/IBMarkerCoarsenOperator.h \
+	include/ibamr/IBMarker.h include/ibamr/IBMarker.I \
+	include/ibamr/IBMarkerRefineOperator.h \
 	include/ibamr/IBSpringForceGen.h \
 	include/ibamr/IBSpringForceSpecFactory.h \
 	include/ibamr/IBSpringForceSpec.h \
@@ -218,31 +222,28 @@ EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/IBTargetPointForceSpec.h \
 	include/ibamr/IBTargetPointForceSpec.I \
 	include/ibamr/INSHierarchyIntegrator.h \
+	include/ibamr/INSIntermediateVelocityBcCoef.h \
+	include/ibamr/INSProjectionBcCoef.h \
+	include/ibamr/LagM3DDataWriter.h \
 	include/ibamr/LagSiloDataWriter.h include/ibamr/LDataManager.h \
-	include/ibamr/LEInteractor.h \
+	include/ibamr/LEInteractor.h include/ibamr/LNodeIndexData2.h \
+	include/ibamr/LNodeIndexData2.I \
 	include/ibamr/LNodeIndexDataFactory2.h \
-	include/ibamr/LNodeIndexData2.h \
-	include/ibamr/LNodeIndexData2.I include/ibamr/LNodeIndex.h \
-	include/ibamr/LNodeIndex.I include/ibamr/LNodeIndexSet.h \
-	include/ibamr/LNodeIndexSet.I \
+	include/ibamr/LNodeIndex.h include/ibamr/LNodeIndex.I \
+	include/ibamr/LNodeIndexSet.h include/ibamr/LNodeIndexSet.I \
 	include/ibamr/LNodeIndexVariable2.h \
 	include/ibamr/LNodeInitStrategy.h \
 	include/ibamr/LNodeLevelData.h include/ibamr/LNodeLevelData.I \
 	include/ibamr/NormalVelocityBcCoefAdapter.h \
-	include/ibamr/ParabolicLevelIntegrator.h \
 	include/ibamr/StashableFactory.h include/ibamr/Stashable.h \
 	include/ibamr/StashableManager.h \
 	include/ibamr/StashableManager.I \
 	include/ibamr/StashableStream.h \
-	include/ibamr/StashableStream.I sample/IB/input2d \
-	sample/IB/input3d sample/IB/main.C sample/IB/shell2d_64.spring \
+	include/ibamr/StashableStream.I include/ibamr/TGACoefs.h \
+	sample/IB/input2d sample/IB/input3d sample/IB/main.C \
+	sample/IB/Makefile sample/IB/shell2d_64.spring \
 	sample/IB/shell2d_64.vertex sample/IB/sphere3d.spring \
-	sample/IB/sphere3d.vertex src/tools/autostarter.pl \
-	src/tools/farchiver.pl src/tools/includes.pl \
-	src/tools/scale_spring_rest_length.pl \
-	src/tools/scale_spring_stiffness.pl \
-	src/tools/set_spring_rest_length.pl \
-	src/tools/set_spring_stiffness.pl
+	sample/IB/sphere3d.vertex
 all: all-recursive
 
 .SUFFIXES:
@@ -440,7 +441,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/config $(distdir)/doc $(distdir)/include/ibamr $(distdir)/m4 $(distdir)/sample/IB $(distdir)/sample/empty_project $(distdir)/src/tools $(distdir)/src/utilities
+	$(mkdir_p) $(distdir)/config $(distdir)/doc $(distdir)/include/ibamr $(distdir)/m4 $(distdir)/sample/IB $(distdir)/sample/empty_project $(distdir)/src/utilities
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

@@ -1,7 +1,7 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_INIT([IBAMR],[070517],[griffith AT cims DOT nyu DOT edu])
+AC_INIT([IBAMR],[071220],[griffith AT cims DOT nyu DOT edu])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config/IBAMR_config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 foreign])
@@ -139,7 +139,7 @@ if test "$LARGE_GHOST_CELL_WIDTH" == "yes" ; then
 else
   echo "large ghost cell widths are DISABLED!"
   echo "  certain physical boundary condition handling routines may not function properly"
-  echo "  if you wish to enable support for large ghost cell widths, specify --enable-large-ghost-cell-width=yes"
+  echo "  if you wish to enable support for large ghost cell widths, specify --enable-large-ghost-cell-width"
   AC_DEFINE([USING_LARGE_GHOST_CELL_WIDTH],[false],[Boolean value indicating whether we are using large ghost cell widths])
 fi
 
@@ -155,7 +155,7 @@ if test "$EXPENSIVE_CF_INTERPOLATION" == "yes" ; then
 else
   echo "expensive version of the quadratic coarse-fine interface interpolation code is DISABLED!"
   echo "  this feature must be enabled for certain use cases, e.g. general anisotropic diffusion tensors"
-  echo "  if you wish to enable support for large ghost cell widths, specify --enable-expensive-cf-interpolation=yes"
+  echo "  if you wish to enable support for large ghost cell widths, specify --enable-expensive-cf-interpolation"
   AC_DEFINE([USING_EXPENSIVE_CF_INTERPOLATION],[false],[Boolean value indicating whether we are using the expensive version of the quadratic coarse-fine interface code])
 fi
 

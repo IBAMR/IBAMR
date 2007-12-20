@@ -21,6 +21,7 @@
 #include <stools/PhysicalBoundaryUtilities.h>
 
 // SAMRAI INCLUDES
+#include <ArrayDataBasicOps.h>
 #include <BoundaryBox.h>
 #include <BoxArray.h>
 #include <CartesianPatchGeometry.h>
@@ -2019,6 +2020,8 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
         }
 
         // Set the boundary conditions.
+        SAMRAI::math::ArrayDataBasicOps<NDIM,double> array_ops;
+        (void) array_ops;
         for (std::vector<SAMRAI::hier::BoundaryBox<NDIM> >::const_iterator cit = physical_codim1_boxes.begin();
              cit != physical_codim1_boxes.end(); ++cit)
         {

@@ -1,5 +1,5 @@
 // Filename: LagM3DDataWriter.C
-// Last modified: <11.Oct.2007 17:26:31 griffith@box221.cims.nyu.edu>
+// Last modified: <19.Dec.2007 20:37:17 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagM3DDataWriter.h"
@@ -873,7 +873,10 @@ LagM3DDataWriter::writePlotData(
                         {
                             for (int d = 0; d < NDIM; ++d)
                             {
-                                X_marker[NDIM*idx[k]+d] = X[NDIM*k+d];  // XXXX add index error checking!
+                                /*!
+                                 * \todo Add index error checking!
+                                 */
+                                X_marker[NDIM*idx[k]+d] = X[NDIM*k+d];
                             }
                         }
                     }
@@ -881,7 +884,10 @@ LagM3DDataWriter::writePlotData(
             }
         }
     }
-    SAMRAI::tbox::MPI::sumReduction(&X_marker[0], NDIM*total_num_marks);  // XXXX: this is not the way to do things . . .
+    /*!
+     * \todo Make this operation more efficient!
+     */
+    SAMRAI::tbox::MPI::sumReduction(&X_marker[0], NDIM*total_num_marks);
 
     // Create the HDF5 files.
     const std::string hdf5_marker_file_name = d_dump_directory_name + "/" + local_marker_file_name + ".h5";

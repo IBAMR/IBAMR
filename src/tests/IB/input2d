@@ -11,9 +11,9 @@ RHO = 1.0
 
 // grid spacing parameters
 MAX_LEVELS = 2   // maximum number of levels in locally refined grid
-REF_RATIO  = 4   // refinement ratio between levels
+REF_RATIO  = 2   // refinement ratio between levels
 
-N = 64                                    // coarsest grid spacing
+N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 IBHierarchyIntegrator {
@@ -37,9 +37,9 @@ IBStandardInitializer {
 // base_filenames_1 = "curve2d_256"  // corresponds to NFINEST=256
 // base_filenames_1 = "curve2d_512"  // corresponds to NFINEST=512
 
-// base_filenames_1 = "shell2d_64"   // corresponds to NFINEST=64
+   base_filenames_1 = "shell2d_64"   // corresponds to NFINEST=64
 // base_filenames_1 = "shell2d_128"  // corresponds to NFINEST=128
-   base_filenames_1 = "shell2d_256"  // corresponds to NFINEST=256
+// base_filenames_1 = "shell2d_256"  // corresponds to NFINEST=256
 // base_filenames_1 = "shell2d_512"  // corresponds to NFINEST=512
 }
 

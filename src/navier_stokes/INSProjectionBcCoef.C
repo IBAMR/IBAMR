@@ -223,7 +223,7 @@ INSProjectionBcCoef::setBcCoefs(
 #if USING_OLD_ROBIN_BC_INTERFACE
     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > bcoef_data =
         (acoef_data.isNull()
-         ? SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >(NULL)
+         ? NULL
          : new SAMRAI::pdat::ArrayData<NDIM,double>(acoef_data->getBox(), acoef_data->getDepth()));
     setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 #else
