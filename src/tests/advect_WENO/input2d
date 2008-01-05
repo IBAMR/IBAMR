@@ -1,37 +1,16 @@
 // constants
 PI = 3.141592653589793e+00
 
-// advective term options
-CTU_ONLY = -1
-SECOND_ORDER = 0
-FOURTH_ORDER = 1
-MC_LIMITED = 2
-MUSCL_LIMITED = 3
-
 // grid spacing parameters
-MAX_LEVELS = 4   // maximum number of levels in locally refined grid
+MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 128                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
-GodunovAdvector {
-   limiter_type = FOURTH_ORDER
-}
-
-AdvectHypPatchOps {
-   Refinement_data {
-      refine_criteria = "QVAL_GRADIENT"
-
-      QVAL_GRADIENT {
-         grad_tol = 5.0, 5.0, 5.0
-      }
-   }
-}
-
-QInit {
-   init_type = "GAUSSIAN"
-   kappa = 0.001
+WENOMOLOps {
+   init_type = "ZALESAK"
+   kappa = 0.01
 }
 
 LocationIndexRobinBcCoefs {
@@ -41,26 +20,16 @@ LocationIndexRobinBcCoefs {
    boundary_3 = "value", "0.0"  // y upper boundary
 }
 
-USet {
-   init_type = "UNIFORM"
-   uniform_u = -2.0, 1.0
+MethodOfLinesIntegrator {
+   order = 3
 }
 
-HyperbolicLevelIntegrator {
-   cfl                      = 0.9975e0 // max cfl factor used in problem
-   cfl_init                 = 0.9975e0 // initial cfl factor
-   lag_dt_computation       = TRUE
-   use_ghosts_to_compute_dt = FALSE
-}
-
-TimeRefinementIntegrator {
+Main {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 1.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
-}
 
-Main {
 // log file parameters
    log_file_name    = "advect2d.log"
    log_all_nodes    = FALSE

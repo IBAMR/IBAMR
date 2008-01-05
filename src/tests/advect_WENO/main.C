@@ -20,8 +20,8 @@
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
-#include <HyperbolicLevelIntegrator.h>
 #include <LoadBalancer.h>
+#include <MethodOfLinesIntegrator.h>
 #include <PatchHierarchy.h>
 #include <StandardTagAndInitialize.h>
 #include <TimeRefinementIntegrator.h>
@@ -29,17 +29,8 @@
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <LocationIndexRobinBcCoefs.h>
+#include "WENOMOLOps.h"
 
-#include <ibamr/AdvectHypPatchOps.h>
-#include <ibamr/GodunovAdvector.h>
-
-#include <stools/HierarchyMathOps.h>
-
-#include "QInit.h"
-#include "USet.h"
-
-using namespace IBAMR;
 using namespace SAMRAI;
 using namespace std;
 
@@ -48,84 +39,7 @@ using namespace std;
  * This is the main program for an AMR solution of the linear           *
  * advection equation: dQ/dt + div(u*Q) = 0, where "Q" is a             *
  * scalar-valued function and "u" is a possibly time-dependent          *
- * advection velocity.  This application program is constructed by      *
- * composing several algorithm objects found in the SAMRAI and IBAMR    *
- * libraries with a few that are specific to this application.  A       *
- * brief description of these object follows.                           *
- *                                                                      *
- * There are two main data containment objects.  These are:             *
- *                                                                      *
- *    PatchHierarchy - A container for the AMR patch hierarchy and the  *
- *       data on the grid.                                              *
- *                                                                      *
- *    CartesianGridGeometry - Defines and maintains the Cartesian       *
- *       coordinate system on the grid.  The PatchHierarchy maintains   *
- *       a reference to this object.                                    *
- *                                                                      *
- * A single overarching algorithm object drives the time integration    *
- * and adaptive gridding processes:                                     *
- *                                                                      *
- *    TimeRefinementIntegrator - Coordinates time integration and       *
- *       adaptive gridding procedures for the various levels in the     *
- *       AMR patch hierarchy.  Local time refinement is employed        *
- *       during hierarchy integration; i.e., finer levels are advanced  *
- *       using smaller time increments than coarser level.  Thus, this  *
- *       object also invokes data synchronization procedures which      *
- *       couple the solution on different patch hierarchy levels.       *
- *                                                                      *
- * The time refinement integrator is not specific to the numerical      *
- * methods used and the problem being solved.  It maintains references  *
- * to two other finer grain algorithmic objects that are more specific  *
- * to the problem at hand and with which it is configured when they     *
- * are passed into its constructor.  These finer grain algorithm        *
- * objects are:                                                         *
- *                                                                      *
- *    HyperbolicLevelIntegrator - Defines data management procedures    *
- *       for level integration, data synchronization between levels,    *
- *       and tagging cells for refinement.  These operations are        *
- *       tailored to explicit time integration algorithms used for      *
- *       hyperbolic systems of conservation laws, such as the Euler     *
- *       equations.  This integrator manages data for numerical         *
- *       routines that treat individual patches in the AMR patch        *
- *       hierarchy.  In this particular application, it maintains a     *
- *       pointer to the GodunovAdvector object that defines variables   *
- *       and provides numerical routines for the linear advection       *
- *       problem.                                                       *
- *                                                                      *
- *       GodunovAdvector - Provides the numerical routines necessary    *
- *          to solve the discrete linear advection equation on each     *
- *          patch in the AMR hierarchy.                                 *
- *                                                                      *
- *       AdvectHypPatchOps - Defines variables and numerical routines   *
- *          for the discrete linear advection equation on each patch    *
- *          in the AMR hierarchy and interfaces the GodunovAdvector     *
- *          with the HyperbolicLevelIntegrator.                         *
- *                                                                      *
- *    GriddingAlgorithm - Drives the AMR patch hierarchy generation     *
- *       and regridding procedures.  This object maintains references   *
- *       to three other algorithmic objects with which it is            *
- *       configured when they are passed into its constructor.  They    *
- *       are:                                                           *
- *                                                                      *
- *       BergerRigoutsos - Clusters cells tagged for refinement on a    *
- *          patch level into a collection of logically-rectangular box  *
- *          domains.                                                    *
- *                                                                      *
- *       LoadBalancer - Processes the boxes generated by the            *
- *          BergerRigoutsos algorithm into a configuration from which   *
- *          patches are contructed.  The algorithm used in this class   *
- *          assumes a spatially-uniform workload distribution; thus,    *
- *          it attempts to produce a collection of boxes each of which  *
- *          contains the same number of cells.  The load balancer also  *
- *          assigns patches to processors.                              *
- *                                                                      *
- *       StandardTagAndInitialize - Couples the gridding algorithm      *
- *          to the HyperbolicIntegrator. Selects cells for refinement   *
- *          based on either Gradient detection, Richardson              *
- *          extrapolation, or pre-defined Refine box region.  The       *
- *          object maintains a pointer to the                           *
- *          HyperbolicLevelIntegrator, which is passed into its         *
- *          constructor, for this purpose.                              *
+ * advection velocity.                                                  *
  *                                                                      *
  * For each run, the input filename and restart information (if         *
  * needed) must be given on the command line.  For non-restarted case,  *
@@ -172,6 +86,7 @@ main(
         input_filename = argv[1];
         if (argc == 4)
         {
+            TBOX_ERROR("restart not implemented at the present time.\n");
             restart_read_dirname = argv[2];
             restore_num = atoi(argv[3]);
 
@@ -383,45 +298,22 @@ main(
             "PatchHierarchy",
             grid_geometry);
 
-    tbox::Pointer<GodunovAdvector> advector =
-        new GodunovAdvector(
-            "GodunovAdvector",
-            input_db->getDatabase("GodunovAdvector"));
+    WENOMOLOps* weno_mol_ops =
+        new WENOMOLOps(
+            "WENOMOLOps",
+            grid_geometry,
+            input_db->getDatabase("WENOMOLOps"));
 
-    tbox::Pointer<AdvectHypPatchOps> hyp_patch_ops =
-        new AdvectHypPatchOps(
-            "AdvectHypPatchOps",
-            input_db->getDatabase("AdvectHypPatchOps"),
-            advector, grid_geometry);
-
-    tbox::Pointer< pdat::FaceVariable<NDIM,double> > u_var =
-        new pdat::FaceVariable<NDIM,double>("u");
-    USet u_set("USet", grid_geometry, input_db->getDatabase("USet"));
-    hyp_patch_ops->registerAdvectionVelocity(
-        u_var, u_is_div_free, tbox::Pointer<SetDataStrategy>(&u_set,false));
-
-    tbox::Pointer< pdat::CellVariable<NDIM,double> > Q_var =
-        new pdat::CellVariable<NDIM,double>("Q");
-    QInit Q_init(
-        "QInit", grid_geometry, input_db->getDatabase("QInit"));
-    solv::LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
-        "physical_bc_coef",
-        input_db->getDatabase("LocationIndexRobinBcCoefs"));
-    hyp_patch_ops->registerAdvectedQuantity(
-        Q_var, consv_form,
-        tbox::Pointer<SetDataStrategy>(&Q_init,false),
-        &physical_bc_coef);
-
-    tbox::Pointer<algs::HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
-        new algs::HyperbolicLevelIntegrator<NDIM>(
-            "HyperbolicLevelIntegrator",
-            input_db->getDatabase("HyperbolicLevelIntegrator"),
-            hyp_patch_ops, true, using_refined_timestepping);
+    tbox::Pointer<algs::MethodOfLinesIntegrator<NDIM> > time_integrator =
+        new algs::MethodOfLinesIntegrator<NDIM>(
+            "MethodOfLinesIntegrator",
+            input_db->getDatabase("MethodOfLinesIntegrator"),
+            weno_mol_ops);
 
     tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
         new mesh::StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize",
-            hyp_level_integrator,
+            time_integrator,
             input_db->getDatabase("StandardTagAndInitialize"));
 
     tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator =
@@ -438,12 +330,6 @@ main(
             input_db->getDatabase("GriddingAlgorithm"),
             error_detector, box_generator, load_balancer);
 
-    tbox::Pointer<algs::TimeRefinementIntegrator<NDIM> > time_integrator =
-        new algs::TimeRefinementIntegrator<NDIM>(
-            "TimeRefinementIntegrator",
-            input_db->getDatabase("TimeRefinementIntegrator"),
-            patch_hierarchy, hyp_level_integrator, gridding_algorithm);
-
     /*
      * Set up visualization plot file writer.
      */
@@ -453,14 +339,50 @@ main(
 
     if (uses_visit)
     {
-        hyp_patch_ops->registerVisItDataWriter(visit_data_writer);
+        weno_mol_ops->registerVisItDataWriter(visit_data_writer);
     }
 
     /*
      * Initialize hierarchy configuration and data on all patches.  Then, close
      * restart file and write initial state for visualization.
      */
-    double dt_now = time_integrator->initializeHierarchy();
+    time_integrator->initializeIntegrator(gridding_algorithm);
+
+    tbox::Array<int>* tag_buffer_array = new tbox::Array<int>(gridding_algorithm->getMaxLevels());
+    for (int il = 0; il < gridding_algorithm->getMaxLevels(); ++il)
+    {
+        (*tag_buffer_array)[il] = 2;
+        tbox::pout << "il = " << il << " tag_buffer = " << (*tag_buffer_array)[il] << endl;
+    }
+
+    double loop_time = 0.0;
+
+    if (tbox::RestartManager::getManager()->isFromRestart())
+    {
+        patch_hierarchy->getFromRestart(gridding_algorithm->getMaxLevels());
+
+        gridding_algorithm->getTagAndInitializeStrategy()->
+            resetHierarchyConfiguration(patch_hierarchy,
+                                        0,
+                                        patch_hierarchy->getFinestLevelNumber());
+
+    }
+    else
+    {
+        gridding_algorithm->makeCoarsestLevel(patch_hierarchy,loop_time);
+
+        bool done = false;
+        bool initial_time = true;
+        for (int ln = 0; gridding_algorithm->levelCanBeRefined(ln) && !done; ++ln)
+        {
+            gridding_algorithm->makeFinerLevel(patch_hierarchy,
+                                               loop_time,
+                                               initial_time,
+                                               (*tag_buffer_array)[ln]);
+            done = !(patch_hierarchy->finerLevelExists(ln));
+        }
+    }
+
     tbox::RestartManager::getManager()->closeRestartFile();
 
     /*
@@ -480,35 +402,29 @@ main(
         {
             tbox::pout << "\nWriting visualization files...\n\n";
             visit_data_writer->writePlotData(
-                patch_hierarchy,
-                time_integrator->getIntegratorStep(),
-                time_integrator->getIntegratorTime());
+                patch_hierarchy, 0, 0.0);
         }
     }
 
     /*
-     * Time step loop.  Note that the step count and integration time are
-     * maintained by the algs::TimeRefinementIntegrator object.
+     * Time step loop.
      */
-    double loop_time = time_integrator->getIntegratorTime();
-    double loop_time_end = time_integrator->getEndTime();
+    double loop_time_end = 1.0;
+    int iteration_num = 0;
 
-    int iteration_num = time_integrator->getIntegratorStep();
-
-    while (!tbox::Utilities::deq(loop_time,loop_time_end) &&
-           time_integrator->stepsRemaining())
+    while (loop_time < loop_time_end)
     {
-        iteration_num = time_integrator->getIntegratorStep() + 1;
+        iteration_num = iteration_num + 1;
 
         tbox::pout <<                                                       endl;
         tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
         tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
         tbox::pout << "Simulation time is " << loop_time                 << endl;
 
-        double dt_new = time_integrator->advanceHierarchy(dt_now);
-
+        double dt_now = time_integrator->getTimestep(patch_hierarchy, loop_time);
+        if (loop_time+dt_now > loop_time_end) dt_now = loop_time_end - loop_time;
+        time_integrator->advanceHierarchy(patch_hierarchy, loop_time, dt_now);
         loop_time += dt_now;
-        dt_now = dt_new;
 
         tbox::pout <<                                                       endl;
         tbox::pout << "At end      of timestep # " <<  iteration_num - 1 << endl;
@@ -567,50 +483,14 @@ main(
     }
 
     /*
-     * Determine the accuracy of the computed solution.
-     */
-    hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-
-    const tbox::Pointer<hier::VariableContext> Q_ctx =
-        hyp_level_integrator->getCurrentContext();
-    const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
-    const int Q_cloned_idx = var_db->registerClonedPatchDataIndex(Q_var, Q_idx);
-
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        patch_hierarchy->getPatchLevel(ln)->allocatePatchData(Q_cloned_idx, loop_time);
-    }
-
-    Q_init.setDataOnPatchHierarchy(
-        Q_cloned_idx, Q_var, patch_hierarchy, loop_time);
-
-    STOOLS::HierarchyMathOps hier_math_ops(
-        "HierarchyMathOps", patch_hierarchy);
-    hier_math_ops.setPatchHierarchy(patch_hierarchy);
-    hier_math_ops.resetLevels(coarsest_ln, finest_ln);
-    const int wgt_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-
-    math::HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(
-        patch_hierarchy, coarsest_ln, finest_ln);
-
-    hier_cc_data_ops.subtract(Q_cloned_idx, Q_idx, Q_cloned_idx);
-    tbox::pout << "Error in " << Q_var->getName() << " at time " << loop_time << ":\n"
-               << "  L1-norm:  " << hier_cc_data_ops.L1Norm(Q_cloned_idx,wgt_idx)  << "\n"
-               << "  L2-norm:  " << hier_cc_data_ops.L2Norm(Q_cloned_idx,wgt_idx)  << "\n"
-               << "  max-norm: " << hier_cc_data_ops.maxNorm(Q_cloned_idx,wgt_idx) << "\n";
-
-    /*
      * At conclusion of simulation, deallocate objects.
      */
     grid_geometry.setNull();
     patch_hierarchy.setNull();
     box_generator.setNull();
     load_balancer.setNull();
-    advector.setNull();
-    hyp_patch_ops.setNull();
-    hyp_level_integrator.setNull();
+    delete weno_mol_ops;
+    time_integrator.setNull();
     error_detector.setNull();
     gridding_algorithm.setNull();
     time_integrator.setNull();

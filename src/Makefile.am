@@ -43,10 +43,11 @@ IB/libIBAMR_IB2d_a-IBTargetPointForceSpec.o \
 adv_diff/fortran/adv_diff_consdiff2d.o \
 adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o \
 adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o \
-advect/fortran/godunov_predictors2d.o \
 advect/fortran/advect_diff2d.o \
 advect/fortran/advect_stable2d.o \
 advect/fortran/advect_detect2d.o \
+advect/fortran/godunov_predictors2d.o \
+advect/fortran/weno_advector2d.o \
 advect/libIBAMR_advect2d_a-AdvectHypPatchOps.o \
 advect/libIBAMR_advect2d_a-GodunovAdvector.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \
@@ -103,10 +104,10 @@ IB/libIBAMR_IB3d_a-IBTargetPointForceSpec.o \
 adv_diff/fortran/adv_diff_consdiff3d.o \
 adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o \
 adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o \
-advect/fortran/godunov_predictors3d.o \
 advect/fortran/advect_diff3d.o \
 advect/fortran/advect_stable3d.o \
 advect/fortran/advect_detect3d.o \
+advect/fortran/godunov_predictors3d.o \
 advect/libIBAMR_advect3d_a-AdvectHypPatchOps.o \
 advect/libIBAMR_advect3d_a-GodunovAdvector.o \
 lagrangian/libIBAMR_lagrangian3d_a-LNodeIndex.o \

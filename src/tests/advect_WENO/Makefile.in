@@ -35,10 +35,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
-check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
+check_PROGRAMS = $(am__EXEEXT_1)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
-@SAMRAI3D_ENABLED_TRUE@am__append_2 = main3d
-subdir = src/tests/advect
+subdir = src/tests/advect_WENO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
 	$(top_srcdir)/m4/ac_cxx_namespaces.m4 \
@@ -50,22 +49,12 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES =
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
-@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT)
-am__objects_1 = main2d-main.$(OBJEXT) main2d-QInit.$(OBJEXT) \
-	main2d-USet.$(OBJEXT)
+am__objects_1 = main2d-main.$(OBJEXT) main2d-WENOMOLOps.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(top_builddir)/src/libIBAMR2d.a \
 	$(top_builddir)/src/libIBAMR.a \
 	$(top_builddir)/stools/src/libSTOOLS2d.a \
-	$(top_builddir)/stools/src/libSTOOLS.a
-am__objects_2 = main3d-main.$(OBJEXT) main3d-QInit.$(OBJEXT) \
-	main3d-USet.$(OBJEXT)
-am_main3d_OBJECTS = $(am__objects_2)
-main3d_OBJECTS = $(am_main3d_OBJECTS)
-main3d_DEPENDENCIES = $(top_builddir)/src/libIBAMR3d.a \
-	$(top_builddir)/src/libIBAMR.a \
-	$(top_builddir)/stools/src/libSTOOLS3d.a \
 	$(top_builddir)/stools/src/libSTOOLS.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -79,7 +68,7 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES)
+DIST_SOURCES = $(main2d_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -191,14 +180,11 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = main.C QInit.C QInit.h USet.C USet.h
+SOURCES = main.C WENOMOLOps.C WENOMOLOps.h
 EXTRA_DIST = input2d input3d
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/stools/src/libSTOOLS2d.a $(top_builddir)/stools/src/libSTOOLS.a
 main2d_SOURCES = $(SOURCES)
-main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-main3d_LDADD = $(top_builddir)/src/libIBAMR3d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/stools/src/libSTOOLS3d.a $(top_builddir)/stools/src/libSTOOLS.a
-main3d_SOURCES = $(SOURCES)
 all: all-am
 
 .SUFFIXES:
@@ -212,9 +198,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/tests/advect/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/tests/advect_WENO/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  src/tests/advect/Makefile
+	  $(AUTOMAKE) --foreign  src/tests/advect_WENO/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -238,9 +224,6 @@ clean-checkPROGRAMS:
 main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) 
 	@rm -f main2d$(EXEEXT)
 	$(CXXLINK) $(main2d_LDFLAGS) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
-main3d$(EXEEXT): $(main3d_OBJECTS) $(main3d_DEPENDENCIES) 
-	@rm -f main3d$(EXEEXT)
-	$(CXXLINK) $(main3d_LDFLAGS) $(main3d_OBJECTS) $(main3d_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -248,12 +231,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-QInit.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-USet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-WENOMOLOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-QInit.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-USet.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-main.Po@am__quote@
 
 .C.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -283,75 +262,19 @@ main2d-main.obj: main.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
 
-main2d-QInit.o: QInit.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-QInit.o -MD -MP -MF "$(DEPDIR)/main2d-QInit.Tpo" -c -o main2d-QInit.o `test -f 'QInit.C' || echo '$(srcdir)/'`QInit.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main2d-QInit.Tpo" "$(DEPDIR)/main2d-QInit.Po"; else rm -f "$(DEPDIR)/main2d-QInit.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QInit.C' object='main2d-QInit.o' libtool=no @AMDEPBACKSLASH@
+main2d-WENOMOLOps.o: WENOMOLOps.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-WENOMOLOps.o -MD -MP -MF "$(DEPDIR)/main2d-WENOMOLOps.Tpo" -c -o main2d-WENOMOLOps.o `test -f 'WENOMOLOps.C' || echo '$(srcdir)/'`WENOMOLOps.C; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main2d-WENOMOLOps.Tpo" "$(DEPDIR)/main2d-WENOMOLOps.Po"; else rm -f "$(DEPDIR)/main2d-WENOMOLOps.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='WENOMOLOps.C' object='main2d-WENOMOLOps.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-QInit.o `test -f 'QInit.C' || echo '$(srcdir)/'`QInit.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-WENOMOLOps.o `test -f 'WENOMOLOps.C' || echo '$(srcdir)/'`WENOMOLOps.C
 
-main2d-QInit.obj: QInit.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-QInit.obj -MD -MP -MF "$(DEPDIR)/main2d-QInit.Tpo" -c -o main2d-QInit.obj `if test -f 'QInit.C'; then $(CYGPATH_W) 'QInit.C'; else $(CYGPATH_W) '$(srcdir)/QInit.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main2d-QInit.Tpo" "$(DEPDIR)/main2d-QInit.Po"; else rm -f "$(DEPDIR)/main2d-QInit.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QInit.C' object='main2d-QInit.obj' libtool=no @AMDEPBACKSLASH@
+main2d-WENOMOLOps.obj: WENOMOLOps.C
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-WENOMOLOps.obj -MD -MP -MF "$(DEPDIR)/main2d-WENOMOLOps.Tpo" -c -o main2d-WENOMOLOps.obj `if test -f 'WENOMOLOps.C'; then $(CYGPATH_W) 'WENOMOLOps.C'; else $(CYGPATH_W) '$(srcdir)/WENOMOLOps.C'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main2d-WENOMOLOps.Tpo" "$(DEPDIR)/main2d-WENOMOLOps.Po"; else rm -f "$(DEPDIR)/main2d-WENOMOLOps.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='WENOMOLOps.C' object='main2d-WENOMOLOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-QInit.obj `if test -f 'QInit.C'; then $(CYGPATH_W) 'QInit.C'; else $(CYGPATH_W) '$(srcdir)/QInit.C'; fi`
-
-main2d-USet.o: USet.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-USet.o -MD -MP -MF "$(DEPDIR)/main2d-USet.Tpo" -c -o main2d-USet.o `test -f 'USet.C' || echo '$(srcdir)/'`USet.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main2d-USet.Tpo" "$(DEPDIR)/main2d-USet.Po"; else rm -f "$(DEPDIR)/main2d-USet.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='USet.C' object='main2d-USet.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-USet.o `test -f 'USet.C' || echo '$(srcdir)/'`USet.C
-
-main2d-USet.obj: USet.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-USet.obj -MD -MP -MF "$(DEPDIR)/main2d-USet.Tpo" -c -o main2d-USet.obj `if test -f 'USet.C'; then $(CYGPATH_W) 'USet.C'; else $(CYGPATH_W) '$(srcdir)/USet.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main2d-USet.Tpo" "$(DEPDIR)/main2d-USet.Po"; else rm -f "$(DEPDIR)/main2d-USet.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='USet.C' object='main2d-USet.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-USet.obj `if test -f 'USet.C'; then $(CYGPATH_W) 'USet.C'; else $(CYGPATH_W) '$(srcdir)/USet.C'; fi`
-
-main3d-main.o: main.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.o -MD -MP -MF "$(DEPDIR)/main3d-main.Tpo" -c -o main3d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main3d-main.Tpo" "$(DEPDIR)/main3d-main.Po"; else rm -f "$(DEPDIR)/main3d-main.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main3d-main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C
-
-main3d-main.obj: main.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.obj -MD -MP -MF "$(DEPDIR)/main3d-main.Tpo" -c -o main3d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main3d-main.Tpo" "$(DEPDIR)/main3d-main.Po"; else rm -f "$(DEPDIR)/main3d-main.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main3d-main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
-
-main3d-QInit.o: QInit.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-QInit.o -MD -MP -MF "$(DEPDIR)/main3d-QInit.Tpo" -c -o main3d-QInit.o `test -f 'QInit.C' || echo '$(srcdir)/'`QInit.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main3d-QInit.Tpo" "$(DEPDIR)/main3d-QInit.Po"; else rm -f "$(DEPDIR)/main3d-QInit.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QInit.C' object='main3d-QInit.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-QInit.o `test -f 'QInit.C' || echo '$(srcdir)/'`QInit.C
-
-main3d-QInit.obj: QInit.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-QInit.obj -MD -MP -MF "$(DEPDIR)/main3d-QInit.Tpo" -c -o main3d-QInit.obj `if test -f 'QInit.C'; then $(CYGPATH_W) 'QInit.C'; else $(CYGPATH_W) '$(srcdir)/QInit.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main3d-QInit.Tpo" "$(DEPDIR)/main3d-QInit.Po"; else rm -f "$(DEPDIR)/main3d-QInit.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QInit.C' object='main3d-QInit.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-QInit.obj `if test -f 'QInit.C'; then $(CYGPATH_W) 'QInit.C'; else $(CYGPATH_W) '$(srcdir)/QInit.C'; fi`
-
-main3d-USet.o: USet.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-USet.o -MD -MP -MF "$(DEPDIR)/main3d-USet.Tpo" -c -o main3d-USet.o `test -f 'USet.C' || echo '$(srcdir)/'`USet.C; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main3d-USet.Tpo" "$(DEPDIR)/main3d-USet.Po"; else rm -f "$(DEPDIR)/main3d-USet.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='USet.C' object='main3d-USet.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-USet.o `test -f 'USet.C' || echo '$(srcdir)/'`USet.C
-
-main3d-USet.obj: USet.C
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-USet.obj -MD -MP -MF "$(DEPDIR)/main3d-USet.Tpo" -c -o main3d-USet.obj `if test -f 'USet.C'; then $(CYGPATH_W) 'USet.C'; else $(CYGPATH_W) '$(srcdir)/USet.C'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/main3d-USet.Tpo" "$(DEPDIR)/main3d-USet.Po"; else rm -f "$(DEPDIR)/main3d-USet.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='USet.C' object='main3d-USet.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-USet.obj `if test -f 'USet.C'; then $(CYGPATH_W) 'USet.C'; else $(CYGPATH_W) '$(srcdir)/USet.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-WENOMOLOps.obj `if test -f 'WENOMOLOps.C'; then $(CYGPATH_W) 'WENOMOLOps.C'; else $(CYGPATH_W) '$(srcdir)/WENOMOLOps.C'; fi`
 uninstall-info-am:
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
@@ -523,11 +446,18 @@ uninstall-am: uninstall-info-am
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+#if SAMRAI3D_ENABLED
+#check_PROGRAMS += main3d
+#endif
 
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
 	fi ;
+
+#main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+#main3d_LDADD = $(top_builddir)/src/libIBAMR3d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/stools/src/libSTOOLS3d.a $(top_builddir)/stools/src/libSTOOLS.a
+#main3d_SOURCES = $(SOURCES)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

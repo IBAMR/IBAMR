@@ -612,6 +612,7 @@ AC_CONFIG_FILES([
   src/tests/IB_target/Makefile
   src/tests/adv_diff/Makefile
   src/tests/advect/Makefile
+  src/tests/advect_WENO/Makefile
   src/tests/navier_stokes/Makefile
   src/tests/navier_stokes/analytic_soln/Makefile
   src/tests/navier_stokes/lid_driven_cavity/Makefile

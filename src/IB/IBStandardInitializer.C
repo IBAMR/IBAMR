@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <05.Dec.2007 20:32:51 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Jan.2008 19:01:10 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -89,6 +89,8 @@ IBStandardInitializer::IBStandardInitializer(
       d_level_is_initialized(),
       d_silo_writer(NULL),
       d_base_filename(),
+      d_posn_shift(NDIM,0.0),
+      d_posn_scale(NDIM,1.0),
       d_num_vertex(),
       d_vertex_offset(),
       d_vertex_posn(),
@@ -597,6 +599,7 @@ IBStandardInitializer::readVertexFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << vertex_filename << endl);
                         }
+                        d_vertex_posn[ln][j][k*NDIM+d] = d_posn_scale[d]*(d_vertex_posn[ln][j][k*NDIM+d] + d_posn_shift[d]);
                     }
                 }
             }
@@ -1735,6 +1738,17 @@ IBStandardInitializer::getFromInput(
             TBOX_WARNING(d_object_name << ":  "
                          << "Key data `" + db_key_name + "' not found in input.");
         }
+    }
+
+    // Read in any shift and scale factors.
+    if (db->keyExists("posn_shift_factor"))
+    {
+        db->getDoubleArray("posn_shift_factor", &d_posn_shift[0], NDIM);
+    }
+
+    if (db->keyExists("posn_scale_factor"))
+    {
+        db->getDoubleArray("posn_scale_factor", &d_posn_scale[0], NDIM);
     }
 
     // Read in any sub-databases associated with the input file names.

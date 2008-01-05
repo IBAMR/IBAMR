@@ -1,5 +1,5 @@
 // Filename: LagSiloDataWriter.C
-// Last modified: <17.Dec.2007 19:12:38 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Jan.2008 22:56:23 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagSiloDataWriter.h"
@@ -967,10 +967,11 @@ LagSiloDataWriter::registerUnstructuredMesh(
     // Extract the list of vertices from the list of edges.
     std::set<int> vertices;
     for (std::multimap<int,std::pair<int,int> >::const_iterator it = edge_map.begin();
-         it != edge_map.end(); it = edge_map.upper_bound((*it).first))
+         it != edge_map.end(); ++it)
     {
-        vertices.insert((*it).second.first );
-        vertices.insert((*it).second.second);
+        const std::pair<int,int>& e = (*it).second;
+        vertices.insert(e.first );
+        vertices.insert(e.second);
     }
 
     // Record the layout of the unstructured mesh.
@@ -1970,9 +1971,11 @@ LagSiloDataWriter::putToDatabase(
                 for (std::multimap<int,std::pair<int,int> >::const_iterator cit = d_ucd_mesh_edge_maps[ln][mesh].begin();
                      cit != d_ucd_mesh_edge_maps[ln][mesh].end(); ++cit)
                 {
-                    ucd_mesh_edge_maps_vector.push_back((*cit).first);
-                    ucd_mesh_edge_maps_vector.push_back((*cit).second.first);
-                    ucd_mesh_edge_maps_vector.push_back((*cit).second.second);
+                    const int i = (*cit).first;
+                    std::pair<int,int> e = (*cit).second;
+                    ucd_mesh_edge_maps_vector.push_back(i);
+                    ucd_mesh_edge_maps_vector.push_back(e.first);
+                    ucd_mesh_edge_maps_vector.push_back(e.second);
                 }
                 db->putInteger("ucd_mesh_edge_maps_vector.size()"+ln_string+mesh_string, ucd_mesh_edge_maps_vector.size());
                 db->putIntegerArray("ucd_mesh_edge_maps_vector"+ln_string+mesh_string, &ucd_mesh_edge_maps_vector[0], ucd_mesh_edge_maps_vector.size());

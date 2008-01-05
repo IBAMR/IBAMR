@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <26.Sep.2007 16:59:21 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Jan.2008 16:48:25 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -494,6 +494,17 @@ private:
      * when registering data with the Silo data writer.
      */
     std::vector<std::vector<std::string> > d_base_filename;
+
+    /*
+     * Optional shift and scale factors.
+     *
+     * \note These shift and scale factors are applied to ALL structures read in
+     * by this reader.
+     *
+     * \note The shift factor should have the same units as the positions in the
+     * input files, i.e., X_final = scale*(X_inital + shift).
+     */
+    std::vector<double> d_posn_shift, d_posn_scale;
 
     /*
      * Vertex information.
