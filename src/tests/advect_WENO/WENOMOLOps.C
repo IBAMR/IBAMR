@@ -1,5 +1,5 @@
 // Filename: WENOMOLOpsAndSoln.C
-// Last modified: <05.Jan.2008 01:13:49 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Jan.2008 18:14:59 boyce@trasnaform2.local>
 // Created on 04 Jan 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "WENOMOLOps.h"
@@ -42,6 +42,10 @@ extern "C"
     void
     WENO_CONVECTIVE_FLUXES_F77(
         double* fface0, double* fface1, const int& fface_gcw,
+        double* ffwrd0, double* ffwrd1, const int& ffwrd_gcw,
+        double* frevr0, double* frevr1, const int& frevr_gcw,
+        double* fplus0, double* fplus1, const int& fplus_gcw,
+        double* fminus0, double* fminus1, const int& fminus_gcw,
         double* F, const int& F_gcw,
         const double* Q, const int& Q_gcw,
         const double* U, const int& U_gcw,
@@ -53,7 +57,7 @@ extern "C"
 
 namespace
 {
-static const int GHOSTS = 3;
+static const int GHOSTS = 4;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -68,6 +72,7 @@ WENOMOLOps::WENOMOLOps(
       d_X(NDIM),
       d_init_type("GAUSSIAN"),
       d_gaussian_kappa(0.01),
+      d_disk_r(0.15),
       d_zalesak_r(0.15),
       d_zalesak_slot_w(0.025),
       d_zalesak_slot_l(0.1)
@@ -133,7 +138,7 @@ WENOMOLOps::registerModelVariables(
                                  "NO_COARSEN",
                                  "NO_REFINE");
 
-    integrator->registerVariable(d_flux_var,0,
+    integrator->registerVariable(d_flux_var,1,
                                  algs::MethodOfLinesIntegrator<NDIM>::RHS,
                                  d_grid_geom,
                                  "NO_COARSEN",
@@ -165,7 +170,8 @@ WENOMOLOps::initializeDataOnPatch(
     assert(!Q_data.isNull());
     assert(!U_data.isNull());
 #endif
-    U_data->fillAll(1.0);
+    U_data->fill(+2.0,0);
+    U_data->fill(-1.0,1);
 
     const hier::Box<NDIM>& patch_box = patch.getBox();
     const hier::Index<NDIM>& patch_lower = patch_box.lower();
@@ -216,6 +222,28 @@ WENOMOLOps::initializeDataOnPatch(
 #if (NDIM>1)
                 }
 #endif
+            }
+        }
+    }
+    else if (d_init_type == "DISK")
+    {
+        for (pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
+        {
+            const hier::Index<NDIM>& i = ic();
+            r_squared = 0.0;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                X[d] = XLower[d] +
+                    dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                r_squared += pow((X[d]-d_X[d]),2.0);
+            }
+            if (sqrt(r_squared) > d_disk_r)
+            {
+                (*Q_data)(i) = 0.0;
+            }
+            else
+            {
+                (*Q_data)(i) = 1.0;
             }
         }
     }
@@ -272,7 +300,7 @@ WENOMOLOps::computeStableDtOnPatch(
     tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    static const double U_max = 1.0;
+    static const double U_max = 2.0;
     double dt = numeric_limits<double>::max();
     for (int d = 0; d < NDIM; ++d)
     {
@@ -312,12 +340,36 @@ WENOMOLOps::singleStep(
         patch.getPatchData(d_flux_var, getInteriorContext());
     const int flux_gcw = flux->getGhostCellWidth().max();
 
+    tbox::Pointer<pdat::FaceData<NDIM,double> > flux_fwrd =
+        new pdat::FaceData<NDIM,double>(
+            flux->getBox(), flux->getDepth(), flux->getGhostCellWidth());
+    const int flux_fwrd_gcw = flux_fwrd->getGhostCellWidth().max();
+
+    tbox::Pointer<pdat::FaceData<NDIM,double> > flux_revr =
+        new pdat::FaceData<NDIM,double>(
+            flux->getBox(), flux->getDepth(), flux->getGhostCellWidth());
+    const int flux_revr_gcw = flux_revr->getGhostCellWidth().max();
+
+    tbox::Pointer<pdat::FaceData<NDIM,double> > flux_plus =
+        new pdat::FaceData<NDIM,double>(
+            flux->getBox(), flux->getDepth(), flux->getGhostCellWidth());
+    const int flux_plus_gcw = flux_plus->getGhostCellWidth().max();
+
+    tbox::Pointer<pdat::FaceData<NDIM,double> > flux_minus =
+        new pdat::FaceData<NDIM,double>(
+            flux->getBox(), flux->getDepth(), flux->getGhostCellWidth());
+    const int flux_minus_gcw = flux_minus->getGhostCellWidth().max();
+
     const hier::Box<NDIM>& patch_box = patch.getBox();
     const hier::Index<NDIM>& patch_lower = patch_box.lower();
     const hier::Index<NDIM>& patch_upper = patch_box.upper();
 
     WENO_CONVECTIVE_FLUXES_F77(
         flux->getPointer(0), flux->getPointer(1), flux_gcw,
+        flux_fwrd->getPointer(0), flux_fwrd->getPointer(1), flux_fwrd_gcw,
+        flux_revr->getPointer(0), flux_revr->getPointer(1), flux_revr_gcw,
+        flux_plus->getPointer(0), flux_plus->getPointer(1), flux_plus_gcw,
+        flux_minus->getPointer(0), flux_minus->getPointer(1), flux_minus_gcw,
         F->getPointer(), F_gcw,
         Q_updated->getPointer(), Q_gcw,
         U_updated->getPointer(), U_gcw,
@@ -335,7 +387,6 @@ WENOMOLOps::singleStep(
         const hier::Index<NDIM>& i = ic();
         (*Q_updated)(i) = alpha_1*(*Q_fixed)(i) + alpha_2*(*Q_updated)(i) + beta*dt*(*F)(i);
     }
-
     return;
 }// singleStep
 
@@ -370,6 +421,11 @@ WENOMOLOps::getFromInput(
         {
             d_gaussian_kappa = db->
                 getDoubleWithDefault("kappa",d_gaussian_kappa);
+        }
+        else if (d_init_type == "DISK")
+        {
+            d_disk_r = db->
+                getDoubleWithDefault("disk_r",d_disk_r);
         }
         else if (d_init_type == "ZALESAK")
         {

@@ -47,7 +47,7 @@ advect/fortran/advect_diff2d.o \
 advect/fortran/advect_stable2d.o \
 advect/fortran/advect_detect2d.o \
 advect/fortran/godunov_predictors2d.o \
-advect/fortran/weno_advector2d.o \
+advect/fortran/weno_fluxes2d.o \
 advect/libIBAMR_advect2d_a-AdvectHypPatchOps.o \
 advect/libIBAMR_advect2d_a-GodunovAdvector.o \
 lagrangian/libIBAMR_lagrangian2d_a-LNodeIndex.o \

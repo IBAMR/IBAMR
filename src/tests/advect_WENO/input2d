@@ -5,12 +5,12 @@ PI = 3.141592653589793e+00
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 256                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 WENOMOLOps {
    init_type = "ZALESAK"
-   kappa = 0.01
+   kappa = 0.001
 }
 
 LocationIndexRobinBcCoefs {
@@ -36,7 +36,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 2           // zero to turn off
+   viz_dump_interval     = 32         // zero to turn off
    viz_dump_dirname      = "viz_advect2d"
    visit_number_procs_per_file = 1
 

@@ -2,7 +2,7 @@
 #define included_QInit
 
 // Filename: QInit.h
-// Last modified: <04.Jan.2008 23:16:46 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Jan.2008 14:10:46 boyce@trasnaform2.local>
 // Created on 04 Jan 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -181,6 +181,11 @@ private:
      * Parameters for Gaussian initial conditions.
      */
     double d_gaussian_kappa;
+
+    /*
+     * Pameters for disk initial conditions.
+     */
+    double d_disk_r;
 
     /*
      * Parameters for the Zalesak slotted cylinder.
