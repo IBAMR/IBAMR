@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <05.Dec.2007 20:18:03 griffith@box221.cims.nyu.edu>
+// Last modified: <17.Jan.2008 10:21:37 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1006,7 +1006,7 @@ IBHierarchyIntegrator::advanceHierarchy(
     // Compute the Lagrangian forces and spread those forces from the
     // curvilinear mesh to the Cartesian grid.  It is VERY IMPORTANT to note
     // that the implementation of the Lagrangian-Eulerian interaction operators
-    // assume that the Lagrangian force F is actually the total force and NOTE
+    // assume that the Lagrangian force F is actually the total force and NOT
     // the force density.  This means, for instance, that the Cartesian grid
     // force density f(x) is determined from the Lagrangian force F(q,r,s) via
     //

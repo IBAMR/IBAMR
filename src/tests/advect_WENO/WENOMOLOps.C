@@ -170,8 +170,8 @@ WENOMOLOps::initializeDataOnPatch(
     assert(!Q_data.isNull());
     assert(!U_data.isNull());
 #endif
-    U_data->fill(+2.0,0);
-    U_data->fill(-1.0,1);
+    U_data->fill(-2.0,0);
+    U_data->fill(+1.0,1);
 
     const hier::Box<NDIM>& patch_box = patch.getBox();
     const hier::Index<NDIM>& patch_lower = patch_box.lower();

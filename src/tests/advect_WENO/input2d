@@ -5,7 +5,7 @@ PI = 3.141592653589793e+00
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 256                                   // coarsest grid spacing
+N = 128                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 WENOMOLOps {
