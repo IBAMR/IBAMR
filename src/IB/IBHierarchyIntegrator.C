@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <17.Jan.2008 10:21:37 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Feb.2008 11:46:17 boyce@trasnaform2.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1460,6 +1460,15 @@ IBHierarchyIntegrator::advanceHierarchy(
             SAMRAI::tbox::plog << "+ Performing cycle " << cycle+1 << " of " << d_num_init_cycles << " to initialize P(n=1/2)\n";
             SAMRAI::tbox::plog << "+\n";
             SAMRAI::tbox::plog << "++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
+        }
+
+        if (cycle == 0) // XXXX
+        {
+            SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+            const int P_current_idx = var_db->mapVariableAndContextToIndex(
+                d_ins_hier_integrator->getPressureVar(),
+                d_ins_hier_integrator->getCurrentContext());
+            d_hier_cc_data_ops->setToScalar(P_current_idx,0.0);
         }
 
         // Solve the Navier-Stokes equations for U(n+1), u(n+1), P(n+1/2).  For
