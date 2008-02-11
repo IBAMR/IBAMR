@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <17.Dec.2007 17:21:18 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 22:38:09 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -355,7 +355,7 @@ HierarchyProjector::setVelocityPhysicalBcCoefs(
     if (u_bc_coefs.size() != NDIM)
     {
         TBOX_ERROR(d_object_name << "::setVelocityPhysicalBcCoefs():\n"
-                   << "  precisely NDIM boundary condiiton objects must be provided." << endl);
+                   << "  precisely NDIM boundary condiiton objects must be provided." << std::endl);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned l = 0; l < u_bc_coefs.size(); ++l)
@@ -701,21 +701,21 @@ void
 HierarchyProjector::printClassData(
     std::ostream& os) const
 {
-    os << "\nHierarchyProjector::printClassData..." << endl;
-    os << "this = " << const_cast<HierarchyProjector*>(this) << endl;
+    os << "\nHierarchyProjector::printClassData..." << std::endl;
+    os << "this = " << const_cast<HierarchyProjector*>(this) << std::endl;
     os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << endl;
-    os << "d_do_log = " << d_do_log << endl;
+       << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
+    os << "d_do_log = " << d_do_log << std::endl;
     os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
-       << "d_grid_geom = " << d_grid_geom.getPointer() << endl;
+       << "d_grid_geom = " << d_grid_geom.getPointer() << std::endl;
     os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n"
        << "d_hier_fc_data_ops = " << d_hier_fc_data_ops.getPointer() << "\n"
        << "d_hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
-       << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << endl;
+       << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << std::endl;
     os << "d_wgt_var = " << d_wgt_var.getPointer() << "\n"
        << "d_wgt_idx = " << d_wgt_idx << "\n"
-       << "d_volume = " << d_volume << endl;
-    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << endl;
+       << "d_volume = " << d_volume << std::endl;
+    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << std::endl;
     return;
 }// printClassData
 

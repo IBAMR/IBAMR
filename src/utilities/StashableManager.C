@@ -1,5 +1,5 @@
 // Filename: StashableManager.C
-// Last modified: <17.Apr.2007 18:22:23 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 22:43:32 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "StashableManager.h"
@@ -20,7 +20,7 @@
 #include <stools/STOOLS_Utilities.h>
 
 // SAMRAI INCLUDES
-#include <tbox/MPI.h>
+#include <tbox/SAMRAI_MPI.h>
 #include <tbox/ShutdownRegistry.h>
 
 // C++ STDLIB INCLUDES
@@ -157,8 +157,9 @@ StashableManager::registerFactory(
     assert(!factory.isNull());
     assert(factory->getStashableID() == getUnregisteredID());
 #endif
-    SAMRAI::tbox::MPI::barrier();  // ensure all processes use the same stashable ID
-                                   // for the registered class
+    SAMRAI::tbox::SAMRAI_MPI::barrier();  // ensure all processes use the same
+                                          // stashable ID for the registered
+                                          // class
     const int factory_id = getUniqueID();
     factory->setStashableID(factory_id);
     STOOLS::efficient_add_or_update(d_factory_map, factory_id, factory);

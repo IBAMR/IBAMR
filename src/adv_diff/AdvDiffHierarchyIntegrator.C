@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <16.Dec.2007 19:21:05 boyce@trasnaform2.local>
+// Last modified: <06.Feb.2008 20:30:28 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -29,6 +29,7 @@
 #include <CoarsenOperator.h>
 #include <HierarchyDataOpsManager.h>
 #include <VariableDatabase.h>
+#include <tbox/MathUtilities.h>
 #include <tbox/NullDatabase.h>
 #include <tbox/RestartManager.h>
 #include <tbox/Timer.h>
@@ -282,7 +283,6 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     d_helmholtz_fac_ops.clear();
     d_helmholtz_ops.clear();
     d_helmholtz_specs.clear();
-
     return;
 }// ~AdvDiffHierarchyIntegrator
 
@@ -366,10 +366,11 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedAndDiffusedQuantity():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
+                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
     }
 
-    if (!SAMRAI::tbox::Utilities::deq(Q_mu,0.0) || !SAMRAI::tbox::Utilities::deq(Q_lambda,0.0))
+    if (!SAMRAI::tbox::MathUtilities<double>::equalEps(Q_mu    ,0.0) ||
+        !SAMRAI::tbox::MathUtilities<double>::equalEps(Q_lambda,0.0))
     {
         d_Q_vars    .push_back(Q_var);
         d_Q_inits   .push_back(Q_init);
@@ -453,10 +454,11 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedAndDiffusedQuantityWithSourceTerm():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
+                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
     }
 
-    if (!SAMRAI::tbox::Utilities::deq(Q_mu,0.0) || !SAMRAI::tbox::Utilities::deq(Q_lambda,0.0))
+    if (!SAMRAI::tbox::MathUtilities<double>::equalEps(Q_mu    ,0.0) ||
+        !SAMRAI::tbox::MathUtilities<double>::equalEps(Q_lambda,0.0))
     {
         d_Q_vars    .push_back(Q_var);
         d_Q_inits   .push_back(Q_init);
@@ -672,19 +674,19 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // One set of operators/specifications is maintained for each variable
     // registered with the integrator.
-    d_helmholtz_ops  .resize(d_Q_vars.size());
-    d_helmholtz_specs.resize(d_Q_vars.size());
+    d_helmholtz_ops.reserve(d_Q_vars.size());
+    d_helmholtz_specs.reserve(d_Q_vars.size());
     for (unsigned l = 0; l < d_Q_vars.size(); ++l)
     {
         std::ostringstream stream;
         stream << l;
         const std::string& name = stream.str();
 
-        d_helmholtz_specs[l] = new SAMRAI::solv::PoissonSpecifications(
-            d_object_name+"::Helmholtz Specs::"+name);
-        d_helmholtz_ops[l] = new STOOLS::CCLaplaceOperator(
-            d_object_name+"::Helmholtz Operator::"+name,
-            *d_helmholtz_specs[l], d_Q_bc_coefs[l]);
+        d_helmholtz_specs.push_back(SAMRAI::solv::PoissonSpecifications(
+                                        d_object_name+"::Helmholtz Specs::"+name));
+        d_helmholtz_ops.push_back(new STOOLS::CCLaplaceOperator(
+                                      d_object_name+"::Helmholtz Operator::"+name,
+                                      d_helmholtz_specs[l], d_Q_bc_coefs[l]));
     }
 
     // One set of solvers/preconditioners is maintained for each variable
@@ -705,7 +707,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
             d_helmholtz_fac_ops[l] = new STOOLS::CCPoissonFACOperator(
                 d_object_name+"::FAC Ops::"+name, d_fac_ops_db);
             d_helmholtz_fac_ops[l]->setPoissonSpecifications(
-                *d_helmholtz_specs[l]);
+                d_helmholtz_specs[l]);
             d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coefs[l]);
 
             d_helmholtz_fac_pcs[l] = new SAMRAI::solv::FACPreconditioner<NDIM>(
@@ -755,7 +757,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchy()
     if (!d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::initializeHierarchy()\n" <<
-                   "  must initialize the integrator prior to call to initializeHierarchy()." << endl);
+                   "  must initialize the integrator prior to call to initializeHierarchy()." << std::endl);
     }
 
     // Initialize the patch hierarchy.
@@ -805,9 +807,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchy()
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        dt_next = SAMRAI::tbox::Utilities::
-            dmin(dt_next, d_hyp_level_integrator->
-                 getLevelDt(level, d_integrator_time, initial_time));
+        dt_next = std::min(dt_next, d_hyp_level_integrator->
+                          getLevelDt(level, d_integrator_time, initial_time));
     }
     if (d_integrator_time+dt_next > d_end_time)
     {
@@ -954,7 +955,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(current_time <= new_time);
     assert(d_end_time > d_integrator_time);
-    assert(SAMRAI::tbox::Utilities::deq(d_integrator_time,current_time));
+    assert(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
 #endif
 
     double intermediate_time = std::numeric_limits<double>::quiet_NaN();
@@ -1044,10 +1045,10 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             level, d_hierarchy, current_time, new_time,
             first_step, last_step);
 
-        dt_next = SAMRAI::tbox::Utilities::dmin(dt_next,level_dt_next);
+        dt_next = std::min(dt_next,level_dt_next);
     }
 
-    dt_next = SAMRAI::tbox::Utilities::dmin(dt_next,d_grow_dt*dt);
+    dt_next = std::min(dt_next,d_grow_dt*dt);
 
     if (new_time+dt_next >= d_end_time)
     {
@@ -1067,7 +1068,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
     // Indicate that all solvers need to be reinitialized if the
     // current timestep size is different from the previous one.
-    if (!SAMRAI::tbox::Utilities::deq(dt,d_old_dt))
+    if (!SAMRAI::tbox::MathUtilities<double>::equalEps(dt,d_old_dt))
     {
         std::fill(d_helmholtz_solvers_need_init.begin(),
                   d_helmholtz_solvers_need_init.end(), true);
@@ -1117,7 +1118,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
         // Setup the problem coefficients and right hand side for the linear
         // solve for Q(n+1).
-        SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> helmholtz_spec = d_helmholtz_specs[l];
+        SAMRAI::solv::PoissonSpecifications& helmholtz_spec = d_helmholtz_specs[l];
         SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
 
         if (d_viscous_timestepping_type == "BACKWARD_EULER")
@@ -1133,8 +1134,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             //
             // Note that for simplicity of implementation, we always use a
             // timestep-centered forcing term.
-            helmholtz_spec->setCConstant(1.0+dt*lambda);
-            helmholtz_spec->setDConstant(   -dt*mu    );
+            helmholtz_spec.setCConstant(1.0+dt*lambda);
+            helmholtz_spec.setDConstant(   -dt*mu    );
 
             SAMRAI::solv::PoissonSpecifications rhs_spec("rhs_spec");
             rhs_spec.setCConstant(1.0);
@@ -1168,8 +1169,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             //    t_old = n dt
             //    t_new = (n+1) dt
             //    t_avg = (t_new+t_old)/2
-            helmholtz_spec->setCConstant(1.0+0.5*dt*lambda);
-            helmholtz_spec->setDConstant(   -0.5*dt*mu    );
+            helmholtz_spec.setCConstant(1.0+0.5*dt*lambda);
+            helmholtz_spec.setDConstant(   -0.5*dt*mu    );
 
             SAMRAI::solv::PoissonSpecifications rhs_spec("rhs_spec");
             rhs_spec.setCConstant(1.0-0.5*dt*lambda);
@@ -1224,8 +1225,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
             intermediate_time = new_time-nu1*dt;
 
-            helmholtz_spec->setCConstant(1.0+nu1*dt*lambda);
-            helmholtz_spec->setDConstant(   -nu1*dt*mu    );
+            helmholtz_spec.setCConstant(1.0+nu1*dt*lambda);
+            helmholtz_spec.setDConstant(   -nu1*dt*mu    );
 
             SAMRAI::solv::PoissonSpecifications rhs_spec2("rhs_spec2");
             rhs_spec2.setCConstant(1.0-nu4*dt*lambda);
@@ -1271,11 +1272,11 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         else
         {
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << endl);
+                       << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << std::endl);
         }
 
         // Initialize the linear solver.
-        helmholtz_op->setPoissonSpecifications(*helmholtz_spec);
+        helmholtz_op->setPoissonSpecifications(helmholtz_spec);
         helmholtz_op->setPhysicalBcCoefs(Q_bc_coefs);
         helmholtz_op->setHomogeneousBc(false);
         helmholtz_op->setTime(new_time);
@@ -1292,7 +1293,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                                              << ", dt = " << dt << "\n";
             if (d_using_FAC)
             {
-                helmholtz_fac_op->setPoissonSpecifications(*helmholtz_spec);
+                helmholtz_fac_op->setPoissonSpecifications(helmholtz_spec);
                 helmholtz_fac_op->setTime(new_time);
                 helmholtz_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
             }
@@ -1354,7 +1355,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         else
         {
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << endl);
+                       << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << std::endl);
         }
 
 
@@ -1649,8 +1650,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
     for (CoarsenAlgMap::const_iterator it = d_calgs.begin();
          it != d_calgs.end(); ++it)
     {
-        for (int ln = SAMRAI::tbox::Utilities::imax(coarsest_level,1);
-             ln <= finest_hier_level; ++ln)
+        for (int ln = std::max(coarsest_level,1); ln <= finest_hier_level; ++ln)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level =
@@ -1799,36 +1799,36 @@ void
 AdvDiffHierarchyIntegrator::printClassData(
     std::ostream& os) const
 {
-    os << "\nAdvDiffHierarchyIntegrator::printClassData..." << endl;
-    os << "this = " << const_cast<AdvDiffHierarchyIntegrator*>(this) << endl;
-    os << "d_viscous_timestepping_type = " << d_viscous_timestepping_type << endl;
-    os << "d_u_is_div_free = " << d_u_is_div_free << endl;
+    os << "\nAdvDiffHierarchyIntegrator::printClassData..." << std::endl;
+    os << "this = " << const_cast<AdvDiffHierarchyIntegrator*>(this) << std::endl;
+    os << "d_viscous_timestepping_type = " << d_viscous_timestepping_type << std::endl;
+    os << "d_u_is_div_free = " << d_u_is_div_free << std::endl;
     os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << endl;
+       << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
     os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
-       << "d_gridding_alg = " << d_gridding_alg.getPointer() << endl;
-    os << "d_hyp_level_integrator = " << d_hyp_level_integrator.getPointer() << endl;
-    os << "d_hyp_patch_ops = " << d_hyp_patch_ops.getPointer() << endl;
+       << "d_gridding_alg = " << d_gridding_alg.getPointer() << std::endl;
+    os << "d_hyp_level_integrator = " << d_hyp_level_integrator.getPointer() << std::endl;
+    os << "d_hyp_patch_ops = " << d_hyp_patch_ops.getPointer() << std::endl;
     os << "d_start_time = " << d_start_time << "\n"
        << "d_end_time = " << d_end_time << "\n"
        << "d_grow_dt = " << d_grow_dt << "\n"
-       << "d_max_integrator_steps = " << d_max_integrator_steps << endl;
-    os << "d_regrid_interval = " << d_regrid_interval << endl;
+       << "d_max_integrator_steps = " << d_max_integrator_steps << std::endl;
+    os << "d_regrid_interval = " << d_regrid_interval << std::endl;
     os << "d_using_default_tag_buffer = " << d_using_default_tag_buffer << "\n"
        << "d_tag_buffer = [ ";
     std::copy(d_tag_buffer.getPointer(), d_tag_buffer.getPointer()+d_tag_buffer.size(), std::ostream_iterator<int>(os, " , "));
-    os << " ]" << endl;
+    os << " ]" << std::endl;
     os << "d_old_dt = " << d_old_dt << "\n"
        << "d_integrator_time = " << d_integrator_time << "\n"
-       << "d_integrator_step = " << d_integrator_step << endl;
-    os << "d_is_initialized = " << d_is_initialized << endl;
-    os << "d_do_log = " << d_do_log << endl;
+       << "d_integrator_step = " << d_integrator_step << std::endl;
+    os << "d_is_initialized = " << d_is_initialized << std::endl;
+    os << "d_do_log = " << d_do_log << std::endl;
     os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n"
        << "d_hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
-       << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << endl;
+       << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << std::endl;
     os << "d_wgt_var = " << d_wgt_var.getPointer() << "\n"
-       << "d_wgt_idx = " << d_wgt_idx << endl;
-    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << endl;
+       << "d_wgt_idx = " << d_wgt_idx << std::endl;
+    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << std::endl;
     return;
 }// printClassData
 

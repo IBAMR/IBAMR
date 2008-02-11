@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <24.Jun.2007 21:17:51 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 22:04:46 griffith@box221.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
@@ -27,6 +27,7 @@
 #include <Box.h>
 #include <Patch.h>
 #include <PatchLevel.h>
+#include <tbox/MathUtilities.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
 
@@ -140,7 +141,7 @@ IBTargetPointForceGen::computeLagrangianForce(
                         assert(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
                         const double& kappa_target = force_spec->getStiffness();
-                        if (!SAMRAI::tbox::Utilities::deq(kappa_target,0.0))
+                        if (!SAMRAI::tbox::MathUtilities<double>::equalEps(kappa_target,0.0))
                         {
                             const int& petsc_idx = node_idx->getLocalPETScIndex();
                             const double* const X = &X_arr[NDIM*petsc_idx];
@@ -168,17 +169,17 @@ IBTargetPointForceGen::computeLagrangianForce(
     ierr = VecRestoreArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecRestoreArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
 
-    max_config_displacement = SAMRAI::tbox::MPI::maxReduction(max_config_displacement);
+    max_config_displacement = SAMRAI::tbox::SAMRAI_MPI::maxReduction(max_config_displacement);
     if (max_config_displacement > max_displacement)
     {
         max_displacement = max_config_displacement;
     }
 
-    if (!SAMRAI::tbox::Utilities::deq(max_config_displacement,0.0))
+    if (!SAMRAI::tbox::MathUtilities<double>::equalEps(max_config_displacement,0.0))
     {
-        SAMRAI::tbox::plog << "IBTargetPointForceGen::computeLagrangianForce():" << endl;
-        SAMRAI::tbox::plog << "  maximum target point displacement [present configuration] = " << max_config_displacement << endl;
-        SAMRAI::tbox::plog << "  maximum target point displacement [entire simulation] = " << max_displacement << endl;
+        SAMRAI::tbox::plog << "IBTargetPointForceGen::computeLagrangianForce():" << std::endl;
+        SAMRAI::tbox::plog << "  maximum target point displacement [present configuration] = " << max_config_displacement << std::endl;
+        SAMRAI::tbox::plog << "  maximum target point displacement [entire simulation] = " << max_displacement << std::endl;
     }
 
     t_compute_lagrangian_force->stop();

@@ -431,6 +431,7 @@ fi
 AC_CHECK_HEADER([petsc.h],,AC_MSG_WARN([could not find header file petsc.h]))
 
 AC_LANG_PUSH([C])
+echo "trying to link PETSc using the C compiler (instead of the C++ compiler)"
 AC_CHECK_LIB([petsc],[PetscTrMalloc],,
              [AC_MSG_WARN([could not find libpetsc])
               missing_petsc_lib=yes])
@@ -456,7 +457,7 @@ AC_LANG_POP([C])
 
 if test "$missing_petsc_lib" == "yes"; then
   echo "could not find one or more of the PETSc libraries"
-  echo "trying to link using the C++ compiler instead of the C compiler"
+  echo "trying to link PETSc using the C++ compiler (instead of the C compiler)"
 
   unset ac_cv_lib_petsc_PetscTrMalloc
   unset ac_cv_lib_petscvec_PetscTrMalloc

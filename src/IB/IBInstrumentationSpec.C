@@ -1,5 +1,5 @@
 // Filename: IBInstrumentationSpec.C
-// Last modified: <14.Jun.2007 18:52:28 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 21:57:49 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBInstrumentationSpec.h"
@@ -21,7 +21,7 @@
 #include <ibamr/StashableManager.h>
 
 // SAMRAI INCLUDES
-#include <tbox/MPI.h>
+#include <tbox/SAMRAI_MPI.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -41,7 +41,7 @@ IBInstrumentationSpec::registerWithStashableManager()
     // register the stashable factory with the stashable manager, and to ensure
     // that all processes employ the same stashable id for the IBInstrumentationSpec
     // object.
-    SAMRAI::tbox::MPI::barrier();
+    SAMRAI::tbox::SAMRAI_MPI::barrier();
     if (!s_registered_factory)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS

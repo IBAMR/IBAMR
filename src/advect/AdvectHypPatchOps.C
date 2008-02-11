@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <07.Dec.2007 19:00:06 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Feb.2008 18:01:32 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -362,7 +362,7 @@ AdvectHypPatchOps::registerAdvectedQuantity(
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedQuantity():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
+                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
     }
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > flux_integral_var;
@@ -452,7 +452,7 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedQuantityWithSourceTerm():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << endl);
+                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
     }
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > flux_integral_var;
@@ -1348,9 +1348,9 @@ AdvectHypPatchOps::tagRichardsonExtrapolationCells(
 
                 for (int idir = 0; idir < NDIM; ++idir)
                 {
-                    max_dx = SAMRAI::tbox::Utilities::dmax(max_dx, dx[idir]);
+                    max_dx = std::max(max_dx, dx[idir]);
                     double length = xdomainhi[idir] - xdomainlo[idir];
-                    max_length = SAMRAI::tbox::Utilities::dmax(max_length, length);
+                    max_length = std::max(max_length, length);
                 }
 
                 double max_wave_speed = max_dx / deltat;
@@ -1400,7 +1400,7 @@ AdvectHypPatchOps::tagRichardsonExtrapolationCells(
                         }
 
                         diff = sqrt(diff);
-                        error = SAMRAI::tbox::Utilities::dabs(diff)*rnminus1*steps;
+                        error = std::abs(diff)*rnminus1*steps;
 
                         // Tag cell if error exceeds the prescribed threshold.
                         // Since we are operating on the actual tag values (not
@@ -1547,8 +1547,7 @@ AdvectHypPatchOps::tagGradientDetectorCells(
                                     locden *= 0.75;
                                 }
                             }
-                            if (SAMRAI::tbox::Utilities::
-                                fabs((*var)(ic(),depth)-dev) > locden)
+                            if (std::abs((*var)(ic(),depth)-dev) > locden)
                             {
                                 (*temp_tags)(ic(),0) = refine_tag_val;
                             }
@@ -1857,82 +1856,82 @@ void
 AdvectHypPatchOps::printClassData(
     std::ostream &os) const
 {
-    os << "\nAdvectHypPatchOps::printClassData..." << endl;
-    os << "this = " << const_cast<AdvectHypPatchOps*>(this) << endl;
+    os << "\nAdvectHypPatchOps::printClassData..." << std::endl;
+    os << "this = " << const_cast<AdvectHypPatchOps*>(this) << std::endl;
     os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << endl;
-    os << "d_grid_geometry = " << d_grid_geometry.getPointer() << endl;
+       << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
+    os << "d_grid_geometry = " << d_grid_geometry.getPointer() << std::endl;
 #if (NDIM>1)
-    os << "d_visit_writer = " << d_visit_writer.getPointer() << endl;
+    os << "d_visit_writer = " << d_visit_writer.getPointer() << std::endl;
 #endif
     os << "d_ghosts = " << d_ghosts << "\n"
        << "d_flux_ghosts = " << d_flux_ghosts << "\n"
-       << "d_extrap_type = " << d_extrap_type << endl;
+       << "d_extrap_type = " << d_extrap_type << std::endl;
     for (int j = 0; j < d_refinement_criteria.getSize(); ++j)
     {
         os << "d_refinement_criteria[" << j << "] = "
-           << d_refinement_criteria[j] << endl;
+           << d_refinement_criteria[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (int j = 0; j < d_dev_tol.getSize(); ++j)
     {
         os << "d_dev_tol[" << j << "] = "
-           << d_dev_tol[j] << endl;
+           << d_dev_tol[j] << std::endl;
     }
     for (int j = 0; j < d_dev.getSize(); ++j)
     {
         os << "d_dev[" << j << "] = "
-           << d_dev[j] << endl;
+           << d_dev[j] << std::endl;
     }
-    if (d_dev.getSize()) os << endl;
+    if (d_dev.getSize()) os << std::endl;
     for (int j = 0; j < d_dev_time_max.getSize(); ++j)
     {
         os << "d_dev_time_max[" << j << "] = "
-           << d_dev_time_max[j] << endl;
+           << d_dev_time_max[j] << std::endl;
     }
-    if (d_dev_time_max.getSize()) os << endl;
+    if (d_dev_time_max.getSize()) os << std::endl;
     for (int j = 0; j < d_dev_time_min.getSize(); ++j)
     {
         os << "d_dev_time_min[" << j << "] = "
-           << d_dev_time_min[j] << endl;
+           << d_dev_time_min[j] << std::endl;
     }
-    if (d_dev_time_min.getSize()) os << endl;
+    if (d_dev_time_min.getSize()) os << std::endl;
     for (int j = 0; j < d_grad_tol.getSize(); ++j)
     {
         os << "d_grad_tol[" << j << "] = "
-           << d_grad_tol[j] << endl;
+           << d_grad_tol[j] << std::endl;
     }
-    if (d_grad_tol.getSize()) os << endl;
+    if (d_grad_tol.getSize()) os << std::endl;
     for (int j = 0; j < d_grad_time_max.getSize(); ++j)
     {
         os << "d_grad_time_max[" << j << "] = "
-           << d_grad_time_max[j] << endl;
+           << d_grad_time_max[j] << std::endl;
     }
-    if (d_grad_time_max.getSize()) os << endl;
+    if (d_grad_time_max.getSize()) os << std::endl;
     for (int j = 0; j < d_grad_time_min.getSize(); ++j)
     {
         os << "d_grad_time_min[" << j << "] = "
-           << d_grad_time_min[j] << endl;
+           << d_grad_time_min[j] << std::endl;
     }
-    if (d_grad_time_min.getSize()) os << endl;
+    if (d_grad_time_min.getSize()) os << std::endl;
     for (int j = 0; j < d_rich_tol.getSize(); ++j)
     {
         os << "d_rich_tol[" << j << "] = "
-           << d_rich_tol[j] << endl;
+           << d_rich_tol[j] << std::endl;
     }
-    if (d_rich_tol.getSize()) os << endl;
+    if (d_rich_tol.getSize()) os << std::endl;
     for (int j = 0; j < d_rich_time_max.getSize(); ++j)
     {
         os << "d_rich_time_max[" << j << "] = "
-           << d_rich_time_max[j] << endl;
+           << d_rich_time_max[j] << std::endl;
     }
-    if (d_rich_time_max.getSize()) os << endl;
+    if (d_rich_time_max.getSize()) os << std::endl;
     for (int j = 0; j < d_rich_time_min.getSize(); ++j)
     {
         os << "d_rich_time_min[" << j << "] = "
-           << d_rich_time_min[j] << endl;
+           << d_rich_time_min[j] << std::endl;
     }
-    if (d_rich_time_min.getSize()) os << endl;
+    if (d_rich_time_min.getSize()) os << std::endl;
 
     return;
 }// printClassData
@@ -1985,12 +1984,12 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
     if (!pgeom->getTouchesRegularBoundary()) return;
 
     // Compute the codimension one boundary boxes.
-    const std::vector<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
+    const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
         STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
 
     // There is nothing to do if the patch does not have any codimension one
     // boundary boxes.
-    if (physical_codim1_boxes.empty()) return;
+    if (physical_codim1_boxes.size() == 0) return;
 
     // Loop over the boundary fill boxes and set boundary conditions at inflow
     // boundaries only.
@@ -2022,10 +2021,9 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
         // Set the boundary conditions.
         SAMRAI::math::ArrayDataBasicOps<NDIM,double> array_ops;
         (void) array_ops;
-        for (std::vector<SAMRAI::hier::BoundaryBox<NDIM> >::const_iterator cit = physical_codim1_boxes.begin();
-             cit != physical_codim1_boxes.end(); ++cit)
+        for (int n = 0; n < physical_codim1_boxes.size(); ++n)
         {
-            const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = (*cit);
+            const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
             const int location_index   = bdry_box.getLocationIndex();
             const int bdry_normal_axis = location_index/2;
             const bool is_lower        = location_index%2 == 0;
@@ -2114,7 +2112,7 @@ AdvectHypPatchOps::getFromInput(
     {
         TBOX_ERROR("AdvectHypPatchOps::getFromInput():\n"
                    << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << endl);
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
     }
 
     if (db->keyExists("Refinement_data"))

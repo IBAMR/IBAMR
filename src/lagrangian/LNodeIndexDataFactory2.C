@@ -1,5 +1,5 @@
 // Filename: LNodeIndexDataFactory2.C
-// Last modified: <04.Jun.2007 13:06:17 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Feb.2008 00:30:26 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "LNodeIndexDataFactory2.h"
@@ -50,9 +50,10 @@ LNodeIndexDataFactory2::~LNodeIndexDataFactory2()
 }// ~LNodeIndexDataFactory2
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >
-LNodeIndexDataFactory2::cloneFactory()
+LNodeIndexDataFactory2::cloneFactory(
+    const SAMRAI::hier::IntVector<NDIM>& ghosts)
 {
-    return new LNodeIndexDataFactory2(getDefaultGhostCellWidth());
+    return new LNodeIndexDataFactory2(ghosts);
 }// cloneFactory
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
@@ -64,8 +65,16 @@ LNodeIndexDataFactory2::allocate(
     {
         pool = SAMRAI::tbox::ArenaManager::getManager()->getStandardAllocator();
     }
-    SAMRAI::hier::PatchData<NDIM>* pd = new (pool) LNodeIndexData2(box,getDefaultGhostCellWidth(),pool);
+    SAMRAI::hier::PatchData<NDIM>* pd = new (pool) LNodeIndexData2(box,getGhostCellWidth(),pool);
     return SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(pd, pool);
+}// allocate
+
+SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
+LNodeIndexDataFactory2::allocate(
+    const SAMRAI::hier::Patch<NDIM>& patch,
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool) const
+{
+    return allocate(patch.getBox(), pool);
 }// allocate
 
 size_t
@@ -75,6 +84,14 @@ LNodeIndexDataFactory2::getSizeOfMemory(
     (void) box;
     return SAMRAI::tbox::Arena::align(sizeof(LNodeIndexData2));
 }// getSizeOfMemory
+
+bool
+LNodeIndexDataFactory2::validCopyTo(
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >& dst_pdf) const
+{
+    SAMRAI::tbox::Pointer<LNodeIndexDataFactory2> lnidf = dst_pdf;
+    return !lnidf.isNull();
+}// validCopyTo
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -88,5 +105,8 @@ LNodeIndexDataFactory2::getSizeOfMemory(
 
 #include <tbox/Pointer.C>
 template class SAMRAI::tbox::Pointer<IBAMR::LNodeIndexDataFactory2>;
+
+#include <MultiblockCellDataTranslator.C>
+template class SAMRAI::pdat::MultiblockCellDataTranslator<NDIM,IBAMR::LNodeIndexSet>;
 
 //////////////////////////////////////////////////////////////////////////////

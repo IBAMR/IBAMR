@@ -1,5 +1,5 @@
 // Filename: LEInteractor.C
-// Last modified: <09.Oct.2007 16:43:59 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 22:21:16 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "LEInteractor.h"
@@ -265,7 +265,7 @@ LEInteractor::getStencilSize(
 
     TBOX_ERROR("LEInteractor::getStencilSize()\n"
                << "  Unknown weighting function "
-               << weighting_fcn << endl);
+               << weighting_fcn << std::endl);
 
     return -1;
 }// getStencilSize
@@ -417,7 +417,7 @@ LEInteractor::interpolate(
         {
             TBOX_ERROR("LEInteractor::interpolate()\n" <<
                        "  Unknown interpolation weighting function "
-                       << interp_fcn << endl);
+                       << interp_fcn << std::endl);
         }
     }
     t_interpolate_f77->stop();
@@ -562,7 +562,7 @@ LEInteractor::interpolate(
         {
             TBOX_ERROR("LEInteractor::interpolate()\n" <<
                        "  Unknown interpolation weighting function "
-                       << interp_fcn << endl);
+                       << interp_fcn << std::endl);
         }
     }
     t_interpolate_f77->stop();
@@ -715,7 +715,7 @@ LEInteractor::spread(
         {
             TBOX_ERROR("LEInteractor::spread()\n" <<
                        "  Unknown spreading weighting function "
-                       << spread_fcn << endl);
+                       << spread_fcn << std::endl);
         }
     }
     t_spread_f77->stop();

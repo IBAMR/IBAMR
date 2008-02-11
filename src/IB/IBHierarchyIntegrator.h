@@ -2,10 +2,13 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <20.Nov.2007 17:18:16 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 21:55:39 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+// PETSC INCLUDES
+#include <petsc.h>
 
 // IBAMR INCLUDES
 #include <ibamr/IBEulerianForceSetter.h>

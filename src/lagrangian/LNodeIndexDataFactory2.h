@@ -2,7 +2,7 @@
 #define included_LNodeIndexDataFactory2
 
 // Filename: LNodeIndexDataFactory2.h
-// Last modified: <04.Jun.2007 12:32:34 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Feb.2008 00:30:33 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -46,13 +46,13 @@ public:
 
     /*!
      * Virtual function to clone the data factory.  This will return a new
-     * instantiation of the factory with the same properties (e.g., same type
-     * and ghost cell width).  The properties of the cloned factory can then be
-     * changed (e.g., change the ghost cell width) without modifying the
-     * original.
+     * instantiation of the factory with the same properties (e.g., same type).
+     * The properties of the cloned factory can then be changed without
+     * modifying the original.
      */
     virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >
-    cloneFactory();
+    cloneFactory(
+        const SAMRAI::hier::IntVector<NDIM>& ghosts);
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default
@@ -66,6 +66,17 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool=NULL) const;
 
     /*!
+     * Virtual factory function to allocate a concrete data object.  The default
+     * information about the object (e.g., ghost cell width) is taken from the
+     * factory.  If no memory pool is provided, the allocation routine assumes
+     * some default memory pool.
+     */
+    virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
+    allocate(
+        const SAMRAI::hier::Patch<NDIM>& patch,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool=NULL) const;
+
+    /*!
      * Calculate the amount of memory needed to store the data object, including
      * object data but not dynamically allocated data.
      */
@@ -74,13 +85,24 @@ public:
         const SAMRAI::hier::Box<NDIM>& box) const;
 
     /*!
+     * Return whether it is valid to copy this LNodeIndexDataFactory2 to the
+     * supplied destination patch data factory. It will return true if dst_pdf
+     * is a LNodeIndexDataFactory2, false otherwise.
+     */
+    virtual bool
+    validCopyTo(
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >& dst_pdf) const;
+
+    /*!
      * The remaining SAMRAI::hier::PatchDataFactory<NDIM> functionality of
      * LNodeIndexDataFactory2 is provided by the
      * SAMRAI::pdat::CellDataFactory<NDIM,LNodeIndexSet> class.
      */
     using SAMRAI::pdat::CellDataFactory<NDIM,LNodeIndexSet>::getBoxGeometry;
-    using SAMRAI::pdat::CellDataFactory<NDIM,LNodeIndexSet>::getDefaultGhostCellWidth;
-    using SAMRAI::pdat::CellDataFactory<NDIM,LNodeIndexSet>::setDefaultGhostCellWidth;
+    using SAMRAI::pdat::CellDataFactory<NDIM,LNodeIndexSet>::getGhostCellWidth;
+    using SAMRAI::pdat::CellDataFactory<NDIM,LNodeIndexSet>::fineBoundaryRepresentsVariable;
+    using SAMRAI::pdat::CellDataFactory<NDIM,LNodeIndexSet>::dataLivesOnPatchBorder;
+    using SAMRAI::pdat::CellDataFactory<NDIM,LNodeIndexSet>::getMultiblockDataTranslator;
 
 private:
     /*!

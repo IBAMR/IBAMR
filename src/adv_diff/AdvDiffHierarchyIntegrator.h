@@ -2,10 +2,13 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <07.Nov.2007 23:46:55 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Feb.2008 20:10:15 griffith@box221.cims.nyu.edu>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+// PETSC INCLUDES
+#include <petsc.h>
 
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHypPatchOps.h>
@@ -1019,7 +1022,7 @@ private:
     bool d_using_FAC;
 
     std::vector<SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >              d_helmholtz_ops;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::PoissonSpecifications> >    d_helmholtz_specs;
+    std::vector<SAMRAI::solv::PoissonSpecifications>                            d_helmholtz_specs;
     std::vector<SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> >             d_helmholtz_solvers;
     std::vector<SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >           d_helmholtz_fac_ops;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > d_helmholtz_fac_pcs;

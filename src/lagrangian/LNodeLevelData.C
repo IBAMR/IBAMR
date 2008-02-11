@@ -1,5 +1,5 @@
 // Filename: LNodeLevelData.C
-// Last modified: <17.Apr.2007 18:21:26 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 22:32:17 griffith@box221.cims.nyu.edu>
 // Created on 17 Apr 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "LNodeLevelData.h"
@@ -41,7 +41,7 @@ LNodeLevelData::operator=(
     if (that.d_in_local_form)
     {
         TBOX_ERROR("LNodeLevelData operator=:\n" <<
-                   "  operator=() source object must NOT be in local form." << endl);
+                   "  operator=() source object must NOT be in local form." << std::endl);
     }
     if (this == &that) return *this;  // check for self-assignment
 
@@ -205,7 +205,7 @@ LNodeLevelData::LNodeLevelData(
     if (from.d_in_local_form)
     {
         TBOX_ERROR("LNodeLevelData copy constructor:\n" <<
-                   "  copy constructor source object must NOT be in local form." << endl);
+                   "  copy constructor source object must NOT be in local form." << std::endl);
     }
 
     int ierr;
@@ -223,7 +223,7 @@ LNodeLevelData::resetData(
     if (d_in_local_form)
     {
         TBOX_ERROR("LNodeLevelData::resetData()\n" <<
-                   "  object must NOT be in local form." << endl);
+                   "  object must NOT be in local form." << std::endl);
     }
     d_global_vec = new_global_vec;
     d_nonlocal_petsc_indices = new_nonlocal_petsc_indices;

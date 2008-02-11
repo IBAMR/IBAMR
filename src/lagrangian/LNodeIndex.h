@@ -2,7 +2,7 @@
 #define included_LNodeIndex
 
 // Filename: LNodeIndex.h
-// Last modified: <24.Jun.2007 21:21:51 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 21:38:16 griffith@box221.cims.nyu.edu>
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -44,7 +44,7 @@ public:
         const int lagrangian_nidx=-1,
         const int local_petsc_nidx=-1,
         double* const X_ptr=NULL,
-        const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data=vector<SAMRAI::tbox::Pointer<Stashable> >());
+        const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data=std::vector<SAMRAI::tbox::Pointer<Stashable> >());
 
     /*!
      * \brief Copy constructor.

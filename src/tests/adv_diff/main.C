@@ -11,11 +11,12 @@
 #include <tbox/Database.h>
 #include <tbox/InputDatabase.h>
 #include <tbox/InputManager.h>
-#include <tbox/MPI.h>
+#include <tbox/MathUtilities.h>
 #include <tbox/PIO.h>
 #include <tbox/Pointer.h>
 #include <tbox/RestartManager.h>
 #include <tbox/SAMRAIManager.h>
+#include <tbox/SAMRAI_MPI.h>
 #include <tbox/TimerManager.h>
 #include <tbox/Utilities.h>
 
@@ -65,7 +66,7 @@ main(
      * line.
      */
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
-    tbox::MPI::setCommunicator(PETSC_COMM_WORLD);
+    tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     tbox::SAMRAIManager::startup();
 
     string input_filename;
@@ -81,7 +82,7 @@ main(
                    << "  options:\n"
                    << "  PETSc command line options; use -help for more information"
                    << endl;
-        tbox::MPI::abort();
+        tbox::SAMRAI_MPI::abort();
         return -1;
     }
     else
@@ -90,13 +91,13 @@ main(
         if (argc >= 4)
         {
             FILE* fstream = NULL;
-            if (tbox::MPI::getRank() == 0)
+            if (tbox::SAMRAI_MPI::getRank() == 0)
             {
                 fstream = fopen(argv[2], "r");
             }
             int worked = (fstream ? 1 : 0);
 #ifdef HAVE_MPI
-            worked = tbox::MPI::bcast(worked, 0);
+            worked = tbox::SAMRAI_MPI::bcast(worked, 0);
 #endif
             if (worked)
             {
@@ -249,7 +250,7 @@ main(
     if (is_from_restart)
     {
         restart_manager->openRestartFile(
-            restart_read_dirname, restore_num, tbox::MPI::getNodes());
+            restart_read_dirname, restore_num, tbox::SAMRAI_MPI::getNodes());
     }
 
     /*
@@ -373,7 +374,7 @@ main(
 
     int iteration_num = time_integrator->getIntegratorStep();
 
-    while (!tbox::Utilities::deq(loop_time,loop_time_end) &&
+    while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
            time_integrator->stepsRemaining())
     {
         iteration_num = time_integrator->getIntegratorStep() + 1;

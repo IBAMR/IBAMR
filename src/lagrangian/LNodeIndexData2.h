@@ -2,7 +2,7 @@
 #define included_LNodeIndexData2
 
 // Filename: LNodeIndexData2.h
-// Last modified: <04.Jun.2007 16:29:12 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Feb.2008 00:20:29 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -76,9 +76,10 @@ public:
      * LNodeIndexData is provided by class
      * SAMRAI::pdat::CellData<NDIM,LNodeIndexSet>.
      */
+    using SAMRAI::pdat::CellData<NDIM,LNodeIndexSet>::operator();
     using SAMRAI::pdat::CellData<NDIM,LNodeIndexSet>::copy;
     using SAMRAI::pdat::CellData<NDIM,LNodeIndexSet>::copy2;
-    using SAMRAI::pdat::CellData<NDIM,LNodeIndexSet>::operator();
+    using SAMRAI::pdat::CellData<NDIM,LNodeIndexSet>::copyOnBox;
     using SAMRAI::pdat::CellData<NDIM,LNodeIndexSet>::getDataStreamSize;
     using SAMRAI::pdat::CellData<NDIM,LNodeIndexSet>::packStream;
     using SAMRAI::pdat::CellData<NDIM,LNodeIndexSet>::unpackStream;

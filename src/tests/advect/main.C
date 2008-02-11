@@ -8,11 +8,12 @@
 #include <tbox/Database.h>
 #include <tbox/InputDatabase.h>
 #include <tbox/InputManager.h>
-#include <tbox/MPI.h>
+#include <tbox/MathUtilities.h>
 #include <tbox/PIO.h>
 #include <tbox/Pointer.h>
 #include <tbox/RestartManager.h>
 #include <tbox/SAMRAIManager.h>
+#include <tbox/SAMRAI_MPI.h>
 #include <tbox/TimerManager.h>
 #include <tbox/Utilities.h>
 
@@ -148,7 +149,7 @@ main(
     /*
      * Initialize MPI and SAMRAI, enable logging, and process command line.
      */
-    tbox::MPI::init(&argc, &argv);
+    tbox::SAMRAI_MPI::init(&argc, &argv);
     tbox::SAMRAIManager::startup();
 
     string input_filename;
@@ -164,7 +165,7 @@ main(
                    << "  options:\n"
                    << "  none at this time"
                    << endl;
-        tbox::MPI::abort();
+        tbox::SAMRAI_MPI::abort();
         return (-1);
     }
     else
@@ -363,7 +364,7 @@ main(
     if (is_from_restart)
     {
         restart_manager->openRestartFile(
-            restart_read_dirname, restore_num, tbox::MPI::getNodes());
+            restart_read_dirname, restore_num, tbox::SAMRAI_MPI::getNodes());
     }
 
     /*
@@ -495,7 +496,7 @@ main(
 
     int iteration_num = time_integrator->getIntegratorStep();
 
-    while (!tbox::Utilities::deq(loop_time,loop_time_end) &&
+    while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
            time_integrator->stepsRemaining())
     {
         iteration_num = time_integrator->getIntegratorStep() + 1;
@@ -617,7 +618,7 @@ main(
     visit_data_writer.setNull();
 
     tbox::SAMRAIManager::shutdown();
-    tbox::MPI::finalize();
+    tbox::SAMRAI_MPI::finalize();
 
     return 0;
 }// main

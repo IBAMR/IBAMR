@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <10.Oct.2007 18:13:19 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 22:21:43 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -44,8 +44,9 @@
 #include <ProcessorMapping.h>
 #include <RefineOperator.h>
 #include <VariableDatabase.h>
-#include <tbox/MPI.h>
+#include <tbox/MathUtilities.h>
 #include <tbox/RestartManager.h>
+#include <tbox/SAMRAI_MPI.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
 #include <tbox/ShutdownRegistry.h>
@@ -145,11 +146,11 @@ struct CellIndexFortranOrder
 };
 
 struct BeginLNodeLevelDataNonlocalFill
-    : std::unary_function<pair<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
+    : std::unary_function<std::pair<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
 {
     inline void
     operator()(
-        const pair<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
+        const std::pair<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
         {
             data.second->beginGhostUpdate();
             return;
@@ -194,11 +195,11 @@ struct InvalidateLNodeIndexLocationPointers
 };
 
 struct EndLNodeLevelDataNonlocalFill
-    : std::unary_function<pair<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
+    : std::unary_function<std::pair<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >,void>
 {
     inline void
     operator()(
-        const pair<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
+        const std::pair<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> >& data) const
         {
             data.second->endGhostUpdate();
             return;
@@ -354,8 +355,7 @@ LDataManager::resetLevels(
 #endif
     // Destroy any un-needed AO objects.
     int ierr;
-    for (int ln = SAMRAI::tbox::Utilities::imax(d_coarsest_ln,0);
-         (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
+    for (int ln = std::max(d_coarsest_ln,0); (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
     {
         if (d_ao[ln])
         {
@@ -1762,7 +1762,7 @@ LDataManager::initializeLevelData(
     }
 
     // Update the MPI process mapping data.
-    const int mpi_process = SAMRAI::tbox::MPI::getRank();
+    const int mpi_process = SAMRAI::tbox::SAMRAI_MPI::getRank();
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1866,8 +1866,7 @@ LDataManager::resetHierarchyConfiguration(
 
     // (Re)build coarsen communication schedules.  These are set only for levels
     // >= 1.
-    for (int ln = SAMRAI::tbox::Utilities::imax(coarsest_level,1);
-         ln <= finest_hier_level; ++ln)
+    for (int ln = std::max(coarsest_level,1); ln <= finest_hier_level; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level =
@@ -1945,7 +1944,7 @@ LDataManager::applyGradientDetector(
             for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
             {
                 const SAMRAI::pdat::CellIndex<NDIM>& i = ic();
-                if (!SAMRAI::tbox::Utilities::deq((*node_count_data)(i),0.0))
+                if (!SAMRAI::tbox::MathUtilities<double>::equalEps((*node_count_data)(i),0.0))
                 {
                     (*tag_data)(i) = 1;
                 }
@@ -2730,12 +2729,12 @@ LDataManager::computeNodeOffsets(
 {
     t_compute_node_offsets->start();
 
-    const int mpi_size = SAMRAI::tbox::MPI::getNodes();
-    const int mpi_rank = SAMRAI::tbox::MPI::getRank();
+    const int mpi_size = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    const int mpi_rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
 
     std::vector<int> num_nodes_proc(mpi_size,0);
 
-    SAMRAI::tbox::MPI::allGather(num_local_nodes, &num_nodes_proc[0]);
+    SAMRAI::tbox::SAMRAI_MPI::allGather(num_local_nodes, &num_nodes_proc[0]);
 
     node_offset = std::accumulate(num_nodes_proc.begin(),
                                   num_nodes_proc.begin()+mpi_rank, 0);

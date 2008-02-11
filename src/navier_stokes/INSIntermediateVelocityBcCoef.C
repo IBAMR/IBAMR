@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.C
-// Last modified: <16.Dec.2007 17:22:55 boyce@trasnaform2.local>
+// Last modified: <04.Feb.2008 22:41:53 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSIntermediateVelocityBcCoef.h"
@@ -156,7 +156,7 @@ INSIntermediateVelocityBcCoef::setVelocityPhysicalBcCoefs(
     if (u_bc_coefs.size() != NDIM)
     {
         TBOX_ERROR("INSIntermediateVelocityBcCoef::setVelocityPhysicalBcCoefs():\n"
-                   << "  precisely NDIM boundary condition objects must be provided." << endl);
+                   << "  precisely NDIM boundary condition objects must be provided." << std::endl);
     }
     d_u_bc_coefs = u_bc_coefs;
     return;
@@ -190,7 +190,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
 {
 #if USING_OLD_ROBIN_BC_INTERFACE
     TBOX_ERROR("INSIntermediateVelocityBcCoef::setBcCoefs():\n"
-               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << endl);
+               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << std::endl);
 #else
     setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 #endif
@@ -214,7 +214,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
     setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 #else
     TBOX_ERROR("INSIntermediateVelocityBcCoef::setBcCoefs():\n"
-               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << endl);
+               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << std::endl);
 #endif
     return;
 }// setBcCoefs

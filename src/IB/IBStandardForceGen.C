@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <17.Apr.2007 18:18:39 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 22:00:48 griffith@box221.cims.nyu.edu>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBStandardForceGen.h"
@@ -35,7 +35,7 @@ IBStandardForceGen::IBStandardForceGen(
     if (spring_force_gen.isNull())
     {
         TBOX_WARNING("IBStandardForceGen::initializeLevelData():\n"
-                     << "  spring forces disabled." << endl);
+                     << "  spring forces disabled." << std::endl);
     }
     else
     {
@@ -45,7 +45,7 @@ IBStandardForceGen::IBStandardForceGen(
     if (beam_force_gen.isNull())
     {
         TBOX_WARNING("IBStandardForceGen::initializeLevelData():\n"
-                     << "  beam forces disabled." << endl);
+                     << "  beam forces disabled." << std::endl);
     }
     else
     {
@@ -55,7 +55,7 @@ IBStandardForceGen::IBStandardForceGen(
     if (target_point_force_gen.isNull())
     {
         TBOX_WARNING("IBStandardForceGen::initializeLevelData():\n"
-                     << "  target point forces disabled." << endl);
+                     << "  target point forces disabled." << std::endl);
     }
     else
     {

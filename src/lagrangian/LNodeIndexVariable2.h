@@ -2,7 +2,7 @@
 #define included_LNodeIndexVariable2
 
 // Filename: LNodeIndexVariable2.h
-// Last modified: <04.Jun.2007 12:37:29 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Feb.2008 00:18:44 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -39,7 +39,7 @@ public:
      * cell-centered index space for AMR patches.  Thus, LNodeIndex data does
      * not live on patch borders.
      */
-    bool
+    virtual bool
     dataLivesOnPatchBorder() const;
 
     /*!
@@ -50,7 +50,7 @@ public:
      * data does not live on patch borders and so there is no ambiguity
      * reagrding coarse-fine interface values.
      */
-    bool
+    virtual bool
     fineBoundaryRepresentsVariable() const;
 
 private:

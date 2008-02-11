@@ -2,11 +2,14 @@
 #define included_ArrayData_specialized_LNodeIndexSet
 
 // Filename: ArrayData_specialized_LNodeIndexSet.I
-// Last modified: <27.Jun.2007 18:45:57 griffith@box221.cims.nyu.edu>
+// Last modified: <07.Feb.2008 00:33:04 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include <ArrayData.h>
 #include <CellData.h>
+#include <CopyOperation.h>
+#include <SumOperation.h>
+#include <tbox/ArenaManager.h>
 #include <ibamr/LNodeIndexSet.h>
 #include <ibamr/StashableStream.h>
 #include <cassert>
@@ -15,6 +18,27 @@ namespace SAMRAI
 {
 namespace pdat
 {
+
+template<>
+inline void
+CopyOperation<IBAMR::LNodeIndexSet>::operator()(
+    IBAMR::LNodeIndexSet& vdst,
+    const IBAMR::LNodeIndexSet& vsrc) const
+{
+    vdst = vsrc;
+    return;
+}// operator()
+
+template<>
+inline void
+SumOperation<IBAMR::LNodeIndexSet>::operator()(
+    IBAMR::LNodeIndexSet& vdst,
+    const IBAMR::LNodeIndexSet& vsrc) const
+{
+    vdst.d_set.insert(vdst.d_set.end(),vsrc.d_set.begin(),vsrc.d_set.end());
+    return;
+}// operator()
+
 template<>
 inline size_t
 ArrayData<NDIM,IBAMR::LNodeIndexSet>::getSizeOfData(
@@ -239,6 +263,43 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStream(
     unpackStream(stream,hier::BoxList<NDIM>(dest_box),source_offset);
     return;
 }// unpackStream
+
+template<>
+inline void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStreamAndSum(
+    tbox::AbstractStream& stream,
+    const hier::BoxList<NDIM>& dest_boxes,
+    const hier::IntVector<NDIM>& source_offset)
+{
+    tbox::Pointer<tbox::Arena> scratch = tbox::ArenaManager::getManager()->getScratchAllocator();
+    ArrayData<NDIM,IBAMR::LNodeIndexSet> temp_data(getBox(), getDepth(), scratch);
+    temp_data.unpackStream(stream, dest_boxes, source_offset);
+    IBAMR::LNodeIndexSet* buffer = temp_data.getPointer();
+
+    int ptr = 0;
+    for (hier::BoxList<NDIM>::Iterator b(dest_boxes); b; b++)
+    {
+        unpackBufferAndSum(&buffer[ptr], b());
+        ptr += d_depth * b().size();
+    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    const int size = d_depth * dest_boxes.getTotalSizeOfBoxes();
+    assert(ptr == size);
+#endif
+    return;
+}// unpackStreamAndSum
+
+template<>
+inline void
+ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStreamAndSum(
+    tbox::AbstractStream& stream,
+    const hier::Box<NDIM>& dest_box,
+    const hier::IntVector<NDIM>& source_offset)
+{
+    // Just use the BoxList-version of unpackStream().
+    unpackStreamAndSum(stream,hier::BoxList<NDIM>(dest_box),source_offset);
+    return;
+}// unpackStreamAndSum
 
 template <>
 inline void

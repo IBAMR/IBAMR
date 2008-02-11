@@ -1,5 +1,5 @@
 // Filename: LagM3DDataWriter.C
-// Last modified: <19.Dec.2007 20:37:17 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 22:35:45 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagM3DDataWriter.h"
@@ -25,7 +25,7 @@
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 #include <IndexData.h>
-#include <tbox/MPI.h>
+#include <tbox/SAMRAI_MPI.h>
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
@@ -162,8 +162,7 @@ LagM3DDataWriter::resetLevels(
 #endif
     // Destroy any un-needed PETSc objects.
     int ierr;
-    for (int ln = SAMRAI::tbox::Utilities::imax(d_coarsest_ln,0);
-         (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
+    for (int ln = std::max(d_coarsest_ln,0); (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
     {
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
@@ -275,7 +274,7 @@ LagM3DDataWriter::registerLogicallyCartesianBlock(
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
-        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+        resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -342,7 +341,7 @@ LagM3DDataWriter::registerCoordsData(
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
-        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+        resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -362,7 +361,7 @@ LagM3DDataWriter::registerLagrangianAO(
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
-        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+        resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -386,7 +385,7 @@ LagM3DDataWriter::registerLagrangianAO(
 
     if (coarsest_ln < d_coarsest_ln || finest_ln > d_finest_ln)
     {
-        resetLevels(min(coarsest_ln,d_coarsest_ln),max(finest_ln,d_finest_ln));
+        resetLevels(std::min(coarsest_ln,d_coarsest_ln),std::max(finest_ln,d_finest_ln));
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -417,7 +416,7 @@ LagM3DDataWriter::writePlotData(
                    << "  data writer with name " << d_object_name << "\n"
                    << "  time step number: " << time_step_number
                    << " is <= last time step number: " << d_time_step_number
-                   << endl);
+                   << std::endl);
     }
     d_time_step_number = time_step_number;
 
@@ -425,12 +424,12 @@ LagM3DDataWriter::writePlotData(
     {
         TBOX_ERROR(d_object_name << "::writePlotData()\n"
                    << "  data writer with name " << d_object_name << "\n"
-                   << "  dump directory name is empty" << endl);
+                   << "  dump directory name is empty" << std::endl);
     }
 
     int ierr;
-    const int mpi_rank = SAMRAI::tbox::MPI::getRank();
-    const int mpi_size = SAMRAI::tbox::MPI::getNodes();
+    const int mpi_rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
+    const int mpi_size = SAMRAI::tbox::SAMRAI_MPI::getNodes();
 
     // Create the dump directory.
     SAMRAI::tbox::Utilities::recursiveMkdir(d_dump_directory_name);
@@ -451,7 +450,7 @@ LagM3DDataWriter::writePlotData(
     // Determine the marker cloud and fiber offsets.
     int num_local_marker_nodes = std::accumulate(d_cloud_nmarks.begin(), d_cloud_nmarks.end(), 0);
     std::vector<int> num_marker_nodes_proc(mpi_size,0);
-    SAMRAI::tbox::MPI::allGather(num_local_marker_nodes, &num_marker_nodes_proc[0]);
+    SAMRAI::tbox::SAMRAI_MPI::allGather(num_local_marker_nodes, &num_marker_nodes_proc[0]);
     const int marker_node_offset = std::accumulate(
         num_marker_nodes_proc.begin(), num_marker_nodes_proc.begin()+mpi_rank, 0);
     const int num_marker_nodes = std::accumulate(
@@ -459,7 +458,7 @@ LagM3DDataWriter::writePlotData(
 
     const int num_local_marker_clouds = d_nclouds;
     std::vector<int> num_marker_clouds_proc(mpi_size,0);
-    SAMRAI::tbox::MPI::allGather(num_local_marker_clouds, &num_marker_clouds_proc[0]);
+    SAMRAI::tbox::SAMRAI_MPI::allGather(num_local_marker_clouds, &num_marker_clouds_proc[0]);
     const int marker_cloud_offset = std::accumulate(
         num_marker_clouds_proc.begin(), num_marker_clouds_proc.begin()+mpi_rank, 0);
     const int num_marker_clouds = std::accumulate(
@@ -474,7 +473,7 @@ LagM3DDataWriter::writePlotData(
         num_local_fibers += std::accumulate((*cit).begin(), (*cit).end(), 0);
     }
     std::vector<int> num_fibers_proc(mpi_size,0);
-    SAMRAI::tbox::MPI::allGather(num_local_fibers, &num_fibers_proc[0]);
+    SAMRAI::tbox::SAMRAI_MPI::allGather(num_local_fibers, &num_fibers_proc[0]);
     const int fiber_offset = std::accumulate(
         num_fibers_proc.begin(), num_fibers_proc.begin()+mpi_rank, 0);
     const int num_fibers = std::accumulate(
@@ -487,7 +486,7 @@ LagM3DDataWriter::writePlotData(
         num_local_groups += std::accumulate((*cit).begin(), (*cit).end(), 0);
     }
     std::vector<int> num_groups_proc(mpi_size,0);
-    SAMRAI::tbox::MPI::allGather(num_local_groups, &num_groups_proc[0]);
+    SAMRAI::tbox::SAMRAI_MPI::allGather(num_local_groups, &num_groups_proc[0]);
     const int group_offset = std::accumulate(
         num_groups_proc.begin(), num_groups_proc.begin()+mpi_rank, 0);
     const int num_groups = std::accumulate(
@@ -495,7 +494,7 @@ LagM3DDataWriter::writePlotData(
 
     const int num_local_layers = std::accumulate(d_nblocks.begin(), d_nblocks.end(), 0);
     std::vector<int> num_layers_proc(mpi_size,0);
-    SAMRAI::tbox::MPI::allGather(num_local_layers, &num_layers_proc[0]);
+    SAMRAI::tbox::SAMRAI_MPI::allGather(num_local_layers, &num_layers_proc[0]);
     const int layer_offset = std::accumulate(
         num_layers_proc.begin(), num_layers_proc.begin()+mpi_rank, 0);
     const int num_layers = std::accumulate(
@@ -633,7 +632,7 @@ LagM3DDataWriter::writePlotData(
                                     << std::setw(5) << num_fibers << "           = NUMBER OF FIBERS IN THIS DATA FILE\n";
             }
         }
-        SAMRAI::tbox::MPI::barrier();
+        SAMRAI::tbox::SAMRAI_MPI::barrier();
     }
 
     // Create the menu.text file.
@@ -669,7 +668,7 @@ LagM3DDataWriter::writePlotData(
                     }
                 }
             }
-            SAMRAI::tbox::MPI::barrier();
+            SAMRAI::tbox::SAMRAI_MPI::barrier();
         }
 
         for (int rank = 0; rank < mpi_size; ++rank)
@@ -691,7 +690,7 @@ LagM3DDataWriter::writePlotData(
                     local_marker_cloud_counter += 1;
                 }
             }
-            SAMRAI::tbox::MPI::barrier();
+            SAMRAI::tbox::SAMRAI_MPI::barrier();
         }
 
         if (mpi_rank == M3D_MPI_ROOT)
@@ -738,7 +737,7 @@ LagM3DDataWriter::writePlotData(
                              << "#\n"
                              << "# =+=+=+=+=+=+=+=+=+= END OF DISPLAY PROGRAM DIRECTIVES =+=+=+=+=+=+=+=+=+=+=+=\n";
         }
-        SAMRAI::tbox::MPI::barrier();
+        SAMRAI::tbox::SAMRAI_MPI::barrier();
     }
 
     // Create list and cat files.
@@ -847,7 +846,7 @@ LagM3DDataWriter::writePlotData(
     {
         max_marker_idx = std::max(max_marker_idx,d_cloud_first_mark_idx[cloud]+d_cloud_nmarks[cloud]-1);
     }
-    SAMRAI::tbox::MPI::maxReduction(&max_marker_idx);
+    SAMRAI::tbox::SAMRAI_MPI::maxReduction(&max_marker_idx);
 
     const int total_num_marks = max_marker_idx+1;
     std::vector<double> X_marker(NDIM*total_num_marks,0.0);
@@ -887,7 +886,7 @@ LagM3DDataWriter::writePlotData(
     /*!
      * \todo Make this operation more efficient!
      */
-    SAMRAI::tbox::MPI::sumReduction(&X_marker[0], NDIM*total_num_marks);
+    SAMRAI::tbox::SAMRAI_MPI::sumReduction(&X_marker[0], NDIM*total_num_marks);
 
     // Create the HDF5 files.
     const std::string hdf5_marker_file_name = d_dump_directory_name + "/" + local_marker_file_name + ".h5";
@@ -895,7 +894,7 @@ LagM3DDataWriter::writePlotData(
     if (marker_file_id < 0)
     {
         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                   << "  could not create marker file: " << marker_file_name << endl);
+                   << "  could not create marker file: " << marker_file_name << std::endl);
     }
 
     const std::string hdf5_fiber_file_name = d_dump_directory_name + "/" + local_fiber_file_name + ".h5";
@@ -903,7 +902,7 @@ LagM3DDataWriter::writePlotData(
     if (fiber_file_id < 0)
     {
         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                   << "  could not create fiber file: " << fiber_file_name << endl);
+                   << "  could not create fiber file: " << fiber_file_name << std::endl);
     }
 
     // Store information about the data layout in the local HDF5 files.

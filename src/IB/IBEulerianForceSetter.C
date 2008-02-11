@@ -1,5 +1,5 @@
 // Filename: IBEulerianForceSetter.C
-// Last modified: <17.Apr.2007 18:16:11 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 21:41:02 griffith@box221.cims.nyu.edu>
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBEulerianForceSetter.h"
@@ -19,6 +19,7 @@
 // SAMRAI INCLUDES
 #include <CellData.h>
 #include <PatchCellDataOpsReal.h>
+#include <tbox/MathUtilities.h>
 
 // C++ STDLIB INCLUDES
 #include <cassert>
@@ -85,7 +86,7 @@ IBEulerianForceSetter::setDataOnPatch(
     {
         f_data->fillAll(0.0);
     }
-    else if (SAMRAI::tbox::Utilities::deq(data_time, d_current_time))
+    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         if (d_F_current_idx != -1)
         {
@@ -96,7 +97,7 @@ IBEulerianForceSetter::setDataOnPatch(
             f_data->copy(*f_current_data);
         }
     }
-    else if (SAMRAI::tbox::Utilities::deq(data_time, d_new_time))
+    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, d_new_time))
     {
         if (d_F_new_idx != -1)
         {
@@ -107,7 +108,7 @@ IBEulerianForceSetter::setDataOnPatch(
             f_data->copy(*f_new_data);
         }
     }
-    else if (SAMRAI::tbox::Utilities::deq(data_time, 0.5*(d_current_time+d_new_time)))
+    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, 0.5*(d_current_time+d_new_time)))
     {
         if (d_F_half_idx != -1)
         {
@@ -121,7 +122,7 @@ IBEulerianForceSetter::setDataOnPatch(
     else
     {
         TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
-                   << "  data time " << data_time << " is not the current, new, or half time." << endl);
+                   << "  data time " << data_time << " is not the current, new, or half time." << std::endl);
     }
     return;
 }// setDataOnPatch

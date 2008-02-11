@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <04.Jun.2007 14:33:52 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 21:40:37 griffith@box221.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -118,8 +118,7 @@ IBBeamForceGen::initializeLevelData(
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
     const int level_num = level->getLevelNumber();
-    const int new_size = SAMRAI::tbox::Utilities::imax(
-        level_num+1, d_is_initialized.size());
+    const int new_size = std::max(level_num+1, int(d_is_initialized.size()));
 
     d_D_next_mats.resize(new_size);
     d_D_prev_mats.resize(new_size);

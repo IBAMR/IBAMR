@@ -1,5 +1,5 @@
 // Filename: StashableStream.I
-// Last modified: <17.Apr.2007 18:25:11 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 21:38:21 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -348,7 +348,7 @@ StashableStream::getPointerAndAdvanceCursor(
         if (d_buffer_index > d_buffer_size)
         {
             TBOX_ERROR("StashableStream::getPointerAndAdvanceCursor():\n"
-                       << "  buffer overrun." << endl);
+                       << "  buffer overrun." << std::endl);
         }
     }
     return ptr;

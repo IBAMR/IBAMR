@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <16.Dec.2007 17:50:56 boyce@trasnaform2.local>
+// Last modified: <04.Feb.2008 22:42:14 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -141,7 +141,7 @@ INSProjectionBcCoef::setProjectionType(
     {
         TBOX_ERROR("INSProjectionBcCoef::setProjectionType():\n"
                    << "  invalid velocity projection type: " << projection_type << "\n"
-                   << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << endl);
+                   << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << std::endl);
     }
     d_projection_type = projection_type;
     return;
@@ -170,7 +170,7 @@ INSProjectionBcCoef::setVelocityPhysicalBcCoefs(
     if (u_bc_coefs.size() != NDIM)
     {
         TBOX_ERROR("INSProjectionBcCoef::setVelocityPhysicalBcCoefs():\n"
-                   << "  precisely NDIM boundary condition objects must be provided." << endl);
+                   << "  precisely NDIM boundary condition objects must be provided." << std::endl);
     }
     d_u_bc_coefs = u_bc_coefs;
     return;
@@ -204,7 +204,7 @@ INSProjectionBcCoef::setBcCoefs(
 {
 #if USING_OLD_ROBIN_BC_INTERFACE
     TBOX_ERROR("INSProjectionBcCoef::setBcCoefs():\n"
-               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << endl);
+               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << std::endl);
 #else
     setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 #endif
@@ -228,7 +228,7 @@ INSProjectionBcCoef::setBcCoefs(
     setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 #else
     TBOX_ERROR("INSProjectionBcCoef::setBcCoefs():\n"
-               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << endl);
+               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << std::endl);
 #endif
     return;
 }// setBcCoefs

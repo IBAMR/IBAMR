@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <11.Oct.2007 00:40:52 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 21:58:17 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -30,6 +30,7 @@
 #include <CartesianPatchGeometry.h>
 #include <Patch.h>
 #include <PatchLevel.h>
+#include <tbox/MathUtilities.h>
 #include <tbox/RestartManager.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
@@ -215,7 +216,7 @@ build_meter_web(
     if (DBSetDir(dbfile, dirname.c_str()) == -1)
     {
         TBOX_ERROR("IBInstrumentPanel::build_meter_web()\n"
-                   << "  Could not set directory " << dirname << endl);
+                   << "  Could not set directory " << dirname << std::endl);
     }
 
     // Write out the variables.
@@ -255,7 +256,7 @@ build_meter_web(
     if (DBSetDir(dbfile, "..") == -1)
     {
         TBOX_ERROR("IBInstrumentPanel::build_meter_web()\n"
-                   << "  Could not return to the base directory from subdirectory " << dirname << endl);
+                   << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
     }
     return;
 }// build_meter_web
@@ -353,7 +354,7 @@ IBInstrumentPanel::IBInstrumentPanel(
 #if HAVE_LIBSILO
     // intentionally blank
 #else
-    TBOX_WARNING("IBInstrumentPanel::IBInstrumentPanel(): SILO is not installed; cannot write data." << endl);
+    TBOX_WARNING("IBInstrumentPanel::IBInstrumentPanel(): SILO is not installed; cannot write data." << std::endl);
 #endif
 
     // Initialize object with data read from the input database.
@@ -381,7 +382,7 @@ IBInstrumentPanel::IBInstrumentPanel(
 IBInstrumentPanel::~IBInstrumentPanel()
 {
     // Close the log file stream.
-    if (SAMRAI::tbox::MPI::getRank() == 0)
+    if (SAMRAI::tbox::SAMRAI_MPI::getRank() == 0)
     {
         d_log_file_stream.close();
     }
@@ -424,7 +425,7 @@ IBInstrumentPanel::isInstrumented() const
     if (!d_initialized)
     {
         TBOX_WARNING(d_object_name << "::isInstrumented()\n"
-                     << "  instrument data has not been initialized" << endl);
+                     << "  instrument data has not been initialized" << std::endl);
         return false;
     }
     return (d_num_meters > 0);
@@ -476,11 +477,11 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
                             if (!spec.isNull())
                             {
                                 const int m = spec->getMeterIndex();
-                                max_meter_index = max(m, max_meter_index);
+                                max_meter_index = std::max(m, max_meter_index);
 
                                 const int n = spec->getNodeIndex();
                                 max_node_index.resize(max_meter_index+1,-1);
-                                max_node_index[m] = max(n, max_node_index[m]);
+                                max_node_index[m] = std::max(n, max_node_index[m]);
                             }
                         }
                     }
@@ -490,7 +491,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     }
 
     // Communicate local data to all processes.
-    d_num_meters = SAMRAI::tbox::MPI::maxReduction(max_meter_index)+1;
+    d_num_meters = SAMRAI::tbox::SAMRAI_MPI::maxReduction(max_meter_index)+1;
     max_node_index.resize(d_num_meters,-1);
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(d_num_meters >= 0);
@@ -501,7 +502,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     {
         d_num_perimeter_nodes[m] = max_node_index[m]+1;
     }
-    SAMRAI::tbox::MPI::maxReduction(&d_num_perimeter_nodes[0], d_num_meters);
+    SAMRAI::tbox::SAMRAI_MPI::maxReduction(&d_num_perimeter_nodes[0], d_num_meters);
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (int m = 0; m < d_num_meters; ++m)
     {
@@ -523,7 +524,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     {
         TBOX_WARNING(d_object_name << "::initializeHierarchyIndependentData()\n"
                      << "  instrument names are not initialized\n"
-                     << "  using default names" << endl);
+                     << "  using default names" << std::endl);
         d_instrument_names.resize(d_num_meters);
         for (int m = 0; m < d_num_meters; ++m)
         {
@@ -546,7 +547,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
                      static_cast<int>(d_instrument_names[m].length()));
     }
 
-    if (d_output_log_file && SAMRAI::tbox::MPI::getRank() == 0 && !d_log_file_stream.is_open())
+    if (d_output_log_file && SAMRAI::tbox::SAMRAI_MPI::getRank() == 0 && !d_log_file_stream.is_open())
     {
         const bool from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
         if (from_restart)
@@ -673,7 +674,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         }
     }
 
-    SAMRAI::tbox::MPI::sumReduction(&X_perimeter_flattened[0],X_perimeter_flattened.size());
+    SAMRAI::tbox::SAMRAI_MPI::sumReduction(&X_perimeter_flattened[0],X_perimeter_flattened.size());
 
     for (int m = 0, k = 0; m < d_num_meters; ++m)
     {
@@ -864,15 +865,15 @@ IBInstrumentPanel::readInstrumentData(
         TBOX_ERROR(d_object_name << "::readInstrumentData()\n"
                    << "  time step number: " << timestep_num
                    << " is != instrumentation time step number: " << d_instrument_read_timestep_num
-                   << endl);
+                   << std::endl);
     }
 
-    if (!SAMRAI::tbox::Utilities::deq(data_time, d_instrument_read_time))
+    if (!SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, d_instrument_read_time))
     {
         TBOX_ERROR(d_object_name << "::readInstrumentData()\n"
                    << "  data read time: " << data_time
                    << " is != instrumentation data read time: " << d_instrument_read_time
-                   << endl);
+                   << std::endl);
     }
 
     // Reset the instrument values.
@@ -966,10 +967,10 @@ IBInstrumentPanel::readInstrumentData(
     }
 
     // Synchronize the values across all processes.
-    SAMRAI::tbox::MPI::sumReduction(&d_flow_values      [0],d_num_meters);
-    SAMRAI::tbox::MPI::sumReduction(&d_mean_pres_values [0],d_num_meters);
-    SAMRAI::tbox::MPI::sumReduction(&d_point_pres_values[0],d_num_meters);
-    SAMRAI::tbox::MPI::sumReduction(&A                  [0],d_num_meters);
+    SAMRAI::tbox::SAMRAI_MPI::sumReduction(&d_flow_values      [0],d_num_meters);
+    SAMRAI::tbox::SAMRAI_MPI::sumReduction(&d_mean_pres_values [0],d_num_meters);
+    SAMRAI::tbox::SAMRAI_MPI::sumReduction(&d_point_pres_values[0],d_num_meters);
+    SAMRAI::tbox::SAMRAI_MPI::sumReduction(&A                  [0],d_num_meters);
 
     // Normalize the mean pressure.
     for (int m = 0; m < d_num_meters; ++m)
@@ -1054,7 +1055,7 @@ IBInstrumentPanel::readInstrumentData(
         }
     }
 
-    SAMRAI::tbox::MPI::sumReduction(&U_perimeter_flattened[0],U_perimeter_flattened.size());
+    SAMRAI::tbox::SAMRAI_MPI::sumReduction(&U_perimeter_flattened[0],U_perimeter_flattened.size());
 
     for (int m = 0, k = 0; m < d_num_meters; ++m)
     {
@@ -1099,7 +1100,7 @@ IBInstrumentPanel::readInstrumentData(
     outputLogData(SAMRAI::tbox::plog);
     SAMRAI::tbox::plog << std::string(d_max_instrument_name_len+94,'*') << "\n";
 
-    if (d_output_log_file && SAMRAI::tbox::MPI::getRank() == 0)
+    if (d_output_log_file && SAMRAI::tbox::SAMRAI_MPI::getRank() == 0)
     {
         outputLogData(d_log_file_stream);
         d_log_file_stream.flush();
@@ -1128,20 +1129,20 @@ IBInstrumentPanel::writePlotData(
         TBOX_ERROR(d_object_name << "::writePlotData()\n"
                    << "  time step number: " << timestep_num
                    << " is != last time step number: " << d_instrument_read_timestep_num
-                   << endl);
+                   << std::endl);
     }
 
     if (d_plot_directory_name.empty())
     {
         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                   << "  dump directory name is empty" << endl);
+                   << "  dump directory name is empty" << std::endl);
     }
 
     char temp_buf[SILO_NAME_BUFSIZE];
     std::string current_file_name;
     DBfile* dbfile;
-    const int mpi_rank  = SAMRAI::tbox::MPI::getRank();
-    const int mpi_nodes = SAMRAI::tbox::MPI::getNodes();
+    const int mpi_rank  = SAMRAI::tbox::SAMRAI_MPI::getRank();
+    const int mpi_nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
 
     // Create the working directory.
     sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);
@@ -1160,7 +1161,7 @@ IBInstrumentPanel::writePlotData(
         == NULL)
     {
         TBOX_ERROR(d_object_name + "::writePlotData()\n"
-                   << "  Could not create DBfile named " << current_file_name << endl);
+                   << "  Could not create DBfile named " << current_file_name << std::endl);
     }
 
     // Output the web data on the available MPI processes.
@@ -1174,7 +1175,7 @@ IBInstrumentPanel::writePlotData(
             {
                 TBOX_ERROR(d_object_name + "::writePlotData()\n"
                            << "  Could not create directory named "
-                           << dirname << endl);
+                           << dirname << std::endl);
             }
 
             build_meter_web(dbfile, dirname, d_X_web[meter], d_dA_web[meter],
@@ -1194,7 +1195,7 @@ IBInstrumentPanel::writePlotData(
             == NULL)
         {
             TBOX_ERROR(d_object_name + "::writePlotData()\n"
-                       << "  Could not create DBfile named " << summary_file_name << endl);
+                       << "  Could not create DBfile named " << summary_file_name << std::endl);
         }
 
         int    cycle = timestep_num;
@@ -1227,7 +1228,7 @@ IBInstrumentPanel::writePlotData(
             {
                 TBOX_ERROR(d_object_name + "::writePlotData()\n"
                            << "  Could not create directory named "
-                           << meter_name << endl);
+                           << meter_name << std::endl);
             }
 
             std::string varname = current_file_name + ":" + d_instrument_names[meter] + "/scaled_normal";
@@ -1249,21 +1250,21 @@ IBInstrumentPanel::writePlotData(
         if (!summary_file_opened)
         {
             summary_file_opened = true;
-            std::ofstream sfile(path.c_str(), ios::out);
-            sfile << file << endl;
+            std::ofstream sfile(path.c_str(), std::ios::out);
+            sfile << file << std::endl;
             sfile.close();
         }
         else
         {
-            std::ofstream sfile(path.c_str(), ios::app);
-            sfile << file << endl;
+            std::ofstream sfile(path.c_str(), std::ios::app);
+            sfile << file << std::endl;
             sfile.close();
         }
     }
 
-    SAMRAI::tbox::MPI::barrier();
+    SAMRAI::tbox::SAMRAI_MPI::barrier();
 #else
-    TBOX_WARNING("IBInstrumentPanel::writePlotData(): SILO is not installed; cannot write data." << endl);
+    TBOX_WARNING("IBInstrumentPanel::writePlotData(): SILO is not installed; cannot write data." << std::endl);
 #endif //if HAVE_LIBSILO
     t_write_plot_data->stop();
     return;

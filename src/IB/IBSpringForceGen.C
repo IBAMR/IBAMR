@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <04.Jun.2007 14:34:09 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 22:02:15 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -126,8 +126,7 @@ IBSpringForceGen::initializeLevelData(
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
     const int level_num = level->getLevelNumber();
-    const int new_size = SAMRAI::tbox::Utilities::imax(
-        level_num+1, d_is_initialized.size());
+    const int new_size = std::max(level_num+1, int(d_is_initialized.size()));
 
     d_D_mats.resize(new_size);
     d_lag_mastr_node_idxs.resize(new_size);

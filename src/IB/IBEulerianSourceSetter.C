@@ -1,5 +1,5 @@
 // Filename: IBEulerianSourceSetter.C
-// Last modified: <17.Apr.2007 18:16:24 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 21:46:23 griffith@box221.cims.nyu.edu>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 #include "IBEulerianSourceSetter.h"
@@ -18,6 +18,7 @@
 
 // SAMRAI INCLUDES
 #include <CellData.h>
+#include <tbox/MathUtilities.h>
 
 // C++ STDLIB INCLUDES
 #include <cassert>
@@ -84,7 +85,7 @@ IBEulerianSourceSetter::setDataOnPatch(
     {
         q_data->fillAll(0.0);
     }
-    else if (SAMRAI::tbox::Utilities::deq(data_time, d_current_time))
+    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         if (d_Q_current_idx != -1)
         {
@@ -95,7 +96,7 @@ IBEulerianSourceSetter::setDataOnPatch(
             q_data->copy(*q_current_data);
         }
     }
-    else if (SAMRAI::tbox::Utilities::deq(data_time, d_new_time))
+    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, d_new_time))
     {
         if (d_Q_new_idx != -1)
         {
@@ -106,7 +107,7 @@ IBEulerianSourceSetter::setDataOnPatch(
             q_data->copy(*q_new_data);
         }
     }
-    else if (SAMRAI::tbox::Utilities::deq(data_time, 0.5*(d_current_time+d_new_time)))
+    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, 0.5*(d_current_time+d_new_time)))
     {
         if (d_Q_half_idx != -1)
         {
@@ -120,7 +121,7 @@ IBEulerianSourceSetter::setDataOnPatch(
     else
     {
         TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
-                   << "  data time " << data_time << " is not the current, new, or half time." << endl);
+                   << "  data time " << data_time << " is not the current, new, or half time." << std::endl);
     }
     return;
 }// setDataOnPatch

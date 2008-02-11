@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <01.Feb.2008 11:46:17 boyce@trasnaform2.local>
+// Last modified: <07.Feb.2008 00:34:14 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -41,6 +41,7 @@
 #include <Patch.h>
 #include <PatchCellDataOpsReal.h>
 #include <VariableDatabase.h>
+#include <tbox/MathUtilities.h>
 #include <tbox/RestartManager.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
@@ -235,8 +236,8 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     // Read in the initial marker positions.
     if (!from_restart && !d_mark_input_file_name.empty())
     {
-        const int mpi_rank = SAMRAI::tbox::MPI::getRank();
-        const int mpi_size = SAMRAI::tbox::MPI::getNodes();
+        const int mpi_rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
+        const int mpi_size = SAMRAI::tbox::SAMRAI_MPI::getNodes();
 
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
         const double* const grid_xLower = grid_geom->getXLower();
@@ -296,30 +297,30 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
                         const double* const X = &d_mark_init_posns[NDIM*k];
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            if (SAMRAI::tbox::Utilities::deq(X[d],grid_xLower[d]))
+                            if (SAMRAI::tbox::MathUtilities<double>::equalEps(X[d],grid_xLower[d]))
                             {
                                 TBOX_ERROR(d_object_name << "::IBHierarchyIntegrator():\n"
                                            << "  encountered marker intersecting lower physical boundary.\n"
-                                           << "  please ensure that all markers are within the computational domain."<< endl);
+                                           << "  please ensure that all markers are within the computational domain."<< std::endl);
                             }
                             else if (X[d] <= grid_xLower[d])
                             {
                                 TBOX_ERROR(d_object_name << "::IBHierarchyIntegrator():\n"
                                            << "  encountered marker below lower physical boundary\n"
-                                           << "  please ensure that all markers are within the computational domain."<< endl);
+                                           << "  please ensure that all markers are within the computational domain."<< std::endl);
                             }
 
-                            if (SAMRAI::tbox::Utilities::deq(X[d],grid_xUpper[d]))
+                            if (SAMRAI::tbox::MathUtilities<double>::equalEps(X[d],grid_xUpper[d]))
                             {
                                 TBOX_ERROR(d_object_name << "::IBHierarchyIntegrator():\n"
                                            << "  encountered marker intersecting upper physical boundary.\n"
-                                           << "  please ensure that all markers are within the computational domain."<< endl);
+                                           << "  please ensure that all markers are within the computational domain."<< std::endl);
                             }
                             else if (X[d] >= grid_xUpper[d])
                             {
                                 TBOX_ERROR(d_object_name << "::IBHierarchyIntegrator():\n"
                                            << "  encountered marker above upper physical boundary\n"
-                                           << "  please ensure that all markers are within the computational domain."<< endl);
+                                           << "  please ensure that all markers are within the computational domain."<< std::endl);
                             }
                         }
                     }
@@ -808,7 +809,7 @@ IBHierarchyIntegrator::initializeHierarchy()
     if (d_integrator_time >= d_dt_max_time_min &&
         d_integrator_time <= d_dt_max_time_max)
     {
-        dt_next = SAMRAI::tbox::Utilities::dmin(dt_next, d_dt_max);
+        dt_next = std::min(dt_next, d_dt_max);
     }
 
     const int coarsest_ln = 0;
@@ -857,7 +858,7 @@ IBHierarchyIntegrator::advanceHierarchy(
 
     const double current_time = d_integrator_time;
     const double new_time     = d_integrator_time+dt;
-    const bool initial_time   = SAMRAI::tbox::Utilities::deq(current_time,d_start_time);
+    const bool initial_time   = SAMRAI::tbox::MathUtilities<double>::equalEps(current_time,d_start_time);
 
     // Regrid the patch hierarchy.
     const bool do_regrid = (d_regrid_interval == 0
@@ -1198,12 +1199,12 @@ IBHierarchyIntegrator::advanceHierarchy(
                         max_config_displacement = displacement;
                     }
                 }
-                max_config_displacement = SAMRAI::tbox::MPI::maxReduction(max_config_displacement);
+                max_config_displacement = SAMRAI::tbox::SAMRAI_MPI::maxReduction(max_config_displacement);
                 if (max_config_displacement > max_displacement)
                 {
                     max_displacement = max_config_displacement;
                 }
-                if (d_do_log && !SAMRAI::tbox::Utilities::deq(max_config_displacement,0.0))
+                if (d_do_log && !SAMRAI::tbox::MathUtilities<double>::equalEps(max_config_displacement,0.0))
                 {
                     SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy():\n";
                     SAMRAI::tbox::plog << "  maximum massive boundary point displacement [present configuration] = " << max_config_displacement << "\n";
@@ -1460,15 +1461,6 @@ IBHierarchyIntegrator::advanceHierarchy(
             SAMRAI::tbox::plog << "+ Performing cycle " << cycle+1 << " of " << d_num_init_cycles << " to initialize P(n=1/2)\n";
             SAMRAI::tbox::plog << "+\n";
             SAMRAI::tbox::plog << "++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
-        }
-
-        if (cycle == 0) // XXXX
-        {
-            SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-            const int P_current_idx = var_db->mapVariableAndContextToIndex(
-                d_ins_hier_integrator->getPressureVar(),
-                d_ins_hier_integrator->getCurrentContext());
-            d_hier_cc_data_ops->setToScalar(P_current_idx,0.0);
         }
 
         // Solve the Navier-Stokes equations for U(n+1), u(n+1), P(n+1/2).  For
@@ -1748,7 +1740,7 @@ IBHierarchyIntegrator::advanceHierarchy(
     updateIBInstrumentationData(d_integrator_step+1,new_time);
     if (d_instrument_panel->isInstrumented())
     {
-        const std::vector<string>& instrument_name = d_instrument_panel->getInstrumentNames();
+        const std::vector<std::string>& instrument_name = d_instrument_panel->getInstrumentNames();
         const std::vector<double>& flow_data = d_instrument_panel->getFlowValues();
         for (unsigned m = 0; m < flow_data.size(); ++m)
         {
@@ -1792,12 +1784,12 @@ IBHierarchyIntegrator::advanceHierarchy(
     if (d_integrator_time >= d_dt_max_time_min &&
         d_integrator_time <= d_dt_max_time_max)
     {
-        dt_next = SAMRAI::tbox::Utilities::dmin(d_dt_max,dt_next);
+        dt_next = std::min(d_dt_max,dt_next);
     }
 
     if (!initial_time)
     {
-        dt_next = SAMRAI::tbox::Utilities::dmin(dt_next,d_grow_dt*d_old_dt);
+        dt_next = std::min(dt_next,d_grow_dt*d_old_dt);
     }
 
     t_advance_hierarchy->stop();
@@ -1894,7 +1886,7 @@ IBHierarchyIntegrator::regridHierarchy()
 {
     t_regrid_hierarchy->start();
 
-    const bool initial_time = SAMRAI::tbox::Utilities::deq(d_integrator_time,d_start_time);
+    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
 
     // Collect marker data onto the coarsest level of the grid pre-regridding.
     //
@@ -2236,11 +2228,11 @@ IBHierarchyIntegrator::initializeLevelData(
     // Determine the initial source/sink locations.
     if (initial_time && !d_source_strategy.isNull())
     {
-        d_X_src.resize(max(static_cast<int>(d_X_src.size()),level_number+1));
-        d_r_src.resize(max(static_cast<int>(d_r_src.size()),level_number+1));
-        d_P_src.resize(max(static_cast<int>(d_P_src.size()),level_number+1));
-        d_Q_src.resize(max(static_cast<int>(d_Q_src.size()),level_number+1));
-        d_n_src.resize(max(static_cast<int>(d_n_src.size()),level_number+1),0);
+        d_X_src.resize(std::max(int(d_X_src.size()),level_number+1));
+        d_r_src.resize(std::max(int(d_r_src.size()),level_number+1));
+        d_P_src.resize(std::max(int(d_P_src.size()),level_number+1));
+        d_Q_src.resize(std::max(int(d_Q_src.size()),level_number+1));
+        d_n_src.resize(std::max(int(d_n_src.size()),level_number+1),0);
 
         d_n_src[level_number] = d_source_strategy->
             getNumSources(hierarchy, level_number, d_integrator_time, d_lag_data_manager);
@@ -2347,8 +2339,7 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
     // (Re)build specialized refine communication schedules used to compute the
     // Cartesian force and source densities.  These are set only for levels >=
     // 1.
-    for (int ln = SAMRAI::tbox::Utilities::imax(1,coarsest_level);
-         ln <= finest_hier_level; ++ln)
+    for (int ln = std::max(1,coarsest_level); ln <= finest_hier_level; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
 
@@ -2371,8 +2362,7 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
     for (CoarsenAlgMap::const_iterator it = d_calgs.begin();
          it!= d_calgs.end(); ++it)
     {
-        for (int ln = SAMRAI::tbox::Utilities::imax(coarsest_level,1);
-             ln <= finest_hier_level; ++ln)
+        for (int ln = std::max(coarsest_level,1); ln <= finest_hier_level; ++ln)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level =
@@ -2459,7 +2449,7 @@ IBHierarchyIntegrator::applyGradientDetector(
             for (int d = 0; d < NDIM; ++d)
             {
                 r[d] = floor(d_r_src[finer_level_number][n]/dx_finer[d])*dx_finer[d];
-                r[d] = max(r[d],2.0*dx_finer[d]);
+                r[d] = std::max(r[d],2.0*dx_finer[d]);
             }
 
             // Determine the approximate source stencil box.
@@ -2966,7 +2956,7 @@ IBHierarchyIntegrator::countMarkers(
             }
         }
     }
-    return SAMRAI::tbox::MPI::sumReduction(num_marks);
+    return SAMRAI::tbox::SAMRAI_MPI::sumReduction(num_marks);
 }// countMarkers
 
 void
@@ -3068,7 +3058,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
                     for (int d = 0; d < NDIM; ++d)
                     {
                         r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
-                        r[d] = max(r[d],2.0*dx[d]);
+                        r[d] = std::max(r[d],2.0*dx[d]);
                     }
 
                     // Determine the approximate source stencil box.
@@ -3122,7 +3112,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
 #endif
     }
 
-    if (!SAMRAI::tbox::Utilities::deq(q_total, Q_sum))
+    if (!SAMRAI::tbox::MathUtilities<double>::equalEps(q_total, Q_sum))
     {
         TBOX_ERROR(d_object_name << ":  "
                    << "Lagrangian and Eulerian source/sink strengths are inconsistent.");
@@ -3235,8 +3225,8 @@ IBHierarchyIntegrator::computeSourcePressures(
         }
     }
 
-    SAMRAI::tbox::MPI::sumReduction(&p_norm,1);
-    SAMRAI::tbox::MPI::sumReduction(&vol,1);
+    SAMRAI::tbox::SAMRAI_MPI::sumReduction(&p_norm,1);
+    SAMRAI::tbox::SAMRAI_MPI::sumReduction(&vol,1);
 
     p_norm /= vol;
 
@@ -3293,7 +3283,7 @@ IBHierarchyIntegrator::computeSourcePressures(
                     for (int d = 0; d < NDIM; ++d)
                     {
                         r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
-                        r[d] = max(r[d],2.0*dx[d]);
+                        r[d] = std::max(r[d],2.0*dx[d]);
                     }
 
                     // Determine the approximate source stencil box.
@@ -3321,7 +3311,7 @@ IBHierarchyIntegrator::computeSourcePressures(
                 }
             }
 
-            SAMRAI::tbox::MPI::sumReduction(&d_P_src[ln][0], d_P_src[ln].size());
+            SAMRAI::tbox::SAMRAI_MPI::sumReduction(&d_P_src[ln][0], d_P_src[ln].size());
             std::transform(d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(),
                            std::bind2nd(std::plus<double>(),-p_norm));
 

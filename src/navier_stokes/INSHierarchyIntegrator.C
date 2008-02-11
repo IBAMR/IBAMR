@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <16.Dec.2007 19:19:09 boyce@trasnaform2.local>
+// Last modified: <06.Feb.2008 21:01:59 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -45,6 +45,7 @@
 #include <RefineOperator.h>
 #include <SimpleCellRobinBcCoefs.h>
 #include <VariableDatabase.h>
+#include <tbox/MathUtilities.h>
 #include <tbox/RestartManager.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
@@ -243,7 +244,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 
     d_dt_max = std::numeric_limits<double>::max();
     d_dt_max_time_max = std::numeric_limits<double>::max();
-    d_dt_max_time_min = -(d_dt_max_time_max-numeric_limits<double>::epsilon());
+    d_dt_max_time_min = -(d_dt_max_time_max-std::numeric_limits<double>::epsilon());
 
     d_is_initialized = false;
 
@@ -296,7 +297,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     {
         TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
                    << "  invalid velocity projection type: " << d_velocity_projection_type << "\n"
-                   << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << endl);
+                   << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << std::endl);
     }
 
     if (d_pressure_projection_type != "pressure_increment" &&
@@ -304,7 +305,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     {
         TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
                    << "  invalid pressure projection type: ``" << d_pressure_projection_type << "''\n"
-                   << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << endl);
+                   << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << std::endl);
     }
 
     if (d_velocity_projection_type != d_pressure_projection_type)
@@ -313,7 +314,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
         {
             TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
                        << "  invalid hybrid projection configuration.\n"
-                       << "  for hybrid projection, it is required that velocity_projection_type = ``pressure_increment''." << endl);
+                       << "  for hybrid projection, it is required that velocity_projection_type = ``pressure_increment''." << std::endl);
         }
     }
 
@@ -401,6 +402,8 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
         delete (*it).second;
     }
 
+    if (d_helmholtz_spec != NULL) delete d_helmholtz_spec;
+
     delete d_Phi_bc_coef;
     delete d_default_P_bc_coef;
     delete d_default_U_bc_coef;
@@ -410,7 +413,6 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
         delete d_intermediate_U_bc_coefs[d];
     }
     d_intermediate_U_bc_coefs.clear();
-
     return;
 }// ~INSHierarchyIntegrator
 
@@ -436,7 +438,7 @@ INSHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
     {
         TBOX_ERROR(d_object_name << "::registerVelocityPhysicalBcCoefs():\n"
                    << "  velocity boundary conditions must be registered prior to initialization\n"
-                   << "  of the hierarchy integrator object." << endl);
+                   << "  of the hierarchy integrator object." << std::endl);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned l = 0; l < U_bc_coefs.size(); ++l)
@@ -475,7 +477,7 @@ INSHierarchyIntegrator::registerPressurePhysicalBcCoef(
     {
         TBOX_ERROR(d_object_name << "::registerPressurePhysicalBcCoefs():\n"
                    << "  pressure boundary conditions must be registered prior to initialization\n"
-                   << "  of the hierarchy integrator object." << endl);
+                   << "  of the hierarchy integrator object." << std::endl);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(P_bc_coef != NULL);
@@ -1092,6 +1094,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_hier_projector->setHierarchyMathOps(d_hier_math_ops);
 
     // Setup hybrid pressure update solvers.
+    d_helmholtz_spec = NULL;
     if (d_using_hybrid_projection && d_pressure_projection_type == "pressure_update")
     {
         d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
@@ -1137,7 +1140,7 @@ INSHierarchyIntegrator::initializeHierarchy()
     if (!d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::initializeHierarchy():\n" <<
-                   "  must call initializeHierarchyIntegrator() prior to calling initializeHierarchy()." << endl);
+                   "  must call initializeHierarchyIntegrator() prior to calling initializeHierarchy()." << std::endl);
     }
 
     // Initialize the patch hierarchy.
@@ -1201,7 +1204,7 @@ INSHierarchyIntegrator::advanceHierarchy(
 
     const double current_time = d_integrator_time;
     const double new_time = d_integrator_time+dt;
-    const bool initial_time = SAMRAI::tbox::Utilities::deq(d_integrator_time,d_start_time);
+    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
 
     // Set the guess for the initial pressure to zero.
     if (initial_time)
@@ -1299,15 +1302,14 @@ INSHierarchyIntegrator::getStableTimestep()
 {
     t_get_stable_timestep->start();
 
-    const bool initial_time = SAMRAI::tbox::Utilities::deq(d_integrator_time, d_start_time);
+    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     double dt_next = std::numeric_limits<double>::max();
 
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        dt_next = SAMRAI::tbox::Utilities::
-            dmin(dt_next, d_hyp_level_integrator->
-                 getLevelDt(level, d_integrator_time, initial_time));
+        dt_next = std::min(dt_next, d_hyp_level_integrator->
+                           getLevelDt(level, d_integrator_time, initial_time));
     }
 
     if (d_integrator_time+dt_next >= d_end_time)
@@ -1318,12 +1320,12 @@ INSHierarchyIntegrator::getStableTimestep()
     if (d_integrator_time >= d_dt_max_time_min &&
         d_integrator_time <= d_dt_max_time_max)
     {
-        dt_next = SAMRAI::tbox::Utilities::dmin(d_dt_max,dt_next);
+        dt_next = std::min(d_dt_max,dt_next);
     }
 
     if (!initial_time)
     {
-        dt_next = SAMRAI::tbox::Utilities::dmin(dt_next,d_grow_dt*d_old_dt);
+        dt_next = std::min(dt_next,d_grow_dt*d_old_dt);
     }
 
     t_get_stable_timestep->stop();
@@ -1429,7 +1431,7 @@ INSHierarchyIntegrator::regridHierarchy()
 {
     t_regrid_hierarchy->start();
 
-    const bool initial_time = SAMRAI::tbox::Utilities::deq(d_integrator_time,d_start_time);
+    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
 
     const int coarsest_ln = 0;
     d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln,
@@ -1614,7 +1616,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(current_time <= new_time);
     assert(d_end_time > d_integrator_time);
-    assert(SAMRAI::tbox::Utilities::deq(d_integrator_time,current_time));
+    assert(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
 #endif
 
     const int coarsest_ln = 0;
@@ -1740,7 +1742,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
 
         if (d_do_log) SAMRAI::tbox::plog << "||Div u_adv||_oo = "
                                          << d_hier_cc_data_ops->maxNorm(d_Div_u_adv_new_idx, d_wgt_idx)
-                                         << endl;
+                                         << std::endl;
     }
 
     t_predict_advection_velocity->stop();
@@ -1757,7 +1759,7 @@ INSHierarchyIntegrator::integrateAdvDiff(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(current_time <= new_time);
     assert(d_end_time > d_integrator_time);
-    assert(SAMRAI::tbox::Utilities::deq(d_integrator_time,current_time));
+    assert(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
 #endif
 
     const int coarsest_ln = 0;
@@ -1842,7 +1844,7 @@ INSHierarchyIntegrator::projectVelocity(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(current_time <= new_time);
     assert(d_end_time > d_integrator_time);
-    assert(SAMRAI::tbox::Utilities::deq(d_integrator_time,current_time));
+    assert(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
 #endif
 
     const double dt = new_time - current_time;
@@ -1938,13 +1940,13 @@ INSHierarchyIntegrator::projectVelocity(
 
         if (d_do_log) SAMRAI::tbox::plog << "||Div U||_1  = "
                                          << d_hier_cc_data_ops->L1Norm(d_Div_U_new_idx, d_wgt_idx)
-                                         << endl;
+                                         << std::endl;
         if (d_do_log) SAMRAI::tbox::plog << "||Div U||_2  = "
                                          << d_hier_cc_data_ops->L2Norm(d_Div_U_new_idx, d_wgt_idx)
-                                         << endl;
+                                         << std::endl;
         if (d_do_log) SAMRAI::tbox::plog << "||Div U||_oo = "
                                          << d_hier_cc_data_ops->maxNorm(d_Div_U_new_idx, d_wgt_idx)
-                                         << endl;
+                                         << std::endl;
     }
 
     if (!d_Div_u_var.isNull())
@@ -1958,7 +1960,7 @@ INSHierarchyIntegrator::projectVelocity(
 
         if (d_do_log) SAMRAI::tbox::plog << "||Div u||_oo = "
                                          << d_hier_cc_data_ops->maxNorm(d_Div_u_new_idx, d_wgt_idx)
-                                         << endl;
+                                         << std::endl;
     }
 
     t_project_velocity->stop();
@@ -1976,7 +1978,7 @@ INSHierarchyIntegrator::updatePressure(
 #ifdef DEBUG_CHECK_ASSERTIONS
     assert(current_time <= new_time);
     assert(d_end_time > d_integrator_time);
-    assert(SAMRAI::tbox::Utilities::deq(d_integrator_time,current_time));
+    assert(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
 #endif
 
     const int coarsest_ln = 0;
@@ -2113,7 +2115,7 @@ INSHierarchyIntegrator::updatePressure(
         d_helmholtz_op->setTime(new_time);
         d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
-        if (!SAMRAI::tbox::Utilities::deq(dt,d_old_dt) || d_helmholtz_solver_needs_init)
+        if (!SAMRAI::tbox::MathUtilities<double>::equalEps(dt,d_old_dt) || d_helmholtz_solver_needs_init)
         {
             d_helmholtz_solver->initializeSolverState(*vector_sol_vec,*vector_rhs_vec);
         }
@@ -2166,7 +2168,7 @@ INSHierarchyIntegrator::updatePressure(
         else
         {
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << endl);
+                       << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << std::endl);
         }
 
         // Deallocate scratch data.
@@ -2398,7 +2400,7 @@ INSHierarchyIntegrator::resetTimeDependentHierData(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Swap SAMRAI::hier::PatchData<NDIM> pointers between the current and new contexts.
-    for (list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > >::const_iterator sv =
+    for (std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > >::const_iterator sv =
              d_state_variables.begin();
          sv != d_state_variables.end(); ++sv)
     {
@@ -2675,22 +2677,19 @@ INSHierarchyIntegrator::initializeLevelData(
                     patch_math_ops.curl(Omega_current_data, U_scratch_data, patch);
 
 #if (NDIM == 2)
-                    d_Omega_max = SAMRAI::tbox::Utilities::dmax(
-                        d_Omega_max,
-                        patch_cc_data_ops.max(Omega_current_data, patch->getBox()));
+                    d_Omega_max = std::max(d_Omega_max,
+                                           patch_cc_data_ops.max(Omega_current_data, patch->getBox()));
 
-                    d_Omega_max = SAMRAI::tbox::Utilities::dmax(
-                        d_Omega_max,
-                        -patch_cc_data_ops.min(Omega_current_data, patch->getBox()));
+                    d_Omega_max = std::max(d_Omega_max,
+                                           -patch_cc_data_ops.min(Omega_current_data, patch->getBox()));
 #endif
 #if (NDIM == 3)
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Omega_Norm_data =
                         new SAMRAI::pdat::CellData<NDIM,double>(patch->getBox(), 1, 0);
 
                     patch_math_ops.pointwise_L2Norm(Omega_Norm_data, Omega_current_data, patch);
-                    d_Omega_max = SAMRAI::tbox::Utilities::dmax(
-                        d_Omega_max,
-                        patch_cc_data_ops.max(Omega_Norm_data, patch->getBox()));
+                    d_Omega_max = std::max(d_Omega_max,
+                                           patch_cc_data_ops.max(Omega_Norm_data, patch->getBox()));
 #endif
                 }
             }
@@ -2896,8 +2895,7 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
     for (CoarsenAlgMap::const_iterator it = d_calgs.begin();
          it!= d_calgs.end(); ++it)
     {
-        for (int ln = SAMRAI::tbox::Utilities::imax(coarsest_level,1);
-             ln <= finest_hier_level; ++ln)
+        for (int ln = std::max(coarsest_level,1); ln <= finest_hier_level; ++ln)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level =
@@ -2989,7 +2987,7 @@ INSHierarchyIntegrator::applyGradientDetector(
         if (Omega_rel_thresh > 0.0 && Omega_abs_thresh > 0.0)
         {
             const double thresh = sqrt(std::numeric_limits<double>::epsilon()) +
-                SAMRAI::tbox::Utilities::dmin(Omega_rel_thresh*d_Omega_max, Omega_abs_thresh);
+                std::min(Omega_rel_thresh*d_Omega_max, Omega_abs_thresh);
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -3004,7 +3002,7 @@ INSHierarchyIntegrator::applyGradientDetector(
                 {
                     const SAMRAI::hier::Index<NDIM>& i = ic();
 #if (NDIM == 2)
-                    if (SAMRAI::tbox::Utilities::dabs((*Omega_current_data)(i)) > thresh)
+                    if (std::abs((*Omega_current_data)(i)) > thresh)
                     {
                         (*tags_data)(i) = 1;
                     }
@@ -3194,33 +3192,33 @@ void
 INSHierarchyIntegrator::printClassData(
     std::ostream& os) const
 {
-    os << "\nINSHierarchyIntegrator::printClassData..." << endl;
-    os << "this = " << const_cast<INSHierarchyIntegrator*>(this) << endl;
+    os << "\nINSHierarchyIntegrator::printClassData..." << std::endl;
+    os << "this = " << const_cast<INSHierarchyIntegrator*>(this) << std::endl;
     os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << endl;
+       << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
     os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
-       << "d_gridding_alg = " << d_gridding_alg.getPointer() << endl;
+       << "d_gridding_alg = " << d_gridding_alg.getPointer() << std::endl;
     os << "d_visit_writer = " << d_visit_writer.getPointer() << "\n"
        << "d_P_scale = " << d_P_scale << "\n"
        << "d_F_scale = " << d_F_scale << "\n"
-       << "d_Q_scale = " << d_Q_scale << endl;
-    os << "d_explicit_predictor = " << d_explicit_predictor.getPointer() << endl;
-    os << "d_adv_diff_hier_integrator = " << d_adv_diff_hier_integrator.getPointer() << endl;
-    os << "d_hyp_level_integrator = " << d_hyp_level_integrator.getPointer() << endl;
-    os << "d_hier_projector = " << d_hier_projector.getPointer() << endl;
+       << "d_Q_scale = " << d_Q_scale << std::endl;
+    os << "d_explicit_predictor = " << d_explicit_predictor.getPointer() << std::endl;
+    os << "d_adv_diff_hier_integrator = " << d_adv_diff_hier_integrator.getPointer() << std::endl;
+    os << "d_hyp_level_integrator = " << d_hyp_level_integrator.getPointer() << std::endl;
+    os << "d_hier_projector = " << d_hier_projector.getPointer() << std::endl;
     os << "d_start_time = " << d_start_time << "\n"
        << "d_end_time = " << d_end_time << "\n"
        << "d_grow_dt = " << d_grow_dt << "\n"
-       << "d_max_integrator_steps = " << d_max_integrator_steps << endl;
-    os << "d_num_cycles = " << d_num_cycles << endl;
-    os << "d_num_init_cycles = " << d_num_init_cycles << endl;
-    os << "d_regrid_interval = " << d_regrid_interval << endl;
+       << "d_max_integrator_steps = " << d_max_integrator_steps << std::endl;
+    os << "d_num_cycles = " << d_num_cycles << std::endl;
+    os << "d_num_init_cycles = " << d_num_init_cycles << std::endl;
+    os << "d_regrid_interval = " << d_regrid_interval << std::endl;
     os << "d_using_default_tag_buffer = " << d_using_default_tag_buffer << "\n"
        << "d_tag_buffer = [ ";
     std::copy(d_tag_buffer.getPointer(), d_tag_buffer.getPointer()+d_tag_buffer.size(), std::ostream_iterator<int>(os, " , "));
-    os << " ]" << endl;
-    os << "d_using_synch_projection = " << d_using_synch_projection << endl;
-    os << "d_conservation_form = " << d_conservation_form << endl;
+    os << " ]" << std::endl;
+    os << "d_using_synch_projection = " << d_using_synch_projection << std::endl;
+    os << "d_conservation_form = " << d_conservation_form << std::endl;
     os << "d_using_vorticity_tagging = " << d_using_vorticity_tagging << "\n"
        << "d_Omega_rel_thresh = [ ";
     std::copy(d_Omega_rel_thresh.getPointer(), d_Omega_rel_thresh.getPointer()+d_Omega_rel_thresh.size(), std::ostream_iterator<double>(os, " , "));
@@ -3228,41 +3226,41 @@ INSHierarchyIntegrator::printClassData(
        << "d_Omega_abs_thresh = [ ";
     std::copy(d_Omega_abs_thresh.getPointer(), d_Omega_abs_thresh.getPointer()+d_Omega_abs_thresh.size(), std::ostream_iterator<double>(os, " , "));
     os << " ]\n"
-       << "d_Omega_max = " << d_Omega_max << endl;
+       << "d_Omega_max = " << d_Omega_max << std::endl;
     os << "d_velocity_projection_type = " << d_velocity_projection_type << "\n"
        << "d_pressure_projection_type = " << d_pressure_projection_type << "\n"
-       << "d_using_hybrid_projection = " << d_using_hybrid_projection << endl;
+       << "d_using_hybrid_projection = " << d_using_hybrid_projection << std::endl;
     os << "d_second_order_pressure_update = " << d_second_order_pressure_update << "\n"
-       << "d_viscous_timestepping_type = " << d_viscous_timestepping_type << endl;
-    os << "d_normalize_pressure = " << d_normalize_pressure << endl;
+       << "d_viscous_timestepping_type = " << d_viscous_timestepping_type << std::endl;
+    os << "d_normalize_pressure = " << d_normalize_pressure << std::endl;
     os << "d_output_P = " << d_output_P << "\n"
        << "d_output_F = " << d_output_F << "\n"
-       << "d_output_Q = " << d_output_Q << endl;
-    os << "d_output_Omega = " << d_output_Omega << endl;
+       << "d_output_Q = " << d_output_Q << std::endl;
+    os << "d_output_Omega = " << d_output_Omega << std::endl;
     os << "d_output_Div_U = " << d_output_Div_U << "\n"
        << "d_output_Div_u = " << d_output_Div_u << "\n"
-       << "d_output_Div_u_adv = " << d_output_Div_u_adv << endl;
+       << "d_output_Div_u_adv = " << d_output_Div_u_adv << std::endl;
     os << "d_old_dt = " << d_old_dt << "\n"
        << "d_integrator_time = " << d_integrator_time << "\n"
-       << "d_integrator_step = " << d_integrator_step << endl;
+       << "d_integrator_step = " << d_integrator_step << std::endl;
     os << "d_dt_max = " << d_dt_max << "\n"
        << "d_dt_max_time_max = " << d_dt_max_time_max << "\n"
-       << "d_dt_max_time_min = " << d_dt_max_time_min << endl;
-    os << "d_do_log = " << d_do_log << endl;
-    os << "d_reproject_after_regrid = " << d_reproject_after_regrid << endl;
+       << "d_dt_max_time_min = " << d_dt_max_time_min << std::endl;
+    os << "d_do_log = " << d_do_log << std::endl;
+    os << "d_reproject_after_regrid = " << d_reproject_after_regrid << std::endl;
     os << "d_cycle = " << d_cycle << "\n"
-       << "d_performing_init_cycles = " << d_performing_init_cycles << endl;
+       << "d_performing_init_cycles = " << d_performing_init_cycles << std::endl;
     os << "d_rho = " << d_rho << "\n"
        << "d_mu = " << d_mu << "\n"
        << "d_nu = " << d_nu << "\n"
-       << "d_lambda = " << d_lambda << endl;
+       << "d_lambda = " << d_lambda << std::endl;
     os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n"
        << "d_hier_fc_data_ops = " << d_hier_fc_data_ops.getPointer() << "=n"
        << "d_hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
-       << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << endl;
+       << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << std::endl;
     os << "d_wgt_var = " << d_wgt_var.getPointer() << "\n"
-       << "d_volume = " << d_volume << endl;
-    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << endl;
+       << "d_volume = " << d_volume << std::endl;
+    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << std::endl;
     return;
 }// printClassData
 

@@ -1,5 +1,5 @@
 // Filename: LagSiloDataWriter.C
-// Last modified: <02.Jan.2008 22:56:23 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 22:34:05 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagSiloDataWriter.h"
@@ -20,8 +20,8 @@
 #include <stools/PETSC_SAMRAI_ERROR.h>
 
 // SAMRAI INCLUDES
-#include <tbox/MPI.h>
 #include <tbox/RestartManager.h>
+#include <tbox/SAMRAI_MPI.h>
 #include <tbox/Utilities.h>
 
 // SILO INCLUDES
@@ -89,7 +89,7 @@ build_local_marker_cloud(
     if (DBSetDir(dbfile, dirname.c_str()) == -1)
     {
         TBOX_ERROR("LagSiloDataWriter::build_local_marker_cloud()\n"
-                   << "  Could not set directory " << dirname << endl);
+                   << "  Could not set directory " << dirname << std::endl);
     }
 
     // Write out the variables.
@@ -121,7 +121,7 @@ build_local_marker_cloud(
     if (DBSetDir(dbfile, "..") == -1)
     {
         TBOX_ERROR("LagSiloDataWriter::build_local_marker_cloud()\n"
-                   << "  Could not return to the base directory from subdirectory " << dirname << endl);
+                   << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
     }
     return;
 }// build_local_marker_cloud
@@ -230,7 +230,7 @@ build_local_curv_block(
     if (DBSetDir(dbfile, dirname.c_str()) == -1)
     {
         TBOX_ERROR("LagSiloDataWriter::build_local_curv_block()\n"
-                   << "  Could not set directory " << dirname << endl);
+                   << "  Could not set directory " << dirname << std::endl);
     }
 
     // Write out the variables.
@@ -304,7 +304,7 @@ build_local_curv_block(
     if (DBSetDir(dbfile, "..") == -1)
     {
         TBOX_ERROR("LagSiloDataWriter::build_local_curv_block()\n"
-                   << "  Could not return to the base directory from subdirectory " << dirname << endl);
+                   << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
     }
     return;
 }// build_local_curv_block
@@ -397,7 +397,7 @@ build_local_ucd_mesh(
     if (DBSetDir(dbfile, dirname.c_str()) == -1)
     {
         TBOX_ERROR("LagSiloDataWriter::build_local_ucd_mesh()\n"
-                   << "  Could not set directory " << dirname << endl);
+                   << "  Could not set directory " << dirname << std::endl);
     }
 
     // Node coordinates.
@@ -495,7 +495,7 @@ build_local_ucd_mesh(
     if (DBSetDir(dbfile, "..") == -1)
     {
         TBOX_ERROR("LagSiloDataWriter::build_local_ucd_mesh()\n"
-                   << "  Could not return to the base directory from subdirectory " << dirname << endl);
+                   << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
     }
     return;
 }// build_local_ucd_mesh
@@ -548,7 +548,7 @@ LagSiloDataWriter::LagSiloDataWriter(
 #if HAVE_LIBSILO
     // intentionally blank
 #else
-    TBOX_WARNING("LagSiloDataWriter::LagSiloDataWriter(): SILO is not installed; cannot write data." << endl);
+    TBOX_WARNING("LagSiloDataWriter::LagSiloDataWriter(): SILO is not installed; cannot write data." << std::endl);
 #endif
     if (d_registered_for_restart)
     {
@@ -628,8 +628,7 @@ LagSiloDataWriter::resetLevels(
 #endif
     // Destroy any un-needed PETSc objects.
     int ierr;
-    for (int ln = SAMRAI::tbox::Utilities::imax(d_coarsest_ln,0);
-         (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
+    for (int ln = std::max(d_coarsest_ln,0); (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
     {
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
@@ -725,7 +724,7 @@ LagSiloDataWriter::registerMarkerCloud(
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
-        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+        resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -786,7 +785,7 @@ LagSiloDataWriter::registerLogicallyCartesianBlock(
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
-        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+        resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -852,7 +851,7 @@ LagSiloDataWriter::registerLogicallyCartesianMultiblock(
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
-        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+        resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -923,7 +922,7 @@ LagSiloDataWriter::registerUnstructuredMesh(
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
-        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+        resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -990,7 +989,7 @@ LagSiloDataWriter::registerCoordsData(
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
-        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+        resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1011,7 +1010,7 @@ LagSiloDataWriter::registerVariableData(
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
-        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+        resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1026,7 +1025,7 @@ LagSiloDataWriter::registerVariableData(
     {
         TBOX_ERROR(d_object_name << "::registerVariableData()\n"
                    << "  variable with name " << var_name << " already registered for plotting\n"
-                   << "  on patch level " << level_number << endl);
+                   << "  on patch level " << level_number << std::endl);
     }
     ++d_nvars[level_number];
     d_var_names [level_number].push_back(var_name);
@@ -1042,7 +1041,7 @@ LagSiloDataWriter::registerLagrangianAO(
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
-        resetLevels(min(level_number,d_coarsest_ln),max(level_number,d_finest_ln));
+        resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1066,7 +1065,7 @@ LagSiloDataWriter::registerLagrangianAO(
 
     if (coarsest_ln < d_coarsest_ln || finest_ln > d_finest_ln)
     {
-        resetLevels(min(coarsest_ln,d_coarsest_ln),max(finest_ln,d_finest_ln));
+        resetLevels(std::min(coarsest_ln,d_coarsest_ln),std::max(finest_ln,d_finest_ln));
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1098,7 +1097,7 @@ LagSiloDataWriter::writePlotData(
                    << "  data writer with name " << d_object_name << "\n"
                    << "  time step number: " << time_step_number
                    << " is <= last time step number: " << d_time_step_number
-                   << endl);
+                   << std::endl);
     }
     d_time_step_number = time_step_number;
 
@@ -1106,15 +1105,15 @@ LagSiloDataWriter::writePlotData(
     {
         TBOX_ERROR(d_object_name << "::writePlotData()\n"
                    << "  data writer with name " << d_object_name << "\n"
-                   << "  dump directory name is empty" << endl);
+                   << "  dump directory name is empty" << std::endl);
     }
 
     int ierr;
     char temp_buf[SILO_NAME_BUFSIZE];
     std::string current_file_name;
     DBfile* dbfile;
-    const int mpi_rank  = SAMRAI::tbox::MPI::getRank();
-    const int mpi_nodes = SAMRAI::tbox::MPI::getNodes();
+    const int mpi_rank  = SAMRAI::tbox::SAMRAI_MPI::getRank();
+    const int mpi_nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
 
     // Construct the VecScatter objectss required to write the plot data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -1143,7 +1142,7 @@ LagSiloDataWriter::writePlotData(
         == NULL)
     {
         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                   << "  Could not create DBfile named " << current_file_name << endl);
+                   << "  Could not create DBfile named " << current_file_name << std::endl);
     }
 
     std::vector<std::vector<int> > meshtype(d_finest_ln+1), vartype(d_finest_ln+1);
@@ -1213,7 +1212,7 @@ LagSiloDataWriter::writePlotData(
                 {
                     TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                << "  Could not create directory named "
-                               << dirname << endl);
+                               << dirname << std::endl);
                 }
 
                 const double* const X = local_X_arr + NDIM*offset;
@@ -1238,7 +1237,7 @@ LagSiloDataWriter::writePlotData(
                 {
                     TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                << "  Could not create directory named "
-                               << dirname << endl);
+                               << dirname << std::endl);
                 }
 
                 const double* const X = local_X_arr + NDIM*offset;
@@ -1276,7 +1275,7 @@ LagSiloDataWriter::writePlotData(
                     {
                         TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                    << "  Could not create directory named "
-                                   << dirname << endl);
+                                   << dirname << std::endl);
                     }
 
                     const double* const X = local_X_arr + NDIM*offset;
@@ -1311,7 +1310,7 @@ LagSiloDataWriter::writePlotData(
                 {
                     TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                << "  Could not create directory named "
-                               << dirname << endl);
+                               << dirname << std::endl);
                 }
 
                 const double* const X = local_X_arr + NDIM*offset;
@@ -1419,11 +1418,11 @@ LagSiloDataWriter::writePlotData(
 
             if (mpi_rank == proc)
             {
-                SAMRAI::tbox::MPI::send(&d_nclouds[ln], one, SILO_MPI_ROOT, false);
+                SAMRAI::tbox::SAMRAI_MPI::send(&d_nclouds[ln], one, SILO_MPI_ROOT, false);
             }
             if (mpi_rank == SILO_MPI_ROOT)
             {
-                SAMRAI::tbox::MPI::recv(&nclouds_per_proc[ln][proc], one, proc, false);
+                SAMRAI::tbox::SAMRAI_MPI::recv(&nclouds_per_proc[ln][proc], one, proc, false);
             }
 
             if (mpi_rank == proc && d_nclouds[ln] > 0)
@@ -1432,8 +1431,8 @@ LagSiloDataWriter::writePlotData(
                 for (int cloud = 0; cloud < d_nclouds[ln]; ++cloud)
                 {
                     num_bytes = (d_cloud_names[ln][cloud].size()+1)*sizeof(char);
-                    SAMRAI::tbox::MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
-                    SAMRAI::tbox::MPI::sendBytes(static_cast<const void*>(d_cloud_names[ln][cloud].c_str()), num_bytes, SILO_MPI_ROOT);
+                    SAMRAI::tbox::SAMRAI_MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
+                    SAMRAI::tbox::SAMRAI_MPI::sendBytes(static_cast<const void*>(d_cloud_names[ln][cloud].c_str()), num_bytes, SILO_MPI_ROOT);
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nclouds_per_proc[ln][proc] > 0)
@@ -1444,9 +1443,9 @@ LagSiloDataWriter::writePlotData(
                 char* name;
                 for (int cloud = 0; cloud < nclouds_per_proc[ln][proc]; ++cloud)
                 {
-                    SAMRAI::tbox::MPI::recv(&num_bytes, one, proc, false);
+                    SAMRAI::tbox::SAMRAI_MPI::recv(&num_bytes, one, proc, false);
                     name = new char[num_bytes/sizeof(char)];
-                    SAMRAI::tbox::MPI::recvBytes(static_cast<void*>(name), num_bytes);
+                    SAMRAI::tbox::SAMRAI_MPI::recvBytes(static_cast<void*>(name), num_bytes);
                     cloud_names_per_proc[ln][proc][cloud].assign(name);
                     delete[] name;
                 }
@@ -1454,24 +1453,24 @@ LagSiloDataWriter::writePlotData(
 
             if (mpi_rank == proc)
             {
-                SAMRAI::tbox::MPI::send(&d_nblocks[ln], one, SILO_MPI_ROOT, false);
+                SAMRAI::tbox::SAMRAI_MPI::send(&d_nblocks[ln], one, SILO_MPI_ROOT, false);
             }
             if (mpi_rank == SILO_MPI_ROOT)
             {
-                SAMRAI::tbox::MPI::recv(&nblocks_per_proc[ln][proc], one, proc, false);
+                SAMRAI::tbox::SAMRAI_MPI::recv(&nblocks_per_proc[ln][proc], one, proc, false);
             }
 
             if (mpi_rank == proc && d_nblocks[ln] > 0)
             {
-                SAMRAI::tbox::MPI::send(&meshtype[ln][0], d_nblocks[ln], SILO_MPI_ROOT, false);
-                SAMRAI::tbox::MPI::send(&vartype [ln][0], d_nblocks[ln], SILO_MPI_ROOT, false);
+                SAMRAI::tbox::SAMRAI_MPI::send(&meshtype[ln][0], d_nblocks[ln], SILO_MPI_ROOT, false);
+                SAMRAI::tbox::SAMRAI_MPI::send(&vartype [ln][0], d_nblocks[ln], SILO_MPI_ROOT, false);
 
                 int num_bytes;
                 for (int block = 0; block < d_nblocks[ln]; ++block)
                 {
                     num_bytes = (d_block_names[ln][block].size()+1)*sizeof(char);
-                    SAMRAI::tbox::MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
-                    SAMRAI::tbox::MPI::sendBytes(static_cast<const void*>(d_block_names[ln][block].c_str()), num_bytes, SILO_MPI_ROOT);
+                    SAMRAI::tbox::SAMRAI_MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
+                    SAMRAI::tbox::SAMRAI_MPI::sendBytes(static_cast<const void*>(d_block_names[ln][block].c_str()), num_bytes, SILO_MPI_ROOT);
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nblocks_per_proc[ln][proc] > 0)
@@ -1480,18 +1479,18 @@ LagSiloDataWriter::writePlotData(
                 vartypes_per_proc   [ln][proc].resize(nblocks_per_proc[ln][proc]);
                 block_names_per_proc[ln][proc].resize(nblocks_per_proc[ln][proc]);
 
-                SAMRAI::tbox::MPI::recv(&meshtypes_per_proc[ln][proc][0],
+                SAMRAI::tbox::SAMRAI_MPI::recv(&meshtypes_per_proc[ln][proc][0],
                                         nblocks_per_proc   [ln][proc], proc, false);
-                SAMRAI::tbox::MPI::recv(&vartypes_per_proc [ln][proc][0],
+                SAMRAI::tbox::SAMRAI_MPI::recv(&vartypes_per_proc [ln][proc][0],
                                         nblocks_per_proc   [ln][proc], proc, false);
 
                 int num_bytes;
                 char* name;
                 for (int block = 0; block < nblocks_per_proc[ln][proc]; ++block)
                 {
-                    SAMRAI::tbox::MPI::recv(&num_bytes, one, proc, false);
+                    SAMRAI::tbox::SAMRAI_MPI::recv(&num_bytes, one, proc, false);
                     name = new char[num_bytes/sizeof(char)];
-                    SAMRAI::tbox::MPI::recvBytes(static_cast<void*>(name), num_bytes);
+                    SAMRAI::tbox::SAMRAI_MPI::recvBytes(static_cast<void*>(name), num_bytes);
                     block_names_per_proc[ln][proc][block].assign(name);
                     delete[] name;
                 }
@@ -1499,31 +1498,31 @@ LagSiloDataWriter::writePlotData(
 
             if (mpi_rank == proc)
             {
-                SAMRAI::tbox::MPI::send(&d_nmbs[ln], one, SILO_MPI_ROOT, false);
+                SAMRAI::tbox::SAMRAI_MPI::send(&d_nmbs[ln], one, SILO_MPI_ROOT, false);
             }
             if (mpi_rank == SILO_MPI_ROOT)
             {
-                SAMRAI::tbox::MPI::recv(&nmbs_per_proc[ln][proc], one, proc, false);
+                SAMRAI::tbox::SAMRAI_MPI::recv(&nmbs_per_proc[ln][proc], one, proc, false);
             }
 
             if (mpi_rank == proc && d_nmbs[ln] > 0)
             {
-                SAMRAI::tbox::MPI::send(&d_mb_nblocks[ln][0], d_nmbs[ln], SILO_MPI_ROOT, false);
+                SAMRAI::tbox::SAMRAI_MPI::send(&d_mb_nblocks[ln][0], d_nmbs[ln], SILO_MPI_ROOT, false);
 
                 int num_bytes;
                 for (int mb = 0; mb < d_nmbs[ln]; ++mb)
                 {
-                    SAMRAI::tbox::MPI::send(&multimeshtype[ln][mb][0], d_mb_nblocks[ln][mb], SILO_MPI_ROOT, false);
-                    SAMRAI::tbox::MPI::send(&multivartype [ln][mb][0], d_mb_nblocks[ln][mb], SILO_MPI_ROOT, false);
+                    SAMRAI::tbox::SAMRAI_MPI::send(&multimeshtype[ln][mb][0], d_mb_nblocks[ln][mb], SILO_MPI_ROOT, false);
+                    SAMRAI::tbox::SAMRAI_MPI::send(&multivartype [ln][mb][0], d_mb_nblocks[ln][mb], SILO_MPI_ROOT, false);
 
                     num_bytes = d_mb_names[ln][mb].size()+1;
-                    SAMRAI::tbox::MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
+                    SAMRAI::tbox::SAMRAI_MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
 
                     const void* mb_name_ptr = d_mb_names[ln][mb].c_str();
                     MPI_Send(const_cast<void*>(mb_name_ptr), num_bytes, MPI_CHAR,
-                             SILO_MPI_ROOT, SILO_MPI_TAG, SAMRAI::tbox::MPI::commWorld);
-                    const int tree = SAMRAI::tbox::MPI::getTreeDepth();
-                    SAMRAI::tbox::MPI::updateOutgoingStatistics(tree, num_bytes*sizeof(char));
+                             SILO_MPI_ROOT, SILO_MPI_TAG, SAMRAI::tbox::SAMRAI_MPI::commWorld);
+                    const int tree = SAMRAI::tbox::SAMRAI_MPI::getTreeDepth();
+                    SAMRAI::tbox::SAMRAI_MPI::updateOutgoingStatistics(tree, num_bytes*sizeof(char));
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nmbs_per_proc[ln][proc] > 0)
@@ -1533,7 +1532,7 @@ LagSiloDataWriter::writePlotData(
                 multivartypes_per_proc [ln][proc].resize(nmbs_per_proc[ln][proc]);
                 mb_names_per_proc      [ln][proc].resize(nmbs_per_proc[ln][proc]);
 
-                SAMRAI::tbox::MPI::recv(&mb_nblocks_per_proc[ln][proc][0],
+                SAMRAI::tbox::SAMRAI_MPI::recv(&mb_nblocks_per_proc[ln][proc][0],
                                         nmbs_per_proc       [ln][proc], proc, false);
 
                 int num_bytes;
@@ -1543,19 +1542,19 @@ LagSiloDataWriter::writePlotData(
                     multimeshtypes_per_proc[ln][proc][mb].resize(mb_nblocks_per_proc[ln][proc][mb]);
                     multivartypes_per_proc [ln][proc][mb].resize(mb_nblocks_per_proc[ln][proc][mb]);
 
-                    SAMRAI::tbox::MPI::recv(&multimeshtypes_per_proc[ln][proc][mb][0],
+                    SAMRAI::tbox::SAMRAI_MPI::recv(&multimeshtypes_per_proc[ln][proc][mb][0],
                                             mb_nblocks_per_proc     [ln][proc][mb], proc, false);
-                    SAMRAI::tbox::MPI::recv(&multivartypes_per_proc [ln][proc][mb][0],
+                    SAMRAI::tbox::SAMRAI_MPI::recv(&multivartypes_per_proc [ln][proc][mb][0],
                                             mb_nblocks_per_proc     [ln][proc][mb], proc, false);
 
-                    SAMRAI::tbox::MPI::recv(&num_bytes, one, proc, false);
+                    SAMRAI::tbox::SAMRAI_MPI::recv(&num_bytes, one, proc, false);
                     name = new char[num_bytes];
 
                     MPI_Status status;
                     MPI_Recv(name, num_bytes, MPI_CHAR,
-                             proc, SILO_MPI_TAG, SAMRAI::tbox::MPI::commWorld, &status);
-                    const int tree = SAMRAI::tbox::MPI::getTreeDepth();
-                    SAMRAI::tbox::MPI::updateIncomingStatistics(tree, num_bytes*sizeof(char));
+                             proc, SILO_MPI_TAG, SAMRAI::tbox::SAMRAI_MPI::commWorld, &status);
+                    const int tree = SAMRAI::tbox::SAMRAI_MPI::getTreeDepth();
+                    SAMRAI::tbox::SAMRAI_MPI::updateIncomingStatistics(tree, num_bytes*sizeof(char));
 
                     mb_names_per_proc[ln][proc][mb].assign(name);
                     delete[] name;
@@ -1564,11 +1563,11 @@ LagSiloDataWriter::writePlotData(
 
             if (mpi_rank == proc)
             {
-                SAMRAI::tbox::MPI::send(&d_nucd_meshes[ln], one, SILO_MPI_ROOT, false);
+                SAMRAI::tbox::SAMRAI_MPI::send(&d_nucd_meshes[ln], one, SILO_MPI_ROOT, false);
             }
             if (mpi_rank == SILO_MPI_ROOT)
             {
-                SAMRAI::tbox::MPI::recv(&nucd_meshes_per_proc[ln][proc], one, proc, false);
+                SAMRAI::tbox::SAMRAI_MPI::recv(&nucd_meshes_per_proc[ln][proc], one, proc, false);
             }
 
             if (mpi_rank == proc && d_nucd_meshes[ln] > 0)
@@ -1577,8 +1576,8 @@ LagSiloDataWriter::writePlotData(
                 for (int block = 0; block < d_nucd_meshes[ln]; ++block)
                 {
                     num_bytes = (d_block_names[ln][block].size()+1)*sizeof(char);
-                    SAMRAI::tbox::MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
-                    SAMRAI::tbox::MPI::sendBytes(static_cast<const void*>(d_block_names[ln][block].c_str()), num_bytes, SILO_MPI_ROOT);
+                    SAMRAI::tbox::SAMRAI_MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
+                    SAMRAI::tbox::SAMRAI_MPI::sendBytes(static_cast<const void*>(d_block_names[ln][block].c_str()), num_bytes, SILO_MPI_ROOT);
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nucd_meshes_per_proc[ln][proc] > 0)
@@ -1588,15 +1587,15 @@ LagSiloDataWriter::writePlotData(
                 char* name;
                 for (int block = 0; block < nucd_meshes_per_proc[ln][proc]; ++block)
                 {
-                    SAMRAI::tbox::MPI::recv(&num_bytes, one, proc, false);
+                    SAMRAI::tbox::SAMRAI_MPI::recv(&num_bytes, one, proc, false);
                     name = new char[num_bytes/sizeof(char)];
-                    SAMRAI::tbox::MPI::recvBytes(static_cast<void*>(name), num_bytes);
+                    SAMRAI::tbox::SAMRAI_MPI::recvBytes(static_cast<void*>(name), num_bytes);
                     block_names_per_proc[ln][proc][block].assign(name);
                     delete[] name;
                 }
             }
 
-            SAMRAI::tbox::MPI::barrier();
+            SAMRAI::tbox::SAMRAI_MPI::barrier();
         }
     }
 
@@ -1610,7 +1609,7 @@ LagSiloDataWriter::writePlotData(
             == NULL)
         {
             TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                       << "  Could not create DBfile named " << summary_file_name << endl);
+                       << "  Could not create DBfile named " << summary_file_name << std::endl);
         }
 
         int    cycle = time_step_number;
@@ -1648,7 +1647,7 @@ LagSiloDataWriter::writePlotData(
                     {
                         TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                    << "  Could not create directory named "
-                                   << cloud_name << endl);
+                                   << cloud_name << std::endl);
                     }
                 }
 
@@ -1673,7 +1672,7 @@ LagSiloDataWriter::writePlotData(
                     {
                         TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                    << "  Could not create directory named "
-                                   << block_name << endl);
+                                   << block_name << std::endl);
                     }
                 }
 
@@ -1702,7 +1701,7 @@ LagSiloDataWriter::writePlotData(
                     {
                         TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                    << "  Could not create directory named "
-                                   << mb_name << endl);
+                                   << mb_name << std::endl);
                     }
 
                     for (int block = 0; block < nblocks; ++block)
@@ -1733,7 +1732,7 @@ LagSiloDataWriter::writePlotData(
                     {
                         TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                    << "  Could not create directory named "
-                                   << mesh_name << endl);
+                                   << mesh_name << std::endl);
                     }
                 }
 
@@ -1828,20 +1827,20 @@ LagSiloDataWriter::writePlotData(
         if (!summary_file_opened)
         {
             summary_file_opened = true;
-            std::ofstream sfile(path.c_str(), ios::out);
-            sfile << file << endl;
+            std::ofstream sfile(path.c_str(), std::ios::out);
+            sfile << file << std::endl;
             sfile.close();
         }
         else
         {
-            std::ofstream sfile(path.c_str(), ios::app);
-            sfile << file << endl;
+            std::ofstream sfile(path.c_str(), std::ios::app);
+            sfile << file << std::endl;
             sfile.close();
         }
     }
-    SAMRAI::tbox::MPI::barrier();
+    SAMRAI::tbox::SAMRAI_MPI::barrier();
 #else
-    TBOX_WARNING("LagSiloDataWriter::writePlotData(): SILO is not installed; cannot write data." << endl);
+    TBOX_WARNING("LagSiloDataWriter::writePlotData(): SILO is not installed; cannot write data." << std::endl);
 #endif //if HAVE_LIBSILO
     return;
 }// writePlotData

@@ -2,7 +2,7 @@
 #define included_LNodeIndexSet
 
 // Filename: LNodeIndexSet.h
-// Last modified: <10.Jun.2007 22:18:34 boyce@bigboy.nyconnect.com>
+// Last modified: <04.Feb.2008 23:31:09 griffith@box221.cims.nyu.edu>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -13,6 +13,7 @@
 // SAMRAI INCLUDES
 #include <Index.h>
 #include <IntVector.h>
+#include <SumOperation.h>
 #include <tbox/AbstractStream.h>
 #include <tbox/Database.h>
 #include <tbox/DescribedClass.h>
@@ -44,6 +45,7 @@ class LNodeIndexSet
 {
 public:
     friend class LDataManager;
+    friend class SAMRAI::pdat::SumOperation<LNodeIndexSet>;
 
     /*!
      * \brief The type of the collection.

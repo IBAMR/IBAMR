@@ -14,11 +14,12 @@
 #include <tbox/Database.h>
 #include <tbox/InputDatabase.h>
 #include <tbox/InputManager.h>
-#include <tbox/MPI.h>
+#include <tbox/MathUtilities.h>
 #include <tbox/PIO.h>
 #include <tbox/Pointer.h>
 #include <tbox/RestartManager.h>
 #include <tbox/SAMRAIManager.h>
+#include <tbox/SAMRAI_MPI.h>
 #include <tbox/TimerManager.h>
 #include <tbox/Utilities.h>
 
@@ -66,7 +67,8 @@ main(
      * Initialize PETSc, MPI, and SAMRAI.
      */
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
-    tbox::MPI::setCommunicator(PETSC_COMM_WORLD);
+    tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    tbox::SAMRAIManager::setMaxNumberTimers(256);
     tbox::SAMRAIManager::startup();
 
     {// cleanup all smart Pointers prior to shutdown
@@ -87,7 +89,7 @@ main(
                        << "  options:\n"
                        << "  PETSc command line options; use -help for more information"
                        << endl;
-            tbox::MPI::abort();
+            tbox::SAMRAI_MPI::abort();
             return -1;
         }
         else
@@ -96,13 +98,13 @@ main(
             if (argc >= 4)
             {
                 FILE* fstream = NULL;
-                if (tbox::MPI::getRank() == 0)
+                if (tbox::SAMRAI_MPI::getRank() == 0)
                 {
                     fstream = fopen(argv[2], "r");
                 }
                 int worked = (fstream ? 1 : 0);
 #ifdef HAVE_MPI
-                worked = tbox::MPI::bcast(worked, 0);
+                worked = tbox::SAMRAI_MPI::bcast(worked, 0);
 #endif
                 if (worked)
                 {
@@ -266,13 +268,13 @@ main(
 
         const bool enable_lock_file = !lock_file_name.empty();
 
-        if (enable_lock_file && tbox::MPI::getRank() == 0)
+        if (enable_lock_file && tbox::SAMRAI_MPI::getRank() == 0)
         {
             int fd = open(lock_file_name.c_str(), O_WRONLY | O_CREAT | O_EXCL);
             if (fd < 0)
             {
                 tbox::pout << "ERROR: could not create lock file: " << lock_file_name << endl;
-                tbox::MPI::abort();
+                tbox::SAMRAI_MPI::abort();
                 return -1;
             }
         }
@@ -285,7 +287,7 @@ main(
         if (is_from_restart)
         {
             restart_manager->openRestartFile(
-                restart_read_dirname, restore_num, tbox::MPI::getNodes());
+                restart_read_dirname, restore_num, tbox::SAMRAI_MPI::getNodes());
         }
 
         /*
@@ -458,7 +460,7 @@ main(
 
         int iteration_num = time_integrator->getIntegratorStep();
 
-        while (!tbox::Utilities::deq(loop_time,loop_time_end) &&
+        while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
                time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep() + 1;
@@ -538,12 +540,12 @@ main(
         /*
          * Delete the lock file.
          */
-        if (enable_lock_file && tbox::MPI::getRank() == 0)
+        if (enable_lock_file && tbox::SAMRAI_MPI::getRank() == 0)
         {
             if (remove(lock_file_name.c_str()) != 0)
             {
                 tbox::pout << "ERROR: could not remove lock file: " << lock_file_name << endl;
-                tbox::MPI::abort();
+                tbox::SAMRAI_MPI::abort();
                 return -1;
             }
         }

@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <08.Oct.2007 15:28:39 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 21:46:45 griffith@box221.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -33,8 +33,9 @@
 #include <CellData.h>
 #include <CellIterator.h>
 #include <Index.h>
-#include <tbox/MPI.h>
+#include <tbox/MathUtilities.h>
 #include <tbox/RestartManager.h>
+#include <tbox/SAMRAI_MPI.h>
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
@@ -248,7 +249,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             // Ensure the point lies within the physical domain.
             for (int d = 0; d < NDIM; ++d)
             {
-                if (SAMRAI::tbox::Utilities::deq(X[d],gridXLower[d]))
+                if (SAMRAI::tbox::MathUtilities<double>::equalEps(X[d],gridXLower[d]))
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node intersecting lower physical boundary.\n"
@@ -267,7 +268,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
                                << "  please ensure that all nodes are within the computational domain.\n");
                 }
 
-                if (SAMRAI::tbox::Utilities::deq(X[d],gridXUpper[d]))
+                if (SAMRAI::tbox::MathUtilities<double>::equalEps(X[d],gridXUpper[d]))
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node intersecting upper physical boundary.\n"
@@ -448,8 +449,8 @@ IBHDF5Initializer::findLocalPatchIndices(
     cell_idxs.clear();
     patch_nums.clear();
 
-    const int rank = SAMRAI::tbox::MPI::getRank();
-    const int nodes = SAMRAI::tbox::MPI::getNodes();
+    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -457,7 +458,7 @@ IBHDF5Initializer::findLocalPatchIndices(
     for (int j = 0; j < num_filenames; ++j)
     {
         // Wait for the previous MPI process to finish reading the current file.
-        if (d_use_file_batons && rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+        if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
         std::string filename = d_filenames[level_number][j];
         const std::string postfix = ".h5";
@@ -478,7 +479,7 @@ IBHDF5Initializer::findLocalPatchIndices(
         {
             SAMRAI::tbox::plog << d_object_name << ":  "
                                << "processing vertex data from input filename " << filename << "\n"
-                               << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << "\n";
+                               << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << "\n";
         }
 
         std::vector<SAMRAI::hier::Index<NDIM> > file_cell_idxs;
@@ -492,11 +493,11 @@ IBHDF5Initializer::findLocalPatchIndices(
         H5Fclose(file_id);
 
         // Free the next MPI process to start reading the current file.
-        if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
+        if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI::tbox::MPI::barrier();
+    if (d_use_file_batons) SAMRAI::tbox::SAMRAI_MPI::barrier();
     return;
 }// findLocalPatchIndices
 
@@ -647,8 +648,8 @@ IBHDF5Initializer::buildLevelDataCache(
         return;
     }
 
-    const int rank = SAMRAI::tbox::MPI::getRank();
-    const int nodes = SAMRAI::tbox::MPI::getNodes();
+    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -682,7 +683,7 @@ IBHDF5Initializer::buildLevelDataCache(
     for (int j = 0; j < num_filenames; ++j)
     {
         // Wait for the previous MPI process to finish reading the current file.
-        if (d_use_file_batons && rank != 0) SAMRAI::tbox::MPI::recv(&flag, sz, rank-1, false, j);
+        if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
         std::string filename = d_filenames[level_number][j];
         const std::string postfix = ".h5";
@@ -703,7 +704,7 @@ IBHDF5Initializer::buildLevelDataCache(
         {
             SAMRAI::tbox::plog << d_object_name << ":  "
                                << "processing vertex data from input filename " << filename << "\n"
-                               << "  on MPI process " << SAMRAI::tbox::MPI::getRank() << "\n";
+                               << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << "\n";
         }
 
         // Check the file contents.
@@ -804,29 +805,29 @@ IBHDF5Initializer::buildLevelDataCache(
         H5Fclose(file_id);
 
         // Free the next MPI process to start reading the current file.
-        if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::MPI::send(&flag, sz, rank+1, false, j);
+        if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
     }
 
     // Sanity checks.
     const int level_num_vertex_sum = std::accumulate(d_level_num_vertex.begin(),d_level_num_vertex.end(),0);
     const int level_num_local_vertex_sum = std::accumulate(d_level_num_local_vertex.begin(),d_level_num_local_vertex.end(),0);
-    assert(level_num_vertex_sum == SAMRAI::tbox::MPI::sumReduction(level_num_local_vertex_sum));
+    assert(level_num_vertex_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_vertex_sum));
 
     const int level_num_spring_sum = std::accumulate(d_level_num_spring.begin(),d_level_num_spring.end(),0);
     const int level_num_local_spring_sum = std::accumulate(d_level_num_local_spring.begin(),d_level_num_local_spring.end(),0);
-    assert(level_num_spring_sum == SAMRAI::tbox::MPI::sumReduction(level_num_local_spring_sum));
+    assert(level_num_spring_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_spring_sum));
 
     const int level_num_beam_sum = std::accumulate(d_level_num_beam.begin(),d_level_num_beam.end(),0);
     const int level_num_local_beam_sum = std::accumulate(d_level_num_local_beam.begin(),d_level_num_local_beam.end(),0);
-    assert(level_num_beam_sum == SAMRAI::tbox::MPI::sumReduction(level_num_local_beam_sum));
+    assert(level_num_beam_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_beam_sum));
 
     const int level_num_target_point_sum = std::accumulate(d_level_num_target_point.begin(),d_level_num_target_point.end(),0);
     const int level_num_local_target_point_sum = std::accumulate(d_level_num_local_target_point.begin(),d_level_num_local_target_point.end(),0);
-    assert(level_num_target_point_sum == SAMRAI::tbox::MPI::sumReduction(level_num_local_target_point_sum));
+    assert(level_num_target_point_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_target_point_sum));
 
     const int level_num_inst_point_sum = std::accumulate(d_level_num_inst_point.begin(),d_level_num_inst_point.end(),0);
     const int level_num_local_inst_point_sum = std::accumulate(d_level_num_local_inst_point.begin(),d_level_num_local_inst_point.end(),0);
-    assert(level_num_inst_point_sum == SAMRAI::tbox::MPI::sumReduction(level_num_local_inst_point_sum));
+    assert(level_num_inst_point_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_inst_point_sum));
     return;
 }// buildLevelDataCache
 

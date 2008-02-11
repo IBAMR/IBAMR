@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <28.Jun.2007 17:57:48 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 22:17:53 griffith@box221.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -706,13 +706,13 @@ void
 GodunovAdvector::printClassData(
     std::ostream &os) const
 {
-    os << "\nGodunovAdvector::printClassData..." << endl;
+    os << "\nGodunovAdvector::printClassData..." << std::endl;
     os << "GodunovAdvector: this = " << const_cast<GodunovAdvector*>(this) << "\n";
     os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << endl;
+       << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
     os << "d_limiter_type = "<< d_limiter_type << "\n";
 #if (NDIM == 3)
-    os << "d_using_full_ctu = " << d_using_full_ctu << endl;
+    os << "d_using_full_ctu = " << d_using_full_ctu << std::endl;
 #endif
 
     return;

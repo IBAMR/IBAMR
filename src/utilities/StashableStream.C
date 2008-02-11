@@ -1,5 +1,5 @@
 // Filename: StashableStream.C
-// Last modified: <17.Apr.2007 21:27:10 griffith@box221.cims.nyu.edu>
+// Last modified: <04.Feb.2008 22:43:55 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "StashableStream.h"
@@ -67,12 +67,12 @@ void
 StashableStream::printClassData(
     std::ostream& os) const
 {
-    os << "\nStashableStream::printClassData..." << endl;
-    os << "this = " << const_cast<StashableStream*>(this) << endl;
-    os << "d_buffer_size = " << d_buffer_size << endl;
-    os << "d_current_size = " << d_current_size << endl;
-    os << "d_buffer_index = " << d_buffer_index << endl;
-    os << "d_buffer = " << static_cast<void*>(d_buffer) << endl;
+    os << "\nStashableStream::printClassData..." << std::endl;
+    os << "this = " << const_cast<StashableStream*>(this) << std::endl;
+    os << "d_buffer_size = " << d_buffer_size << std::endl;
+    os << "d_current_size = " << d_current_size << std::endl;
+    os << "d_buffer_index = " << d_buffer_index << std::endl;
+    os << "d_buffer = " << static_cast<void*>(d_buffer) << std::endl;
     return;
 }// printClassData
 
