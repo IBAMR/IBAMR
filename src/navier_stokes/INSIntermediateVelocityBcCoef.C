@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.C
-// Last modified: <12.Feb.2008 21:22:13 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Feb.2008 13:31:13 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSIntermediateVelocityBcCoef.h"
@@ -187,70 +187,6 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
-#if USING_OLD_ROBIN_BC_INTERFACE
-    TBOX_ERROR("INSIntermediateVelocityBcCoef::setBcCoefs():\n"
-               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << std::endl);
-#else
-    setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#endif
-    return;
-}// setBcCoefs
-
-void
-INSIntermediateVelocityBcCoef::setBcCoefs(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-    const SAMRAI::hier::Patch<NDIM>& patch,
-    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
-{
-#if USING_OLD_ROBIN_BC_INTERFACE
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > bcoef_data =
-        (acoef_data.isNull()
-         ? NULL
-         : new SAMRAI::pdat::ArrayData<NDIM,double>(acoef_data->getBox(), acoef_data->getDepth()));
-    setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#else
-    TBOX_ERROR("INSIntermediateVelocityBcCoef::setBcCoefs():\n"
-               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << std::endl);
-#endif
-    return;
-}// setBcCoefs
-
-SAMRAI::hier::IntVector<NDIM>
-INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
-    for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
-    {
-        TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
-    }
-#endif
-    SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
-    for (int d = 0; d < NDIM; ++d)
-    {
-        ret_val = SAMRAI::hier::IntVector<NDIM>::min(
-            ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
-    }
-    return ret_val;
-}// numberOfExtensionsFillable
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
-
-void
-INSIntermediateVelocityBcCoef::setBcCoefs_private(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-    const SAMRAI::hier::Patch<NDIM>& patch,
-    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
-{
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
     for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
@@ -265,13 +201,8 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
     const SAMRAI::hier::Box<NDIM>& bc_coef_box = acoef_data->getBox();
 
     // Set the "true" velocity bc coefs.
-#if USING_OLD_ROBIN_BC_INTERFACE
-    d_u_bc_coefs[d_comp_idx]->setBcCoefs(
-        acoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#else
     d_u_bc_coefs[d_comp_idx]->setBcCoefs(
         acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#endif
 
     // We do not make any further modifications to the values of acoef_data and
     // bcoef_data beyond this point.
@@ -362,7 +293,30 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
         location_index, d_comp_idx,
         d_rho, dx, dt);
     return;
-}// setBcCoefs_private
+}// setBcCoefs
+
+SAMRAI::hier::IntVector<NDIM>
+INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
+    for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
+    {
+        TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
+    }
+#endif
+    SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    for (int d = 0; d < NDIM; ++d)
+    {
+        ret_val = SAMRAI::hier::IntVector<NDIM>::min(
+            ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
+    }
+    return ret_val;
+}// numberOfExtensionsFillable
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

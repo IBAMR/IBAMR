@@ -1,5 +1,5 @@
 // Filename: NormalVelocityBcCoefAdapter.C
-// Last modified: <12.Feb.2008 21:22:38 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Feb.2008 13:32:07 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "NormalVelocityBcCoefAdapter.h"
@@ -73,34 +73,9 @@ NormalVelocityBcCoefAdapter::setBcCoefs(
     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
-#if USING_OLD_ROBIN_BC_INTERFACE
-    TBOX_ERROR("NormalVelocityBcCoefAdapter::setBcCoefs():\n"
-               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << std::endl);
-#else
     const int depth = bdry_box.getLocationIndex()/2;
     d_bc_coefs[depth]->setBcCoefs(
         acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#endif
-    return;
-}// setBcCoefs
-
-void
-NormalVelocityBcCoefAdapter::setBcCoefs(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-    const SAMRAI::hier::Patch<NDIM>& patch,
-    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
-{
-#if USING_OLD_ROBIN_BC_INTERFACE
-    const int depth = bdry_box.getLocationIndex()/2;
-    d_bc_coefs[depth]->setBcCoefs(
-        acoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#else
-    TBOX_ERROR("NormalVelocityBcCoefAdapter::setBcCoefs():\n"
-               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << std::endl);
-#endif
     return;
 }// setBcCoefs
 

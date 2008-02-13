@@ -2,7 +2,7 @@
 #define included_PressureBcCoefs
 
 // Filename: PressureBcCoefs.h
-// Last modified: <05.Feb.2008 00:02:50 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Feb.2008 13:22:09 griffith@box221.cims.nyu.edu>
 // Created on 04 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -44,11 +44,7 @@ public:
 
     /*!
      * \brief Function to fill arrays of Robin boundary condition coefficients
-     * at a patch boundary.  (New interface.)
-     *
-     * \note In the original solv::RobinBcCoefStrategy interface, it was assumed
-     * that \f$ b = (1-a) \f$.  In the new interface, \f$a\f$ and \f$b\f$ are
-     * independent.
+     * at a patch boundary.
      *
      * \see solv::RobinBcCoefStrategy::setBcCoefs()
      *
@@ -71,53 +67,11 @@ public:
      * \param patch       Patch requiring bc coefficients.
      * \param bdry_box    Boundary box showing where on the boundary the coefficient data is needed.
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are time-dependent.
-     *
-     * \note An unrecoverable exception will occur if this method is called when
-     * STOOLS is compiled with SAMRAI version 2.1.
      */
     virtual void
     setBcCoefs(
         tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
         tbox::Pointer<pdat::ArrayData<NDIM,double> >& bcoef_data,
-        tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
-        const tbox::Pointer<hier::Variable<NDIM> >& variable,
-        const hier::Patch<NDIM>& patch,
-        const hier::BoundaryBox<NDIM>& bdry_box,
-        double fill_time=0.0) const;
-
-    /*!
-     * \brief Function to fill arrays of Robin boundary condition coefficients
-     * at a patch boundary.  (Old interface.)
-     *
-     * \note In the original solv::RobinBcCoefStrategy interface, it was assumed
-     * that \f$ b = (1-a) \f$.  In the new interface, \f$a\f$ and \f$b\f$ are
-     * independent.
-     *
-     * \see solv::RobinBcCoefStrategy::setBcCoefs()
-     *
-     * \param acoef_data  Boundary coefficient data.
-     *        The array will have been defined to include index range
-     *        for corresponding to the boundary box \a bdry_box and
-     *        appropriate for the alignment of the given variable.  If
-     *        this is a null pointer, then the calling function is not
-     *        interested in a, and you can disregard it.
-     * \param gcoef_data  Boundary coefficient data.
-     *        This array is exactly like \a acoef_data, except that it
-     *        is to be filled with the g coefficient.
-     * \param variable    Variable to set the coefficients for.
-     *        If implemented for multiple variables, this parameter
-     *        can be used to determine which variable's coefficients
-     *        are being sought.
-     * \param patch       Patch requiring bc coefficients.
-     * \param bdry_box    Boundary box showing where on the boundary the coefficient data is needed.
-     * \param fill_time  Solution time corresponding to filling, for use when coefficients are time-dependent.
-     *
-     * \note An unrecoverable exception will occur if this method is called when
-     * STOOLS is compiled with SAMRAI versions after version 2.1.
-     */
-    virtual void
-    setBcCoefs(
-        tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
         tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
         const tbox::Pointer<hier::Variable<NDIM> >& variable,
         const hier::Patch<NDIM>& patch,
@@ -174,19 +128,6 @@ private:
     PressureBcCoefs&
     operator=(
         const PressureBcCoefs& that);
-
-    /*!
-     * \brief Implementation of method setBcCoefs().
-     */
-    void
-    setBcCoefs_private(
-        tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
-        tbox::Pointer<pdat::ArrayData<NDIM,double> >& bcoef_data,
-        tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
-        const tbox::Pointer<hier::Variable<NDIM> >& variable,
-        const hier::Patch<NDIM>& patch,
-        const hier::BoundaryBox<NDIM>& bdry_box,
-        double fill_time=0.0) const;
 
     /*
      * The object name.

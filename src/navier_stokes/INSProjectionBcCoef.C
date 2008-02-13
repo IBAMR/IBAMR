@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <12.Feb.2008 21:22:29 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Feb.2008 13:31:39 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -201,70 +201,6 @@ INSProjectionBcCoef::setBcCoefs(
     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
-#if USING_OLD_ROBIN_BC_INTERFACE
-    TBOX_ERROR("INSProjectionBcCoef::setBcCoefs():\n"
-               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << std::endl);
-#else
-    setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#endif
-    return;
-}// setBcCoefs
-
-void
-INSProjectionBcCoef::setBcCoefs(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-    const SAMRAI::hier::Patch<NDIM>& patch,
-    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
-{
-#if USING_OLD_ROBIN_BC_INTERFACE
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > bcoef_data =
-        (acoef_data.isNull()
-         ? NULL
-         : new SAMRAI::pdat::ArrayData<NDIM,double>(acoef_data->getBox(), acoef_data->getDepth()));
-    setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#else
-    TBOX_ERROR("INSProjectionBcCoef::setBcCoefs():\n"
-               << "  using incorrect SAMRAI::solv::RobinBcCoefStrategy interface." << std::endl);
-#endif
-    return;
-}// setBcCoefs
-
-SAMRAI::hier::IntVector<NDIM>
-INSProjectionBcCoef::numberOfExtensionsFillable() const
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
-    for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
-    {
-        TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
-    }
-#endif
-    SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
-    for (int d = 0; d < NDIM; ++d)
-    {
-        ret_val = SAMRAI::hier::IntVector<NDIM>::min(
-            ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
-    }
-    return ret_val;
-}// numberOfExtensionsFillable
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
-
-void
-INSProjectionBcCoef::setBcCoefs_private(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-    const SAMRAI::hier::Patch<NDIM>& patch,
-    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
-{
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
     for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
@@ -279,13 +215,8 @@ INSProjectionBcCoef::setBcCoefs_private(
     const SAMRAI::hier::Box<NDIM>& bc_coef_box = acoef_data->getBox();
 
     // Set the normal velocity bc coefs.
-#if USING_OLD_ROBIN_BC_INTERFACE
-    d_u_bc_coefs[bdry_normal_axis]->setBcCoefs(
-        acoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#else
     d_u_bc_coefs[bdry_normal_axis]->setBcCoefs(
         acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#endif
 
     // Set the corresponding projection Poisson problem homogeneous Robin
     // coefficients.
@@ -331,13 +262,8 @@ INSProjectionBcCoef::setBcCoefs_private(
 
     if (d_P_bc_coef != NULL)
     {
-#if USING_OLD_ROBIN_BC_INTERFACE
-        d_P_bc_coef->setBcCoefs(
-            acoef_data_P, gcoef_data_P, variable, patch, bdry_box, fill_time);
-#else
         d_P_bc_coef->setBcCoefs(
             acoef_data_P, bcoef_data_P, gcoef_data_P, variable, patch, bdry_box, fill_time);
-#endif
     }
 
     const int u_ghosts = (u_data->getGhostCellWidth()).max();
@@ -364,7 +290,30 @@ INSProjectionBcCoef::setBcCoefs_private(
         location_index, using_pressure_increment,
         d_rho, d_dt);
     return;
-}// setBcCoefs_private
+}// setBcCoefs
+
+SAMRAI::hier::IntVector<NDIM>
+INSProjectionBcCoef::numberOfExtensionsFillable() const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
+    for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
+    {
+        TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
+    }
+#endif
+    SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    for (int d = 0; d < NDIM; ++d)
+    {
+        ret_val = SAMRAI::hier::IntVector<NDIM>::min(
+            ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
+    }
+    return ret_val;
+}// numberOfExtensionsFillable
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

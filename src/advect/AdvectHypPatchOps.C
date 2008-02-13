@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <12.Feb.2008 21:19:07 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Feb.2008 13:30:44 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -2018,8 +2018,6 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
         }
 
         // Set the boundary conditions.
-        SAMRAI::math::ArrayDataBasicOps<NDIM,double> array_ops;
-        (void) array_ops;
         for (int n = 0; n < physical_codim1_boxes.size(); ++n)
         {
             const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
@@ -2043,18 +2041,10 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
                     new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > gcoef_data =
                     new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
-#if USING_OLD_ROBIN_BC_INTERFACE
-                // In the old interface, beta = (1-alpha).
-                d_Q_bc_coefs[l][depth]->setBcCoefs(
-                    acoef_data, gcoef_data, Q_var,
-                    patch, trimmed_bdry_box, fill_time);
-                array_ops.scale(*bcoef_data, -1.0, *acoef_data, bc_coef_box);
-                array_ops.addScalar(*bcoef_data, *bcoef_data, 1.0, bc_coef_box);
-#else
+
                 d_Q_bc_coefs[l][depth]->setBcCoefs(
                     acoef_data, bcoef_data, gcoef_data, Q_var,
                     patch, trimmed_bdry_box, fill_time);
-#endif
 
                 for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
                 {

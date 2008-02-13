@@ -1,5 +1,5 @@
 // Filename: PressureBcCoefs.C
-// Last modified: <12.Feb.2008 21:24:04 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Feb.2008 13:21:45 griffith@box221.cims.nyu.edu>
 // Created on 04 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "PressureBcCoefs.h"
@@ -47,54 +47,6 @@ PressureBcCoefs::~PressureBcCoefs()
 
 void
 PressureBcCoefs::setBcCoefs(
-    tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
-    tbox::Pointer<pdat::ArrayData<NDIM,double> >& bcoef_data,
-    tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const tbox::Pointer<hier::Variable<NDIM> >& variable,
-    const hier::Patch<NDIM>& patch,
-    const hier::BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
-{
-#if USING_OLD_ROBIN_BC_INTERFACE
-    TBOX_ERROR("PressureBcCoefs::setBcCoefs():\n"
-               << "  using incorrect solv::RobinBcCoefStrategy interface." << endl);
-#else
-    setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#endif
-    return;
-}// setBcCoefs
-
-void
-PressureBcCoefs::setBcCoefs(
-    tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
-    tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const tbox::Pointer<hier::Variable<NDIM> >& variable,
-    const hier::Patch<NDIM>& patch,
-    const hier::BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
-{
-#if USING_OLD_ROBIN_BC_INTERFACE
-    tbox::Pointer<pdat::ArrayData<NDIM,double> > bcoef_data = NULL;
-    setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#else
-    TBOX_ERROR("PressureBcCoefs::setBcCoefs():\n"
-               << "  using incorrect solv::RobinBcCoefStrategy interface." << endl);
-#endif
-    return;
-}// setBcCoefs
-
-hier::IntVector<NDIM>
-PressureBcCoefs::numberOfExtensionsFillable() const
-{
-    return 1;
-}// numberOfExtensionsFillable
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
-
-void
-PressureBcCoefs::setBcCoefs_private(
     tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
     tbox::Pointer<pdat::ArrayData<NDIM,double> >& bcoef_data,
     tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
@@ -167,7 +119,17 @@ PressureBcCoefs::setBcCoefs_private(
         }
     }
     return;
-}// setBcCoefs_private
+}// setBcCoefs
+
+hier::IntVector<NDIM>
+PressureBcCoefs::numberOfExtensionsFillable() const
+{
+    return 1;
+}// numberOfExtensionsFillable
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

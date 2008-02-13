@@ -1,5 +1,5 @@
 // Filename: VelocityBcCoefs.C
-// Last modified: <12.Feb.2008 21:25:12 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Feb.2008 13:22:48 griffith@box221.cims.nyu.edu>
 // Created on 18 Dec 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "VelocityBcCoefs.h"
@@ -50,57 +50,6 @@ VelocityBcCoefs::~VelocityBcCoefs()
 
 void
 VelocityBcCoefs::setBcCoefs(
-    tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
-    tbox::Pointer<pdat::ArrayData<NDIM,double> >& bcoef_data,
-    tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const tbox::Pointer<hier::Variable<NDIM> >& variable,
-    const hier::Patch<NDIM>& patch,
-    const hier::BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
-{
-#if USING_OLD_ROBIN_BC_INTERFACE
-    TBOX_ERROR("VelocityBcCoefs::setBcCoefs():\n"
-               << "  using incorrect solv::RobinBcCoefStrategy interface." << endl);
-#else
-    setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#endif
-    return;
-}// setBcCoefs
-
-void
-VelocityBcCoefs::setBcCoefs(
-    tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
-    tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const tbox::Pointer<hier::Variable<NDIM> >& variable,
-    const hier::Patch<NDIM>& patch,
-    const hier::BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
-{
-#if USING_OLD_ROBIN_BC_INTERFACE
-    tbox::Pointer<pdat::ArrayData<NDIM,double> > bcoef_data =
-        (acoef_data.isNull()
-         ? NULL
-         : new pdat::ArrayData<NDIM,double>(acoef_data->getBox(), acoef_data->getDepth()));
-    setBcCoefs_private(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-#else
-    TBOX_ERROR("VelocityBcCoefs::setBcCoefs():\n"
-               << "  using incorrect solv::RobinBcCoefStrategy interface." << endl);
-#endif
-    return;
-}// setBcCoefs
-
-hier::IntVector<NDIM>
-VelocityBcCoefs::numberOfExtensionsFillable() const
-{
-    return 128;
-}// numberOfExtensionsFillable
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
-
-void
-VelocityBcCoefs::setBcCoefs_private(
     tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
     tbox::Pointer<pdat::ArrayData<NDIM,double> >& bcoef_data,
     tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
@@ -164,8 +113,18 @@ VelocityBcCoefs::setBcCoefs_private(
         if (!bcoef_data.isNull()) bcoef_data->fillAll(1.0);
         if (!gcoef_data.isNull()) gcoef_data->fillAll(0.0);
     }
-return;
-}// setBcCoefs_private
+    return;
+}// setBcCoefs
+
+hier::IntVector<NDIM>
+VelocityBcCoefs::numberOfExtensionsFillable() const
+{
+    return 128;
+}// numberOfExtensionsFillable
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
