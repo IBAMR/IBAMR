@@ -279,7 +279,10 @@ c
                alpha(k) = C3(k)/((EPSILON + IS(k))*(EPSILON + IS(k)))
             enddo
 
-            alpha_sum = sum(alpha)
+            alpha_sum = 0.d0
+            do k = 0,R-1
+               alpha_sum = alpha_sum + alpha(k)
+            enddo
             do k = 0,R-1
                omega(k) = alpha(k)/alpha_sum
             enddo
@@ -355,7 +358,10 @@ c
                alpha(k) = C3(k)/((EPSILON + IS(k))*(EPSILON + IS(k)))
             enddo
 
-            alpha_sum = sum(alpha)
+            alpha_sum = 0.d0
+            do k = 0,R-1
+               alpha_sum = alpha_sum + alpha(k)
+            enddo
             do k = 0,R-1
                omega(k) = alpha(k)/alpha_sum
             enddo
@@ -431,7 +437,10 @@ c
                alpha(k) = C3(k)/((EPSILON + IS(k))*(EPSILON + IS(k)))
             enddo
 
-            alpha_sum = sum(alpha)
+            alpha_sum = 0.d0
+            do k = 0,R-1
+               alpha_sum = alpha_sum + alpha(k)
+            enddo
             do k = 0,R-1
                omega(k) = alpha(k)/alpha_sum
             enddo
@@ -507,7 +516,10 @@ c
                alpha(k) = C3(k)/((EPSILON + IS(k))*(EPSILON + IS(k)))
             enddo
 
-            alpha_sum = sum(alpha)
+            alpha_sum = 0.d0
+            do k = 0,R-1
+               alpha_sum = alpha_sum + alpha(k)
+            enddo
             do k = 0,R-1
                omega(k) = alpha(k)/alpha_sum
             enddo
