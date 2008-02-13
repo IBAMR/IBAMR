@@ -1,5 +1,5 @@
 // Filename: AdvDiffHypPatchOps.C
-// Last modified: <30.Nov.2007 18:53:38 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:18:45 griffith@box221.cims.nyu.edu>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHypPatchOps.h"
@@ -30,7 +30,6 @@
 #include <tbox/TimerManager.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <vector>
 
 // FORTRAN ROUTINES
@@ -192,8 +191,8 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
     const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_Q_vars.size() == d_flux_integral_vars.size());
-    assert(d_Q_vars.size() == d_q_integral_vars.size());
+    TBOX_ASSERT(d_Q_vars.size() == d_flux_integral_vars.size());
+    TBOX_ASSERT(d_Q_vars.size() == d_q_integral_vars.size());
 #endif
 
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;

@@ -2,7 +2,7 @@
 #define included_StashableManager
 
 // Filename: StashableManager.h
-// Last modified: <17.Apr.2007 19:39:06 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:50:16 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -13,6 +13,7 @@
 
 // SAMRAI INCLUDES
 #include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
 #include <map>

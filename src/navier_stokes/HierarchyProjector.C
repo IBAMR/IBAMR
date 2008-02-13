@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <04.Feb.2008 22:38:09 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:21:36 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -31,9 +31,6 @@
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
 #include <tbox/Utilities.h>
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -115,9 +112,9 @@ HierarchyProjector::HierarchyProjector(
       d_rhs_idx(-1)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!input_db.isNull());
-    assert(!hierarchy.isNull());
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(!hierarchy.isNull());
 #endif
 
     if (d_registered_for_restart)
@@ -311,7 +308,7 @@ SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
 HierarchyProjector::getHierarchyMathOps() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!d_hier_math_ops.isNull());
+    TBOX_ASSERT(!d_hier_math_ops.isNull());
 #endif
     return d_hier_math_ops;
 }// getHierarchyMathOps
@@ -322,7 +319,7 @@ HierarchyProjector::setHierarchyMathOps(
     const bool manage_ops)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hier_math_ops.isNull());
+    TBOX_ASSERT(!hier_math_ops.isNull());
 #endif
     d_hier_math_ops = hier_math_ops;
     d_is_managing_hier_math_ops = manage_ops;
@@ -360,7 +357,7 @@ HierarchyProjector::setVelocityPhysicalBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned l = 0; l < u_bc_coefs.size(); ++l)
     {
-        assert(u_bc_coefs[l] != NULL);
+        TBOX_ASSERT(u_bc_coefs[l] != NULL);
     }
 #endif
     d_u_bc_coefs = u_bc_coefs;
@@ -379,7 +376,7 @@ HierarchyProjector::setPressurePhysicalBcCoef(
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(P_bc_coef != NULL);
+    TBOX_ASSERT(P_bc_coef != NULL);
 #endif
     d_P_bc_coef = P_bc_coef;
     d_Phi_bc_coef->setPressurePhysicalBcCoef(d_P_bc_coef);
@@ -396,7 +393,7 @@ SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>
 HierarchyProjector::getPoissonSolver() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!d_poisson_solver.isNull());
+    TBOX_ASSERT(!d_poisson_solver.isNull());
 #endif
     return d_poisson_solver;
 }// getPoissonSolver
@@ -564,14 +561,14 @@ HierarchyProjector::initializeLevelData(
     t_initialize_level_data->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((level_number >= 0)
-           && (level_number <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0)
+                && (level_number <= hierarchy->getFinestLevelNumber()));
     if (!old_level.isNull())
     {
-        assert(level_number == old_level->getLevelNumber());
+        TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    assert(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
 
     // intentionally blank
@@ -589,13 +586,13 @@ HierarchyProjector::resetHierarchyConfiguration(
     t_reset_hierarchy_configuration->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((coarsest_level >= 0)
-           && (coarsest_level <= finest_level)
-           && (finest_level <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((coarsest_level >= 0)
+                && (coarsest_level <= finest_level)
+                && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -681,7 +678,7 @@ HierarchyProjector::putToDatabase(
     t_put_to_database->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     db->putInteger("HIERARCHY_PROJECTOR_VERSION", HIERARCHY_PROJECTOR_VERSION);
 
@@ -727,7 +724,7 @@ HierarchyProjector::getFromInput(
     bool is_from_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     (void) is_from_restart;
     d_max_iterations = db->getIntegerWithDefault("max_iterations", d_max_iterations);

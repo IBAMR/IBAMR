@@ -1,5 +1,5 @@
 // Filename: UInit.C
-// Last modified: <25.Oct.2006 19:28:13 boyce@bigboy.nyconnect.com>
+// Last modified: <12.Feb.2008 21:26:20 griffith@box221.cims.nyu.edu>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "UInit.h"
@@ -23,9 +23,6 @@
 #include <CellIterator.h>
 #include <Index.h>
 
-// C++ STDLIB INCLUDES
-#include <cassert>
-
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -39,7 +36,7 @@ UInit::UInit(
       d_delta(0.05)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
+    TBOX_ASSERT(!object_name.empty());
 #endif
 
     if (NDIM != 2) TBOX_ERROR("only NDIM=2 is presently implemented!\n");
@@ -63,7 +60,7 @@ UInit::setDataOnPatch(
 {
     tbox::Pointer< pdat::CellData<NDIM,double> > U_data = patch.getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!U_data.isNull());
+    TBOX_ASSERT(!U_data.isNull());
 #endif
     const hier::Box<NDIM>& patch_box = patch.getBox();
     const hier::Index<NDIM>& patch_lower = patch_box.lower();

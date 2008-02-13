@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <04.Feb.2008 22:03:10 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:16:46 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -39,7 +39,6 @@
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <fstream>
 #include <iostream>
 
@@ -126,8 +125,8 @@ IBStandardInitializer::IBStandardInitializer(
       d_global_index_offset()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!input_db.isNull());
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!input_db.isNull());
 #endif
 
     // Register the specification objects with the StashableManager class.
@@ -181,7 +180,7 @@ IBStandardInitializer::registerLagSiloDataWriter(
     SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!silo_writer.isNull());
+    TBOX_ASSERT(!silo_writer.isNull());
 #endif
 
     // Cache a pointer to the data writer.
@@ -488,9 +487,9 @@ IBStandardInitializer::initializeLagSiloDataWriter(
     const int level_number)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(level_number >= 0);
-    assert(level_number < d_max_levels);
-    assert(d_level_is_initialized[level_number]);
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(level_number < d_max_levels);
+    TBOX_ASSERT(d_level_is_initialized[level_number]);
 #endif
 
     // WARNING: This code does not work if the global node offset is nonzero on
@@ -1579,7 +1578,7 @@ IBStandardInitializer::initializeSpecs(
          it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(mastr_idx == (*it).first);
+        TBOX_ASSERT(mastr_idx == (*it).first);
 #endif
         // The connectivity information.
         const Edge& e = (*it).second;
@@ -1653,7 +1652,7 @@ IBStandardInitializer::getFromInput(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
 
     // Determine whether to use "batons" to prevent multiple MPI processes from

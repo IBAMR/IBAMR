@@ -1,5 +1,5 @@
 // Filename: QInitAndSoln.C
-// Last modified: <11.Apr.2007 02:07:44 boyce@trasnaform2.local>
+// Last modified: <12.Feb.2008 21:24:29 griffith@box221.cims.nyu.edu>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "QInit.h"
@@ -23,9 +23,6 @@
 #include <CellIterator.h>
 #include <Index.h>
 
-// C++ STDLIB INCLUDES
-#include <cassert>
-
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -45,8 +42,8 @@ QInit::QInit(
       d_zalesak_slot_l(0.1)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!grid_geom.isNull());
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!grid_geom.isNull());
 #endif
 
     // Default initial values.
@@ -81,7 +78,7 @@ QInit::setDataOnPatch(
 
     tbox::Pointer< pdat::CellData<NDIM,double> > Q_data = patch.getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!Q_data.isNull());
+    TBOX_ASSERT(!Q_data.isNull());
 #endif
     const hier::Box<NDIM>& patch_box = patch.getBox();
     const hier::Index<NDIM>& patch_lower = patch_box.lower();

@@ -2,7 +2,7 @@
 #define included_ArrayData_specialized_LNodeIndexSet
 
 // Filename: ArrayData_specialized_LNodeIndexSet.I
-// Last modified: <07.Feb.2008 00:33:04 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:19:40 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include <ArrayData.h>
@@ -12,7 +12,6 @@
 #include <tbox/ArenaManager.h>
 #include <ibamr/LNodeIndexSet.h>
 #include <ibamr/StashableStream.h>
-#include <cassert>
 
 namespace SAMRAI
 {
@@ -284,7 +283,7 @@ ArrayData<NDIM,IBAMR::LNodeIndexSet>::unpackStreamAndSum(
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     const int size = d_depth * dest_boxes.getTotalSizeOfBoxes();
-    assert(ptr == size);
+    TBOX_ASSERT(ptr == size);
 #endif
     return;
 }// unpackStreamAndSum

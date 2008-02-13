@@ -1,5 +1,5 @@
 // Filename: WENOMOLOpsAndSoln.C
-// Last modified: <06.Jan.2008 18:14:59 boyce@trasnaform2.local>
+// Last modified: <12.Feb.2008 21:25:54 griffith@box221.cims.nyu.edu>
 // Created on 04 Jan 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "WENOMOLOps.h"
@@ -30,7 +30,6 @@
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
-#include <cassert>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -78,8 +77,8 @@ WENOMOLOps::WENOMOLOps(
       d_zalesak_slot_l(0.1)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!grid_geom.isNull());
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!grid_geom.isNull());
 #endif
 
     // Default initial values.
@@ -167,8 +166,8 @@ WENOMOLOps::initializeDataOnPatch(
     int U_idx = var_db->mapVariableAndContextToIndex(d_U_var, getInteriorContext());
     tbox::Pointer< pdat::CellData<NDIM,double> > U_data = patch.getPatchData(U_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!Q_data.isNull());
-    assert(!U_data.isNull());
+    TBOX_ASSERT(!Q_data.isNull());
+    TBOX_ASSERT(!U_data.isNull());
 #endif
     U_data->fill(-2.0,0);
     U_data->fill(+1.0,1);

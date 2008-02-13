@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <06.Feb.2008 21:01:59 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:21:58 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -52,7 +52,6 @@
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <iterator>
 #include <limits>
 
@@ -168,12 +167,12 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     bool register_for_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!input_db.isNull());
-    assert(!hierarchy.isNull());
-    assert(!explicit_predictor.isNull());
-    assert(!adv_diff_hier_integrator.isNull());
-    assert(!hier_projector.isNull());
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(!explicit_predictor.isNull());
+    TBOX_ASSERT(!adv_diff_hier_integrator.isNull());
+    TBOX_ASSERT(!hier_projector.isNull());
 #endif
     d_object_name = object_name;
     d_registered_for_restart = register_for_restart;
@@ -443,7 +442,7 @@ INSHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned l = 0; l < U_bc_coefs.size(); ++l)
     {
-        assert(U_bc_coefs[l] != NULL);
+        TBOX_ASSERT(U_bc_coefs[l] != NULL);
     }
 #endif
     d_U_bc_coefs = U_bc_coefs;
@@ -480,7 +479,7 @@ INSHierarchyIntegrator::registerPressurePhysicalBcCoef(
                    << "  of the hierarchy integrator object." << std::endl);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(P_bc_coef != NULL);
+    TBOX_ASSERT(P_bc_coef != NULL);
 #endif
     d_P_bc_coef = P_bc_coef;
     d_hier_projector->setPressurePhysicalBcCoef(d_P_bc_coef);
@@ -517,7 +516,7 @@ INSHierarchyIntegrator::registerVisItDataWriter(
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!visit_writer.isNull());
+    TBOX_ASSERT(!visit_writer.isNull());
 #endif
     d_adv_diff_hier_integrator->registerVisItDataWriter(visit_writer);
     d_visit_writer = visit_writer;
@@ -559,7 +558,7 @@ SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
 INSHierarchyIntegrator::getHierarchyMathOps() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!d_hier_math_ops.isNull());
+    TBOX_ASSERT(!d_hier_math_ops.isNull());
 #endif
     return d_hier_math_ops;
 }// getHierarchyMathOps
@@ -570,7 +569,7 @@ INSHierarchyIntegrator::setHierarchyMathOps(
     const bool manage_ops)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hier_math_ops.isNull());
+    TBOX_ASSERT(!hier_math_ops.isNull());
 #endif
     d_hier_math_ops = hier_math_ops;
     d_is_managing_hier_math_ops = manage_ops;
@@ -612,7 +611,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     t_initialize_hierarchy_integrator->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!gridding_alg.isNull());
+    TBOX_ASSERT(!gridding_alg.isNull());
 #endif
     d_gridding_alg = gridding_alg;
 
@@ -1199,7 +1198,7 @@ INSHierarchyIntegrator::advanceHierarchy(
     t_advance_hierarchy->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_end_time >= d_integrator_time+dt);
+    TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
 #endif
 
     const double current_time = d_integrator_time;
@@ -1614,9 +1613,9 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     t_predict_advection_velocity->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(current_time <= new_time);
-    assert(d_end_time > d_integrator_time);
-    assert(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
+    TBOX_ASSERT(current_time <= new_time);
+    TBOX_ASSERT(d_end_time > d_integrator_time);
+    TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
 #endif
 
     const int coarsest_ln = 0;
@@ -1757,9 +1756,9 @@ INSHierarchyIntegrator::integrateAdvDiff(
     t_integrate_adv_diff->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(current_time <= new_time);
-    assert(d_end_time > d_integrator_time);
-    assert(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
+    TBOX_ASSERT(current_time <= new_time);
+    TBOX_ASSERT(d_end_time > d_integrator_time);
+    TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
 #endif
 
     const int coarsest_ln = 0;
@@ -1842,9 +1841,9 @@ INSHierarchyIntegrator::projectVelocity(
     t_project_velocity->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(current_time <= new_time);
-    assert(d_end_time > d_integrator_time);
-    assert(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
+    TBOX_ASSERT(current_time <= new_time);
+    TBOX_ASSERT(d_end_time > d_integrator_time);
+    TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
 #endif
 
     const double dt = new_time - current_time;
@@ -1976,9 +1975,9 @@ INSHierarchyIntegrator::updatePressure(
     t_update_pressure->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(current_time <= new_time);
-    assert(d_end_time > d_integrator_time);
-    assert(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
+    TBOX_ASSERT(current_time <= new_time);
+    TBOX_ASSERT(d_end_time > d_integrator_time);
+    TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
 #endif
 
     const int coarsest_ln = 0;
@@ -2004,7 +2003,7 @@ INSHierarchyIntegrator::updatePressure(
     if (d_using_hybrid_projection)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(d_velocity_projection_type == "pressure_increment" &&
+        TBOX_ASSERT(d_velocity_projection_type == "pressure_increment" &&
                d_pressure_projection_type == "pressure_update");
 #endif
         // Allocate scratch data.
@@ -2350,13 +2349,13 @@ INSHierarchyIntegrator::synchronizeNewLevels(
     t_synchronize_new_levels->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((coarsest_level >= 0)
-           && (coarsest_level < finest_level)
-           && (finest_level <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((coarsest_level >= 0)
+                && (coarsest_level < finest_level)
+                && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     // We use the AdvDiffHierarchyIntegrator to handle as much data management
@@ -2425,8 +2424,8 @@ INSHierarchyIntegrator::resetTimeDependentHierData(
                     patch->getPatchData(dst_idx);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-                assert(src_data->getBox() == dst_data->getBox());
-                assert(src_data->getGhostCellWidth() ==
+                TBOX_ASSERT(src_data->getBox() == dst_data->getBox());
+                TBOX_ASSERT(src_data->getGhostCellWidth() ==
                        dst_data->getGhostCellWidth());
 #endif
 
@@ -2501,14 +2500,14 @@ INSHierarchyIntegrator::initializeLevelData(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > old_level = base_old_level;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((level_number >= 0)
-           && (level_number <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0)
+                && (level_number <= hierarchy->getFinestLevelNumber()));
     if (!old_level.isNull())
     {
-        assert(level_number == old_level->getLevelNumber());
+        TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    assert(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
     // We use the AdvDiffHierarchyIntegrator and HierarchyProjector objects to
     // handle as much data management as possible.
@@ -2819,13 +2818,13 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
 
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((coarsest_level >= 0)
-           && (coarsest_level <= finest_level)
-           && (finest_level <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((coarsest_level >= 0)
+                && (coarsest_level <= finest_level)
+                && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -2943,10 +2942,10 @@ INSHierarchyIntegrator::applyGradientDetector(
     t_apply_gradient_detector->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((level_number >= 0)
-           && (level_number <= hierarchy->getFinestLevelNumber()));
-    assert(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0)
+                && (level_number <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -3142,7 +3141,7 @@ INSHierarchyIntegrator::putToDatabase(
     t_put_to_database->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     db->putInteger("INS_HIERARCHY_INTEGRATOR_VERSION",
                    INS_HIERARCHY_INTEGRATOR_VERSION);
@@ -3277,7 +3276,7 @@ INSHierarchyIntegrator::registerVariable(
     const std::string& refine_name)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!variable.isNull());
+    TBOX_ASSERT(!variable.isNull());
 #endif
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
@@ -3367,7 +3366,7 @@ INSHierarchyIntegrator::registerVariable(
     const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!variable.isNull());
+    TBOX_ASSERT(!variable.isNull());
 #endif
 
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
@@ -3469,7 +3468,7 @@ INSHierarchyIntegrator::getFromInput(
     bool is_from_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
 
     // Read in data members from input database.

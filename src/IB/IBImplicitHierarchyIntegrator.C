@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <17.Oct.2007 19:00:33 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:15:18 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -46,7 +46,6 @@
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
-#include <cassert>
 #include <limits>
 #include <numeric>
 
@@ -153,11 +152,11 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
       d_Q_scratch_idx(-1)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!input_db.isNull());
-    assert(!hierarchy.isNull());
-    assert(!ins_hier_integrator.isNull());
-    assert(!force_strategy.isNull());
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(!ins_hier_integrator.isNull());
+    TBOX_ASSERT(!force_strategy.isNull());
 #endif
 
     if (d_registered_for_restart)
@@ -263,7 +262,7 @@ IBImplicitHierarchyIntegrator::registerLNodeInitStrategy(
     SAMRAI::tbox::Pointer<LNodeInitStrategy> lag_init)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!lag_init.isNull());
+    TBOX_ASSERT(!lag_init.isNull());
 #endif
     d_lag_init = lag_init;
     d_lag_data_manager->registerLNodeInitStrategy(d_lag_init);
@@ -283,7 +282,7 @@ IBImplicitHierarchyIntegrator::registerVisItDataWriter(
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!visit_writer.isNull());
+    TBOX_ASSERT(!visit_writer.isNull());
 #endif
     d_visit_writer = visit_writer;
     d_ins_hier_integrator->registerVisItDataWriter(d_visit_writer);
@@ -296,7 +295,7 @@ IBImplicitHierarchyIntegrator::registerLagSiloDataWriter(
     SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!silo_writer.isNull());
+    TBOX_ASSERT(!silo_writer.isNull());
 #endif
     d_silo_writer = silo_writer;
     d_lag_data_manager->registerLagSiloDataWriter(d_silo_writer);
@@ -308,7 +307,7 @@ IBImplicitHierarchyIntegrator::registerLoadBalancer(
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!load_balancer.isNull());
+    TBOX_ASSERT(!load_balancer.isNull());
 #endif
     d_load_balancer = load_balancer;
     d_lag_data_manager->registerLoadBalancer(d_load_balancer);
@@ -343,7 +342,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     t_initialize_hierarchy_integrator->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!gridding_alg.isNull());
+    TBOX_ASSERT(!gridding_alg.isNull());
 #endif
     d_gridding_alg = gridding_alg;
 
@@ -519,14 +518,14 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
     t_advance_hierarchy->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_end_time >= d_integrator_time+dt);
+    TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
 #endif
 
     dt = _dt;
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    assert(coarsest_ln == finest_ln);
+    TBOX_ASSERT(coarsest_ln == finest_ln);
 
     const double current_time = d_integrator_time;
     const double new_time     = d_integrator_time+dt;
@@ -957,13 +956,13 @@ IBImplicitHierarchyIntegrator::synchronizeNewLevels(
     t_synchronize_new_levels->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((coarsest_level >= 0)
-           && (coarsest_level < finest_level)
-           && (finest_level <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((coarsest_level >= 0)
+                && (coarsest_level < finest_level)
+                && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     // We use the INSHierarchyIntegrator to handle as much structured
@@ -1032,14 +1031,14 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
     t_initialize_level_data->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((level_number >= 0)
-           && (level_number <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0)
+                && (level_number <= hierarchy->getFinestLevelNumber()));
     if (!old_level.isNull())
     {
-        assert(level_number == old_level->getLevelNumber());
+        TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    assert(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
     // We use the INSHierarchyIntegrator to handle as much structured
     // data management as possible.
@@ -1071,13 +1070,13 @@ IBImplicitHierarchyIntegrator::resetHierarchyConfiguration(
     t_reset_hierarchy_configuration->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((coarsest_level >= 0)
-           && (coarsest_level <= finest_level)
-           && (finest_level <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((coarsest_level >= 0)
+                && (coarsest_level <= finest_level)
+                && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1174,10 +1173,10 @@ IBImplicitHierarchyIntegrator::applyGradientDetector(
     t_apply_gradient_detector->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((level_number >= 0)
-           && (level_number <= hierarchy->getFinestLevelNumber()));
-    assert(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0)
+                && (level_number <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -1271,7 +1270,7 @@ IBImplicitHierarchyIntegrator::putToDatabase(
     t_put_to_database->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     db->putInteger("IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION",
                    IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION);
@@ -1344,7 +1343,7 @@ IBImplicitHierarchyIntegrator::getFromInput(
     bool is_from_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     // Read data members from input database.
     d_end_time = db->getDoubleWithDefault("end_time", d_end_time);
@@ -1432,7 +1431,7 @@ IBImplicitHierarchyIntegrator::FormFunction(
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    assert(coarsest_ln == finest_ln);
+    TBOX_ASSERT(coarsest_ln == finest_ln);
     const int ln = 0;
 
     // Compute X~(n+1).

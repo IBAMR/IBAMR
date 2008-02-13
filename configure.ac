@@ -18,24 +18,8 @@ AC_PROG_CXX		# Check for a C++ compiler.
 AC_PROG_F77		# Check for a Fortran compiler.
 AC_F77_LIBRARY_LDFLAGS	# Determine the linker flags for the Fortran intrinsic and runtime libraries.
 AC_F77_WRAPPERS
-
-# Check rpath syntax.
-AC_ARG_WITH([rpath],
-  AS_HELP_STRING([--with-rpath],[indicate whether additional linker flags, e.g. -rpath<lib dir> are required when linking with shared libraries]),
-  [USE_RPATH_FLAG=$withval],
-  [USE_RPATH_FLAG="yes"])
-
-AC_ARG_WITH([rpath-syntax],
-  AS_HELP_STRING([--with-rpath-syntax=ARG],[linker flags, e.g. -rpath<lib dir> are required when linking with shared libraries @<:@default=-Wl,-rpath,@:>@]),
-  [RPATH_FLAG=$withval],
-  [RPATH_FLAG="-Wl,-rpath,"])
-
-if test "$USE_RPATH_FLAG" == "yes" ; then
-  echo "using rpath flags when linking against shared libraries"
-  echo "rpath flag syntax is: ${RPATH_FLAG}<lib dir>"
-else
-  echo "not using rpath flags when linking against shared libraries"
-fi
+AC_LIB_PREPARE_PREFIX
+AC_LIB_RPATH
 
 # Check for MPICC and MPICXX and configure MPI options.
 AC_ARG_WITH([mpi],
@@ -57,12 +41,17 @@ AC_ARG_WITH([mpicxx],
   [MPICXX=$withval],)
 
 AC_LANG_PUSH([C])
-ACX_MPI(,AC_MSG_WARN([unable to find working MPI installation]))
+ACX_MPI(,AC_MSG_WARN([unable to find working MPI C complier wrapper]))
 CC="$MPICC"
+if test "$MPICC" != "" ; then
+  CC="$MPICC"
+fi
 AC_LANG_POP([C])
 
-ACX_MPI(,AC_MSG_WARN([unable to find working MPI installation]))
-CXX="$MPICXX"
+ACX_MPI(,AC_MSG_WARN([unable to find working MPI C++ compiler wrapper]))
+if test "$MPICXX" != "" ; then
+  CXX="$MPICXX"
+fi
 
 if test "$MPILIBS" != "" ; then
   LIBS="$MPILIBS $LIBS"
@@ -84,8 +73,6 @@ fi
 
 # Checks for other programs.
 AC_PROG_RANLIB
-###AC_DISABLE_SHARED
-###AC_PROG_LIBTOOL
 
 AC_ARG_WITH([M4],
   AS_HELP_STRING([--with-M4=ARG],[manually set M4 to ARG]))
@@ -128,6 +115,14 @@ AC_SUBST(HAVE_DOT,$HAVE_DOT)
 AC_SUBST(DOT,$DOT)
 AC_SUBST(DOT_PATH,$DOT_PATH)
 
+###########################################################################
+# Checks for IBAMR configuration.
+###########################################################################
+echo
+echo "========================="
+echo "Configuring IBAMR options"
+echo "========================="
+
 # Checks to see whether large ghost cell widths should be enabled.
 AC_ARG_ENABLE([large-ghost-cell-width],
   AS_HELP_STRING(--enable-large-ghost-cell-width,[enable the use of large ghost cell regions (this feature must be enabled for certain types of physical boundary condition routines to function properly) @<:@default=no@:>@]),
@@ -166,38 +161,13 @@ fi
 # Required external libraries.
 
 # Check for BLAS and LAPACK libraries.
+echo
+echo "========================================"
+echo "Configuring required package BLAS/LAPACK"
+echo "========================================"
 ACX_BLAS(,)
 ACX_LAPACK(,)
 LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
-
-# Check for zlib library and configure zlib options.
-echo
-echo "================================="
-echo "Configuring required package zlib"
-echo "================================="
-AC_ARG_WITH([zlib],
-  AS_HELP_STRING(--with-zlib=PATH,location of required zlib installation @<:@default=/usr/local/sfw/zlib/current@:>@),
-  [if test ! -d "$withval" ; then
-     AC_MSG_ERROR([you must specify an existing directory when using --with-zlib=PATH])
-   fi
-   ZLIB_DIR=$withval],
-  [ZLIB_DIR=/usr/local/sfw/zlib/current])
-
-if test -d "${ZLIB_DIR}/lib" ; then
-  if test "${USE_RPATH_FLAG}" == "yes" ; then
-    LDFLAGS="${RPATH_FLAG}${ZLIB_DIR}/lib $LDFLAGS"
-  fi
-  LDFLAGS="-L${ZLIB_DIR}/lib $LDFLAGS"
-fi
-if test -d "${ZLIB_DIR}/include" ; then
-  CPPFLAGS="-I${ZLIB_DIR}/include $CPPFLAGS"
-fi
-
-AC_CHECK_HEADER([zlib.h],,AC_MSG_WARN([could not find header file zlib.h]))
-
-AC_LANG_PUSH([C])
-AC_CHECK_LIB([z],[inflateEnd],,AC_MSG_WARN([could not find libz]))
-AC_LANG_POP([C])
 
 # Check for hdf5 library and configure hdf5 options.
 echo
@@ -213,25 +183,20 @@ AC_ARG_WITH([hdf5],
   [HDF5_DIR=/usr/local/sfw/hdf5/current])
 
 if test -d "${HDF5_DIR}/lib" ; then
-  if test "${USE_RPATH_FLAG}" == "yes" ; then
-    LDFLAGS="${RPATH_FLAG}${HDF5_DIR}/lib $LDFLAGS"
-  fi
   LDFLAGS="-L${HDF5_DIR}/lib $LDFLAGS"
 fi
 if test -d "${HDF5_DIR}/include" ; then
   CPPFLAGS="-I${HDF5_DIR}/include $CPPFLAGS"
 fi
 
-AC_CHECK_HEADER([hdf5.h],,AC_MSG_WARN([could not find header file hdf5.h]))
+AC_CHECK_HEADER([hdf5.h],,AC_MSG_ERROR([could not find header file hdf5.h]))
+AC_CHECK_HEADER([H5LT.h],,AC_MSG_ERROR([could not find header file H5LT.h]))
 
-AC_LANG_PUSH([C])
-AC_CHECK_LIB([hdf5],[H5open],,
-  echo "checking to see if we need to include szip to use hdf5..."
-  AC_CHECK_LIB([sz], [SZ_encoder_enabled])
-  unset ac_cv_lib_hdf5_H5open
-  AC_CHECK_LIB([hdf5],[H5open],,AC_MSG_WARN([could not find libhdf5])))
-AC_CHECK_LIB([hdf5_hl],[H5open],,AC_MSG_WARN([could not find libhdf5_hl]))
-AC_LANG_POP([C])
+AC_LIB_HAVE_LINKFLAGS([hdf5],[z,sz])
+LIBS="$LIBHDF5 $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([hdf5_hl])
+LIBS="$LIBHDF5_HL $LIBS"
 
 # Check for hypre library and configure hypre options.
 echo
@@ -247,36 +212,64 @@ AC_ARG_WITH([hypre],
   [HYPRE_DIR=/usr/local/sfw/hypre/current])
 
 if test -d "${HYPRE_DIR}/lib" ; then
-  if test "${USE_RPATH_FLAG}" == "yes" ; then
-    LDFLAGS="${RPATH_FLAG}${HYPRE_DIR}/lib $LDFLAGS"
-  fi
   LDFLAGS="-L${HYPRE_DIR}/lib $LDFLAGS"
 fi
 if test -d "${HYPRE_DIR}/include" ; then
   CPPFLAGS="-I${HYPRE_DIR}/include $CPPFLAGS"
 fi
 
-AC_CHECK_HEADER([HYPRE.h],,AC_MSG_WARN([could not find header file HYPRE.h]))
+AC_CHECK_HEADER([HYPRE.h],,AC_MSG_ERROR([could not find header file HYPRE.h]))
 
-AC_LANG_PUSH([C])
-AC_CHECK_LIB([HYPRE_utilities],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_utilities]))
-AC_CHECK_LIB([HYPRE_multivector],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_multivector]))
-AC_CHECK_LIB([HYPRE_krylov],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_krylov]))
-AC_CHECK_LIB([HYPRE_seq_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_seq_mv]))
-AC_CHECK_LIB([HYPRE_parcsr_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_parcsr_mv]))
-AC_CHECK_LIB([HYPRE_IJ_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_IJ_mv]))
-AC_CHECK_LIB([HYPRE_DistributedMatrix],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_DistributedMatrix]))
-AC_CHECK_LIB([HYPRE_MatrixMatrix],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_MatrixMatrix]))
-AC_CHECK_LIB([HYPRE_Euclid],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_Euclid]))
-AC_CHECK_LIB([HYPRE_ParaSails],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_ParaSails]))
-AC_CHECK_LIB([HYPRE_DistributedMatrixPilutSolver],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_DistributedMatrixPilutSolver]))
-AC_CHECK_LIB([HYPRE_parcsr_block_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_parcsr_block_mv]))
-AC_CHECK_LIB([HYPRE_parcsr_ls],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_parcsr_ls]))
-AC_CHECK_LIB([HYPRE_struct_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_struct_mv]))
-AC_CHECK_LIB([HYPRE_struct_ls],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_struct_ls]))
-AC_CHECK_LIB([HYPRE_sstruct_mv],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_sstruct_mv]))
-AC_CHECK_LIB([HYPRE_sstruct_ls],[hypre_CAlloc],,AC_MSG_WARN([could not find libHYPRE_sstruct_ls]))
-AC_LANG_POP([C])
+AC_LIB_HAVE_LINKFLAGS([HYPRE_utilities])
+LIBS="$LIBHYPRE_UTILITIES $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_multivector])
+LIBS="$LIBHYPRE_MULTIVECTOR $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_krylov])
+LIBS="$LIBHYPRE_KRYLOV $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_seq_mv])
+LIBS="$LIBHYPRE_SEQ_MV $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_parcsr_mv])
+LIBS="$LIBHYPRE_PARCSR_MV $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_IJ_mv])
+LIBS="$LIBHYPRE_IJ_MV $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_DistributedMatrix])
+LIBS="$LIBHYPRE_DISTRIBUTEDMATRIX $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_MatrixMatrix])
+LIBS="$LIBHYPRE_MATRIXMATRIX $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_Euclid])
+LIBS="$LIBHYPRE_EUCLID $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_ParaSails])
+LIBS="$LIBHYPRE_PARASAILS $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_DistributedMatrixPilutSolver])
+LIBS="$LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_parcsr_block_mv])
+LIBS="$LIBHYPRE_PARCSR $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_parcsr_ls])
+LIBS="$LIBHYPRE_PARCSR_LS $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_struct_mv])
+LIBS="$LIBHYPRE_STRUCT_MV $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_struct_ls])
+LIBS="$LIBHYPRE_STRUCT_LS $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_sstruct_mv])
+LIBS="$LIBHYPRE_SSTRUCT_MV $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([HYPRE_sstruct_ls])
+LIBS="$LIBHYPRE_SSTRUCT_LS $LIBS"
 
 # Check for SAMRAI library and configure SAMRAI options.
 echo
@@ -292,9 +285,6 @@ AC_ARG_WITH([samrai],
   [SAMRAI_DIR=/usr/local/sfw/samrai/current])
 
 if test -d "${SAMRAI_DIR}/lib" ; then
-  if test "${USE_RPATH_FLAG}" == "yes" ; then
-    LDFLAGS="${RPATH_FLAG}${SAMRAI_DIR}/lib $LDFLAGS"
-  fi
   LDFLAGS="-L${SAMRAI_DIR}/lib $LDFLAGS"
 fi
 if test -d "${SAMRAI_DIR}/include" ; then
@@ -304,8 +294,10 @@ fi
 AC_SUBST(SAMRAI_DIR,[${SAMRAI_DIR}])
 AC_SUBST(SAMRAI_FORTDIR,[${SAMRAI_DIR}/include])
 
-AC_CHECK_HEADER([SAMRAI_config.h],,AC_MSG_WARN([could not find header file SAMRAI_config.h]))
-AC_CHECK_LIB([SAMRAI],[main])
+AC_CHECK_HEADER([SAMRAI_config.h],,AC_MSG_ERROR([could not find header file SAMRAI_config.h]))
+
+AC_LIB_HAVE_LINKFLAGS([SAMRAI])
+LIBS="$LIBSAMRAI $LIBS"
 
 AC_ARG_ENABLE([samrai-2d],
   AS_HELP_STRING(--enable-samrai-2d,enable optional support for two-dimensional SAMRAI objects @<:@default=yes@:>@),
@@ -313,84 +305,83 @@ AC_ARG_ENABLE([samrai-2d],
 AM_CONDITIONAL([SAMRAI2D_ENABLED],[test "$SAMRAI2D" == "yes"])
 
 if test "$SAMRAI2D" == "yes"; then
-  AC_CHECK_LIB([SAMRAI2d_hier],[main],,AC_MSG_WARN([could not find libSAMRAI2d_hier]))
-  AC_CHECK_LIB([SAMRAI2d_xfer],[main],,AC_MSG_WARN([could not find libSAMRAI2d_xfer]))
-  AC_CHECK_LIB([SAMRAI2d_pdat_special],[main],,AC_MSG_WARN([could not find libSAMRAI2d_pdat_special]))
-  AC_CHECK_LIB([SAMRAI2d_pdat_std],[main],,AC_MSG_WARN([could not find libSAMRAI2d_pdat_std]))
-  AC_CHECK_LIB([SAMRAI2d_math_special],[main],,AC_MSG_WARN([could not find libSAMRAI2d_math_special]))
-  AC_CHECK_LIB([SAMRAI2d_math_std],[main],,AC_MSG_WARN([could not find libSAMRAI2d_math_std]))
-  AC_CHECK_LIB([SAMRAI2d_mesh],[main],,AC_MSG_WARN([could not find libSAMRAI2d_mesh]))
-  AC_CHECK_LIB([SAMRAI2d_geom],[main],,AC_MSG_WARN([could not find libSAMRAI2d_geom]))
-  AC_CHECK_LIB([SAMRAI2d_solv],[main],,AC_MSG_WARN([could not find libSAMRAI2d_solv]))
-  AC_CHECK_LIB([SAMRAI2d_algs],[main],,AC_MSG_WARN([could not find libSAMRAI2d_algs]))
-  AC_CHECK_LIB([SAMRAI2d_appu],[main],,AC_MSG_WARN([could not find libSAMRAI2d_appu]))
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_hier])
+  LIBS="$LIBSAMRAI2D_HIER $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_xfer])
+  LIBS="$LIBSAMRAI2D_XFER $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_pdat_special])
+  LIBS="$LIBSAMRAI2D_PDAT_SPECIAL $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_pdat_std])
+  LIBS="$LIBSAMRAI2D_PDAT_STD $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_math_special])
+  LIBS="$LIBSAMRAI2D_MATH_SPECIAL $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_math_std])
+  LIBS="$LIBSAMRAI2D_MATH_STD $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_mesh])
+  LIBS="$LIBSAMRAI2D_MESH $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_geom])
+  LIBS="$LIBSAMRAI2D_GEOM $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_solv])
+  LIBS="$LIBSAMRAI2D_SOLV $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_algs])
+  LIBS="$LIBSAMRAI2D_ALGS $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_appu])
+  LIBS="$LIBSAMRAI2D_APPU $LIBS"
 else
   AC_MSG_WARN([configuring without the two-dimensional SAMRAI library])
 fi
 
 AC_ARG_ENABLE([samrai-3d],
-  AS_HELP_STRING(--enable-samrai-3d,enable optional support for three-dimensional SAMRAI objects @<:@default=yes@:>@),
+  AS_HELP_STRING(--enable-samrai-3D,enable optional support for three-dimensional SAMRAI objects @<:@default=yes@:>@),
   [SAMRAI3D=$enablevar], [SAMRAI3D=yes])
 AM_CONDITIONAL([SAMRAI3D_ENABLED],[test "$SAMRAI3D" == "yes"])
 
 if test "$SAMRAI3D" == "yes"; then
-  AC_CHECK_LIB([SAMRAI3d_hier],[main],,AC_MSG_WARN([could not find libSAMRAI3d_hier]))
-  AC_CHECK_LIB([SAMRAI3d_xfer],[main],,AC_MSG_WARN([could not find libSAMRAI3d_xfer]))
-  AC_CHECK_LIB([SAMRAI3d_pdat_special],[main],,AC_MSG_WARN([could not find libSAMRAI3d_pdat_special]))
-  AC_CHECK_LIB([SAMRAI3d_pdat_std],[main],,AC_MSG_WARN([could not find libSAMRAI3d_pdat_std]))
-  AC_CHECK_LIB([SAMRAI3d_math_special],[main],,AC_MSG_WARN([could not find libSAMRAI3d_math_special]))
-  AC_CHECK_LIB([SAMRAI3d_math_std],[main],,AC_MSG_WARN([could not find libSAMRAI3d_math_std]))
-  AC_CHECK_LIB([SAMRAI3d_mesh],[main],,AC_MSG_WARN([could not find libSAMRAI3d_mesh]))
-  AC_CHECK_LIB([SAMRAI3d_geom],[main],,AC_MSG_WARN([could not find libSAMRAI3d_geom]))
-  AC_CHECK_LIB([SAMRAI3d_solv],[main],,AC_MSG_WARN([could not find libSAMRAI3d_solv]))
-  AC_CHECK_LIB([SAMRAI3d_algs],[main],,AC_MSG_WARN([could not find libSAMRAI3d_algs]))
-  AC_CHECK_LIB([SAMRAI3d_appu],[main],,AC_MSG_WARN([could not find libSAMRAI3d_appu]))
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_hier])
+  LIBS="$LIBSAMRAI3D_HIER $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_xfer])
+  LIBS="$LIBSAMRAI3D_XFER $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_pdat_special])
+  LIBS="$LIBSAMRAI3D_PDAT_SPECIAL $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_pdat_std])
+  LIBS="$LIBSAMRAI3D_PDAT_STD $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_math_special])
+  LIBS="$LIBSAMRAI3D_MATH_SPECIAL $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_math_std])
+  LIBS="$LIBSAMRAI3D_MATH_STD $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_mesh])
+  LIBS="$LIBSAMRAI3D_MESH $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_geom])
+  LIBS="$LIBSAMRAI3D_GEOM $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_solv])
+  LIBS="$LIBSAMRAI3D_SOLV $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_algs])
+  LIBS="$LIBSAMRAI3D_ALGS $LIBS"
+
+  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_appu])
+  LIBS="$LIBSAMRAI3D_APPU $LIBS"
 else
   AC_MSG_WARN([configuring without the three-dimensional SAMRAI library])
 fi
-
-# Determine how to use the RobinBcCoefStrategy class.
-
-AC_COMPILE_IFELSE(
-  [
-#include <ArrayData.h>
-#include <BoundaryBox.h>
-#include <Box.h>
-#include <RobinBcCoefStrategy.h>
-#include <Patch.h>
-#include <Variable.h>
-
-#define NDIM 2
-
-using namespace SAMRAI;
-using namespace SAMRAI::hier;
-using namespace SAMRAI::pdat;
-using namespace SAMRAI::solv;
-using namespace SAMRAI::tbox;
-
-void foo()
-{
-    Pointer<ArrayData<NDIM,double> > acoef_data = NULL;
-    Pointer<ArrayData<NDIM,double> > bcoef_data = NULL;
-    Pointer<ArrayData<NDIM,double> > gcoef_data = NULL;
-    Pointer<Variable<NDIM> > var = NULL;
-    Box<NDIM> patch_box;
-    Patch<NDIM> patch(patch_box, NULL);
-    BoundaryBox<NDIM> bdry_box;
-    double fill_time = 0.0;
-
-    Pointer<RobinBcCoefStrategy<NDIM> > bc_coef;
-    bc_coef->setBcCoefs(
-        acoef_data, bcoef_data, gcoef_data, var,
-        patch, bdry_box, fill_time);
-
-    return;
-}
-  ],
-  [AC_DEFINE([USING_OLD_ROBIN_BC_INTERFACE],[0],
-             [Flag indicating whether we are using the RobinBcCoefStrategy interface from SAMRAI 2.1])],
-  [AC_DEFINE([USING_OLD_ROBIN_BC_INTERFACE],[1],
-             [Flag indicating whether we are using the RobinBcCoefStrategy interface from SAMRAI 2.1])])
 
 # Check for PETSc library and configure PETSc options.
 echo
@@ -417,78 +408,36 @@ echo "using PETSc lib     directory = ${PETSC_DIR}/lib/${PETSC_ARCH}"
 echo "using PETSc include directory = ${PETSC_DIR}/include, ${PETSC_DIR}/bmake/${PETSC_ARCH}"
 
 if test -d "${PETSC_DIR}/lib/${PETSC_ARCH}" ; then
-  if test "${USE_RPATH_FLAG}" == "yes" ; then
-    LDFLAGS="${RPATH_FLAG}${PETSC_DIR}/lib/${PETSC_ARCH} $LDFLAGS"
-  fi
   LDFLAGS="-L${PETSC_DIR}/lib/${PETSC_ARCH} $LDFLAGS"
 fi
 if test -d "${PETSC_DIR}/include" ; then
   CPPFLAGS="-I${PETSC_DIR}/include -I${PETSC_DIR}/bmake/${PETSC_ARCH} $CPPFLAGS"
 fi
 
-AC_CHECK_HEADER([petsc.h],,AC_MSG_WARN([could not find header file petsc.h]))
+AC_CHECK_HEADER([petsc.h],,AC_MSG_ERROR([could not find header file petsc.h]))
 
-AC_LANG_PUSH([C])
-echo "trying to link PETSc using the C compiler (instead of the C++ compiler)"
-AC_CHECK_LIB([petsc],[PetscTrMalloc],,
-             [AC_MSG_WARN([could not find libpetsc])
-              missing_petsc_lib=yes])
-AC_CHECK_LIB([petscvec],[PetscTrMalloc],,
-             [AC_MSG_WARN([could not find libpetscvec])
-              missing_petsc_lib=yes])
-AC_CHECK_LIB([petscmat],[PetscTrMalloc],,
-             [AC_MSG_WARN([could not find libpetscmat])
-              missing_petsc_lib=yes])
-AC_CHECK_LIB([petscdm],[PetscTrMalloc],,
-             [AC_MSG_WARN([could not find libpetscdm])
-              missing_petsc_lib=yes])
-AC_CHECK_LIB([petscksp],[PetscTrMalloc],,
-             [AC_MSG_WARN([could not find libpetscksp])
-              missing_petsc_lib=yes])
-AC_CHECK_LIB([petscsnes],[PetscTrMalloc],,
-             [AC_MSG_WARN([could not find libpetscsnes])
-              missing_petsc_lib=yes])
-AC_CHECK_LIB([petscts],[PetscTrMalloc],,
-             [AC_MSG_WARN([could not find libpetscts])
-              missing_petsc_lib=yes])
-AC_LANG_POP([C])
+AC_LIB_HAVE_LINKFLAGS([petsc])
+LIBS="$LIBPETSC $LIBS"
 
-if test "$missing_petsc_lib" == "yes"; then
-  echo "could not find one or more of the PETSc libraries"
-  echo "trying to link PETSc using the C++ compiler (instead of the C compiler)"
+AC_LIB_HAVE_LINKFLAGS([petscvec])
+LIBS="$LIBPETSCVEC $LIBS"
 
-  unset ac_cv_lib_petsc_PetscTrMalloc
-  unset ac_cv_lib_petscvec_PetscTrMalloc
-  unset ac_cv_lib_petscmat_PetscTrMalloc
-  unset ac_cv_lib_petscdm_PetscTrMalloc
-  unset ac_cv_lib_petscksp_PetscTrMalloc
-  unset ac_cv_lib_petscsnes_PetscTrMalloc
-  unset ac_cv_lib_petscts_PetscTrMalloc
+AC_LIB_HAVE_LINKFLAGS([petscmat])
+LIBS="$LIBPETSCMAT $LIBS"
 
-  AC_CHECK_LIB([petsc],[PetscTrMalloc],,
-               [AC_MSG_WARN([could not find libpetsc])
-                missing_petsc_lib=yes])
-  AC_CHECK_LIB([petscvec],[PetscTrMalloc],,
-               [AC_MSG_WARN([could not find libpetscvec])
-                missing_petsc_lib=yes])
-  AC_CHECK_LIB([petscmat],[PetscTrMalloc],,
-               [AC_MSG_WARN([could not find libpetscmat])
-                missing_petsc_lib=yes])
-  AC_CHECK_LIB([petscdm],[PetscTrMalloc],,
-               [AC_MSG_WARN([could not find libpetscdm])
-                missing_petsc_lib=yes])
-  AC_CHECK_LIB([petscksp],[PetscTrMalloc],,
-               [AC_MSG_WARN([could not find libpetscksp])
-                missing_petsc_lib=yes])
-  AC_CHECK_LIB([petscsnes],[PetscTrMalloc],,
-               [AC_MSG_WARN([could not find libpetscsnes])
-                missing_petsc_lib=yes])
-  AC_CHECK_LIB([petscts],[PetscTrMalloc],,
-               [AC_MSG_WARN([could not find libpetscts])
-                missing_petsc_lib=yes])
-fi
+AC_LIB_HAVE_LINKFLAGS([petscdm])
+LIBS="$LIBPETSCDM $LIBS"
 
-# Optional libraries.
+AC_LIB_HAVE_LINKFLAGS([petscksp])
+LIBS="$LIBPETSCKSP $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([petscsnes])
+LIBS="$LIBPETSCSNES $LIBS"
+
+AC_LIB_HAVE_LINKFLAGS([petscts])
+LIBS="$LIBPETSCTS $LIBS"
+
+# Optional external libraries.
 
 # Check for Blitz++ library and configure Blitz++ options.
 AC_ARG_ENABLE([blitz],
@@ -518,9 +467,6 @@ if test "$BLITZ_ENABLED" == "yes"; then
   echo "===================================="
 
   if test -d "${BLITZ_DIR}/lib" ; then
-    if test "${USE_RPATH_FLAG}" == "yes" ; then
-      LDFLAGS="${RPATH_FLAG}${BLITZ_DIR}/lib $LDFLAGS"
-    fi
     LDFLAGS="-L${BLITZ_DIR}/lib $LDFLAGS"
   fi
   if test -d "${BLITZ_DIR}/include" ; then
@@ -528,7 +474,8 @@ if test "$BLITZ_ENABLED" == "yes"; then
   fi
 
   AC_CHECK_HEADER([blitz/blitz.h],,AC_MSG_WARN([could not find header file blitz/blitz.h]))
-  AC_CHECK_LIB([blitz],[main],,AC_MSG_WARN([could not find libblitz]))
+  AC_LIB_HAVE_LINKFLAGS([blitz])
+  LIBS="$LIBBLITZ $LIBS"
 else
   echo
   echo "===================================="
@@ -564,9 +511,6 @@ if test "$SILO_ENABLED" == "yes"; then
   echo "================================="
 
   if test -d "${SILO_DIR}/lib" ; then
-    ###if test "${USE_RPATH_FLAG}" == "yes" ; then
-    ###  LDFLAGS="${RPATH_FLAG}${SILO_DIR}/lib $LDFLAGS"
-    ###fi
     LDFLAGS="-L${SILO_DIR}/lib $LDFLAGS"
   fi
   if test -d "${SILO_DIR}/include" ; then
@@ -574,10 +518,8 @@ if test "$SILO_ENABLED" == "yes"; then
   fi
 
   AC_CHECK_HEADER([silo.h],,AC_MSG_WARN([could not find header file silo.h]))
-
-  AC_LANG_PUSH([C])
-  AC_CHECK_LIB([silo],[DBVersion],,AC_MSG_WARN([could not find libsilo]))
-  AC_LANG_POP([C])
+  AC_LIB_HAVE_LINKFLAGS([silo])
+  LIBS="$LIBSILO $LIBS"
 else
   echo
   echo "================================="

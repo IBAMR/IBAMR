@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceSpecFactory.C
-// Last modified: <22.Mar.2007 19:22:00 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:17:02 griffith@box221.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceSpecFactory.h"
@@ -19,9 +19,6 @@
 // IBAMR INCLUDES
 #include <ibamr/IBTargetPointForceSpec.h>
 #include <ibamr/StashableManager.h>
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

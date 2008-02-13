@@ -1,5 +1,5 @@
 // Filename: IBSpringForceSpec.I
-// Last modified: <11.Jun.2007 17:35:06 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:17:37 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -7,9 +7,6 @@
 // SAMRAI INCLUDES
 #include <tbox/PIO.h>
 #include <tbox/Utilities.h>
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -40,10 +37,10 @@ IBSpringForceSpec::IBSpringForceSpec(
       d_rest_lengths(rest_lengths)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_num_springs == static_cast<int>(d_slave_idxs.size()));
-    assert(d_num_springs == static_cast<int>(d_force_fcn_idxs.size()));
-    assert(d_num_springs == static_cast<int>(d_stiffnesses.size()));
-    assert(d_num_springs == static_cast<int>(d_rest_lengths.size()));
+    TBOX_ASSERT(d_num_springs == static_cast<int>(d_slave_idxs.size()));
+    TBOX_ASSERT(d_num_springs == static_cast<int>(d_force_fcn_idxs.size()));
+    TBOX_ASSERT(d_num_springs == static_cast<int>(d_stiffnesses.size()));
+    TBOX_ASSERT(d_num_springs == static_cast<int>(d_rest_lengths.size()));
 #endif
     if (!s_registered_factory)
     {
@@ -65,10 +62,10 @@ inline unsigned
 IBSpringForceSpec::getNumberOfSprings() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_num_springs == static_cast<int>(d_slave_idxs.size()));
-    assert(d_num_springs == static_cast<int>(d_force_fcn_idxs.size()));
-    assert(d_num_springs == static_cast<int>(d_stiffnesses.size()));
-    assert(d_num_springs == static_cast<int>(d_rest_lengths.size()));
+    TBOX_ASSERT(d_num_springs == static_cast<int>(d_slave_idxs.size()));
+    TBOX_ASSERT(d_num_springs == static_cast<int>(d_force_fcn_idxs.size()));
+    TBOX_ASSERT(d_num_springs == static_cast<int>(d_stiffnesses.size()));
+    TBOX_ASSERT(d_num_springs == static_cast<int>(d_rest_lengths.size()));
 #endif
     return d_num_springs;
 }// getNumberOfSprings
@@ -151,10 +148,10 @@ IBSpringForceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_num_springs == static_cast<int>(d_slave_idxs.size()));
-    assert(d_num_springs == static_cast<int>(d_force_fcn_idxs.size()));
-    assert(d_num_springs == static_cast<int>(d_stiffnesses.size()));
-    assert(d_num_springs == static_cast<int>(d_rest_lengths.size()));
+    TBOX_ASSERT(d_num_springs == static_cast<int>(d_slave_idxs.size()));
+    TBOX_ASSERT(d_num_springs == static_cast<int>(d_force_fcn_idxs.size()));
+    TBOX_ASSERT(d_num_springs == static_cast<int>(d_stiffnesses.size()));
+    TBOX_ASSERT(d_num_springs == static_cast<int>(d_rest_lengths.size()));
 #endif
     stream.pack(&d_num_springs,1);
     stream.pack(&d_master_idx,1);

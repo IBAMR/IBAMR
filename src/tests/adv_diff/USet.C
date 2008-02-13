@@ -1,5 +1,5 @@
 // Filename: USet.C
-// Last modified: <03.May.2007 15:13:18 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:24:55 griffith@box221.cims.nyu.edu>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "USet.h"
@@ -25,9 +25,6 @@
 #include <FaceIterator.h>
 #include <Index.h>
 
-// C++ STDLIB INCLUDES
-#include <cassert>
-
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -44,8 +41,8 @@ USet::USet(
       d_uniform_u(NDIM)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!grid_geom.isNull());
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!grid_geom.isNull());
 #endif
 
     // Default initial values.
@@ -79,7 +76,7 @@ USet::setDataOnPatch(
 {
     tbox::Pointer< pdat::FaceData<NDIM,double> > u_data = patch.getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!u_data.isNull());
+    TBOX_ASSERT(!u_data.isNull());
 #endif
 
     if (d_init_type == "UNIFORM")

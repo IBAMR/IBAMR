@@ -1,5 +1,5 @@
 // Filename: IBInstrumentationSpec.C
-// Last modified: <04.Feb.2008 21:57:49 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:44:08 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBInstrumentationSpec.h"
@@ -45,7 +45,7 @@ IBInstrumentationSpec::registerWithStashableManager()
     if (!s_registered_factory)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(s_stashable_id == -1);
+        TBOX_ASSERT(s_stashable_id == -1);
 #endif
         s_stashable_id = StashableManager::getManager()->registerFactory(
             new IBInstrumentationSpecFactory());

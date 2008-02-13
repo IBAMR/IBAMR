@@ -1,5 +1,5 @@
 // Filename: LNodeIndexData2.C
-// Last modified: <04.Feb.2008 23:54:54 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:20:24 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "LNodeIndexData2.h"
@@ -15,15 +15,6 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
-
-// SAMRAI INCLUDES
-#include <CellOverlap.h>
-
-// ZLIB INCLUDES
-#include <zlib.h>
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

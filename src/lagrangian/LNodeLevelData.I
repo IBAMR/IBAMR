@@ -1,5 +1,5 @@
 // Filename: LNodeLevelData.I
-// Last modified: <17.Apr.2007 18:27:27 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:21:11 griffith@box221.cims.nyu.edu>
 // Created on 17 Apr 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -15,9 +15,6 @@
 // SAMRAI INCLUDES
 #include <tbox/Utilities.h>
 
-// C++ STDLIB INCLUDES
-#include <cassert>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -30,7 +27,7 @@ LNodeLevelData::operator()(
     const int depth)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(0<=depth && depth<d_depth);
+    TBOX_ASSERT(0<=depth && depth<d_depth);
 #endif
     return getLocalFormArray()[d_depth*i+depth];
 }// operator()

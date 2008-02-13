@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpecFactory.C
-// Last modified: <22.Mar.2007 17:41:59 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:13:34 griffith@box221.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceSpecFactory.h"
@@ -19,9 +19,6 @@
 // IBAMR INCLUDES
 #include <ibamr/IBBeamForceSpec.h>
 #include <ibamr/StashableManager.h>
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <04.Feb.2008 21:58:17 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:15:29 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -49,7 +49,6 @@ extern "C"
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
-#include <cassert>
 #include <numeric>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -91,8 +90,8 @@ init_meter_elements(
 #endif
 #if (NDIM == 3)
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(X_web.extent(0) == X_perimeter.extent(0));
-    assert(dA_web.extent(0) == X_perimeter.extent(0));
+    TBOX_ASSERT(X_web.extent(0) == X_perimeter.extent(0));
+    TBOX_ASSERT(dA_web.extent(0) == X_perimeter.extent(0));
 #endif
     const int num_perimeter_nodes = X_web.extent(0);
     const int num_web_nodes = X_web.extent(1);
@@ -494,7 +493,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     d_num_meters = SAMRAI::tbox::SAMRAI_MPI::maxReduction(max_meter_index)+1;
     max_node_index.resize(d_num_meters,-1);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_num_meters >= 0);
+    TBOX_ASSERT(d_num_meters >= 0);
 #endif
     d_num_perimeter_nodes.clear();
     d_num_perimeter_nodes.resize(d_num_meters,-1);
@@ -506,7 +505,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (int m = 0; m < d_num_meters; ++m)
     {
-        assert(d_num_perimeter_nodes[m] > 0);
+        TBOX_ASSERT(d_num_perimeter_nodes[m] > 0);
     }
 #endif
 
@@ -713,7 +712,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     const double* const domainXLower = grid_geom->getXLower();
     const double* const domainXUpper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
-    assert(grid_geom->getDomainIsSingleBox());
+    TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
     const SAMRAI::hier::Box<NDIM> domain_box = grid_geom->getPhysicalDomain()(0);
 
     const SAMRAI::hier::IntVector<NDIM>& ratio_to_level_zero =
@@ -1120,8 +1119,8 @@ IBInstrumentPanel::writePlotData(
     t_write_plot_data->start();
 #if HAVE_LIBSILO
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(timestep_num >= 0);
-    assert(!d_plot_directory_name.empty());
+    TBOX_ASSERT(timestep_num >= 0);
+    TBOX_ASSERT(!d_plot_directory_name.empty());
 #endif
 
     if (timestep_num != d_instrument_read_timestep_num)
@@ -1279,7 +1278,7 @@ IBInstrumentPanel::getFromInput(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     d_plot_directory_name = db->getStringWithDefault("plot_directory_name", d_plot_directory_name);
     d_output_log_file = db->getBoolWithDefault("output_log_file", d_output_log_file);

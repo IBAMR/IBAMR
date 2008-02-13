@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.C
-// Last modified: <04.Feb.2008 22:41:53 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:22:13 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSIntermediateVelocityBcCoef.h"
@@ -25,7 +25,6 @@
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <limits>
 
 // FORTRAN ROUTINES
@@ -223,10 +222,10 @@ SAMRAI::hier::IntVector<NDIM>
 INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_u_bc_coefs.size() == NDIM);
+    TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
     for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
     {
-        assert(d_u_bc_coefs[l] != NULL);
+        TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
     }
 #endif
     SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
@@ -253,10 +252,10 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
     double fill_time) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_u_bc_coefs.size() == NDIM);
+    TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
     for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
     {
-        assert(d_u_bc_coefs[l] != NULL);
+        TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
     }
 #endif
     const int location_index   = bdry_box.getLocationIndex();
@@ -297,13 +296,13 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
         ? patch.getPatchData(d_target_idx)
         : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!U_data.isNull());
-    assert(U_data->getGhostCellWidth().max() == U_data->getGhostCellWidth().min());
-    assert(!acoef_data.isNull());
-    assert(!bcoef_data.isNull());
-    assert(bc_coef_box == acoef_data->getBox());
-    assert(bc_coef_box == bcoef_data->getBox());
-    assert(bc_coef_box == gcoef_data->getBox());
+    TBOX_ASSERT(!U_data.isNull());
+    TBOX_ASSERT(U_data->getGhostCellWidth().max() == U_data->getGhostCellWidth().min());
+    TBOX_ASSERT(!acoef_data.isNull());
+    TBOX_ASSERT(!bcoef_data.isNull());
+    TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
+    TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
+    TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
     const int U_ghosts = (U_data->getGhostCellWidth()).max();
     NAVIER_STOKES_OPEN_BC_COEFS_F77(
@@ -337,13 +336,13 @@ INSIntermediateVelocityBcCoef::setBcCoefs_private(
         ? patch.getPatchData(d_Phi_idx)
         : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!Phi_data.isNull());
-    assert(Phi_data->getGhostCellWidth().max() == Phi_data->getGhostCellWidth().min());
-    assert(!acoef_data.isNull());
-    assert(!bcoef_data.isNull());
-    assert(bc_coef_box == acoef_data->getBox());
-    assert(bc_coef_box == bcoef_data->getBox());
-    assert(bc_coef_box == gcoef_data->getBox());
+    TBOX_ASSERT(!Phi_data.isNull());
+    TBOX_ASSERT(Phi_data->getGhostCellWidth().max() == Phi_data->getGhostCellWidth().min());
+    TBOX_ASSERT(!acoef_data.isNull());
+    TBOX_ASSERT(!bcoef_data.isNull());
+    TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
+    TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
+    TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
     const int Phi_ghosts = (Phi_data->getGhostCellWidth()).max();
     const double dt = d_new_time - d_current_time;

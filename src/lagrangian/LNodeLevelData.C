@@ -1,5 +1,5 @@
 // Filename: LNodeLevelData.C
-// Last modified: <04.Feb.2008 22:32:17 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:42:38 griffith@box221.cims.nyu.edu>
 // Created on 17 Apr 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "LNodeLevelData.h"
@@ -57,7 +57,7 @@ LNodeLevelData::putToDatabase(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     const bool restore_local_vec = !d_in_local_form;
     const bool restore_local_array = !d_extracted_local_array;
@@ -105,9 +105,9 @@ LNodeLevelData::LNodeLevelData(
       d_extracted_local_array(false)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!name.empty());
-    assert(num_local_nodes >= 0);
-    assert(depth > 0);
+    TBOX_ASSERT(!name.empty());
+    TBOX_ASSERT(num_local_nodes >= 0);
+    TBOX_ASSERT(depth > 0);
 #endif
     // Create the PETSc Vec which actually provides the storage for the
     // Lagrangian data.

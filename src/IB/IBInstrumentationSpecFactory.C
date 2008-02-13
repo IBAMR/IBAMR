@@ -1,5 +1,5 @@
 // Filename: IBInstrumentationSpecFactory.C
-// Last modified: <11.Jun.2007 18:58:41 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:15:39 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBInstrumentationSpecFactory.h"
@@ -19,9 +19,6 @@
 // IBAMR INCLUDES
 #include <ibamr/IBInstrumentationSpec.h>
 #include <ibamr/StashableManager.h>
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

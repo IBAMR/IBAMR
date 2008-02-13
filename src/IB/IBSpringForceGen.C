@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <04.Feb.2008 22:02:15 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:43:24 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -31,7 +31,6 @@
 #include <tbox/TimerManager.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <numeric>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -114,7 +113,7 @@ IBSpringForceGen::initializeLevelData(
     t_initialize_level_data->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
+    TBOX_ASSERT(!hierarchy.isNull());
 #endif
     (void) init_data_time;
     (void) initial_time;
@@ -190,17 +189,17 @@ IBSpringForceGen::initializeLevelData(
                     {
                         const unsigned num_springs = force_spec->getNumberOfSprings();
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        assert(mastr_idx == force_spec->getMasterNodeIndex());
+                        TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
                         const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
                         const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
                         const std::vector<double>& stf = force_spec->getStiffnesses();
                         const std::vector<double>& rst = force_spec->getRestingLengths();
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        assert(num_springs == slv.size());
-                        assert(num_springs == fcn.size());
-                        assert(num_springs == stf.size());
-                        assert(num_springs == rst.size());
+                        TBOX_ASSERT(num_springs == slv.size());
+                        TBOX_ASSERT(num_springs == fcn.size());
+                        TBOX_ASSERT(num_springs == stf.size());
+                        TBOX_ASSERT(num_springs == rst.size());
 #endif
                         if (num_springs > 0)
                         {
@@ -303,8 +302,8 @@ IBSpringForceGen::computeLagrangianForce(
     t_compute_lagrangian_force->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(level_number < static_cast<int>(d_is_initialized.size()));
-    assert(d_is_initialized[level_number]);
+    TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
+    TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
 
     int ierr;

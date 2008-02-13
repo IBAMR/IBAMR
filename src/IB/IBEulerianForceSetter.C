@@ -1,5 +1,5 @@
 // Filename: IBEulerianForceSetter.C
-// Last modified: <04.Feb.2008 21:41:02 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:13:43 griffith@box221.cims.nyu.edu>
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBEulerianForceSetter.h"
@@ -20,9 +20,6 @@
 #include <CellData.h>
 #include <PatchCellDataOpsReal.h>
 #include <tbox/MathUtilities.h>
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -80,7 +77,7 @@ IBEulerianForceSetter::setDataOnPatch(
 {
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_data = patch.getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!f_data.isNull());
+    TBOX_ASSERT(!f_data.isNull());
 #endif
     if (initial_time)
     {
@@ -92,7 +89,7 @@ IBEulerianForceSetter::setDataOnPatch(
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_current_data = patch.getPatchData(d_F_current_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            assert(!f_current_data.isNull());
+            TBOX_ASSERT(!f_current_data.isNull());
 #endif
             f_data->copy(*f_current_data);
         }
@@ -103,7 +100,7 @@ IBEulerianForceSetter::setDataOnPatch(
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_new_data = patch.getPatchData(d_F_new_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            assert(!f_new_data.isNull());
+            TBOX_ASSERT(!f_new_data.isNull());
 #endif
             f_data->copy(*f_new_data);
         }
@@ -114,7 +111,7 @@ IBEulerianForceSetter::setDataOnPatch(
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_half_data = patch.getPatchData(d_F_half_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            assert(!f_half_data.isNull());
+            TBOX_ASSERT(!f_half_data.isNull());
 #endif
             f_data->copy(*f_half_data);
         }

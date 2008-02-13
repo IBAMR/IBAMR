@@ -1,5 +1,5 @@
 // Filename: IBEulerianSourceSetter.C
-// Last modified: <04.Feb.2008 21:46:23 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:13:51 griffith@box221.cims.nyu.edu>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 #include "IBEulerianSourceSetter.h"
@@ -19,9 +19,6 @@
 // SAMRAI INCLUDES
 #include <CellData.h>
 #include <tbox/MathUtilities.h>
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -79,7 +76,7 @@ IBEulerianSourceSetter::setDataOnPatch(
 {
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data = patch.getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!q_data.isNull());
+    TBOX_ASSERT(!q_data.isNull());
 #endif
     if (initial_time)
     {
@@ -91,7 +88,7 @@ IBEulerianSourceSetter::setDataOnPatch(
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_current_data = patch.getPatchData(d_Q_current_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            assert(!q_current_data.isNull());
+            TBOX_ASSERT(!q_current_data.isNull());
 #endif
             q_data->copy(*q_current_data);
         }
@@ -102,7 +99,7 @@ IBEulerianSourceSetter::setDataOnPatch(
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_new_data = patch.getPatchData(d_Q_new_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            assert(!q_new_data.isNull());
+            TBOX_ASSERT(!q_new_data.isNull());
 #endif
             q_data->copy(*q_new_data);
         }
@@ -113,7 +110,7 @@ IBEulerianSourceSetter::setDataOnPatch(
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_half_data = patch.getPatchData(d_Q_half_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            assert(!q_half_data.isNull());
+            TBOX_ASSERT(!q_half_data.isNull());
 #endif
             q_data->copy(*q_half_data);
         }

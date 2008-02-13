@@ -1,5 +1,5 @@
 // Filename: IBSpringForceSpec.C
-// Last modified: <04.Feb.2008 21:57:44 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:43:57 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceSpec.h"
@@ -43,7 +43,7 @@ IBSpringForceSpec::registerWithStashableManager()
     if (!s_registered_factory)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(s_stashable_id == -1);
+        TBOX_ASSERT(s_stashable_id == -1);
 #endif
         s_stashable_id = StashableManager::getManager()->registerFactory(
             new IBSpringForceSpecFactory());

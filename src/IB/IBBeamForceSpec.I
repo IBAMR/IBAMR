@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpec.I
-// Last modified: <01.Oct.2007 23:53:27 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:17:27 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -7,9 +7,6 @@
 // SAMRAI INCLUDES
 #include <tbox/PIO.h>
 #include <tbox/Utilities.h>
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -36,8 +33,8 @@ IBBeamForceSpec::IBBeamForceSpec(
       d_bend_rigidities(bend_rigidities)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_num_beams == static_cast<int>(d_neighbor_idxs.size()));
-    assert(d_num_beams == static_cast<int>(d_bend_rigidities.size()));
+    TBOX_ASSERT(d_num_beams == static_cast<int>(d_neighbor_idxs.size()));
+    TBOX_ASSERT(d_num_beams == static_cast<int>(d_bend_rigidities.size()));
 #endif
     if (!s_registered_factory)
     {
@@ -59,8 +56,8 @@ inline unsigned
 IBBeamForceSpec::getNumberOfBeams() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_num_beams == static_cast<int>(d_neighbor_idxs.size()));
-    assert(d_num_beams == static_cast<int>(d_bend_rigidities.size()));
+    TBOX_ASSERT(d_num_beams == static_cast<int>(d_neighbor_idxs.size()));
+    TBOX_ASSERT(d_num_beams == static_cast<int>(d_bend_rigidities.size()));
 #endif
     return d_num_beams;
 }// getNumberOfBeams
@@ -119,8 +116,8 @@ IBBeamForceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_num_beams == static_cast<int>(d_neighbor_idxs.size()));
-    assert(d_num_beams == static_cast<int>(d_bend_rigidities.size()));
+    TBOX_ASSERT(d_num_beams == static_cast<int>(d_neighbor_idxs.size()));
+    TBOX_ASSERT(d_num_beams == static_cast<int>(d_bend_rigidities.size()));
 #endif
     std::vector<int> tmp_neighbor_idxs(2*d_num_beams);
     for (int k = 0; k < d_num_beams; ++k)

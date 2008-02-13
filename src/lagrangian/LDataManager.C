@@ -1,5 +1,5 @@
 // Filename: LDataManager.C
-// Last modified: <04.Feb.2008 22:21:43 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:43:00 griffith@box221.cims.nyu.edu>
 // Created on 01 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "LDataManager.h"
@@ -108,7 +108,7 @@ get_canonical_cell_index(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(domain_box.contains(shifted_idx));
+    TBOX_ASSERT(domain_box.contains(shifted_idx));
 #endif
 
     return shifted_idx;
@@ -332,7 +332,7 @@ LDataManager::setPatchHierarchy(
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
+    TBOX_ASSERT(!hierarchy.isNull());
 #endif
 
     // Reset the hierarchy.
@@ -348,8 +348,8 @@ LDataManager::resetLevels(
     const int finest_ln)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!d_hierarchy.isNull());
-    assert((coarsest_ln >= 0) &&
+    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT((coarsest_ln >= 0) &&
            (finest_ln >= coarsest_ln) &&
            (finest_ln <= d_hierarchy->getFinestLevelNumber()));
 #endif
@@ -396,7 +396,7 @@ LDataManager::registerLNodeInitStrategy(
     SAMRAI::tbox::Pointer<LNodeInitStrategy> lag_init)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!lag_init.isNull());
+    TBOX_ASSERT(!lag_init.isNull());
 #endif
     d_lag_init = lag_init;
     return;
@@ -414,7 +414,7 @@ LDataManager::registerVisItDataWriter(
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!visit_writer.isNull());
+    TBOX_ASSERT(!visit_writer.isNull());
 #endif
     d_visit_writer = visit_writer;
     if (d_output_workload)
@@ -440,7 +440,7 @@ LDataManager::registerLagSiloDataWriter(
     SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!silo_writer.isNull());
+    TBOX_ASSERT(!silo_writer.isNull());
 #endif
     d_silo_writer = silo_writer;
     return;
@@ -452,7 +452,7 @@ LDataManager::registerLagM3DDataWriter(
     SAMRAI::tbox::Pointer<LagM3DDataWriter> m3D_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!m3D_writer.isNull());
+    TBOX_ASSERT(!m3D_writer.isNull());
 #endif
     d_m3D_writer = m3D_writer;
     return;
@@ -464,7 +464,7 @@ LDataManager::registerLoadBalancer(
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!load_balancer.isNull());
+    TBOX_ASSERT(!load_balancer.isNull());
 #endif
     d_load_balancer = load_balancer;
     return;
@@ -475,7 +475,7 @@ LDataManager::levelContainsLagrangianData(
     const int level_number) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(level_number >= 0);
+    TBOX_ASSERT(level_number >= 0);
 #endif
     if (!(d_coarsest_ln <= level_number &&
           d_finest_ln   >= level_number))
@@ -493,8 +493,8 @@ LDataManager::getNumberOfNodes(
     const int level_number) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(level_number >= 0);
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
     return d_num_nodes[level_number];
@@ -505,8 +505,8 @@ LDataManager::getNumberOfLocalNodes(
     const int level_number) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(level_number >= 0);
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
     return d_local_lag_indices[level_number].size();
@@ -517,8 +517,8 @@ LDataManager::getGlobalNodeOffset(
     const int level_number) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(level_number >= 0);
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
     return d_node_offset[level_number];
@@ -530,10 +530,10 @@ LDataManager::getLNodeLevelData(
     const int level_number)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_lag_quantity_data[level_number].find(quantity_name) !=
+    TBOX_ASSERT(d_lag_quantity_data[level_number].find(quantity_name) !=
            d_lag_quantity_data[level_number].end());
-    assert(level_number >= 0);
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
     return d_lag_quantity_data[level_number][quantity_name];
@@ -547,13 +547,13 @@ LDataManager::createLNodeLevelData(
     const bool maintain_data)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!maintain_data ||
+    TBOX_ASSERT(!maintain_data ||
            (d_lag_quantity_data[level_number].find(quantity_name) ==
             d_lag_quantity_data[level_number].end()));
-    assert(level_number >= 0);
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
-    assert(depth > 0);
+    TBOX_ASSERT(depth > 0);
 #endif
 
     bool created_nonlocal_petsc_indices = false;
@@ -562,7 +562,7 @@ LDataManager::createLNodeLevelData(
         d_nonlocal_petsc_indices[level_number].end())
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(depth != 1);
+        TBOX_ASSERT(depth != 1);
 #endif
         d_nonlocal_petsc_indices[level_number][depth].resize(
             d_nonlocal_petsc_indices[level_number][1].size());
@@ -630,7 +630,7 @@ LDataManager::mapLagrangianToPETSc(
     t_map_lagrangian_to_petsc->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
 
@@ -652,7 +652,7 @@ LDataManager::mapPETScToLagrangian(
     t_map_petsc_to_lagrangian->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
 
@@ -703,9 +703,9 @@ LDataManager::beginDataRedistribution(
         : finest_ln_in;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(coarsest_ln >= d_coarsest_ln &&
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
-    assert(finest_ln   >= d_coarsest_ln &&
+    TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
            finest_ln   <= d_finest_ln);
 #endif
 
@@ -899,9 +899,9 @@ LDataManager::endDataRedistribution(
         : finest_ln_in;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(coarsest_ln >= d_coarsest_ln &&
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
-    assert(finest_ln   >= d_coarsest_ln &&
+    TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
            finest_ln   <= d_finest_ln);
 #endif
 
@@ -1044,7 +1044,7 @@ LDataManager::endDataRedistribution(
             {
                 SAMRAI::tbox::Pointer<LNodeLevelData> data = (*it).second;
 #ifdef DEBUG_CHECK_ASSERTIONS
-                assert(!data.isNull());
+                TBOX_ASSERT(!data.isNull());
 #endif
                 const int depth = data->getDepth();
 
@@ -1057,7 +1057,7 @@ LDataManager::endDataRedistribution(
                     d_nonlocal_petsc_indices[ln].end())
                 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(depth != 1);
+                    TBOX_ASSERT(depth != 1);
 #endif
                     d_nonlocal_petsc_indices[ln][depth].
                         resize(num_nonlocal_nodes[ln]);
@@ -1289,9 +1289,9 @@ LDataManager::updateWorkloadData(
         : finest_ln_in;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(coarsest_ln >= d_coarsest_ln &&
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
-    assert(finest_ln   >= d_coarsest_ln &&
+    TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
            finest_ln   <= d_finest_ln);
 #endif
 
@@ -1346,9 +1346,9 @@ LDataManager::updateIrregularCellData(
         : finest_ln_in;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(coarsest_ln >= d_coarsest_ln &&
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
-    assert(finest_ln   >= d_coarsest_ln &&
+    TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
            finest_ln   <= d_finest_ln);
 #endif
 
@@ -1401,9 +1401,9 @@ LDataManager::restoreLocationPointers(
         : finest_ln_in;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(coarsest_ln >= d_coarsest_ln &&
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
-    assert(finest_ln   >= d_coarsest_ln &&
+    TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
            finest_ln   <= d_finest_ln);
 #endif
 
@@ -1453,9 +1453,9 @@ LDataManager::invalidateLocationPointers(
         : finest_ln_in;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(coarsest_ln >= d_coarsest_ln &&
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
-    assert(finest_ln   >= d_coarsest_ln &&
+    TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
            finest_ln   <= d_finest_ln);
 #endif
 
@@ -1510,14 +1510,14 @@ LDataManager::initializeLevelData(
     t_initialize_level_data->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((level_number >= 0)
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0)
            && (level_number <= hierarchy->getFinestLevelNumber()));
     if (!old_level.isNull())
     {
-        assert(level_number == old_level->getLevelNumber());
+        TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    assert(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -1585,7 +1585,7 @@ LDataManager::initializeLevelData(
     if (!old_level.isNull())
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(old_level->getLevelNumber() == level_number);
+        TBOX_ASSERT(old_level->getLevelNumber() == level_number);
 #endif
         if (d_level_contains_lag_data[level_number])
         {
@@ -1612,7 +1612,7 @@ LDataManager::initializeLevelData(
         d_nonlocal_lag_indices   .resize(level_number+1);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(!d_lag_init.isNull());
+        TBOX_ASSERT(!d_lag_init.isNull());
 #endif
         d_level_contains_lag_data[level_number] = d_lag_init->
             getLevelHasLagrangianData(level_number, can_be_refined);
@@ -1804,13 +1804,13 @@ LDataManager::resetHierarchyConfiguration(
     t_reset_hierarchy_configuration->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((coarsest_level >= 0)
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((coarsest_level >= 0)
            && (coarsest_level <= finest_level)
            && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1892,10 +1892,10 @@ LDataManager::applyGradientDetector(
     t_apply_gradient_detector->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((level_number >= 0)
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0)
            && (level_number <= hierarchy->getFinestLevelNumber()));
-    assert(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
 
     if (initial_time)
@@ -1967,7 +1967,7 @@ LDataManager::putToDatabase(
     t_put_to_database->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     db->putInteger("LDATA_MANAGER_VERSION", LDATA_MANAGER_VERSION);
 
@@ -2101,8 +2101,8 @@ LDataManager::LDataManager(
       d_nonlocal_petsc_indices()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(ghosts.min() >= 0);
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(ghosts.min() >= 0);
 #endif
 
     if (d_registered_for_restart)
@@ -2284,13 +2284,13 @@ LDataManager::scatterData(
     ierr = VecGetSize(petsc_vec, &petsc_size);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecGetSize(lagrangian_vec, &lagrangian_size);  PETSC_SAMRAI_ERROR(ierr);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(petsc_size == lagrangian_size);
+    TBOX_ASSERT(petsc_size == lagrangian_size);
 #endif
     int petsc_bs, lagrangian_bs;
     ierr = VecGetBlockSize(petsc_vec, &petsc_bs);  PETSC_SAMRAI_ERROR(ierr);
     ierr = VecGetBlockSize(lagrangian_vec, &lagrangian_bs);  PETSC_SAMRAI_ERROR(ierr);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(petsc_bs == lagrangian_bs);
+    TBOX_ASSERT(petsc_bs == lagrangian_bs);
 #endif
     const int depth = petsc_bs;
 
@@ -2356,9 +2356,9 @@ LDataManager::beginNonlocalDataFill(
         : finest_ln_in;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(coarsest_ln >= d_coarsest_ln &&
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
-    assert(finest_ln   >= d_coarsest_ln &&
+    TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
            finest_ln   <= d_finest_ln);
 #endif
 
@@ -2391,9 +2391,9 @@ LDataManager::endNonlocalDataFill(
         : finest_ln_in;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(coarsest_ln >= d_coarsest_ln &&
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
            coarsest_ln <= d_finest_ln);
-    assert(finest_ln   >= d_coarsest_ln &&
+    TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
            finest_ln   <= d_finest_ln);
 #endif
 
@@ -2425,7 +2425,7 @@ LDataManager::computeNodeDistribution(
     t_compute_node_distribution->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(ln >= d_coarsest_ln &&
+    TBOX_ASSERT(ln >= d_coarsest_ln &&
            ln <= d_finest_ln);
 #endif
 
@@ -2520,7 +2520,7 @@ LDataManager::computeNodeDistribution(
     // Get the periodic shift vector and the refined domain box.
     const SAMRAI::hier::IntVector<NDIM>& ratio = level->getRatio();
     const SAMRAI::hier::IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift(ratio);
-    if (periodic_shift != SAMRAI::hier::IntVector<NDIM>(0)) assert(d_grid_geom->getDomainIsSingleBox());
+    if (periodic_shift != SAMRAI::hier::IntVector<NDIM>(0)) TBOX_ASSERT(d_grid_geom->getDomainIsSingleBox());
     const SAMRAI::hier::Box<NDIM> domain_box =
         SAMRAI::hier::Box<NDIM>::refine(d_grid_geom->getPhysicalDomain()(0),ratio);
 
@@ -2555,7 +2555,7 @@ LDataManager::computeNodeDistribution(
                     if (local_boxes.contains(canonical_cell_idx))
                     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        assert(ghost_cell_local_map.count(canonical_cell_idx) == 1);
+                        TBOX_ASSERT(ghost_cell_local_map.count(canonical_cell_idx) == 1);
 #endif
                         // The nodes are local nodes, so we just look-up their
                         // local IDs.

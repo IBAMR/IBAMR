@@ -1,5 +1,5 @@
 // Filename: LNodeIndex.I
-// Last modified: <24.Jun.2007 21:48:05 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:42:49 griffith@box221.cims.nyu.edu>
 // Created on 28 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -99,7 +99,7 @@ inline double*
 LNodeIndex::getNodeLocation() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_X_ptr != NULL);
+    TBOX_ASSERT(d_X_ptr != NULL);
 #endif
     return d_X_ptr;
 }// getNodeLocation
@@ -200,8 +200,8 @@ operator<(
     const LNodeIndex& rhs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(lhs.d_X_ptr != NULL);
-    assert(rhs.d_X_ptr != NULL);
+    TBOX_ASSERT(lhs.d_X_ptr != NULL);
+    TBOX_ASSERT(rhs.d_X_ptr != NULL);
 #if ((NDIM>3) || (NDIM<1))
     TBOX_ERROR("operator<(const LNodeIndex&,const LNodeIndex&): not implemented for NDIM=="
                << NDIM << endl);

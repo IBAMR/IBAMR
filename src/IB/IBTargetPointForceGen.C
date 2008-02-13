@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <04.Feb.2008 22:04:46 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:16:54 griffith@box221.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
@@ -32,7 +32,6 @@
 #include <tbox/TimerManager.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <numeric>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -138,7 +137,7 @@ IBTargetPointForceGen::computeLagrangianForce(
                     {
 #ifdef DEBUG_CHECK_ASSERTIONS
                         const int& mastr_idx = node_idx->getLagrangianIndex();
-                        assert(mastr_idx == force_spec->getMasterNodeIndex());
+                        TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
                         const double& kappa_target = force_spec->getStiffness();
                         if (!SAMRAI::tbox::MathUtilities<double>::equalEps(kappa_target,0.0))

@@ -1,5 +1,5 @@
 // Filename: LNodeIndexVariable2.C
-// Last modified: <04.Jun.2007 12:37:22 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:20:49 griffith@box221.cims.nyu.edu>
 // Created on 04 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "LNodeIndexVariable2.h"
@@ -18,9 +18,6 @@
 
 // IBAMR INCLUDES
 #include <ibamr/LNodeIndexDataFactory2.h>
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

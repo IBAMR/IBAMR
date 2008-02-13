@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <06.Feb.2008 18:01:32 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:19:07 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -44,7 +44,6 @@
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <limits>
 
 // FORTRAN ROUTINES
@@ -238,10 +237,10 @@ AdvectHypPatchOps::AdvectHypPatchOps(
       d_rich_time_min()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!input_db.isNull());
-    assert(!godunov_advector.isNull());
-    assert(!grid_geom.isNull());
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(!godunov_advector.isNull());
+    TBOX_ASSERT(!grid_geom.isNull());
 #endif
 
     if (d_registered_for_restart)
@@ -344,8 +343,8 @@ AdvectHypPatchOps::registerAdvectedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_u_is_registered);
-    assert(!Q_var.isNull());
+    TBOX_ASSERT(d_u_is_registered);
+    TBOX_ASSERT(!Q_var.isNull());
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
         Q_var->getPatchDataFactory();
@@ -433,9 +432,9 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_u_is_registered);
-    assert(!Q_var.isNull());
-    assert(!F_var.isNull());
+    TBOX_ASSERT(d_u_is_registered);
+    TBOX_ASSERT(!Q_var.isNull());
+    TBOX_ASSERT(!F_var.isNull());
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
         Q_var->getPatchDataFactory();
@@ -475,7 +474,7 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
 #ifdef DEBUG_CHECK_ASSERTIONS
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > F_factory =
         F_var->getPatchDataFactory();
-    assert(Q_factory->getDefaultDepth() == F_factory->getDefaultDepth());
+    TBOX_ASSERT(Q_factory->getDefaultDepth() == F_factory->getDefaultDepth());
 #endif
     d_Q_vars    .push_back(Q_var);
     d_Q_inits   .push_back(Q_init);
@@ -507,8 +506,8 @@ AdvectHypPatchOps::registerAdvectionVelocity(
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> u_set)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!d_u_is_registered);
-    assert(!u_var.isNull());
+    TBOX_ASSERT(!d_u_is_registered);
+    TBOX_ASSERT(!u_var.isNull());
 #endif
     d_u_var = u_var;
     d_u_set = u_set;
@@ -530,7 +529,7 @@ AdvectHypPatchOps::registerVisItDataWriter(
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!visit_writer.isNull());
+    TBOX_ASSERT(!visit_writer.isNull());
 #endif
     d_visit_writer = visit_writer;
     return;
@@ -561,7 +560,7 @@ AdvectHypPatchOps::registerModelVariables(
     t_register_model_vars->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(integrator != static_cast<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>*>(NULL));
+    TBOX_ASSERT(integrator != static_cast<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>*>(NULL));
 #endif
     d_integrator = integrator;
 
@@ -723,7 +722,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
                     patch.getPatchData(Q_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-                assert(!Q_data.isNull());
+                TBOX_ASSERT(!Q_data.isNull());
 #endif
                 Q_data->fillAll(0.0);
             }
@@ -752,7 +751,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_data =
                         patch.getPatchData(F_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(!F_data.isNull());
+                    TBOX_ASSERT(!F_data.isNull());
 #endif
                     F_data->fillAll(0.0);
                 }
@@ -775,7 +774,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data =
                 patch.getPatchData(u_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            assert(!u_data.isNull());
+            TBOX_ASSERT(!u_data.isNull());
 #endif
             u_data->fillAll(0.0);
         }
@@ -800,7 +799,7 @@ AdvectHypPatchOps::computeStableDtOnPatch(
         patch.getPatchData(d_u_var, getDataContext());
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!u_data.isNull());
+    TBOX_ASSERT(!u_data.isNull());
 #endif
 
     const double stable_dt = d_godunov_advector->
@@ -821,9 +820,9 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     (void) time;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_Q_vars.size() == d_F_vars.size());
-    assert(d_Q_vars.size() == d_flux_integral_vars.size());
-    assert(d_Q_vars.size() == d_q_integral_vars.size());
+    TBOX_ASSERT(d_Q_vars.size() == d_F_vars.size());
+    TBOX_ASSERT(d_Q_vars.size() == d_flux_integral_vars.size());
+    TBOX_ASSERT(d_Q_vars.size() == d_q_integral_vars.size());
 #endif
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
@@ -954,8 +953,8 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
     (void) at_synchronization;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_Q_vars.size() == d_flux_integral_vars.size());
-    assert(d_Q_vars.size() == d_q_integral_vars.size());
+    TBOX_ASSERT(d_Q_vars.size() == d_flux_integral_vars.size());
+    TBOX_ASSERT(d_Q_vars.size() == d_q_integral_vars.size());
 #endif
 
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
@@ -1381,8 +1380,8 @@ AdvectHypPatchOps::tagRichardsonExtrapolationCells(
                         patch.getPatchData(d_Q_vars[l], advanced_coarse);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(!coarsened_fine_var.isNull());
-                    assert(!advanced_coarse_var.isNull());
+                    TBOX_ASSERT(!coarsened_fine_var.isNull());
+                    TBOX_ASSERT(!advanced_coarse_var.isNull());
 #endif
 
                     for (SAMRAI::pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
@@ -1532,7 +1531,7 @@ AdvectHypPatchOps::tagGradientDetectorCells(
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > var =
                         patch.getPatchData(d_Q_vars[l], getDataContext());
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(!var.isNull());
+                    TBOX_ASSERT(!var.isNull());
 #endif
                     for (int depth = 0; depth < var->getDepth(); ++depth)
                     {
@@ -1582,7 +1581,7 @@ AdvectHypPatchOps::tagGradientDetectorCells(
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > var =
                         patch.getPatchData(d_Q_vars[l], getDataContext());
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(!var.isNull());
+                    TBOX_ASSERT(!var.isNull());
 #endif
                     const SAMRAI::hier::IntVector<NDIM>& vghost = var->getGhostCellWidth();
 
@@ -1805,7 +1804,7 @@ AdvectHypPatchOps::putToDatabase(
     t_put_to_database->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
 
     db->putInteger("ADVECT_HYP_PATCH_OPS_VERSION", ADVECT_HYP_PATCH_OPS_VERSION);
@@ -2099,7 +2098,7 @@ AdvectHypPatchOps::getFromInput(
     bool is_from_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     (void) is_from_restart;
 

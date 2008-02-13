@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <04.Feb.2008 21:46:45 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:14:22 griffith@box221.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -39,7 +39,6 @@
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <fstream>
 #include <iostream>
 
@@ -154,8 +153,8 @@ IBHDF5Initializer::IBHDF5Initializer(
       d_level_inst_point_data_map()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!input_db.isNull());
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!input_db.isNull());
 #endif
     // Register the specification objects with the StashableManager class.
     IBSpringForceSpec::registerWithStashableManager();
@@ -565,7 +564,7 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
             // Determine the number of items to read (always BUFFER_SIZE except
             // for the final block in the file).
             const int num_vertex_block = (last_block ? num_vertex - block*BUFFER_SIZE : BUFFER_SIZE);
-            assert(num_vertex_block > 0 && num_vertex_block <= BUFFER_SIZE);
+            TBOX_ASSERT(num_vertex_block > 0 && num_vertex_block <= BUFFER_SIZE);
 
             // Define the file hyperslab.
             hsize_t offsetf[rankf] = { block*BUFFER_SIZE , 0 };
@@ -811,23 +810,23 @@ IBHDF5Initializer::buildLevelDataCache(
     // Sanity checks.
     const int level_num_vertex_sum = std::accumulate(d_level_num_vertex.begin(),d_level_num_vertex.end(),0);
     const int level_num_local_vertex_sum = std::accumulate(d_level_num_local_vertex.begin(),d_level_num_local_vertex.end(),0);
-    assert(level_num_vertex_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_vertex_sum));
+    TBOX_ASSERT(level_num_vertex_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_vertex_sum));
 
     const int level_num_spring_sum = std::accumulate(d_level_num_spring.begin(),d_level_num_spring.end(),0);
     const int level_num_local_spring_sum = std::accumulate(d_level_num_local_spring.begin(),d_level_num_local_spring.end(),0);
-    assert(level_num_spring_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_spring_sum));
+    TBOX_ASSERT(level_num_spring_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_spring_sum));
 
     const int level_num_beam_sum = std::accumulate(d_level_num_beam.begin(),d_level_num_beam.end(),0);
     const int level_num_local_beam_sum = std::accumulate(d_level_num_local_beam.begin(),d_level_num_local_beam.end(),0);
-    assert(level_num_beam_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_beam_sum));
+    TBOX_ASSERT(level_num_beam_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_beam_sum));
 
     const int level_num_target_point_sum = std::accumulate(d_level_num_target_point.begin(),d_level_num_target_point.end(),0);
     const int level_num_local_target_point_sum = std::accumulate(d_level_num_local_target_point.begin(),d_level_num_local_target_point.end(),0);
-    assert(level_num_target_point_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_target_point_sum));
+    TBOX_ASSERT(level_num_target_point_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_target_point_sum));
 
     const int level_num_inst_point_sum = std::accumulate(d_level_num_inst_point.begin(),d_level_num_inst_point.end(),0);
     const int level_num_local_inst_point_sum = std::accumulate(d_level_num_local_inst_point.begin(),d_level_num_local_inst_point.end(),0);
-    assert(level_num_inst_point_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_inst_point_sum));
+    TBOX_ASSERT(level_num_inst_point_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_inst_point_sum));
     return;
 }// buildLevelDataCache
 
@@ -905,7 +904,7 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
             // Determine the number of items to read (always BUFFER_SIZE except
             // for the final block in the file).
             const int num_vertex_block = (last_block ? num_vertex - block*BUFFER_SIZE : BUFFER_SIZE);
-            assert(num_vertex_block > 0 && num_vertex_block <= BUFFER_SIZE);
+            TBOX_ASSERT(num_vertex_block > 0 && num_vertex_block <= BUFFER_SIZE);
 
             // Define the file hyperslab.
             hsize_t offsetf[rankf] = { block*BUFFER_SIZE , 0 };
@@ -1136,7 +1135,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
             // Determine the number of items to read (always BUFFER_SIZE except
             // for the final block in the file).
             const int num_spring_block = (last_block ? num_spring - block*BUFFER_SIZE : BUFFER_SIZE);
-            assert(num_spring_block > 0 && num_spring_block <= BUFFER_SIZE);
+            TBOX_ASSERT(num_spring_block > 0 && num_spring_block <= BUFFER_SIZE);
 
             // Define the file hyperslab.
             hsize_t offsetf[rankf] = { block*BUFFER_SIZE };
@@ -1181,8 +1180,8 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
                     }
 
                     SAMRAI::tbox::Pointer<IBSpringForceSpec> old_spring_data = (*it).second;
-                    assert(old_spring_data->getMasterNodeIndex() == -1 ||
-                           old_spring_data->getMasterNodeIndex() == node1_idx);
+                    TBOX_ASSERT(old_spring_data->getMasterNodeIndex() == -1 ||
+                                old_spring_data->getMasterNodeIndex() == node1_idx);
 
                     std::vector<int>&    slave_idxs     = old_spring_data->getSlaveNodeIndices();
                     std::vector<int>&    force_fcn_idxs = old_spring_data->getForceFunctionIndices();
@@ -1356,7 +1355,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
             // Determine the number of items to read (always BUFFER_SIZE except
             // for the final block in the file).
             const int num_beam_block = (last_block ? num_beam - block*BUFFER_SIZE : BUFFER_SIZE);
-            assert(num_beam_block > 0 && num_beam_block <= BUFFER_SIZE);
+            TBOX_ASSERT(num_beam_block > 0 && num_beam_block <= BUFFER_SIZE);
 
             // Define the file hyperslab.
             hsize_t offsetf[rankf] = { block*BUFFER_SIZE };
@@ -1398,8 +1397,8 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                     }
 
                     SAMRAI::tbox::Pointer<IBBeamForceSpec> old_beam_data = (*it).second;
-                    assert(old_beam_data->getMasterNodeIndex() == -1 ||
-                           old_beam_data->getMasterNodeIndex() == node2_idx);
+                    TBOX_ASSERT(old_beam_data->getMasterNodeIndex() == -1 ||
+                                old_beam_data->getMasterNodeIndex() == node2_idx);
 
                     std::vector<std::pair<int,int> >& neighbor_idxs   = old_beam_data->getNeighborNodeIndices();
                     std::vector<double>&              bend_rigidities = old_beam_data->getBendingRigidities();
@@ -1528,7 +1527,7 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
             // Determine the number of items to read (always BUFFER_SIZE except
             // for the final block in the file).
             const int num_target_point_block = (last_block ? num_target_point - block*BUFFER_SIZE : BUFFER_SIZE);
-            assert(num_target_point_block > 0 && num_target_point_block <= BUFFER_SIZE);
+            TBOX_ASSERT(num_target_point_block > 0 && num_target_point_block <= BUFFER_SIZE);
 
             // Define the file hyperslab.
             hsize_t offsetf[rankf] = { block*BUFFER_SIZE };
@@ -1558,12 +1557,12 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
                     if (it == target_point_data_map.end())
                     {
                         target_point_data = (*target_point_data_map.insert(target_point_data_map.end(), std::make_pair(node_idx,new IBTargetPointForceSpec()))).second;
-                        assert(target_point_data->getMasterNodeIndex() == -1);
+                        TBOX_ASSERT(target_point_data->getMasterNodeIndex() == -1);
                     }
                     else
                     {
                         target_point_data = (*it).second;
-                        assert(target_point_data->getMasterNodeIndex() == node_idx);
+                        TBOX_ASSERT(target_point_data->getMasterNodeIndex() == node_idx);
                     }
                     target_point_data->getMasterNodeIndex() = node_idx;
                     target_point_data->getStiffness() = stiffness;
@@ -1726,7 +1725,7 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
             // Determine the number of items to read (always BUFFER_SIZE except
             // for the final block in the file).
             const int num_inst_point_block = (last_block ? num_inst_point - block*BUFFER_SIZE : BUFFER_SIZE);
-            assert(num_inst_point_block > 0 && num_inst_point_block <= BUFFER_SIZE);
+            TBOX_ASSERT(num_inst_point_block > 0 && num_inst_point_block <= BUFFER_SIZE);
 
             // Define the file hyperslab.
             hsize_t offsetf[rankf] = { block*BUFFER_SIZE };
@@ -1758,12 +1757,12 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
                     if (it == inst_point_data_map.end())
                     {
                         inst_point_data = (*inst_point_data_map.insert(inst_point_data_map.end(), std::make_pair(node_idx,new IBInstrumentationSpec()))).second;
-                        assert(inst_point_data->getMasterNodeIndex() == -1);
+                        TBOX_ASSERT(inst_point_data->getMasterNodeIndex() == -1);
                     }
                     else
                     {
                         inst_point_data = (*it).second;
-                        assert(inst_point_data->getMasterNodeIndex() == node_idx);
+                        TBOX_ASSERT(inst_point_data->getMasterNodeIndex() == node_idx);
                     }
                     inst_point_data->getMasterNodeIndex() = node_idx;
                     inst_point_data->getMeterIndex() = meter_idx;
@@ -1839,7 +1838,7 @@ IBHDF5Initializer::initializeSpecs(
     const int vertex_offset = d_level_vertex_offset[j]+global_index_offset;
 
     const bool specs_need_reset = d_level_reset_specs_set[j].find(k) == d_level_reset_specs_set[j].end();
-    assert(specs_need_reset);
+    TBOX_ASSERT(specs_need_reset);
 
     // Initialize any spring specifications associated with the present vertex.
     if (d_enable_springs[ln][j])
@@ -1976,7 +1975,7 @@ IBHDF5Initializer::getFromInput(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     // Determine whether to use "batons" to prevent multiple MPI processes from
     // reading the same file at once.

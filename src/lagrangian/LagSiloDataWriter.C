@@ -1,5 +1,5 @@
 // Filename: LagSiloDataWriter.C
-// Last modified: <04.Feb.2008 22:34:05 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:43:13 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagSiloDataWriter.h"
@@ -373,8 +373,8 @@ build_local_ucd_mesh(
     {
         std::pair<int,int> e = (*it).second;
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(vertices.count(e.first ) == 1);
-        assert(vertices.count(e.second) == 1);
+        TBOX_ASSERT(vertices.count(e.first ) == 1);
+        TBOX_ASSERT(vertices.count(e.second) == 1);
 #endif
         if (e.first > e.second)
         {
@@ -605,8 +605,8 @@ LagSiloDataWriter::setPatchHierarchy(
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert(hierarchy->getFinestLevelNumber() >= d_finest_ln);
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy->getFinestLevelNumber() >= d_finest_ln);
 #endif
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
@@ -620,10 +620,10 @@ LagSiloDataWriter::resetLevels(
     const int finest_ln)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert((coarsest_ln >= 0) && (finest_ln >= coarsest_ln));
+    TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln));
     if (!d_hierarchy.isNull())
     {
-        assert(finest_ln <= d_hierarchy->getFinestLevelNumber());
+        TBOX_ASSERT(finest_ln <= d_hierarchy->getFinestLevelNumber());
     }
 #endif
     // Destroy any un-needed PETSc objects.
@@ -728,8 +728,8 @@ LagSiloDataWriter::registerMarkerCloud(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(nmarks > 0);
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(nmarks > 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
 
@@ -791,10 +791,10 @@ LagSiloDataWriter::registerLogicallyCartesianBlock(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (int d = 0; d < NDIM; ++d)
     {
-        assert(nelem(d) > 0);
-        assert(periodic(d) == 0 || periodic(d) == 1);
+        TBOX_ASSERT(nelem(d) > 0);
+        TBOX_ASSERT(periodic(d) == 0 || periodic(d) == 1);
     }
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
 
@@ -855,18 +855,18 @@ LagSiloDataWriter::registerLogicallyCartesianMultiblock(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(periodic     .size() == nelem.size());
-    assert(first_lag_idx.size() == nelem.size());
+    TBOX_ASSERT(periodic     .size() == nelem.size());
+    TBOX_ASSERT(first_lag_idx.size() == nelem.size());
     int sz = nelem.size();
     for (int i = 0; i < sz; ++i)
     {
         for (int d = 0; d < NDIM; ++d)
         {
-            assert(nelem[i](d) > 0);
-            assert(periodic[i](d) == 0 || periodic[i](d) == 1);
+            TBOX_ASSERT(nelem[i](d) > 0);
+            TBOX_ASSERT(periodic[i](d) == 0 || periodic[i](d) == 1);
         }
     }
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
 
@@ -926,7 +926,7 @@ LagSiloDataWriter::registerUnstructuredMesh(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
 
@@ -993,9 +993,9 @@ LagSiloDataWriter::registerCoordsData(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!coords_data.isNull());
-    assert(coords_data->getDepth() == NDIM);
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(!coords_data.isNull());
+    TBOX_ASSERT(coords_data->getDepth() == NDIM);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
     d_coords_data[level_number] = coords_data;
@@ -1014,9 +1014,9 @@ LagSiloDataWriter::registerVariableData(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!var_name.empty());
-    assert(!var_data.isNull());
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(!var_name.empty());
+    TBOX_ASSERT(!var_data.isNull());
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
     if (find(d_var_names[level_number].begin(),
@@ -1045,7 +1045,7 @@ LagSiloDataWriter::registerLagrangianAO(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
     d_ao[level_number] = ao;
@@ -1060,7 +1060,7 @@ LagSiloDataWriter::registerLagrangianAO(
     const int finest_ln)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(coarsest_ln <= finest_ln);
+    TBOX_ASSERT(coarsest_ln <= finest_ln);
 #endif
 
     if (coarsest_ln < d_coarsest_ln || finest_ln > d_finest_ln)
@@ -1069,7 +1069,7 @@ LagSiloDataWriter::registerLagrangianAO(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_coarsest_ln <= coarsest_ln && finest_ln <= d_finest_ln);
+    TBOX_ASSERT(d_coarsest_ln <= coarsest_ln && finest_ln <= d_finest_ln);
 #endif
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1087,8 +1087,8 @@ LagSiloDataWriter::writePlotData(
 {
 #if HAVE_LIBSILO
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(time_step_number >= 0);
-    assert(!d_dump_directory_name.empty());
+    TBOX_ASSERT(time_step_number >= 0);
+    TBOX_ASSERT(!d_dump_directory_name.empty());
 #endif
 
     if (time_step_number <= d_time_step_number)
@@ -1859,7 +1859,7 @@ LagSiloDataWriter::putToDatabase(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     db->putInteger("LAG_SILO_DATA_WRITER_VERSION",
                    LAG_SILO_DATA_WRITER_VERSION);
@@ -2282,7 +2282,7 @@ LagSiloDataWriter::getFromRestart()
                     const std::pair<int,int> e(ucd_mesh_edge_maps_vector[3*l+1],
                                                ucd_mesh_edge_maps_vector[3*l+2]);
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(idx1 == e.first);
+                    TBOX_ASSERT(idx1 == e.first);
 #endif
                     d_ucd_mesh_edge_maps[ln][mesh].insert(std::make_pair(idx1,e));
                 }

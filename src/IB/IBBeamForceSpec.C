@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpec.C
-// Last modified: <04.Feb.2008 21:39:53 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:44:17 griffith@box221.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceSpec.h"
@@ -43,7 +43,7 @@ IBBeamForceSpec::registerWithStashableManager()
     if (!s_registered_factory)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(s_stashable_id == -1);
+        TBOX_ASSERT(s_stashable_id == -1);
 #endif
         s_stashable_id = StashableManager::getManager()->registerFactory(
             new IBBeamForceSpecFactory());

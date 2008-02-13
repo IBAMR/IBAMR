@@ -1,5 +1,5 @@
 // Filename: NormalVelocityBcCoefAdapter.C
-// Last modified: <04.Feb.2008 22:42:30 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:22:38 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "NormalVelocityBcCoefAdapter.h"
@@ -20,7 +20,6 @@
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <limits>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -57,7 +56,7 @@ NormalVelocityBcCoefAdapter::setPhysicalBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned l = 0; l < bc_coefs.size(); ++l)
     {
-        assert(bc_coefs[l] != NULL);
+        TBOX_ASSERT(bc_coefs[l] != NULL);
     }
 #endif
     d_bc_coefs = bc_coefs;

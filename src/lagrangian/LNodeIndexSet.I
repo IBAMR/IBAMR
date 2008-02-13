@@ -1,5 +1,5 @@
 // Filename: LNodeIndexSet.I
-// Last modified: <10.Jun.2007 22:18:25 boyce@bigboy.nyconnect.com>
+// Last modified: <12.Feb.2008 21:20:38 griffith@box221.cims.nyu.edu>
 // Created on 29 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -14,7 +14,6 @@
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
-#include <cassert>
 #include <functional>
 #include <numeric>
 #include <sstream>

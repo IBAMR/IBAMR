@@ -1,5 +1,5 @@
 // Filename: PressureBcCoefs.C
-// Last modified: <30.Jul.2007 17:44:17 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:24:04 griffith@box221.cims.nyu.edu>
 // Created on 04 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "PressureBcCoefs.h"
@@ -22,9 +22,6 @@
 // SAMRAI INCLUDES
 #include <CartesianPatchGeometry.h>
 #include <tbox/Utilities.h>
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 // NAMESPACE
 using namespace STOOLS;
@@ -166,7 +163,7 @@ PressureBcCoefs::setBcCoefs_private(
                 g = 50.0*0.25*(tanh(1000.0*fill_time-3.5)+1.0)*(tanh(1000.0*(0.03-fill_time)-3.5)+1.0);
                 break;
             default:
-                assert(false);
+                TBOX_ASSERT(false);
         }
     }
     return;

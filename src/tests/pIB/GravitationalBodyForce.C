@@ -1,5 +1,5 @@
 // Filename: GravitationalBodyForce.C
-// Last modified: <03.May.2007 13:56:56 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:23:54 griffith@box221.cims.nyu.edu>
 // Created on 03 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "GravitationalBodyForce.h"
@@ -19,9 +19,6 @@
 // SAMRAI INCLUDES
 #include <CellData.h>
 
-// C++ STDLIB INCLUDES
-#include <cassert>
-
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -34,7 +31,7 @@ GravitationalBodyForce::GravitationalBodyForce(
       d_gravitational_force(NDIM,0.0)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
+    TBOX_ASSERT(!object_name.empty());
 #endif
 
     // Initialize object with data read from the input database.
@@ -59,7 +56,7 @@ GravitationalBodyForce::setDataOnPatch(
 {
     tbox::Pointer< pdat::CellData<NDIM,double> > f_data = patch.getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!f_data.isNull());
+    TBOX_ASSERT(!f_data.isNull());
 #endif
     for (int d = 0; d < NDIM; ++d)
     {

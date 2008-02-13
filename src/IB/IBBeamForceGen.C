@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <04.Feb.2008 21:40:37 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:13:22 griffith@box221.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -31,7 +31,6 @@
 #include <tbox/TimerManager.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <numeric>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -106,7 +105,7 @@ IBBeamForceGen::initializeLevelData(
     t_initialize_level_data->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
+    TBOX_ASSERT(!hierarchy.isNull());
 #endif
     (void) init_data_time;
     (void) initial_time;
@@ -179,13 +178,13 @@ IBBeamForceGen::initializeLevelData(
                     {
                         const unsigned num_beams = force_spec->getNumberOfBeams();
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        assert(mastr_idx == force_spec->getMasterNodeIndex());
+                        TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
                         const std::vector<std::pair<int,int> >& nghbrs = force_spec->getNeighborNodeIndices();
                         const std::vector<double>& bend = force_spec->getBendingRigidities();
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        assert(num_beams == nghbrs.size());
-                        assert(num_beams == bend.size());
+                        TBOX_ASSERT(num_beams == nghbrs.size());
+                        TBOX_ASSERT(num_beams == bend.size());
 #endif
                         for (unsigned k = 0; k < num_beams; ++k)
                         {
@@ -328,8 +327,8 @@ IBBeamForceGen::computeLagrangianForce(
     t_compute_lagrangian_force->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(level_number < static_cast<int>(d_is_initialized.size()));
-    assert(d_is_initialized[level_number]);
+    TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
+    TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
 
     int ierr;

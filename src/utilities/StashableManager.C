@@ -1,5 +1,5 @@
 // Filename: StashableManager.C
-// Last modified: <04.Feb.2008 22:43:32 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:23:03 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "StashableManager.h"
@@ -144,7 +144,7 @@ StashableManager::checkFactoryRegistration(
     SAMRAI::tbox::Pointer<StashableFactory> factory)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!factory.isNull());
+    TBOX_ASSERT(!factory.isNull());
 #endif
     return d_factory_map.count(factory->getStashableID()) == 1;
 }// checkFactoryRegistration
@@ -154,8 +154,8 @@ StashableManager::registerFactory(
     SAMRAI::tbox::Pointer<StashableFactory> factory)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!factory.isNull());
-    assert(factory->getStashableID() == getUnregisteredID());
+    TBOX_ASSERT(!factory.isNull());
+    TBOX_ASSERT(factory->getStashableID() == getUnregisteredID());
 #endif
     SAMRAI::tbox::SAMRAI_MPI::barrier();  // ensure all processes use the same
                                           // stashable ID for the registered

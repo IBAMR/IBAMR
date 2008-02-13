@@ -1,5 +1,5 @@
 // Filename: VelocityBcCoefs.C
-// Last modified: <18.Dec.2007 13:03:45 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:25:12 griffith@box221.cims.nyu.edu>
 // Created on 18 Dec 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "VelocityBcCoefs.h"
@@ -22,9 +22,6 @@
 // SAMRAI INCLUDES
 #include <CartesianPatchGeometry.h>
 #include <tbox/Utilities.h>
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 // NAMESPACE
 using namespace STOOLS;

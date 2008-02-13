@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <04.Feb.2008 22:42:14 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:22:29 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -25,7 +25,6 @@
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <limits>
 
 // FORTRAN ROUTINES
@@ -237,10 +236,10 @@ SAMRAI::hier::IntVector<NDIM>
 INSProjectionBcCoef::numberOfExtensionsFillable() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_u_bc_coefs.size() == NDIM);
+    TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
     for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
     {
-        assert(d_u_bc_coefs[l] != NULL);
+        TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
     }
 #endif
     SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
@@ -267,10 +266,10 @@ INSProjectionBcCoef::setBcCoefs_private(
     double fill_time) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_u_bc_coefs.size() == NDIM);
+    TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
     for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
     {
-        assert(d_u_bc_coefs[l] != NULL);
+        TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
     }
 #endif
     const int location_index   = bdry_box.getLocationIndex();
@@ -291,10 +290,10 @@ INSProjectionBcCoef::setBcCoefs_private(
     // Set the corresponding projection Poisson problem homogeneous Robin
     // coefficients.
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!acoef_data.isNull());
-    assert(!bcoef_data.isNull());
-    assert(bc_coef_box == acoef_data->getBox());
-    assert(bc_coef_box == bcoef_data->getBox());
+    TBOX_ASSERT(!acoef_data.isNull());
+    TBOX_ASSERT(!bcoef_data.isNull());
+    TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
+    TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
 #endif
     NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_F77(
         acoef_data->getPointer(), bcoef_data->getPointer(),
@@ -315,12 +314,12 @@ INSProjectionBcCoef::setBcCoefs_private(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_data = patch.getPatchData(d_u_idx);
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > P_data = patch.getPatchData(d_P_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!u_data.isNull());
-    assert(u_data->getGhostCellWidth().max() == u_data->getGhostCellWidth().min());
-    assert(!P_data.isNull());
-    assert(P_data->getGhostCellWidth().max() == P_data->getGhostCellWidth().min());
-    assert(!gcoef_data.isNull());
-    assert(bc_coef_box == gcoef_data->getBox());
+    TBOX_ASSERT(!u_data.isNull());
+    TBOX_ASSERT(u_data->getGhostCellWidth().max() == u_data->getGhostCellWidth().min());
+    TBOX_ASSERT(!P_data.isNull());
+    TBOX_ASSERT(P_data->getGhostCellWidth().max() == P_data->getGhostCellWidth().min());
+    TBOX_ASSERT(!gcoef_data.isNull());
+    TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > acoef_data_P =

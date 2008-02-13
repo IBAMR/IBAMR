@@ -1,5 +1,5 @@
 // Filename: StashableManager.I
-// Last modified: <17.Apr.2007 18:25:07 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:50:18 griffith@box221.cims.nyu.edu>
 // Created on 14 Jun 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -8,9 +8,6 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
-
-// C++ STDLIB INCLUDES
-#include <cassert>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -31,7 +28,7 @@ StashableManager::packStream(
     SAMRAI::tbox::Pointer<Stashable>& stash_data)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!stash_data.isNull());
+    TBOX_ASSERT(!stash_data.isNull());
 #endif
     const int stashable_id = stash_data->getStashableID();
     stream.pack(&stashable_id,1);
@@ -48,7 +45,7 @@ StashableManager::unpackStream(
     int stashable_id;
     stream.unpack(&stashable_id,1);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_factory_map.count(stashable_id) == 1);
+    TBOX_ASSERT(d_factory_map.count(stashable_id) == 1);
 #endif
     stash_data = d_factory_map[stashable_id]->unpackStream(stream,offset);
     return;

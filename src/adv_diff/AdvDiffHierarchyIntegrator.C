@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <06.Feb.2008 20:30:28 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:18:35 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -37,7 +37,6 @@
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <iterator>
 #include <limits>
 #include <set>
@@ -149,10 +148,10 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_fac_pcs_db(NULL)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!input_db.isNull());
-    assert(!hierarchy.isNull());
-    assert(!explicit_predictor.isNull());
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(!explicit_predictor.isNull());
 #endif
 
     if (d_registered_for_restart)
@@ -303,7 +302,7 @@ AdvDiffHierarchyIntegrator::registerVisItDataWriter(
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!visit_writer.isNull());
+    TBOX_ASSERT(!visit_writer.isNull());
 #endif
     d_hyp_patch_ops->registerVisItDataWriter(visit_writer);
     return;
@@ -347,9 +346,9 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!Q_var.isNull());
-    assert(Q_mu >= 0.0);
-    assert(Q_lambda >= 0.0);
+    TBOX_ASSERT(!Q_var.isNull());
+    TBOX_ASSERT(Q_mu >= 0.0);
+    TBOX_ASSERT(Q_lambda >= 0.0);
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
         Q_var->getPatchDataFactory();
@@ -435,9 +434,9 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!Q_var.isNull());
-    assert(Q_mu >= 0.0);
-    assert(!F_var.isNull());
+    TBOX_ASSERT(!Q_var.isNull());
+    TBOX_ASSERT(Q_mu >= 0.0);
+    TBOX_ASSERT(!F_var.isNull());
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
         Q_var->getPatchDataFactory();
@@ -478,7 +477,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
 #ifdef DEBUG_CHECK_ASSERTIONS
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > F_factory =
             F_var->getPatchDataFactory();
-        assert(Q_depth == F_factory->getDefaultDepth());
+        TBOX_ASSERT(Q_depth == F_factory->getDefaultDepth());
 #endif
 
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var =
@@ -505,7 +504,7 @@ AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
     SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> u_set)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!u_var.isNull());
+    TBOX_ASSERT(!u_var.isNull());
 #endif
     d_hyp_patch_ops->registerAdvectionVelocity(
         u_var,u_is_div_free,u_set);
@@ -530,7 +529,7 @@ SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
 AdvDiffHierarchyIntegrator::getHierarchyMathOps() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!d_hier_math_ops.isNull());
+    TBOX_ASSERT(!d_hier_math_ops.isNull());
 #endif
     return d_hier_math_ops;
 }// getHierarchyMathOps
@@ -541,7 +540,7 @@ AdvDiffHierarchyIntegrator::setHierarchyMathOps(
     const bool manage_ops)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hier_math_ops.isNull());
+    TBOX_ASSERT(!hier_math_ops.isNull());
 #endif
     d_hier_math_ops = hier_math_ops;
     d_is_managing_hier_math_ops = manage_ops;
@@ -582,7 +581,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     t_initialize_hierarchy_integrator->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!gridding_alg.isNull());
+    TBOX_ASSERT(!gridding_alg.isNull());
 #endif
     d_gridding_alg = gridding_alg;
 
@@ -826,7 +825,7 @@ AdvDiffHierarchyIntegrator::advanceHierarchy(
     t_advance_hierarchy->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_end_time >= d_integrator_time+dt);
+    TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
 #endif
 
     // First: regrid (when appropriate).
@@ -953,9 +952,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
     t_integrate_hierarchy->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(current_time <= new_time);
-    assert(d_end_time > d_integrator_time);
-    assert(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
+    TBOX_ASSERT(current_time <= new_time);
+    TBOX_ASSERT(d_end_time > d_integrator_time);
+    TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,current_time));
 #endif
 
     double intermediate_time = std::numeric_limits<double>::quiet_NaN();
@@ -1401,13 +1400,13 @@ AdvDiffHierarchyIntegrator::synchronizeNewLevels(
     t_synchronize_new_levels->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((coarsest_level >= 0)
-           && (coarsest_level < finest_level)
-           && (finest_level <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((coarsest_level >= 0)
+                && (coarsest_level < finest_level)
+                && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     // We use the HyperbolicLevelIntegrator to handle as much data management as
@@ -1492,14 +1491,14 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > old_level = base_old_level;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((level_number >= 0)
-           && (level_number <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0)
+                && (level_number <= hierarchy->getFinestLevelNumber()));
     if (!old_level.isNull())
     {
-        assert(level_number == old_level->getLevelNumber());
+        TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    assert(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
     // We use the HyperbolicLevelIntegrator to handle as much data management as
     // possible.
@@ -1537,7 +1536,7 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_data =
                             patch->getPatchData(F_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        assert(!F_data.isNull());
+                        TBOX_ASSERT(!F_data.isNull());
 #endif
                         F_data->fillAll(0.0);
                     }
@@ -1560,13 +1559,13 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
 
     const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((coarsest_level >= 0)
-           && (coarsest_level <= finest_level)
-           && (finest_level <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((coarsest_level >= 0)
+                && (coarsest_level <= finest_level)
+                && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1678,10 +1677,10 @@ AdvDiffHierarchyIntegrator::applyGradientDetector(
     t_apply_gradient_detector->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((level_number >= 0)
-           && (level_number <= hierarchy->getFinestLevelNumber()));
-    assert(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0)
+                && (level_number <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
@@ -1767,7 +1766,7 @@ AdvDiffHierarchyIntegrator::putToDatabase(
     t_put_to_database->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
 
     db->putInteger("ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION",
@@ -1840,7 +1839,7 @@ AdvDiffHierarchyIntegrator::getFromInput(
     bool is_from_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     // Read in data members from input database.
     d_end_time = db->getDoubleWithDefault("end_time", d_end_time);

@@ -1,5 +1,5 @@
 // Filename: LagM3DDataWriter.C
-// Last modified: <04.Feb.2008 22:35:45 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:43:36 griffith@box221.cims.nyu.edu>
 // Created on 26 Apr 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "LagM3DDataWriter.h"
@@ -96,8 +96,8 @@ LagM3DDataWriter::LagM3DDataWriter(
       d_vec_scatter(d_finest_ln+1)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_experiment_name.size() == 3);
-    assert((0 <= d_experiment_number) && (d_experiment_number <= 9999));
+    TBOX_ASSERT(d_experiment_name.size() == 3);
+    TBOX_ASSERT((0 <= d_experiment_number) && (d_experiment_number <= 9999));
 #endif
     std::ostringstream stream;
     stream << experiment_name << std::setfill('0') << std::setw(4) << d_experiment_number;
@@ -140,8 +140,8 @@ LagM3DDataWriter::setPatchHierarchy(
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert(hierarchy->getFinestLevelNumber() >= d_finest_ln);
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy->getFinestLevelNumber() >= d_finest_ln);
 #endif
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
@@ -154,10 +154,10 @@ LagM3DDataWriter::resetLevels(
     const int finest_ln)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert((coarsest_ln >= 0) && (finest_ln >= coarsest_ln));
+    TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln));
     if (!d_hierarchy.isNull())
     {
-        assert(finest_ln <= d_hierarchy->getFinestLevelNumber());
+        TBOX_ASSERT(finest_ln <= d_hierarchy->getFinestLevelNumber());
     }
 #endif
     // Destroy any un-needed PETSc objects.
@@ -245,7 +245,7 @@ LagM3DDataWriter::registerMarkerCloud(
     const int first_mark_idx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(nmarks > 0);
+    TBOX_ASSERT(nmarks > 0);
 #endif
 
     // Check to see if the cloud name has already been registered.
@@ -280,10 +280,10 @@ LagM3DDataWriter::registerLogicallyCartesianBlock(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (int d = 0; d < NDIM; ++d)
     {
-        assert(nelem[d] > 0);
-        assert(periodic(d) == 0 || periodic(d) == 1);
+        TBOX_ASSERT(nelem[d] > 0);
+        TBOX_ASSERT(periodic(d) == 0 || periodic(d) == 1);
     }
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
 
@@ -345,9 +345,9 @@ LagM3DDataWriter::registerCoordsData(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!coords_data.isNull());
-    assert(coords_data->getDepth() == NDIM);
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(!coords_data.isNull());
+    TBOX_ASSERT(coords_data->getDepth() == NDIM);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
     d_coords_data[level_number] = coords_data;
@@ -365,7 +365,7 @@ LagM3DDataWriter::registerLagrangianAO(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_coarsest_ln <= level_number &&
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
            d_finest_ln   >= level_number);
 #endif
     d_ao[level_number] = ao;
@@ -380,7 +380,7 @@ LagM3DDataWriter::registerLagrangianAO(
     const int finest_ln)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(coarsest_ln <= finest_ln);
+    TBOX_ASSERT(coarsest_ln <= finest_ln);
 #endif
 
     if (coarsest_ln < d_coarsest_ln || finest_ln > d_finest_ln)
@@ -389,7 +389,7 @@ LagM3DDataWriter::registerLagrangianAO(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(d_coarsest_ln <= coarsest_ln && finest_ln <= d_finest_ln);
+    TBOX_ASSERT(d_coarsest_ln <= coarsest_ln && finest_ln <= d_finest_ln);
 #endif
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -406,8 +406,8 @@ LagM3DDataWriter::writePlotData(
     const double simulation_time)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(time_step_number >= 0);
-    assert(!d_dump_directory_name.empty());
+    TBOX_ASSERT(time_step_number >= 0);
+    TBOX_ASSERT(!d_dump_directory_name.empty());
 #endif
 
     if (time_step_number <= d_time_step_number)

@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <04.Feb.2008 22:17:53 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:19:24 griffith@box221.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -28,7 +28,6 @@
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
-#include <cassert>
 #include <limits>
 
 // FORTRAN ROUTINES
@@ -291,8 +290,8 @@ GodunovAdvector::GodunovAdvector(
 #endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!input_db.isNull());
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!input_db.isNull());
 #endif
 
     if (d_registered_for_restart)
@@ -360,8 +359,8 @@ GodunovAdvector::computeStableDtOnPatch(
     t_compute_stable_dt_on_patch->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(u_ADV.getDepth() == 1);
-    assert(u_ADV.getBox()   == patch.getBox());
+    TBOX_ASSERT(u_ADV.getDepth() == 1);
+    TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
 #endif
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
         patch.getPatchGeometry();
@@ -413,13 +412,13 @@ GodunovAdvector::computeAdvectiveDerivative(
     t_compute_advective_derivative->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(u_ADV.getDepth() == 1);
-    assert(u_ADV.getBox()   == patch.getBox());
+    TBOX_ASSERT(u_ADV.getDepth() == 1);
+    TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
 
-    assert(N.getDepth() == q_half.getDepth());
-    assert(N.getBox()   == patch.getBox());
+    TBOX_ASSERT(N.getDepth() == q_half.getDepth());
+    TBOX_ASSERT(N.getBox()   == patch.getBox());
 
-    assert(q_half.getBox() == patch.getBox());
+    TBOX_ASSERT(q_half.getBox() == patch.getBox());
 #endif
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
         patch.getPatchGeometry();
@@ -484,13 +483,13 @@ GodunovAdvector::computeFlux(
     t_compute_flux->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(u_ADV.getDepth() == 1);
-    assert(u_ADV.getBox()   == patch.getBox());
+    TBOX_ASSERT(u_ADV.getDepth() == 1);
+    TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
 
-    assert(flux.getDepth() == q_half.getDepth());
-    assert(flux.getBox()   == patch.getBox());
+    TBOX_ASSERT(flux.getDepth() == q_half.getDepth());
+    TBOX_ASSERT(flux.getBox()   == patch.getBox());
 
-    assert(q_half.getBox() == patch.getBox());
+    TBOX_ASSERT(q_half.getBox() == patch.getBox());
 #endif
     const SAMRAI::hier::Index<NDIM>& ilower = patch.getBox().lower();
     const SAMRAI::hier::Index<NDIM>& iupper = patch.getBox().upper();
@@ -640,14 +639,14 @@ GodunovAdvector::enforceIncompressibility(
 #if (NDIM != 1)
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(u_ADV.getDepth() == 1);
-    assert(u_ADV.getBox()   == patch.getBox());
+    TBOX_ASSERT(u_ADV.getDepth() == 1);
+    TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
 
-    assert(grad_phi.getDepth() == 1);
-    assert(grad_phi.getBox()   == patch.getBox());
+    TBOX_ASSERT(grad_phi.getDepth() == 1);
+    TBOX_ASSERT(grad_phi.getBox()   == patch.getBox());
 
-    assert(v_half.getBox()   == patch.getBox());
-    assert(v_half.getDepth() == NDIM);
+    TBOX_ASSERT(v_half.getBox()   == patch.getBox());
+    TBOX_ASSERT(v_half.getDepth() == NDIM);
 #endif
     const SAMRAI::hier::Index<NDIM>& ilower = patch.getBox().lower();
     const SAMRAI::hier::Index<NDIM>& iupper = patch.getBox().upper();
@@ -690,7 +689,7 @@ GodunovAdvector::putToDatabase(
     t_put_to_database->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     db->putInteger("GODUNOV_ADVECTOR_VERSION",GODUNOV_ADVECTOR_VERSION);
     db->putInteger("d_limiter_type", d_limiter_type);
@@ -731,13 +730,13 @@ GodunovAdvector::predict(
     t_predict->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(q_half.getDepth() == Q.getDepth());
-    assert(q_half.getBox()   == patch.getBox());
+    TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
+    TBOX_ASSERT(q_half.getBox()   == patch.getBox());
 
-    assert(u_ADV.getDepth() == 1);
-    assert(u_ADV.getBox()   == patch.getBox());
+    TBOX_ASSERT(u_ADV.getDepth() == 1);
+    TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
 
-    assert(Q.getBox()        == patch.getBox());
+    TBOX_ASSERT(Q.getBox()        == patch.getBox());
 #endif
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
         patch.getPatchGeometry();
@@ -818,16 +817,16 @@ GodunovAdvector::predictWithSourceTerm(
     t_predict_with_source_term->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(q_half.getDepth() == Q.getDepth());
-    assert(q_half.getDepth() == F.getDepth());
-    assert(q_half.getBox()   == patch.getBox());
+    TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
+    TBOX_ASSERT(q_half.getDepth() == F.getDepth());
+    TBOX_ASSERT(q_half.getBox()   == patch.getBox());
 
-    assert(u_ADV.getDepth() == 1);
-    assert(u_ADV.getBox()   == patch.getBox());
+    TBOX_ASSERT(u_ADV.getDepth() == 1);
+    TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
 
-    assert(Q.getBox() == patch.getBox());
+    TBOX_ASSERT(Q.getBox() == patch.getBox());
 
-    assert(F.getBox() == patch.getBox());
+    TBOX_ASSERT(F.getBox() == patch.getBox());
 #endif
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
@@ -910,7 +909,7 @@ GodunovAdvector::getFromInput(
     bool is_from_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
     (void) is_from_restart;
     d_limiter_type = db->getIntegerWithDefault("limiter_type", d_limiter_type);

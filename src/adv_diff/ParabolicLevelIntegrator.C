@@ -1,5 +1,5 @@
 // Filename: ParabolicLevelIntegrator.C
-// Last modified: <17.Apr.2007 18:05:05 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:44:28 griffith@box221.cims.nyu.edu>
 // Created on 09 Jan 2007 by Boyce Griffith (boyce@box221.cims.nyu.edu)
 
 #include "ParabolicLevelIntegrator.h"
@@ -46,9 +46,9 @@ ParabolicLevelIntegrator::ParabolicLevelIntegrator(
     bool using_time_refinement)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!object_name.empty());
-    assert(!input_db.isNull());
-    assert(patch_strategy != ((ParabolicPatchStrategy<NDIM>*)NULL));
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(patch_strategy != ((ParabolicPatchStrategy<NDIM>*)NULL));
 #endif
 
     d_object_name = object_name;
@@ -197,7 +197,7 @@ ParabolicLevelIntegrator::initializeLevelIntegrator(
     tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_alg = base_gridding_alg;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!gridding_alg.isNull());
+    TBOX_ASSERT(!gridding_alg.isNull());
 #endif
 
     d_number_time_data_levels = 2;
@@ -244,8 +244,8 @@ ParabolicLevelIntegrator::getLevelDt(
 {
     tbox::Pointer<hier::PatchLevel<NDIM> > patch_level = level;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!level.isNull());
-    assert(!patch_level.isNull());
+    TBOX_ASSERT(!level.isNull());
+    TBOX_ASSERT(!patch_level.isNull());
 #endif
     t_get_level_dt->start();
 
@@ -364,7 +364,7 @@ ParabolicLevelIntegrator::getMaxFinerLevelDt(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (int id = 0; id < DIM; id++)
     {
-        assert(ratio(id) > 0);
+        TBOX_ASSERT(ratio(id) > 0);
     }
 #endif
     return coarse_dt/static_cast<double>(ratio.max());
@@ -460,9 +460,9 @@ ParabolicLevelIntegrator::advanceLevel(
     tbox::Pointer<hier::PatchLevel<NDIM> > patch_level = level;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!patch_level.isNull());
-    assert(!hierarchy.isNull());
-    assert(current_time <= new_time);
+    TBOX_ASSERT(!patch_level.isNull());
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(current_time <= new_time);
 #endif
 
     t_advance_level->start();
@@ -743,17 +743,17 @@ ParabolicLevelIntegrator::standardLevelSynchronization(
     const tbox::Array<double>& old_times)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((coarsest_level >= 0)
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((coarsest_level >= 0)
            && (coarsest_level < finest_level)
            && (finest_level <= hierarchy->getFinestLevelNumber()));
-    assert(old_times.getSize() >= finest_level);
+    TBOX_ASSERT(old_times.getSize() >= finest_level);
     for (int ln = coarsest_level; ln < finest_level; ln++)
     {
-        assert(!(hierarchy->getPatchLevel(ln)).isNull());
-        assert(sync_time >= old_times[ln]);
+        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(sync_time >= old_times[ln]);
     }
-    assert(!(hierarchy->getPatchLevel(finest_level)).isNull());
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(finest_level)).isNull());
 #endif
     t_std_level_sync->start();
 
@@ -762,7 +762,7 @@ ParabolicLevelIntegrator::standardLevelSynchronization(
         const int coarse_ln = fine_ln - 1;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-        assert(sync_time >= old_times[coarse_ln]);
+        TBOX_ASSERT(sync_time >= old_times[coarse_ln]);
 #endif
 
         tbox::Pointer<hier::PatchLevel<NDIM> >
@@ -825,13 +825,13 @@ ParabolicLevelIntegrator::synchronizeNewLevels(
     const bool initial_time)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((coarsest_level >= 0)
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((coarsest_level >= 0)
            && (coarsest_level < finest_level)
            && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = coarsest_level; ln <= finest_level; ln++)
     {
-        assert(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
 
@@ -910,7 +910,7 @@ ParabolicLevelIntegrator::resetTimeDependentData(
     tbox::Pointer<hier::PatchLevel<NDIM> > patch_level = level;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!patch_level.isNull());
+    TBOX_ASSERT(!patch_level.isNull());
 #endif
 
     hier::VariableDatabase<NDIM>* variable_db = hier::VariableDatabase<NDIM>::getDatabase();
@@ -996,7 +996,7 @@ ParabolicLevelIntegrator::resetDataToPreadvanceState(
     const tbox::Pointer<hier::BasePatchLevel<NDIM> > level)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!level.isNull());
+    TBOX_ASSERT(!level.isNull());
 #endif
 
     /*
@@ -1036,14 +1036,14 @@ ParabolicLevelIntegrator::initializeLevelData(
     const bool allocate_data)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((level_number >= 0)
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0)
            && (level_number <= hierarchy->getFinestLevelNumber()));
     if (!old_level.isNull())
     {
-        assert(level_number == old_level->getLevelNumber());
+        TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    assert(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
 
     t_initialize_level_data->start();
@@ -1162,13 +1162,13 @@ ParabolicLevelIntegrator::resetHierarchyConfiguration(
     const int finest_level)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((coarsest_level >= 0)
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((coarsest_level >= 0)
            && (coarsest_level <= finest_level)
            && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
     {
-        assert(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
 #endif
     int finest_hiera_level = hierarchy->getFinestLevelNumber();
@@ -1221,10 +1221,10 @@ ParabolicLevelIntegrator::applyGradientDetector(
     const bool uses_richardson_extrapolation_too)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((level_number >= 0)
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0)
            && (level_number <= hierarchy->getFinestLevelNumber()));
-    assert(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
 
     t_apply_gradient_detector->start();
@@ -1282,7 +1282,7 @@ ParabolicLevelIntegrator::applyRichardsonExtrapolation(
     const bool uses_gradient_detector_too)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!level.isNull());
+    TBOX_ASSERT(!level.isNull());
 #endif
     /*
      * Compare solutions computed on level (stored in NEW context) and on
@@ -1350,11 +1350,11 @@ ParabolicLevelIntegrator::coarsenDataForRichardsonExtrapolation(
     const bool before_advance)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!hierarchy.isNull());
-    assert((level_number >= 0)
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0)
            && (level_number <= hierarchy->getFinestLevelNumber()));
-    assert(!(hierarchy->getPatchLevel(level_number)).isNull());
-    assert(!coarse_level.isNull());
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(!coarse_level.isNull());
 #endif
     t_coarsen_rich_extrap->start();
 
@@ -1482,8 +1482,8 @@ ParabolicLevelIntegrator::registerVariable(
     const std::string& refine_name)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!var.isNull());
-    assert(!transfer_geom.isNull());
+    TBOX_ASSERT(!var.isNull());
+    TBOX_ASSERT(!transfer_geom.isNull());
 #endif
 
     hier::VariableDatabase<NDIM>* variable_db = hier::VariableDatabase<NDIM>::getDatabase();
@@ -1826,7 +1826,7 @@ ParabolicLevelIntegrator::putToDatabase(
     tbox::Pointer<tbox::Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
 
     db->putInteger("PARABOLIC_LEVEL_INTEGRATOR_VERSION",
@@ -1900,7 +1900,7 @@ ParabolicLevelIntegrator::getFromInput(
     bool is_from_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!db.isNull());
+    TBOX_ASSERT(!db.isNull());
 #endif
 
     if (db->keyExists("cfl"))
@@ -2040,8 +2040,8 @@ ParabolicLevelIntegrator::preprocessFluxData(
 {
     NULL_USE(last_step);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!level.isNull());
-    assert(cur_time <= new_time);
+    TBOX_ASSERT(!level.isNull());
+    TBOX_ASSERT(cur_time <= new_time);
 #endif
 
     hier::VariableDatabase<NDIM>* variable_db = hier::VariableDatabase<NDIM>::getDatabase();
@@ -2096,7 +2096,7 @@ ParabolicLevelIntegrator::preprocessFluxData(
 
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        assert(!fsum_data.isNull());
+                        TBOX_ASSERT(!fsum_data.isNull());
 #endif
                         fsum_data->fillAll(0.0);
                     }
@@ -2106,7 +2106,7 @@ ParabolicLevelIntegrator::preprocessFluxData(
                             patch->getPatchData(fsum_id);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        assert(!fsum_data.isNull());
+                        TBOX_ASSERT(!fsum_data.isNull());
 #endif
                         fsum_data->fillAll(0.0);
                     }
@@ -2153,7 +2153,7 @@ ParabolicLevelIntegrator::postprocessFluxData(
 {
     NULL_USE(last_step);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!level.isNull());
+    TBOX_ASSERT(!level.isNull());
 #endif
 
     if (regrid_advance && first_step)
@@ -2199,8 +2199,8 @@ ParabolicLevelIntegrator::postprocessFluxData(
                     ffsum_data = fsum_data;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(!fflux_data.isNull() && !ffsum_data.isNull());
-                    assert(fflux_data->getDepth() == ffsum_data->getDepth());
+                    TBOX_ASSERT(!fflux_data.isNull() && !ffsum_data.isNull());
+                    TBOX_ASSERT(fflux_data->getDepth() == ffsum_data->getDepth());
 #endif
                     ddepth = fflux_data->getDepth();
                     flux_ghosts = fflux_data->getGhostCellWidth();
@@ -2211,8 +2211,8 @@ ParabolicLevelIntegrator::postprocessFluxData(
                     sfsum_data = fsum_data;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    assert(!sflux_data.isNull() && !sfsum_data.isNull());
-                    assert(sflux_data->getDepth() == sfsum_data->getDepth());
+                    TBOX_ASSERT(!sflux_data.isNull() && !sfsum_data.isNull());
+                    TBOX_ASSERT(sflux_data->getDepth() == sfsum_data->getDepth());
 #endif
                     ddepth = sflux_data->getDepth();
                     flux_ghosts = sflux_data->getGhostCellWidth();
@@ -2352,9 +2352,9 @@ ParabolicLevelIntegrator::copyTimeDependentData(
     const tbox::Pointer<hier::VariableContext> dst_context)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!level.isNull());
-    assert(!src_context.isNull());
-    assert(!src_context.isNull());
+    TBOX_ASSERT(!level.isNull());
+    TBOX_ASSERT(!src_context.isNull());
+    TBOX_ASSERT(!src_context.isNull());
 #endif
 
     for (hier::PatchLevel<NDIM>::Iterator ip(level); ip; ip++)
@@ -2403,9 +2403,9 @@ ParabolicLevelIntegrator::synchronizeLevelWithCoarser(
     const double coarse_sim_time)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!fine_level.isNull());
-    assert(!coarse_level.isNull());
-    assert(coarse_level->getLevelNumber() == (fine_level->getLevelNumber()-1));
+    TBOX_ASSERT(!fine_level.isNull());
+    TBOX_ASSERT(!coarse_level.isNull());
+    TBOX_ASSERT(coarse_level->getLevelNumber() == (fine_level->getLevelNumber()-1));
 #endif
 
     tbox::Pointer<tbox::Timer> t_coarsen_fluxsum_create =

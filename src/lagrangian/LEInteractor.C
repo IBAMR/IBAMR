@@ -1,5 +1,5 @@
 // Filename: LEInteractor.C
-// Last modified: <04.Feb.2008 22:21:16 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Feb.2008 21:20:00 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "LEInteractor.h"
@@ -34,7 +34,6 @@
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
-#include <cassert>
 #include <functional>
 #include <vector>
 
@@ -282,13 +281,13 @@ LEInteractor::interpolate(
     const std::string& interp_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!Q_data.isNull());
-    assert(!q_data.isNull());
-    assert(!X_data.isNull());
-    assert(!idx_data.isNull());
-    assert(!patch.isNull());
-    assert(Q_data->getDepth() == q_data->getDepth());
-    assert(X_data->getDepth() == NDIM);
+    TBOX_ASSERT(!Q_data.isNull());
+    TBOX_ASSERT(!q_data.isNull());
+    TBOX_ASSERT(!X_data.isNull());
+    TBOX_ASSERT(!idx_data.isNull());
+    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_data->getDepth() == q_data->getDepth());
+    TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
 
     interpolate(&(*Q_data)(0), Q_data->getDepth(),
@@ -316,11 +315,11 @@ LEInteractor::interpolate(
     t_interpolate->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!q_data.isNull());
-    assert(!idx_data.isNull());
-    assert(!patch.isNull());
-    assert(Q_depth == q_data->getDepth());
-    assert(X_depth == NDIM);
+    TBOX_ASSERT(!q_data.isNull());
+    TBOX_ASSERT(!idx_data.isNull());
+    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_depth == q_data->getDepth());
+    TBOX_ASSERT(X_depth == NDIM);
 #endif
 
     const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
@@ -458,11 +457,11 @@ LEInteractor::interpolate(
     t_interpolate->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!q_data.isNull());
-    assert(!patch.isNull());
-    assert(Q_depth == q_data->getDepth());
-    assert(X_depth == NDIM);
-    assert(Q_size/Q_depth == X_size/X_depth);
+    TBOX_ASSERT(!q_data.isNull());
+    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_depth == q_data->getDepth());
+    TBOX_ASSERT(X_depth == NDIM);
+    TBOX_ASSERT(Q_size/Q_depth == X_size/X_depth);
 #endif
 
     const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
@@ -583,13 +582,13 @@ LEInteractor::spread(
     const std::string& spread_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!Q_data.isNull());
-    assert(!q_data.isNull());
-    assert(!X_data.isNull());
-    assert(!idx_data.isNull());
-    assert(!patch.isNull());
-    assert(Q_data->getDepth() == q_data->getDepth());
-    assert(X_data->getDepth() == NDIM);
+    TBOX_ASSERT(!Q_data.isNull());
+    TBOX_ASSERT(!q_data.isNull());
+    TBOX_ASSERT(!X_data.isNull());
+    TBOX_ASSERT(!idx_data.isNull());
+    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_data->getDepth() == q_data->getDepth());
+    TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
     spread(q_data,
            &(*Q_data)(0), Q_data->getDepth(),
@@ -615,11 +614,11 @@ LEInteractor::spread(
     t_spread->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    assert(!q_data.isNull());
-    assert(!idx_data.isNull());
-    assert(!patch.isNull());
-    assert(Q_depth == q_data->getDepth());
-    assert(X_depth == NDIM);
+    TBOX_ASSERT(!q_data.isNull());
+    TBOX_ASSERT(!idx_data.isNull());
+    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_depth == q_data->getDepth());
+    TBOX_ASSERT(X_depth == NDIM);
 #endif
     const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
     const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
