@@ -1,7 +1,7 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_INIT([IBAMR],[071220],[griffith AT cims DOT nyu DOT edu])
+AC_INIT([IBAMR],[080214],[griffith AT cims DOT nyu DOT edu])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config/IBAMR_config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 foreign])
@@ -82,7 +82,7 @@ if test -z "$M4" ; then
 fi
 
 AC_ARG_WITH([doxygen-dir],
-  AS_HELP_STRING([--with-doxygen-dir],[manually set directory where the doxygen executable resides to ARG]),
+  AS_HELP_STRING([--with-doxygen-dir=ARG],[manually set directory where the doxygen executable resides to ARG]),
   DOXYGEN_PATH=$withval
   AC_CHECK_PROGS(DOXYGEN, "$DOXYGEN_PATH/doxygen" doxygen,,),
   DOXYGEN_PATH=""
@@ -553,7 +553,6 @@ AC_CONFIG_FILES([
   src/tests/IB_target/Makefile
   src/tests/adv_diff/Makefile
   src/tests/advect/Makefile
-  src/tests/advect_WENO/Makefile
   src/tests/navier_stokes/Makefile
   src/tests/navier_stokes/analytic_soln/Makefile
   src/tests/navier_stokes/lid_driven_cavity/Makefile

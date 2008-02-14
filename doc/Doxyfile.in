@@ -1049,7 +1049,7 @@ SKIP_FUNCTION_MACROS   = YES
 # is run, you must also specify the path to the tagfile here.
 
 TAGFILES               = "@srcdir@/libstdc++.tag=http://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen" \
-                         @SAMRAI_DIR@/../SAMRAI/docs/samrai.tag=@SAMRAI_DIR@/../SAMRAI/docs/samrai-dox/html \
+                         @SAMRAI_DIR@/../SAMRAI/docs/samrai-dox/html/samrai.tag=@SAMRAI_DIR@/../SAMRAI/docs/samrai-dox/html \
                          ../stools/doc/STOOLS.tag=../../stools/doc/html
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create

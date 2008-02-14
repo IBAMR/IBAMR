@@ -2,7 +2,7 @@
 #define included_INSProjectionBcCoef
 
 // Filename: INSProjectionBcCoef.h
-// Last modified: <13.Feb.2008 13:29:15 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Feb.2008 20:10:17 griffith@box221.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -46,7 +46,7 @@ public:
         const std::string& projection_type,
         const int u_idx,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-        const bool homogneous_bc=false);
+        const bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.

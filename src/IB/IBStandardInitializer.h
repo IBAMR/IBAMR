@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <05.Jan.2008 18:24:59 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Feb.2008 20:18:42 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -34,8 +34,8 @@ namespace IBAMR
  * <B>Vertex file format</B>
  *
  * Vertex input files end with the extension <TT>".vertex"</TT> and have the
- * following format for two spatial dimensions: \verbatim
-
+ * following format for two spatial dimensions:
+ \verbatim
  N                   # number of vertices in the file
  x_0       y_0       # (x,y)-coordinates of vertex 0
  x_1       y_1       # (x,y)-coordinates of vertex 1
@@ -44,8 +44,8 @@ namespace IBAMR
  \endverbatim
  *
  * Vertex input files end with the extension <TT>".vertex"</TT> and have the
- * following format for three spatial dimensions: \verbatim
-
+ * following format for three spatial dimensions:
+ \verbatim
  N                             # number of vertices in the file
  x_0       y_0       z_0       # (x,y,z)-coordinates of vertex 0
  x_1       y_1       z_1       # (x,y,z)-coordinates of vertex 1
@@ -58,8 +58,8 @@ namespace IBAMR
  * <B>Spring file format</B>
  *
  * Spring input files end with the extension <TT>".spring"</TT> and have the
- * following format: \verbatim
-
+ * following format:
+ \verbatim
  M                                            # number of links in the file
  i_0   j_0   kappa_0   length_0   fcn_idx_0   # first vertex index, second vertex index, spring constant, rest length, spring function index
  i_1   j_1   kappa_1   length_1   fcn_idx_1
@@ -92,8 +92,8 @@ namespace IBAMR
  * <B> Beam file format</B>
  *
  * Beam input files end with the extension <TT>".beam"</TT> and have the
- * following format: \verbatim
-
+ * following format:
+ \verbatim
  M                           # number of beams in the file
  i_0   j_0   k_0   kappa_0   # first vertex index, second vertex index, third vertex index, bending rigidity
  i_1   j_1   k_1   kappa_1   # first vertex index, second vertex index, third vertex index, bending rigidity
@@ -119,8 +119,8 @@ namespace IBAMR
  * <B>Target point file format</B>
  *
  * Target point input files end with the extension <TT>".target"</TT> and have
- * the following format: \verbatim
-
+ * the following format:
+ \verbatim
  M               # number of target points in the file
  i_0   kappa_0   # vertex index, penalty spring constant
  i_1   kappa_1
@@ -143,8 +143,8 @@ namespace IBAMR
  * <B>Mass point file format</B>
  *
  * Mass point input files end with the extension <TT>".mass"</TT> and have the
- * following format: \verbatim
-
+ * following format:
+ \verbatim
  M                           # number of mass points in the file
  i_0   mass_0   kappa_0      # vertex index, point mass, penalty spring constant
  i_1   mass_1   kappa_1
@@ -164,8 +164,8 @@ namespace IBAMR
  *
  * Instrumentation input files (specifying the nodes employed to determine the
  * time-dependent positions of flow meters and pressure gauges) end with the
- * extension <TT>".inst"</TT> and have the following format: \verbatim
-
+ * extension <TT>".inst"</TT> and have the following format:
+ \verbatim
  M                                      # number of instruments in the file
  meter name 0                           # meter names
  meter name 1
@@ -184,7 +184,9 @@ namespace IBAMR
  * Note that each meter may have a different number of nodes specifying its
  * perimeter; however, the values of meter_node_idx associated with a particular
  * meter must be a continuous range of integers, starting with index 0.  E.g.,
- * the following is a valid input file: \verbatim
+ * the following is a valid input file:
+ *
+ \verbatim
  2           # number of instruments in the file
  meter 0     # meter names
  meter 1

@@ -2,7 +2,7 @@
 #define included_INSIntermediateVelocityBcCoef
 
 // Filename: INSIntermediateVelocityBcCoef.h
-// Last modified: <13.Feb.2008 13:28:26 griffith@box221.cims.nyu.edu>
+// Last modified: <13.Feb.2008 20:09:52 griffith@box221.cims.nyu.edu>
 // Created on 30 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -41,7 +41,7 @@ public:
         const int comp_idx,
         const int Phi_idx,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-        const bool homogneous_bc=false);
+        const bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.
