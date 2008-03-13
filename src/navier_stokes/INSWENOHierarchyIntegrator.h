@@ -51,7 +51,7 @@ public:
      */
     void
     registerVelocityInitialConditions(
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> U_init);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init);
 
     /*!
      * Supply physical boundary conditions for the (cell centered) velocity.
@@ -68,7 +68,7 @@ public:
      */
     void
     registerPressureInitialConditions(
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init);
 
     /*!
      * Supply physical boundary conditions for the (cell centered) pressure.
@@ -82,7 +82,7 @@ public:
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set);
 
     /*!
      * Register a VisIt data writer so this object will write plot files that
@@ -759,7 +759,7 @@ private:
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> d_hier_math_ops;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_wgt_var;
     double d_volume;
@@ -778,21 +778,21 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
 
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> d_V_bdry_fill_op, d_P_hier_bdry_fill_op, d_Phi_hier_bdry_fill_op, d_regrid_Phi_hier_bdry_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_V_bdry_fill_op, d_P_hier_bdry_fill_op, d_Phi_hier_bdry_fill_op, d_regrid_Phi_hier_bdry_fill_op, d_no_fill_op;
 
     /*
      * Objects to set initial conditions (note that the initial value of the
      * pressure is for visualization purposes only) as well as constant or
      * time-dependent body forcing.
      */
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_U_init, d_P_init;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     std::vector<INSIntermediateVelocityBcCoef*> d_intermediate_U_bc_coefs;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_P_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     INSProjectionBcCoef* d_Phi_bc_coef;
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_set;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects

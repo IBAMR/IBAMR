@@ -14,11 +14,11 @@
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
 
-// STOOLS INCLUDES
-#include <stools/CCPoissonFACOperator.h>
-#include <stools/LinearSolver.h>
-#include <stools/HierarchyMathOps.h>
-#include <stools/SetDataStrategy.h>
+// IBTK INCLUDES
+#include <ibtk/CCPoissonFACOperator.h>
+#include <ibtk/LinearSolver.h>
+#include <ibtk/HierarchyMathOps.h>
+#include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -125,7 +125,7 @@ public:
      */
     void
     registerVelocityInitialConditions(
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> U_init);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init);
 
     /*!
      * Supply physical boundary conditions for the (cell centered) velocity.
@@ -142,7 +142,7 @@ public:
      */
     void
     registerPressureInitialConditions(
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init);
 
     /*!
      * Supply physical boundary conditions for the (cell centered) pressure.
@@ -156,14 +156,14 @@ public:
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set);
 
     /*!
      * Supply an optional cell centered divergence specification.
      */
     void
     registerDivergenceSpecification(
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_set);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_set);
 
     /*!
      * Register a VisIt data writer so this object will write plot files that
@@ -214,7 +214,7 @@ public:
      * Return a pointer to the HierarchyMathOps object being used by this
      * integrator.
      */
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>
     getHierarchyMathOps() const;
 
     /*!
@@ -227,7 +227,7 @@ public:
      */
     void
     setHierarchyMathOps(
-        SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> hier_math_ops,
+        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
         const bool manage_ops=false);
 
     /*!
@@ -1089,7 +1089,7 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM,double> > d_hier_fc_data_ops;
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> d_hier_math_ops;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
     bool d_is_managing_hier_math_ops;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_wgt_var;
@@ -1109,21 +1109,21 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
 
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> d_V_bdry_fill_op, d_P_hier_bdry_fill_op, d_Phi_hier_bdry_fill_op, d_regrid_Phi_hier_bdry_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_V_bdry_fill_op, d_P_hier_bdry_fill_op, d_Phi_hier_bdry_fill_op, d_regrid_Phi_hier_bdry_fill_op, d_no_fill_op;
 
     /*
      * Objects to set initial conditions (note that the initial value of the
      * pressure is for visualization purposes only) as well as constant or
      * time-dependent body forcing.
      */
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_U_init, d_P_init;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     std::vector<INSIntermediateVelocityBcCoef*> d_intermediate_U_bc_coefs;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_P_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     INSProjectionBcCoef* d_Phi_bc_coef;
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_F_set, d_Q_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_set, d_Q_set;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
@@ -1226,9 +1226,9 @@ private:
     int d_helmholtz_max_iterations;
     double d_helmholtz_abs_residual_tol, d_helmholtz_rel_residual_tol;
 
-    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator>  d_helmholtz_op    ;
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>  d_helmholtz_op    ;
     SAMRAI::solv::PoissonSpecifications*              d_helmholtz_spec  ;
-    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> d_helmholtz_solver;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> d_helmholtz_solver;
     bool d_helmholtz_solver_needs_init;
 
     /*!

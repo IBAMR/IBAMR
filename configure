@@ -958,7 +958,7 @@ MPICXX
 CXXCPP
 PETSC_DIR
 PETSC_ARCH'
-ac_subdirs_all='stools'
+ac_subdirs_all='ibtk'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -2533,13 +2533,12 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 
-
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-		# Set the default language to C++.
+
 
 ###########################################################################
 # Checks for programs.
@@ -38050,9 +38049,9 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
-subdirs="$subdirs stools"
+subdirs="$subdirs ibtk"
 
-ac_config_files="$ac_config_files Makefile config/make.inc doc/Makefile doc/Doxyfile sample/IB/Makefile sample/empty_project/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/lagrangian/Makefile src/lagrangian/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/utilities/get_version.C src/tests/Makefile src/tests/IB/Makefile src/tests/IB_multilevel/Makefile src/tests/IB_target/Makefile src/tests/adv_diff/Makefile src/tests/advect/Makefile src/tests/navier_stokes/Makefile src/tests/navier_stokes/analytic_soln/Makefile src/tests/navier_stokes/lid_driven_cavity/Makefile src/tests/navier_stokes/periodic_shear_layer/Makefile src/tests/pIB/Makefile src/tools/Makefile"
+ac_config_files="$ac_config_files Makefile config/make.inc doc/Makefile doc/Doxyfile sample/IB/Makefile sample/empty_project/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/utilities/get_version.C src/tests/Makefile src/tests/IB/Makefile src/tests/IB_multilevel/Makefile src/tests/IB_target/Makefile src/tests/adv_diff/Makefile src/tests/advect/Makefile src/tests/navier_stokes/Makefile src/tests/navier_stokes/analytic_soln/Makefile src/tests/navier_stokes/lid_driven_cavity/Makefile src/tests/navier_stokes/periodic_shear_layer/Makefile src/tests/pIB/Makefile src/tools/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -38667,8 +38666,6 @@ do
     "src/adv_diff/fortran/Makefile") CONFIG_FILES="$CONFIG_FILES src/adv_diff/fortran/Makefile" ;;
     "src/advect/Makefile") CONFIG_FILES="$CONFIG_FILES src/advect/Makefile" ;;
     "src/advect/fortran/Makefile") CONFIG_FILES="$CONFIG_FILES src/advect/fortran/Makefile" ;;
-    "src/lagrangian/Makefile") CONFIG_FILES="$CONFIG_FILES src/lagrangian/Makefile" ;;
-    "src/lagrangian/fortran/Makefile") CONFIG_FILES="$CONFIG_FILES src/lagrangian/fortran/Makefile" ;;
     "src/navier_stokes/Makefile") CONFIG_FILES="$CONFIG_FILES src/navier_stokes/Makefile" ;;
     "src/navier_stokes/fortran/Makefile") CONFIG_FILES="$CONFIG_FILES src/navier_stokes/fortran/Makefile" ;;
     "src/utilities/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/Makefile" ;;

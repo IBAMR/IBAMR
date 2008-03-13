@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <12.Feb.2008 21:16:54 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:08:22 griffith@box221.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
@@ -18,10 +18,10 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBTargetPointForceSpec.h>
-#include <ibamr/LNodeIndexData2.h>
 
-// STOOLS INCLUDES
-#include <stools/PETSC_SAMRAI_ERROR.h>
+// IBTK INCLUDES
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/LNodeIndexData2.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -76,12 +76,12 @@ IBTargetPointForceGen::~IBTargetPointForceGen()
 
 void
 IBTargetPointForceGen::computeLagrangianForce(
-    SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
-    SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    IBTK::LDataManager* const lag_manager)
 {
     t_compute_lagrangian_force->start();
 
@@ -90,11 +90,11 @@ IBTargetPointForceGen::computeLagrangianForce(
     // Extract the local arrays.
     Vec F_vec = F_data->getGlobalVec();
     double* F_arr;
-    ierr = VecGetArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecGetArray(F_vec, &F_arr);  IBTK_CHKERRQ(ierr);
 
     Vec X_vec = X_data->getGlobalVec();
     double* X_arr;
-    ierr = VecGetArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
 
     // Get the grid geometry object and determine the extents of the physical
     // domain.
@@ -106,8 +106,7 @@ IBTargetPointForceGen::computeLagrangianForce(
     }
 
     // Get the patch data descriptor index for the LNodeIndexData2.
-    const int lag_node_index_idx = lag_manager->
-        getLNodeIndexPatchDescriptorIndex();
+    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
 
     // Compute the penalty force associated with the Lagrangian target points.
     static double max_displacement = 0.0;
@@ -117,18 +116,18 @@ IBTargetPointForceGen::computeLagrangianForce(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
+        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data =
             patch->getPatchData(lag_node_index_idx);
 
-        for (LNodeIndexData2::Iterator it(patch_box); it; it++)
+        for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
         {
             const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-            const LNodeIndexSet& node_set = (*idx_data)(i);
-            for (LNodeIndexSet::const_iterator n = node_set.begin();
+            const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
+            for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin();
                  n != node_set.end(); ++n)
             {
-                const LNodeIndexSet::value_type& node_idx = *n;
-                const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
+                const IBTK::LNodeIndexSet::value_type& node_idx = *n;
+                const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data =
                     node_idx->getStashData();
                 for (unsigned l = 0; l < stash_data.size(); ++l)
                 {
@@ -165,8 +164,8 @@ IBTargetPointForceGen::computeLagrangianForce(
         }
     }
 
-    ierr = VecRestoreArray(F_vec, &F_arr);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecRestoreArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecRestoreArray(F_vec, &F_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
 
     max_config_displacement = SAMRAI::tbox::SAMRAI_MPI::maxReduction(max_config_displacement);
     if (max_config_displacement > max_displacement)

@@ -14,12 +14,12 @@
 #include <ibamr/AdvDiffHypPatchOps.h>
 #include <ibamr/GodunovAdvector.h>
 
-// STOOLS INCLUDES
-#include <stools/CCLaplaceOperator.h>
-#include <stools/CCPoissonFACOperator.h>
-#include <stools/HierarchyMathOps.h>
-#include <stools/KrylovLinearSolver.h>
-#include <stools/SetDataStrategy.h>
+// IBTK INCLUDES
+#include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/CCPoissonFACOperator.h>
+#include <ibtk/HierarchyMathOps.h>
+#include <ibtk/KrylovLinearSolver.h>
+#include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -153,7 +153,7 @@ public:
      * when conservation_form is true.  Otherwise, non-conservative differencing
      * is used to update the quantity.
      *
-     * Optional concrete STOOLS::SetDataStrategy and
+     * Optional concrete IBTK::SetDataStrategy and
      * SAMRAI::solv::RobinBcCoefStrategy objects allow for the specification of
      * initial and boundary data for the advected and diffused quantity Q.  If
      * an initialization object is not specified, Q is initialized to zero.  If
@@ -173,7 +173,7 @@ public:
         const double Q_mu,
         const double Q_lambda,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
@@ -186,7 +186,7 @@ public:
      * when conservation_form is true.  Otherwise, non-conservative differencing
      * is used to update the quantity.
      *
-     * Optional concrete STOOLS::SetDataStrategy and
+     * Optional concrete IBTK::SetDataStrategy and
      * SAMRAI::solv::RobinBcCoefStrategy objects allow for the specification of
      * initial and boundary data for the advected and diffused quantity Q.  If
      * an initialization object is not specified, Q is initialized to zero.  If
@@ -206,7 +206,7 @@ public:
         const double Q_mu,
         const double Q_lambda,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
@@ -219,7 +219,7 @@ public:
      * when conservation_form is true.  Otherwise, non-conservative differencing
      * is used to update the quantity.
      *
-     * Optional concrete STOOLS::SetDataStrategy and
+     * Optional concrete IBTK::SetDataStrategy and
      * SAMRAI::solv::RobinBcCoefStrategy objects allow for the specification of
      * initial and boundary data for the advected and diffused quantity Q.  If
      * an initialization object is not specified, Q is initialized to zero.  If
@@ -228,7 +228,7 @@ public:
      * can have no "physical" boundaries.)
      *
      * The value of the source term is determined by an (optional)
-     * STOOLS::SetDataStrategy object.  This allows for the specification of
+     * IBTK::SetDataStrategy object.  This allows for the specification of
      * either a constant or a time-dependent source term.  If this object is not
      * provided, the source term is initialized to zero.
      *
@@ -245,9 +245,9 @@ public:
         const double Q_lambda,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -259,7 +259,7 @@ public:
      * when conservation_form is true.  Otherwise, non-conservative differencing
      * is used to update the quantity.
      *
-     * Optional concrete STOOLS::SetDataStrategy and
+     * Optional concrete IBTK::SetDataStrategy and
      * SAMRAI::solv::RobinBcCoefStrategy objects allow for the specification of
      * initial and boundary data for the advected and diffused quantity Q.  If
      * an initialization object is not specified, Q is initialized to zero.  If
@@ -268,7 +268,7 @@ public:
      * can have no "physical" boundaries.)
      *
      * The value of the source term is determined by an (optional)
-     * STOOLS::SetDataStrategy object.  This allows for the specification of
+     * IBTK::SetDataStrategy object.  This allows for the specification of
      * either a constant or a time-dependent source term.  If this object is not
      * provided, the source term is initialized to zero.
      *
@@ -285,16 +285,16 @@ public:
         const double Q_lambda,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
      * Register a face centered advection velocity, used by the integrator to
      * advect the cell centered quantities registered with the integrator.
      *
-     * An optional STOOLS::SetDataStrategy object allows for the specification
+     * An optional IBTK::SetDataStrategy object allows for the specification
      * of a constant or time-dependent advection velocity.  If this object is
      * not provided, the advection velocity is initialized to zero.
      *
@@ -305,7 +305,7 @@ public:
     registerAdvectionVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
         const bool u_is_div_free,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> u_set=NULL);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_set=NULL);
 
     ///
     ///  The following routines:
@@ -326,7 +326,7 @@ public:
      * the patch hierarchy as well as cell weights used in computing discrete
      * norms of quantities defined on the patch hierarchy.
      */
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>
     getHierarchyMathOps() const;
 
     /*!
@@ -339,17 +339,17 @@ public:
      */
     void
     setHierarchyMathOps(
-        SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> hier_math_ops,
+        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
         const bool manage_ops=false);
 
     /*!
      * Returns whether this integrator is managing the state of its
-     * STOOLS::HierarchyMathOps object.
+     * IBTK::HierarchyMathOps object.
      *
-     * When the integrator is managing the state of its STOOLS::HierarchyMathOps
+     * When the integrator is managing the state of its IBTK::HierarchyMathOps
      * object, the integrator is responsible for invoking
-     * STOOLS::HierarchyMathOps::setPatchHierarchy() and
-     * STOOLS::HierarchyMathOps::resetLevels() following any changes to the
+     * IBTK::HierarchyMathOps::setPatchHierarchy() and
+     * IBTK::HierarchyMathOps::resetLevels() following any changes to the
      * configuration of the patch hierarchy.
      */
     bool
@@ -670,9 +670,9 @@ public:
      * changed.  However, this routine updates communication schedules every
      * level finer than and including that indexed by the coarsest level number
      * given.  When the integrator is managing the state of its
-     * STOOLS::HierarchyMathOps object, the integrator also invokes
-     * STOOLS::HierarchyMathOps::setPatchHierarchy() and
-     * STOOLS::HierarchyMathOps::resetLevels().
+     * IBTK::HierarchyMathOps object, the integrator also invokes
+     * IBTK::HierarchyMathOps::setPatchHierarchy() and
+     * IBTK::HierarchyMathOps::resetLevels().
      *
      * When assertion checking is active, an unrecoverable exception will result
      * if the hierarchy pointer is null, any pointer to a level in the hierarchy
@@ -833,9 +833,9 @@ protected:
      * Objects to set initial and boundary conditions as well as forcing terms
      * for each advected and diffused quantity.
      */
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_Q_inits;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_Q_inits;
     std::vector<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coefs;
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_F_sets;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_F_sets;
 
     /*!
      * The diffusivity and drag coefficients associated with each advected and
@@ -847,7 +847,7 @@ protected:
      * The advection velocity.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_var;
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_u_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_set;
     bool d_u_is_div_free;
 
 private:
@@ -990,7 +990,7 @@ private:
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> d_hier_math_ops;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
     bool d_is_managing_hier_math_ops;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_wgt_var;
@@ -1008,8 +1008,8 @@ private:
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;
 
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> d_no_fill_op;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
 
     /*
      * Linear solvers and associated data including Poisson specifications,
@@ -1021,10 +1021,10 @@ private:
     double d_abs_residual_tol, d_rel_residual_tol;
     bool d_using_FAC;
 
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> >              d_helmholtz_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> >              d_helmholtz_ops;
     std::vector<SAMRAI::solv::PoissonSpecifications>                            d_helmholtz_specs;
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> >             d_helmholtz_solvers;
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> >           d_helmholtz_fac_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> >             d_helmholtz_solvers;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator> >           d_helmholtz_fac_ops;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > d_helmholtz_fac_pcs;
 
     std::vector<bool> d_helmholtz_solvers_need_init;

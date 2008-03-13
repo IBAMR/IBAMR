@@ -403,17 +403,16 @@ target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = Makefile.in
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = stools doc src
+SUBDIRS = doc ibtk src
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/AdvDiffHierarchyIntegrator.h \
 	include/ibamr/AdvDiffHypPatchOps.h \
-	include/ibamr/AdvectHypPatchOps.h \
-	include/ibamr/ArrayData_specialized_LNodeIndexSet.I \
-	include/ibamr/get_version.h include/ibamr/GodunovAdvector.h \
+	include/ibamr/AdvectHypPatchOps.h include/ibamr/get_version.h \
+	include/ibamr/GodunovAdvector.h \
 	include/ibamr/HierarchyProjector.h \
 	include/ibamr/IBBeamForceGen.h \
 	include/ibamr/IBBeamForceSpecFactory.h \
@@ -430,9 +429,6 @@ EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/IBLagrangianForceStrategy.h \
 	include/ibamr/IBLagrangianForceStrategySet.h \
 	include/ibamr/IBLagrangianSourceStrategy.h \
-	include/ibamr/IBMarkerCoarsenOperator.h \
-	include/ibamr/IBMarker.h include/ibamr/IBMarker.I \
-	include/ibamr/IBMarkerRefineOperator.h \
 	include/ibamr/IBSpringForceGen.h \
 	include/ibamr/IBSpringForceSpecFactory.h \
 	include/ibamr/IBSpringForceSpec.h \
@@ -446,26 +442,11 @@ EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/INSHierarchyIntegrator.h \
 	include/ibamr/INSIntermediateVelocityBcCoef.h \
 	include/ibamr/INSProjectionBcCoef.h \
-	include/ibamr/LagM3DDataWriter.h \
-	include/ibamr/LagSiloDataWriter.h include/ibamr/LDataManager.h \
-	include/ibamr/LEInteractor.h include/ibamr/LNodeIndexData2.h \
-	include/ibamr/LNodeIndexData2.I \
-	include/ibamr/LNodeIndexDataFactory2.h \
-	include/ibamr/LNodeIndex.h include/ibamr/LNodeIndex.I \
-	include/ibamr/LNodeIndexSet.h include/ibamr/LNodeIndexSet.I \
-	include/ibamr/LNodeIndexVariable2.h \
-	include/ibamr/LNodeInitStrategy.h \
-	include/ibamr/LNodeLevelData.h include/ibamr/LNodeLevelData.I \
 	include/ibamr/NormalVelocityBcCoefAdapter.h \
-	include/ibamr/StashableFactory.h include/ibamr/Stashable.h \
-	include/ibamr/StashableManager.h \
-	include/ibamr/StashableManager.I \
-	include/ibamr/StashableStream.h \
-	include/ibamr/StashableStream.I include/ibamr/TGACoefs.h \
-	sample/IB/input2d sample/IB/input3d sample/IB/main.C \
-	sample/IB/Makefile sample/IB/shell2d_64.spring \
-	sample/IB/shell2d_64.vertex sample/IB/sphere3d.spring \
-	sample/IB/sphere3d.vertex
+	include/ibamr/TGACoefs.h sample/IB/input2d sample/IB/input3d \
+	sample/IB/main.C sample/IB/Makefile \
+	sample/IB/shell2d_64.spring sample/IB/shell2d_64.vertex \
+	sample/IB/sphere3d.spring sample/IB/sphere3d.vertex
 all: all-recursive
 
 .SUFFIXES:
@@ -917,13 +898,13 @@ all-local:
 	fi ;
 
 copy_headers:
-	cd stools && $(MAKE) relink_headers
+	cd ibtk && $(MAKE) relink_headers
 	cd $(top_srcdir) && src/tools/includes.pl
 relink_headers:
-	cd stools && $(MAKE) relink_headers
+	cd ibtk && $(MAKE) relink_headers
 	cd $(top_srcdir) && src/tools/includes.pl --link
 refresh_tags:
-	cd stools && $(MAKE) refresh_tags
+	cd ibtk && $(MAKE) refresh_tags
 	cd $(top_srcdir) && find . -name "*.[ChIf]" -print | etags -
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

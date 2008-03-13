@@ -13,12 +13,12 @@
 // IBAMR INCLUDES
 #include <ibamr/INSProjectionBcCoef.h>
 
-// STOOLS INCLUDES
-#include <stools/LinearOperator.h>
-#include <stools/CCLaplaceOperator.h>
-#include <stools/CCPoissonFACOperator.h>
-#include <stools/KrylovLinearSolver.h>
-#include <stools/HierarchyMathOps.h>
+// IBTK INCLUDES
+#include <ibtk/LinearOperator.h>
+#include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/CCPoissonFACOperator.h>
+#include <ibtk/KrylovLinearSolver.h>
+#include <ibtk/HierarchyMathOps.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -105,7 +105,7 @@ public:
      * the patch hierarchy as well as cell weights used in computing discrete
      * norms of quantities defined on the patch hierarchy.
      */
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>
     getHierarchyMathOps() const;
 
     /*!
@@ -118,7 +118,7 @@ public:
      */
     void
     setHierarchyMathOps(
-        SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> hier_math_ops,
+        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
         const bool manage_ops=false);
 
     /*!
@@ -186,7 +186,7 @@ public:
      * Returns a pointer to the concrete linear solver object employed by the
      * projector to solve the elliptic projection equation.
      */
-    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>
     getPoissonSolver() const;
 
     ///
@@ -408,7 +408,7 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM,double> > d_hier_fc_data_ops;
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> d_hier_math_ops;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
     bool d_is_managing_hier_math_ops;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_wgt_var;
@@ -422,7 +422,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_velocity_rstrategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_velocity_rscheds;
 
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyGhostCellInterpolation> d_P_hier_bdry_fill_op, d_Phi_hier_bdry_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_hier_bdry_fill_op, d_Phi_hier_bdry_fill_op, d_no_fill_op;
 
     /*
      * The Poisson solver and associated data including Poisson specifications,
@@ -451,9 +451,9 @@ private:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_P_bc_coef;
     INSProjectionBcCoef* d_Phi_bc_coef;
 
-    SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver> d_poisson_solver;
-    SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> d_laplace_op;
-    SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator> d_poisson_fac_op;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> d_poisson_solver;
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> d_laplace_op;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator> d_poisson_fac_op;
     SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_poisson_fac_pc;
 
     /*

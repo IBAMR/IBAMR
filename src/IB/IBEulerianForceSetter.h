@@ -7,8 +7,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// STOOLS INCLUDES
-#include <stools/SetDataStrategy.h>
+// IBTK INCLUDES
+#include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <Patch.h>
@@ -25,7 +25,7 @@ namespace IBAMR
  * Navier-Stokes solver.
  */
 class IBEulerianForceSetter
-    : public STOOLS::SetDataStrategy
+    : public IBTK::SetDataStrategy
 {
 public:
     /*!
@@ -57,7 +57,7 @@ public:
     //\{
 
     /*!
-     * \note This concrete STOOLS::SetDataStrategy is time-dependent.
+     * \note This concrete IBTK::SetDataStrategy is time-dependent.
      */
     virtual bool
     isTimeDependent() const;

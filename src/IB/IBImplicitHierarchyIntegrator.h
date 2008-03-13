@@ -18,8 +18,8 @@
 #include <ibamr/LNodeInitStrategy.h>
 #include <ibamr/LagSiloDataWriter.h>
 
-// STOOLS INCLUDES
-#include <stools/SetDataStrategy.h>
+// IBTK INCLUDES
+#include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>

@@ -2,14 +2,14 @@
 #define included_IBLagrangianSourceStrategy
 
 // Filename: IBLagrangianSourceStrategy.h
-// Last modified: <17.Apr.2007 19:45:32 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:00:44 griffith@box221.cims.nyu.edu>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/LDataManager.h>
-#include <ibamr/LNodeLevelData.h>
+// IBTK INCLUDES
+#include <ibtk/LDataManager.h>
+#include <ibtk/LNodeLevelData.h>
 
 // SAMRAI INCLUDES
 #include <PatchHierarchy.h>
@@ -65,7 +65,7 @@ public:
         const int level_number,
         const double init_data_time,
         const bool initial_time,
-        LDataManager* const lag_manager);
+        IBTK::LDataManager* const lag_manager);
 
     /*!
      * \brief Specify the number of distributed internal sources or sinks.
@@ -79,7 +79,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        LDataManager* const lag_manager) = 0;
+        IBTK::LDataManager* const lag_manager) = 0;
 
     /*!
      * \brief Compute the source locations for each of the distributed internal
@@ -93,11 +93,11 @@ public:
     getSourceLocations(
         std::vector<std::vector<double> >& X_src,
         std::vector<double>& r_src,
-        SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        LDataManager* const lag_manager) = 0;
+        IBTK::LDataManager* const lag_manager) = 0;
 
     /*!
      * \brief Set the normalized pressures at the sources.
@@ -108,7 +108,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        LDataManager* const lag_manager) = 0;
+        IBTK::LDataManager* const lag_manager) = 0;
 
     /*!
      * \brief Compute the source strengths for each of the distributed internal
@@ -124,7 +124,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        LDataManager* const lag_manager) = 0;
+        IBTK::LDataManager* const lag_manager) = 0;
 
 private:
     /*!

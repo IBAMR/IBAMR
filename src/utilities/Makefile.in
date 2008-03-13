@@ -56,20 +56,12 @@ AR = ar
 ARFLAGS = cru
 libIBAMR_utilities2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_utilities2d_a_LIBADD =
-am__objects_1 = libIBAMR_utilities2d_a-Stashable.$(OBJEXT) \
-	libIBAMR_utilities2d_a-StashableFactory.$(OBJEXT) \
-	libIBAMR_utilities2d_a-StashableManager.$(OBJEXT) \
-	libIBAMR_utilities2d_a-StashableStream.$(OBJEXT) \
-	libIBAMR_utilities2d_a-get_version.$(OBJEXT)
+am__objects_1 = libIBAMR_utilities2d_a-get_version.$(OBJEXT)
 am_libIBAMR_utilities2d_a_OBJECTS = $(am__objects_1)
 libIBAMR_utilities2d_a_OBJECTS = $(am_libIBAMR_utilities2d_a_OBJECTS)
 libIBAMR_utilities3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_utilities3d_a_LIBADD =
-am__objects_2 = libIBAMR_utilities3d_a-Stashable.$(OBJEXT) \
-	libIBAMR_utilities3d_a-StashableFactory.$(OBJEXT) \
-	libIBAMR_utilities3d_a-StashableManager.$(OBJEXT) \
-	libIBAMR_utilities3d_a-StashableStream.$(OBJEXT) \
-	libIBAMR_utilities3d_a-get_version.$(OBJEXT)
+am__objects_2 = libIBAMR_utilities3d_a-get_version.$(OBJEXT)
 am_libIBAMR_utilities3d_a_OBJECTS = $(am__objects_2)
 libIBAMR_utilities3d_a_OBJECTS = $(am_libIBAMR_utilities3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(top_builddir)/config@am__isrc@
@@ -427,25 +419,15 @@ target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = Makefile.in
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = .
 noinst_LIBRARIES = $(am__append_1) $(am__append_2)
 SOURCES = \
-Stashable.C \
-StashableFactory.C \
-StashableManager.C \
-StashableStream.C \
 get_version.C
 
 pkg_include_HEADERS = \
-Stashable.h \
-StashableFactory.h \
-StashableManager.h \
-StashableManager.I \
-StashableStream.h \
-StashableStream.I \
 get_version.h
 
 libIBAMR_utilities2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -505,15 +487,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-Stashable.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-StashableFactory.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-StashableManager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-StashableStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-get_version.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-Stashable.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-StashableFactory.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-StashableManager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-StashableStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-get_version.Po@am__quote@
 
 .C.o:
@@ -530,62 +504,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-libIBAMR_utilities2d_a-Stashable.o: Stashable.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-Stashable.o -MD -MP -MF $(DEPDIR)/libIBAMR_utilities2d_a-Stashable.Tpo -c -o libIBAMR_utilities2d_a-Stashable.o `test -f 'Stashable.C' || echo '$(srcdir)/'`Stashable.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities2d_a-Stashable.Tpo $(DEPDIR)/libIBAMR_utilities2d_a-Stashable.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Stashable.C' object='libIBAMR_utilities2d_a-Stashable.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-Stashable.o `test -f 'Stashable.C' || echo '$(srcdir)/'`Stashable.C
-
-libIBAMR_utilities2d_a-Stashable.obj: Stashable.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-Stashable.obj -MD -MP -MF $(DEPDIR)/libIBAMR_utilities2d_a-Stashable.Tpo -c -o libIBAMR_utilities2d_a-Stashable.obj `if test -f 'Stashable.C'; then $(CYGPATH_W) 'Stashable.C'; else $(CYGPATH_W) '$(srcdir)/Stashable.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities2d_a-Stashable.Tpo $(DEPDIR)/libIBAMR_utilities2d_a-Stashable.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Stashable.C' object='libIBAMR_utilities2d_a-Stashable.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-Stashable.obj `if test -f 'Stashable.C'; then $(CYGPATH_W) 'Stashable.C'; else $(CYGPATH_W) '$(srcdir)/Stashable.C'; fi`
-
-libIBAMR_utilities2d_a-StashableFactory.o: StashableFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-StashableFactory.o -MD -MP -MF $(DEPDIR)/libIBAMR_utilities2d_a-StashableFactory.Tpo -c -o libIBAMR_utilities2d_a-StashableFactory.o `test -f 'StashableFactory.C' || echo '$(srcdir)/'`StashableFactory.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities2d_a-StashableFactory.Tpo $(DEPDIR)/libIBAMR_utilities2d_a-StashableFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StashableFactory.C' object='libIBAMR_utilities2d_a-StashableFactory.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-StashableFactory.o `test -f 'StashableFactory.C' || echo '$(srcdir)/'`StashableFactory.C
-
-libIBAMR_utilities2d_a-StashableFactory.obj: StashableFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-StashableFactory.obj -MD -MP -MF $(DEPDIR)/libIBAMR_utilities2d_a-StashableFactory.Tpo -c -o libIBAMR_utilities2d_a-StashableFactory.obj `if test -f 'StashableFactory.C'; then $(CYGPATH_W) 'StashableFactory.C'; else $(CYGPATH_W) '$(srcdir)/StashableFactory.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities2d_a-StashableFactory.Tpo $(DEPDIR)/libIBAMR_utilities2d_a-StashableFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StashableFactory.C' object='libIBAMR_utilities2d_a-StashableFactory.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-StashableFactory.obj `if test -f 'StashableFactory.C'; then $(CYGPATH_W) 'StashableFactory.C'; else $(CYGPATH_W) '$(srcdir)/StashableFactory.C'; fi`
-
-libIBAMR_utilities2d_a-StashableManager.o: StashableManager.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-StashableManager.o -MD -MP -MF $(DEPDIR)/libIBAMR_utilities2d_a-StashableManager.Tpo -c -o libIBAMR_utilities2d_a-StashableManager.o `test -f 'StashableManager.C' || echo '$(srcdir)/'`StashableManager.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities2d_a-StashableManager.Tpo $(DEPDIR)/libIBAMR_utilities2d_a-StashableManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StashableManager.C' object='libIBAMR_utilities2d_a-StashableManager.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-StashableManager.o `test -f 'StashableManager.C' || echo '$(srcdir)/'`StashableManager.C
-
-libIBAMR_utilities2d_a-StashableManager.obj: StashableManager.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-StashableManager.obj -MD -MP -MF $(DEPDIR)/libIBAMR_utilities2d_a-StashableManager.Tpo -c -o libIBAMR_utilities2d_a-StashableManager.obj `if test -f 'StashableManager.C'; then $(CYGPATH_W) 'StashableManager.C'; else $(CYGPATH_W) '$(srcdir)/StashableManager.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities2d_a-StashableManager.Tpo $(DEPDIR)/libIBAMR_utilities2d_a-StashableManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StashableManager.C' object='libIBAMR_utilities2d_a-StashableManager.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-StashableManager.obj `if test -f 'StashableManager.C'; then $(CYGPATH_W) 'StashableManager.C'; else $(CYGPATH_W) '$(srcdir)/StashableManager.C'; fi`
-
-libIBAMR_utilities2d_a-StashableStream.o: StashableStream.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-StashableStream.o -MD -MP -MF $(DEPDIR)/libIBAMR_utilities2d_a-StashableStream.Tpo -c -o libIBAMR_utilities2d_a-StashableStream.o `test -f 'StashableStream.C' || echo '$(srcdir)/'`StashableStream.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities2d_a-StashableStream.Tpo $(DEPDIR)/libIBAMR_utilities2d_a-StashableStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StashableStream.C' object='libIBAMR_utilities2d_a-StashableStream.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-StashableStream.o `test -f 'StashableStream.C' || echo '$(srcdir)/'`StashableStream.C
-
-libIBAMR_utilities2d_a-StashableStream.obj: StashableStream.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-StashableStream.obj -MD -MP -MF $(DEPDIR)/libIBAMR_utilities2d_a-StashableStream.Tpo -c -o libIBAMR_utilities2d_a-StashableStream.obj `if test -f 'StashableStream.C'; then $(CYGPATH_W) 'StashableStream.C'; else $(CYGPATH_W) '$(srcdir)/StashableStream.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities2d_a-StashableStream.Tpo $(DEPDIR)/libIBAMR_utilities2d_a-StashableStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StashableStream.C' object='libIBAMR_utilities2d_a-StashableStream.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-StashableStream.obj `if test -f 'StashableStream.C'; then $(CYGPATH_W) 'StashableStream.C'; else $(CYGPATH_W) '$(srcdir)/StashableStream.C'; fi`
-
 libIBAMR_utilities2d_a-get_version.o: get_version.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-get_version.o -MD -MP -MF $(DEPDIR)/libIBAMR_utilities2d_a-get_version.Tpo -c -o libIBAMR_utilities2d_a-get_version.o `test -f 'get_version.C' || echo '$(srcdir)/'`get_version.C
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities2d_a-get_version.Tpo $(DEPDIR)/libIBAMR_utilities2d_a-get_version.Po
@@ -599,62 +517,6 @@ libIBAMR_utilities2d_a-get_version.obj: get_version.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='get_version.C' object='libIBAMR_utilities2d_a-get_version.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-get_version.obj `if test -f 'get_version.C'; then $(CYGPATH_W) 'get_version.C'; else $(CYGPATH_W) '$(srcdir)/get_version.C'; fi`
-
-libIBAMR_utilities3d_a-Stashable.o: Stashable.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-Stashable.o -MD -MP -MF $(DEPDIR)/libIBAMR_utilities3d_a-Stashable.Tpo -c -o libIBAMR_utilities3d_a-Stashable.o `test -f 'Stashable.C' || echo '$(srcdir)/'`Stashable.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities3d_a-Stashable.Tpo $(DEPDIR)/libIBAMR_utilities3d_a-Stashable.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Stashable.C' object='libIBAMR_utilities3d_a-Stashable.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-Stashable.o `test -f 'Stashable.C' || echo '$(srcdir)/'`Stashable.C
-
-libIBAMR_utilities3d_a-Stashable.obj: Stashable.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-Stashable.obj -MD -MP -MF $(DEPDIR)/libIBAMR_utilities3d_a-Stashable.Tpo -c -o libIBAMR_utilities3d_a-Stashable.obj `if test -f 'Stashable.C'; then $(CYGPATH_W) 'Stashable.C'; else $(CYGPATH_W) '$(srcdir)/Stashable.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities3d_a-Stashable.Tpo $(DEPDIR)/libIBAMR_utilities3d_a-Stashable.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Stashable.C' object='libIBAMR_utilities3d_a-Stashable.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-Stashable.obj `if test -f 'Stashable.C'; then $(CYGPATH_W) 'Stashable.C'; else $(CYGPATH_W) '$(srcdir)/Stashable.C'; fi`
-
-libIBAMR_utilities3d_a-StashableFactory.o: StashableFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-StashableFactory.o -MD -MP -MF $(DEPDIR)/libIBAMR_utilities3d_a-StashableFactory.Tpo -c -o libIBAMR_utilities3d_a-StashableFactory.o `test -f 'StashableFactory.C' || echo '$(srcdir)/'`StashableFactory.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities3d_a-StashableFactory.Tpo $(DEPDIR)/libIBAMR_utilities3d_a-StashableFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StashableFactory.C' object='libIBAMR_utilities3d_a-StashableFactory.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-StashableFactory.o `test -f 'StashableFactory.C' || echo '$(srcdir)/'`StashableFactory.C
-
-libIBAMR_utilities3d_a-StashableFactory.obj: StashableFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-StashableFactory.obj -MD -MP -MF $(DEPDIR)/libIBAMR_utilities3d_a-StashableFactory.Tpo -c -o libIBAMR_utilities3d_a-StashableFactory.obj `if test -f 'StashableFactory.C'; then $(CYGPATH_W) 'StashableFactory.C'; else $(CYGPATH_W) '$(srcdir)/StashableFactory.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities3d_a-StashableFactory.Tpo $(DEPDIR)/libIBAMR_utilities3d_a-StashableFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StashableFactory.C' object='libIBAMR_utilities3d_a-StashableFactory.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-StashableFactory.obj `if test -f 'StashableFactory.C'; then $(CYGPATH_W) 'StashableFactory.C'; else $(CYGPATH_W) '$(srcdir)/StashableFactory.C'; fi`
-
-libIBAMR_utilities3d_a-StashableManager.o: StashableManager.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-StashableManager.o -MD -MP -MF $(DEPDIR)/libIBAMR_utilities3d_a-StashableManager.Tpo -c -o libIBAMR_utilities3d_a-StashableManager.o `test -f 'StashableManager.C' || echo '$(srcdir)/'`StashableManager.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities3d_a-StashableManager.Tpo $(DEPDIR)/libIBAMR_utilities3d_a-StashableManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StashableManager.C' object='libIBAMR_utilities3d_a-StashableManager.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-StashableManager.o `test -f 'StashableManager.C' || echo '$(srcdir)/'`StashableManager.C
-
-libIBAMR_utilities3d_a-StashableManager.obj: StashableManager.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-StashableManager.obj -MD -MP -MF $(DEPDIR)/libIBAMR_utilities3d_a-StashableManager.Tpo -c -o libIBAMR_utilities3d_a-StashableManager.obj `if test -f 'StashableManager.C'; then $(CYGPATH_W) 'StashableManager.C'; else $(CYGPATH_W) '$(srcdir)/StashableManager.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities3d_a-StashableManager.Tpo $(DEPDIR)/libIBAMR_utilities3d_a-StashableManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StashableManager.C' object='libIBAMR_utilities3d_a-StashableManager.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-StashableManager.obj `if test -f 'StashableManager.C'; then $(CYGPATH_W) 'StashableManager.C'; else $(CYGPATH_W) '$(srcdir)/StashableManager.C'; fi`
-
-libIBAMR_utilities3d_a-StashableStream.o: StashableStream.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-StashableStream.o -MD -MP -MF $(DEPDIR)/libIBAMR_utilities3d_a-StashableStream.Tpo -c -o libIBAMR_utilities3d_a-StashableStream.o `test -f 'StashableStream.C' || echo '$(srcdir)/'`StashableStream.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities3d_a-StashableStream.Tpo $(DEPDIR)/libIBAMR_utilities3d_a-StashableStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StashableStream.C' object='libIBAMR_utilities3d_a-StashableStream.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-StashableStream.o `test -f 'StashableStream.C' || echo '$(srcdir)/'`StashableStream.C
-
-libIBAMR_utilities3d_a-StashableStream.obj: StashableStream.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-StashableStream.obj -MD -MP -MF $(DEPDIR)/libIBAMR_utilities3d_a-StashableStream.Tpo -c -o libIBAMR_utilities3d_a-StashableStream.obj `if test -f 'StashableStream.C'; then $(CYGPATH_W) 'StashableStream.C'; else $(CYGPATH_W) '$(srcdir)/StashableStream.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_utilities3d_a-StashableStream.Tpo $(DEPDIR)/libIBAMR_utilities3d_a-StashableStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StashableStream.C' object='libIBAMR_utilities3d_a-StashableStream.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-StashableStream.obj `if test -f 'StashableStream.C'; then $(CYGPATH_W) 'StashableStream.C'; else $(CYGPATH_W) '$(srcdir)/StashableStream.C'; fi`
 
 libIBAMR_utilities3d_a-get_version.o: get_version.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-get_version.o -MD -MP -MF $(DEPDIR)/libIBAMR_utilities3d_a-get_version.Tpo -c -o libIBAMR_utilities3d_a-get_version.o `test -f 'get_version.C' || echo '$(srcdir)/'`get_version.C

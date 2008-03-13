@@ -32,11 +32,11 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <stools/muParserDataSetter.h>
-#include <stools/muParserRobinBcCoefs.h>
+#include <ibtk/muParserDataSetter.h>
+#include <ibtk/muParserRobinBcCoefs.h>
 
 using namespace IBAMR;
-using namespace STOOLS;
+using namespace IBTK;
 using namespace SAMRAI;
 using namespace std;
 
@@ -554,7 +554,7 @@ main(
         u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
         p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time-0.5*dt_old);
 
-        STOOLS::HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
+        IBTK::HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
         hier_math_ops.setPatchHierarchy(patch_hierarchy);
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();

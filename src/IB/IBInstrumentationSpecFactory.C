@@ -1,5 +1,5 @@
 // Filename: IBInstrumentationSpecFactory.C
-// Last modified: <12.Feb.2008 21:15:39 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:03:31 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBInstrumentationSpecFactory.h"
@@ -18,7 +18,9 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBInstrumentationSpec.h>
-#include <ibamr/StashableManager.h>
+
+// IBTK INCLUDES
+#include <ibtk/StashableManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -32,7 +34,7 @@ int IBInstrumentationSpecFactory::s_stashable_id = -1;
 
 IBInstrumentationSpecFactory::IBInstrumentationSpecFactory()
 {
-    setStashableID(StashableManager::getUnregisteredID());
+    setStashableID(IBTK::StashableManager::getUnregisteredID());
     return;
 }// IBInstrumentationSpecFactory
 
@@ -56,7 +58,7 @@ IBInstrumentationSpecFactory::setStashableID(
     return;
 }// setStashableID
 
-SAMRAI::tbox::Pointer<Stashable>
+SAMRAI::tbox::Pointer<IBTK::Stashable>
 IBInstrumentationSpecFactory::unpackStream(
     SAMRAI::tbox::AbstractStream& stream,
     const SAMRAI::hier::IntVector<NDIM>& offset)

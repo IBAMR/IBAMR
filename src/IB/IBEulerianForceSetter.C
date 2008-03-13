@@ -34,7 +34,7 @@ IBEulerianForceSetter::IBEulerianForceSetter(
     const int F_current_idx,
     const int F_new_idx,
     const int F_half_idx)
-    : STOOLS::SetDataStrategy(object_name),
+    : IBTK::SetDataStrategy(object_name),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_F_current_idx(F_current_idx),

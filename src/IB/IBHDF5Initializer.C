@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <12.Feb.2008 21:14:22 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:00:47 griffith@box221.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -21,10 +21,10 @@
 #include <ibamr/IBInstrumentationSpec.h>
 #include <ibamr/IBSpringForceSpec.h>
 #include <ibamr/IBTargetPointForceSpec.h>
-#include <ibamr/LNodeIndexData2.h>
 
-// STOOLS INCLUDES
-#include <stools/STOOLS_Utilities.h>
+// IBTK INCLUDES
+#include <ibtk/IndexUtilities.h>
+#include <ibtk/LNodeIndexData2.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -156,7 +156,7 @@ IBHDF5Initializer::IBHDF5Initializer(
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(!input_db.isNull());
 #endif
-    // Register the specification objects with the StashableManager class.
+    // Register the specification objects with the IBTK::StashableManager class.
     IBSpringForceSpec::registerWithStashableManager();
     IBBeamForceSpec::registerWithStashableManager();
     IBTargetPointForceSpec::registerWithStashableManager();
@@ -204,14 +204,14 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
     const int global_index_offset,
     const int local_index_offset,
-    SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
-    SAMRAI::tbox::Pointer<LNodeLevelData>& U_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    IBTK::LDataManager* const lag_manager)
 {
     if (!can_be_refined && level_number != d_max_levels-1)
     {
@@ -323,7 +323,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
 
             // Initialize the specification objects assocaited with the present
             // vertex.
-            std::vector<SAMRAI::tbox::Pointer<Stashable> > vertex_specs = initializeSpecs(
+            std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> > vertex_specs = initializeSpecs(
                 std::make_pair(j,k), vertex_idx, global_index_offset);
 
             // Initialize the LNodeIndex data.
@@ -339,9 +339,9 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
                            << "  assigned patch number = " << patch_num << "\n"
                            << "  assigned patch box = " << patch_box << "\n");
             }
-            SAMRAI::tbox::Pointer<LNodeIndexData2> index_data = patch->getPatchData(lag_node_index_idx);
-            LNodeIndexSet& node_set = (*index_data)(i);
-            node_set.push_back(new LNodeIndex(current_global_idx, current_local_idx, &(*X_data)(current_local_idx), vertex_specs));
+            SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> index_data = patch->getPatchData(lag_node_index_idx);
+            IBTK::LNodeIndexSet& node_set = (*index_data)(i);
+            node_set.push_back(new IBTK::LNodeIndex(current_global_idx, current_local_idx, &(*X_data)(current_local_idx), vertex_specs));
         }
     }
 
@@ -376,14 +376,14 @@ int
 IBHDF5Initializer::initializeMassDataOnPatchLevel(
     const int global_index_offset,
     const int local_index_offset,
-    SAMRAI::tbox::Pointer<LNodeLevelData>& M_data,
-    SAMRAI::tbox::Pointer<LNodeLevelData>& K_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& M_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& K_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    IBTK::LDataManager* const lag_manager)
 {
     TBOX_ERROR(d_object_name << "::initializeMassDataOnPatchLevel():\n  Not implemented.\n");
     int local_node_count = 0;
@@ -606,7 +606,7 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
                         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                         const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
                         const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
-                        const SAMRAI::hier::Index<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
+                        const SAMRAI::hier::Index<NDIM> i = IBTK::IndexUtilities::getCellIndex(
                             X, xLower, xUpper, dx, patch_lower, patch_upper);
                         cell_idxs.push_back(i);
                         patch_nums.push_back(p());
@@ -948,7 +948,7 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
                         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                         const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
                         const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
-                        const SAMRAI::hier::Index<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
+                        const SAMRAI::hier::Index<NDIM> i = IBTK::IndexUtilities::getCellIndex(
                             X, xLower, xUpper, dx, patch_lower, patch_upper);
 
                         const int index = k+index_offset;
@@ -1822,13 +1822,13 @@ IBHDF5Initializer::clearLevelDataCache()
     return;
 }// clearLevelDataCache
 
-std::vector<SAMRAI::tbox::Pointer<Stashable> >
+std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >
 IBHDF5Initializer::initializeSpecs(
     const std::pair<int,int>& local_vertex_idx,
     const std::pair<int,int>& global_vertex_idx,
     const int global_index_offset)
 {
-    std::vector<SAMRAI::tbox::Pointer<Stashable> > vertex_specs;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> > vertex_specs;
 
     const int& ln = d_cache_level_number;
     const int& j_local = local_vertex_idx.first;

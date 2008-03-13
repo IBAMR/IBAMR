@@ -54,8 +54,8 @@ am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(top_builddir)/src/libIBAMR2d.a \
 	$(top_builddir)/src/libIBAMR.a \
-	$(top_builddir)/stools/src/libSTOOLS2d.a \
-	$(top_builddir)/stools/src/libSTOOLS.a
+	$(top_builddir)/ibtk/src/libIBTK2d.a \
+	$(top_builddir)/ibtk/src/libIBTK.a
 main2d_LINK = $(CXXLD) $(main2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I. -I$(top_builddir)/config@am__isrc@
@@ -397,13 +397,13 @@ target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = Makefile.in
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/stools/include
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.C UInit.C UInit.h
 EXTRA_DIST = input2d
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/stools/src/libSTOOLS2d.a $(top_builddir)/stools/src/libSTOOLS.a
+main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/ibtk/src/libIBTK2d.a $(top_builddir)/ibtk/src/libIBTK.a
 main2d_SOURCES = $(SOURCES)
 all: all-am
 

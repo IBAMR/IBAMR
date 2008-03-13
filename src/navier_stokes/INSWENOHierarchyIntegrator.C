@@ -200,7 +200,7 @@ INSWENOHierarchyIntegrator::getName() const
 
 void
 INSWENOHierarchyIntegrator::registerVelocityInitialConditions(
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> U_init)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init)
 {
     d_U_init = U_init;
     return;
@@ -266,7 +266,7 @@ INSWENOHierarchyIntegrator::registerPressurePhysicalBcCoef(
 
 void
 INSWENOHierarchyIntegrator::registerPressureInitialConditions(
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init)
 {
     d_P_init = P_init;
     return;
@@ -274,7 +274,7 @@ INSWENOHierarchyIntegrator::registerPressureInitialConditions(
 
 void
 INSWENOHierarchyIntegrator::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set)
 {
     d_F_set = F_set;
     return;
@@ -282,7 +282,7 @@ INSWENOHierarchyIntegrator::registerBodyForceSpecification(
 
 void
 INSWENOHierarchyIntegrator::registerDivergenceSpecification(
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_set)
 {
     d_Q_set = Q_set;
     return;
@@ -331,7 +331,7 @@ INSWENOHierarchyIntegrator::registerApplyGradientDetectorCallback(
 ///  HierarchyIntegrator objects.
 ///
 
-SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
+SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>
 INSWENOHierarchyIntegrator::getHierarchyMathOps() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -342,7 +342,7 @@ INSWENOHierarchyIntegrator::getHierarchyMathOps() const
 
 void
 INSWENOHierarchyIntegrator::setHierarchyMathOps(
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> hier_math_ops,
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
     const bool manage_ops)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -650,7 +650,7 @@ INSWENOHierarchyIntegrator::initializeHierarchyIntegrator(
     d_adv_diff_hier_integrator->registerAdvectedAndDiffusedQuantityWithSourceTerm(
         d_U_var, d_nu, d_lambda, d_F_U_var, d_conservation_form,
         d_U_init, U_bc_coefs,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>(NULL),
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy>(NULL),
         d_grad_Phi_var);
 
     // Initialize the AdvDiffHierarchyIntegrator.
@@ -772,7 +772,7 @@ INSWENOHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_grad_Phi_idx, // temporary work space
                        refine_operator);
     d_rstrategies["grad_Phi->grad_Phi::S->S::CONSERVATIVE_LINEAR_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_grad_Phi_idx, BDRY_EXTRAP_TYPE);
+        new IBTK::CartExtrapPhysBdryOp(d_grad_Phi_idx, BDRY_EXTRAP_TYPE);
 
     d_ralgs["u::S->S::CONSERVATIVE_LINEAR_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
@@ -783,7 +783,7 @@ INSWENOHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_u_scratch_idx, // temporary work space
                        refine_operator);
     d_rstrategies["u::S->S::CONSERVATIVE_LINEAR_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_u_scratch_idx, BDRY_EXTRAP_TYPE);
+        new IBTK::CartExtrapPhysBdryOp(d_u_scratch_idx, BDRY_EXTRAP_TYPE);
 
     d_ralgs["predictAdvectionVelocity"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
@@ -812,7 +812,7 @@ INSWENOHierarchyIntegrator::initializeHierarchyIntegrator(
     patch_data_indices.setFlag(d_U_scratch_idx);
     patch_data_indices.setFlag(d_F_U_scratch_idx);
     d_rstrategies["predictAdvectionVelocity"] =
-        new STOOLS::CartExtrapPhysBdryOp(patch_data_indices, BDRY_EXTRAP_TYPE);
+        new IBTK::CartExtrapPhysBdryOp(patch_data_indices, BDRY_EXTRAP_TYPE);
 
     // Create several coarsening communications algorithms, used in
     // synchronizing refined regions of coarse data with the underlying fine
@@ -873,9 +873,9 @@ INSWENOHierarchyIntegrator::initializeHierarchyIntegrator(
     if (d_using_hybrid_projection && d_pressure_projection_type == "pressure_update")
     {
         d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
-        d_helmholtz_op = new STOOLS::CCLaplaceOperator(d_object_name+"::helmholtz_op",*d_helmholtz_spec,NULL);
+        d_helmholtz_op = new IBTK::CCLaplaceOperator(d_object_name+"::helmholtz_op",*d_helmholtz_spec,NULL);
         d_helmholtz_op->setPhysicalBcCoefs(U_bc_coefs);
-        d_helmholtz_solver = new STOOLS::PETScKrylovLinearSolver(d_object_name+"::helmholtz_solver", "adv_diff_");
+        d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::helmholtz_solver", "adv_diff_");
         d_helmholtz_solver->setMaxIterations(d_helmholtz_max_iterations);
         d_helmholtz_solver->setAbsoluteTolerance(d_helmholtz_abs_residual_tol);
         d_helmholtz_solver->setRelativeTolerance(d_helmholtz_rel_residual_tol);
@@ -2318,7 +2318,7 @@ INSWENOHierarchyIntegrator::initializeLevelData(
     {
         level->allocatePatchData(d_scratch_data, init_data_time);
 
-        STOOLS::CartExtrapPhysBdryOp fill_after_regrid_bc_op(
+        IBTK::CartExtrapPhysBdryOp fill_after_regrid_bc_op(
             d_fill_after_regrid_bc_idxs, BDRY_EXTRAP_TYPE);
         d_fill_after_regrid->
             createSchedule(level,
@@ -2417,10 +2417,10 @@ INSWENOHierarchyIntegrator::initializeLevelData(
                                  d_U_current_idx, // source
                                  d_U_scratch_idx, // temporary work space
                                  refine_operator);
-            STOOLS::CartExtrapPhysBdryOp bc_op(d_U_scratch_idx, BDRY_EXTRAP_TYPE);
+            IBTK::CartExtrapPhysBdryOp bc_op(d_U_scratch_idx, BDRY_EXTRAP_TYPE);
             ralg->createSchedule(level, level_number-1, hierarchy, &bc_op)->fillData(init_data_time);
 
-            STOOLS::PatchMathOps patch_math_ops;
+            IBTK::PatchMathOps patch_math_ops;
 
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -2687,24 +2687,24 @@ INSWENOHierarchyIntegrator::resetHierarchyConfiguration(
     }
 
     // Initialize the interpolation operators.
-    typedef STOOLS::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(
         d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
     InterpolationTransactionComponent V_transaction_comp(d_V_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, U_bc_coefs);
-    d_V_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
+    d_V_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_V_bdry_fill_op->initializeOperatorState(V_transaction_comp, d_hierarchy);
 
     InterpolationTransactionComponent P_transaction_comp(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
-    d_P_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
+    d_P_hier_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_P_hier_bdry_fill_op->initializeOperatorState(P_transaction_comp, d_hierarchy);
 
     InterpolationTransactionComponent Phi_transaction_comp(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
-    d_Phi_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
+    d_Phi_hier_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_Phi_hier_bdry_fill_op->initializeOperatorState(Phi_transaction_comp, d_hierarchy);
 
     InterpolationTransactionComponent regrid_Phi_transaction_comp(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
-    d_regrid_Phi_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
+    d_regrid_Phi_hier_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_regrid_Phi_hier_bdry_fill_op->initializeOperatorState(regrid_Phi_transaction_comp, d_hierarchy);
 
     t_reset_hierarchy_configuration->stop();

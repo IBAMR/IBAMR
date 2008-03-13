@@ -1,5 +1,5 @@
 // Filename: IBInstrumentationSpec.I
-// Last modified: <14.Jun.2007 18:36:15 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 22:38:41 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -40,7 +40,7 @@ IBInstrumentationSpec::IBInstrumentationSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBInstrumentationSpec::IBInstrumentationSpec():\n"
-                   << "  must call IBInstrumentationSpec::registerWithStashableManager() before\n"
+                   << "  must call IBInstrumentationSpec::registerWithIBTK::StashableManager() before\n"
                    << "  creating any IBInstrumentationSpec objects.\n");
     }
     return;

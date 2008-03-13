@@ -2,14 +2,14 @@
 #define included_IBSpringForceSpecFactory
 
 // Filename: IBSpringForceSpecFactory.h
-// Last modified: <16.Apr.2007 02:44:10 boyce@trasnaform2.local>
+// Last modified: <12.Mar.2008 23:00:42 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/Stashable.h>
-#include <ibamr/StashableFactory.h>
+// IBTK INCLUDES
+#include <ibtk/Stashable.h>
+#include <ibtk/StashableFactory.h>
 
 // SAMRAI INCLUDES
 #include <IntVector.h>
@@ -25,7 +25,7 @@ namespace IBAMR
  * IBSpringForceSpec objects from SAMRAI::tbox::AbstractStream data streams.
  */
 class IBSpringForceSpecFactory
-    : public StashableFactory
+    : public IBTK::StashableFactory
 {
 public:
     /*!
@@ -40,16 +40,16 @@ public:
     ~IBSpringForceSpecFactory();
 
     /*!
-     * \brief Return the unique identifier used to specify the StashableFactory
-     * object used by the StashableManager to extract Stashable objects from
+     * \brief Return the unique identifier used to specify the IBTK::StashableFactory
+     * object used by the IBTK::StashableManager to extract Stashable objects from
      * data streams.
      */
     virtual int
     getStashableID() const;
 
     /*!
-     * \brief Set the unique identifier used to specify the StashableFactory
-     * object used by the StashableManager to extract Stashable objects from
+     * \brief Set the unique identifier used to specify the IBTK::StashableFactory
+     * object used by the IBTK::StashableManager to extract Stashable objects from
      * data streams.
      */
     virtual void
@@ -57,9 +57,9 @@ public:
         const int stashable_id);
 
     /*!
-     * \brief Build a Stashable object by unpacking data from the input stream.
+     * \brief Build a IBTK::Stashable object by unpacking data from the input stream.
      */
-    virtual SAMRAI::tbox::Pointer<Stashable>
+    virtual SAMRAI::tbox::Pointer<IBTK::Stashable>
     unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);

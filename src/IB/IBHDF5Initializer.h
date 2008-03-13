@@ -2,7 +2,7 @@
 #define included_IBHDF5Initializer
 
 // Filename: IBHDF5Initializer.h
-// Last modified: <03.Oct.2007 20:10:39 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 22:44:32 griffith@box221.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -12,8 +12,12 @@
 #include <ibamr/IBInstrumentationSpec.h>
 #include <ibamr/IBSpringForceSpec.h>
 #include <ibamr/IBTargetPointForceSpec.h>
-#include <ibamr/LNodeInitStrategy.h>
-#include <ibamr/Stashable.h>
+
+// IBTK INCLUDES
+#include <ibtk/LNodeInitStrategy.h>
+
+// IBTK INCLUDES
+#include <ibtk/Stashable.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -33,7 +37,7 @@ namespace IBAMR
  * input files.
  */
 class IBHDF5Initializer
-    : public LNodeInitStrategy
+    : public IBTK::LNodeInitStrategy
 {
 public:
     /*!
@@ -85,14 +89,14 @@ public:
         const int lag_node_index_idx,
         const int global_index_offset,
         const int local_index_offset,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& U_data,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& X_data,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time,
-        LDataManager* const lag_manager);
+        IBTK::LDataManager* const lag_manager);
 
     /*!
      * \brief Initialize the LNodeLevel data needed to specify the mass and
@@ -104,14 +108,14 @@ public:
     initializeMassDataOnPatchLevel(
         const int global_index_offset,
         const int local_index_offset,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& M_data,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& K_data,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& M_data,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& K_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time,
-        LDataManager* const lag_manager);
+        IBTK::LDataManager* const lag_manager);
 
     /*!
      * \brief Tag cells for initial refinement.
@@ -288,7 +292,7 @@ private:
     /*!
      * \return The specification objects associated with the specified vertex.
      */
-    std::vector<SAMRAI::tbox::Pointer<Stashable> >
+    std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >
     initializeSpecs(
         const std::pair<int,int>& local_vertex_idx,
         const std::pair<int,int>& global_vertex_idx,

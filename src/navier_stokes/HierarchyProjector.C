@@ -16,10 +16,10 @@
 #define included_SAMRAI_config
 #endif
 
-// STOOLS INCLUDES
-#include <stools/KrylovLinearSolver.h>
-#include <stools/FACPreconditionerLSWrapper.h>
-#include <stools/PETScKrylovLinearSolver.h>
+// IBTK INCLUDES
+#include <ibtk/KrylovLinearSolver.h>
+#include <ibtk/FACPreconditionerLSWrapper.h>
+#include <ibtk/PETScKrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
@@ -159,7 +159,7 @@ HierarchyProjector::HierarchyProjector(
                                     d_w_idx,  // source
                                     d_w_idx,  // temporary work space
                                     refine_operator);
-    d_velocity_rstrategy = new STOOLS::CartExtrapPhysBdryOp(d_w_idx, "LINEAR");
+    d_velocity_rstrategy = new IBTK::CartExtrapPhysBdryOp(d_w_idx, "LINEAR");
 
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =
@@ -225,7 +225,7 @@ HierarchyProjector::HierarchyProjector(
         fac_pc_db = input_db->getDatabase("FACPreconditioner");
     }
 
-    d_poisson_fac_op = new STOOLS::CCPoissonFACOperator(
+    d_poisson_fac_op = new IBTK::CCPoissonFACOperator(
         d_object_name+"::FAC Op", fac_op_db);
     d_poisson_fac_op->setPoissonSpecifications(d_poisson_spec);
     d_poisson_fac_op->setPhysicalBcCoef(d_Phi_bc_coef);
@@ -236,17 +236,17 @@ HierarchyProjector::HierarchyProjector(
 
     // Initialize the Poisson solver.
     static const bool homogeneous_bc = false;
-    d_laplace_op = new STOOLS::CCLaplaceOperator(
+    d_laplace_op = new IBTK::CCLaplaceOperator(
         d_object_name+"::Laplace Operator",
         d_poisson_spec, d_Phi_bc_coef, homogeneous_bc);
 
-    d_poisson_solver = new STOOLS::PETScKrylovLinearSolver(d_object_name+"::PETSc Krylov solver", "proj_");
+    d_poisson_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::PETSc Krylov solver", "proj_");
     d_poisson_solver->setMaxIterations(d_max_iterations);
     d_poisson_solver->setAbsoluteTolerance(d_abs_residual_tol);
     d_poisson_solver->setRelativeTolerance(d_rel_residual_tol);
     d_poisson_solver->setInitialGuessNonzero(true);
     d_poisson_solver->setOperator(d_laplace_op);
-    d_poisson_solver->setPreconditioner(new STOOLS::FACPreconditionerLSWrapper(d_poisson_fac_pc, fac_pc_db));
+    d_poisson_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_poisson_fac_pc, fac_pc_db));
 
     // Setup Timers.
     static bool timers_need_init = true;
@@ -304,7 +304,7 @@ HierarchyProjector::getName() const
 ///  HierarchyIntegrator objects.
 ///
 
-SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
+SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>
 HierarchyProjector::getHierarchyMathOps() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -315,7 +315,7 @@ HierarchyProjector::getHierarchyMathOps() const
 
 void
 HierarchyProjector::setHierarchyMathOps(
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> hier_math_ops,
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
     const bool manage_ops)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -389,7 +389,7 @@ HierarchyProjector::getPressurePhysicalBcCoef() const
     return d_P_bc_coef;
 }// getPressurePhysicalBcCoef
 
-SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>
+SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>
 HierarchyProjector::getPoissonSolver() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -506,7 +506,7 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Setup the interpolation transaction information.
-    typedef STOOLS::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(Phi_transaction_comp);
 
@@ -612,7 +612,7 @@ HierarchyProjector::resetHierarchyConfiguration(
     }
     else if (d_hier_math_ops.isNull())
     {
-        d_hier_math_ops = new STOOLS::HierarchyMathOps(d_object_name+"::HierarchyMathOps", hierarchy);
+        d_hier_math_ops = new IBTK::HierarchyMathOps(d_object_name+"::HierarchyMathOps", hierarchy);
         d_is_managing_hier_math_ops = true;
     }
 
@@ -638,14 +638,14 @@ HierarchyProjector::resetHierarchyConfiguration(
     d_poisson_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
 
     // Initialize the interpolation operators.
-    typedef STOOLS::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 
     InterpolationTransactionComponent P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
-    d_P_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
+    d_P_hier_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_P_hier_bdry_fill_op->initializeOperatorState(P_transaction_comp, d_hierarchy);
 
     InterpolationTransactionComponent Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
-    d_Phi_hier_bdry_fill_op = new STOOLS::HierarchyGhostCellInterpolation();
+    d_Phi_hier_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_Phi_hier_bdry_fill_op->initializeOperatorState(Phi_transaction_comp, d_hierarchy);
 
     // (Re)build refine communication schedules.  These are created for all

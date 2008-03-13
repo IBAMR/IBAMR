@@ -1,5 +1,5 @@
 // Filename: IBSpringForceSpec.C
-// Last modified: <12.Feb.2008 21:43:57 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:00:43 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceSpec.h"
@@ -18,7 +18,9 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBSpringForceSpecFactory.h>
-#include <ibamr/StashableManager.h>
+
+// IBTK INCLUDES
+#include <ibtk/StashableManager.h>
 
 // SAMRAI INCLUDES
 #include <tbox/SAMRAI_MPI.h>
@@ -45,7 +47,7 @@ IBSpringForceSpec::registerWithStashableManager()
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(s_stashable_id == -1);
 #endif
-        s_stashable_id = StashableManager::getManager()->registerFactory(
+        s_stashable_id = IBTK::StashableManager::getManager()->registerFactory(
             new IBSpringForceSpecFactory());
         s_registered_factory = true;
     }

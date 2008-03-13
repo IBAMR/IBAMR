@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <04.Feb.2008 21:55:39 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:08:20 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -16,18 +16,17 @@
 #include <ibamr/IBInstrumentPanel.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
 #include <ibamr/IBLagrangianSourceStrategy.h>
-#include <ibamr/IBMarker.h>
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <ibamr/LDataManager.h>
-#include <ibamr/LNodeInitStrategy.h>
-#include <ibamr/LagSiloDataWriter.h>
 
+// IBTK INCLUDES
+#include <ibtk/LDataManager.h>
+#include <ibtk/LNodeInitStrategy.h>
 #if (NDIM == 3)
-#include <ibamr/LagM3DDataWriter.h>
+#include <ibtk/LagM3DDataWriter.h>
 #endif
-
-// STOOLS INCLUDES
-#include <stools/SetDataStrategy.h>
+#include <ibtk/LagMarker.h>
+#include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -99,7 +98,7 @@ public:
      */
     void
     registerVelocityInitialConditions(
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> U_init);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init);
 
     /*!
      * Supply physical boundary conditions for the (cell centered) velocity.
@@ -116,7 +115,7 @@ public:
      */
     void
     registerPressureInitialConditions(
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init);
 
     /*!
      * Supply an optional cell centered body forcing term.
@@ -125,7 +124,7 @@ public:
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set);
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
@@ -133,7 +132,7 @@ public:
      */
     void
     registerLNodeInitStrategy(
-        SAMRAI::tbox::Pointer<LNodeInitStrategy> lag_init);
+        SAMRAI::tbox::Pointer<IBTK::LNodeInitStrategy> lag_init);
 
     /*!
      * Free the concrete initialization strategy object.
@@ -158,7 +157,7 @@ public:
      */
     void
     registerLagSiloDataWriter(
-        SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer);
+        SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> silo_writer);
 
 #if (NDIM == 3)
     /*!
@@ -168,7 +167,7 @@ public:
      */
     void
     registerLagM3DDataWriter(
-        SAMRAI::tbox::Pointer<LagM3DDataWriter> m3D_writer);
+        SAMRAI::tbox::Pointer<IBTK::LagM3DDataWriter> m3D_writer);
 #endif
 
     /*!
@@ -303,7 +302,7 @@ public:
     /*!
      * Return a pointer to the Lagrangian data manager object.
      */
-    LDataManager*
+    IBTK::LDataManager*
     getLDataManager() const;
 
     /*!
@@ -487,17 +486,17 @@ public:
     ///
     ///  The following routines:
     ///
-    ///      getIBMarkerVar()
+    ///      getLagMarkerVar()
     ///
     ///  allows access to the various state variables maintained by the
     ///  integrator.
     ///
 
     /*!
-     * Return a pointer to the IBMarker index data state variable.
+     * Return a pointer to the LagMarker index data state variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBMarker> >
-    getIBMarkerVar() const;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker> >
+    getLagMarkerVar() const;
 
     ///
     ///  The following routines:
@@ -695,7 +694,7 @@ private:
         const int coarsest_level,
         const int finest_level,
         const double data_time,
-        const std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data);
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> >& X_data);
 
     /*!
      * Get the values of the pressures at the positions of the distributed
@@ -709,7 +708,7 @@ private:
         const int coarsest_level,
         const int finest_level,
         const double data_time,
-        const std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data);
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> >& X_data);
 
     /*!
      * Read input values, indicated above, from given database.  The boolean
@@ -769,9 +768,9 @@ private:
      * variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
-    SAMRAI::tbox::Pointer<LagSiloDataWriter> d_silo_writer;
+    SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> d_silo_writer;
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<LagM3DDataWriter> d_m3D_writer;
+    SAMRAI::tbox::Pointer<IBTK::LagM3DDataWriter> d_m3D_writer;
 #endif
 
     /*
@@ -789,7 +788,7 @@ private:
      * The LDataManager is used to coordinate the distribution of Lagrangian
      * data on the patch hierarchy.
      */
-    LDataManager* d_lag_data_manager;
+    IBTK::LDataManager* d_lag_data_manager;
 
     /*
      * Instrumentation (flow meter and pressure gauge) algorithms and data
@@ -802,19 +801,19 @@ private:
      * Initialization and boundary condition information for the Eulerian data
      * used by the integrator.
      */
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_U_init, d_P_init;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_U_init, d_P_init;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
 
     /*
      * The specification and initialization information for the Lagrangian data
      * used by the integrator.
      */
-    SAMRAI::tbox::Pointer<LNodeInitStrategy> d_lag_init;
+    SAMRAI::tbox::Pointer<IBTK::LNodeInitStrategy> d_lag_init;
 
     /*
      * The force generators.
      */
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_body_force_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_body_force_set;
     SAMRAI::tbox::Pointer<IBEulerianForceSetter> d_eulerian_force_set;
     SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_force_strategy;
     bool d_force_strategy_needs_init;
@@ -923,7 +922,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_V_var, d_W_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBMarker> > d_mark_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker> > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
     int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_mark_current_idx, d_mark_scratch_idx, d_Q_idx, d_Q_scratch_idx;
 };

@@ -45,7 +45,7 @@
 
 using namespace IBAMR;
 using namespace SAMRAI;
-using namespace STOOLS;
+using namespace IBTK;
 using namespace std;
 
 /*!
@@ -575,7 +575,7 @@ main(
             Vec X_vec = X_data->getGlobalVec();
 
             int ilower, iupper;
-            int ierr = VecGetOwnershipRange(X_vec, &ilower, &iupper);  PETSC_SAMRAI_ERROR(ierr);
+            int ierr = VecGetOwnershipRange(X_vec, &ilower, &iupper);  IBTK_CHKERRQ(ierr);
             ilower /= NDIM;
             iupper /= NDIM;
 
@@ -587,7 +587,7 @@ main(
                 {
                     idxs[d] = NDIM*X_idx[0]+d;
                 }
-                ierr = VecGetValues(X_vec, NDIM, &idxs[0], &X[0]);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetValues(X_vec, NDIM, &idxs[0], &X[0]);  IBTK_CHKERRQ(ierr);
             }
             tbox::SAMRAI_MPI::sumReduction(&X[0],NDIM);
 

@@ -7,8 +7,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// STOOLS INCLUDES
-#include <stools/ExtendedRobinBcCoefStrategy.h>
+// IBTK INCLUDES
+#include <ibtk/ExtendedRobinBcCoefStrategy.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -24,7 +24,7 @@ namespace IBAMR
  * implementation of a projection method.
  */
 class INSProjectionBcCoef
-    : public virtual STOOLS::ExtendedRobinBcCoefStrategy
+    : public virtual IBTK::ExtendedRobinBcCoefStrategy
 {
 public:
     /*!
@@ -114,7 +114,7 @@ public:
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
 
     /*!
-     * \name Implementation of STOOLS::ExtendedRobinBcCoefStrategy interface.
+     * \name Implementation of IBTK::ExtendedRobinBcCoefStrategy interface.
      */
     //\{
 

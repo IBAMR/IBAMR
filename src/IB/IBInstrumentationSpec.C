@@ -1,5 +1,5 @@
 // Filename: IBInstrumentationSpec.C
-// Last modified: <12.Feb.2008 21:44:08 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:00:45 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBInstrumentationSpec.h"
@@ -18,7 +18,9 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBInstrumentationSpecFactory.h>
-#include <ibamr/StashableManager.h>
+
+// IBTK INCLUDES
+#include <ibtk/StashableManager.h>
 
 // SAMRAI INCLUDES
 #include <tbox/SAMRAI_MPI.h>
@@ -47,7 +49,7 @@ IBInstrumentationSpec::registerWithStashableManager()
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(s_stashable_id == -1);
 #endif
-        s_stashable_id = StashableManager::getManager()->registerFactory(
+        s_stashable_id = IBTK::StashableManager::getManager()->registerFactory(
             new IBInstrumentationSpecFactory());
         s_registered_factory = true;
     }

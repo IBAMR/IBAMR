@@ -16,8 +16,8 @@
 #define included_SAMRAI_config
 #endif
 
-// STOOLS INCLUDES
-#include <stools/PatchMathOps.h>
+// IBTK INCLUDES
+#include <ibtk/PatchMathOps.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -375,7 +375,7 @@ WENOMOLOps::singleStep(
         patch_lower(0), patch_upper(0),
         patch_lower(1), patch_upper(1));
 
-    STOOLS::PatchMathOps patch_math_ops;
+    IBTK::PatchMathOps patch_math_ops;
     patch_math_ops.div(F,
                        -1.0, flux,
                        0.0, tbox::Pointer<pdat::CellData<NDIM,double> >(NULL),

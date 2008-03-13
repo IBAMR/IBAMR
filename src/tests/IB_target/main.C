@@ -40,7 +40,7 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/LagSiloDataWriter.h>
 
-#include <stools/TimeDependentLocationIndexRobinBcCoefs.h>
+#include <ibtk/TimeDependentLocationIndexRobinBcCoefs.h>
 
 #include "VelocityBcCoefs.h"
 
@@ -52,7 +52,7 @@
 
 using namespace IBAMR;
 using namespace SAMRAI;
-using namespace STOOLS;
+using namespace IBTK;
 using namespace std;
 
 /************************************************************************

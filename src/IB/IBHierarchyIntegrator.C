@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <12.Feb.2008 21:14:57 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:01:48 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -18,14 +18,14 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBInstrumentationSpec.h>
-#include <ibamr/IBMarkerCoarsenOperator.h>
-#include <ibamr/IBMarkerRefineOperator.h>
-#include <ibamr/LEInteractor.h>
-#include <ibamr/LNodeIndexData2.h>
 
-// STOOLS INCLUDES
-#include <stools/PETSC_SAMRAI_ERROR.h>
-#include <stools/STOOLS_Utilities.h>
+// IBTK INCLUDES
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IndexUtilities.h>
+#include <ibtk/LEInteractor.h>
+#include <ibtk/LNodeIndexData2.h>
+#include <ibtk/LagMarkerCoarsenOperator.h>
+#include <ibtk/LagMarkerRefineOperator.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -330,11 +330,11 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
 
     // Determine the ghost cell width required for cell-centered spreading and
     // interpolating.
-    const int stencil_size = LEInteractor::getStencilSize(d_delta_fcn);
+    const int stencil_size = IBTK::LEInteractor::getStencilSize(d_delta_fcn);
     d_ghosts = static_cast<int>(floor(0.5*double(stencil_size))+1);
 
     // Get the Lagrangian Data Manager.
-    d_lag_data_manager = LDataManager::getManager(
+    d_lag_data_manager = IBTK::LDataManager::getManager(
         d_object_name+"::LDataManager", d_ghosts, d_registered_for_restart);
 
     // Create the instrument panel object.
@@ -416,7 +416,7 @@ IBHierarchyIntegrator::getName() const
 
 void
 IBHierarchyIntegrator::registerVelocityInitialConditions(
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> U_init)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init)
 {
     d_U_init = U_init;
     d_ins_hier_integrator->registerVelocityInitialConditions(d_U_init);
@@ -446,7 +446,7 @@ IBHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
 
 void
 IBHierarchyIntegrator::registerPressureInitialConditions(
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> P_init)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init)
 {
     d_P_init = P_init;
     d_ins_hier_integrator->registerPressureInitialConditions(d_P_init);
@@ -455,7 +455,7 @@ IBHierarchyIntegrator::registerPressureInitialConditions(
 
 void
 IBHierarchyIntegrator::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> body_force_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> body_force_set)
 {
     d_body_force_set = body_force_set;
     return;
@@ -463,7 +463,7 @@ IBHierarchyIntegrator::registerBodyForceSpecification(
 
 void
 IBHierarchyIntegrator::registerLNodeInitStrategy(
-    SAMRAI::tbox::Pointer<LNodeInitStrategy> lag_init)
+    SAMRAI::tbox::Pointer<IBTK::LNodeInitStrategy> lag_init)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!lag_init.isNull());
@@ -496,7 +496,7 @@ IBHierarchyIntegrator::registerVisItDataWriter(
 
 void
 IBHierarchyIntegrator::registerLagSiloDataWriter(
-    SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer)
+    SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!silo_writer.isNull());
@@ -509,7 +509,7 @@ IBHierarchyIntegrator::registerLagSiloDataWriter(
 #if (NDIM == 3)
 void
 IBHierarchyIntegrator::registerLagM3DDataWriter(
-    SAMRAI::tbox::Pointer<LagM3DDataWriter> m3D_writer)
+    SAMRAI::tbox::Pointer<IBTK::LagM3DDataWriter> m3D_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!m3D_writer.isNull());
@@ -582,7 +582,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     d_F_scratch1_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, no_ghosts);
     d_F_scratch2_idx = var_db->registerClonedPatchDataIndex(d_F_var, d_F_scratch1_idx);
 
-    d_mark_var = new SAMRAI::pdat::IndexVariable<NDIM,IBMarker>(d_object_name+"::mark");
+    d_mark_var = new SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker>(d_object_name+"::mark");
     d_mark_current_idx = var_db->registerVariableAndContext(d_mark_var, getCurrentContext(), ghosts);
     d_mark_scratch_idx = var_db->registerVariableAndContext(d_mark_var, d_scratch, ghosts);
     if (d_registered_for_restart)
@@ -642,7 +642,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_V_idx,       // temporary work space
                        refine_operator);
     d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "QUADRATIC");
+        new IBTK::CartExtrapPhysBdryOp(d_V_idx, "QUADRATIC");
 
     const int U_new_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
@@ -659,7 +659,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_W_idx,   // temporary work space
                        refine_operator);
     d_rstrategies["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"] =
-            new STOOLS::CartExtrapPhysBdryOp(d_W_idx, "QUADRATIC");
+            new IBTK::CartExtrapPhysBdryOp(d_W_idx, "QUADRATIC");
 
     const int U_scratch_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
@@ -695,7 +695,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     instrumentation_data_fill_bc_idxs.setFlag(U_scratch_idx);
     instrumentation_data_fill_bc_idxs.setFlag(P_scratch_idx);
     d_rstrategies["INSTRUMENTATION_DATA_FILL"] =
-        new STOOLS::CartExtrapPhysBdryOp(
+        new IBTK::CartExtrapPhysBdryOp(
             instrumentation_data_fill_bc_idxs, "QUADRATIC");
 
     // NOTE: When using conservative averaging to coarsen the velocity from
@@ -722,7 +722,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     SAMRAI::hier::ComponentSelector F_scratch_idxs;
     F_scratch_idxs.setFlag(d_F_scratch1_idx);
     F_scratch_idxs.setFlag(d_F_scratch2_idx);
-    d_force_rstrategy = new STOOLS::CartExtrapPhysBdryOp(
+    d_force_rstrategy = new IBTK::CartExtrapPhysBdryOp(
         F_scratch_idxs, "QUADRATIC");
 
     if (!d_source_strategy.isNull())
@@ -734,7 +734,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                                       d_Q_idx,          // source
                                       d_Q_scratch_idx,  // temporary work space
                                       refine_operator);
-        d_source_rstrategy = new STOOLS::CartExtrapPhysBdryOp(
+        d_source_rstrategy = new IBTK::CartExtrapPhysBdryOp(
             d_Q_scratch_idx, "QUADRATIC");
     }
 
@@ -895,21 +895,21 @@ IBHierarchyIntegrator::advanceHierarchy(
         d_source_strategy_needs_init = false;
     }
 
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > X_data(finest_ln+1);
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > F_data(finest_ln+1);
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > U_data(finest_ln+1);
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > X_new_data(finest_ln+1);
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > F_new_data(finest_ln+1);
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > U_new_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_new_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_new_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_new_data(finest_ln+1);
 
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > K_data(finest_ln+1);
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > M_data(finest_ln+1);
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > Y_data(finest_ln+1);
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > dY_dt_data(finest_ln+1);
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > F_K_data(finest_ln+1);
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > Y_new_data(finest_ln+1);
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > dY_dt_new_data(finest_ln+1);
-    std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> > F_K_new_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > K_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > M_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > Y_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > dY_dt_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_K_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > Y_new_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > dY_dt_new_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_K_new_data(finest_ln+1);
 
     // Synchronize the Cartesian grid velocity u(n) on the patch hierarchy.
     //
@@ -941,19 +941,19 @@ IBHierarchyIntegrator::advanceHierarchy(
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > v_data =
                 patch->getPatchData(d_V_idx);
-            const SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
+            const SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_data =
                 patch->getPatchData(d_mark_current_idx);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_scratch_data =
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_scratch_data =
                 patch->getPatchData(d_mark_scratch_idx);
 
             // Collect the positions and velocities of all markers in the patch.
             std::vector<double> U_mark, X_mark;
-            for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_data); it; it++)
+            for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>::Iterator it(*mark_data); it; it++)
             {
                 const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
                 if (patch_box.contains(i))
                 {
-                    const IBMarker& mark = it();
+                    const IBTK::LagMarker& mark = it();
                     const std::vector<double>& X = mark.getPositions();
                     const std::vector<double>& U = mark.getVelocities();
                     X_mark.insert(X_mark.end(), X.begin(), X.end());
@@ -964,7 +964,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             // When necessary, interpolate the velocity field.
             if (initial_time || d_reinterpolate_after_regrid)
             {
-                LEInteractor::interpolate(
+                IBTK::LEInteractor::interpolate(
                     U_mark, NDIM, X_mark, NDIM, v_data,
                     patch, patch_box, d_delta_fcn);
             }
@@ -984,12 +984,12 @@ IBHierarchyIntegrator::advanceHierarchy(
             // patch data.
             mark_scratch_data->copy(*mark_data);
             int marker_offset = 0;
-            for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_scratch_data); it; it++)
+            for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>::Iterator it(*mark_scratch_data); it; it++)
             {
                 const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
                 if (patch_box.contains(i))
                 {
-                    IBMarker& mark = it();
+                    IBTK::LagMarker& mark = it();
                     const int nmarks = mark.getNumberOfMarkers();
                     std::vector<double> X(X_mark.begin()+NDIM*marker_offset,
                                           X_mark.begin()+NDIM*(marker_offset+nmarks));
@@ -1082,8 +1082,8 @@ IBHierarchyIntegrator::advanceHierarchy(
         {
             int ierr;
 
-            X_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
-            U_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::VEL_DATA_NAME,ln);
+            X_data[ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
+            U_data[ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::VEL_DATA_NAME,ln);
             F_data[ln] = d_lag_data_manager->createLNodeLevelData("F",ln,NDIM);
 
             X_data[ln]->restoreLocalFormVec();
@@ -1135,10 +1135,10 @@ IBHierarchyIntegrator::advanceHierarchy(
                     const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > v_data =
                         patch->getPatchData(d_V_idx);
-                    const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->getPatchData(
+                    const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(
                         d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
 
-                    LEInteractor::interpolate(
+                    IBTK::LEInteractor::interpolate(
                         U_data[ln], X_data[ln], idx_data, v_data,
                         patch, patch_box, periodic_shift,
                         d_delta_fcn);
@@ -1150,7 +1150,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F(n) on level number " << ln << "\n";
 
             Vec F_vec = F_data[ln]->getGlobalVec();
-            ierr = VecSet(F_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
+            ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(
                 F_data[ln], X_data[ln],
                 d_hierarchy, ln, current_time, d_lag_data_manager);
@@ -1170,17 +1170,17 @@ IBHierarchyIntegrator::advanceHierarchy(
                     // The initial positions of the massive ghost particles
                     // should be the same as the initial positions of the nodes
                     // of the Lagrangian mesh.
-                    ierr = VecCopy(X_vec, Y_vec);  PETSC_SAMRAI_ERROR(ierr);
+                    ierr = VecCopy(X_vec, Y_vec);  IBTK_CHKERRQ(ierr);
                 }
 
                 int n_local = 0;
-                ierr = VecGetLocalSize(K_vec, &n_local);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetLocalSize(K_vec, &n_local);  IBTK_CHKERRQ(ierr);
 
                 double* K_arr, * X_arr, * Y_arr, * F_K_arr;
-                ierr = VecGetArray(K_vec, &K_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(Y_vec, &Y_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(F_K_vec, &F_K_arr);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(F_K_vec, &F_K_arr);  IBTK_CHKERRQ(ierr);
 
                 static double max_displacement = 0.0;
                 double max_config_displacement = 0.0;
@@ -1210,12 +1210,12 @@ IBHierarchyIntegrator::advanceHierarchy(
                     SAMRAI::tbox::plog << "  maximum massive boundary point displacement [entire simulation] = " << max_displacement << "\n";
                 }
 
-                ierr = VecRestoreArray(K_vec, &K_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(Y_vec, &Y_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(F_K_vec, &F_K_arr);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecRestoreArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(F_K_vec, &F_K_arr);  IBTK_CHKERRQ(ierr);
 
-                ierr = VecAXPY(F_vec, 1.0, F_K_vec);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecAXPY(F_vec, 1.0, F_K_vec);  IBTK_CHKERRQ(ierr);
             }
 
             // 3. Spread F(n) from the Lagrangian mesh onto the Cartesian grid.
@@ -1234,10 +1234,10 @@ IBHierarchyIntegrator::advanceHierarchy(
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_current_data = patch->
                     getPatchData(d_ins_hier_integrator->getForceVar(),
                                  d_ins_hier_integrator->getCurrentContext());
-                const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->
                     getPatchData(d_lag_data_manager->
                                  getLNodeIndexPatchDescriptorIndex());
-                LEInteractor::spread(
+                IBTK::LEInteractor::spread(
                     f_current_data, F_data[ln], X_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
@@ -1251,7 +1251,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             Vec X_vec = X_data[ln]->getGlobalVec();
             Vec X_new_vec = X_new_data[ln]->getGlobalVec();
 
-            ierr = VecWAXPY(X_new_vec, dt, U_vec, X_vec);  PETSC_SAMRAI_ERROR(ierr);
+            ierr = VecWAXPY(X_new_vec, dt, U_vec, X_vec);  IBTK_CHKERRQ(ierr);
 
             if (d_using_pIB_method)
             {
@@ -1272,19 +1272,19 @@ IBHierarchyIntegrator::advanceHierarchy(
                     // The initial velocities of the massive ghost particles
                     // should be the same as the interpolated velocity field
                     // evaluated at the nodes of the Lagrangian mesh.
-                    ierr = VecCopy(U_vec, dY_dt_vec);  PETSC_SAMRAI_ERROR(ierr);
+                    ierr = VecCopy(U_vec, dY_dt_vec);  IBTK_CHKERRQ(ierr);
                 }
 
                 int n_local = 0;
-                ierr = VecGetLocalSize(M_vec, &n_local);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetLocalSize(M_vec, &n_local);  IBTK_CHKERRQ(ierr);
 
                 double* M_arr, * Y_arr, * Y_new_arr, * dY_dt_arr, * dY_dt_new_arr, * F_K_arr;
-                ierr = VecGetArray(M_vec, &M_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(Y_vec, &Y_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(Y_new_vec, &Y_new_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(dY_dt_vec, &dY_dt_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(dY_dt_new_vec, &dY_dt_new_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(F_K_vec, &F_K_arr);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(dY_dt_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(F_K_vec, &F_K_arr);  IBTK_CHKERRQ(ierr);
 
                 for (int i = 0; i < n_local; ++i)
                 {
@@ -1295,12 +1295,12 @@ IBHierarchyIntegrator::advanceHierarchy(
                     }
                 }
 
-                ierr = VecRestoreArray(M_vec, &M_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(Y_vec, &Y_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(Y_new_vec, &Y_new_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(dY_dt_vec, &dY_dt_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(dY_dt_new_vec, &dY_dt_new_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(F_K_vec, &F_K_arr);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecRestoreArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(dY_dt_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(F_K_vec, &F_K_arr);  IBTK_CHKERRQ(ierr);
             }
 
             // 5. Compute F~(n+1) = F(X~(n+1),n+1), the Lagrangian force
@@ -1308,7 +1308,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F~(n+1) on level number " << ln << "\n";
 
             Vec F_new_vec = F_new_data[ln]->getGlobalVec();
-            ierr = VecSet(F_new_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
+            ierr = VecSet(F_new_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(
                 F_new_data[ln], X_new_data[ln],
                 d_hierarchy, ln, new_time, d_lag_data_manager);
@@ -1324,13 +1324,13 @@ IBHierarchyIntegrator::advanceHierarchy(
                 Vec F_K_new_vec = F_K_new_data[ln]->getGlobalVec();
 
                 int n_local = 0;
-                ierr = VecGetLocalSize(K_vec, &n_local);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetLocalSize(K_vec, &n_local);  IBTK_CHKERRQ(ierr);
 
                 double* K_arr, * X_new_arr, * Y_new_arr, * F_K_new_arr;
-                ierr = VecGetArray(K_vec, &K_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(X_new_vec, &X_new_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(Y_new_vec, &Y_new_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(F_K_new_vec, &F_K_new_arr);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(X_new_vec, &X_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(F_K_new_vec, &F_K_new_arr);  IBTK_CHKERRQ(ierr);
 
                 for (int i = 0; i < n_local; ++i)
                 {
@@ -1340,12 +1340,12 @@ IBHierarchyIntegrator::advanceHierarchy(
                     }
                 }
 
-                ierr = VecRestoreArray(K_vec, &K_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(X_new_vec, &X_new_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(Y_new_vec, &Y_new_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(F_K_new_vec, &F_K_new_arr);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecRestoreArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(X_new_vec, &X_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(F_K_new_vec, &F_K_new_arr);  IBTK_CHKERRQ(ierr);
 
-                ierr = VecAXPY(F_new_vec, 1.0, F_K_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecAXPY(F_new_vec, 1.0, F_K_new_vec);  IBTK_CHKERRQ(ierr);
             }
 
             // 6. Spread F~(n+1) from the Lagrangian mesh onto the Cartesian
@@ -1364,10 +1364,10 @@ IBHierarchyIntegrator::advanceHierarchy(
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_new_data = patch->
                     getPatchData(d_F_idx);
-                const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->
                     getPatchData(d_lag_data_manager->
                                  getLNodeIndexPatchDescriptorIndex());
-                LEInteractor::spread(
+                IBTK::LEInteractor::spread(
                     f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
@@ -1538,10 +1538,10 @@ IBHierarchyIntegrator::advanceHierarchy(
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > w_data =
                     patch->getPatchData(d_W_idx);
-                const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->getPatchData(
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(
                     d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
 
-                LEInteractor::interpolate(
+                IBTK::LEInteractor::interpolate(
                     U_new_data[ln], X_new_data[ln], idx_data, w_data,
                     patch, patch_box, periodic_shift,
                     d_delta_fcn);
@@ -1554,8 +1554,8 @@ IBHierarchyIntegrator::advanceHierarchy(
             Vec U_new_vec = U_new_data[ln]->getGlobalVec();
             Vec X_vec = X_data[ln]->getGlobalVec();
             Vec X_new_vec = X_new_data[ln]->getGlobalVec();
-            ierr = VecAXPY(X_new_vec, dt, U_new_vec);  PETSC_SAMRAI_ERROR(ierr);
-            ierr = VecAXPBY(X_vec, 0.5, 0.5, X_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+            ierr = VecAXPY(X_new_vec, dt, U_new_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecAXPBY(X_vec, 0.5, 0.5, X_new_vec);  IBTK_CHKERRQ(ierr);
 
             if (d_using_pIB_method)
             {
@@ -1572,13 +1572,13 @@ IBHierarchyIntegrator::advanceHierarchy(
                 Vec F_K_new_vec = F_K_new_data[ln]->getGlobalVec();
 
                 int n_local = 0;
-                ierr = VecGetLocalSize(M_vec, &n_local);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetLocalSize(M_vec, &n_local);  IBTK_CHKERRQ(ierr);
 
                 double* M_arr, * Y_new_arr, * dY_dt_new_arr, * F_K_new_arr;
-                ierr = VecGetArray(M_vec, &M_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(Y_new_vec, &Y_new_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(dY_dt_new_vec, &dY_dt_new_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecGetArray(F_K_new_vec, &F_K_new_arr);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecGetArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(F_K_new_vec, &F_K_new_arr);  IBTK_CHKERRQ(ierr);
 
                 for (int i = 0; i < n_local; ++i)
                 {
@@ -1589,13 +1589,13 @@ IBHierarchyIntegrator::advanceHierarchy(
                     }
                 }
 
-                ierr = VecRestoreArray(M_vec, &M_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(Y_new_vec, &Y_new_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(dY_dt_new_vec, &dY_dt_new_arr);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecRestoreArray(F_K_new_vec, &F_K_new_arr);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecRestoreArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(F_K_new_vec, &F_K_new_arr);  IBTK_CHKERRQ(ierr);
 
-                ierr = VecAXPBY(Y_vec, 0.5, 0.5, Y_new_vec);  PETSC_SAMRAI_ERROR(ierr);
-                ierr = VecAXPBY(dY_dt_vec, 0.5, 0.5, dY_dt_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+                ierr = VecAXPBY(Y_vec, 0.5, 0.5, Y_new_vec);  IBTK_CHKERRQ(ierr);
+                ierr = VecAXPBY(dY_dt_vec, 0.5, 0.5, dY_dt_new_vec);  IBTK_CHKERRQ(ierr);
             }
 
             // 3. Interpolate u(n+1) from the Cartesian grid onto the Lagrangian
@@ -1608,10 +1608,10 @@ IBHierarchyIntegrator::advanceHierarchy(
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > w_data =
                     patch->getPatchData(d_W_idx);
-                const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data = patch->getPatchData(
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(
                     d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
 
-                LEInteractor::interpolate(
+                IBTK::LEInteractor::interpolate(
                     U_data[ln], X_data[ln], idx_data, w_data,
                     patch, patch_box, periodic_shift,
                     d_delta_fcn);
@@ -1629,32 +1629,32 @@ IBHierarchyIntegrator::advanceHierarchy(
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > w_data =
                 patch->getPatchData(d_W_idx);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_data =
                 patch->getPatchData(d_mark_current_idx);
-            const SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_scratch_data =
+            const SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_scratch_data =
                 patch->getPatchData(d_mark_scratch_idx);
 
             // Collect the current and predicted new positions of all markers in
             // the patch.
             std::vector<double> X_mark_current;
-            for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_data); it; it++)
+            for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>::Iterator it(*mark_data); it; it++)
             {
                 const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
                 if (patch_box.contains(i))
                 {
-                    const IBMarker& mark = it();
+                    const IBTK::LagMarker& mark = it();
                     const std::vector<double>& X = mark.getPositions();
                     X_mark_current.insert(X_mark_current.end(), X.begin(), X.end());
                 }
             }
 
             std::vector<double> X_mark_new;
-            for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_scratch_data); it; it++)
+            for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>::Iterator it(*mark_scratch_data); it; it++)
             {
                 const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
                 if (patch_box.contains(i))
                 {
-                    const IBMarker& mark = it();
+                    const IBTK::LagMarker& mark = it();
                     const std::vector<double>& X = mark.getPositions();
                     X_mark_new.insert(X_mark_new.end(), X.begin(), X.end());
                 }
@@ -1663,7 +1663,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             // Interpolate the velocity field at the predicted new marker
             // positions.
             std::vector<double> U_mark_new(X_mark_new.size(),0.0);
-            LEInteractor::interpolate(
+            IBTK::LEInteractor::interpolate(
                 U_mark_new, NDIM, X_mark_new, NDIM, w_data,
                 patch, patch_box, d_delta_fcn);
 
@@ -1681,7 +1681,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             }
 
             // Re-interpolate the velocity field at the final marker positions.
-            LEInteractor::interpolate(
+            IBTK::LEInteractor::interpolate(
                 U_mark_new, NDIM, X_mark_new, NDIM, w_data,
                 patch, patch_box, d_delta_fcn);
 
@@ -1715,12 +1715,12 @@ IBHierarchyIntegrator::advanceHierarchy(
             // Store the marker positions and velocities in the current marker
             // patch data.
             int marker_offset = 0;
-            for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_data); it; it++)
+            for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>::Iterator it(*mark_data); it; it++)
             {
                 const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
                 if (patch_box.contains(i))
                 {
-                    IBMarker& mark = it();
+                    IBTK::LagMarker& mark = it();
                     const int nmarks = mark.getNumberOfMarkers();
                     std::vector<double> X(X_mark_new.begin()+NDIM*marker_offset,
                                           X_mark_new.begin()+NDIM*(marker_offset+nmarks));
@@ -1855,7 +1855,7 @@ IBHierarchyIntegrator::getGriddingAlgorithm() const
     return d_gridding_alg;
 }// getGriddingAlgorithm
 
-LDataManager*
+IBTK::LDataManager*
 IBHierarchyIntegrator::getLDataManager() const
 {
     return d_lag_data_manager;
@@ -2127,7 +2127,7 @@ IBHierarchyIntegrator::initializeLevelData(
         refine_mark_alg->registerRefine(d_mark_current_idx, // destination
                                         d_mark_current_idx, // source
                                         d_mark_scratch_idx, // temporary work space
-                                        new IBMarkerRefineOperator());
+                                        new IBTK::LagMarkerRefineOperator());
 
         level->allocatePatchData(d_mark_scratch_idx, init_data_time);
 
@@ -2145,13 +2145,13 @@ IBHierarchyIntegrator::initializeLevelData(
         static const bool manage_data = true;
         if (d_using_pIB_method)
         {
-            SAMRAI::tbox::Pointer<LNodeLevelData> M_data = d_lag_data_manager->
+            SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> M_data = d_lag_data_manager->
                 createLNodeLevelData("M",level_number,1,manage_data);
-            SAMRAI::tbox::Pointer<LNodeLevelData> K_data = d_lag_data_manager->
+            SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> K_data = d_lag_data_manager->
                 createLNodeLevelData("K",level_number,1,manage_data);
-            SAMRAI::tbox::Pointer<LNodeLevelData> Y_data = d_lag_data_manager->
+            SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> Y_data = d_lag_data_manager->
                 createLNodeLevelData("Y",level_number,NDIM,manage_data);
-            SAMRAI::tbox::Pointer<LNodeLevelData> dY_dt_data = d_lag_data_manager->
+            SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> dY_dt_data = d_lag_data_manager->
                 createLNodeLevelData("dY_dt",level_number,NDIM,manage_data);
 
             static const int global_index_offset = 0;
@@ -2183,7 +2183,7 @@ IBHierarchyIntegrator::initializeLevelData(
                 const double* const patchXUpper = patch_geom->getXUpper();
                 const double* const patchDx = patch_geom->getDx();
 
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_data =
                     patch->getPatchData(d_mark_current_idx);
                 for (size_t k = 0; k < d_mark_init_posns.size()/NDIM; ++k)
                 {
@@ -2200,13 +2200,13 @@ IBHierarchyIntegrator::initializeLevelData(
                         ;
                     if (patch_owns_node_at_loc)
                     {
-                        const SAMRAI::hier::Index<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
+                        const SAMRAI::hier::Index<NDIM> i = IBTK::IndexUtilities::getCellIndex(
                             X, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
                         if (!mark_data->isElement(i))
                         {
-                            mark_data->appendItem(i, IBMarker());
+                            mark_data->appendItem(i, IBTK::LagMarker());
                         }
-                        IBMarker& new_mark = *(mark_data->getItem(i));
+                        IBTK::LagMarker& new_mark = *(mark_data->getItem(i));
                         std::vector<double>& new_X = new_mark.getPositions();
                         std::vector<double>& new_U = new_mark.getVelocities();
                         std::vector<int>& new_idx = new_mark.getIndices();
@@ -2246,8 +2246,8 @@ IBHierarchyIntegrator::initializeLevelData(
             d_source_strategy->getSourceLocations(
                 d_X_src[level_number], d_r_src[level_number],
                 (d_lag_data_manager->levelContainsLagrangianData(level_number)
-                 ? d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,level_number)
-                 : SAMRAI::tbox::Pointer<LNodeLevelData>(NULL)),
+                 ? d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,level_number)
+                 : SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>(NULL)),
                 hierarchy, level_number, d_integrator_time, d_lag_data_manager);
         }
     }
@@ -2452,7 +2452,7 @@ IBHierarchyIntegrator::applyGradientDetector(
             }
 
             // Determine the approximate source stencil box.
-            const SAMRAI::hier::Index<NDIM> i_center = STOOLS::STOOLS_Utilities::getCellIndex(
+            const SAMRAI::hier::Index<NDIM> i_center = IBTK::IndexUtilities::getCellIndex(
                 d_X_src[finer_level_number][n], xLower, xUpper, dx_finer, lower, upper);
             SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
             for (int d = 0; d < NDIM; ++d)
@@ -2481,16 +2481,16 @@ IBHierarchyIntegrator::applyGradientDetector(
 ///
 ///  The following routines:
 ///
-///      getIBMarkerVar()
+///      getLagMarkerVar()
 ///
 ///  allows access to the various state variables maintained by the integrator.
 ///
 
-SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBMarker> >
-IBHierarchyIntegrator::getIBMarkerVar() const
+SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker> >
+IBHierarchyIntegrator::getLagMarkerVar() const
 {
     return d_mark_var;
-}// getIBMarkerVar
+}// getLagMarkerVar
 
 ///
 ///  The following routines:
@@ -2784,7 +2784,7 @@ IBHierarchyIntegrator::collectMarkersOnCoarsestLevel()
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > mark_coarsen_alg = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
     mark_coarsen_alg->registerCoarsen(d_mark_current_idx, // destination
                                       d_mark_current_idx, // source
-                                      new IBMarkerCoarsenOperator());
+                                      new IBTK::LagMarkerCoarsenOperator());
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -2794,7 +2794,7 @@ IBHierarchyIntegrator::collectMarkersOnCoarsestLevel()
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > current_mark_data =
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > current_mark_data =
                 patch->getPatchData(d_mark_current_idx);
             current_mark_data->removeAllItems();
         }
@@ -2823,14 +2823,14 @@ IBHierarchyIntegrator::collectMarkersOnCoarsestLevel()
         const double* const patchXUpper = patch_geom->getXUpper();
         const double* const patchDx = patch_geom->getDx();
 
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > current_mark_data =
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > current_mark_data =
             patch->getPatchData(d_mark_current_idx);
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > new_mark_data = new SAMRAI::pdat::IndexData<NDIM,IBMarker>(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > new_mark_data = new SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>(
             current_mark_data->getBox(), current_mark_data->getGhostCellWidth());
 
-        for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*current_mark_data); it; it++)
+        for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>::Iterator it(*current_mark_data); it; it++)
         {
-            const IBMarker& old_mark = it();
+            const IBTK::LagMarker& old_mark = it();
             const std::vector<double>& old_X = old_mark.getPositions();
             const std::vector<double>& old_U = old_mark.getVelocities();
             const std::vector<int>& old_idx = old_mark.getIndices();
@@ -2859,13 +2859,13 @@ IBHierarchyIntegrator::collectMarkersOnCoarsestLevel()
 
                 if (patch_owns_node_at_new_loc)
                 {
-                    const SAMRAI::hier::Index<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
+                    const SAMRAI::hier::Index<NDIM> i = IBTK::IndexUtilities::getCellIndex(
                         X_shifted, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
                     if (!new_mark_data->isElement(i))
                     {
-                        new_mark_data->appendItem(i, IBMarker());
+                        new_mark_data->appendItem(i, IBTK::LagMarker());
                     }
-                    IBMarker& new_mark = *(new_mark_data->getItem(i));
+                    IBTK::LagMarker& new_mark = *(new_mark_data->getItem(i));
                     std::vector<double>& new_X = new_mark.getPositions();
                     std::vector<double>& new_U = new_mark.getVelocities();
                     std::vector<int>& new_idx = new_mark.getIndices();
@@ -2901,7 +2901,7 @@ IBHierarchyIntegrator::pruneDuplicateMarkers(
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_data =
                 patch->getPatchData(d_mark_current_idx);
             const SAMRAI::hier::Box<NDIM>& ghost_box = mark_data->getGhostBox();
             for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
@@ -2938,14 +2938,14 @@ IBHierarchyIntegrator::countMarkers(
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBMarker> > mark_data =
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_data =
                 patch->getPatchData(d_mark_current_idx);
-            for (SAMRAI::pdat::IndexData<NDIM,IBMarker>::Iterator it(*mark_data); it; it++)
+            for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>::Iterator it(*mark_data); it; it++)
             {
                 const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
                 if (patch_box.contains(i) && (!skip_refined_regions || !refined_region_boxes.contains(i)))
                 {
-                    const IBMarker& mark = it();
+                    const IBTK::LagMarker& mark = it();
                     const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
                     if (patch_box.contains(i))
                     {
@@ -2963,7 +2963,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
     const int coarsest_level,
     const int finest_level,
     const double data_time,
-    const std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data)
+    const std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> >& X_data)
 {
     if (d_source_strategy.isNull()) return;
 
@@ -3061,7 +3061,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
                     }
 
                     // Determine the approximate source stencil box.
-                    const SAMRAI::hier::Index<NDIM> i_center = STOOLS::STOOLS_Utilities::getCellIndex(
+                    const SAMRAI::hier::Index<NDIM> i_center = IBTK::IndexUtilities::getCellIndex(
                         d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
                     SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
                     for (int d = 0; d < NDIM; ++d)
@@ -3174,7 +3174,7 @@ IBHierarchyIntegrator::computeSourcePressures(
     const int coarsest_level,
     const int finest_level,
     const double data_time,
-    const std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data)
+    const std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> >& X_data)
 {
     if (d_source_strategy.isNull()) return;
 
@@ -3286,7 +3286,7 @@ IBHierarchyIntegrator::computeSourcePressures(
                     }
 
                     // Determine the approximate source stencil box.
-                    const SAMRAI::hier::Index<NDIM> i_center = STOOLS::STOOLS_Utilities::getCellIndex(
+                    const SAMRAI::hier::Index<NDIM> i_center = IBTK::IndexUtilities::getCellIndex(
                         d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
                     SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
                     for (int d = 0; d < NDIM; ++d)

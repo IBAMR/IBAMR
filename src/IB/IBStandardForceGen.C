@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <04.Feb.2008 22:00:48 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:00:40 griffith@box221.cims.nyu.edu>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBStandardForceGen.h"
@@ -64,7 +64,6 @@ IBStandardForceGen::IBStandardForceGen(
 
     d_force_strategy_set = new IBLagrangianForceStrategySet(
         strategy_set.begin(), strategy_set.end());
-
     return;
 }// IBStandardForceGen
 
@@ -80,7 +79,7 @@ IBStandardForceGen::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    IBTK::LDataManager* const lag_manager)
 {
     d_force_strategy_set->initializeLevelData(
         hierarchy, level_number, init_data_time, initial_time, lag_manager);
@@ -89,12 +88,12 @@ IBStandardForceGen::initializeLevelData(
 
 void
 IBStandardForceGen::computeLagrangianForce(
-    SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
-    SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    IBTK::LDataManager* const lag_manager)
 {
     d_force_strategy_set->computeLagrangianForce(
         F_data, X_data, hierarchy, level_number, data_time, lag_manager);

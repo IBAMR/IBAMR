@@ -1,5 +1,5 @@
 // Filename: IBSpringForceSpecFactory.C
-// Last modified: <12.Feb.2008 21:16:36 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:03:30 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceSpecFactory.h"
@@ -18,7 +18,9 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBSpringForceSpec.h>
-#include <ibamr/StashableManager.h>
+
+// IBTK INCLUDES
+#include <ibtk/StashableManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -32,7 +34,7 @@ int IBSpringForceSpecFactory::s_stashable_id = -1;
 
 IBSpringForceSpecFactory::IBSpringForceSpecFactory()
 {
-    setStashableID(StashableManager::getUnregisteredID());
+    setStashableID(IBTK::StashableManager::getUnregisteredID());
     return;
 }// IBSpringForceSpecFactory
 
@@ -56,7 +58,7 @@ IBSpringForceSpecFactory::setStashableID(
     return;
 }// setStashableID
 
-SAMRAI::tbox::Pointer<Stashable>
+SAMRAI::tbox::Pointer<IBTK::Stashable>
 IBSpringForceSpecFactory::unpackStream(
     SAMRAI::tbox::AbstractStream& stream,
     const SAMRAI::hier::IntVector<NDIM>& offset)

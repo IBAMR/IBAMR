@@ -10,10 +10,10 @@
 // IBAMR INCLUDES
 #include <ibamr/GodunovAdvector.h>
 
-// STOOLS INCLUDES
-#include <stools/CartExtrapPhysBdryOp.h>
-#include <stools/CoarseFineBoundaryRefinePatchStrategy.h>
-#include <stools/SetDataStrategy.h>
+// IBTK INCLUDES
+#include <ibtk/CartExtrapPhysBdryOp.h>
+#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
+#include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -127,7 +127,7 @@ public:
      */
     void
     registerCoarseFineBoundaryRefinePatchStrategy(
-        SAMRAI::tbox::Pointer<STOOLS::CoarseFineBoundaryRefinePatchStrategy> coarse_fine_bdry_op);
+        SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> coarse_fine_bdry_op);
 
     ///
     ///  The following routines:
@@ -168,7 +168,7 @@ public:
     registerAdvectedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
@@ -200,7 +200,7 @@ public:
     registerAdvectedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
@@ -239,9 +239,9 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -279,9 +279,9 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -303,7 +303,7 @@ public:
     registerAdvectionVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
         const bool u_is_div_free,
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> u_set=NULL);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_set=NULL);
 
 #if (NDIM>1)
     /*!
@@ -610,15 +610,15 @@ protected:
      * Objects to set initial and boundary conditions as well as forcing terms
      * for each advected quantity.
      */
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_Q_inits;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_Q_inits;
     std::vector<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coefs;
-    std::vector<SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> > d_F_sets;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_F_sets;
 
     /*
      * The advection velocity.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_var;
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> d_u_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_set;
     bool d_u_is_div_free, d_u_is_registered;
     bool d_compute_init_velocity, d_compute_half_velocity, d_compute_final_velocity;
 
@@ -698,8 +698,8 @@ private:
     /*
      * Boundary condition extrapolation helpers.
      */
-    STOOLS::CartExtrapPhysBdryOp d_extrap_bc_helper;
-    SAMRAI::tbox::Pointer<STOOLS::CoarseFineBoundaryRefinePatchStrategy> d_coarse_fine_bdry_op;
+    IBTK::CartExtrapPhysBdryOp d_extrap_bc_helper;
+    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_coarse_fine_bdry_op;
 
     /*
      *  Parameters for numerical method:

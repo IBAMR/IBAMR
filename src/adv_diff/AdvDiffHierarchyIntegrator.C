@@ -19,9 +19,9 @@
 // IBAMR INCLUDES
 #include <ibamr/TGACoefs.h>
 
-// STOOLS INCLUDES
-#include <stools/FACPreconditionerLSWrapper.h>
-#include <stools/PETScKrylovLinearSolver.h>
+// IBTK INCLUDES
+#include <ibtk/FACPreconditionerLSWrapper.h>
+#include <ibtk/PETScKrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -324,7 +324,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     const double Q_mu,
     const double Q_lambda,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
@@ -341,7 +341,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     const double Q_mu,
     const double Q_lambda,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
@@ -392,7 +392,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
 
         d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
             Q_var, Psi_var, conservation_form, Q_init, Q_bc_coefs_local,
-            SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>(NULL), grad_var);
+            SAMRAI::tbox::Pointer<IBTK::SetDataStrategy>(NULL), grad_var);
     }
     else
     {
@@ -409,9 +409,9 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     const double Q_lambda,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedAndDiffusedQuantityWithSourceTerm(
@@ -428,9 +428,9 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     const double Q_lambda,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -487,7 +487,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
 
         d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
             Q_var, Psi_var, conservation_form, Q_init, Q_bc_coefs_local,
-            SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>(NULL), grad_var);
+            SAMRAI::tbox::Pointer<IBTK::SetDataStrategy>(NULL), grad_var);
     }
     else
     {
@@ -501,7 +501,7 @@ void
 AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
     const bool u_is_div_free,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> u_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_set)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!u_var.isNull());
@@ -525,7 +525,7 @@ AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
 ///  HierarchyIntegrator objects.
 ///
 
-SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps>
+SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>
 AdvDiffHierarchyIntegrator::getHierarchyMathOps() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -536,7 +536,7 @@ AdvDiffHierarchyIntegrator::getHierarchyMathOps() const
 
 void
 AdvDiffHierarchyIntegrator::setHierarchyMathOps(
-    SAMRAI::tbox::Pointer<STOOLS::HierarchyMathOps> hier_math_ops,
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
     const bool manage_ops)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -667,7 +667,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the Hierarchy math operations object.
     if (d_hier_math_ops.isNull())
     {
-        d_hier_math_ops = new STOOLS::HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy);
+        d_hier_math_ops = new IBTK::HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy);
         d_is_managing_hier_math_ops = true;
     }
 
@@ -683,7 +683,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
 
         d_helmholtz_specs.push_back(SAMRAI::solv::PoissonSpecifications(
                                         d_object_name+"::Helmholtz Specs::"+name));
-        d_helmholtz_ops.push_back(new STOOLS::CCLaplaceOperator(
+        d_helmholtz_ops.push_back(new IBTK::CCLaplaceOperator(
                                       d_object_name+"::Helmholtz Operator::"+name,
                                       d_helmholtz_specs[l], d_Q_bc_coefs[l]));
     }
@@ -703,7 +703,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         // Helmholtz solver/operator data.
         if (d_using_FAC)
         {
-            d_helmholtz_fac_ops[l] = new STOOLS::CCPoissonFACOperator(
+            d_helmholtz_fac_ops[l] = new IBTK::CCPoissonFACOperator(
                 d_object_name+"::FAC Ops::"+name, d_fac_ops_db);
             d_helmholtz_fac_ops[l]->setPoissonSpecifications(
                 d_helmholtz_specs[l]);
@@ -716,7 +716,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
                 d_helmholtz_fac_pcs[l]);
         }
 
-        d_helmholtz_solvers[l] = new STOOLS::PETScKrylovLinearSolver(
+        d_helmholtz_solvers[l] = new IBTK::PETScKrylovLinearSolver(
             d_object_name+"::PETSc Krylov solver::"+name, "adv_diff_");
         d_helmholtz_solvers[l]->setMaxIterations(d_max_iterations);
         d_helmholtz_solvers[l]->setAbsoluteTolerance(d_abs_residual_tol);
@@ -726,7 +726,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         if (d_using_FAC)
         {
             d_helmholtz_solvers[l]->setPreconditioner(
-                new STOOLS::FACPreconditionerLSWrapper(
+                new IBTK::FACPreconditionerLSWrapper(
                     d_helmholtz_fac_pcs[l], d_fac_pcs_db));
         }
 
@@ -977,7 +977,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_vars[l];
         const double mu = d_Q_mus[l];
         const double lambda = d_Q_lambdas[l];
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set = d_F_sets[l];
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set = d_F_sets[l];
 
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
@@ -1083,7 +1083,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         const double mu = d_Q_mus[l];
         const double lambda = d_Q_lambdas[l];
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs = d_Q_bc_coefs[l];
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set = d_F_sets[l];
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set = d_F_sets[l];
 
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
@@ -1118,7 +1118,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         // Setup the problem coefficients and right hand side for the linear
         // solve for Q(n+1).
         SAMRAI::solv::PoissonSpecifications& helmholtz_spec = d_helmholtz_specs[l];
-        SAMRAI::tbox::Pointer<STOOLS::CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
+        SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
 
         if (d_viscous_timestepping_type == "BACKWARD_EULER")
         {
@@ -1281,9 +1281,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         helmholtz_op->setTime(new_time);
         helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
-        SAMRAI::tbox::Pointer<STOOLS::CCPoissonFACOperator>           helmholtz_fac_op = d_helmholtz_fac_ops[l];
+        SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>           helmholtz_fac_op = d_helmholtz_fac_ops[l];
         SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
-        SAMRAI::tbox::Pointer<STOOLS::KrylovLinearSolver>             helmholtz_solver = d_helmholtz_solvers[l];
+        SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>             helmholtz_solver = d_helmholtz_solvers[l];
 
         if (d_helmholtz_solvers_need_init[l])
         {
@@ -1520,7 +1520,7 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
             {
                 const int F_idx = var_db->mapVariableAndContextToIndex(
                     F_var, getCurrentContext());
-                SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set = d_F_sets [l];
+                SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set = d_F_sets [l];
 
                 if (!F_set.isNull())
                 {
@@ -1588,11 +1588,11 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
         const int Q_temp_idx = var_db->mapVariableAndContextToIndex(Q_var, d_temp_context);
 
         // Setup the interpolation transaction information.
-        typedef STOOLS::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         InterpolationTransactionComponent transaction_comp(Q_temp_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Q_bc_coefs[l]);
 
         // Initialize the interpolation operators.
-        d_hier_bdry_fill_ops[l] = new STOOLS::HierarchyGhostCellInterpolation();
+        d_hier_bdry_fill_ops[l] = new IBTK::HierarchyGhostCellInterpolation();
         d_hier_bdry_fill_ops[l]->initializeOperatorState(transaction_comp, d_hierarchy);
     }
 

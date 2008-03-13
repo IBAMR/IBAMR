@@ -2,13 +2,13 @@
 #define included_IBInstrumentationSpec
 
 // Filename: IBInstrumentationSpec.h
-// Last modified: <02.Oct.2007 00:46:44 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 22:38:40 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/Stashable.h>
+// IBTK INCLUDES
+#include <ibtk/Stashable.h>
 
 // SAMRAI INCLUDES
 #include <tbox/AbstractStream.h>
@@ -25,12 +25,12 @@ namespace IBAMR
  * initialize distributed internal flow meters and pressure gauges.
  */
 class IBInstrumentationSpec
-    : public Stashable
+    : public IBTK::Stashable
 {
 public:
     /*!
      * \brief Register this class and its factory class with the singleton
-     * StashableManager object.  This method must be called before any
+     * IBTK::StashableManager object.  This method must be called before any
      * IBInstrumentationSpec objects are created.
      *
      * \note This method is collective on all MPI processes.  This is done to
@@ -42,7 +42,7 @@ public:
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
-     * with the singleton StashableManager object.
+     * with the singleton IBTK::StashableManager object.
      */
     static bool
     getIsRegisteredWithStashableManager();
@@ -115,8 +115,8 @@ public:
     getNodeIndex();
 
     /*!
-     * \brief Return the unique identifier used to specify the StashableFactory
-     * object used by the StashableManager to extract Stashable objects from
+     * \brief Return the unique identifier used to specify the IBTK::StashableFactory
+     * object used by the IBTK::StashableManager to extract Stashable objects from
      * data streams.
      */
     virtual int
@@ -162,7 +162,7 @@ private:
 
     /*!
      * Indicates whether the factory has been registered with the
-     * StashableManager.
+     * IBTK::StashableManager.
      */
     static bool s_registered_factory;
 

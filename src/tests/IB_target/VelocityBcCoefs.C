@@ -16,15 +16,15 @@
 #define included_SAMRAI_config
 #endif
 
-// STOOLS INCLUDES
-#include <stools/PhysicalBoundaryUtilities.h>
+// IBTK INCLUDES
+#include <ibtk/PhysicalBoundaryUtilities.h>
 
 // SAMRAI INCLUDES
 #include <CartesianPatchGeometry.h>
 #include <tbox/Utilities.h>
 
 // NAMESPACE
-using namespace STOOLS;
+using namespace IBTK;
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

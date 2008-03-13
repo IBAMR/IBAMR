@@ -20,10 +20,10 @@
 #include <ibamr/LEInteractor.h>
 #include <ibamr/LNodeIndexData.h>
 
-// STOOLS INCLUDES
-#include <stools/CartExtrapPhysBdryOp.h>
-#include <stools/PETSC_SAMRAI_ERROR.h>
-#include <stools/STOOLS_Utilities.h>
+// IBTK INCLUDES
+#include <ibtk/CartExtrapPhysBdryOp.h>
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IBTK_Utilities.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -397,7 +397,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_V_idx,       // temporary work space
                        refine_operator);
     d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
+        new IBTK::CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
 
     const int U_new_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
@@ -414,7 +414,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
                        d_W_idx,   // temporary work space
                        refine_operator);
     d_rstrategies["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"] =
-        new STOOLS::CartExtrapPhysBdryOp(d_W_idx, "LINEAR");
+        new IBTK::CartExtrapPhysBdryOp(d_W_idx, "LINEAR");
 
     // NOTE: When using conservative averaging to coarsen the velocity
     // from finer levels to coarser levels, the appropriate
@@ -441,7 +441,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     SAMRAI::hier::ComponentSelector F_scratch_idxs;
     F_scratch_idxs.setFlag(d_F_scratch1_idx);
     F_scratch_idxs.setFlag(d_F_scratch2_idx);
-    d_force_rstrategy = new STOOLS::CartExtrapPhysBdryOp(
+    d_force_rstrategy = new IBTK::CartExtrapPhysBdryOp(
         F_scratch_idxs, "LINEAR");
 
     d_calgs["U->U::C->C::CONSERVATIVE_COARSEN"] =
@@ -637,12 +637,12 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F(n+1) on level number " << ln << "\n";
 
             Vec F_new_vec = F_new_data[ln]->getGlobalVec();
-            ierr = VecSet(F_new_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
+            ierr = VecSet(F_new_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(
                 F_new_data[ln], X_data[ln], NULL,
                 d_hierarchy, ln, new_time, d_lag_data_manager);
             F_new_vec = F_new_data[ln]->getGlobalVec();
-            ierr = VecScale(F_new_vec, 2.0);  PETSC_SAMRAI_ERROR(ierr);
+            ierr = VecScale(F_new_vec, 2.0);  IBTK_CHKERRQ(ierr);
 
             // 2. Communicate ghost data.
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): communicating ghost node data on level number " << ln << "\n";
@@ -731,24 +731,24 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
     Vec X_vec = X_data[ln]->getGlobalVec();
 
     Vec X_soln_vec, R_soln_vec;
-    ierr = VecDuplicate(X_vec, &X_soln_vec);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecDuplicate(X_vec, &R_soln_vec);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecDuplicate(X_vec, &X_soln_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(X_vec, &R_soln_vec);  IBTK_CHKERRQ(ierr);
 
-    ierr = VecCopy(X_vec, X_soln_vec);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecSet(R_soln_vec, 0.0);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecCopy(X_vec, X_soln_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecSet(R_soln_vec, 0.0);  IBTK_CHKERRQ(ierr);
 
     SNES snes;
-    ierr = SNESCreate(PETSC_COMM_WORLD, &snes);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = SNESSetFunction(snes, R_soln_vec, IBImplicitHierarchyIntegrator::FormFunction_PETSC, static_cast<void*>(this));  PETSC_SAMRAI_ERROR(ierr);
-    ierr = SNESSetFromOptions(snes);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = SNESSolve(snes, PETSC_NULL, X_soln_vec);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = SNESDestroy(snes);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = SNESCreate(PETSC_COMM_WORLD, &snes);  IBTK_CHKERRQ(ierr);
+    ierr = SNESSetFunction(snes, R_soln_vec, IBImplicitHierarchyIntegrator::FormFunction_PETSC, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
+    ierr = SNESSetFromOptions(snes);  IBTK_CHKERRQ(ierr);
+    ierr = SNESSolve(snes, PETSC_NULL, X_soln_vec);  IBTK_CHKERRQ(ierr);
+    ierr = SNESDestroy(snes);  IBTK_CHKERRQ(ierr);
 
     X_vec = X_data[ln]->getGlobalVec();
-    ierr = VecCopy(X_soln_vec, X_vec);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecCopy(X_soln_vec, X_vec);  IBTK_CHKERRQ(ierr);
 
-    ierr = VecDestroy(X_soln_vec);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecDestroy(R_soln_vec);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecDestroy(X_soln_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(R_soln_vec);  IBTK_CHKERRQ(ierr);
 
     // Deallocate Cartesian grid patch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1440,14 +1440,14 @@ IBImplicitHierarchyIntegrator::FormFunction(
         Vec X_new_vec = X_new_data[ln]->getGlobalVec();
         Vec U_new_vec = U_new_data[ln]->getGlobalVec();
 
-        ierr = VecCopy(X_vec, X_new_vec);  PETSC_SAMRAI_ERROR(ierr);
-        ierr = VecAXPY(X_new_vec, +dt, U_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+        ierr = VecCopy(X_vec, X_new_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(X_new_vec, +dt, U_new_vec);  IBTK_CHKERRQ(ierr);
     }
 
     // Set R = X(n+1)-X~(n+1).
     {
         Vec X_new_vec = X_new_data[ln]->getGlobalVec();
-        ierr = VecWAXPY(R_soln_vec, -1.0, X_soln_vec, X_new_vec);  PETSC_SAMRAI_ERROR(ierr);
+        ierr = VecWAXPY(R_soln_vec, -1.0, X_soln_vec, X_new_vec);  IBTK_CHKERRQ(ierr);
     }
 
     PetscFunctionReturn(0);

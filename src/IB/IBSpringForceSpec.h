@@ -2,13 +2,13 @@
 #define included_IBSpringForceSpec
 
 // Filename: IBSpringForceSpec.h
-// Last modified: <02.Oct.2007 00:46:23 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 22:38:41 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/Stashable.h>
+// IBTK INCLUDES
+#include <ibtk/Stashable.h>
 
 // SAMRAI INCLUDES
 #include <tbox/AbstractStream.h>
@@ -34,7 +34,7 @@ namespace IBAMR
  * Then, the negation of that force can be applied to the opposite end of the
  * spring (e.g., at the slave node).
  *
- * IBSpringForceSpec objects are stored as Stashable data associated with only
+ * IBSpringForceSpec objects are stored as IBTK::Stashable data associated with only
  * the master nodes in the mesh.
  *
  * \note Different spring force functions may be speficied for each link in the
@@ -45,12 +45,12 @@ namespace IBAMR
  * IBSpringForceGen::registerSpringForceFunction().
  */
 class IBSpringForceSpec
-    : public Stashable
+    : public IBTK::Stashable
 {
 public:
     /*!
      * \brief Register this class and its factory class with the singleton
-     * StashableManager object.  This method must be called before any
+     * IBTK::StashableManager object.  This method must be called before any
      * IBSpringForceSpec objects are created.
      *
      * \note This method is collective on all MPI processes.  This is done to
@@ -62,7 +62,7 @@ public:
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
-     * with the singleton StashableManager object.
+     * with the singleton IBTK::StashableManager object.
      */
     static bool
     getIsRegisteredWithStashableManager();
@@ -165,8 +165,8 @@ public:
     getRestingLengths();
 
     /*!
-     * \brief Return the unique identifier used to specify the StashableFactory
-     * object used by the StashableManager to extract Stashable objects from
+     * \brief Return the unique identifier used to specify the IBTK::StashableFactory
+     * object used by the IBTK::StashableManager to extract Stashable objects from
      * data streams.
      */
     virtual int
@@ -212,7 +212,7 @@ private:
 
     /*!
      * Indicates whether the factory has been registered with the
-     * StashableManager.
+     * IBTK::StashableManager.
      */
     static bool s_registered_factory;
 

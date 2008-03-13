@@ -33,7 +33,7 @@ IBEulerianSourceSetter::IBEulerianSourceSetter(
     const int Q_current_idx,
     const int Q_new_idx,
     const int Q_half_idx)
-    : STOOLS::SetDataStrategy(object_name),
+    : IBTK::SetDataStrategy(object_name),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_Q_current_idx(Q_current_idx),

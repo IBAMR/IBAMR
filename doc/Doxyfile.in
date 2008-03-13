@@ -1050,7 +1050,7 @@ SKIP_FUNCTION_MACROS   = YES
 
 TAGFILES               = "@srcdir@/libstdc++.tag=http://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen" \
                          @SAMRAI_DIR@/../SAMRAI/docs/samrai-dox/html/samrai.tag=@SAMRAI_DIR@/../SAMRAI/docs/samrai-dox/html \
-                         ../stools/doc/STOOLS.tag=../../stools/doc/html
+                         ../ibtk/doc/IBTK.tag=../../ibtk/doc/html
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create
 # a tag file that is based on the input files it reads.

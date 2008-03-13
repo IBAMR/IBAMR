@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <12.Feb.2008 21:13:22 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 22:33:47 griffith@box221.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -18,10 +18,10 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBBeamForceSpec.h>
-#include <ibamr/LNodeIndexData2.h>
 
-// STOOLS INCLUDES
-#include <stools/PETSC_SAMRAI_ERROR.h>
+// IBTK INCLUDES
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/LNodeIndexData2.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -81,14 +81,14 @@ IBBeamForceGen::~IBBeamForceGen()
     {
         if (*it)
         {
-            ierr = MatDestroy(*it);  PETSC_SAMRAI_ERROR(ierr);
+            ierr = MatDestroy(*it);  IBTK_CHKERRQ(ierr);
         }
     }
     for (std::vector<Mat>::iterator it = d_D_prev_mats.begin(); it != d_D_prev_mats.end(); ++it)
     {
         if (*it)
         {
-            ierr = MatDestroy(*it);  PETSC_SAMRAI_ERROR(ierr);
+            ierr = MatDestroy(*it);  IBTK_CHKERRQ(ierr);
         }
     }
     return;
@@ -100,7 +100,7 @@ IBBeamForceGen::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    IBTK::LDataManager* const lag_manager)
 {
     t_initialize_level_data->start();
 
@@ -136,11 +136,11 @@ IBBeamForceGen::initializeLevelData(
 
     if (D_next_mat)
     {
-        ierr = MatDestroy(D_next_mat);  PETSC_SAMRAI_ERROR(ierr);
+        ierr = MatDestroy(D_next_mat);  IBTK_CHKERRQ(ierr);
     }
     if (D_prev_mat)
     {
-        ierr = MatDestroy(D_prev_mat);  PETSC_SAMRAI_ERROR(ierr);
+        ierr = MatDestroy(D_prev_mat);  IBTK_CHKERRQ(ierr);
     }
     petsc_mastr_node_idxs.clear();
     petsc_next_node_idxs.clear();
@@ -148,8 +148,7 @@ IBBeamForceGen::initializeLevelData(
     bend_rigidities.clear();
 
     // The patch data descriptor index for the LNodeIndexData2.
-    const int lag_node_index_idx = lag_manager->
-        getLNodeIndexPatchDescriptorIndex();
+    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
 
     // Determine the "next" and "prev" node indices for all beams associated
     // with the present MPI process.
@@ -157,19 +156,19 @@ IBBeamForceGen::initializeLevelData(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
+        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data =
             patch->getPatchData(lag_node_index_idx);
 
-        for (LNodeIndexData2::Iterator it(patch_box); it; it++)
+        for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
         {
             const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-            const LNodeIndexSet& node_set = (*idx_data)(i);
-            for (LNodeIndexSet::const_iterator n = node_set.begin();
+            const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
+            for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin();
                  n != node_set.end(); ++n)
             {
-                const LNodeIndexSet::value_type& node_idx = *n;
+                const IBTK::LNodeIndexSet::value_type& node_idx = *n;
                 const int& mastr_idx = node_idx->getLagrangianIndex();
-                const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
+                const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data =
                     node_idx->getStashData();
                 for (unsigned l = 0; l < stash_data.size(); ++l)
                 {
@@ -249,14 +248,14 @@ IBBeamForceGen::initializeLevelData(
                             PETSC_DETERMINE, PETSC_DETERMINE,
                             PETSC_DEFAULT, &next_d_nz[0],
                             PETSC_DEFAULT, &next_o_nz[0],
-                            &D_next_mat);  PETSC_SAMRAI_ERROR(ierr);
+                            &D_next_mat);  IBTK_CHKERRQ(ierr);
 
     ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
                             NDIM, NDIM*local_sz, NDIM*num_local_nodes,
                             PETSC_DETERMINE, PETSC_DETERMINE,
                             PETSC_DEFAULT, &prev_d_nz[0],
                             PETSC_DEFAULT, &prev_o_nz[0],
-                            &D_prev_mat);  PETSC_SAMRAI_ERROR(ierr);
+                            &D_prev_mat);  IBTK_CHKERRQ(ierr);
 
     std::vector<double> mastr_vals(NDIM*NDIM,0.0);
     std::vector<double> slave_vals(NDIM*NDIM,0.0);
@@ -269,7 +268,7 @@ IBBeamForceGen::initializeLevelData(
     int i_offset;
 
     ierr = MatGetOwnershipRange(D_next_mat, &i_offset, PETSC_NULL);
-    PETSC_SAMRAI_ERROR(ierr);
+    IBTK_CHKERRQ(ierr);
     i_offset /= NDIM;
 
     for (int k = 0; k < local_sz; ++k)
@@ -279,14 +278,14 @@ IBBeamForceGen::initializeLevelData(
         int j_slave = petsc_next_node_idxs[k];
 
         ierr = MatSetValuesBlocked(D_next_mat,1,&i,1,&j_mastr,&(mastr_vals[0]),
-                                   INSERT_VALUES);  PETSC_SAMRAI_ERROR(ierr);
+                                   INSERT_VALUES);  IBTK_CHKERRQ(ierr);
 
         ierr = MatSetValuesBlocked(D_next_mat,1,&i,1,&j_slave,&(slave_vals[0]),
-                                   INSERT_VALUES);  PETSC_SAMRAI_ERROR(ierr);
+                                   INSERT_VALUES);  IBTK_CHKERRQ(ierr);
     }
 
     ierr = MatGetOwnershipRange(D_prev_mat, &i_offset, PETSC_NULL);
-    PETSC_SAMRAI_ERROR(ierr);
+    IBTK_CHKERRQ(ierr);
     i_offset /= NDIM;
 
     for (int k = 0; k < local_sz; ++k)
@@ -296,17 +295,17 @@ IBBeamForceGen::initializeLevelData(
         int j_slave = petsc_prev_node_idxs[k];
 
         ierr = MatSetValuesBlocked(D_prev_mat,1,&i,1,&j_mastr,&(mastr_vals[0]),
-                                   INSERT_VALUES);  PETSC_SAMRAI_ERROR(ierr);
+                                   INSERT_VALUES);  IBTK_CHKERRQ(ierr);
 
         ierr = MatSetValuesBlocked(D_prev_mat,1,&i,1,&j_slave,&(slave_vals[0]),
-                                   INSERT_VALUES);  PETSC_SAMRAI_ERROR(ierr);
+                                   INSERT_VALUES);  IBTK_CHKERRQ(ierr);
     }
 
     // Assemble the matrix.
-    ierr = MatAssemblyBegin(D_next_mat, MAT_FINAL_ASSEMBLY);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = MatAssemblyBegin(D_prev_mat, MAT_FINAL_ASSEMBLY);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = MatAssemblyEnd(D_next_mat, MAT_FINAL_ASSEMBLY);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = MatAssemblyEnd(D_prev_mat, MAT_FINAL_ASSEMBLY);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = MatAssemblyBegin(D_next_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(D_prev_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(D_next_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(D_prev_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
 
     // Indicate that the level data has been initialized.
     d_is_initialized[level_num] = true;
@@ -317,12 +316,12 @@ IBBeamForceGen::initializeLevelData(
 
 void
 IBBeamForceGen::computeLagrangianForce(
-    SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
-    SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    IBTK::LDataManager* const lag_manager)
 {
     t_compute_lagrangian_force->start();
 
@@ -337,26 +336,26 @@ IBBeamForceGen::computeLagrangianForce(
     // displacements.
     int i_start, i_stop;
     ierr = MatGetOwnershipRange(d_D_next_mats[level_number], &i_start, &i_stop);
-    PETSC_SAMRAI_ERROR(ierr);
+    IBTK_CHKERRQ(ierr);
 
     Vec D_next_vec;
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &D_next_vec);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecSetBlockSize(D_next_vec, NDIM);                                          PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &D_next_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetBlockSize(D_next_vec, NDIM);                                          IBTK_CHKERRQ(ierr);
 
     Vec D_prev_vec;
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &D_prev_vec);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecSetBlockSize(D_prev_vec, NDIM);                                          PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &D_prev_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetBlockSize(D_prev_vec, NDIM);                                          IBTK_CHKERRQ(ierr);
 
     // Compute the node displacements.
-    ierr = MatMult(d_D_next_mats[level_number], X_data->getGlobalVec(), D_next_vec);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = MatMult(d_D_prev_mats[level_number], X_data->getGlobalVec(), D_prev_vec);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = MatMult(d_D_next_mats[level_number], X_data->getGlobalVec(), D_next_vec);  IBTK_CHKERRQ(ierr);
+    ierr = MatMult(d_D_prev_mats[level_number], X_data->getGlobalVec(), D_prev_vec);  IBTK_CHKERRQ(ierr);
 
     // Compute the beam forces acting on the nodes of the Lagrangian mesh.
     double* D_next_arr;
-    ierr = VecGetArray(D_next_vec, &D_next_arr);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecGetArray(D_next_vec, &D_next_arr);  IBTK_CHKERRQ(ierr);
 
     double* D_prev_arr;
-    ierr = VecGetArray(D_prev_vec, &D_prev_arr);  PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecGetArray(D_prev_vec, &D_prev_arr);  IBTK_CHKERRQ(ierr);
 
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
@@ -384,18 +383,18 @@ IBBeamForceGen::computeLagrangianForce(
         }
     }
 
-    ierr = VecRestoreArray(D_next_vec, &D_next_arr);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecDestroy(D_next_vec);                    PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecRestoreArray(D_next_vec, &D_next_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(D_next_vec);                    IBTK_CHKERRQ(ierr);
 
-    ierr = VecRestoreArray(D_prev_vec, &D_prev_arr);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecDestroy(D_prev_vec);                    PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecRestoreArray(D_prev_vec, &D_prev_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(D_prev_vec);                    IBTK_CHKERRQ(ierr);
 
     Vec F_vec = F_data->getGlobalVec();
-    ierr = VecSetValuesBlocked(F_vec, petsc_mastr_node_idxs.size(), &petsc_mastr_node_idxs[0], &F_mastr_node_arr[0], ADD_VALUES);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecSetValuesBlocked(F_vec, petsc_next_node_idxs.size(), &petsc_next_node_idxs[0], &F_nghbr_node_arr[0], ADD_VALUES);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecSetValuesBlocked(F_vec, petsc_prev_node_idxs.size(), &petsc_prev_node_idxs[0], &F_nghbr_node_arr[0], ADD_VALUES);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecAssemblyBegin(F_vec);  PETSC_SAMRAI_ERROR(ierr);
-    ierr = VecAssemblyEnd(F_vec);    PETSC_SAMRAI_ERROR(ierr);
+    ierr = VecSetValuesBlocked(F_vec, petsc_mastr_node_idxs.size(), &petsc_mastr_node_idxs[0], &F_mastr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetValuesBlocked(F_vec, petsc_next_node_idxs.size(), &petsc_next_node_idxs[0], &F_nghbr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetValuesBlocked(F_vec, petsc_prev_node_idxs.size(), &petsc_prev_node_idxs[0], &F_nghbr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
 
     t_compute_lagrangian_force->stop();
     return;

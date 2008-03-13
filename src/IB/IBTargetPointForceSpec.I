@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceSpec.C
-// Last modified: <12.Feb.2008 21:18:01 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 22:44:33 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -37,7 +37,7 @@ IBTargetPointForceSpec::IBTargetPointForceSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBTargetPointForceSpec::IBTargetPointForceSpec():\n"
-                   << "  must call IBTargetPointForceSpec::registerWithStashableManager() before\n"
+                   << "  must call IBTargetPointForceSpec::registerWithIBTK::StashableManager() before\n"
                    << "  creating any IBTargetPointForceSpec objects.\n");
     }
     return;

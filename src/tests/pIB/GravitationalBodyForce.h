@@ -7,8 +7,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// STOOLS INCLUDES
-#include <stools/SetDataStrategy.h>
+// IBTK INCLUDES
+#include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <tbox/Database.h>
@@ -18,7 +18,7 @@
 
 // NAMESPACE
 using namespace SAMRAI;
-using namespace STOOLS;
+using namespace IBTK;
 using namespace std;
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

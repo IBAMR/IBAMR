@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <12.Feb.2008 21:15:29 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:00:46 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -18,11 +18,11 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBInstrumentationSpec.h>
-#include <ibamr/LNodeIndexData2.h>
 
-// STOOLS INCLUDES
-#include <stools/PETSC_SAMRAI_ERROR.h>
-#include <stools/STOOLS_Utilities.h>
+// IBTK INCLUDES
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IndexUtilities.h>
+#include <ibtk/LNodeIndexData2.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -433,7 +433,7 @@ IBInstrumentPanel::isInstrumented() const
 void
 IBInstrumentPanel::initializeHierarchyIndependentData(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-    LDataManager* const lag_manager)
+    IBTK::LDataManager* const lag_manager)
 {
     t_initialize_hierarchy_independent_data->start();
 
@@ -457,18 +457,18 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data =
                     patch->getPatchData(lag_node_index_idx);
 
-                for (LNodeIndexData2::Iterator it(patch_box); it; it++)
+                for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
                 {
                     const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-                    const LNodeIndexSet& node_set = (*idx_data)(i);
-                    for (LNodeIndexSet::const_iterator n = node_set.begin();
+                    const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
+                    for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin();
                          n != node_set.end(); ++n)
                     {
-                        const LNodeIndexSet::value_type& node_idx = *n;
-                        const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
+                        const IBTK::LNodeIndexSet::value_type& node_idx = *n;
+                        const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data =
                             node_idx->getStashData();
                         for (unsigned l = 0; l < stash_data.size(); ++l)
                         {
@@ -578,7 +578,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
 void
 IBInstrumentPanel::initializeHierarchyDependentData(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-    LDataManager* const lag_manager,
+    IBTK::LDataManager* const lag_manager,
     const int timestep_num,
     const double data_time)
 {
@@ -599,7 +599,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     d_instrument_read_time = data_time;
 
     // The patch data descriptor index for the LNodeIndexData.
-    const int lag_node_index_idx = lag_manager-> getLNodeIndexPatchDescriptorIndex();
+    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
 
     // Loop over all local nodes to determine the positions of the local
     // perimeter nodes.
@@ -615,11 +615,11 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         if (lag_manager->levelContainsLagrangianData(ln))
         {
             // Extract the local position array.
-            SAMRAI::tbox::Pointer<LNodeLevelData> X_data = lag_manager->
-                getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
+            SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data = lag_manager->
+                getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
             Vec X_vec = X_data->getGlobalVec();
             double* X_arr;
-            int ierr = VecGetArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
+            int ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
 
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
                 hierarchy->getPatchLevel(ln);
@@ -627,18 +627,18 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data =
                     patch->getPatchData(lag_node_index_idx);
 
-                for (LNodeIndexData2::Iterator it(patch_box); it; it++)
+                for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
                 {
                     const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-                    const LNodeIndexSet& node_set = (*idx_data)(i);
-                    for (LNodeIndexSet::const_iterator n = node_set.begin();
+                    const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
+                    for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin();
                          n != node_set.end(); ++n)
                     {
-                        const LNodeIndexSet::value_type& node_idx = *n;
-                        const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
+                        const IBTK::LNodeIndexSet::value_type& node_idx = *n;
+                        const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data =
                             node_idx->getStashData();
                         for (unsigned l = 0; l < stash_data.size(); ++l)
                         {
@@ -657,7 +657,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             }
 
             // Restore the local position array.
-            ierr = VecGetArray(X_vec, &X_arr);  PETSC_SAMRAI_ERROR(ierr);
+            ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
         }
     }
 
@@ -792,12 +792,12 @@ IBInstrumentPanel::initializeHierarchyDependentData(
                 {
                     const double* const X = d_X_web[l](m,n).data();
                     const SAMRAI::hier::Index<NDIM> i =
-                        STOOLS::STOOLS_Utilities::getCellIndex(
+                        IBTK::IndexUtilities::getCellIndex(
                             X, domainXLower, domainXUpper, dx,
                             domain_box_level_lower, domain_box_level_upper);
                     const SAMRAI::hier::Index<NDIM> finer_i =
                         (ln < finest_ln
-                         ? STOOLS::STOOLS_Utilities::getCellIndex(
+                         ? IBTK::IndexUtilities::getCellIndex(
                              X, domainXLower, domainXUpper, finer_dx,
                              finer_domain_box_level_lower, finer_domain_box_level_upper)
                          : SAMRAI::hier::Index<NDIM>(std::numeric_limits<int>::max()));
@@ -817,12 +817,12 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             // Setup the web centroid mapping.
             const double* const X = d_X_centroid[l].data();
             const SAMRAI::hier::Index<NDIM> i =
-                STOOLS::STOOLS_Utilities::getCellIndex(
+                IBTK::IndexUtilities::getCellIndex(
                     X, domainXLower, domainXUpper, dx,
                     domain_box_level_lower, domain_box_level_upper);
             const SAMRAI::hier::Index<NDIM> finer_i =
                 (ln < finest_ln
-                 ? STOOLS::STOOLS_Utilities::getCellIndex(
+                 ? IBTK::IndexUtilities::getCellIndex(
                      X, domainXLower, domainXUpper, finer_dx,
                      finer_domain_box_level_lower, finer_domain_box_level_upper)
                  : SAMRAI::hier::Index<NDIM>(std::numeric_limits<int>::max()));
@@ -847,7 +847,7 @@ IBInstrumentPanel::readInstrumentData(
     const int U_data_idx,
     const int P_data_idx,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-    LDataManager* const lag_manager,
+    IBTK::LDataManager* const lag_manager,
     const int timestep_num,
     const double data_time)
 {
@@ -996,11 +996,11 @@ IBInstrumentPanel::readInstrumentData(
         if (lag_manager->levelContainsLagrangianData(ln))
         {
             // Extract the local velocity array.
-            SAMRAI::tbox::Pointer<LNodeLevelData> U_data = lag_manager->
-                getLNodeLevelData(LDataManager::VEL_DATA_NAME,ln);
+            SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data = lag_manager->
+                getLNodeLevelData(IBTK::LDataManager::VEL_DATA_NAME,ln);
             Vec U_vec = U_data->getGlobalVec();
             double* U_arr;
-            int ierr = VecGetArray(U_vec, &U_arr);  PETSC_SAMRAI_ERROR(ierr);
+            int ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
 
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
                 hierarchy->getPatchLevel(ln);
@@ -1008,18 +1008,18 @@ IBInstrumentPanel::readInstrumentData(
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::tbox::Pointer<LNodeIndexData2> idx_data =
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data =
                     patch->getPatchData(lag_node_index_idx);
 
-                for (LNodeIndexData2::Iterator it(patch_box); it; it++)
+                for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
                 {
                     const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-                    const LNodeIndexSet& node_set = (*idx_data)(i);
-                    for (LNodeIndexSet::const_iterator n = node_set.begin();
+                    const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
+                    for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin();
                          n != node_set.end(); ++n)
                     {
-                        const LNodeIndexSet::value_type& node_idx = *n;
-                        const std::vector<SAMRAI::tbox::Pointer<Stashable> >& stash_data =
+                        const IBTK::LNodeIndexSet::value_type& node_idx = *n;
+                        const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data =
                             node_idx->getStashData();
                         for (unsigned l = 0; l < stash_data.size(); ++l)
                         {
@@ -1038,7 +1038,7 @@ IBInstrumentPanel::readInstrumentData(
             }
 
             // Restore the local position array.
-            ierr = VecGetArray(U_vec, &U_arr);  PETSC_SAMRAI_ERROR(ierr);
+            ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
         }
     }
 

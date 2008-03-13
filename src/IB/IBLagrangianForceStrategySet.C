@@ -1,5 +1,5 @@
 // Filename: IBLagrangianForceStrategySet.C
-// Last modified: <17.Apr.2007 18:18:10 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:00:44 griffith@box221.cims.nyu.edu>
 // Created on 04 April 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBLagrangianForceStrategySet.h"
@@ -49,7 +49,7 @@ IBLagrangianForceStrategySet::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    IBTK::LDataManager* const lag_manager)
 {
     for (std::vector<SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> >::iterator it = d_strategy_set.begin();
          it != d_strategy_set.end(); ++it)
@@ -62,12 +62,12 @@ IBLagrangianForceStrategySet::initializeLevelData(
 
 void
 IBLagrangianForceStrategySet::computeLagrangianForce(
-    SAMRAI::tbox::Pointer<LNodeLevelData> F_data,
-    SAMRAI::tbox::Pointer<LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    IBTK::LDataManager* const lag_manager)
 {
     for (std::vector<SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> >::iterator it = d_strategy_set.begin();
          it != d_strategy_set.end(); ++it)

@@ -2,13 +2,13 @@
 #define included_IBInstrumentPanel
 
 // Filename: IBInstrumentPanel.h
-// Last modified: <11.Oct.2007 00:25:39 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:00:46 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/LDataManager.h>
+// IBTK INCLUDES
+#include <ibtk/LDataManager.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -111,7 +111,7 @@ public:
     void
     initializeHierarchyIndependentData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        LDataManager* const lag_manager);
+        IBTK::LDataManager* const lag_manager);
 
     /*!
      * \brief Initialize hierarchy- and configuration-dependent data.
@@ -119,7 +119,7 @@ public:
     void
     initializeHierarchyDependentData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        LDataManager* const lag_manager,
+        IBTK::LDataManager* const lag_manager,
         const int timestep_num,
         const double data_time);
 
@@ -132,7 +132,7 @@ public:
         const int U_data_idx,
         const int P_data_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        LDataManager* const lag_manager,
+        IBTK::LDataManager* const lag_manager,
         const int timestep_num,
         const double data_time);
 

@@ -16,9 +16,9 @@
 #define included_SAMRAI_config
 #endif
 
-// STOOLS INCLUDES
-#include <stools/ExtendedRobinBcCoefStrategy.h>
-#include <stools/PhysicalBoundaryUtilities.h>
+// IBTK INCLUDES
+#include <ibtk/ExtendedRobinBcCoefStrategy.h>
+#include <ibtk/PhysicalBoundaryUtilities.h>
 
 // SAMRAI INCLUDES
 #include <ArrayDataBasicOps.h>
@@ -302,7 +302,7 @@ AdvectHypPatchOps::getName() const
 
 void
 AdvectHypPatchOps::registerCoarseFineBoundaryRefinePatchStrategy(
-    SAMRAI::tbox::Pointer<STOOLS::CoarseFineBoundaryRefinePatchStrategy> coarse_fine_bdry_op)
+    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> coarse_fine_bdry_op)
 {
     d_coarse_fine_bdry_op = coarse_fine_bdry_op;
     return;
@@ -323,7 +323,7 @@ void
 AdvectHypPatchOps::registerAdvectedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
@@ -338,7 +338,7 @@ void
 AdvectHypPatchOps::registerAdvectedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
@@ -409,9 +409,9 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedQuantityWithSourceTerm(
@@ -426,9 +426,9 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -503,7 +503,7 @@ void
 AdvectHypPatchOps::registerAdvectionVelocity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
     const bool u_is_div_free,
-    SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> u_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_set)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_u_is_registered);
@@ -702,7 +702,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
 
-        // We try to use the STOOLS::SetDataStrategy associated with each
+        // We try to use the IBTK::SetDataStrategy associated with each
         // advected quantity.  If there is no strategy associated with a given
         // quantity, initialize its value to zero.
         for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
@@ -710,7 +710,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
             const int Q_idx = var_db->mapVariableAndContextToIndex(
                 Q_var, getDataContext());
-            SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> Q_init = d_Q_inits[l];
+            SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init = d_Q_inits[l];
 
             if (!Q_init.isNull())
             {
@@ -728,7 +728,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
             }
         }
 
-        // We try to use the STOOLS::SetDataStrategy associated with the source
+        // We try to use the IBTK::SetDataStrategy associated with the source
         // term.  If there is no strategy associated with the source term,
         // initialize its value to zero.
         for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
@@ -739,7 +739,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
             {
                 const int F_idx = var_db->mapVariableAndContextToIndex(
                     F_var, getDataContext());
-                SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy>  F_set = d_F_sets[l];
+                SAMRAI::tbox::Pointer<IBTK::SetDataStrategy>  F_set = d_F_sets[l];
 
                 if (!F_set.isNull())
                 {
@@ -758,7 +758,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
             }
         }
 
-        // We try to use the STOOLS::SetDataStrategy associated with the
+        // We try to use the IBTK::SetDataStrategy associated with the
         // advection velocirt.  If there is no strategy associated with the
         // advection velocity, initialize its value to zero.
         const int u_idx = var_db->mapVariableAndContextToIndex(
@@ -1195,7 +1195,7 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var   = d_Q_vars[l];
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
 
-        SAMRAI::tbox::Pointer<STOOLS::SetDataStrategy> F_set = d_F_sets[l];
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set = d_F_sets[l];
 
         if (!F_var.isNull() && !F_set.isNull() && F_set->isTimeDependent())
         {
@@ -1984,7 +1984,7 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
 
     // Compute the codimension one boundary boxes.
     const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
-        STOOLS::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+        IBTK::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
 
     // There is nothing to do if the patch does not have any codimension one
     // boundary boxes.
@@ -2009,7 +2009,7 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
         // Setup any extended Robin BC coef objects.
         for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
         {
-            STOOLS::ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<STOOLS::ExtendedRobinBcCoefStrategy*>(d_Q_bc_coefs[l][depth]);
+            IBTK::ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<IBTK::ExtendedRobinBcCoefStrategy*>(d_Q_bc_coefs[l][depth]);
             if (extended_bc_coef != NULL)
             {
                 extended_bc_coef->setHomogeneousBc(false);
@@ -2029,7 +2029,7 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
             const SAMRAI::hier::Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
             const SAMRAI::hier::BoundaryBox<NDIM> trimmed_bdry_box(
                 bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
-            const SAMRAI::hier::Box<NDIM> bc_coef_box = STOOLS::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+            const SAMRAI::hier::Box<NDIM> bc_coef_box = IBTK::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
             // Loop over the boundary box indices and compute the nearest
             // interior index.

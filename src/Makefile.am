@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = IB fortran adv_diff advect lagrangian navier_stokes utilities . tests tools
+SUBDIRS = IB fortran adv_diff advect navier_stokes utilities . tests tools
 
 lib_LIBRARIES = libIBAMR.a
 if SAMRAI2D_ENABLED

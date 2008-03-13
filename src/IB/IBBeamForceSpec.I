@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpec.I
-// Last modified: <12.Feb.2008 21:17:27 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 22:33:46 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -39,7 +39,7 @@ IBBeamForceSpec::IBBeamForceSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBBeamForceSpec::IBBeamForceSpec():\n"
-                   << "  must call IBBeamForceSpec::registerWithStashableManager() before\n"
+                   << "  must call IBBeamForceSpec::registerWithIBTK::StashableManager() before\n"
                    << "  creating any IBBeamForceSpec objects.\n");
     }
     return;

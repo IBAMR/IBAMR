@@ -31,11 +31,11 @@
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 
-#include <stools/TimeDependentLocationIndexRobinBcCoefs.h>
+#include <ibtk/TimeDependentLocationIndexRobinBcCoefs.h>
 
 using namespace IBAMR;
 using namespace SAMRAI;
-using namespace STOOLS;
+using namespace IBTK;
 using namespace std;
 
 /************************************************************************

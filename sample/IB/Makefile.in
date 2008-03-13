@@ -13,12 +13,12 @@ include $(IBAMR_BUILD_DIR)/config/make.inc
 
 ######################################################################
 ## Here specify the locations of the IBAMR headers and libraries.
-CPPFLAGS = -I. -I$(IBAMR_BUILD_DIR)/config -I${IBAMR_SRC_DIR}/include -I${IBAMR_SRC_DIR}/stools/include $(CPPFLAGS_IBAMR)
+CPPFLAGS = -I. -I$(IBAMR_BUILD_DIR)/config -I${IBAMR_SRC_DIR}/include -I${IBAMR_SRC_DIR}/ibtk/include $(CPPFLAGS_IBAMR)
 
 IBAMR_LIB_2D = $(IBAMR_BUILD_DIR)/src/libIBAMR2d.a $(IBAMR_BUILD_DIR)/src/libIBAMR.a
 IBAMR_LIB_3D = $(IBAMR_BUILD_DIR)/src/libIBAMR3d.a $(IBAMR_BUILD_DIR)/src/libIBAMR.a
-STOOLS_LIB_2D = $(IBAMR_BUILD_DIR)/stools/src/libSTOOLS2d.a $(IBAMR_BUILD_DIR)/stools/src/libSTOOLS.a
-STOOLS_LIB_3D = $(IBAMR_BUILD_DIR)/stools/src/libSTOOLS3d.a $(IBAMR_BUILD_DIR)/stools/src/libSTOOLS.a
+IBTK_LIB_2D = $(IBAMR_BUILD_DIR)/ibtk/src/libIBTK2d.a $(IBAMR_BUILD_DIR)/ibtk/src/libIBTK.a
+IBTK_LIB_3D = $(IBAMR_BUILD_DIR)/ibtk/src/libIBTK3d.a $(IBAMR_BUILD_DIR)/ibtk/src/libIBTK.a
 
 ######################################################################
 ## Build the IB tester application.
@@ -38,13 +38,13 @@ main3d:
 	touch stamp-3d
 	$(MAKE) PDIM=3 main-3d
 
-main-2d: $(IBAMR_LIB_2D) $(STOOLS_LIB_2D) $(OBJS) $(SOURCES)
+main-2d: $(IBAMR_LIB_2D) $(IBTK_LIB_2D) $(OBJS) $(SOURCES)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJS) \
-	$(IBAMR_LIB_2D) $(STOOLS_LIB_2D) $(LDFLAGS) $(LIBS) -DNDIM=$(PDIM) -o main2d
+	$(IBAMR_LIB_2D) $(IBTK_LIB_2D) $(LDFLAGS) $(LIBS) -DNDIM=$(PDIM) -o main2d
 
-main-3d: $(IBAMR_LIB_3D) $(STOOLS_LIB_3D)  $(OBJS) $(SOURCES)
+main-3d: $(IBAMR_LIB_3D) $(IBTK_LIB_3D)  $(OBJS) $(SOURCES)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJS) \
-	$(IBAMR_LIB_3D) $(STOOLS_LIB_3D) $(LDFLAGS) $(LIBS) -DNDIM=$(PDIM) -o main3d
+	$(IBAMR_LIB_3D) $(IBTK_LIB_3D) $(LDFLAGS) $(LIBS) -DNDIM=$(PDIM) -o main3d
 
 clean:
 	$(RM) main2d main3d core

@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <12.Feb.2008 21:16:46 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:11:24 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -21,10 +21,10 @@
 #include <ibamr/IBInstrumentationSpec.h>
 #include <ibamr/IBSpringForceSpec.h>
 #include <ibamr/IBTargetPointForceSpec.h>
-#include <ibamr/LNodeIndexData2.h>
 
-// STOOLS INCLUDES
-#include <stools/STOOLS_Utilities.h>
+// IBTK INCLUDES
+#include <ibtk/IndexUtilities.h>
+#include <ibtk/LNodeIndexData2.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -129,7 +129,7 @@ IBStandardInitializer::IBStandardInitializer(
     TBOX_ASSERT(!input_db.isNull());
 #endif
 
-    // Register the specification objects with the StashableManager class.
+    // Register the specification objects with the IBTK::StashableManager class.
     IBSpringForceSpec::registerWithStashableManager();
     IBBeamForceSpec::registerWithStashableManager();
     IBTargetPointForceSpec::registerWithStashableManager();
@@ -177,7 +177,7 @@ IBStandardInitializer::~IBStandardInitializer()
 
 void
 IBStandardInitializer::registerLagSiloDataWriter(
-    SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer)
+    SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!silo_writer.isNull());
@@ -235,7 +235,6 @@ IBStandardInitializer::getLocalNodeCountOnPatchLevel(
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
     }
-
     return local_node_count;
 }// getLocalNodeCountOnPatchLevel
 
@@ -244,14 +243,14 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
     const int global_index_offset,
     const int local_index_offset,
-    SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
-    SAMRAI::tbox::Pointer<LNodeLevelData>& U_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    IBTK::LDataManager* const lag_manager)
 {
     (void) lag_manager;
 
@@ -281,7 +280,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
         const double* const xUpper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        SAMRAI::tbox::Pointer<LNodeIndexData2> index_data =
+        SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> index_data =
             patch->getPatchData(lag_node_index_idx);
 
         // Initialize the vertices whose initial locations will be within the
@@ -335,19 +334,19 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 
             // Get the index of the cell in which the present vertex is
             // initially located.
-            const SAMRAI::pdat::CellIndex<NDIM> idx = STOOLS::STOOLS_Utilities::getCellIndex(
+            const SAMRAI::pdat::CellIndex<NDIM> idx = IBTK::IndexUtilities::getCellIndex(
                 X, xLower, xUpper, dx, patch_lower, patch_upper);
 
             // Initialize the force specification object assocaited with the
             // present vertex.
-            std::vector<SAMRAI::tbox::Pointer<Stashable> > force_spec =
+            std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> > force_spec =
                 initializeSpecs(
                     point_idx, global_index_offset, level_number);
 
-            LNodeIndexSet& node_set = (*index_data)(idx);
+            IBTK::LNodeIndexSet& node_set = (*index_data)(idx);
             node_set.push_back(
-                new LNodeIndex(current_global_idx, current_local_idx,
-                               &(*X_data)(current_local_idx), force_spec));
+                new IBTK::LNodeIndex(current_global_idx, current_local_idx,
+                                     &(*X_data)(current_local_idx), force_spec));
 
             // Initialize the velocity of the present vertex.
             double* const node_U = &(*U_data)(current_local_idx);
@@ -364,7 +363,6 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     {
         initializeLagSiloDataWriter(level_number);
     }
-
     return local_node_count;
 }// initializeDataOnPatchLevel
 
@@ -372,14 +370,14 @@ int
 IBStandardInitializer::initializeMassDataOnPatchLevel(
     const int global_index_offset,
     const int local_index_offset,
-    SAMRAI::tbox::Pointer<LNodeLevelData>& M_data,
-    SAMRAI::tbox::Pointer<LNodeLevelData>& K_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& M_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& K_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    IBTK::LDataManager* const lag_manager)
 {
     (void) lag_manager;
 
@@ -467,7 +465,7 @@ IBStandardInitializer::tagCellsForInitialRefinement(
 
                 // Get the index of the cell in which the present vertex is
                 // initially located.
-                const SAMRAI::pdat::CellIndex<NDIM> i = STOOLS::STOOLS_Utilities::getCellIndex(
+                const SAMRAI::pdat::CellIndex<NDIM> i = IBTK::IndexUtilities::getCellIndex(
                     X, xLower, xUpper, dx, patch_lower, patch_upper);
 
                 // Tag the cell for refinement.
@@ -517,7 +515,6 @@ IBStandardInitializer::initializeLagSiloDataWriter(
             }
         }
     }
-
     return;
 }// initializeLagSiloDataWriter
 
@@ -1561,13 +1558,13 @@ IBStandardInitializer::getVertexInstrumentationIndices(
     }
 }// getVertexInstrumentationIndices
 
-std::vector<SAMRAI::tbox::Pointer<Stashable> >
+std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >
 IBStandardInitializer::initializeSpecs(
     const std::pair<int,int>& point_index,
     const int global_index_offset,
     const int level_number) const
 {
-    std::vector<SAMRAI::tbox::Pointer<Stashable> > vertex_specs;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> > vertex_specs;
 
     const int j = point_index.first;
     const int mastr_idx = getCannonicalLagrangianIndex(point_index, level_number);
@@ -1643,7 +1640,6 @@ IBStandardInitializer::initializeSpecs(
             new IBInstrumentationSpec(
                 mastr_idx, inst_idx.first, inst_idx.second));
     }
-
     return vertex_specs;
 }// initializeSpecs
 
@@ -1987,7 +1983,6 @@ IBStandardInitializer::getFromInput(
             SAMRAI::tbox::pout << std::endl;
         }
     }
-
     return;
 }// getFromInput
 

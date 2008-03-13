@@ -35,7 +35,7 @@
 #include <ibamr/AdvectHypPatchOps.h>
 #include <ibamr/GodunovAdvector.h>
 
-#include <stools/HierarchyMathOps.h>
+#include <ibtk/HierarchyMathOps.h>
 
 #include "QInit.h"
 #include "USet.h"
@@ -587,7 +587,7 @@ main(
     Q_init.setDataOnPatchHierarchy(
         Q_cloned_idx, Q_var, patch_hierarchy, loop_time);
 
-    STOOLS::HierarchyMathOps hier_math_ops(
+    IBTK::HierarchyMathOps hier_math_ops(
         "HierarchyMathOps", patch_hierarchy);
     hier_math_ops.setPatchHierarchy(patch_hierarchy);
     hier_math_ops.resetLevels(coarsest_ln, finest_ln);

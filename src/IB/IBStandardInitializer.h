@@ -2,15 +2,15 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <13.Feb.2008 20:18:42 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:08:20 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/LNodeInitStrategy.h>
-#include <ibamr/LagSiloDataWriter.h>
-#include <ibamr/Stashable.h>
+// IBTK INCLUDES
+#include <ibtk/LNodeInitStrategy.h>
+#include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/Stashable.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -203,7 +203,7 @@ namespace IBAMR
  * \see IBInstrumentationSpec
  */
 class IBStandardInitializer
-    : public LNodeInitStrategy
+    : public IBTK::LNodeInitStrategy
 {
 public:
     /*!
@@ -224,7 +224,7 @@ public:
      */
     void
     registerLagSiloDataWriter(
-        SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer);
+        SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> silo_writer);
 
     /*!
      * \brief Determine whether there are any Lagrangian nodes on the specified
@@ -262,14 +262,14 @@ public:
         const int lag_node_index_idx,
         const int global_index_offset,
         const int local_index_offset,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& U_data,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& X_data,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time,
-        LDataManager* const lag_manager);
+        IBTK::LDataManager* const lag_manager);
 
     /*!
      * \brief Initialize the LNodeLevel data needed to specify the mass and
@@ -281,14 +281,14 @@ public:
     initializeMassDataOnPatchLevel(
         const int global_index_offset,
         const int local_index_offset,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& M_data,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& K_data,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& M_data,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& K_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time,
-        LDataManager* const lag_manager);
+        IBTK::LDataManager* const lag_manager);
 
     /*!
      * \brief Tag cells for initial refinement.
@@ -450,7 +450,7 @@ private:
     /*!
      * \return The specification objects associated with the specified vertex.
      */
-    std::vector<SAMRAI::tbox::Pointer<Stashable> >
+    std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >
     initializeSpecs(
         const std::pair<int,int>& point_index,
         const int global_index_offset,
@@ -489,7 +489,7 @@ private:
     /*
      * An (optional) Lagrangian Silo data writer.
      */
-    SAMRAI::tbox::Pointer<LagSiloDataWriter> d_silo_writer;
+    SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> d_silo_writer;
 
     /*
      * The base filenames of the structures are used to generate unique names

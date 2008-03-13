@@ -2,13 +2,13 @@
 #define included_IBBeamForceSpec
 
 // Filename: IBBeamForceSpec.h
-// Last modified: <02.Oct.2007 00:46:33 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 22:33:46 griffith@box221.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/Stashable.h>
+// IBTK INCLUDES
+#include <ibtk/Stashable.h>
 
 // SAMRAI INCLUDES
 #include <tbox/AbstractStream.h>
@@ -27,11 +27,11 @@ namespace IBAMR
  * resist bending) at a single node of the Lagrangian mesh.
  *
  * Beams are connections between three particular nodes of the Lagrangian mesh.
- * IBBeamForceSpec objects are stored as Stashable data associated with only the
+ * IBBeamForceSpec objects are stored as IBTK::Stashable data associated with only the
  * master beam nodes in the mesh.
  */
 class IBBeamForceSpec
-    : public Stashable
+    : public IBTK::Stashable
 {
 public:
     /*!
@@ -42,7 +42,7 @@ public:
 
     /*!
      * \brief Register this class and its factory class with the singleton
-     * StashableManager object.  This method must be called before any
+     * IBTK::StashableManager object.  This method must be called before any
      * IBBeamForceSpec objects are created.
      *
      * \note This method is collective on all MPI processes.  This is done to
@@ -54,7 +54,7 @@ public:
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
-     * with the singleton StashableManager object.
+     * with the singleton IBTK::StashableManager object.
      */
     static bool
     getIsRegisteredWithStashableManager();
@@ -120,8 +120,8 @@ public:
     getBendingRigidities();
 
     /*!
-     * \brief Return the unique identifier used to specify the StashableFactory
-     * object used by the StashableManager to extract Stashable objects from
+     * \brief Return the unique identifier used to specify the IBTK::StashableFactory
+     * object used by the IBTK::StashableManager to extract Stashable objects from
      * data streams.
      */
     virtual int
@@ -167,7 +167,7 @@ private:
 
     /*!
      * Indicates whether the factory has been registered with the
-     * StashableManager.
+     * IBTK::StashableManager.
      */
     static bool s_registered_factory;
 
