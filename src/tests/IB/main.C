@@ -38,9 +38,10 @@
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <ibamr/LagSiloDataWriter.h>
+#include <ibtk/LagSiloDataWriter.h>
 
 using namespace IBAMR;
+using namespace IBTK;
 using namespace SAMRAI;
 using namespace std;
 

@@ -2,7 +2,7 @@
 #define included_GravitationalBodyForce
 
 // Filename: GravitationalBodyForce.h
-// Last modified: <03.May.2007 13:56:01 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Mar.2008 23:23:54 griffith@box221.cims.nyu.edu>
 // Created on 03 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -17,8 +17,8 @@
 #include <vector>
 
 // NAMESPACE
-using namespace SAMRAI;
 using namespace IBTK;
+using namespace SAMRAI;
 using namespace std;
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

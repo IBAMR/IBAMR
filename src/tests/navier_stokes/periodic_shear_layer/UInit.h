@@ -2,7 +2,7 @@
 #define included_UInit
 
 // Filename: UInit.h
-// Last modified: <16.Apr.2007 01:34:19 boyce@trasnaform2.local>
+// Last modified: <12.Mar.2008 23:26:00 griffith@box221.cims.nyu.edu>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -14,8 +14,8 @@
 #include <tbox/Database.h>
 
 // NAMESPACE
-using namespace SAMRAI;
 using namespace IBTK;
+using namespace SAMRAI;
 using namespace std;
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

@@ -38,14 +38,14 @@
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <ibamr/LagSiloDataWriter.h>
+#include <ibtk/LagSiloDataWriter.h>
 
 #include "GravitationalBodyForce.h"
 #include "PressureBcCoefs.h"
 
 using namespace IBAMR;
-using namespace SAMRAI;
 using namespace IBTK;
+using namespace SAMRAI;
 using namespace std;
 
 /*!

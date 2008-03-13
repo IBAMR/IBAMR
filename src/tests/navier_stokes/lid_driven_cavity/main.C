@@ -30,12 +30,11 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/INSHierarchyIntegrator.h>
-
 #include <ibtk/TimeDependentLocationIndexRobinBcCoefs.h>
 
 using namespace IBAMR;
-using namespace SAMRAI;
 using namespace IBTK;
+using namespace SAMRAI;
 using namespace std;
 
 /************************************************************************
