@@ -12,19 +12,9 @@ endif
 
 ## Dimension-dependent libraries
 SOURCES = \
-Stashable.C \
-StashableFactory.C \
-StashableManager.C \
-StashableStream.C \
 get_version.C
 
 pkg_include_HEADERS = \
-Stashable.h \
-StashableFactory.h \
-StashableManager.h \
-StashableManager.I \
-StashableStream.h \
-StashableStream.I \
 get_version.h
 
 libIBAMR_utilities2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

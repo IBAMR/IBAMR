@@ -25,9 +25,6 @@ IBInstrumentationSpecFactory.C \
 IBLagrangianForceStrategy.C \
 IBLagrangianForceStrategySet.C \
 IBLagrangianSourceStrategy.C \
-IBMarker.C \
-IBMarkerCoarsenOperator.C \
-IBMarkerRefineOperator.C \
 IBSpringForceGen.C \
 IBSpringForceSpec.C \
 IBSpringForceSpecFactory.C \
@@ -53,10 +50,6 @@ IBInstrumentationSpecFactory.h \
 IBLagrangianForceStrategy.h \
 IBLagrangianForceStrategySet.h \
 IBLagrangianSourceStrategy.h \
-IBMarker.h \
-IBMarker.I \
-IBMarkerCoarsenOperator.h \
-IBMarkerRefineOperator.h \
 IBSpringForceGen.h \
 IBSpringForceSpec.h \
 IBSpringForceSpec.I \
