@@ -2,7 +2,7 @@
 #define included_IBSpringForceGen
 
 // Filename: IBSpringForceGen.h
-// Last modified: <12.Mar.2008 23:00:41 griffith@box221.cims.nyu.edu>
+// Last modified: <15.Mar.2008 12:25:28 boyce@trasnaform2.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -27,11 +27,11 @@ namespace IBAMR
  * \f$ is the index of the "master" node and \f$ l \f$ is the index of the
  * "slave" node, the forces generated are \f[
  *
- *      \vec{F}_k = \kappa_{k,l} \left( 1 - \frac{r_{k,l}}{\|\vec{X}_{l} - \vec{X}_{k}\|} \right) \frac{\vec{X}_{l} - \vec{X}_{k}}{\|\vec{X}_{l} - \vec{X}_{k}\|}
+ *      \vec{F}_k = \kappa_{k,l} \left( 1 - \frac{r_{k,l}}{\|\vec{X}_{l} - \vec{X}_{k}\|} \right) \left(\vec{X}_{l} - \vec{X}_{k}\right)
  *
  * \f] and \f[
  *
- *      \vec{F}_l = \kappa_{k,l} \left( 1 - \frac{r_{k,l}}{\|\vec{X}_{l} - \vec{X}_{k}\|} \right) \frac{\vec{X}_{k} - \vec{X}_{l}}{\|\vec{X}_{k} - \vec{X}_{l}\|} = - \vec{F}_k
+ *      \vec{F}_l = \kappa_{k,l} \left( 1 - \frac{r_{k,l}}{\|\vec{X}_{l} - \vec{X}_{k}\|} \right) \left(\vec{X}_{k} - \vec{X}_{l}\right) = - \vec{F}_k
  *
  * \f] where \f$ \kappa_{k,l} \f$ is the stiffness of the spring connecting
  * nodes \f$ k \f$ and \f$ l \f$, and where \f$ r_{k,l} \f$ is the associated
