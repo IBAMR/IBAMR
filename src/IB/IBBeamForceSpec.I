@@ -39,7 +39,7 @@ IBBeamForceSpec::IBBeamForceSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBBeamForceSpec::IBBeamForceSpec():\n"
-                   << "  must call IBBeamForceSpec::registerWithIBTK::StashableManager() before\n"
+                   << "  must call IBBeamForceSpec::registerWithStashableManager() before\n"
                    << "  creating any IBBeamForceSpec objects.\n");
     }
     return;

@@ -40,7 +40,7 @@ IBInstrumentationSpec::IBInstrumentationSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBInstrumentationSpec::IBInstrumentationSpec():\n"
-                   << "  must call IBInstrumentationSpec::registerWithIBTK::StashableManager() before\n"
+                   << "  must call IBInstrumentationSpec::registerWithStashableManager() before\n"
                    << "  creating any IBInstrumentationSpec objects.\n");
     }
     return;

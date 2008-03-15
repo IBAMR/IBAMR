@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <12.Mar.2008 23:03:30 griffith@box221.cims.nyu.edu>
+// Last modified: <14.Mar.2008 20:08:25 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -20,10 +20,8 @@
 #include <ibamr/IBSpringForceSpec.h>
 
 // IBTK INCLUDES
-#include <ibtk/LNodeIndexData2.h>
-
-// IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/LNodeIndexData2.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -126,8 +124,7 @@ IBSpringForceGen::initializeLevelData(
 
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
-    const int level_num = level->getLevelNumber();
-    const int new_size = std::max(level_num+1, int(d_is_initialized.size()));
+    const int new_size = std::max(level_number+1, int(d_is_initialized.size()));
 
     d_D_mats.resize(new_size);
     d_lag_mastr_node_idxs.resize(new_size);
@@ -139,14 +136,14 @@ IBSpringForceGen::initializeLevelData(
     d_rest_lengths.resize(new_size);
     d_is_initialized.resize(new_size, false);
 
-    Mat& D_mat = d_D_mats[level_num];
-    std::vector<int>& lag_mastr_node_idxs = d_lag_mastr_node_idxs[level_num];
-    std::vector<int>& lag_slave_node_idxs = d_lag_slave_node_idxs[level_num];
-    std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_num];
-    std::vector<int>& petsc_slave_node_idxs = d_petsc_slave_node_idxs[level_num];
-    std::vector<int>& force_fcn_idxs = d_force_fcn_idxs[level_num];
-    std::vector<double>& stiffnesses = d_stiffnesses[level_num];
-    std::vector<double>& rest_lengths = d_rest_lengths[level_num];
+    Mat& D_mat = d_D_mats[level_number];
+    std::vector<int>& lag_mastr_node_idxs = d_lag_mastr_node_idxs[level_number];
+    std::vector<int>& lag_slave_node_idxs = d_lag_slave_node_idxs[level_number];
+    std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
+    std::vector<int>& petsc_slave_node_idxs = d_petsc_slave_node_idxs[level_number];
+    std::vector<int>& force_fcn_idxs = d_force_fcn_idxs[level_number];
+    std::vector<double>& stiffnesses = d_stiffnesses[level_number];
+    std::vector<double>& rest_lengths = d_rest_lengths[level_number];
 
     if (D_mat)
     {
@@ -220,12 +217,12 @@ IBSpringForceGen::initializeLevelData(
     // corresponding to the present data distribution.
     petsc_mastr_node_idxs = lag_mastr_node_idxs;
     petsc_slave_node_idxs = lag_slave_node_idxs;
-    lag_manager->mapLagrangianToPETSc(petsc_mastr_node_idxs, level_num);
-    lag_manager->mapLagrangianToPETSc(petsc_slave_node_idxs, level_num);
+    lag_manager->mapLagrangianToPETSc(petsc_mastr_node_idxs, level_number);
+    lag_manager->mapLagrangianToPETSc(petsc_slave_node_idxs, level_number);
 
     // Determine the global node offset and the number of local nodes.
-    const int global_node_offset = lag_manager->getGlobalNodeOffset(level_num);
-    const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_num);
+    const int global_node_offset = lag_manager->getGlobalNodeOffset(level_number);
+    const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_number);
 
     // Determine the non-zero structure for the matrix.
     const int local_sz = static_cast<int>(petsc_mastr_node_idxs.size());
@@ -285,7 +282,7 @@ IBSpringForceGen::initializeLevelData(
     ierr = MatAssemblyEnd(D_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
 
     // Indicate that the level data has been initialized.
-    d_is_initialized[level_num] = true;
+    d_is_initialized[level_number] = true;
 
     t_initialize_level_data->stop();
     return;

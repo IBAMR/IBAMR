@@ -37,7 +37,7 @@ IBTargetPointForceSpec::IBTargetPointForceSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBTargetPointForceSpec::IBTargetPointForceSpec():\n"
-                   << "  must call IBTargetPointForceSpec::registerWithIBTK::StashableManager() before\n"
+                   << "  must call IBTargetPointForceSpec::registerWithStashableManager() before\n"
                    << "  creating any IBTargetPointForceSpec objects.\n");
     }
     return;

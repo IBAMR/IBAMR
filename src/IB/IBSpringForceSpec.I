@@ -45,7 +45,7 @@ IBSpringForceSpec::IBSpringForceSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBSpringForceSpec::IBSpringForceSpec():\n"
-                   << "  must call IBSpringForceSpec::registerWithIBTK::StashableManager() before\n"
+                   << "  must call IBSpringForceSpec::registerWithStashableManager() before\n"
                    << "  creating any IBSpringForceSpec objects.\n");
     }
     return;
