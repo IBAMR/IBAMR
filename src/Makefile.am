@@ -46,6 +46,7 @@ advect/fortran/advect_diff2d.o \
 advect/fortran/advect_stable2d.o \
 advect/fortran/advect_detect2d.o \
 advect/fortran/godunov_predictors2d.o \
+advect/fortran/weno_fluxes2d.o \
 advect/libIBAMR_advect2d_a-AdvectHypPatchOps.o \
 advect/libIBAMR_advect2d_a-GodunovAdvector.o \
 navier_stokes/fortran/navier_stokes_bdryop2d.o \
@@ -54,6 +55,7 @@ navier_stokes/fortran/navier_stokes_divsource2d.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSIntermediateVelocityBcCoef.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSProjectionBcCoef.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.o \
 utilities/libIBAMR_utilities2d_a-get_version.o
@@ -96,6 +98,7 @@ navier_stokes/fortran/navier_stokes_divsource3d.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-INSIntermediateVelocityBcCoef.o \
+navier_stokes/libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-INSProjectionBcCoef.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.o \
 utilities/libIBAMR_utilities3d_a-get_version.o

@@ -11,8 +11,21 @@ noinst_LIBRARIES += libIBAMR_navier_stokes3d.a
 endif
 
 ## Dimension-dependent libraries
-SOURCES              = HierarchyProjector.C INSHierarchyIntegrator.C INSIntermediateVelocityBcCoef.C INSProjectionBcCoef.C NormalVelocityBcCoefAdapter.C
-pkg_include_HEADERS  = HierarchyProjector.h INSHierarchyIntegrator.h INSIntermediateVelocityBcCoef.h INSProjectionBcCoef.h NormalVelocityBcCoefAdapter.h
+SOURCES = \
+HierarchyProjector.C \
+INSHierarchyIntegrator.C \
+INSIntermediateVelocityBcCoef.C \
+INSProjectionBcCoef.C \
+INSNKHierarchyIntegrator.C \
+NormalVelocityBcCoefAdapter.C
+
+pkg_include_HEADERS = \
+HierarchyProjector.h \
+INSHierarchyIntegrator.h \
+INSIntermediateVelocityBcCoef.h \
+INSProjectionBcCoef.h \
+INSNKHierarchyIntegrator.h \
+NormalVelocityBcCoefAdapter.h
 
 libIBAMR_navier_stokes2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR_navier_stokes2d_a_SOURCES = $(SOURCES)

@@ -60,6 +60,7 @@ am__objects_1 =  \
 	libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR_navier_stokes2d_a-INSIntermediateVelocityBcCoef.$(OBJEXT) \
 	libIBAMR_navier_stokes2d_a-INSProjectionBcCoef.$(OBJEXT) \
+	libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.$(OBJEXT)
 am_libIBAMR_navier_stokes2d_a_OBJECTS = $(am__objects_1)
 libIBAMR_navier_stokes2d_a_OBJECTS =  \
@@ -71,6 +72,7 @@ am__objects_2 =  \
 	libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR_navier_stokes3d_a-INSIntermediateVelocityBcCoef.$(OBJEXT) \
 	libIBAMR_navier_stokes3d_a-INSProjectionBcCoef.$(OBJEXT) \
+	libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.$(OBJEXT)
 am_libIBAMR_navier_stokes3d_a_OBJECTS = $(am__objects_2)
 libIBAMR_navier_stokes3d_a_OBJECTS =  \
@@ -435,8 +437,22 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = fortran .
 noinst_LIBRARIES = $(am__append_1) $(am__append_2)
-SOURCES = HierarchyProjector.C INSHierarchyIntegrator.C INSIntermediateVelocityBcCoef.C INSProjectionBcCoef.C NormalVelocityBcCoefAdapter.C
-pkg_include_HEADERS = HierarchyProjector.h INSHierarchyIntegrator.h INSIntermediateVelocityBcCoef.h INSProjectionBcCoef.h NormalVelocityBcCoefAdapter.h
+SOURCES = \
+HierarchyProjector.C \
+INSHierarchyIntegrator.C \
+INSIntermediateVelocityBcCoef.C \
+INSProjectionBcCoef.C \
+INSNKHierarchyIntegrator.C \
+NormalVelocityBcCoefAdapter.C
+
+pkg_include_HEADERS = \
+HierarchyProjector.h \
+INSHierarchyIntegrator.h \
+INSIntermediateVelocityBcCoef.h \
+INSProjectionBcCoef.h \
+INSNKHierarchyIntegrator.h \
+NormalVelocityBcCoefAdapter.h
+
 libIBAMR_navier_stokes2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR_navier_stokes2d_a_SOURCES = $(SOURCES)
 libIBAMR_navier_stokes3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
@@ -495,11 +511,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes2d_a-HierarchyProjector.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes2d_a-INSIntermediateVelocityBcCoef.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes2d_a-INSProjectionBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-HierarchyProjector.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-INSIntermediateVelocityBcCoef.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-INSProjectionBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.Po@am__quote@
 
@@ -573,6 +591,20 @@ libIBAMR_navier_stokes2d_a-INSProjectionBcCoef.obj: INSProjectionBcCoef.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_navier_stokes2d_a-INSProjectionBcCoef.obj `if test -f 'INSProjectionBcCoef.C'; then $(CYGPATH_W) 'INSProjectionBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/INSProjectionBcCoef.C'; fi`
 
+libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.o: INSNKHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.Tpo -c -o libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.o `test -f 'INSNKHierarchyIntegrator.C' || echo '$(srcdir)/'`INSNKHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='INSNKHierarchyIntegrator.C' object='libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.o `test -f 'INSNKHierarchyIntegrator.C' || echo '$(srcdir)/'`INSNKHierarchyIntegrator.C
+
+libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.obj: INSNKHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.Tpo -c -o libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.obj `if test -f 'INSNKHierarchyIntegrator.C'; then $(CYGPATH_W) 'INSNKHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/INSNKHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='INSNKHierarchyIntegrator.C' object='libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_navier_stokes2d_a-INSNKHierarchyIntegrator.obj `if test -f 'INSNKHierarchyIntegrator.C'; then $(CYGPATH_W) 'INSNKHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/INSNKHierarchyIntegrator.C'; fi`
+
 libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.o: NormalVelocityBcCoefAdapter.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.o -MD -MP -MF $(DEPDIR)/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.Tpo -c -o libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.o `test -f 'NormalVelocityBcCoefAdapter.C' || echo '$(srcdir)/'`NormalVelocityBcCoefAdapter.C
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.Tpo $(DEPDIR)/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.Po
@@ -642,6 +674,20 @@ libIBAMR_navier_stokes3d_a-INSProjectionBcCoef.obj: INSProjectionBcCoef.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='INSProjectionBcCoef.C' object='libIBAMR_navier_stokes3d_a-INSProjectionBcCoef.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_navier_stokes3d_a-INSProjectionBcCoef.obj `if test -f 'INSProjectionBcCoef.C'; then $(CYGPATH_W) 'INSProjectionBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/INSProjectionBcCoef.C'; fi`
+
+libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.o: INSNKHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.Tpo -c -o libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.o `test -f 'INSNKHierarchyIntegrator.C' || echo '$(srcdir)/'`INSNKHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='INSNKHierarchyIntegrator.C' object='libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.o `test -f 'INSNKHierarchyIntegrator.C' || echo '$(srcdir)/'`INSNKHierarchyIntegrator.C
+
+libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.obj: INSNKHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.Tpo -c -o libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.obj `if test -f 'INSNKHierarchyIntegrator.C'; then $(CYGPATH_W) 'INSNKHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/INSNKHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='INSNKHierarchyIntegrator.C' object='libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_navier_stokes3d_a-INSNKHierarchyIntegrator.obj `if test -f 'INSNKHierarchyIntegrator.C'; then $(CYGPATH_W) 'INSNKHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/INSNKHierarchyIntegrator.C'; fi`
 
 libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.o: NormalVelocityBcCoefAdapter.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.o -MD -MP -MF $(DEPDIR)/libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.Tpo -c -o libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.o `test -f 'NormalVelocityBcCoefAdapter.C' || echo '$(srcdir)/'`NormalVelocityBcCoefAdapter.C

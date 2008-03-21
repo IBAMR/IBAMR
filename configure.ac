@@ -559,6 +559,7 @@ AC_CONFIG_FILES([
   src/tests/adv_diff/Makefile
   src/tests/advect/Makefile
   src/tests/navier_stokes/Makefile
+  src/tests/navier_stokes/NK/Makefile
   src/tests/navier_stokes/analytic_soln/Makefile
   src/tests/navier_stokes/lid_driven_cavity/Makefile
   src/tests/navier_stokes/periodic_shear_layer/Makefile

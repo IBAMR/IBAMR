@@ -13,7 +13,7 @@ c
      &     dx,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     ngc0,ngc1,ngc2,
-     &     F,
+     &     U0,U1,U2,
      &     stabdt)
 c
       implicit none
@@ -26,7 +26,9 @@ c
 
       REAL dx(0:NDIM-1)
 
-      REAL F(CELL3dVECG(ifirst,ilast,ngc),0:NDIM-1)
+      REAL U0(CELL3dVECG(ifirst,ilast,ngc))
+      REAL U1(CELL3dVECG(ifirst,ilast,ngc))
+      REAL U2(CELL3dVECG(ifirst,ilast,ngc))
 c
 c     Input/Output.
 c
@@ -34,20 +36,41 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1,i2
+      INTEGER i0,i1,i2,d
+      REAL maxspeed(0:NDIM-1)
 c
 c     Determine the unit CFL number on the patch.
 c
+      do d = 0,NDIM-1
+         maxspeed(d) = 1.0d-12   ! avoid division by zero
+      enddo
+
       do i2 = ifirst2,ilast2
          do i1 = ifirst1,ilast1
             do i0 = ifirst0,ilast0
-               stabdt = dmin1( stabdt,dsqrt(
-     &              (2.d0*dsqrt(dx(0)**2.d0+dx(1)**2.d0+dx(2)**2.d0))/
-     &              (dsqrt(F(i0,i1,i2,0)**2.d0+F(i0,i1,i2,1)**2.d0
-     &              +F(i0,i1,i2,2)**2.d0)+1.d-8)) )
+               maxspeed(0) = dmax1(maxspeed(0), dabs(U0(i0,i1,i2)))
             enddo
          enddo
       enddo
+
+      do i2 = ifirst2,ilast2
+         do i1 = ifirst1,ilast1
+            do i0 = ifirst0,ilast0
+               maxspeed(1) = dmax1(maxspeed(1), dabs(U1(i0,i1,i2)))
+            enddo
+         enddo
+      enddo
+
+      do i2 = ifirst2,ilast2
+         do i1 = ifirst1,ilast1
+            do i0 = ifirst0,ilast0
+               maxspeed(2) = dmax1(maxspeed(2), dabs(U2(i0,i1,i2)))
+            enddo
+         enddo
+      enddo
+
+      stabdt = dmin1((dx(0)/maxspeed(0)),(dx(1)/maxspeed(1)),
+     &               (dx(2)/maxspeed(2)))
 c
       return
       end
