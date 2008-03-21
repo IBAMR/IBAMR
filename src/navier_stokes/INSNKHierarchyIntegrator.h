@@ -2,7 +2,7 @@
 #define included_INSNKHierarchyIntegrator
 
 // Filename: INSNKHierarchyIntegrator.h
-// Last modified: <20.Mar.2008 18:31:41 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2008 03:26:09 boyce@trasnaform2.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -12,10 +12,10 @@
 
 // IBTK INCLUDES
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
-#include <CellVariable.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
 #include <ComponentSelector.h>
@@ -670,6 +670,28 @@ private:
         const INSNKHierarchyIntegrator& that);
 
     /*!
+     * First-order step.
+     */
+    void
+    integrateHierarchy_1st_order(
+        const double current_time,
+        const double new_time,
+        const int U_current_idx,
+        const int P_current_idx,
+        const int U_new_idx,
+        const int P_new_idx);
+
+    /*!
+     * Compute the convective derivative.
+     */
+    void
+    computeConvectiveDerivative(
+        const double current_time,
+        const int N_current_idx,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > N_var,
+        const int U_current_idx);
+
+    /*!
      * Determine the largest stable timestep on an individual patch level.
      */
     double
@@ -786,12 +808,6 @@ private:
      */
     bool d_using_default_tag_buffer;
     SAMRAI::tbox::Array<int> d_tag_buffer;
-
-    /*
-     * This boolean value determines whether the advection term is computed
-     * using conservative or non-conservative differencing.
-     */
-    bool d_conservation_form;
 
     /*
      * Tag cells based on the relative and absolute magnitudes of the local
@@ -942,6 +958,9 @@ private:
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
 
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_V_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_convective_flux_var;
+
     /*
      * Patch data descriptor indices for all "state" variables managed by the
      * integrator.
@@ -962,6 +981,8 @@ private:
      *
      * Scratch variables have only one context.
      */
+    int d_V_idx;
+    int d_convective_flux_idx[NDIM];
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
@@ -970,6 +991,20 @@ private:
      * Such variables have only one context.
      */
     int d_wgt_idx;
+
+    /*
+     * Solver data.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec, d_nul_vec;
+    SAMRAI::tbox::Pointer<IBTK::LinearOperator>          d_linear_op    ;
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_linear_solver;
+    MatNullSpace d_petsc_nullsp;
+    Vec d_petsc_nullsp_vec;
+
+    /*
+     * Patch boundary filling operators.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_fill_op, d_U_P_bdry_fill_op;
 };
 }// namespace IBAMR
 

@@ -6,7 +6,7 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // physical parameters
-MU = 0.01
+MU = 0.001
 RHO = 1.0
 
 // grid spacing parameters
@@ -44,8 +44,6 @@ INSNKHierarchyIntegrator {
    enable_logging = TRUE
 
    tag_buffer = 1
-
-   conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
    vorticity_rel_thresh = 0.25

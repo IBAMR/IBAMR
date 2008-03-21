@@ -1,5 +1,5 @@
 // Filename: INSNKHierarchyIntegrator.C
-// Last modified: <20.Mar.2008 20:49:53 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2008 04:26:28 boyce@trasnaform2.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSNKHierarchyIntegrator.h"
@@ -18,7 +18,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 
 // SAMRAI INCLUDES
@@ -93,6 +92,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_advance_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_get_stable_timestep;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_regrid_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_integrate_hierarchy;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_integrate_hierarchy_1st_order;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_new_levels;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_time_dependent_data;
@@ -103,8 +103,11 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = 4; // XXXX (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-static const int FACEG = 4; // XXXX (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int FACEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+
+static const int WENO_CELLG = 4;
+static const int WENO_FACEG = 4;
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
@@ -396,8 +399,6 @@ INSNKHierarchyIntegrator::INSNKHierarchyIntegrator(
     d_integrator_time = std::numeric_limits<double>::quiet_NaN();
     d_integrator_step = std::numeric_limits<int>::max();
 
-    d_conservation_form = false;
-
     d_output_U = false;
     d_output_P = false;
     d_output_F = false;
@@ -418,6 +419,9 @@ INSNKHierarchyIntegrator::INSNKHierarchyIntegrator(
     d_is_initialized = false;
 
     d_do_log = false;
+
+    d_petsc_nullsp = static_cast<MatNullSpace>(NULL);
+    d_petsc_nullsp_vec = static_cast<Vec>(NULL);
 
     // Initialize object with data read from the input and restart databases.
     const bool from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
@@ -455,6 +459,8 @@ INSNKHierarchyIntegrator::INSNKHierarchyIntegrator(
             getTimer("IBAMR::INSNKHierarchyIntegrator::regridHierarchy()");
         t_integrate_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::INSNKHierarchyIntegrator::integrateHierarchy()");
+        t_integrate_hierarchy_1st_order = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSNKHierarchyIntegrator::integrateHierarchy_1st_order()");
         t_synchronize_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::INSNKHierarchyIntegrator::synchronizeHierarchy()");
         t_synchronize_new_levels = SAMRAI::tbox::TimerManager::getManager()->
@@ -493,6 +499,13 @@ INSNKHierarchyIntegrator::~INSNKHierarchyIntegrator()
          it != d_cstrategies.end(); ++it)
     {
         delete (*it).second;
+    }
+
+    if (d_petsc_nullsp != static_cast<MatNullSpace>(NULL))
+    {
+        PetscErrorCode ierr;
+        ierr = MatNullSpaceDestroy(d_petsc_nullsp); IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(d_petsc_nullsp_vec); IBTK_CHKERRQ(ierr);
     }
     return;
 }// ~INSNKHierarchyIntegrator
@@ -637,16 +650,19 @@ INSNKHierarchyIntegrator::initializeHierarchyIntegrator(
     d_scratch_context = var_db->getContext(d_object_name+"::SCRATCH");
 
     // Initialize all variables.
-    d_U_var          = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::U"         , NDIM);
-    d_P_var          = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P"               );
+    d_U_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::U",NDIM);
+    d_P_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P");
 #if (NDIM == 2)
-    d_Omega_var      = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Omega"           );
+    d_Omega_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Omega");
 #endif
-#if (NDIM == 3)
-    d_Omega_var      = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Omega"     , NDIM);
-    d_Omega_Norm_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Omega_Norm"      );
+#if ( NDIM == 3)
+    d_Omega_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Omega",NDIM);
+    d_Omega_Norm_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Omega_Norm");
 #endif
-    d_Div_U_var      = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Div U"           );
+    d_Div_U_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Div_U");
+
+    d_V_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::V",NDIM);
+    d_convective_flux_var = new SAMRAI::pdat::FaceVariable<NDIM,double>(d_object_name+"::convective_flux");
 
     // Create the default communication algorithms.
     d_fill_after_regrid = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
@@ -656,9 +672,10 @@ INSNKHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Register state variables that are maintained by the
     // INSNKHierarchyIntegrator.
-
     const SAMRAI::hier::IntVector<NDIM> cell_ghosts = CELLG;
     const SAMRAI::hier::IntVector<NDIM> face_ghosts = FACEG;
+    const SAMRAI::hier::IntVector<NDIM> weno_cell_ghosts = WENO_CELLG;
+    const SAMRAI::hier::IntVector<NDIM> weno_face_ghosts = WENO_FACEG;
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
     registerVariable(d_U_current_idx, d_U_new_idx, d_U_scratch_idx,
@@ -688,6 +705,16 @@ INSNKHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Register scratch variables that are maintained by the
     // INSNKHierarchyIntegrator.
+    d_V_idx = var_db->registerVariableAndContext(
+        d_V_var, getScratchContext(), weno_cell_ghosts);
+
+    d_convective_flux_idx[0] = var_db->registerVariableAndContext(
+        d_convective_flux_var, getScratchContext(), weno_face_ghosts);
+    for (int d = 1; d < NDIM; ++d)
+    {
+        d_convective_flux_idx[d] = var_db->registerClonedPatchDataIndex(
+            d_convective_flux_var, d_convective_flux_idx[0]);
+    }
 
     // Register variables for plotting.
     if (!d_visit_writer.isNull())
@@ -734,19 +761,27 @@ INSNKHierarchyIntegrator::initializeHierarchyIntegrator(
         }
     }
 
-    // Create several refinement communications algorithms, used in filling
-    // ghost cell data.
+    // Create refinement communications algorithms.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator;
+    refine_operator = grid_geom->lookupRefineOperator(
+        d_V_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_ralgs["SYNCH_V_DATA"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    d_ralgs["SYNCH_V_DATA"]->registerRefine(d_V_idx, // destination
+                                            d_V_idx, // source
+                                            d_V_idx, // temporary work space
+                                            refine_operator);
+    d_rstrategies["SYNCH_V_DATA"] = new IBTK::CartExtrapPhysBdryOp(
+        d_V_idx, BDRY_EXTRAP_TYPE);
 
-    // Create several coarsening communications algorithms, used in
-    // synchronizing refined regions of coarse data with the underlying fine
-    // data.
-    //
-    // NOTE: All state data managed by class INSNKHierarchyIntegrator is
-    // automatically registered with the SYNCH_CURRENT_STATE_DATA and
-    // SYNCH_NEW_STATE_DATA coarsening operators.
+    // Create coarsening communications algorithms.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator;
+    coarsen_operator = grid_geom->lookupCoarsenOperator(
+        d_V_var, "CONSERVATIVE_COARSEN");
+    d_calgs["SYNCH_V_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
+    d_calgs["SYNCH_V_DATA"]->registerCoarsen(d_V_idx, // destination
+                                             d_V_idx, // source
+                                             coarsen_operator);
 
     // Setup the Hierarchy math operations object.
     d_hier_math_ops = new IBTK::HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy);
@@ -860,6 +895,16 @@ INSNKHierarchyIntegrator::advanceHierarchy(
     // Integrate all time dependent data.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): integrating time dependent data\n";
     integrateHierarchy(current_time, new_time);
+
+    if (initial_time)
+    {
+        for (int cycle = 0; cycle < 4; ++cycle)
+        {
+            d_hier_cc_data_ops->copyData(d_P_current_idx, d_P_new_idx);
+            resetHierDataToPreadvanceState();
+            integrateHierarchy(current_time, new_time);
+        }
+    }
 
     // Synchronize all data.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): synchronizing data\n";
@@ -1035,153 +1080,63 @@ INSNKHierarchyIntegrator::integrateHierarchy(
         level->allocatePatchData(d_new_data    ,     new_time);
     }
 
-    // Setup the boundary condition objects.
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* U_bc_coef = NULL;  // XXXX
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef = NULL;  // XXXX
+#if 0
+    // 2nd-order SSP Runge-Kutta.
+    integrateHierarchy_1st_order(
+        current_time, current_time+dt, d_U_current_idx, d_P_current_idx, d_U_new_idx, d_P_new_idx);
 
-    // Setup the hierarchy boundary condition objects.
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, U_bc_coef);
-    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, P_bc_coef);
+    integrateHierarchy_1st_order(
+        current_time+dt, current_time+2.0*dt, d_U_new_idx, d_P_new_idx, d_U_new_idx, d_P_new_idx);
 
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> U_bdry_fill_op =
-        new IBTK::HierarchyGhostCellInterpolation();
-    U_bdry_fill_op->initializeOperatorState(U_scratch_component, d_hierarchy);
+    d_hier_cc_data_ops->linearSum(d_U_new_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
+    d_hier_cc_data_ops->linearSum(d_P_new_idx, 0.5, d_P_current_idx, 0.5, d_P_new_idx);
+#endif
+    // 3rd-order SSP Runge-Kutta.
+    integrateHierarchy_1st_order(
+        current_time, current_time+dt, d_U_current_idx, d_P_current_idx, d_U_new_idx, d_P_new_idx);
 
-    std::vector<InterpolationTransactionComponent> U_P_transaction_comps(2);
-    U_P_transaction_comps[0] = U_scratch_component;
-    U_P_transaction_comps[1] = P_scratch_component;
+    integrateHierarchy_1st_order(
+        current_time+dt, current_time+2.0*dt, d_U_new_idx, d_P_new_idx, d_U_new_idx, d_P_new_idx);
 
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> U_P_bdry_fill_op =
-        new IBTK::HierarchyGhostCellInterpolation();
-    U_P_bdry_fill_op->initializeOperatorState(U_P_transaction_comps, d_hierarchy);
+    d_hier_cc_data_ops->linearSum(d_U_new_idx, 0.75, d_U_current_idx, 0.25, d_U_new_idx);
+    d_hier_cc_data_ops->linearSum(d_P_new_idx, 0.75, d_P_current_idx, 0.25, d_P_new_idx);
 
-    // Setup solver vectors.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec =
-        new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-            d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-    sol_vec->addComponent(d_U_var,d_U_scratch_idx,d_wgt_idx,d_hier_cc_data_ops);
-    sol_vec->addComponent(d_P_var,d_P_scratch_idx,d_wgt_idx,d_hier_cc_data_ops);
+    integrateHierarchy_1st_order(
+        current_time+0.5*dt, current_time+1.5*dt, d_U_new_idx, d_P_new_idx, d_U_new_idx, d_P_new_idx);
 
-    d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(0), d_U_current_idx);
-    d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(1), d_P_current_idx);
+    d_hier_cc_data_ops->linearSum(d_U_new_idx, 1.0/3.0, d_U_current_idx, 2.0/3.0, d_U_new_idx);
+    d_hier_cc_data_ops->linearSum(d_P_new_idx, 1.0/3.0, d_P_current_idx, 2.0/3.0, d_P_new_idx);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > rhs_vec =
-        sol_vec->cloneVector(d_object_name+"::rhs_vec");
-    rhs_vec->allocateVectorData(current_time);
+    // Setup U_scratch to allow for ghost cell filling.
+    d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
+    d_U_bdry_fill_op->fillData(new_time);
 
-    d_hier_cc_data_ops->scale(rhs_vec->getComponentDescriptorIndex(0), d_rho/dt, d_U_current_idx);
-    d_hier_cc_data_ops->setToScalar(rhs_vec->getComponentDescriptorIndex(1), 0.0);
-
-    U_bdry_fill_op->fillData(new_time);
-#if (NDIM == 2)
-    // XXXX: will not maintain conservation for AMR grids!!!!
-    IBTK::PatchMathOps patch_math_ops;
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-            const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > N =
-                patch->getPatchData(rhs_vec->getComponentDescriptorIndex(0));
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U =
-                patch->getPatchData(d_U_scratch_idx);
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F =
-                new SAMRAI::pdat::CellData<NDIM,double>(patch_box, 1, SAMRAI::hier::IntVector<NDIM>(CELLG));
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux =
-                new SAMRAI::pdat::FaceData<NDIM,double>(patch_box, 1, SAMRAI::hier::IntVector<NDIM>(FACEG));
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux_fwrd =
-                new SAMRAI::pdat::FaceData<NDIM,double>(patch_box, 1, SAMRAI::hier::IntVector<NDIM>(FACEG));
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux_revr =
-                new SAMRAI::pdat::FaceData<NDIM,double>(patch_box, 1, SAMRAI::hier::IntVector<NDIM>(FACEG));
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux_plus =
-                new SAMRAI::pdat::FaceData<NDIM,double>(patch_box, 1, SAMRAI::hier::IntVector<NDIM>(FACEG));
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux_minus =
-                new SAMRAI::pdat::FaceData<NDIM,double>(patch_box, 1, SAMRAI::hier::IntVector<NDIM>(FACEG));
-
-            for (int d = 0; d < NDIM; ++d)
-            {
-                WENO_CONVECTIVE_FLUXES_F77(
-                    flux      ->getPointer(0), flux      ->getPointer(1), FACEG,
-                    flux_fwrd ->getPointer(0), flux_fwrd ->getPointer(1), FACEG,
-                    flux_revr ->getPointer(0), flux_revr ->getPointer(1), FACEG,
-                    flux_plus ->getPointer(0), flux_plus ->getPointer(1), FACEG,
-                    flux_minus->getPointer(0), flux_minus->getPointer(1), FACEG,
-                    F->getPointer(0), CELLG,
-                    U->getPointer(d), CELLG,
-                    U->getPointer(0), CELLG,
-                    patch_lower(0), patch_upper(0),
-                    patch_lower(1), patch_upper(1));
-
-                patch_math_ops.div(
-                    N,
-                    -d_rho, flux,
-                    1.0, N,
-                    patch,
-                    d, d);
-            }
-        }
-    }
+    // Compute Omega = curl U.
+    d_hier_math_ops->curl(
+        d_Omega_new_idx, d_Omega_var,
+        d_U_scratch_idx, d_U_var,
+        d_no_fill_op, new_time);
+#if (NDIM == 3)
+    d_hier_math_ops->pointwise_L2Norm(
+        d_Omega_Norm_new_idx, d_Omega_Norm_var,
+        d_Omega_new_idx, d_Omega_var);
 #endif
 
-    // Setup the nullspace object.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > nullsp_vec =
-        sol_vec->cloneVector(d_object_name+"::nullsp_vec");
-    nullsp_vec->allocateVectorData(current_time);
-
-    d_hier_cc_data_ops->setToScalar(nullsp_vec->getComponentDescriptorIndex(0), 0.0);
-    d_hier_cc_data_ops->setToScalar(nullsp_vec->getComponentDescriptorIndex(1), 1.0);
-
-    int ierr;
-    MatNullSpace nullsp;
-    Vec petsc_nullsp_vec = IBTK::PETScSAMRAIVectorReal<double>::createPETScVector(nullsp_vec, PETSC_COMM_SELF);
-    Vec vecs[] = {petsc_nullsp_vec};
-    static const PetscTruth has_cnst = PETSC_FALSE;
-    ierr = MatNullSpaceCreate(PETSC_COMM_SELF, has_cnst, 1, vecs, &nullsp); IBTK_CHKERRQ(ierr);
-
-    // Setup the operator.
-    SAMRAI::tbox::Pointer<IBTK::LinearOperator> A = new INSNKOperator(
-        d_object_name+"::operator",
-        d_rho, d_mu, d_lambda,
-        dt,
-        new_time,
-        d_hier_math_ops, U_P_bdry_fill_op);
-
-    // Setup solver.
-    IBTK::PETScKrylovLinearSolver linear_solver(d_object_name+"::linear_solver", "ins_");
-    linear_solver.setOperator(A);
-    linear_solver.initializeSolverState(*sol_vec,*rhs_vec);
-    if (d_normalize_pressure)
-    {
-        KSP petsc_ksp = linear_solver.getPETScKSP();
-        ierr = KSPSetNullSpace(petsc_ksp, nullsp); IBTK_CHKERRQ(ierr);
-    }
-
-    // Solve system.
-    linear_solver.solveSystem(*sol_vec,*rhs_vec);
-
-    // Destroy the nullspace object.
-    ierr = VecDestroy(petsc_nullsp_vec); IBTK_CHKERRQ(ierr);
-    ierr = MatNullSpaceDestroy(nullsp);  IBTK_CHKERRQ(ierr);
-
-    // Pull out solution components.
-    d_hier_cc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
-    d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
+    // Compute max ||Omega||_2.
+#if (NDIM == 2)
+    d_Omega_max = std::max(+d_hier_cc_data_ops->max(d_Omega_new_idx),
+                           -d_hier_cc_data_ops->min(d_Omega_new_idx));
+#endif
+#if (NDIM == 3)
+    d_Omega_max = d_hier_cc_data_ops->max(d_Omega_Norm_new_idx);
+#endif
 
     // Compute Div U.
-    U_bdry_fill_op->resetTransactionComponent(U_scratch_component);
     d_hier_math_ops->div(
         d_Div_U_new_idx, d_Div_U_var,
-        1.0, d_U_scratch_idx, d_U_var, U_bdry_fill_op, new_time,
-        0.0, -1, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >(NULL));
+        1.0, d_U_scratch_idx, d_U_var, d_no_fill_op, new_time,
+        0.0, -1, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >(NULL),
+        0, 0);
 
     t_integrate_hierarchy->stop();
     return getStableTimestep(getNewContext());
@@ -1567,6 +1522,62 @@ INSNKHierarchyIntegrator::resetHierarchyConfiguration(
     // Get the volume of the physical domain.
     d_volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
 
+    // Reset the solution, rhs, and nullspace vectors.
+    d_sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+        d_object_name+"::sol_vec", d_hierarchy, 0, finest_hier_level);
+    d_sol_vec->addComponent(d_U_var,d_U_scratch_idx,d_wgt_idx,d_hier_cc_data_ops);
+    d_sol_vec->addComponent(d_P_var,d_P_scratch_idx,d_wgt_idx,d_hier_cc_data_ops);
+
+    d_rhs_vec = d_sol_vec->cloneVector(d_object_name+"::rhs_vec");
+    d_nul_vec = d_sol_vec->cloneVector(d_object_name+"::nul_vec");
+
+    // Setup the nullspace object.
+    PetscErrorCode ierr;
+    if (d_petsc_nullsp != static_cast<MatNullSpace>(NULL))
+    {
+        ierr = MatNullSpaceDestroy(d_petsc_nullsp); IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(d_petsc_nullsp_vec); IBTK_CHKERRQ(ierr);
+    }
+    d_petsc_nullsp_vec = IBTK::PETScSAMRAIVectorReal<double>::createPETScVector(d_nul_vec, PETSC_COMM_SELF);
+    Vec vecs[] = {d_petsc_nullsp_vec};
+    static const PetscTruth has_cnst = PETSC_FALSE;
+    ierr = MatNullSpaceCreate(PETSC_COMM_SELF, has_cnst, 1, vecs, &d_petsc_nullsp); IBTK_CHKERRQ(ierr);
+
+    // Setup the boundary condition objects.
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* U_bc_coef = NULL;  // XXXX
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef = NULL;  // XXXX
+
+    // Setup the patch boundary filling objects.
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, U_bc_coef);
+    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, P_bc_coef);
+
+    d_U_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    d_U_bdry_fill_op->initializeOperatorState(U_scratch_component, d_hierarchy);
+
+    std::vector<InterpolationTransactionComponent> U_P_transaction_comps(2);
+    U_P_transaction_comps[0] = U_scratch_component;
+    U_P_transaction_comps[1] = P_scratch_component;
+
+    d_U_P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    d_U_P_bdry_fill_op->initializeOperatorState(U_P_transaction_comps, d_hierarchy);
+
+    // Setup the linear operator.
+    d_linear_op = new INSNKOperator(
+        d_object_name+"::linear_op",
+        d_rho, d_mu, d_lambda,
+        d_old_dt,
+        d_integrator_time,
+        d_hier_math_ops, d_U_P_bdry_fill_op);
+
+    // Setup the linear solver.
+    // XXXX extra options needed
+    d_linear_solver = new IBTK::PETScKrylovLinearSolver(
+        d_object_name+"::linear_solver", "ins_");
+    d_linear_solver->setInitialGuessNonzero(true);
+    d_linear_solver->setOperator(d_linear_op);
+    d_linear_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
+
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
          it!= d_ralgs.end(); ++it)
@@ -1795,7 +1806,6 @@ INSNKHierarchyIntegrator::putToDatabase(
     db->putInteger("d_regrid_interval", d_regrid_interval);
     db->putBool("d_using_default_tag_buffer", d_using_default_tag_buffer);
     db->putIntegerArray("d_tag_buffer", d_tag_buffer);
-    db->putBool("d_conservation_form", d_conservation_form);
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
     db->putDoubleArray("d_Omega_rel_thresh", d_Omega_rel_thresh);
     db->putDoubleArray("d_Omega_abs_thresh", d_Omega_abs_thresh);
@@ -1850,7 +1860,6 @@ INSNKHierarchyIntegrator::printClassData(
        << "d_tag_buffer = [ ";
     std::copy(d_tag_buffer.getPointer(), d_tag_buffer.getPointer()+d_tag_buffer.size(), std::ostream_iterator<int>(os, " , "));
     os << " ]" << std::endl;
-    os << "d_conservation_form = " << d_conservation_form << std::endl;
     os << "d_using_vorticity_tagging = " << d_using_vorticity_tagging << "\n"
        << "d_Omega_rel_thresh = [ ";
     std::copy(d_Omega_rel_thresh.getPointer(), d_Omega_rel_thresh.getPointer()+d_Omega_rel_thresh.size(), std::ostream_iterator<double>(os, " , "));
@@ -2008,6 +2017,161 @@ INSNKHierarchyIntegrator::registerVariable(
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
+void
+INSNKHierarchyIntegrator::integrateHierarchy_1st_order(
+    const double current_time,
+    const double new_time,
+    const int U_current_idx,
+    const int P_current_idx,
+    const int U_new_idx,
+    const int P_new_idx)
+{
+    t_integrate_hierarchy_1st_order->start();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(U_current_idx != d_U_scratch_idx);
+    TBOX_ASSERT(P_current_idx != d_P_scratch_idx);
+    TBOX_ASSERT(U_new_idx != d_U_scratch_idx);
+    TBOX_ASSERT(P_new_idx != d_P_scratch_idx);
+#endif
+
+    const double dt = new_time - current_time;
+
+    // Setup solver vectors.
+    d_hier_cc_data_ops->copyData(d_sol_vec->getComponentDescriptorIndex(0), U_current_idx);
+    d_hier_cc_data_ops->copyData(d_sol_vec->getComponentDescriptorIndex(1), P_current_idx);
+
+    d_rhs_vec->allocateVectorData(current_time);
+    computeConvectiveDerivative(
+        current_time,
+        d_rhs_vec->getComponentDescriptorIndex(0), d_rhs_vec->getComponentVariable(0),
+        U_current_idx);
+    d_hier_cc_data_ops->linearSum(d_rhs_vec->getComponentDescriptorIndex(0), d_rho/dt, U_current_idx, -d_rho, d_rhs_vec->getComponentDescriptorIndex(0));
+    d_hier_cc_data_ops->setToScalar(d_rhs_vec->getComponentDescriptorIndex(1), 0.0);
+
+    d_nul_vec->allocateVectorData(current_time);
+    d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
+    d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
+
+    // Setup the linear operator.
+    d_linear_op = new INSNKOperator(
+        d_object_name+"::linear_op",
+        d_rho, d_mu, d_lambda,
+        dt,
+        new_time,
+        d_hier_math_ops, d_U_P_bdry_fill_op);
+    d_linear_solver->setOperator(d_linear_op);
+
+    // Solve system.
+    d_linear_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
+
+    // Pull out solution components.
+    d_hier_cc_data_ops->copyData(U_new_idx, d_sol_vec->getComponentDescriptorIndex(0));
+    d_hier_cc_data_ops->copyData(P_new_idx, d_sol_vec->getComponentDescriptorIndex(1));
+
+    // Deallocate scratch data.
+    d_rhs_vec->deallocateVectorData();
+    d_nul_vec->deallocateVectorData();
+
+    t_integrate_hierarchy_1st_order->stop();
+    return;
+}// integrateHierarchy_1st_order
+
+void
+INSNKHierarchyIntegrator::computeConvectiveDerivative(
+    const double current_time,
+    const int N_current_idx,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > N_var,
+    const int U_current_idx)
+{
+#if (NDIM == 2)
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_V_idx, current_time);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            level->allocatePatchData(d_convective_flux_idx[d], current_time);
+        }
+    }
+
+    d_hier_cc_data_ops->copyData(d_V_idx, U_current_idx);
+    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    {
+        d_cscheds["SYNCH_V_DATA"][ln]->coarsenData();
+    }
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        d_rscheds["SYNCH_V_DATA"][ln]->fillData(current_time);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+            const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+            const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U =
+                patch->getPatchData(d_V_idx);
+
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Flux =
+                new SAMRAI::pdat::CellData<NDIM,double>(patch_box, 1, SAMRAI::hier::IntVector<NDIM>(WENO_CELLG));
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux_fwrd =
+                new SAMRAI::pdat::FaceData<NDIM,double>(patch_box, 1, SAMRAI::hier::IntVector<NDIM>(WENO_FACEG));
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux_revr =
+                new SAMRAI::pdat::FaceData<NDIM,double>(patch_box, 1, SAMRAI::hier::IntVector<NDIM>(WENO_FACEG));
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux_plus =
+                new SAMRAI::pdat::FaceData<NDIM,double>(patch_box, 1, SAMRAI::hier::IntVector<NDIM>(WENO_FACEG));
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux_minus =
+                new SAMRAI::pdat::FaceData<NDIM,double>(patch_box, 1, SAMRAI::hier::IntVector<NDIM>(WENO_FACEG));
+
+            for (int d = 0; d < NDIM; ++d)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux =
+                    patch->getPatchData(d_convective_flux_idx[d]);
+                WENO_CONVECTIVE_FLUXES_F77(
+                    flux      ->getPointer(0), flux      ->getPointer(1), WENO_FACEG,
+                    flux_fwrd ->getPointer(0), flux_fwrd ->getPointer(1), WENO_FACEG,
+                    flux_revr ->getPointer(0), flux_revr ->getPointer(1), WENO_FACEG,
+                    flux_plus ->getPointer(0), flux_plus ->getPointer(1), WENO_FACEG,
+                    flux_minus->getPointer(0), flux_minus->getPointer(1), WENO_FACEG,
+                    Flux->getPointer(0), WENO_CELLG,
+                    U   ->getPointer(d), WENO_CELLG,
+                    U   ->getPointer(0), WENO_CELLG,
+                    patch_lower(0), patch_upper(0),
+                    patch_lower(1), patch_upper(1));
+            }
+        }
+    }
+
+    static const bool cf_bdry_synch = true;
+
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_hier_math_ops->div(
+            N_current_idx, N_var,
+            1.0, d_convective_flux_idx[d], d_convective_flux_var, d_no_fill_op, current_time, cf_bdry_synch,
+            0.0, -1, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >(NULL),
+            d, d);
+    }
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_V_idx);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            level->deallocatePatchData(d_convective_flux_idx[d]);
+        }
+    }
+#endif
+    return;
+}// computeConvectiveDerivative
+
 double
 INSNKHierarchyIntegrator::getLevelDt(
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
@@ -2091,9 +2255,6 @@ INSNKHierarchyIntegrator::getFromInput(
                      << "Key data `tag_buffer' not found in input.  "
                      << "Default values used.  See class header for details.");
     }
-
-    d_conservation_form = db->getBoolWithDefault(
-        "conservation_form", d_conservation_form);
 
     d_using_vorticity_tagging = db->getBoolWithDefault(
         "using_vorticity_tagging", d_using_vorticity_tagging);
@@ -2244,7 +2405,6 @@ INSNKHierarchyIntegrator::getFromRestart()
     d_regrid_interval = db->getInteger("d_regrid_interval");
     d_using_default_tag_buffer = db->getBool("d_using_default_tag_buffer");
     d_tag_buffer = db->getIntegerArray("d_tag_buffer");
-    d_conservation_form = db->getBool("d_conservation_form");
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
     d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
     d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");

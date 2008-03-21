@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <06.Feb.2008 20:41:04 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Mar.2008 01:21:06 boyce@trasnaform2.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1227,7 +1227,7 @@ private:
     double d_helmholtz_abs_residual_tol, d_helmholtz_rel_residual_tol;
 
     SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>  d_helmholtz_op    ;
-    SAMRAI::solv::PoissonSpecifications*              d_helmholtz_spec  ;
+    SAMRAI::solv::PoissonSpecifications*            d_helmholtz_spec  ;
     SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> d_helmholtz_solver;
     bool d_helmholtz_solver_needs_init;
 
