@@ -605,20 +605,13 @@ main(
             }
 
             /*
-             * At specified intervals, output timer data and write visualization
-             * and restart and files.
+             * At specified intervals, write visualization and restart files,
+             * and print out timer data.
              */
             if (write_timer_data && iteration_num%timer_dump_interval == 0)
             {
                 tbox::pout << "\nWriting timer data...\n\n";
                 tbox::TimerManager::getManager()->print(tbox::plog);
-            }
-
-            if (write_restart && iteration_num%restart_interval == 0)
-            {
-                tbox::pout << "\nWriting restart files...\n\n";
-                tbox::RestartManager::getManager()->writeRestartFile(
-                    restart_write_dirname, iteration_num);
             }
 
             if (viz_dump_data && iteration_num%viz_dump_interval == 0)
@@ -631,6 +624,15 @@ main(
                     silo_data_writer->writePlotData(
                         iteration_num, loop_time);
                 }
+            }
+
+            if (write_restart && iteration_num%restart_interval == 0)
+            {
+                tbox::pout << "\nWriting restart files...\n\n";
+                tbox::RestartManager::getManager()->writeRestartFile(
+                    restart_write_dirname, iteration_num);
+
+                if (stop_after_writing_restart) break;
             }
         }
 
