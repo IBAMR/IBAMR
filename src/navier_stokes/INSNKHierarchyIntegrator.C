@@ -1,5 +1,5 @@
 // Filename: INSNKHierarchyIntegrator.C
-// Last modified: <21.Mar.2008 04:26:28 boyce@trasnaform2.local>
+// Last modified: <21.Mar.2008 19:09:32 griffith@box221.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSNKHierarchyIntegrator.h"
@@ -17,6 +17,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 
@@ -123,7 +124,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 // Version of INSNKHierarchyIntegrator restart file data.
 static const int INS_NK_HIERARCHY_INTEGRATOR_VERSION = 1;
 
-// Operator used with the Krylov solver.
+// Linear operator used with the Krylov solver.
 class INSNKOperator
     : public IBTK::LinearOperator
 {
@@ -139,7 +140,7 @@ public:
         const double dt,
         const double apply_time,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> hier_bdry_fill)
+        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> U_P_bdry_fill_op)
         : d_object_name(object_name),
           d_rho(rho),
           d_mu(mu),
@@ -147,7 +148,7 @@ public:
           d_dt(dt),
           d_apply_time(apply_time),
           d_hier_math_ops(hier_math_ops),
-          d_hier_bdry_fill(hier_bdry_fill),
+          d_U_P_bdry_fill_op(U_P_bdry_fill_op),
           d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL))
         {
             // intentionally blank
@@ -200,6 +201,10 @@ public:
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
         {
+            // Setup the boundary condition objects.
+            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* U_bc_coef = NULL;  // XXXX
+            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef = NULL;  // XXXX
+
             // Get the vector components.
             const int U_in_idx = x.getComponentDescriptorIndex(0);
             const int P_in_idx = x.getComponentDescriptorIndex(1);
@@ -219,10 +224,6 @@ public:
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > U_out_cc_var = U_out_var;
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_out_cc_var = P_out_var;
 
-            // Setup the boundary condition objects.
-            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* U_bc_coef = NULL;  // XXXX
-            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef = NULL;  // XXXX
-
             // Reset the interpolation operators and fill the data.
             //
             // XXXX: This will not work correctly for inhomogeneous boundary
@@ -235,8 +236,8 @@ public:
             transaction_comps[0] = U_component;
             transaction_comps[1] = P_component;
 
-            d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
-            d_hier_bdry_fill->fillData(d_apply_time);
+            d_U_P_bdry_fill_op->resetTransactionComponents(transaction_comps);
+            d_U_P_bdry_fill_op->fillData(d_apply_time);
 
             // Compute the action of the operator.
             SAMRAI::solv::PoissonSpecifications helmholtz_spec(d_object_name+"::helmholtz_spec");
@@ -346,9 +347,375 @@ private:
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_bdry_fill_op, d_no_fill_op;
 };
 
+// Preconditioner used with the Krylov solver.
+class INSNKPreconditioner
+    : public IBTK::LinearSolver
+{
+public:
+    /*!
+     * XXXX
+     */
+    INSNKPreconditioner(
+        const std::string& object_name,
+        const double rho,
+        const double mu,
+        const double lambda,
+        const double dt,
+        const double apply_time,
+        SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> poisson_solver,
+        SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> helmholtz_solver,
+        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> U_bdry_fill_op,
+        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> P_bdry_fill_op)
+        : d_object_name(object_name),
+          d_rho(rho),
+          d_mu(mu),
+          d_lambda(lambda),
+          d_dt(dt),
+          d_apply_time(apply_time),
+          d_poisson_solver(poisson_solver),
+          d_helmholtz_solver(helmholtz_solver),
+          d_hier_math_ops(hier_math_ops),
+          d_U_bdry_fill_op(U_bdry_fill_op),
+          d_P_bdry_fill_op(P_bdry_fill_op),
+          d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL))
+        {
+            // intentionally blank
+            return;
+        }// INSNKPreconditioner
+
+    /*!
+     * \brief Virtual destructor.
+     */
+    virtual
+    ~INSNKPreconditioner()
+        {
+            // intentionally blank
+            return;
+        }// ~INSNKPreconditioner
+
+    /*!
+     * \name Linear solver functionality.
+     */
+    //\{
+
+    /*!
+     * \brief Set y = P[x].
+     */
+    virtual bool
+    solveSystem(
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x)
+        {
+            // Set the initial guess to equal x.
+            y.copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&x,false));
+
+            // Setup the boundary condition objects.
+            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* U_bc_coef = NULL;  // XXXX
+            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef = NULL;  // XXXX
+
+            // Get the vector patch hierarchy.
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
+            const int coarsest_ln = x.getCoarsestLevelNumber();
+            const int finest_ln = x.getFinestLevelNumber();
+
+            // Get the vector components.
+            const int U_in_idx = x.getComponentDescriptorIndex(0);
+            const int P_in_idx = x.getComponentDescriptorIndex(1);
+
+            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_in_var = x.getComponentVariable(0);
+            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_in_var = x.getComponentVariable(1);
+
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > U_in_cc_var = U_in_var;
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_in_cc_var = P_in_var;
+
+            const int U_out_idx = y.getComponentDescriptorIndex(0);
+            const int P_out_idx = y.getComponentDescriptorIndex(1);
+
+            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_out_var = y.getComponentVariable(0);
+            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_out_var = y.getComponentVariable(1);
+
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > U_out_cc_var = U_out_var;
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_out_cc_var = P_out_var;
+
+            // Compute the action of the operator.
+            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > helmholtz_sol_vec =
+                new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+                    d_object_name+"::helmholtz_sol_vec", hierarchy, coarsest_ln, finest_ln);
+            helmholtz_sol_vec->addComponent(U_out_var,U_out_idx,y.getControlVolumeIndex(0));
+
+            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > helmholtz_rhs_vec =
+                helmholtz_sol_vec->cloneVector(d_object_name+"::helmholtz_rhs_vec");
+            const int helmholtz_rhs_idx = helmholtz_rhs_vec->getComponentDescriptorIndex(0);
+            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& helmholtz_rhs_var = helmholtz_rhs_vec->getComponentVariable(0);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > helmholtz_rhs_cc_var = helmholtz_rhs_var;
+            helmholtz_rhs_vec->allocateVectorData(d_apply_time);
+            helmholtz_rhs_vec->copyVector(helmholtz_sol_vec);
+            helmholtz_rhs_vec->scale(d_rho/d_dt, helmholtz_rhs_vec);
+
+            typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+            InterpolationTransactionComponent P_in_component(P_in_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, P_bc_coef);
+            d_P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+            d_P_bdry_fill_op->initializeOperatorState(P_in_component, hierarchy);
+            d_P_bdry_fill_op->fillData(d_apply_time);
+
+            d_hier_math_ops->grad(
+                helmholtz_rhs_idx, helmholtz_rhs_cc_var,
+                -1.0, P_in_idx, P_in_cc_var, d_no_fill_op, d_apply_time,
+                1.0, helmholtz_rhs_idx, helmholtz_rhs_cc_var);
+
+            d_helmholtz_solver->setInitialGuessNonzero(true);
+            d_helmholtz_solver->initializeSolverState(*helmholtz_sol_vec,*helmholtz_rhs_vec);
+            d_helmholtz_solver->solveSystem(*helmholtz_sol_vec,*helmholtz_rhs_vec);
+            helmholtz_rhs_vec->deallocateVectorData();
+
+            InterpolationTransactionComponent U_out_component(U_out_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, U_bc_coef);
+            d_U_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+            d_U_bdry_fill_op->initializeOperatorState(U_out_component, hierarchy);
+            d_U_bdry_fill_op->fillData(d_apply_time);
+
+            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > poisson_sol_vec =
+                new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+                    d_object_name+"::poisson_sol_vec", hierarchy, coarsest_ln, finest_ln);
+            poisson_sol_vec->addComponent(P_out_var,P_out_idx,y.getControlVolumeIndex(1));
+
+            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > poisson_rhs_vec =
+                poisson_sol_vec->cloneVector(d_object_name+"::poisson_rhs_vec");
+            const int poisson_rhs_idx = poisson_rhs_vec->getComponentDescriptorIndex(0);
+            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& poisson_rhs_var = poisson_rhs_vec->getComponentVariable(0);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > poisson_rhs_cc_var = poisson_rhs_var;
+            poisson_rhs_vec->allocateVectorData(d_apply_time);
+
+            d_hier_math_ops->div(
+                poisson_rhs_idx, poisson_rhs_cc_var,
+                -d_rho/d_dt, U_out_idx, U_out_cc_var, d_no_fill_op, d_apply_time,
+                0.0, -1, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >(NULL));
+
+            d_poisson_solver->setInitialGuessNonzero(false);
+            d_poisson_solver->initializeSolverState(*poisson_sol_vec,*poisson_rhs_vec);
+            d_poisson_solver->solveSystem(*poisson_sol_vec,*poisson_rhs_vec);
+            poisson_rhs_vec->deallocateVectorData();
+
+            InterpolationTransactionComponent P_out_component(P_out_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, P_bc_coef);
+            d_P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+            d_P_bdry_fill_op->initializeOperatorState(P_out_component, hierarchy);
+            d_P_bdry_fill_op->fillData(d_apply_time);
+
+            d_hier_math_ops->grad(
+                U_out_idx, U_out_cc_var,
+                -d_dt/d_rho, P_out_idx, P_out_cc_var, d_no_fill_op, d_apply_time,
+                1.0, U_out_idx, U_out_cc_var);
+            return true;
+        }// solveSystem
+
+    //\}
+
+    /*!
+     * \name Functions to access solver parameters.
+     */
+    //\{
+
+    /*!
+     * \brief Set whether the initial guess is non-zero.
+     */
+    virtual void
+    setInitialGuessNonzero(
+        bool initial_guess_nonzero=true)
+        {
+            // intentionally blank
+            return;
+        }// setInitialGuessNonzero
+
+
+    /*!
+     * \brief Get whether the initial guess is non-zero.
+     */
+    virtual bool
+    getInitialGuessNonzero() const
+        {
+            // intentionally blank
+            return true;
+        }// getInitialGuessNonzero
+
+    /*!
+     * \brief Set the maximum number of iterations to use per solve.
+     */
+    virtual void
+    setMaxIterations(
+        int max_iterations)
+        {
+            // intentionally blank
+            return;
+        }// setMaxIterations
+
+    /*!
+     * \brief Get the maximum number of iterations to use per solve.
+     */
+    virtual int
+    getMaxIterations() const
+        {
+            // intentionally blank
+            return 1;
+        }// getMaxIterations
+
+    /*!
+     * \brief Set the absolute residual tolerance for convergence.
+     */
+    virtual void
+    setAbsoluteTolerance(
+        double abs_residual_tol)
+        {
+            // intentionally blank
+            return;
+        }// setAbsoluteTolerance
+
+    /*!
+     * \brief Get the absolute residual tolerance for convergence.
+     */
+    virtual double
+    getAbsoluteTolerance() const
+        {
+            // intentionally blank
+            return 0.0;
+        }// getAbsoluteTolerance
+
+    /*!
+     * \brief Set the relative residual tolerance for convergence.
+     */
+    virtual void
+    setRelativeTolerance(
+        double rel_residual_tol)
+        {
+            // intentionally blank
+            return;
+        }// setRelativeTolerance
+
+    /*!
+     * \brief Get the relative residual tolerance for convergence.
+     */
+    virtual double
+    getRelativeTolerance() const
+        {
+            // intentionally blank
+            return 0.0;
+        }// getRelativeTolerance
+
+    //\}
+
+    /*!
+     * \name Functions to access data on the most recent solve.
+     */
+    //\{
+
+    /*!
+     * \brief Return the iteration count from the most recent linear solve.
+     */
+    virtual int
+    getNumIterations() const
+        {
+            // intentionally blank
+            return 0;
+        }// getNumIterations
+
+    /*!
+     * \brief Return the residual norm from the most recent iteration.
+     */
+    virtual double
+    getResidualNorm() const
+        {
+            return 0.0;
+        }// getResidualNorm
+
+    //\}
+
+    /*!
+     * \name Logging functions.
+     */
+    //\{
+
+    /*!
+     * \brief Enable or disable logging.
+     *
+     * \param enabled logging state: true=on, false=off
+     */
+    virtual void
+    enableLogging(
+        bool enabled=true)
+        {
+            // intentionally blank
+            return;
+        }// enableLogging
+
+    /*!
+     * \brief Print out internal class data for debugging.
+     */
+    virtual void
+    printClassData(
+        std::ostream& os) const
+        {
+            // intentionally blank
+            return;
+        }// printClassData
+
+    //\}
+
+private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    INSNKPreconditioner();
+
+    /*!
+     * \brief Copy constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     *
+     * \param from The value to copy to this object.
+     */
+    INSNKPreconditioner(
+        const INSNKPreconditioner& from);
+
+    /*!
+     * \brief Assignment operator.
+     *
+     * \note This operator is not implemented and should not be used.
+     *
+     * \param that The value to assign to this object.
+     *
+     * \return A reference to this object.
+     */
+    INSNKPreconditioner&
+    operator=(
+        const INSNKPreconditioner& that);
+
+    // Housekeeping.
+    std::string d_object_name;
+
+    // Problem coefficients.
+    const double d_rho;
+    const double d_mu;
+    const double d_lambda;
+
+    // The timestep size.
+    const double d_dt;
+
+    // The simulation time.
+    const double d_apply_time;
+
+    // Linear solvers.
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_poisson_solver, d_helmholtz_solver;
+
+    // Math objects.
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+
+    // Boundary condition objects.
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_fill_op, d_P_bdry_fill_op, d_no_fill_op;
+};
 
 }
 
@@ -1555,6 +1922,9 @@ INSNKHierarchyIntegrator::resetHierarchyConfiguration(
     d_U_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_U_bdry_fill_op->initializeOperatorState(U_scratch_component, d_hierarchy);
 
+    d_P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
+
     std::vector<InterpolationTransactionComponent> U_P_transaction_comps(2);
     U_P_transaction_comps[0] = U_scratch_component;
     U_P_transaction_comps[1] = P_scratch_component;
@@ -2062,8 +2432,55 @@ INSNKHierarchyIntegrator::integrateHierarchy_1st_order(
         d_hier_math_ops, d_U_P_bdry_fill_op);
     d_linear_solver->setOperator(d_linear_op);
 
+    // Setup the preconditioner.
+    SAMRAI::solv::PoissonSpecifications poisson_spec(d_object_name+"::poisson_spec");
+    poisson_spec.setCZero();
+    poisson_spec.setDConstant(-1.0);
+
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator> poisson_fac_op = new IBTK::CCPoissonFACOperator(
+        d_object_name+"::FAC Op", d_poisson_fac_op_db);
+    poisson_fac_op->setPoissonSpecifications(poisson_spec);
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > poisson_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(
+        d_object_name+"::FAC Preconditioner", *poisson_fac_op, d_poisson_fac_pc_db);
+    poisson_fac_op->setPreconditioner(poisson_fac_pc);
+
+    static const bool homogeneous_bc = true;
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> poisson_op = new IBTK::CCLaplaceOperator(
+        d_object_name+"::Laplace Operator",
+        poisson_spec, NULL, homogeneous_bc);
+
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> poisson_solver = new IBTK::PETScKrylovLinearSolver(
+        d_object_name+"::PETSc Krylov Poisson solver", "poisson_");
+    poisson_solver->setInitialGuessNonzero(true);
+    poisson_solver->setOperator(poisson_op);
+    poisson_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(poisson_fac_pc, d_poisson_fac_pc_db));
+
+    SAMRAI::solv::PoissonSpecifications helmholtz_spec(d_object_name+"::helmholtz_spec");
+    helmholtz_spec.setCConstant((d_rho/dt)+d_lambda);
+    helmholtz_spec.setDConstant(-d_mu);
+
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> helmholtz_op = new IBTK::CCLaplaceOperator(
+        d_object_name+"::Laplace Operator",
+        helmholtz_spec, std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,NULL), homogeneous_bc);
+
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
+        d_object_name+"::PETSc Krylov Helmholtz solver", "helmholtz_");
+    helmholtz_solver->setInitialGuessNonzero(true);
+    helmholtz_solver->setOperator(helmholtz_op);
+
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver> pc_op = new INSNKPreconditioner(
+        d_object_name+"::preconditioner_op",
+        d_rho, d_mu, d_lambda,
+        dt,
+        new_time,
+        poisson_solver, helmholtz_solver,
+        d_hier_math_ops, d_U_bdry_fill_op, d_P_bdry_fill_op);
+    d_linear_solver->setPreconditioner(pc_op);
+
     // Solve system.
     d_linear_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
+    d_linear_solver->setPreconditioner(NULL);  // XXXX
 
     // Pull out solution components.
     d_hier_cc_data_ops->copyData(U_new_idx, d_sol_vec->getComponentDescriptorIndex(0));
@@ -2368,6 +2785,24 @@ INSNKHierarchyIntegrator::getFromInput(
         }
 
         d_lambda = d_lambda/d_rho;
+    }
+
+    if (db->keyExists("PoissonFACOp"))
+    {
+        d_poisson_fac_op_db = db->getDatabase("PoissonFACOp");
+    }
+    if (db->keyExists("PoissonFACPreconditioner"))
+    {
+        d_poisson_fac_pc_db = db->getDatabase("PoissonFACPreconditioner");
+    }
+
+    if (db->keyExists("HelmholtzFACOp"))
+    {
+        d_helmholtz_fac_op_db = db->getDatabase("HelmholtzFACOp");
+    }
+    if (db->keyExists("HelmholtzFACPreconditioner"))
+    {
+        d_helmholtz_fac_pc_db = db->getDatabase("HelmholtzFACPreconditioner");
     }
     return;
 }// getFromInput

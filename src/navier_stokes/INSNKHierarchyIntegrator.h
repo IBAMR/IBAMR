@@ -2,7 +2,7 @@
 #define included_INSNKHierarchyIntegrator
 
 // Filename: INSNKHierarchyIntegrator.h
-// Last modified: <21.Mar.2008 03:26:09 boyce@trasnaform2.local>
+// Last modified: <21.Mar.2008 16:54:32 griffith@box221.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1001,10 +1001,13 @@ private:
     MatNullSpace d_petsc_nullsp;
     Vec d_petsc_nullsp_vec;
 
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_poisson_fac_op_db, d_poisson_fac_pc_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_helmholtz_fac_op_db, d_helmholtz_fac_pc_db;
+
     /*
      * Patch boundary filling operators.
      */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_fill_op, d_U_P_bdry_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_fill_op, d_P_bdry_fill_op, d_U_P_bdry_fill_op;
 };
 }// namespace IBAMR
 
