@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <12.Mar.2008 23:08:20 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Mar.2008 13:03:11 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -682,6 +682,30 @@ private:
         const bool skip_refined_regions=true);
 
     /*!
+     * Update constraint force data structures over the specified levels in the
+     * patch hierarchy.
+     */
+    void
+    computeConstraintForceDataStructures(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
+        const int coarsest_ln,
+        const int finest_ln,
+        const double data_time,
+        const bool initial_time);
+
+    /*!
+     * Add constraint forces to the specified levels of the patch hierarchy.
+     */
+    void
+    computeConstraintForces(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data,
+        const int coarsest_ln,
+        const int finest_ln,
+        const double data_time,
+        const bool initial_time);
+
+    /*!
      * Set the values of the distributed internal sources/sinks on the Cartesian
      * grid hierarchy.
      *
@@ -912,9 +936,9 @@ private:
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;
 
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_force_ralg, d_source_ralg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_force_rstrategy, d_source_rstrategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_force_rscheds, d_source_rscheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_force_current_ralg, d_force_new_ralg, d_source_ralg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_force_current_rstrategy, d_force_new_rstrategy, d_source_rstrategy;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_force_current_rscheds, d_force_new_rscheds, d_source_rscheds;
 
     /*
      * Variables and variable contexts.
@@ -925,6 +949,18 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker> > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
     int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_mark_current_idx, d_mark_scratch_idx, d_Q_idx, d_Q_scratch_idx;
+
+    /*
+     * Constraint force data.
+     */
+    std::string d_constraint_forces_file_name;
+    double d_constraint_kappa;
+    bool d_reset_constrained_initial_posns;
+    std::vector<bool> d_using_constraint_forces;
+    std::vector<std::vector<int> > d_constraint_lag_coarse_idxs, d_constraint_lag_fine_idxs;
+    std::vector<std::vector<int> > d_constraint_petsc_coarse_idxs, d_constraint_petsc_fine_idxs;
+    std::vector<IS> d_constraint_force_src_is, d_constraint_force_dst_is;
+    std::vector<VecScatter> d_constraint_force_vec_scatter;
 };
 }// namespace IBAMR
 

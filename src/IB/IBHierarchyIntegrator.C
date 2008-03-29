@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <12.Mar.2008 23:01:48 griffith@box221.cims.nyu.edu>
+// Last modified: <28.Mar.2008 20:33:35 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -187,11 +187,14 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_calgs(),
       d_cstrategies(),
       d_cscheds(),
-      d_force_ralg(),
+      d_force_current_ralg(),
+      d_force_new_ralg(),
       d_source_ralg(),
-      d_force_rstrategy(),
+      d_force_current_rstrategy(),
+      d_force_new_rstrategy(),
       d_source_rstrategy(),
-      d_force_rscheds(),
+      d_force_current_rscheds(),
+      d_force_new_rscheds(),
       d_source_rscheds(),
       d_V_var(NULL),
       d_W_var(NULL),
@@ -328,6 +331,89 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
         }
     }
 
+    // Read in the constraint force info.
+    d_using_constraint_forces.resize(128,false);  // XXXX
+    d_constraint_lag_coarse_idxs.resize(128);
+    d_constraint_lag_fine_idxs.resize(128);
+    d_constraint_petsc_coarse_idxs.resize(128);
+    d_constraint_petsc_fine_idxs.resize(128);
+    if (!d_constraint_forces_file_name.empty())
+    {
+        SAMRAI::tbox::pout << "add restart capability so this doesn't have to be re-read each time!\n";
+
+        const int mpi_rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
+        const int mpi_size = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+
+        for (int rank = 0; rank < mpi_size; ++rank)
+        {
+            if (rank == mpi_rank)
+            {
+                std::string line_string;
+                std::ifstream file_stream(d_constraint_forces_file_name.c_str(), std::ios::in);
+
+                // The first entry in the file is the number of force specs.
+                int num_specs;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << d_constraint_forces_file_name << "\n");
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_specs))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << d_constraint_forces_file_name << "\n");
+                    }
+                }
+
+                // Each successive line provides a force specification for a
+                // constraint force.
+                for (int k = 0; k < num_specs; ++k)
+                {
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << d_constraint_forces_file_name << "\n");
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+                        std::istringstream line_stream(line_string);
+                        int coarse_ln;
+                        if (!(line_stream >> coarse_ln))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_constraint_forces_file_name << "\n");
+                        }
+                        int fine_ln;
+                        if (!(line_stream >> fine_ln))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_constraint_forces_file_name << "\n");
+                        }
+                        int coarse_idx;
+                        if (!(line_stream >> coarse_idx))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_constraint_forces_file_name << "\n");
+                        }
+                        int fine_idx;
+                        if (!(line_stream >> fine_idx))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_constraint_forces_file_name << "\n");
+                        }
+
+                        if (fine_ln != coarse_ln+1)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_constraint_forces_file_name << "\n");
+                        }
+
+                        d_using_constraint_forces   [coarse_ln] = true;
+                        d_constraint_lag_coarse_idxs[coarse_ln].push_back(coarse_idx);
+                        d_constraint_lag_fine_idxs  [coarse_ln].push_back(  fine_idx);
+                    }
+                }
+            }
+        }
+    }
+
     // Determine the ghost cell width required for cell-centered spreading and
     // interpolating.
     const int stencil_size = IBTK::LEInteractor::getStencilSize(d_delta_fcn);
@@ -405,6 +491,22 @@ IBHierarchyIntegrator::~IBHierarchyIntegrator()
         delete (*it).second;
     }
 
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        int ierr;
+        if (d_constraint_force_src_is[ln] != static_cast<IS>(NULL))
+        {
+            ierr = ISDestroy(d_constraint_force_src_is[ln]); IBTK_CHKERRQ(ierr);
+        }
+        if (d_constraint_force_dst_is[ln] != static_cast<IS>(NULL))
+        {
+            ierr = ISDestroy(d_constraint_force_dst_is[ln]); IBTK_CHKERRQ(ierr);
+        }
+        if (d_constraint_force_vec_scatter[ln] != static_cast<VecScatter>(NULL))
+        {
+            ierr = VecScatterDestroy(d_constraint_force_vec_scatter[ln]); IBTK_CHKERRQ(ierr);
+        }
+    }
     return;
 }// ~IBHierarchyIntegrator
 
@@ -706,24 +808,25 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         d_ins_hier_integrator->getForceVar(),
         d_ins_hier_integrator->getCurrentContext());
 
-    d_force_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    d_force_current_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
         d_ins_hier_integrator->getForceVar(), "CONSTANT_REFINE");
-    d_force_ralg->registerRefine(F_current_idx,     // destination
-                                 F_current_idx,     // source
-                                 d_F_scratch1_idx,  // temporary work space
-                                 refine_operator);
+    d_force_current_ralg->registerRefine(F_current_idx,     // destination
+                                         F_current_idx,     // source
+                                         d_F_scratch1_idx,  // temporary work space
+                                         refine_operator);
+    d_force_current_rstrategy = new IBTK::CartExtrapPhysBdryOp(
+        d_F_scratch1_idx, "QUADRATIC");
+
+    d_force_new_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
-        d_F_var, "CONSTANT_REFINE");
-    d_force_ralg->registerRefine(d_F_idx,           // destination
-                                 d_F_idx,           // source
-                                 d_F_scratch2_idx,  // temporary work space
-                                 refine_operator);
-    SAMRAI::hier::ComponentSelector F_scratch_idxs;
-    F_scratch_idxs.setFlag(d_F_scratch1_idx);
-    F_scratch_idxs.setFlag(d_F_scratch2_idx);
-    d_force_rstrategy = new IBTK::CartExtrapPhysBdryOp(
-        F_scratch_idxs, "QUADRATIC");
+        d_ins_hier_integrator->getForceVar(), "CONSTANT_REFINE");
+    d_force_new_ralg->registerRefine(d_F_idx,           // destination
+                                     d_F_idx,           // source
+                                     d_F_scratch2_idx,  // temporary work space
+                                     refine_operator);
+    d_force_new_rstrategy = new IBTK::CartExtrapPhysBdryOp(
+        d_F_scratch2_idx, "QUADRATIC");
 
     if (!d_source_strategy.isNull())
     {
@@ -1003,85 +1106,12 @@ IBHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // Compute the Lagrangian forces and spread those forces from the
-    // curvilinear mesh to the Cartesian grid.  It is VERY IMPORTANT to note
-    // that the implementation of the Lagrangian-Eulerian interaction operators
-    // assume that the Lagrangian force F is actually the total force and NOT
-    // the force density.  This means, for instance, that the Cartesian grid
-    // force density f(x) is determined from the Lagrangian force F(q,r,s) via
-    //
-    //      f_{i,j,k} = Sum_{q,r,s} F_{q,r,s} delta_h(x_{i,j,k} - X_{q,r,s}).
-    //
-    // On the other hand, velocity interpolation is performed as usual, i.e.,
-    //
-    //      U_{q,r,s} = Sum_{i,j,k} u_{i,j,k} delta_h(x_{i,j,k} h_{l}^NDIM.
-    //
-    // In the following loop, we perform the following operations:
-    //
-    // 1. Interpolate u(n) from the Cartesian grid onto the Lagrangian mesh
-    //    (done for the initial timestep only).
-    //
-    // 2. Compute F(n) = F(X(n),n), the Lagrangian force corresponding to
-    //    configuration X(n) at time t_{n}.
-    //
-    // 3. Spread F(n) from the Lagrangian mesh onto the Cartesian grid.
-    //
-    // 4. Compute X~(n+1), the preliminary structure configuration at time
-    //    t_{n+1}.
-    //
-    // 5. Compute F~(n+1) = F(X~(n+1),n+1), the Lagrangian force corresponding
-    //    to configuration X~(n+1) at time t_{n+1}.
-    //
-    // 6. Spread F~(n+1) from the Lagrangian mesh onto the Cartesian grid.
-    //
-    // This loop also initializes the values of the various LNodeLevelData
-    // objects, including X_data, F_data, U_data, and X_new_data, on each level
-    // of the patch hierarchy.
+    // Initialize the various LNodeLevelData objects, including X_data, F_data,
+    // U_data, and X_new_data, on each level of the patch hierarchy.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(
-            level->getRatio());
-
-        level->allocatePatchData(d_F_idx, current_time);
-        level->allocatePatchData(d_F_scratch1_idx, current_time);
-        level->allocatePatchData(d_F_scratch2_idx, current_time);
-
-        // On the coarsest level of the patch hierarchy, simply initialize the
-        // Cartesian force density to equal zero.
-        //
-        // For each of the finer levels in the patch hierarchy, conservatively
-        // interpolate the Cartesian force density from coarser levels in the
-        // patch hierarchy.
-        if (ln == coarsest_ln)
-        {
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_current_data = patch->
-                    getPatchData(d_ins_hier_integrator->getForceVar(),
-                                 d_ins_hier_integrator->getCurrentContext());
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_new_data = patch->
-                    getPatchData(d_F_idx);
-                f_current_data->fillAll(0.0);
-                f_new_data->fillAll(0.0);
-            }
-        }
-        else
-        {
-            // Interpolate the Cartesian force from the next coarser level in
-            // the hierarchy.
-            //
-            // Note that these refine schedules initialize both the force data
-            // maintained by the IBHierarchyIntegrator and the current context
-            // of the force data maintained by the Navier-Stokes solver.
-            d_force_rscheds[ln]->fillData(current_time);
-        }
-
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            int ierr;
-
             X_data[ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
             U_data[ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::VEL_DATA_NAME,ln);
             F_data[ln] = d_lag_data_manager->createLNodeLevelData("F",ln,NDIM);
@@ -1118,17 +1148,23 @@ IBHierarchyIntegrator::advanceHierarchy(
                 dY_dt_new_data[ln]->restoreLocalFormVec();
                 F_K_new_data  [ln]->restoreLocalFormVec();
             }
+        }
+    }
 
-            // 1. Interpolate u(n) from the Cartesian grid onto the Lagrangian
-            //    mesh.
-            //
-            // NOTE: Since we are maintaining the Lagrangian velocity data, this
-            // step is skipped for each timestep following the initial one
-            // execpt immediately following a regridding operation.
-            if (initial_time || d_reinterpolate_after_regrid)
+    // 1. Interpolate u(n) from the Cartesian grid onto the Lagrangian mesh.
+    //
+    // NOTE: Since we are maintaining the Lagrangian velocity data, this step is
+    // skipped for each timestep following the initial one execpt immediately
+    // following a regridding operation.
+    if (initial_time || d_reinterpolate_after_regrid)
+    {
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+            if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
                 if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): interpolating u(n) to U(n) on level number " << ln << "\n";
-
                 for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
                     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1137,24 +1173,27 @@ IBHierarchyIntegrator::advanceHierarchy(
                         patch->getPatchData(d_V_idx);
                     const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(
                         d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-
                     IBTK::LEInteractor::interpolate(
                         U_data[ln], X_data[ln], idx_data, v_data,
                         patch, patch_box, periodic_shift,
                         d_delta_fcn);
                 }
             }
+        }
+    }
 
-            // 2. Compute F(n) = F(X(n),n), the Lagrangian force corresponding
-            //    to configuration X(n) at time t_{n}.
+    // 2. Compute F(n) = F(X(n),n), the Lagrangian force corresponding to
+    //    configuration X(n) at time t_{n}.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F(n) on level number " << ln << "\n";
-
             Vec F_vec = F_data[ln]->getGlobalVec();
-            ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
+            int ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(
                 F_data[ln], X_data[ln],
                 d_hierarchy, ln, current_time, d_lag_data_manager);
-
             if (d_using_pIB_method)
             {
                 // Add the penalty force associated with the massive ghost
@@ -1217,15 +1256,53 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                 ierr = VecAXPY(F_vec, 1.0, F_K_vec);  IBTK_CHKERRQ(ierr);
             }
+        }
+    }
 
-            // 3. Spread F(n) from the Lagrangian mesh onto the Cartesian grid.
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): spreading F(n) to f(n) on level number " << ln << "\n";
+    computeConstraintForces(X_data, F_data, coarsest_ln, finest_ln, current_time, initial_time);
 
+    // 3. Spread F(n) from the Lagrangian mesh onto the Cartesian grid.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        level->allocatePatchData(d_F_scratch1_idx, current_time);
+
+        // On the coarsest level of the patch hierarchy, simply initialize the
+        // Cartesian force density to equal zero.
+        //
+        // For each of the finer levels in the patch hierarchy, conservatively
+        // interpolate the Cartesian force density from coarser levels in the
+        // patch hierarchy.
+        if (ln == coarsest_ln)
+        {
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_current_data = patch->
+                    getPatchData(d_ins_hier_integrator->getForceVar(),
+                                 d_ins_hier_integrator->getCurrentContext());
+                f_current_data->fillAll(0.0);
+            }
+        }
+        else
+        {
+            // Interpolate the Cartesian force from the next coarser level in
+            // the hierarchy.
+            //
+            // Note that these refine schedules initialize both the force data
+            // maintained by the IBHierarchyIntegrator and the current context
+            // of the force data maintained by the Navier-Stokes solver.
+            d_force_current_rscheds[ln]->fillData(current_time);
+        }
+
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
             X_data[ln]->beginGhostUpdate();
             F_data[ln]->beginGhostUpdate();
             X_data[ln]->endGhostUpdate();
             F_data[ln]->endGhostUpdate();
-
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): spreading F(n) to f(n) on level number " << ln << "\n";
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1242,17 +1319,20 @@ IBHierarchyIntegrator::advanceHierarchy(
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
             }
+        }
+    }
 
-            // 4. Compute X~(n+1), the preliminary structure configuration at
-            //    time t_{n+1}.
+    // 4. Compute X~(n+1), the preliminary structure configuration at time
+    //    t_{n+1}.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing X~(n+1) on level number " << ln << "\n";
-
             Vec U_vec = U_data[ln]->getGlobalVec();
             Vec X_vec = X_data[ln]->getGlobalVec();
             Vec X_new_vec = X_new_data[ln]->getGlobalVec();
-
-            ierr = VecWAXPY(X_new_vec, dt, U_vec, X_vec);  IBTK_CHKERRQ(ierr);
-
+            int ierr = VecWAXPY(X_new_vec, dt, U_vec, X_vec);  IBTK_CHKERRQ(ierr);
             if (d_using_pIB_method)
             {
                 // Advance the positions and velocities of the massive ghost
@@ -1302,17 +1382,23 @@ IBHierarchyIntegrator::advanceHierarchy(
                 ierr = VecRestoreArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(F_K_vec, &F_K_arr);  IBTK_CHKERRQ(ierr);
             }
+        }
+    }
 
-            // 5. Compute F~(n+1) = F(X~(n+1),n+1), the Lagrangian force
-            //    corresponding to configuration X~(n+1) at time t_{n+1}.
+    computeConstraintForces(X_new_data, F_new_data, coarsest_ln, finest_ln, new_time, false);
+
+    // 5. Compute F~(n+1) = F(X~(n+1),n+1), the Lagrangian force corresponding
+    //    to configuration X~(n+1) at time t_{n+1}.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F~(n+1) on level number " << ln << "\n";
-
             Vec F_new_vec = F_new_data[ln]->getGlobalVec();
-            ierr = VecSet(F_new_vec, 0.0);  IBTK_CHKERRQ(ierr);
+            int ierr = VecSet(F_new_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(
                 F_new_data[ln], X_new_data[ln],
                 d_hierarchy, ln, new_time, d_lag_data_manager);
-
             if (d_using_pIB_method)
             {
                 // Add the penalty force associated with the massive ghost
@@ -1347,16 +1433,51 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                 ierr = VecAXPY(F_new_vec, 1.0, F_K_new_vec);  IBTK_CHKERRQ(ierr);
             }
+        }
+    }
 
-            // 6. Spread F~(n+1) from the Lagrangian mesh onto the Cartesian
-            //    grid.
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): spreading F~(n+1) to f~(n+1) on level number " << ln << "\n";
+    // 6. Spread F~(n+1) from the Lagrangian mesh onto the Cartesian grid.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        level->allocatePatchData(d_F_idx, current_time);
+        level->allocatePatchData(d_F_scratch2_idx, current_time);
 
+        // On the coarsest level of the patch hierarchy, simply initialize the
+        // Cartesian force density to equal zero.
+        //
+        // For each of the finer levels in the patch hierarchy, conservatively
+        // interpolate the Cartesian force density from coarser levels in the
+        // patch hierarchy.
+        if (ln == coarsest_ln)
+        {
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_new_data = patch->
+                    getPatchData(d_F_idx);
+                f_new_data->fillAll(0.0);
+            }
+        }
+        else
+        {
+            // Interpolate the Cartesian force from the next coarser level in
+            // the hierarchy.
+            //
+            // Note that these refine schedules initialize both the force data
+            // maintained by the IBHierarchyIntegrator and the current context
+            // of the force data maintained by the Navier-Stokes solver.
+            d_force_new_rscheds[ln]->fillData(current_time);
+        }
+
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
             X_new_data[ln]->beginGhostUpdate();
             F_new_data[ln]->beginGhostUpdate();
             X_new_data[ln]->endGhostUpdate();
             F_new_data[ln]->endGhostUpdate();
-
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): spreading F~(n+1) to f~(n+1) on level number " << ln << "\n";
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1375,9 +1496,9 @@ IBHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // If an additional body force specification object is provided, compute the
-    // body force at the beginning and end of the time step, and add those
-    // values to f(n) and f(n+1).
+    // 7. If an additional body force specification object is provided, compute
+    //    the body force at the beginning and end of the time step, and add
+    //    those values to f(n) and f(n+1).
     if (!d_body_force_set.isNull())
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
@@ -1958,6 +2079,20 @@ IBHierarchyIntegrator::regridHierarchy()
     d_force_strategy_needs_init  = true;
     d_source_strategy_needs_init = true;
 
+    // Update any constraint force information.
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data(d_hierarchy->getFinestLevelNumber()+1);
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            X_data[ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
+        }
+    }
+    d_constraint_force_src_is.resize(d_hierarchy->getFinestLevelNumber()+1,static_cast<IS>(NULL));
+    d_constraint_force_dst_is.resize(d_hierarchy->getFinestLevelNumber()+1,static_cast<IS>(NULL));
+    d_constraint_force_vec_scatter.resize(d_hierarchy->getFinestLevelNumber()+1,static_cast<VecScatter>(NULL));
+    computeConstraintForceDataStructures(X_data,0,d_hierarchy->getFinestLevelNumber(), d_integrator_time, initial_time);
+
     t_regrid_hierarchy->stop();
     return;
 }// regridHierarchy
@@ -2220,7 +2355,7 @@ IBHierarchyIntegrator::initializeLevelData(
         }
         else
         {
-            pruneDuplicateMarkers(0,level_number-1);
+            pruneDuplicateMarkers(0,level_number-1);  // XXXX: this doesn't seem to work correctly in general...?
         }
     }
 
@@ -2308,8 +2443,8 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
         d_rscheds[(*it).first].resize(finest_hier_level+1);
     }
 
-    d_force_rscheds.resize(finest_hier_level+1);
-
+    d_force_current_rscheds.resize(finest_hier_level+1);
+    d_force_new_rscheds    .resize(finest_hier_level+1);
     if (!d_source_strategy.isNull())
     {
         d_source_rscheds.resize(finest_hier_level+1);
@@ -2342,10 +2477,15 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
 
-        d_force_rscheds[ln] = d_force_ralg->
+        d_force_current_rscheds[ln] = d_force_current_ralg->
             createSchedule(
                 level, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(),
-                ln-1, hierarchy, d_force_rstrategy);
+                ln-1, hierarchy, d_force_current_rstrategy);
+
+        d_force_new_rscheds[ln] = d_force_new_ralg->
+            createSchedule(
+                level, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(),
+                ln-1, hierarchy, d_force_new_rstrategy);
 
         if (!d_source_strategy.isNull())
         {
@@ -2959,6 +3099,194 @@ IBHierarchyIntegrator::countMarkers(
 }// countMarkers
 
 void
+IBHierarchyIntegrator::computeConstraintForceDataStructures(
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
+    const int coarsest_ln,
+    const int finest_ln,
+    const double data_time,
+    const bool initial_time)
+{
+    (void) data_time;
+
+    int ierr;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_using_constraint_forces[ln])
+        {
+            if (d_constraint_force_src_is[ln] != static_cast<IS>(NULL))
+            {
+                ierr = ISDestroy(d_constraint_force_src_is[ln]); IBTK_CHKERRQ(ierr);
+            }
+            if (d_constraint_force_dst_is[ln] != static_cast<IS>(NULL))
+            {
+                ierr = ISDestroy(d_constraint_force_dst_is[ln]); IBTK_CHKERRQ(ierr);
+            }
+            if (d_constraint_force_vec_scatter[ln] != static_cast<VecScatter>(NULL))
+            {
+                ierr = VecScatterDestroy(d_constraint_force_vec_scatter[ln]); IBTK_CHKERRQ(ierr);
+            }
+
+            d_constraint_petsc_coarse_idxs[ln] = d_constraint_lag_coarse_idxs[ln];
+            d_constraint_petsc_fine_idxs  [ln] = d_constraint_lag_fine_idxs  [ln];
+
+            d_lag_data_manager->mapLagrangianToPETSc(d_constraint_petsc_coarse_idxs[ln], ln  );
+            d_lag_data_manager->mapLagrangianToPETSc(d_constraint_petsc_fine_idxs  [ln], ln+1);
+
+            Vec X_coarse_vec = X_data[ln]->getGlobalVec();
+            Vec X_fine_vec = X_data[ln+1]->getGlobalVec();
+
+            int coarse_idx_lo, coarse_idx_hi;
+            ierr = VecGetOwnershipRange(X_coarse_vec, &coarse_idx_lo, &coarse_idx_hi); IBTK_CHKERRQ(ierr);
+            coarse_idx_lo /= NDIM;
+            coarse_idx_hi /= NDIM;
+
+            std::vector<int> src_idxs, dst_idxs;
+            for (int k = 0; k < int(d_constraint_petsc_coarse_idxs[ln].size()); ++k)
+            {
+                const int& coarse_idx = d_constraint_petsc_coarse_idxs[ln][k];
+                const int&   fine_idx = d_constraint_petsc_fine_idxs  [ln][k];
+                if (coarse_idx >= coarse_idx_lo && coarse_idx < coarse_idx_hi)
+                {
+                    src_idxs.push_back(NDIM*  fine_idx);
+                    dst_idxs.push_back(NDIM*coarse_idx);
+                }
+            }
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(int(d_constraint_petsc_coarse_idxs[ln].size()) == SAMRAI::tbox::SAMRAI_MPI::sumReduction(int(dst_idxs.size())));
+            TBOX_ASSERT(int(d_constraint_petsc_fine_idxs  [ln].size()) == SAMRAI::tbox::SAMRAI_MPI::sumReduction(int(src_idxs.size())));
+#endif
+            ierr = ISCreateBlock(PETSC_COMM_WORLD, NDIM, src_idxs.size(), &src_idxs[0], &d_constraint_force_src_is[ln]); IBTK_CHKERRQ(ierr);
+            ierr = ISCreateBlock(PETSC_COMM_WORLD, NDIM, dst_idxs.size(), &dst_idxs[0], &d_constraint_force_dst_is[ln]); IBTK_CHKERRQ(ierr);
+            ierr = VecScatterCreate(X_fine_vec  , d_constraint_force_src_is[ln],
+                                    X_coarse_vec, d_constraint_force_dst_is[ln],
+                                    &d_constraint_force_vec_scatter[ln]);
+        }
+    }
+    if (initial_time && d_reset_constrained_initial_posns)
+    {
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_using_constraint_forces[ln])
+            {
+                Vec X_coarse_vec = X_data[ln]->getGlobalVec();
+                Vec X_fine_vec = X_data[ln+1]->getGlobalVec();
+
+                ierr = VecScatterBegin(d_constraint_force_vec_scatter[ln],
+                                       X_fine_vec, X_coarse_vec,
+                                       INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
+                ierr = VecScatterEnd(d_constraint_force_vec_scatter[ln],
+                                     X_fine_vec, X_coarse_vec,
+                                     INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
+            }
+        }
+    }
+    return;
+}// computeConstraintForceDataStructures
+
+void
+IBHierarchyIntegrator::computeConstraintForces(
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data,
+    const int coarsest_ln,
+    const int finest_ln,
+    const double data_time,
+    const bool initial_time)
+{
+    (void) data_time;
+    (void) initial_time;
+
+    int ierr;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_using_constraint_forces[ln])
+        {
+            Vec X_coarse_vec = X_data[ln]->getGlobalVec();
+            Vec F_coarse_vec = F_data[ln]->getGlobalVec();
+            Vec X_fine_vec = X_data[ln+1]->getGlobalVec();
+            Vec F_fine_vec = F_data[ln+1]->getGlobalVec();
+
+            int coarse_idx_lo, coarse_idx_hi;
+            ierr = VecGetOwnershipRange(X_coarse_vec, &coarse_idx_lo, &coarse_idx_hi); IBTK_CHKERRQ(ierr);
+            coarse_idx_lo /= NDIM;
+            coarse_idx_hi /= NDIM;
+
+            Vec X_coarsened_fine_vec;
+            ierr = VecDuplicate(X_coarse_vec, &X_coarsened_fine_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecSet(X_coarsened_fine_vec, 0.0);  IBTK_CHKERRQ(ierr);
+
+            ierr = VecScatterBegin(d_constraint_force_vec_scatter[ln],
+                                   X_fine_vec, X_coarsened_fine_vec,
+                                   INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
+            ierr = VecScatterEnd(d_constraint_force_vec_scatter[ln],
+                                 X_fine_vec, X_coarsened_fine_vec,
+                                 INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
+
+            Vec F_coarse_constraint_vec;
+            ierr = VecDuplicate(F_coarse_vec, &F_coarse_constraint_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecSet(F_coarse_constraint_vec, 0.0);  IBTK_CHKERRQ(ierr);
+
+            double* X_coarse_arr;
+            ierr = VecGetArray(X_coarse_vec, &X_coarse_arr);  IBTK_CHKERRQ(ierr);
+            double* X_coarsened_fine_arr;
+            ierr = VecGetArray(X_coarsened_fine_vec, &X_coarsened_fine_arr);  IBTK_CHKERRQ(ierr);
+            double* F_coarse_constraint_arr;
+            ierr = VecGetArray(F_coarse_constraint_vec, &F_coarse_constraint_arr);  IBTK_CHKERRQ(ierr);
+
+            double r_max = 0.0;
+            for (int k = 0; k < int(d_constraint_petsc_coarse_idxs[ln].size()); ++k)
+            {
+                const int& coarse_idx = d_constraint_petsc_coarse_idxs[ln][k];
+                if (coarse_idx >= coarse_idx_lo && coarse_idx < coarse_idx_hi)
+                {
+                    const double* const X_coarse         = &X_coarse_arr        [NDIM*coarse_idx];
+                    const double* const X_coarsened_fine = &X_coarsened_fine_arr[NDIM*coarse_idx];
+                    double* const F_coarse_constraint = &F_coarse_constraint_arr[NDIM*coarse_idx];
+                    double D[NDIM];
+                    double r_sq = 0.0;
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        D[d] = X_coarsened_fine[d] - X_coarse[d];
+                        r_sq += D[d]*D[d];
+                        F_coarse_constraint[d] = d_constraint_kappa*D[d];
+                    }
+                    r_max = std::max(r_max,sqrt(r_sq));
+                }
+            }
+            r_max = SAMRAI::tbox::SAMRAI_MPI::maxReduction(r_max);
+
+            if (d_do_log)
+            {
+                SAMRAI::tbox::plog << d_object_name << "::computeConstraintForces():\n";
+                SAMRAI::tbox::plog << "  maximum displacement between constrained points on levels " << ln << " and " << ln+1 << " = " << r_max << "\n";
+            }
+
+            ierr = VecRestoreArray(X_coarse_vec, &X_coarse_arr);  IBTK_CHKERRQ(ierr);
+            ierr = VecRestoreArray(X_coarsened_fine_vec, &X_coarsened_fine_arr);  IBTK_CHKERRQ(ierr);
+            ierr = VecRestoreArray(F_coarse_constraint_vec, &F_coarse_constraint_arr);  IBTK_CHKERRQ(ierr);
+
+            Vec F_fine_constraint_vec;
+            ierr = VecDuplicate(F_fine_vec, &F_fine_constraint_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecSet(F_fine_constraint_vec, 0.0);  IBTK_CHKERRQ(ierr);
+
+            ierr = VecScatterBegin(d_constraint_force_vec_scatter[ln],
+                                   F_coarse_constraint_vec, F_fine_constraint_vec,
+                                   INSERT_VALUES, SCATTER_REVERSE);  IBTK_CHKERRQ(ierr);
+            ierr = VecScatterEnd(d_constraint_force_vec_scatter[ln],
+                                 F_coarse_constraint_vec, F_fine_constraint_vec,
+                                 INSERT_VALUES, SCATTER_REVERSE);  IBTK_CHKERRQ(ierr);
+
+            ierr = VecAXPY(F_coarse_vec, +1.0, F_coarse_constraint_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecAXPY(F_fine_vec, -1.0, F_fine_constraint_vec);  IBTK_CHKERRQ(ierr);
+
+            ierr = VecDestroy(X_coarsened_fine_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(F_coarse_constraint_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(F_fine_constraint_vec);  IBTK_CHKERRQ(ierr);
+        }
+    }
+    return;
+}// computeConstraintForces
+
+void
 IBHierarchyIntegrator::computeSourceStrengths(
     const int coarsest_level,
     const int finest_level,
@@ -3378,6 +3706,12 @@ IBHierarchyIntegrator::getFromInput(
         d_mark_input_file_name = db->getStringWithDefault("marker_input_file_name", d_mark_input_file_name);
     }
 
+    d_constraint_forces_file_name = db->getStringWithDefault("constraint_forces_file_name", d_constraint_forces_file_name);
+    if (!d_constraint_forces_file_name.empty())
+    {
+        d_constraint_kappa = db->getDouble("constraint_kappa");  // XXXX
+        d_reset_constrained_initial_posns = db->getBool("reset_constrained_initial_posns");  // XXXX
+    }
     return;
 }// getFromInput
 
