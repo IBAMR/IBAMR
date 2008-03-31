@@ -2462,7 +2462,7 @@ INSNKHierarchyIntegrator::integrateHierarchy_1st_order(
 
     SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> helmholtz_op = new IBTK::CCLaplaceOperator(
         d_object_name+"::Laplace Operator",
-        helmholtz_spec, std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,NULL), homogeneous_bc);
+        helmholtz_spec, std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)), homogeneous_bc);
 
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
         d_object_name+"::PETSc Krylov Helmholtz solver", "helmholtz_");
