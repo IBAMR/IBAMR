@@ -1,5 +1,5 @@
 // Filename: ParabolicLevelIntegrator.C
-// Last modified: <12.Feb.2008 21:44:28 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:03:41 griffith@box221.cims.nyu.edu>
 // Created on 09 Jan 2007 by Boyce Griffith (boyce@box221.cims.nyu.edu)
 
 #include "ParabolicLevelIntegrator.h"
@@ -367,7 +367,7 @@ ParabolicLevelIntegrator::getMaxFinerLevelDt(
         TBOX_ASSERT(ratio(id) > 0);
     }
 #endif
-    return coarse_dt/static_cast<double>(ratio.max());
+    return coarse_dt/double(ratio.max());
 }// getMaxFinerLevelDt
 
 /*

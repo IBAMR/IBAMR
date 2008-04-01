@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <14.Mar.2008 20:08:25 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:08:17 griffith@box221.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -225,7 +225,7 @@ IBSpringForceGen::initializeLevelData(
     const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_number);
 
     // Determine the non-zero structure for the matrix.
-    const int local_sz = static_cast<int>(petsc_mastr_node_idxs.size());
+    const int local_sz = petsc_mastr_node_idxs.size();
     std::vector<int> d_nz(local_sz,1), o_nz(local_sz,0);
 
     for (int k = 0; k < local_sz; ++k)
@@ -300,7 +300,7 @@ IBSpringForceGen::computeLagrangianForce(
     t_compute_lagrangian_force->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
+    TBOX_ASSERT(level_number < int(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
 
@@ -332,7 +332,7 @@ IBSpringForceGen::computeLagrangianForce(
     std::vector<double>& stiffnesses = d_stiffnesses[level_number];
     std::vector<double>& rest_lengths = d_rest_lengths[level_number];
 
-    const int local_sz = static_cast<int>(petsc_mastr_node_idxs.size());
+    const int local_sz = petsc_mastr_node_idxs.size();
     std::vector<double> F_mastr_node_arr(NDIM*local_sz,0.0);
     std::vector<double> F_slave_node_arr(NDIM*local_sz,0.0);
 

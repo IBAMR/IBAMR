@@ -1,5 +1,5 @@
 // Filename: WENOMOLOpsAndSoln.C
-// Last modified: <12.Feb.2008 21:25:54 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:11:36 griffith@box221.cims.nyu.edu>
 // Created on 04 Jan 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "WENOMOLOps.h"
@@ -206,15 +206,15 @@ WENOMOLOps::initializeDataOnPatch(
                         for (int d = 0; d < NDIM; ++d)
                         {
                             X[d] = XLower[d] +
-                                dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                                dx[d]*(double(i(d)-patch_lower(d))+0.5);
                             r_squared += pow(
-                                X[d]-(d_X[d]+static_cast<double>(offset[d])),2.0);
+                                X[d]-(d_X[d]+double(offset[d])),2.0);
                         }
 
                         (*Q_data)(i) +=
                             exp(-r_squared/(4.0*d_gaussian_kappa))/
                             pow(4.0*M_PI*d_gaussian_kappa,
-                                0.5*static_cast<double>(NDIM));
+                                0.5*double(NDIM));
 #if (NDIM>2)
                     }
 #endif
@@ -233,7 +233,7 @@ WENOMOLOps::initializeDataOnPatch(
             for (int d = 0; d < NDIM; ++d)
             {
                 X[d] = XLower[d] +
-                    dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                    dx[d]*(double(i(d)-patch_lower(d))+0.5);
                 r_squared += pow((X[d]-d_X[d]),2.0);
             }
             if (sqrt(r_squared) > d_disk_r)
@@ -255,7 +255,7 @@ WENOMOLOps::initializeDataOnPatch(
             for (int d = 0; d < NDIM; ++d)
             {
                 X[d] = XLower[d] +
-                    dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                    dx[d]*(double(i(d)-patch_lower(d))+0.5);
                 r_squared += pow((X[d]-d_X[d]),2.0);
             }
             if ((sqrt(r_squared) > d_zalesak_r) ||
@@ -278,7 +278,7 @@ WENOMOLOps::initializeDataOnPatch(
             for (int d = 0; d < NDIM; ++d)
             {
                 X[d] = XLower[d] +
-                    dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                    dx[d]*(double(i(d)-patch_lower(d))+0.5);
             }
             (*Q_data)(i) = sin(X[0]);
         }

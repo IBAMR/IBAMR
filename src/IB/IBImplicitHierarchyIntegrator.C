@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <12.Feb.2008 21:15:18 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:28:20 griffith@box221.cims.nyu.edu>
 // Created on 30 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -177,7 +177,7 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     // Determine the ghost cell width required for cell-centered
     // spreading and interpolating.
     const int stencil_size = LEInteractor::getStencilSize(d_delta_fcn);
-    d_ghosts = static_cast<int>(floor(0.5*static_cast<double>(stencil_size))+1);
+    d_ghosts = int(floor(0.5*double(stencil_size)))+1;
 
     // Get the Lagrangian Data Manager.
     d_lag_data_manager = LDataManager::getManager(

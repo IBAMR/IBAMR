@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <12.Mar.2008 23:11:24 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:09:37 griffith@box221.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -529,7 +529,7 @@ IBStandardInitializer::readVertexFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        const int num_base_filename = d_base_filename[ln].size();
         d_num_vertex[ln].resize(num_base_filename,std::numeric_limits<int>::max());
         d_vertex_offset[ln].resize(num_base_filename,std::numeric_limits<int>::max());
         d_vertex_posn[ln].resize(num_base_filename);
@@ -629,7 +629,7 @@ IBStandardInitializer::readSpringFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        const int num_base_filename = d_base_filename[ln].size();
         d_spring_edge_map[ln].resize(num_base_filename);
         d_spring_stiffness[ln].resize(num_base_filename);
         d_spring_rest_length[ln].resize(num_base_filename);
@@ -842,7 +842,7 @@ IBStandardInitializer::readBeamFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        const int num_base_filename = d_base_filename[ln].size();
         d_beam_specs[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
@@ -996,7 +996,7 @@ IBStandardInitializer::readTargetPointFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        const int num_base_filename = d_base_filename[ln].size();
         d_target_stiffness[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
@@ -1118,7 +1118,7 @@ IBStandardInitializer::readBoundaryMassFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        const int num_base_filename = d_base_filename[ln].size();
         d_bdry_mass[ln].resize(num_base_filename);
         d_bdry_mass_stiffness[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
@@ -1260,7 +1260,7 @@ IBStandardInitializer::readInstrumentationFiles()
     std::vector<std::string> instrument_names;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        const int num_base_filename = d_base_filename[ln].size();
         d_instrument_idx[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
@@ -1382,7 +1382,7 @@ IBStandardInitializer::readInstrumentationFiles()
                                        << "  meter index " << idx.first << " is out of range" << std::endl);
                         }
 
-                        if (idx.first >= static_cast<int>(encountered_instrument_idx.size()))
+                        if (idx.first >= int(encountered_instrument_idx.size()))
                         {
                             encountered_instrument_idx.resize(idx.first+1,false);
                         }
@@ -1398,7 +1398,7 @@ IBStandardInitializer::readInstrumentationFiles()
                                        << "  meter node index is negative" << std::endl);
                         }
 
-                        if (idx.second >= static_cast<int>(encountered_node_idx[idx.first].size()))
+                        if (idx.second >= int(encountered_node_idx[idx.first].size()))
                         {
                             encountered_node_idx[idx.first].resize(idx.second+1,false);
                         }
@@ -1435,7 +1435,7 @@ IBStandardInitializer::readInstrumentationFiles()
                     }
                 }
 
-                if (static_cast<int>(encountered_instrument_idx.size()) != num_inst)
+                if (int(encountered_instrument_idx.size()) != num_inst)
                 {
                     TBOX_ERROR(d_object_name << ":\n  "
                                << "  Not all anticipated instrument indices were found in input file " << inst_filename
@@ -1751,7 +1751,7 @@ IBStandardInitializer::getFromInput(
     // Read in any sub-databases associated with the input file names.
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        const int num_base_filename = d_base_filename[ln].size();
 
         d_enable_springs[ln].resize(num_base_filename,true);
 
@@ -1900,7 +1900,7 @@ IBStandardInitializer::getFromInput(
     SAMRAI::tbox::pout << d_object_name << ":  Reading from input files: " << std::endl;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = static_cast<int>(d_base_filename[ln].size());
+        const int num_base_filename = d_base_filename[ln].size();
         for (int j = 0; j < num_base_filename; ++j)
         {
             const std::string& base_filename = d_base_filename[ln][j];

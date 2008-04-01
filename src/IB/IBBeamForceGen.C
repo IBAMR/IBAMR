@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <12.Mar.2008 22:33:47 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:24:11 griffith@box221.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -209,7 +209,7 @@ IBBeamForceGen::initializeLevelData(
     const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_num);
 
     // Determine the non-zero structure for the matrices.
-    const int local_sz = static_cast<int>(petsc_mastr_node_idxs.size());
+    const int local_sz = petsc_mastr_node_idxs.size();
 
     std::vector<int> next_d_nz(local_sz,1), next_o_nz(local_sz,0);
     for (int k = 0; k < local_sz; ++k)
@@ -326,7 +326,7 @@ IBBeamForceGen::computeLagrangianForce(
     t_compute_lagrangian_force->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
+    TBOX_ASSERT(level_number < int(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
 
@@ -362,7 +362,7 @@ IBBeamForceGen::computeLagrangianForce(
     std::vector<int>& petsc_prev_node_idxs = d_petsc_prev_node_idxs[level_number];
     std::vector<double>& bend_rigidities = d_bend_rigidities[level_number];
 
-    const int local_sz = static_cast<int>(petsc_mastr_node_idxs.size());
+    const int local_sz = petsc_mastr_node_idxs.size();
     std::vector<double> F_mastr_node_arr(NDIM*local_sz,0.0);
     std::vector<double> F_nghbr_node_arr(NDIM*local_sz,0.0);
 

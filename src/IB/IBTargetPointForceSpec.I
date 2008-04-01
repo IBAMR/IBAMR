@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceSpec.C
-// Last modified: <12.Mar.2008 22:44:33 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:09:50 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -32,7 +32,7 @@ IBTargetPointForceSpec::IBTargetPointForceSpec(
       d_X_target(X_target)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(NDIM == static_cast<int>(d_X_target.size()));
+    TBOX_ASSERT(NDIM == int(d_X_target.size()));
 #endif
     if (!s_registered_factory)
     {
@@ -104,7 +104,7 @@ IBTargetPointForceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(NDIM == static_cast<int>(d_X_target.size()));
+    TBOX_ASSERT(NDIM == int(d_X_target.size()));
 #endif
     stream.pack(&d_master_idx,1);
     stream.pack(&d_kappa_target,1);

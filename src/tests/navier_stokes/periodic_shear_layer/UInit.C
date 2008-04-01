@@ -1,5 +1,5 @@
 // Filename: UInit.C
-// Last modified: <12.Feb.2008 21:26:30 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:12:16 griffith@box221.cims.nyu.edu>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "UInit.h"
@@ -81,8 +81,7 @@ UInit::setDataOnPatch(
         const hier::Index<NDIM>& i = ic();
         for (int d = 0; d < NDIM; ++d)
         {
-            X[d] = XLower[d] +
-                dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+            X[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
         }
 
         if (X[1] < 0.5)

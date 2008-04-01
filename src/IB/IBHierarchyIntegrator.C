@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <28.Mar.2008 20:33:35 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:37:26 griffith@box221.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -417,7 +417,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     // Determine the ghost cell width required for cell-centered spreading and
     // interpolating.
     const int stencil_size = IBTK::LEInteractor::getStencilSize(d_delta_fcn);
-    d_ghosts = static_cast<int>(floor(0.5*double(stencil_size))+1);
+    d_ghosts = int(floor(0.5*double(stencil_size)))+1;
 
     // Get the Lagrangian Data Manager.
     d_lag_data_manager = IBTK::LDataManager::getManager(
@@ -2597,8 +2597,7 @@ IBHierarchyIntegrator::applyGradientDetector(
             SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
             for (int d = 0; d < NDIM; ++d)
             {
-                stencil_box.grow(
-                    d, static_cast<int>(ceil(r[d]/dx_finer[d])));
+                stencil_box.grow(d, int(ceil(r[d]/dx_finer[d])));
             }
 
             const SAMRAI::hier::Box<NDIM> coarsened_stencil_box =
@@ -3109,6 +3108,9 @@ IBHierarchyIntegrator::computeConstraintForceDataStructures(
     (void) data_time;
 
     int ierr;
+
+    // Compute the PETSc VecScatters required to compute the constraint penalty
+    // forces.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_using_constraint_forces[ln])
@@ -3159,9 +3161,12 @@ IBHierarchyIntegrator::computeConstraintForceDataStructures(
             ierr = ISCreateBlock(PETSC_COMM_WORLD, NDIM, dst_idxs.size(), &dst_idxs[0], &d_constraint_force_dst_is[ln]); IBTK_CHKERRQ(ierr);
             ierr = VecScatterCreate(X_fine_vec  , d_constraint_force_src_is[ln],
                                     X_coarse_vec, d_constraint_force_dst_is[ln],
-                                    &d_constraint_force_vec_scatter[ln]);
+                                    &d_constraint_force_vec_scatter[ln]); IBTK_CHKERRQ(ierr);
         }
     }
+
+    // Ensure the initial constrained positions agree, assuming that the fine
+    // grid positions are the "true" positions.
     if (initial_time && d_reset_constrained_initial_posns)
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -3238,9 +3243,10 @@ IBHierarchyIntegrator::computeConstraintForces(
                 const int& coarse_idx = d_constraint_petsc_coarse_idxs[ln][k];
                 if (coarse_idx >= coarse_idx_lo && coarse_idx < coarse_idx_hi)
                 {
-                    const double* const X_coarse         = &X_coarse_arr        [NDIM*coarse_idx];
-                    const double* const X_coarsened_fine = &X_coarsened_fine_arr[NDIM*coarse_idx];
-                    double* const F_coarse_constraint = &F_coarse_constraint_arr[NDIM*coarse_idx];
+                    const int local_idx = coarse_idx-coarse_idx_lo;
+                    const double* const X_coarse         = &X_coarse_arr        [NDIM*local_idx];
+                    const double* const X_coarsened_fine = &X_coarsened_fine_arr[NDIM*local_idx];
+                    double* const F_coarse_constraint = &F_coarse_constraint_arr[NDIM*local_idx];
                     double D[NDIM];
                     double r_sq = 0.0;
                     for (int d = 0; d < NDIM; ++d)
@@ -3394,7 +3400,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
                     SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        stencil_box.grow(d, static_cast<int>(ceil(r[d]/dx[d])));
+                        stencil_box.grow(d, int(ceil(r[d]/dx[d])));
                     }
 
                     // Spread the source strength onto the Cartesian grid.
@@ -3619,7 +3625,7 @@ IBHierarchyIntegrator::computeSourcePressures(
                     SAMRAI::hier::Box<NDIM> stencil_box(i_center,i_center);
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        stencil_box.grow(d, static_cast<int>(ceil(r[d]/dx[d])));
+                        stencil_box.grow(d, int(ceil(r[d]/dx[d])));
                     }
 
                     // Interpolate the pressure from the Cartesian grid.

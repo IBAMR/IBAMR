@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <12.Feb.2008 21:18:35 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:04:55 griffith@box221.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -361,7 +361,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
             Q_depth,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
     }
 
-    if (Q_depth != static_cast<int>(Q_bc_coefs_local.size()))
+    if (Q_depth != int(Q_bc_coefs_local.size()))
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedAndDiffusedQuantity():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
@@ -449,7 +449,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
             Q_depth,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
     }
 
-    if (Q_depth != static_cast<int>(Q_bc_coefs_local.size()))
+    if (Q_depth != int(Q_bc_coefs_local.size()))
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedAndDiffusedQuantityWithSourceTerm():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"

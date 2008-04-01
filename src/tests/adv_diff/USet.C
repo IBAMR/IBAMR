@@ -1,5 +1,5 @@
 // Filename: USet.C
-// Last modified: <12.Feb.2008 21:24:55 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:11:01 griffith@box221.cims.nyu.edu>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "USet.h"
@@ -111,13 +111,13 @@ USet::setDataOnPatch(
                     {
                         X[d] =
                             XLower[d] +
-                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+0.5);
+                            dx[d]*(double(cell_idx(d)-patch_lower(d))+0.5);
                     }
                     else
                     {
                         X[d] =
                             XLower[d] +
-                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d)));
+                            dx[d]*(double(cell_idx(d)-patch_lower(d)));
                     }
                 }
 

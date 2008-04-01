@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <12.Mar.2008 23:00:46 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:12:59 griffith@box221.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -220,7 +220,7 @@ build_meter_web(
 
     // Write out the variables.
     int    cycle = timestep;
-    float  time  = static_cast<float>(simulation_time);
+    float  time  = simulation_time;
     double dtime = simulation_time;
 
     static const int MAX_OPTS = 3;
@@ -519,7 +519,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     d_X_web.resize(d_num_meters);
     d_dA_web.resize(d_num_meters);
     d_instrument_names = IBInstrumentationSpec::getInstrumentNames();
-    if (static_cast<int>(d_instrument_names.size()) != d_num_meters)
+    if (int(d_instrument_names.size()) != d_num_meters)
     {
         TBOX_WARNING(d_object_name << "::initializeHierarchyIndependentData()\n"
                      << "  instrument names are not initialized\n"
@@ -543,7 +543,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     {
         d_max_instrument_name_len =
             std::max(d_max_instrument_name_len,
-                     static_cast<int>(d_instrument_names[m].length()));
+                     int(d_instrument_names[m].length()));
     }
 
     if (d_output_log_file && SAMRAI::tbox::SAMRAI_MPI::getRank() == 0 && !d_log_file_stream.is_open())
@@ -731,7 +731,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     // Cartesian grid hierarchy.
     for (int m = 0; m < d_num_meters; ++m)
     {
-        const int num_web_nodes = 2*static_cast<int>(ceil(r_max[m]/h_finest));
+        const int num_web_nodes = 2*int(ceil(r_max[m]/h_finest));
         d_X_web[m].resize(d_num_perimeter_nodes[m],num_web_nodes);
         d_dA_web[m].resize(d_num_perimeter_nodes[m],num_web_nodes);
         init_meter_elements(d_X_web[m],d_dA_web[m],d_X_perimeter[m],d_X_centroid[m]);
@@ -1198,7 +1198,7 @@ IBInstrumentPanel::writePlotData(
         }
 
         int    cycle = timestep_num;
-        float  time  = static_cast<float>(simulation_time);
+        float  time  = simulation_time;
         double dtime = simulation_time;
 
         static const int MAX_OPTS = 3;

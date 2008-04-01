@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <13.Feb.2008 13:30:44 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:05:07 griffith@box221.cims.nyu.edu>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -357,7 +357,7 @@ AdvectHypPatchOps::registerAdvectedQuantity(
             Q_depth,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
     }
 
-    if (Q_depth != static_cast<int>(Q_bc_coefs_local.size()))
+    if (Q_depth != int(Q_bc_coefs_local.size()))
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedQuantity():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
@@ -447,7 +447,7 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
             Q_depth,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
     }
 
-    if (Q_depth != static_cast<int>(Q_bc_coefs_local.size()))
+    if (Q_depth != int(Q_bc_coefs_local.size()))
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedQuantityWithSourceTerm():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"

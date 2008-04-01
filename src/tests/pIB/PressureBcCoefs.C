@@ -1,5 +1,5 @@
 // Filename: PressureBcCoefs.C
-// Last modified: <13.Feb.2008 13:21:45 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:11:46 griffith@box221.cims.nyu.edu>
 // Created on 04 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "PressureBcCoefs.h"
@@ -79,11 +79,11 @@ PressureBcCoefs::setBcCoefs(
         {
             if (d != bdry_normal_axis)
             {
-                X[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                X[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
             }
             else
             {
-                X[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d)));
+                X[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d)));
             }
         }
 

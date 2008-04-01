@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpec.I
-// Last modified: <12.Mar.2008 22:33:46 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:05:54 griffith@box221.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -27,14 +27,14 @@ IBBeamForceSpec::IBBeamForceSpec(
     const int master_idx,
     const std::vector<NeighborIdxs>& neighbor_idxs,
     const std::vector<double>& bend_rigidities)
-    : d_num_beams(static_cast<int>(neighbor_idxs.size())),
+    : d_num_beams(neighbor_idxs.size()),
       d_master_idx(master_idx),
       d_neighbor_idxs(neighbor_idxs),
       d_bend_rigidities(bend_rigidities)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_num_beams == static_cast<int>(d_neighbor_idxs.size()));
-    TBOX_ASSERT(d_num_beams == static_cast<int>(d_bend_rigidities.size()));
+    TBOX_ASSERT(d_num_beams == int(d_neighbor_idxs.size()));
+    TBOX_ASSERT(d_num_beams == int(d_bend_rigidities.size()));
 #endif
     if (!s_registered_factory)
     {
@@ -56,8 +56,8 @@ inline unsigned
 IBBeamForceSpec::getNumberOfBeams() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_num_beams == static_cast<int>(d_neighbor_idxs.size()));
-    TBOX_ASSERT(d_num_beams == static_cast<int>(d_bend_rigidities.size()));
+    TBOX_ASSERT(d_num_beams == int(d_neighbor_idxs.size()));
+    TBOX_ASSERT(d_num_beams == int(d_bend_rigidities.size()));
 #endif
     return d_num_beams;
 }// getNumberOfBeams
@@ -116,8 +116,8 @@ IBBeamForceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_num_beams == static_cast<int>(d_neighbor_idxs.size()));
-    TBOX_ASSERT(d_num_beams == static_cast<int>(d_bend_rigidities.size()));
+    TBOX_ASSERT(d_num_beams == int(d_neighbor_idxs.size()));
+    TBOX_ASSERT(d_num_beams == int(d_bend_rigidities.size()));
 #endif
     std::vector<int> tmp_neighbor_idxs(2*d_num_beams);
     for (int k = 0; k < d_num_beams; ++k)

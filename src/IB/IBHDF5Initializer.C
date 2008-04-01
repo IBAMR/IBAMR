@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <12.Mar.2008 23:00:47 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 17:06:24 griffith@box221.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -358,7 +358,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     std::vector<std::string> all_instrument_names;
     for (int ln = 0; ln <= level_number; ++ln)
     {
-        for (int j = 0; j < static_cast<int>(d_instrument_names[ln].size()); ++j)
+        for (int j = 0; j < int(d_instrument_names[ln].size()); ++j)
         {
             all_instrument_names.insert(
                 all_instrument_names.end(),
@@ -1937,7 +1937,7 @@ IBHDF5Initializer::initializeSpecs(
     int instrument_index_offset = 0;
     for (int coarser_ln = 0; coarser_ln < ln; ++coarser_ln)
     {
-        for (int file_number = 0; file_number < static_cast<int>(d_instrument_names[coarser_ln].size());
+        for (int file_number = 0; file_number < int(d_instrument_names[coarser_ln].size());
              ++file_number)
         {
             instrument_index_offset += d_instrument_names[coarser_ln][file_number].size();
@@ -2046,7 +2046,7 @@ IBHDF5Initializer::getFromInput(
     // Read in any sub-databases associated with the input file names.
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_filenames = static_cast<int>(d_filenames[ln].size());
+        const int num_filenames = d_filenames[ln].size();
 
         d_enable_springs[ln].resize(num_filenames,true);
 
@@ -2159,7 +2159,7 @@ IBHDF5Initializer::getFromInput(
     SAMRAI::tbox::pout << d_object_name << ":  Reading from input files: \n";
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_filenames = static_cast<int>(d_filenames[ln].size());
+        const int num_filenames = d_filenames[ln].size();
         for (int j = 0; j < num_filenames; ++j)
         {
             const std::string& filename = d_filenames[ln][j];
