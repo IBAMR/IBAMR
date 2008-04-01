@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <12.Mar.2008 23:11:23 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Apr.2008 18:16:11 griffith@box221.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -3156,8 +3156,6 @@ INSHierarchyIntegrator::putToDatabase(
     db->putBool("d_using_synch_projection", d_using_synch_projection);
     db->putBool("d_conservation_form", d_conservation_form);
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
-    db->putDoubleArray("d_Omega_rel_thresh", d_Omega_rel_thresh);
-    db->putDoubleArray("d_Omega_abs_thresh", d_Omega_abs_thresh);
     db->putDouble("d_Omega_max", d_Omega_max);
     db->putString("d_velocity_projection_type", d_velocity_projection_type);
     db->putString("d_pressure_projection_type", d_pressure_projection_type);
@@ -3668,8 +3666,6 @@ INSHierarchyIntegrator::getFromRestart()
     d_using_synch_projection = db->getBool("d_using_synch_projection");
     d_conservation_form = db->getBool("d_conservation_form");
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
-    d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
-    d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
     d_Omega_max = db->getDouble("d_Omega_max");
     d_velocity_projection_type = db->getString("d_velocity_projection_type");
     d_pressure_projection_type = db->getString("d_pressure_projection_type");
