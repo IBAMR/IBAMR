@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <12.Feb.2008 21:21:36 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2008 17:04:34 griffith@box230.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -49,6 +49,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 static const int FACEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
@@ -79,6 +80,7 @@ HierarchyProjector::HierarchyProjector(
       d_grid_geom(d_hierarchy->getGridGeometry()),
       d_hier_cc_data_ops(NULL),
       d_hier_fc_data_ops(NULL),
+      d_hier_sc_data_ops(NULL),
       d_hier_math_ops(NULL),
       d_is_managing_hier_math_ops(false),
       d_wgt_var(NULL),
@@ -89,8 +91,10 @@ HierarchyProjector::HierarchyProjector(
       d_F_idx(-1),
       d_P_var(NULL),
       d_P_idx(-1),
-      d_w_var(NULL),
-      d_w_idx(-1),
+      d_w_fc_var(NULL),
+      d_w_fc_idx(-1),
+      d_w_sc_var(NULL),
+      d_w_sc_idx(-1),
       d_sol_vec(NULL),
       d_rhs_vec(NULL),
       d_max_iterations(50),
@@ -133,33 +137,44 @@ HierarchyProjector::HierarchyProjector(
 
     d_context = var_db->getContext(d_object_name+"::CONTEXT");
 
-    d_sol_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::sol",1);
-    d_rhs_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::rhs",1);
-    d_F_var   = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::F",1);
-    d_P_var   = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P",1);
-    d_w_var   = new SAMRAI::pdat::FaceVariable<NDIM,double>(d_object_name+"::w",1);
+    d_sol_var  = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::sol",1);
+    d_rhs_var  = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::rhs",1);
+    d_F_var    = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::F",1);
+    d_P_var    = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P",1);
+    d_w_fc_var = new SAMRAI::pdat::FaceVariable<NDIM,double>(d_object_name+"::w_fc",1);
+    d_w_sc_var = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::w_sc",1);
 
     const SAMRAI::hier::IntVector<NDIM> cell_ghosts = CELLG;
     const SAMRAI::hier::IntVector<NDIM> face_ghosts = FACEG;
+    const SAMRAI::hier::IntVector<NDIM> side_ghosts = SIDEG;
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
-    d_sol_idx = var_db->registerVariableAndContext(d_sol_var, d_context, cell_ghosts);
-    d_rhs_idx = var_db->registerVariableAndContext(d_rhs_var, d_context, cell_ghosts);
-    d_F_idx   = var_db->registerVariableAndContext(  d_F_var, d_context, cell_ghosts);
-    d_P_idx   = var_db->registerVariableAndContext(  d_P_var, d_context, cell_ghosts);
-    d_w_idx   = var_db->registerVariableAndContext(  d_w_var, d_context, face_ghosts);
+    d_sol_idx  = var_db->registerVariableAndContext( d_sol_var, d_context, cell_ghosts);
+    d_rhs_idx  = var_db->registerVariableAndContext( d_rhs_var, d_context, cell_ghosts);
+    d_F_idx    = var_db->registerVariableAndContext(   d_F_var, d_context, cell_ghosts);
+    d_P_idx    = var_db->registerVariableAndContext(   d_P_var, d_context, cell_ghosts);
+    d_w_fc_idx = var_db->registerVariableAndContext(d_w_fc_var, d_context, face_ghosts);
+    d_w_sc_idx = var_db->registerVariableAndContext(d_w_sc_var, d_context, side_ghosts);
 
     // Initialize communications algorithms.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator;
 
-    refine_operator = grid_geom->lookupRefineOperator(d_w_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_velocity_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    d_velocity_ralg->registerRefine(d_w_idx,  // destination
-                                    d_w_idx,  // source
-                                    d_w_idx,  // temporary work space
-                                    refine_operator);
-    d_velocity_rstrategy = new IBTK::CartExtrapPhysBdryOp(d_w_idx, "LINEAR");
+    refine_operator = grid_geom->lookupRefineOperator(d_w_fc_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_fc_velocity_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    d_fc_velocity_ralg->registerRefine(d_w_fc_idx,  // destination
+                                       d_w_fc_idx,  // source
+                                       d_w_fc_idx,  // temporary work space
+                                       refine_operator);
+    d_fc_velocity_rstrategy = new IBTK::CartExtrapPhysBdryOp(d_w_fc_idx, "LINEAR");
+
+    refine_operator = grid_geom->lookupRefineOperator(d_w_sc_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_sc_velocity_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    d_sc_velocity_ralg->registerRefine(d_w_sc_idx,  // destination
+                                       d_w_sc_idx,  // source
+                                       d_w_sc_idx,  // temporary work space
+                                       refine_operator);
+    d_sc_velocity_rstrategy = new IBTK::CartExtrapPhysBdryOp(d_w_sc_idx, "LINEAR");
 
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =
@@ -169,9 +184,12 @@ HierarchyProjector::HierarchyProjector(
         new SAMRAI::pdat::CellVariable<NDIM,double>("cc_var");
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > fc_var =
         new SAMRAI::pdat::FaceVariable<NDIM,double>("fc_var");
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > sc_var =
+        new SAMRAI::pdat::SideVariable<NDIM,double>("sc_var");
 
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy);
     d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, hierarchy);
+    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy);
 
     // Initialize the Poisson specifications.
     d_poisson_spec.setCZero();
@@ -208,7 +226,7 @@ HierarchyProjector::HierarchyProjector(
     d_default_P_bc_coef = P_bc_coef;
 
     // Initialize the boundary conditions objects.
-    d_Phi_bc_coef = new INSProjectionBcCoef(d_P_idx,d_default_P_bc_coef,"pressure_update",d_w_idx,d_default_u_bc_coefs,true);
+    d_Phi_bc_coef = new INSProjectionBcCoef(d_P_idx,d_default_P_bc_coef,"pressure_update",d_w_fc_idx,d_default_u_bc_coefs,true);
     setPressurePhysicalBcCoef(d_default_P_bc_coef);
     setVelocityPhysicalBcCoefs(d_default_u_bc_coefs);
 
@@ -434,7 +452,7 @@ HierarchyProjector::projectHierarchy(
     SAMRAI::hier::ComponentSelector scratch_idxs;
     scratch_idxs.setFlag(d_F_idx);
     scratch_idxs.setFlag(d_P_idx);
-    scratch_idxs.setFlag(d_w_idx);
+    scratch_idxs.setFlag(d_w_fc_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -449,10 +467,10 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Fill the intermediate velocity data.
-    d_hier_fc_data_ops->copyData(d_w_idx, w_idx);
+    d_hier_fc_data_ops->copyData(d_w_fc_idx, w_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        d_velocity_rscheds[ln]->fillData(time);
+        d_fc_velocity_rscheds[ln]->fillData(time);
     }
 
     // Setup the boundary coefficient specification object.
@@ -463,7 +481,7 @@ HierarchyProjector::projectHierarchy(
     d_Phi_bc_coef->setCurrentPressurePatchDataIndex(d_P_idx);
     d_Phi_bc_coef->setPressurePhysicalBcCoef(d_P_bc_coef);
     d_Phi_bc_coef->setProjectionType(projection_type);
-    d_Phi_bc_coef->setIntermediateVelocityPatchDataIndex(d_w_idx);
+    d_Phi_bc_coef->setIntermediateVelocityPatchDataIndex(d_w_fc_idx);
     d_Phi_bc_coef->setVelocityPhysicalBcCoefs(d_u_bc_coefs);
 
     // Setup the linear operator.
@@ -526,6 +544,138 @@ HierarchyProjector::projectHierarchy(
         d_no_fill_op,               // src_bdry_fill
         time              );        // src_bdry_fill_time
     d_hier_fc_data_ops->axpy(u_idx, -dt/rho, grad_Phi_idx, w_idx);
+
+    // Deallocate scratch data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(scratch_idxs);
+    }
+
+    t_project_hierarchy->stop();
+    return;
+}// projectHierarchy
+
+void
+HierarchyProjector::projectHierarchy(
+    const double rho,
+    const double dt,
+    const double time,
+    const std::string& projection_type,
+    const int u_idx,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >& u_var,
+    const int P_idx,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& P_var,
+    const int Phi_idx,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Phi_var,
+    const int grad_Phi_idx,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >& grad_Phi_var,
+    const int w_idx,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >& w_var,
+    const int Q_idx,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Q_var)
+{
+    t_project_hierarchy->start();
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    // Allocate temporary data.
+    SAMRAI::hier::ComponentSelector scratch_idxs;
+    scratch_idxs.setFlag(d_F_idx);
+    scratch_idxs.setFlag(d_P_idx);
+    scratch_idxs.setFlag(d_w_sc_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+       level->allocatePatchData(scratch_idxs, time);
+    }
+
+    // Fill the pressure data if we are using a pressure-increment projection.
+    if (projection_type == "pressure_increment")
+    {
+        d_hier_cc_data_ops->copyData(d_P_idx, P_idx);
+        d_P_hier_bdry_fill_op->fillData(time);
+    }
+
+    // Fill the intermediate velocity data.
+    d_hier_sc_data_ops->copyData(d_w_sc_idx, w_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        d_sc_velocity_rscheds[ln]->fillData(time);
+    }
+
+    // Setup the boundary coefficient specification object.
+    //
+    // NOTE: These boundary coefficients are also used by the linear operator
+    // and by the FAC preconditioner objects associated with this class.
+    d_Phi_bc_coef->setProblemCoefs(rho, dt);
+    d_Phi_bc_coef->setCurrentPressurePatchDataIndex(d_P_idx);
+    d_Phi_bc_coef->setPressurePhysicalBcCoef(d_P_bc_coef);
+    d_Phi_bc_coef->setProjectionType(projection_type);
+    d_Phi_bc_coef->setIntermediateVelocityPatchDataIndex(d_w_sc_idx);
+    d_Phi_bc_coef->setVelocityPhysicalBcCoefs(d_u_bc_coefs);
+
+    // Setup the linear operator.
+    d_laplace_op->setTime(time);
+    d_laplace_op->setHierarchyMathOps(d_hier_math_ops);
+
+    // Setup the preconditioner.
+    d_poisson_fac_op->setTime(time);
+
+    // Compute F = (rho/dt)*(Q - div w).
+    const bool w_cf_bdry_synch = true;
+    d_hier_math_ops->div(
+        d_F_idx, d_F_var,   // dst
+        -rho/dt,            // alpha
+        w_idx, w_var,       // src1
+        d_no_fill_op,       // src1_bdry_fill
+        time,               // src1_bdry_fill_time
+        w_cf_bdry_synch,    // src1_cf_bdry_synch
+        +rho/dt,            // beta
+        Q_idx, Q_var     ); // src2
+
+    // Solve -div grad Phi = F = (rho/dt)*(Q - div w).
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double> sol_vec(
+        d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    sol_vec.addComponent(Phi_var, Phi_idx, d_wgt_idx, d_hier_cc_data_ops);
+
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double> rhs_vec(
+        d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
+    rhs_vec.addComponent(d_F_var, d_F_idx, d_wgt_idx, d_hier_cc_data_ops);
+
+    d_poisson_solver->solveSystem(sol_vec,rhs_vec);
+
+    if (d_do_log) SAMRAI::tbox::plog << "HierarchyProjector::projectHierarchy(): linear solve number of iterations = " << d_poisson_solver->getNumIterations() << "\n";
+    if (d_do_log) SAMRAI::tbox::plog << "HierarchyProjector::projectHierarchy(): linear solve residual norm        = " << d_poisson_solver->getResidualNorm()  << "\n";
+
+    if (d_poisson_solver->getNumIterations() == d_poisson_solver->getMaxIterations())
+    {
+        SAMRAI::tbox::pout << d_object_name << "::projectHierarchy():"
+                           <<"  WARNING: linear solver iterations == max iterations\n";
+    }
+
+    // Setup the interpolation transaction information.
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    d_Phi_hier_bdry_fill_op->resetTransactionComponent(Phi_transaction_comp);
+
+    // Fill the physical boundary conditions for Phi.
+    d_Phi_bc_coef->setHomogeneousBc(false);
+    d_Phi_hier_bdry_fill_op->setHomogeneousBc(false);
+    d_Phi_hier_bdry_fill_op->fillData(time);
+    d_Phi_bc_coef->setHomogeneousBc(true);
+
+    // Set u = w - (dt/rho)*grad Phi.
+    const bool grad_Phi_cf_bdry_synch = true;
+    d_hier_math_ops->grad(
+        grad_Phi_idx, grad_Phi_var, // dst
+        grad_Phi_cf_bdry_synch,     // dst_cf_bdry_synch
+        1.0,                        // alpha
+        Phi_idx, Phi_var,           // src
+        d_no_fill_op,               // src_bdry_fill
+        time              );        // src_bdry_fill_time
+    d_hier_sc_data_ops->axpy(u_idx, -dt/rho, grad_Phi_idx, w_idx);
 
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -650,12 +800,15 @@ HierarchyProjector::resetHierarchyConfiguration(
 
     // (Re)build refine communication schedules.  These are created for all
     // levels in the hierarchy.
-    d_velocity_rscheds.resize(finest_hier_level+1);
+    d_fc_velocity_rscheds.resize(finest_hier_level+1);
+    d_sc_velocity_rscheds.resize(finest_hier_level+1);
     for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        d_velocity_rscheds[ln] = d_velocity_ralg->createSchedule(
-            level, ln-1, hierarchy, d_velocity_rstrategy);
+        d_fc_velocity_rscheds[ln] = d_fc_velocity_ralg->createSchedule(
+            level, ln-1, hierarchy, d_fc_velocity_rstrategy);
+        d_sc_velocity_rscheds[ln] = d_sc_velocity_ralg->createSchedule(
+            level, ln-1, hierarchy, d_sc_velocity_rstrategy);
     }
 
     t_reset_hierarchy_configuration->stop();
@@ -707,6 +860,7 @@ HierarchyProjector::printClassData(
        << "d_grid_geom = " << d_grid_geom.getPointer() << std::endl;
     os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n"
        << "d_hier_fc_data_ops = " << d_hier_fc_data_ops.getPointer() << "\n"
+       << "d_hier_sc_data_ops = " << d_hier_sc_data_ops.getPointer() << "\n"
        << "d_hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
        << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << std::endl;
     os << "d_wgt_var = " << d_wgt_var.getPointer() << "\n"

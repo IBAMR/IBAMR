@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <04.Feb.2008 22:36:15 griffith@box221.cims.nyu.edu>
+// Last modified: <11.Apr.2008 12:59:31 griffith@box230.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -28,6 +28,7 @@
 #include <FACPreconditioner.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <HierarchyFaceDataOpsReal.h>
+#include <HierarchySideDataOpsReal.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
@@ -222,6 +223,31 @@ public:
         const int Q_idx=-1,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Q_var=NULL);
 
+    /*!
+     * Project the side centered MAC velocity w on the hierarchy.
+     *
+     * Computes u = w - grad_Phi, where div u = Q.  If Q is not supplied, it is
+     * assumed that div u = 0.
+     */
+    virtual void
+    projectHierarchy(
+        const double rho,
+        const double dt,
+        const double time,
+        const std::string& projection_type,
+        const int u_idx,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >& u_var,
+        const int P_idx,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& P_var,
+        const int Phi_idx,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Phi_var,
+        const int grad_Phi_idx,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >& grad_Phi_var,
+        const int w_idx,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >& w_var,
+        const int Q_idx=-1,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Q_var=NULL);
+
     ///
     ///  The following routines:
     ///
@@ -408,6 +434,7 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM,double> > d_hier_fc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > d_hier_sc_data_ops;
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
     bool d_is_managing_hier_math_ops;
 
@@ -418,9 +445,13 @@ private:
     /*
      * Cached communications algorithms and schedules.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_velocity_ralg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_velocity_rstrategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_velocity_rscheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fc_velocity_ralg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_fc_velocity_rstrategy;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_fc_velocity_rscheds;
+
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_sc_velocity_ralg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_sc_velocity_rstrategy;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_sc_velocity_rscheds;
 
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_hier_bdry_fill_op, d_Phi_hier_bdry_fill_op, d_no_fill_op;
 
@@ -436,8 +467,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var;
     int d_P_idx;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_w_var;
-    int d_w_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_w_fc_var;
+    int d_w_fc_idx;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_w_sc_var;
+    int d_w_sc_idx;
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec, d_rhs_vec;
 
