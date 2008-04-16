@@ -57,7 +57,8 @@ libIBAMR_navier_stokes_fortran2d_a_LIBADD =
 am_libIBAMR_navier_stokes_fortran2d_a_OBJECTS =  \
 	navier_stokes_bdryop2d.$(OBJEXT) \
 	navier_stokes_divsource2d.$(OBJEXT) \
-	navier_stokes_interp_trans_comps2d.$(OBJEXT) \
+	navier_stokes_godunov_predictors2d.$(OBJEXT) \
+	navier_stokes_interp_comps2d.$(OBJEXT) \
 	navier_stokes_stabledt2d.$(OBJEXT)
 libIBAMR_navier_stokes_fortran2d_a_OBJECTS =  \
 	$(am_libIBAMR_navier_stokes_fortran2d_a_OBJECTS)
@@ -410,21 +411,32 @@ SUFFIXES = .f.m4
 EXTRA_DIST = \
   navier_stokes_bdryop2d.f.m4              navier_stokes_bdryop3d.f.m4    \
   navier_stokes_divsource2d.f.m4           navier_stokes_divsource3d.f.m4 \
-  navier_stokes_interp_trans_comps2d.f.m4                                 \
+  navier_stokes_godunov_predictors2d.f.m4                                 \
+  navier_stokes_interp_comps2d.f.m4                                       \
   navier_stokes_stabledt2d.f.m4            navier_stokes_stabledt3d.f.m4
 
 BUILT_SOURCES = \
   navier_stokes_bdryop2d.f             navier_stokes_bdryop3d.f    \
   navier_stokes_divsource2d.f          navier_stokes_divsource3d.f \
-  navier_stokes_interp_trans_comps2d.f                             \
+  navier_stokes_interp_comps2d.f                                   \
   navier_stokes_stabledt2d.f           navier_stokes_stabledt3d.f
 
 CLEANFILES = ${BUILT_SOURCES}
 noinst_LIBRARIES = $(am__append_1) $(am__append_2)
 libIBAMR_navier_stokes_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_navier_stokes_fortran2d_a_SOURCES = navier_stokes_bdryop2d.f navier_stokes_divsource2d.f navier_stokes_interp_trans_comps2d.f navier_stokes_stabledt2d.f
+libIBAMR_navier_stokes_fortran2d_a_SOURCES = \
+  navier_stokes_bdryop2d.f \
+  navier_stokes_divsource2d.f \
+  navier_stokes_godunov_predictors2d.f \
+  navier_stokes_interp_comps2d.f \
+  navier_stokes_stabledt2d.f
+
 libIBAMR_navier_stokes_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_navier_stokes_fortran3d_a_SOURCES = navier_stokes_bdryop3d.f navier_stokes_divsource3d.f navier_stokes_stabledt3d.f
+libIBAMR_navier_stokes_fortran3d_a_SOURCES = \
+  navier_stokes_bdryop3d.f \
+  navier_stokes_divsource3d.f \
+  navier_stokes_stabledt3d.f
+
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
