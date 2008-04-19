@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <11.Apr.2008 19:09:07 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Apr.2008 16:42:55 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -556,16 +556,23 @@ public:
     ///
     /// The following routines:
     ///
-    ///      reinterpolateVelocity()
+    ///      reinterpolateVelocity(),
+    ///      reinterpolateForce()
     ///
     /// are miscelaneous utility functions.
 
     /*!
-     * Force the time integrator to re-interpolate the staggered velocity from
-     * cell faces to cell centers.
+     * Te-interpolate the staggered velocity from cell faces to cell centers.
      */
     void
     reinterpolateVelocity(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+
+    /*!
+     * Te-interpolate the staggered body force from cell faces to cell centers.
+     */
+    void
+    reinterpolateForce(
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
 
     ///
@@ -685,26 +692,17 @@ private:
         const INSStaggeredHierarchyIntegrator& that);
 
     /*!
-     * Base first-order timestep.
-     */
-    void
-    integrateHierarchy_1st_order(
-        const double current_time,
-        const double new_time,
-        const int U_current_idx,
-        const int P_current_idx,
-        const int U_new_idx,
-        const int P_new_idx);
-
-    /*!
-     * Compute the convective derivative.
+     * Compute the time-centered convective derivative (u*grad)u^{n+1/2}.
      */
     void
     computeConvectiveDerivative(
+        const int& N_idx,
+        const int& U_idx,
+        const int& F_idx,
+        const int& Grad_P_idx,
         const double current_time,
         const double new_time,
-        const int N_current_idx,
-        const int U_current_idx);
+        const bool conservation_form);
 
     /*!
      * Determine the largest stable timestep on an individual patch level.
@@ -839,6 +837,16 @@ private:
     double d_Omega_max;
 
     /*
+     * This boolean value determines whether the pressure update is second-order
+     * accurate in time.
+     *
+     * The string indicates the type of viscous timestepping scheme that is
+     * being employed; its value is provided by class
+     * AdvDiffHierarchyIntegrator.
+     */
+    bool d_second_order_pressure_update;
+
+    /*
      * This boolean value determines whether the pressure is normalized to have
      * zero mean (i.e., discrete integral) at the end of each timestep.
      */
@@ -855,12 +863,6 @@ private:
      * visualization.
      */
     bool d_output_P;
-
-    /*
-     * This boolean value indicates whether to output the pressure gradient for
-     * visualization.
-     */
-    bool d_output_Grad_P;
 
     /*
      * This boolean value indicates whether to output the force for
@@ -981,13 +983,16 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_Grad_P_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_var;
 #if (NDIM == 3)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
 #endif
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_V_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_Grad_P_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_gadvect_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_gadvect_F_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -998,12 +1003,13 @@ private:
     int          d_U_current_idx,          d_U_new_idx,          d_U_scratch_idx;
     int       d_U_cc_current_idx,       d_U_cc_new_idx,       d_U_cc_scratch_idx;
     int          d_P_current_idx,          d_P_new_idx,          d_P_scratch_idx;
-    int     d_Grad_P_current_idx,     d_Grad_P_new_idx,     d_Grad_P_scratch_idx;
-    int      d_Div_U_current_idx,      d_Div_U_new_idx,      d_Div_U_scratch_idx;
+    int          d_F_current_idx,          d_F_new_idx,          d_F_scratch_idx;
+    int       d_F_cc_current_idx,       d_F_cc_new_idx,       d_F_cc_scratch_idx;
     int      d_Omega_current_idx,      d_Omega_new_idx,      d_Omega_scratch_idx;
 #if (NDIM == 3)
     int d_Omega_Norm_current_idx, d_Omega_Norm_new_idx, d_Omega_Norm_scratch_idx;
 #endif
+    int      d_Div_U_current_idx,      d_Div_U_new_idx,      d_Div_U_scratch_idx;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the
@@ -1011,7 +1017,7 @@ private:
      *
      * Scratch variables have only one context.
      */
-    int d_V_idx;
+    int d_Grad_P_scratch_idx, d_gadvect_U_scratch_idx, d_gadvect_F_scratch_idx;
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
@@ -1024,7 +1030,7 @@ private:
     /*
      * Patch boundary filling operators.
      */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_scratch_bdry_fill_op, d_P_scratch_bdry_fill_op, d_rhs_bdry_fill_op;
 };
 }// namespace IBAMR
 

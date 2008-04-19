@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <21.Mar.2008 01:21:06 boyce@trasnaform2.local>
+// Last modified: <15.Apr.2008 00:00:35 griffith@box230.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -994,7 +994,7 @@ private:
      *
      * Choices are: ``pressure_increment'' and ``pressure_update''.
      *
-     * NOTE: If the velocity and pressure projection types may be different.
+     * NOTE: The velocity and pressure projection types may be different.
      */
     std::string d_velocity_projection_type, d_pressure_projection_type;
     bool d_using_hybrid_projection;

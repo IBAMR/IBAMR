@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <11.Apr.2008 17:04:34 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Apr.2008 13:30:55 griffith@box230.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"

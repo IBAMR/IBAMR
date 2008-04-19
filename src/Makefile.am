@@ -51,7 +51,8 @@ advect/libIBAMR_advect2d_a-AdvectHypPatchOps.o \
 advect/libIBAMR_advect2d_a-GodunovAdvector.o \
 navier_stokes/fortran/navier_stokes_bdryop2d.o \
 navier_stokes/fortran/navier_stokes_divsource2d.o \
-navier_stokes/fortran/navier_stokes_interp_trans_comps2d.o \
+navier_stokes/fortran/navier_stokes_godunov_predictors2d.o \
+navier_stokes/fortran/navier_stokes_staggered_helpers2d.o \
 navier_stokes/fortran/navier_stokes_stabledt2d.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \

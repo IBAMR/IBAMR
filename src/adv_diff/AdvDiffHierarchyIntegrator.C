@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <01.Apr.2008 17:04:55 griffith@box221.cims.nyu.edu>
+// Last modified: <18.Apr.2008 13:30:21 griffith@box230.cims.nyu.edu>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -1281,9 +1281,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         helmholtz_op->setTime(new_time);
         helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
-        SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>           helmholtz_fac_op = d_helmholtz_fac_ops[l];
+        SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>             helmholtz_fac_op = d_helmholtz_fac_ops[l];
         SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
-        SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>             helmholtz_solver = d_helmholtz_solvers[l];
+        SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>               helmholtz_solver = d_helmholtz_solvers[l];
 
         if (d_helmholtz_solvers_need_init[l])
         {

@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <01.Apr.2008 18:16:11 griffith@box221.cims.nyu.edu>
+// Last modified: <18.Apr.2008 13:31:08 griffith@box230.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -2132,7 +2132,7 @@ INSHierarchyIntegrator::updatePressure(
 
             if (d_helmholtz_solver->getNumIterations() == d_helmholtz_solver->getMaxIterations())
             {
-                SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
+                SAMRAI::tbox::pout << d_object_name << "::updatePressure():"
                                    <<"  WARNING: linear solver iterations == max iterations\n";
             }
         }
@@ -2146,7 +2146,7 @@ INSHierarchyIntegrator::updatePressure(
 
             if (d_helmholtz_solver->getNumIterations() == d_helmholtz_solver->getMaxIterations())
             {
-                SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
+                SAMRAI::tbox::pout << d_object_name << "::updatePressure():"
                                    <<"  WARNING: linear solver iterations == max iterations\n";
             }
 
@@ -2159,13 +2159,13 @@ INSHierarchyIntegrator::updatePressure(
 
             if (d_helmholtz_solver->getNumIterations() == d_helmholtz_solver->getMaxIterations())
             {
-                SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
+                SAMRAI::tbox::pout << d_object_name << "::updatePressure():"
                                    <<"  WARNING: linear solver iterations == max iterations\n";
             }
         }
         else
         {
-            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+            TBOX_ERROR(d_object_name << "::updatePressure():\n"
                        << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << std::endl);
         }
 

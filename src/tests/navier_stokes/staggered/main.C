@@ -310,7 +310,7 @@ main(
         /*
          * Create initial condition specification objects.
          */
-#if 0
+#if 1
         tbox::Pointer<SetDataStrategy> u_init = new muParserDataSetter(
             "u_init", input_db->getDatabase("VelocitySolution"), grid_geometry);
         tbox::Pointer<SetDataStrategy> p_init = new muParserDataSetter(
@@ -521,7 +521,7 @@ main(
                     patch_hierarchy, iteration_num, loop_time);
             }
         }
-#if 0
+#if 1
         /*
          * Determine the accuracy of the computed solution.
          */
@@ -548,7 +548,7 @@ main(
         }
 
         u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
-        p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time);
+        p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time-0.5*dt_old);
 
         IBTK::HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
         hier_math_ops.setPatchHierarchy(patch_hierarchy);
@@ -565,10 +565,10 @@ main(
 
         math::HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(p_idx, p_idx, p_cloned_idx);
-        tbox::pout << "Error in p at time " << loop_time << ":\n"
-                   << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_idx,wgt_sc_idx)  << "\n"
-                   << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_idx,wgt_sc_idx)  << "\n"
-                   << "  max-norm: " << hier_cc_data_ops.maxNorm(p_idx,wgt_sc_idx) << "\n";
+        tbox::pout << "Error in p at time " << loop_time-0.5*dt_old << ":\n"
+                   << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_idx,wgt_cc_idx)  << "\n"
+                   << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_idx,wgt_cc_idx)  << "\n"
+                   << "  max-norm: " << hier_cc_data_ops.maxNorm(p_idx,wgt_cc_idx) << "\n";
 
         time_integrator->reinterpolateVelocity(time_integrator->getCurrentContext());
 

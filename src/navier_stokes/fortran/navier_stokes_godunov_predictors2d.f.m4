@@ -228,20 +228,28 @@ c     Transverse derivatives are NOT included.
 c
       do ic1 = ifirst1-1,ilast1+1
 
+!        Qx = 0.5d0*(Q(ifirst0-1+1,ic1)-Q(ifirst0-1-1,ic1))
          Qx = twothird*(Q(ifirst0-1+1,ic1)-Q(ifirst0-1-1,ic1))
      &        - sixth*half*(Q(ifirst0-1+2,ic1)-Q(ifirst0-1-2,ic1))
 
          unorm = 0.5d0*(u0(ifirst0-1,ic1)+u0(ifirst0-1+1,ic1))
+!        unorm = fourth*fourth*
+!    &        ( 9.d0*(u0(ifirst0-1  ,ic1)+u0(ifirst0-1+1,ic1))
+!    &        - 1.d0*(u0(ifirst0-1-1,ic1)+u0(ifirst0-1+2,ic1)) )
 
          do ic0 = ifirst0-1,ilast0
             qL = Q(ic0  ,ic1)
      &           + 0.5d0*(1.d0-unorm*dt/dx0)*Qx
      &           + 0.5d0*dt*F(ic0  ,ic1)
 
+!           Qx = 0.5d0*(Q(ic0+1+1,ic1)-Q(ic0+1-1,ic1))
             Qx = twothird*(Q(ic0+1+1,ic1)-Q(ic0+1-1,ic1))
      &           - sixth*half*(Q(ic0+1+2,ic1)-Q(ic0+1-2,ic1))
 
             unorm = 0.5d0*(u0(ic0+1,ic1)+u0(ic0+2,ic1))
+!           unorm = fourth*fourth*
+!    &           ( 9.d0*(u0(ic0+1,ic1)+u0(ic0+2,ic1))
+!    &           - 1.d0*(u0(ic0  ,ic1)+u0(ic0+3,ic1)) )
 
             qR = Q(ic0+1,ic1)
      &           - 0.5d0*(1.d0+unorm*dt/dx0)*Qx
@@ -304,6 +312,9 @@ c
       do ic1 = ifirst1,ilast1
 
          vtan = 0.5d0*(u1(ic1,ifirst0-1)+u1(ic1+1,ifirst0-1))
+!        vtan = fourth*fourth*
+!    &        ( 9.d0*(u1(ic1  ,ifirst0-1)+u1(ic1+1,ifirst0-1))
+!    &        - 1.d0*(u1(ic1-1,ifirst0-1)+u1(ic1+2,ifirst0-1)) )
 
          do ic0 = ifirst0-1,ilast0
             Qy = qtemp1(ic1+1,ic0)-qtemp1(ic1,ic0)
@@ -312,6 +323,9 @@ c
      &           - 0.5d0*dt*vtan*Qy/dx1
 
             vtan = 0.5d0*(u1(ic1,ic0+1)+u1(ic1+1,ic0+1))
+!           vtan = fourth*fourth*
+!    &           ( 9.d0*(u1(ic1  ,ic0+1)+u1(ic1+1,ic0+1))
+!    &           - 1.d0*(u1(ic1-1,ic0+1)+u1(ic1+2,ic0+1)) )
 
             Qy = qtemp1(ic1+1,ic0+1)-qtemp1(ic1,ic0+1)
 
