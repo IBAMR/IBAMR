@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <18.Apr.2008 21:13:57 griffith@box230.cims.nyu.edu>
+// Last modified: <20.Apr.2008 16:49:11 boyce@trasnaform2.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -71,7 +71,7 @@ extern "C"
         const int& , const int& , const int& ,
         double*
 #endif
-                               );
+                          );
 
     void
     NAVIER_STOKES_GODUNOV_PREDICT_F77(
@@ -80,7 +80,7 @@ extern "C"
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
         const int& , const int& ,
-        const double* , double* ,
+        const double* , double* , double* , double* , double* , double* ,
         const double* , double* ,
         const int& , const int& ,
         const int& , const int& ,
@@ -185,10 +185,11 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 // The number of ghost cells required by the Godunov advection scheme depends on
 // the number of cycles we perform and the order of the slope reconstruction.
 //
-// NOTE: Set GADVECG to equal NUM_GODUNOV_CYCLES+2 for 2nd-order slopes, and
-//                            NUM_GODUNOV_CYCLES+3 for 4th-order slopes
+// NOTE: Set GADVECG to equal NUM_GODUNOV_CYCLES+2 for 2nd-order slopes;
+//                            NUM_GODUNOV_CYCLES+3 for 4th-order slopes;
+//                            NUM_GODUNOV_CYCLES+4 for PPM
 static const int NUM_GODUNOV_CYCLES = 2;
-static const int GADVECTG = NUM_GODUNOV_CYCLES+3;
+static const int GADVECTG = NUM_GODUNOV_CYCLES+4;
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
@@ -2151,7 +2152,7 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
             const SAMRAI::hier::IntVector<NDIM>& grown_patch_lower = grown_patch_box.lower();
             const SAMRAI::hier::IntVector<NDIM>& grown_patch_upper = grown_patch_box.upper();
 
-            const int ghosts = GADVECTG-(NUM_GODUNOV_CYCLES-1)+1;
+            const int ghosts = GADVECTG-(NUM_GODUNOV_CYCLES-1);
 
             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > N_data = patch->getPatchData(N_idx);
             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_data = patch->getPatchData(d_gadvect_U_scratch_idx);
@@ -2191,6 +2192,14 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
             {
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > dU_grown_data =
+                        new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_L_grown_data =
+                        new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_R_grown_data =
+                        new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_6_grown_data =
+                        new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_grown_scratch_data =
                         new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_grown_scratch_data =
@@ -2203,7 +2212,7 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                         side_boxes [axis].lower(1), side_boxes[axis].upper(1),
                         U_grown_data       ->getGhostCellWidth()(0), U_grown_data        ->getGhostCellWidth()(1),
                         F_grown_data       ->getGhostCellWidth()(0), F_grown_data        ->getGhostCellWidth()(1),
-                        U_grown_data       ->getPointer(axis),       U_grown_scratch_data->getPointer(axis),
+                        U_grown_data       ->getPointer(axis),       dU_grown_data->getPointer(axis),  U_L_grown_data->getPointer(axis),   U_R_grown_data->getPointer(axis),   U_6_grown_data->getPointer(axis),   U_grown_scratch_data->getPointer(axis),
                         F_grown_data       ->getPointer(axis),       F_grown_scratch_data->getPointer(axis),
                         U_adv_data [axis]  ->getGhostCellWidth()(0), U_adv_data [axis]   ->getGhostCellWidth()(1),
                         U_half_data[axis]  ->getGhostCellWidth()(0), U_half_data[axis]   ->getGhostCellWidth()(1),

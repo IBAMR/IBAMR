@@ -57,7 +57,7 @@ c
      &     ifirst0,ilast0,ifirst1,ilast1,
      &     nQgc0,nQgc1,
      &     nFgc0,nFgc1,
-     &     Q,Qscratch1,
+     &     Q,dQ,Q_L,Q_R,Q_6,Qscratch1,
      &     F,Fscratch1,
      &     nugc0,nugc1,
      &     nqhalfgc0,nqhalfgc1,
@@ -80,6 +80,10 @@ c
       REAL dx(0:NDIM-1),dt
 
       REAL Q(CELL2dVECG(ifirst,ilast,nQgc))
+      REAL dQ(CELL2dVECG(ifirst,ilast,nQgc))
+      REAL Q_L(CELL2dVECG(ifirst,ilast,nQgc))
+      REAL Q_R(CELL2dVECG(ifirst,ilast,nQgc))
+      REAL Q_6(CELL2dVECG(ifirst,ilast,nQgc))
       REAL Qscratch1(ifirst1-nQgc1:ilast1+nQgc1,
      &               ifirst0-nQgc0:ilast0+nQgc0)
 
@@ -123,24 +127,24 @@ c     In this computation, normal derivatives are approximated by
 c     (limited) centered differences.  Transverse derivatives are not
 c     included.
 c
-      call navier_stokes_godunov_predict_normal2d( ! predict values on the x-faces
+      call navier_stokes_godunov_ppm_predict_normal2d( ! predict values on the x-faces
      &     dx(0),dt,
      &     ifirst0,ilast0,ifirst1,ilast1,
      &     nQgc0,nQgc1,
      &     nFgc0,nFgc1,
-     &     Q,
+     &     Q,dQ,Q_L,Q_R,Q_6,
      &     F,
      &     nugc0,nugc1,
      &     nqhalfgc0,nqhalfgc1,
      &     u0,
      &     qtemp0)
 
-      call navier_stokes_godunov_predict_normal2d( ! predict values on the y-faces
+      call navier_stokes_godunov_ppm_predict_normal2d( ! predict values on the y-faces
      &     dx(1),dt,
      &     ifirst1,ilast1,ifirst0,ilast0,
      &     nQgc1,nQgc0,
      &     nFgc1,nFgc0,
-     &     Qscratch1,
+     &     Qscratch1,dQ,Q_L,Q_R,Q_6,
      &     Fscratch1,
      &     nugc1,nugc0,
      &     nqhalfgc1,nqhalfgc0,
@@ -260,6 +264,139 @@ c
      &           sign_eps(u0(ic0+1,ic1))*0.5d0*(qL-qR)
          enddo
 
+      enddo
+c
+      return
+      end
+c
+      subroutine navier_stokes_godunov_ppm_predict_normal2d(
+     &     dx0,dt,
+     &     ifirst0,ilast0,ifirst1,ilast1,
+     &     nQgc0,nQgc1,
+     &     nFgc0,nFgc1,
+     &     Q,dQ,Q_L,Q_R,Q_6,
+     &     F,
+     &     nugc0,nugc1,
+     &     nqhalfgc0,nqhalfgc1,
+     &     u0,
+     &     qhalf0)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
+c     Functions.
+c
+      REAL sign_eps
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0,ifirst1,ilast1
+
+      INTEGER nQgc0,nQgc1
+      INTEGER nFgc0,nFgc1
+
+      INTEGER nugc0,nugc1
+      INTEGER nqhalfgc0,nqhalfgc1
+
+      REAL dx0,dt
+
+      REAL Q(CELL2dVECG(ifirst,ilast,nQgc))
+      REAL dQ(CELL2dVECG(ifirst,ilast,nQgc))
+      REAL Q_L(CELL2dVECG(ifirst,ilast,nQgc))
+      REAL Q_R(CELL2dVECG(ifirst,ilast,nQgc))
+      REAL Q_6(CELL2dVECG(ifirst,ilast,nQgc))
+      REAL F(CELL2dVECG(ifirst,ilast,nFgc))
+
+      REAL u0(FACE2d0VECG(ifirst,ilast,nugc))
+c
+c     Input/Output.
+c
+      REAL qhalf0(FACE2d0VECG(ifirst,ilast,nqhalfgc))
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1
+      REAL QQ,QQ_L,QQ_R
+      REAL dQQ_C,dQQ_L,dQQ_R,dQQ
+      REAL unorm,x,y
+c
+c     Predict face centered values using the standard PPM.
+c
+      do ic1 = ifirst1-1,ilast1+1
+
+         do ic0 = ifirst0-2,ilast0+2
+            dQQ_C = 0.5d0*(Q(ic0+1,ic1)-Q(ic0-1,ic1))
+            dQQ_L =       (Q(ic0  ,ic1)-Q(ic0-1,ic1))
+            dQQ_R =       (Q(ic0+1,ic1)-Q(ic0  ,ic1))
+
+            if (dQQ_R*dQQ_L .gt. 0.d0) then
+               dQQ = min(abs(dQQ_C),2.d0*abs(dQQ_L),2.d0*abs(dQQ_R))*
+     c              sign(1.d0,dQQ_C)
+            else
+               dQQ = 0.d0
+            endif
+
+            dQ(ic0,ic1) = dQQ
+         enddo
+
+         do ic0 = ifirst0-1,ilast0+1
+            QQ = Q(ic0,ic1)
+
+            QQ_L = 0.5d0*(Q(ic0-1,ic1)+Q(ic0  ,ic1)) -
+     &           (1.d0/6.d0)*(dQ(ic0  ,ic1)-dQ(ic0-1,ic1))
+
+            QQ_R = 0.5d0*(Q(ic0  ,ic1)+Q(ic0+1,ic1)) -
+     &           (1.d0/6.d0)*(dQ(ic0+1,ic1)-dQ(ic0  ,ic1))
+
+            if ((QQ_R-QQ)*(QQ-QQ_L) .le. 0.d0) then
+
+               QQ_L = QQ
+               QQ_R = QQ
+
+            elseif ((QQ_R-QQ_L)*(QQ-0.5d0*(QQ_L+QQ_R)) .gt.
+     &              +((QQ_R-QQ_L)**2.d0)/6.d0) then
+
+               QQ_L = 3.d0*QQ-2.d0*QQ_R
+
+            elseif ((QQ_R-QQ_L)*(QQ-0.5d0*(QQ_L+QQ_R)) .lt.
+     &              -((QQ_R-QQ_L)**2.d0)/6.d0) then
+
+               QQ_R = 3.d0*QQ-2.d0*QQ_L
+
+            endif
+
+            Q_L(ic0,ic1) = QQ_L
+            Q_R(ic0,ic1) = QQ_R
+         enddo
+
+         do ic0 = ifirst0-1,ilast0+1
+            QQ = Q(ic0,ic1)
+            QQ_L = Q_L(ic0,ic1)
+            QQ_R = Q_R(ic0,ic1)
+            dQ(ic0,ic1) = QQ_R-QQ_L
+            Q_6(ic0,ic1) = 6.d0*(QQ-0.5d0*(QQ_L+QQ_R))
+         enddo
+
+         unorm = 0.5d0*(u0(ifirst0-1,ic1)+u0(ifirst0-1+1,ic1))
+         do ic0 = ifirst0-1,ilast0
+            y = +unorm*dt
+            x = y/dx0
+            QQ_L = Q_R(ic0  ,ic1) - 0.5d0*x*(
+     &           dQ(ic0  ,ic1) - (1.d0-(2.d0/3.d0)*x)*Q_6(ic0  ,ic1))
+     &           + 0.5d0*dt*F(ic0  ,ic1)
+
+            unorm = 0.5d0*(u0(ic0+1,ic1)+u0(ic0+2,ic1))
+
+            y = -unorm*dt
+            x = y/dx0
+            QQ_R = Q_L(ic0+1,ic1) + 0.5d0*x*(
+     &           dQ(ic0+1,ic1) + (1.d0-(2.d0/3.d0)*x)*Q_6(ic0+1,ic1))
+     &           + 0.5d0*dt*F(ic0+1,ic1)
+
+            qhalf0(ic0+1,ic1) =
+     &           0.5d0*(QQ_L+QQ_R)+
+     &           sign_eps(u0(ic0+1,ic1))*0.5d0*(QQ_L-QQ_R)
+         enddo
       enddo
 c
       return

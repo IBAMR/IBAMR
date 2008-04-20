@@ -5,12 +5,12 @@ define(INTEGER,`integer')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Computes the advective flux corresponding to a face centered value
 c     and a face centered advective velocity.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine advect_flux2d(
      &     dt,
      &     ifirst0,ilast0,ifirst1,ilast1,
@@ -20,37 +20,37 @@ c
      &     u0,u1,
      &     qhalf0,qhalf1,
      &     flux0,flux1)
-c     
+c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
-c     
+c
 c     Input.
-c     
+c
       INTEGER ifirst0,ilast0,ifirst1,ilast1
-      
+
       INTEGER nugc0,nugc1
       INTEGER nqhalfgc0,nqhalfgc1
       INTEGER nfluxgc0,nfluxgc1
-      
+
       REAL dt
-      
+
       REAL u0(FACE2d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE2d1VECG(ifirst,ilast,nugc))
 
       REAL qhalf0(FACE2d0VECG(ifirst,ilast,nqhalfgc))
       REAL qhalf1(FACE2d1VECG(ifirst,ilast,nqhalfgc))
-c     
+c
 c     Input/Output.
-c     
+c
       REAL flux0(FACE2d0VECG(ifirst,ilast,nfluxgc))
       REAL flux1(FACE2d1VECG(ifirst,ilast,nfluxgc))
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER ic0,ic1
-c     
+c
 c     Compute the time integral of the advective flux.
-c     
+c
       do ic1 = ifirst1,ilast1
          do ic0 = ifirst0-1,ilast0
             flux0(ic0+1,ic1) = dt*u0(ic0+1,ic1)*qhalf0(ic0+1,ic1)
@@ -62,7 +62,7 @@ c
             flux1(ic1+1,ic0) = dt*u1(ic1+1,ic0)*qhalf1(ic1+1,ic0)
          enddo
       enddo
-c     
+c
       return
       end
 c
@@ -177,7 +177,7 @@ c
      &           + qflux1(ic1+1,ic0) + qflux1(ic1,ic0) )*
      &           ( (uflux0(ic0+1,ic1)-uflux0(ic0,ic1))/dx(0)
      &           + (uflux1(ic1+1,ic0)-uflux1(ic1,ic0))/dx(1) )
-            
+
             qval(ic0,ic1) = qval(ic0,ic1) + divsource
      &           -(flux0(ic0+1,ic1)-flux0(ic0,ic1))/dx(0)
      &           -(flux1(ic1+1,ic0)-flux1(ic1,ic0))/dx(1)
@@ -188,11 +188,11 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Computes the advective derivative N = [u_ADV*grad(q)].
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine advect_derivative2d(
      &     dx,
      &     ifirst0,ilast0,ifirst1,ilast1,
@@ -202,38 +202,38 @@ c
      &     q0,q1,
      &     nNgc0,nNgc1,
      &     N)
-c     
+c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
-c     
+c
 c     Input.
-c     
+c
       INTEGER ifirst0,ilast0,ifirst1,ilast1
-      
+
       INTEGER nuadvgc0,nuadvgc1
       INTEGER nqgc0,nqgc1
       INTEGER nNgc0,nNgc1
 
       REAL dx(0:NDIM-1)
-      
+
       REAL uadv0(FACE2d0VECG(ifirst,ilast,nuadvgc))
       REAL uadv1(FACE2d1VECG(ifirst,ilast,nuadvgc))
 
       REAL q0(FACE2d0VECG(ifirst,ilast,nqgc))
       REAL q1(FACE2d1VECG(ifirst,ilast,nqgc))
-c     
+c
 c     Input/Output.
-c     
+c
       REAL N(CELL2dVECG(ifirst,ilast,nNgc))
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER ic0,ic1
       REAL U,V
       REAL Qx0,Qx1
 c
 c     Compute (U,V)*grad(q).
-c            
+c
       do ic1 = ifirst1,ilast1
          do ic0 = ifirst0,ilast0
             U = 0.5d0*(uadv0(ic0+1,ic1)+uadv0(ic0,ic1))
