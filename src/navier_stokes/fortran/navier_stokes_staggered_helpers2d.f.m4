@@ -101,7 +101,7 @@ c
       enddo
 
       gc0 = min(n_U_gc0  ,n_V1_gc0)
-      gc1 = min(n_U_gc1-2,n_V1_gc1)
+      gc1 = min(n_U_gc1-1,n_V1_gc1)
 
       do    i0 = side1_ifirst0-gc0,side1_ilast0+gc0
          do i1 = side1_ifirst1-gc1,side1_ilast1+gc1

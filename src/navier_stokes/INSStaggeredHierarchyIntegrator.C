@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <20.Apr.2008 16:49:11 boyce@trasnaform2.local>
+// Last modified: <20.Apr.2008 23:39:00 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -182,14 +182,12 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
-// The number of ghost cells required by the Godunov advection scheme depends on
-// the number of cycles we perform and the order of the slope reconstruction.
-//
-// NOTE: Set GADVECG to equal NUM_GODUNOV_CYCLES+2 for 2nd-order slopes;
-//                            NUM_GODUNOV_CYCLES+3 for 4th-order slopes;
-//                            NUM_GODUNOV_CYCLES+4 for PPM
+// NOTE: The number of ghost cells required by the Godunov advection scheme
+// depends on the number of cycles we perform and the order of the
+// reconstruction.  These values were chosen to work with xsPPM7 (the modified
+// piecewise parabolic method of Rider, Greenough, and Kamm).
 static const int NUM_GODUNOV_CYCLES = 2;
-static const int GADVECTG = NUM_GODUNOV_CYCLES+4;
+static const int GADVECTG = NUM_GODUNOV_CYCLES+3;  // xsPPM7 VALUE
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
@@ -269,7 +267,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_nu     = std::numeric_limits<double>::quiet_NaN();
     d_lambda = std::numeric_limits<double>::quiet_NaN();
 
-    d_cfl = 0.5;
+    d_cfl = 0.9;
 
     d_dt_max = std::numeric_limits<double>::max();
     d_dt_max_time_max = std::numeric_limits<double>::max();
@@ -530,7 +528,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     const SAMRAI::hier::IntVector<NDIM> cell_ghosts = CELLG;
     const SAMRAI::hier::IntVector<NDIM> side_ghosts = SIDEG;
-    const SAMRAI::hier::IntVector<NDIM> gadvect_ghosts = GADVECTG;
+    const SAMRAI::hier::IntVector<NDIM> gadvect_velocity_ghosts = GADVECTG;
+    const SAMRAI::hier::IntVector<NDIM> gadvect_force_ghosts = NUM_GODUNOV_CYCLES;
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
     registerVariable(d_U_current_idx, d_U_new_idx, d_U_scratch_idx,
@@ -579,9 +578,9 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Register other scratch variables.
     d_gadvect_U_scratch_idx = var_db->registerVariableAndContext(
-        d_gadvect_U_var, getScratchContext(), gadvect_ghosts);
+        d_gadvect_U_var, getScratchContext(), gadvect_velocity_ghosts);
     d_gadvect_F_scratch_idx = var_db->registerVariableAndContext(
-        d_gadvect_F_var, getScratchContext(), gadvect_ghosts);
+        d_gadvect_F_var, getScratchContext(), gadvect_force_ghosts);
 
     // Register variables for plotting.
     if (!d_visit_writer.isNull())
@@ -1135,6 +1134,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         1.0, d_U_scratch_idx, d_U_var, d_no_fill_op, new_time, false,
         0.0, -1, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >(NULL),
         0, 0);
+
+    // Compute the kinetic energy of the fluid.
+    SAMRAI::tbox::pout << "kinetic energy = " << 0.5*d_rho*d_hier_cc_data_ops->dot(d_U_cc_new_idx, d_U_cc_new_idx, d_wgt_cc_idx) << std::endl;
 
     t_integrate_hierarchy->stop();
     return getStableTimestep(getNewContext());
@@ -2147,23 +2149,24 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
+            static const SAMRAI::hier::IntVector<NDIM> growth_factor = NUM_GODUNOV_CYCLES-1;
+
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            const SAMRAI::hier::Box<NDIM>& grown_patch_box = SAMRAI::hier::Box<NDIM>::grow(patch_box,NUM_GODUNOV_CYCLES-1);
+            const SAMRAI::hier::Box<NDIM>& grown_patch_box = SAMRAI::hier::Box<NDIM>::grow(patch_box,growth_factor);
             const SAMRAI::hier::IntVector<NDIM>& grown_patch_lower = grown_patch_box.lower();
             const SAMRAI::hier::IntVector<NDIM>& grown_patch_upper = grown_patch_box.upper();
-
-            const int ghosts = GADVECTG-(NUM_GODUNOV_CYCLES-1);
 
             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > N_data = patch->getPatchData(N_idx);
             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_data = patch->getPatchData(d_gadvect_U_scratch_idx);
             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_data = patch->getPatchData(d_gadvect_F_scratch_idx);
 
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > N_grown_data = new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,N_data->getDepth(),ghosts);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_grown_data = new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,U_data->getDepth(),ghosts);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_grown_data = new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,F_data->getDepth(),ghosts);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > N_grown_data = new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,N_data->getDepth(),N_data->getGhostCellWidth()-growth_factor);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_grown_data = new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,U_data->getDepth(),U_data->getGhostCellWidth()-growth_factor);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_grown_data = new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,F_data->getDepth(),F_data->getGhostCellWidth()-growth_factor);
             U_grown_data->copy(*U_data);
             F_grown_data->copy(*F_data);
 
+            const SAMRAI::hier::IntVector<NDIM> ghosts = SAMRAI::hier::IntVector<NDIM>(GADVECTG)-growth_factor;
             SAMRAI::hier::Box<NDIM> side_boxes[NDIM];
             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> >  U_adv_data[NDIM];
             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > U_half_data[NDIM];
