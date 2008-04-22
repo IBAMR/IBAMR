@@ -94,7 +94,7 @@ c     In this computation, normal derivatives are approximated by
 c     (limited) centered differences.  Transverse derivatives are not
 c     included.
 c
-      call godunov_predictnormal3d( ! predict values on the x-faces
+      call godunov_predict_normal3d( ! predict values on the x-faces
      &     dx(0),dt,
      &     limiter,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
@@ -105,7 +105,7 @@ c
      &     u0,
      &     qtemp0)
 
-      call godunov_predictnormal3d( ! predict values on the y-faces
+      call godunov_predict_normal3d( ! predict values on the y-faces
      &     dx(1),dt,
      &     limiter,
      &     ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
@@ -116,7 +116,7 @@ c
      &     u1,
      &     qtemp1)
 
-      call godunov_predictnormal3d( ! predict values on the z-faces
+      call godunov_predict_normal3d( ! predict values on the z-faces
      &     dx(2),dt,
      &     limiter,
      &     ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
@@ -138,7 +138,7 @@ c
 c
 c     Include full corner transport upwinding.
 c
-         call godunov_transversectufix3d( ! update values on the x-faces
+         call godunov_transverse_ctu_fix3d( ! update values on the x-faces
      &        dx(1),dx(2),dt,
      &        ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &        nugc0,nugc1,nugc2,
@@ -147,7 +147,7 @@ c
      &        qtemp0,qtemp1,qtemp2,
      &        qhalf0)
 
-         call godunov_transversectufix3d( ! update values on the y-faces
+         call godunov_transverse_ctu_fix3d( ! update values on the y-faces
      &        dx(2),dx(0),dt,
      &        ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
      &        nugc1,nugc2,nugc0,
@@ -156,7 +156,7 @@ c
      &        qtemp1,qtemp2,qtemp0,
      &        qhalf1)
 
-         call godunov_transversectufix3d( ! update values on the y-faces
+         call godunov_transverse_ctu_fix3d( ! update values on the y-faces
      &        dx(0),dx(1),dt,
      &        ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
      &        nugc2,nugc0,nugc1,
@@ -168,7 +168,7 @@ c
 c
 c     Do not include full corner transport upwinding.
 c
-         call godunov_transversefix3d( ! update values on the x-faces
+         call godunov_transverse_fix3d( ! update values on the x-faces
      &        dx(1),dx(2),dt,
      &        ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &        nugc0,nugc1,nugc2,
@@ -177,7 +177,7 @@ c
      &        qtemp0,qtemp1,qtemp2,
      &        qhalf0)
 
-         call godunov_transversefix3d( ! update values on the y-faces
+         call godunov_transverse_fix3d( ! update values on the y-faces
      &        dx(2),dx(0),dt,
      &        ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
      &        nugc1,nugc2,nugc0,
@@ -186,7 +186,7 @@ c
      &        qtemp1,qtemp2,qtemp0,
      &        qhalf1)
 
-         call godunov_transversefix3d( ! update values on the y-faces
+         call godunov_transverse_fix3d( ! update values on the y-faces
      &        dx(0),dx(1),dt,
      &        ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
      &        nugc2,nugc0,nugc1,
@@ -214,7 +214,7 @@ c     form.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine godunov_predictwithsource3d(
+      subroutine godunov_predict_with_source3d(
      &     dx,dt,
      &     usefullctu,limiter,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
@@ -309,7 +309,7 @@ c     In this computation, normal derivatives are approximated by
 c     (limited) centered differences.  Transverse derivatives are not
 c     included.
 c
-      call godunov_predictnormalwithsource3d( ! predict values on the x-faces
+      call godunov_predict_normal_with_source3d( ! predict values on the x-faces
      &     dx(0),dt,
      &     limiter,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
@@ -322,7 +322,7 @@ c
      &     u0,
      &     qtemp0)
 
-      call godunov_predictnormalwithsource3d( ! predict values on the y-faces
+      call godunov_predict_normal_with_source3d( ! predict values on the y-faces
      &     dx(1),dt,
      &     limiter,
      &     ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
@@ -335,7 +335,7 @@ c
      &     u1,
      &     qtemp1)
 
-      call godunov_predictnormalwithsource3d( ! predict values on the z-faces
+      call godunov_predict_normal_with_source3d( ! predict values on the z-faces
      &     dx(2),dt,
      &     limiter,
      &     ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
@@ -359,7 +359,7 @@ c
 c
 c     Include full corner transport upwinding.
 c
-         call godunov_transversectufix3d( ! update values on the x-faces
+         call godunov_transverse_ctu_fix3d( ! update values on the x-faces
      &        dx(1),dx(2),dt,
      &        ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &        nugc0,nugc1,nugc2,
@@ -368,7 +368,7 @@ c
      &        qtemp0,qtemp1,qtemp2,
      &        qhalf0)
 
-         call godunov_transversectufix3d( ! update values on the y-faces
+         call godunov_transverse_ctu_fix3d( ! update values on the y-faces
      &        dx(2),dx(0),dt,
      &        ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
      &        nugc1,nugc2,nugc0,
@@ -377,7 +377,7 @@ c
      &        qtemp1,qtemp2,qtemp0,
      &        qhalf1)
 
-         call godunov_transversectufix3d( ! update values on the y-faces
+         call godunov_transverse_ctu_fix3d( ! update values on the y-faces
      &        dx(0),dx(1),dt,
      &        ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
      &        nugc2,nugc0,nugc1,
@@ -389,7 +389,7 @@ c
 c
 c     Do not include full corner transport upwinding.
 c
-         call godunov_transversefix3d( ! update values on the x-faces
+         call godunov_transverse_fix3d( ! update values on the x-faces
      &        dx(1),dx(2),dt,
      &        ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &        nugc0,nugc1,nugc2,
@@ -398,7 +398,7 @@ c
      &        qtemp0,qtemp1,qtemp2,
      &        qhalf0)
 
-         call godunov_transversefix3d( ! update values on the y-faces
+         call godunov_transverse_fix3d( ! update values on the y-faces
      &        dx(2),dx(0),dt,
      &        ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
      &        nugc1,nugc2,nugc0,
@@ -407,7 +407,7 @@ c
      &        qtemp1,qtemp2,qtemp0,
      &        qhalf1)
 
-         call godunov_transversefix3d( ! update values on the y-faces
+         call godunov_transverse_fix3d( ! update values on the y-faces
      &        dx(0),dx(1),dt,
      &        ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
      &        nugc2,nugc0,nugc1,
@@ -430,7 +430,7 @@ c     gradient we should be using to enforce incompressibility.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine godunov_incompressibilityfix3d(
+      subroutine godunov_incompressibility_fix3d(
      &     gradtype,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     ngradgc0,ngradgc1,ngradgc2,
@@ -478,7 +478,7 @@ c
          gradtype1 = 2
       endif
 
-      call godunov_gradfix3d(
+      call godunov_grad_fix3d(
      &     gradtype0,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     ngradgc0,ngradgc1,ngradgc2,
@@ -486,7 +486,7 @@ c
      &     grad0,grad1,grad2,
      &     qhalf0)
 
-      call godunov_gradfix3d(
+      call godunov_grad_fix3d(
      &     gradtype1,
      &     ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
      &     ngradgc1,ngradgc2,ngradgc0,
@@ -494,7 +494,7 @@ c
      &     grad1,grad2,grad0,
      &     qhalf1)
 
-      call godunov_gradfix3d(
+      call godunov_grad_fix3d(
      &     gradtype2,
      &     ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
      &     ngradgc2,ngradgc0,ngradgc1,
@@ -505,7 +505,7 @@ c
       return
       end
 c
-      subroutine godunov_predictnormal3d(
+      subroutine godunov_predict_normal3d(
      &     dx0,dt,
      &     limiter,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
@@ -621,7 +621,7 @@ c
       return
       end
 c
-      subroutine godunov_predictnormalwithsource3d(
+      subroutine godunov_predict_normal_with_source3d(
      &     dx0,dt,
      &     limiter,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
@@ -743,7 +743,7 @@ c
       return
       end
 c
-      subroutine godunov_transversefix3d(
+      subroutine godunov_transverse_fix3d(
      &     dx1,dx2,dt,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nugc0,nugc1,nugc2,
@@ -836,7 +836,7 @@ c
       return
       end
 c
-      subroutine godunov_transversectufix3d(
+      subroutine godunov_transverse_ctu_fix3d(
      &     dx1,dx2,dt,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nugc0,nugc1,nugc2,
@@ -996,7 +996,7 @@ c
       return
       end
 c
-      subroutine godunov_gradfix3d(
+      subroutine godunov_grad_fix3d(
      &     gradtype,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     ngradgc0,ngradgc1,ngradgc2,

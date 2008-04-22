@@ -2,7 +2,7 @@
 #define included_GodunovAdvector
 
 // Filename: GodunovAdvector.h
-// Last modified: <17.Apr.2007 21:29:53 griffith@box221.cims.nyu.edu>
+// Last modified: <21.Apr.2008 14:43:00 griffith@box230.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -408,12 +408,9 @@ private:
     /*
      *  Parameters for numerical method:
      *
-     *    d_limiter_type ........ specifies the type of slope limiting used in
-     *                            computing numerical fluxes
      *    d_using_full_ctu ...... specifies whether full corner transport
      *                            upwinding is used for 3D computations
      */
-    int d_limiter_type;
 #if (NDIM == 3)
     bool d_using_full_ctu;
 #endif

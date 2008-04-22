@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <20.Apr.2008 23:39:00 griffith@box230.cims.nyu.edu>
+// Last modified: <22.Apr.2008 17:35:43 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -35,7 +35,7 @@
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
-#define NAVIER_STOKES_GODUNOV_PREDICT_F77 F77_FUNC_(navier_stokes_godunov_predict2d, NAVIER_STOKES_GODUNOV_PREDICT2D)
+#define GODUNOV_PREDICT_WITH_SOURCE_F77 F77_FUNC_(godunov_predict_with_source2d, GODUNOV_PREDICT_WITH_SOURCE2D)
 #define NAVIER_STOKES_INTERP_COMPS_F77 F77_FUNC_(navier_stokes_interp_comps2d, NAVIER_STOKES_INTERP_COMPS2D)
 #define NAVIER_STOKES_RESET_ADV_VELOCITY_F77 F77_FUNC_(navier_stokes_reset_adv_velocity2d, NAVIER_STOKES_RESET_ADV_VELOCITY2D)
 #define NAVIER_STOKES_SC_STABLEDT_F77 F77_FUNC_(navier_stokes_sc_stabledt2d, NAVIER_STOKES_SC_STABLEDT2D)
@@ -74,13 +74,13 @@ extern "C"
                           );
 
     void
-    NAVIER_STOKES_GODUNOV_PREDICT_F77(
+    GODUNOV_PREDICT_WITH_SOURCE_F77(
         const double* , const double& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
         const int& , const int& ,
-        const double* , double* , double* , double* , double* , double* ,
+        const double* , double* , double* , double* , double* ,
         const double* , double* ,
         const int& , const int& ,
         const int& , const int& ,
@@ -187,7 +187,7 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 // reconstruction.  These values were chosen to work with xsPPM7 (the modified
 // piecewise parabolic method of Rider, Greenough, and Kamm).
 static const int NUM_GODUNOV_CYCLES = 2;
-static const int GADVECTG = NUM_GODUNOV_CYCLES+3;  // xsPPM7 VALUE
+static const int GADVECTG = NUM_GODUNOV_CYCLES+3;
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
@@ -1134,10 +1134,10 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         1.0, d_U_scratch_idx, d_U_var, d_no_fill_op, new_time, false,
         0.0, -1, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >(NULL),
         0, 0);
-
+#if 0
     // Compute the kinetic energy of the fluid.
-    SAMRAI::tbox::pout << "kinetic energy = " << 0.5*d_rho*d_hier_cc_data_ops->dot(d_U_cc_new_idx, d_U_cc_new_idx, d_wgt_cc_idx) << std::endl;
-
+    SAMRAI::tbox::pout << "\nkinetic energy = " << 0.5*d_rho*d_hier_cc_data_ops->dot(d_U_cc_new_idx, d_U_cc_new_idx, d_wgt_cc_idx) << std::endl;
+#endif
     t_integrate_hierarchy->stop();
     return getStableTimestep(getNewContext());
 }// integrateHierarchy
@@ -2201,21 +2201,19 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                         new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_R_grown_data =
                         new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_6_grown_data =
-                        new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_grown_scratch_data =
                         new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_grown_scratch_data =
                         new SAMRAI::pdat::SideData<NDIM,double>(F_grown_data->getBox(), F_grown_data->getDepth(), F_grown_data->getGhostCellWidth());
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > U_half_scratch_data =
                         new SAMRAI::pdat::FaceData<NDIM,double>( U_half_data[axis]->getBox(), U_half_data[axis]->getDepth(), U_half_data[axis]->getGhostCellWidth());
-                    NAVIER_STOKES_GODUNOV_PREDICT_F77(
+                    GODUNOV_PREDICT_WITH_SOURCE_F77(
                         dx, dt,
-                        side_boxes [axis].lower(0), side_boxes[axis].upper(0),
-                        side_boxes [axis].lower(1), side_boxes[axis].upper(1),
-                        U_grown_data       ->getGhostCellWidth()(0), U_grown_data        ->getGhostCellWidth()(1),
-                        F_grown_data       ->getGhostCellWidth()(0), F_grown_data        ->getGhostCellWidth()(1),
-                        U_grown_data       ->getPointer(axis),       dU_grown_data->getPointer(axis),  U_L_grown_data->getPointer(axis),   U_R_grown_data->getPointer(axis),   U_6_grown_data->getPointer(axis),   U_grown_scratch_data->getPointer(axis),
+                        side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                        side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                        U_grown_data->getGhostCellWidth()(0), U_grown_data->getGhostCellWidth()(1),
+                        F_grown_data->getGhostCellWidth()(0), F_grown_data->getGhostCellWidth()(1),
+                        U_grown_data->getPointer(axis), dU_grown_data->getPointer(axis), U_L_grown_data->getPointer(axis), U_R_grown_data->getPointer(axis), U_grown_scratch_data->getPointer(axis),
                         F_grown_data       ->getPointer(axis),       F_grown_scratch_data->getPointer(axis),
                         U_adv_data [axis]  ->getGhostCellWidth()(0), U_adv_data [axis]   ->getGhostCellWidth()(1),
                         U_half_data[axis]  ->getGhostCellWidth()(0), U_half_data[axis]   ->getGhostCellWidth()(1),

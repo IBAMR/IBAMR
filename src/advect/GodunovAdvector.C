@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <12.Feb.2008 21:19:24 griffith@box221.cims.nyu.edu>
+// Last modified: <22.Apr.2008 14:19:09 griffith@box230.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -31,30 +31,22 @@
 #include <limits>
 
 // FORTRAN ROUTINES
-#if (NDIM == 1)
-#define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative1d, ADVECT_DERIVATIVE1D)
-#define ADVECT_FLUX_F77 F77_FUNC_(advect_flux1d, ADVECT_FLUX1D)
-#define ADVECT_STABLEDT_F77 F77_FUNC_(advect_stabledt1d, ADVECT_STABLEDT1D)
-#define GODUNOV_PREDICT_F77 F77_FUNC_(godunov_predict1d, GODUNOV_PREDICT1D)
-#define GODUNOV_PREDICTWITHSOURCE_F77 F77_FUNC_(godunov_predictwithsource1d, GODUNOV_PREDICTWITHSOURCE1D)
-#endif
-
 #if (NDIM == 2)
 #define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
 #define ADVECT_FLUX_F77 F77_FUNC_(advect_flux2d, ADVECT_FLUX2D)
 #define ADVECT_STABLEDT_F77 F77_FUNC_(advect_stabledt2d, ADVECT_STABLEDT2D)
-#define GODUNOV_INCOMPRESSIBILITYFIX_F77 F77_FUNC_(godunov_incompressibilityfix2d, GODUNOV_INCOMPRESSIBILITYFIX2D)
+#define GODUNOV_INCOMPRESSIBILITY_FIX_F77 F77_FUNC_(godunov_incompressibility_fix2d, GODUNOV_INCOMPRESSIBILITY_FIX2D)
 #define GODUNOV_PREDICT_F77 F77_FUNC_(godunov_predict2d, GODUNOV_PREDICT2D)
-#define GODUNOV_PREDICTWITHSOURCE_F77 F77_FUNC_(godunov_predictwithsource2d, GODUNOV_PREDICTWITHSOURCE2D)
+#define GODUNOV_PREDICT_WITH_SOURCE_F77 F77_FUNC_(godunov_predict_with_source2d, GODUNOV_PREDICT_WITH_SOURCE2D)
 #endif
 
 #if (NDIM == 3)
 #define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
 #define ADVECT_FLUX_F77 F77_FUNC_(advect_flux3d, ADVECT_FLUX3D)
 #define ADVECT_STABLEDT_F77 F77_FUNC_(advect_stabledt3d, ADVECT_STABLEDT3D)
-#define GODUNOV_INCOMPRESSIBILITYFIX_F77 F77_FUNC_(godunov_incompressibilityfix3d, GODUNOV_INCOMPRESSIBILITYFIX3D)
+#define GODUNOV_INCOMPRESSIBILITY_FIX_F77 F77_FUNC_(godunov_incompressibility_fix3d, GODUNOV_INCOMPRESSIBILITY_FIX3D)
 #define GODUNOV_PREDICT_F77 F77_FUNC_(godunov_predict3d, GODUNOV_PREDICT3D)
-#define GODUNOV_PREDICTWITHSOURCE_F77 F77_FUNC_(godunov_predictwithsource3d, GODUNOV_PREDICTWITHSOURCE3D)
+#define GODUNOV_PREDICT_WITH_SOURCE_F77 F77_FUNC_(godunov_predict_with_source3d, GODUNOV_PREDICT_WITH_SOURCE3D)
 #endif
 
 extern "C"
@@ -62,15 +54,6 @@ extern "C"
     void
     ADVECT_DERIVATIVE_F77(
         const double*,
-#if (NDIM == 1)
-        const int& , const int& ,
-        const int& ,
-        const int& ,
-        const double* ,
-        const double* ,
-        const int& ,
-        double*
-#endif
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -94,15 +77,6 @@ extern "C"
     void
     ADVECT_FLUX_F77(
         const double& ,
-#if (NDIM == 1)
-        const int& , const int& ,
-        const int& ,
-        const int& ,
-        const int& ,
-        const double* ,
-        const double* ,
-        double*
-#endif
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -126,11 +100,6 @@ extern "C"
     void
     ADVECT_STABLEDT_F77(
         const double*,
-#if (NDIM == 1)
-        const int& , const int& ,
-        const int& ,
-        const double* ,
-#endif
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -146,7 +115,7 @@ extern "C"
 
 #if ((NDIM == 2) || (NDIM == 3))
     void
-    GODUNOV_INCOMPRESSIBILITYFIX_F77(
+    GODUNOV_INCOMPRESSIBILITY_FIX_F77(
         const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -171,20 +140,10 @@ extern "C"
 #if (NDIM == 3)
         const unsigned int& ,
 #endif
-        const int& ,
-#if (NDIM == 1)
-        const int& , const int& ,
-        const int& ,
-        const double* ,
-        const int& ,
-        const int& ,
-        const double* ,
-        double*
-#endif
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
-        const double* , double* ,
+        const double* , double* , double* , double* , double* ,
         const int& , const int& ,
         const int& , const int& ,
         const double* , const double* ,
@@ -204,28 +163,16 @@ extern "C"
                              );
 
     void
-    GODUNOV_PREDICTWITHSOURCE_F77(
+    GODUNOV_PREDICT_WITH_SOURCE_F77(
         const double* , const double& ,
 #if (NDIM == 3)
         const unsigned int& ,
-#endif
-        const int& ,
-#if (NDIM == 1)
-        const int& , const int& ,
-        const int& ,
-        const int& ,
-        const double* ,
-        const double* ,
-        const int& ,
-        const int& ,
-        const double* ,
-        double*
 #endif
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
         const int& , const int& ,
-        const double* , double* ,
+        const double* , double* , double* , double* , double* ,
         const double* , double* ,
         const int& , const int& ,
         const int& , const int& ,
@@ -283,8 +230,7 @@ GodunovAdvector::GodunovAdvector(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
     const bool register_for_restart)
     : d_object_name(object_name),
-      d_registered_for_restart(register_for_restart),
-      d_limiter_type(FOURTH_ORDER)
+      d_registered_for_restart(register_for_restart)
 #if (NDIM==3)
     , d_using_full_ctu(true)
 #endif
@@ -373,14 +319,6 @@ GodunovAdvector::computeStableDtOnPatch(
 
     double stable_dt = std::numeric_limits<double>::max();
 
-#if (NDIM == 1)
-    ADVECT_STABLEDT_F77(
-        dx,
-        ilower(0),iupper(0),
-        u_ghost_cells(0),
-        u_ADV.getPointer(0),
-        stable_dt);
-#endif
 #if (NDIM == 2)
     ADVECT_STABLEDT_F77(
         dx,
@@ -433,17 +371,6 @@ GodunovAdvector::computeAdvectiveDerivative(
 
     for (int depth = 0; depth < q_half.getDepth() ; ++depth)
     {
-#if (NDIM == 1)
-        ADVECT_DERIVATIVE_F77(
-            dx,
-            ilower(0),iupper(0),
-            u_ADV_ghost_cells(0),
-            q_half_ghost_cells(0),
-            u_ADV.getPointer(0),
-            q_half.getPointer(0,depth),
-            N_ghost_cells(0),
-            N.getPointer(depth));
-#endif
 #if (NDIM == 2)
         ADVECT_DERIVATIVE_F77(
             dx,
@@ -500,17 +427,6 @@ GodunovAdvector::computeFlux(
 
     for (int depth = 0; depth < q_half.getDepth(); ++depth)
     {
-#if (NDIM == 1)
-        ADVECT_FLUX_F77(
-            dt,
-            ilower(0),iupper(0),
-            u_ADV_ghost_cells(0),
-            q_half_ghost_cells(0),
-            flux_ghost_cells(0),
-            u_ADV.getPointer(0),
-            q_half.getPointer(0,depth),
-            flux.getPointer(0,depth));
-#endif
 #if (NDIM == 2)
         ADVECT_FLUX_F77(
             dt,
@@ -657,7 +573,7 @@ GodunovAdvector::enforceIncompressibility(
     for (int depth = 0; depth < NDIM; ++depth)
     {
 #if (NDIM == 2)
-        GODUNOV_INCOMPRESSIBILITYFIX_F77(
+        GODUNOV_INCOMPRESSIBILITY_FIX_F77(
             depth,
             ilower(0),iupper(0),ilower(1),iupper(1),
             grad_phi_ghost_cells(0),grad_phi_ghost_cells(1),
@@ -666,7 +582,7 @@ GodunovAdvector::enforceIncompressibility(
             v_half.getPointer(0,depth),v_half.getPointer(1,depth));
 #endif
 #if (NDIM == 3)
-        GODUNOV_INCOMPRESSIBILITYFIX_F77(
+        GODUNOV_INCOMPRESSIBILITY_FIX_F77(
             depth,
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             grad_phi_ghost_cells(0),grad_phi_ghost_cells(1),grad_phi_ghost_cells(2),
@@ -692,7 +608,6 @@ GodunovAdvector::putToDatabase(
     TBOX_ASSERT(!db.isNull());
 #endif
     db->putInteger("GODUNOV_ADVECTOR_VERSION",GODUNOV_ADVECTOR_VERSION);
-    db->putInteger("d_limiter_type", d_limiter_type);
 #if (NDIM == 3)
     db->putBool("d_using_full_ctu", d_using_full_ctu);
 #endif
@@ -709,7 +624,6 @@ GodunovAdvector::printClassData(
     os << "GodunovAdvector: this = " << const_cast<GodunovAdvector*>(this) << "\n";
     os << "d_object_name = " << d_object_name << "\n"
        << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
-    os << "d_limiter_type = "<< d_limiter_type << "\n";
 #if (NDIM == 3)
     os << "d_using_full_ctu = " << d_using_full_ctu << std::endl;
 #endif
@@ -749,36 +663,23 @@ GodunovAdvector::predict(
     const SAMRAI::hier::IntVector<NDIM>&      Q_ghost_cells = Q     .getGhostCellWidth();
     const SAMRAI::hier::IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
 
-#if (NDIM>1)
+    SAMRAI::pdat::CellData<NDIM,double> dQ(patch.getBox(),1,Q_ghost_cells);
+    SAMRAI::pdat::CellData<NDIM,double> Q_L(patch.getBox(),1,Q_ghost_cells);
+    SAMRAI::pdat::CellData<NDIM,double> Q_R(patch.getBox(),1,Q_ghost_cells);
     SAMRAI::pdat::CellData<NDIM,double> Q_temp1(patch.getBox(),1,Q_ghost_cells);
     SAMRAI::pdat::FaceData<NDIM,double> q_half_temp(patch.getBox(),1,q_half_ghost_cells);
-#endif
-
 #if (NDIM>2)
     SAMRAI::pdat::CellData<NDIM,double> Q_temp2(patch.getBox(),1,Q_ghost_cells);
 #endif
 
     for (int depth = 0; depth < Q.getDepth(); ++depth)
     {
-#if (NDIM == 1)
-        GODUNOV_PREDICT_F77(
-            dx,dt,
-            d_limiter_type,
-            ilower(0),iupper(0),
-            Q_ghost_cells(0),
-            Q.getPointer(depth),
-            u_ADV_ghost_cells(0),
-            q_half_ghost_cells(0),
-            u_ADV.getPointer(0),
-            q_half.getPointer(0,depth));
-#endif
 #if (NDIM == 2)
         GODUNOV_PREDICT_F77(
             dx,dt,
-            d_limiter_type,
             ilower(0),iupper(0),ilower(1),iupper(1),
             Q_ghost_cells(0),Q_ghost_cells(1),
-            Q.getPointer(depth),Q_temp1.getPointer(0),
+            Q.getPointer(depth),dQ.getPointer(depth),Q_L.getPointer(depth),Q_R.getPointer(depth),Q_temp1.getPointer(0),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
             q_half_ghost_cells(0),q_half_ghost_cells(1),
             u_ADV.getPointer(0),u_ADV.getPointer(1),
@@ -789,7 +690,6 @@ GodunovAdvector::predict(
         GODUNOV_PREDICT_F77(
             dx,dt,
             static_cast<unsigned int>(d_using_full_ctu),
-            d_limiter_type,
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
             Q.getPointer(depth),Q_temp1.getPointer(0),Q_temp2.getPointer(0),
@@ -839,12 +739,12 @@ GodunovAdvector::predictWithSourceTerm(
     const SAMRAI::hier::IntVector<NDIM>& F_ghost_cells = F.getGhostCellWidth();
     const SAMRAI::hier::IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
 
-#if (NDIM>1)
+    SAMRAI::pdat::CellData<NDIM,double> dQ(patch.getBox(),1,Q_ghost_cells);
+    SAMRAI::pdat::CellData<NDIM,double> Q_L(patch.getBox(),1,Q_ghost_cells);
+    SAMRAI::pdat::CellData<NDIM,double> Q_R(patch.getBox(),1,Q_ghost_cells);
     SAMRAI::pdat::CellData<NDIM,double> Q_temp1(patch.getBox(),1,Q_ghost_cells);
     SAMRAI::pdat::CellData<NDIM,double> F_temp1(patch.getBox(),1,F_ghost_cells);
     SAMRAI::pdat::FaceData<NDIM,double> q_half_temp(patch.getBox(),1,q_half_ghost_cells);
-#endif
-
 #if (NDIM>2)
     SAMRAI::pdat::CellData<NDIM,double> Q_temp2(patch.getBox(),1,Q_ghost_cells);
     SAMRAI::pdat::CellData<NDIM,double> F_temp2(patch.getBox(),1,F_ghost_cells);
@@ -852,28 +752,13 @@ GodunovAdvector::predictWithSourceTerm(
 
     for (int depth = 0; depth < Q.getDepth(); ++depth)
     {
-#if (NDIM == 1)
-        GODUNOV_PREDICTWITHSOURCE_F77(
-            dx,dt,
-            d_limiter_type,
-            ilower(0),iupper(0),
-            Q_ghost_cells(0),
-            F_ghost_cells(0),
-            Q.getPointer(depth),
-            F.getPointer(depth),
-            u_ADV_ghost_cells(0),
-            q_half_ghost_cells(0),
-            u_ADV.getPointer(0),
-            q_half.getPointer(0,depth));
-#endif
 #if (NDIM == 2)
-        GODUNOV_PREDICTWITHSOURCE_F77(
+        GODUNOV_PREDICT_WITH_SOURCE_F77(
             dx,dt,
-            d_limiter_type,
             ilower(0),iupper(0),ilower(1),iupper(1),
             Q_ghost_cells(0),Q_ghost_cells(1),
             F_ghost_cells(0),F_ghost_cells(1),
-            Q.getPointer(depth),Q_temp1.getPointer(0),
+            Q.getPointer(depth),dQ.getPointer(depth),Q_L.getPointer(depth),Q_R.getPointer(depth),Q_temp1.getPointer(0),
             F.getPointer(depth),F_temp1.getPointer(0),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
             q_half_ghost_cells(0),q_half_ghost_cells(1),
@@ -882,10 +767,9 @@ GodunovAdvector::predictWithSourceTerm(
             q_half.getPointer(0,depth),q_half.getPointer(1,depth));
 #endif
 #if (NDIM == 3)
-        GODUNOV_PREDICTWITHSOURCE_F77(
+        GODUNOV_PREDICT_WITH_SOURCE_F77(
             dx,dt,
             static_cast<unsigned int>(d_using_full_ctu),
-            d_limiter_type,
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
             F_ghost_cells(0),F_ghost_cells(1),F_ghost_cells(2),
@@ -912,7 +796,6 @@ GodunovAdvector::getFromInput(
     TBOX_ASSERT(!db.isNull());
 #endif
     (void) is_from_restart;
-    d_limiter_type = db->getIntegerWithDefault("limiter_type", d_limiter_type);
 #if (NDIM == 3)
     d_using_full_ctu = db->getBoolWithDefault("using_full_ctu", d_using_full_ctu);
 #endif
@@ -945,7 +828,6 @@ GodunovAdvector::getFromRestart()
                    << "  Restart file version different than class version.");
     }
 
-    d_limiter_type = db->getInteger("d_limiter_type");
 #if (NDIM == 3)
     d_using_full_ctu = db->getBool("d_using_full_ctu");
 #endif
