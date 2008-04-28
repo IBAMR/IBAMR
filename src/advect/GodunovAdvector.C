@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <22.Apr.2008 14:19:09 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Apr.2008 12:31:01 boyce@trasnaform2.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -679,7 +679,7 @@ GodunovAdvector::predict(
             dx,dt,
             ilower(0),iupper(0),ilower(1),iupper(1),
             Q_ghost_cells(0),Q_ghost_cells(1),
-            Q.getPointer(depth),dQ.getPointer(depth),Q_L.getPointer(depth),Q_R.getPointer(depth),Q_temp1.getPointer(0),
+            Q.getPointer(depth),dQ.getPointer(0),Q_L.getPointer(0),Q_R.getPointer(0),Q_temp1.getPointer(0),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
             q_half_ghost_cells(0),q_half_ghost_cells(1),
             u_ADV.getPointer(0),u_ADV.getPointer(1),
@@ -758,7 +758,7 @@ GodunovAdvector::predictWithSourceTerm(
             ilower(0),iupper(0),ilower(1),iupper(1),
             Q_ghost_cells(0),Q_ghost_cells(1),
             F_ghost_cells(0),F_ghost_cells(1),
-            Q.getPointer(depth),dQ.getPointer(depth),Q_L.getPointer(depth),Q_R.getPointer(depth),Q_temp1.getPointer(0),
+            Q.getPointer(depth),dQ.getPointer(0),Q_L.getPointer(0),Q_R.getPointer(0),Q_temp1.getPointer(0),
             F.getPointer(depth),F_temp1.getPointer(0),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
             q_half_ghost_cells(0),q_half_ghost_cells(1),

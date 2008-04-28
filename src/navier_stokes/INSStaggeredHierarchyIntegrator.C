@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <23.Apr.2008 18:16:05 boyce@trasnaform2.local>
+// Last modified: <27.Apr.2008 21:22:22 boyce@trasnaform2.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -445,8 +445,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops,
         SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> U_bdry_fill_op,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> P_bdry_fill_op)
+        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> U_bdry_fill_op)
         : d_rho(rho),
           d_mu(mu),
           d_lambda(lambda),
@@ -458,7 +457,6 @@ public:
           d_hier_sc_data_ops(hier_sc_data_ops),
           d_hier_math_ops(hier_math_ops),
           d_U_bdry_fill_op(U_bdry_fill_op),
-          d_P_bdry_fill_op(P_bdry_fill_op),
           d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL))
         {
             // Get the control volume weight variables and patch data descriptor
@@ -497,6 +495,7 @@ public:
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x)
         {
+            SAMRAI::tbox::pout << "sovleSystem()\n";
             const double dt = d_new_time-d_current_time;
 
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
@@ -523,15 +522,15 @@ public:
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_out_cc_var = P_out_var;
 
             // Setup the solver vectors.
-            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_out_vec, U_rhs_vec;
+            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_in_vec;
+            U_in_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+                "INSProjectionPreconditioner::U_in_vec", hierarchy, coarsest_ln, finest_ln);
+            U_in_vec->addComponent(U_in_sc_var, U_in_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
+
+            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_out_vec;
             U_out_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
                 "INSProjectionPreconditioner::U_out_vec", hierarchy, coarsest_ln, finest_ln);
             U_out_vec->addComponent(U_out_sc_var, U_out_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
-            U_rhs_vec = U_out_vec->cloneVector("INSProjectionPreconditioner::U_rhs_vec");
-            U_rhs_vec->allocateVectorData(d_new_time);
-
-            const int U_rhs_idx = U_rhs_vec->getComponentDescriptorIndex(0);
-            const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_rhs_sc_var = U_rhs_vec->getComponentVariable(0);
 
             SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > Grad_P_vec;
             Grad_P_vec = U_out_vec->cloneVector("INSProjectionPreconditioner::Grad_P_vec");
@@ -552,32 +551,7 @@ public:
             // Reset the interpolation operators.
             typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
             InterpolationTransactionComponent U_out_component(U_out_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
-            InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-
             d_U_bdry_fill_op->resetTransactionComponent(U_out_component);
-            d_P_bdry_fill_op->resetTransactionComponent(P_scratch_component);
-
-            // Initialize the right-hand side terms.
-            static const bool Grad_P_cf_bdry_synch = true;
-            d_hier_cc_data_ops->copyData(P_scratch_idx, P_in_idx);
-            d_hier_math_ops->grad(
-                Grad_P_idx, Grad_P_sc_var,
-                Grad_P_cf_bdry_synch,
-                1.0,
-                P_scratch_idx, P_scratch_cc_var,
-                d_P_bdry_fill_op, d_current_time);
-
-            SAMRAI::solv::PoissonSpecifications rhs_spec("INSProjectionPreconditioner::rhs_spec");
-            rhs_spec.setCConstant((d_rho/dt)-0.5*d_lambda);
-            rhs_spec.setDConstant(          +0.5*d_mu    );
-            d_hier_sc_data_ops->copyData(U_out_idx, U_in_idx);
-            d_hier_math_ops->laplace(
-                U_rhs_idx, U_rhs_sc_var,
-                rhs_spec,
-                U_out_idx, U_out_sc_var,
-                d_U_bdry_fill_op, d_current_time,
-                -1.0,
-                Grad_P_idx, Grad_P_sc_var);
 
             // Setup the linear solver.
             SAMRAI::solv::PoissonSpecifications helmholtz_spec("INSProjectionPreconditioner::helmholtz_spec");
@@ -598,7 +572,7 @@ public:
             linear_solver->setOperator(helmholtz_operator);
 
             // Solve for u^{*}.
-            linear_solver->solveSystem(*U_out_vec,*U_rhs_vec);
+            linear_solver->solveSystem(*U_out_vec,*U_in_vec);
             SAMRAI::tbox::plog << "INSProjectionPreconditioner::integrateHierarchy(): linear solve number of iterations = " << linear_solver->getNumIterations() << "\n";
             SAMRAI::tbox::plog << "INSProjectionPreconditioner::integrateHierarchy(): linear solve residual norm        = " << linear_solver->getResidualNorm()  << "\n";
             if (linear_solver->getNumIterations() == linear_solver->getMaxIterations())
@@ -607,40 +581,27 @@ public:
                                    <<"  WARNING: linear solver iterations == max iterations\n";
             }
 
-            // Reset the intermediate velocity u^{*} := u^{*} + dt/rho grad p^{n-1/2}.
-            //
-            // XXXX: Switch back to standard formulation to allow for correct
-            // BCs for phi...?
-            //
-            // NOTE: If this switch is made, be sure to do a full copy of P_scratch
-            // into P_scratch (interior + ghost cell region) to get BCs correct!
-            d_hier_sc_data_ops->axpy(U_out_idx, dt/d_rho, Grad_P_idx, U_out_idx);
-
             // Project the intermediate velocity u^{*}.
+            d_hier_cc_data_ops->setToScalar(P_scratch_idx,0.0);
             d_hier_projector->projectHierarchy(
                 d_rho, dt, d_current_time+0.5*dt,
                 "pressure_update",
                 U_out_idx, U_out_sc_var,
-                P_in_idx, P_in_cc_var,
+                P_in_idx, P_in_cc_var,  // XXXX should this not be p_in ???
                 P_scratch_idx, P_scratch_cc_var,
                 Grad_P_idx, Grad_P_sc_var,
                 U_out_idx, U_out_sc_var);
 
             // Update the pressure.
-            d_hier_cc_data_ops->copyData(P_out_idx, P_scratch_idx);
-#if 0 // XXXX
             SAMRAI::solv::PoissonSpecifications pressure_helmholtz_spec("INSProjectionPreconditioner::helmholtz_spec");
-            pressure_helmholtz_spec.setCConstant(+0.5*dt*d_lambda/d_rho);
-            pressure_helmholtz_spec.setDConstant(-0.5*dt*d_mu    /d_rho);
-            d_hier_cc_data_ops->subtract(P_scratch_idx, P_scratch_idx, P_in_idx);
+            pressure_helmholtz_spec.setCConstant(1.0+0.5*dt*d_lambda/d_rho);
+            pressure_helmholtz_spec.setDConstant(   -0.5*dt*d_mu    /d_rho);
             d_hier_math_ops->laplace(
                 P_out_idx, P_out_cc_var,
                 pressure_helmholtz_spec,
                 P_scratch_idx, P_scratch_cc_var,
-                d_P_bdry_fill_op, d_current_time,
-                1.0,
-                P_out_idx, P_out_cc_var);
-#endif
+                d_no_fill_op, d_current_time);
+
             // Normalize p^{n+1/2} to have mean (discrete integral) zero.
             if (true) // XXXX (d_normalize_pressure)
             {
@@ -649,7 +610,6 @@ public:
             }
 
             // Deallocate scratch data.
-            U_rhs_vec->deallocateVectorData();
             Grad_P_vec->deallocateVectorData();
             P_scratch_vec->deallocateVectorData();
             return true;
@@ -862,7 +822,7 @@ private:
     double d_volume;
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_fill_op, d_P_bdry_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_fill_op, d_no_fill_op;
 };
 
 }
@@ -1814,7 +1774,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         // Setup the linear solver.
         SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> linear_solver = new IBTK::PETScKrylovLinearSolver(
             d_object_name+"::linear_solver", "ins_");
-        linear_solver->setInitialGuessNonzero(true);
+        linear_solver->setInitialGuessNonzero(false); // XXXXtrue);
         linear_solver->setOperator(linear_op);
         linear_solver->initializeSolverState(*sol_vec,*rhs_vec);
         KSP petsc_ksp = linear_solver->getPETScKSP();
@@ -1825,7 +1785,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
             current_time, new_time,
             helmholtz_solver, d_hier_projector,
             d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops,
-            U_bdry_fill_op, P_bdry_fill_op);
+            U_bdry_fill_op);
         linear_solver->setPreconditioner(pc_op);
 
         // Solve system.
