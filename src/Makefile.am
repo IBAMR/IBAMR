@@ -57,6 +57,8 @@ navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSIntermediateVelocityBcCoef.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredHierarchyIntegrator.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredLinearOperator.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredProjectionPreconditioner.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSProjectionBcCoef.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.o \
 utilities/libIBAMR_utilities2d_a-get_version.o
@@ -100,6 +102,8 @@ navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-INSIntermediateVelocityBcCoef.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredHierarchyIntegrator.o \
+navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredLinearOperator.o \
+navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredProjectionPreconditioner.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-INSProjectionBcCoef.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.o \
 utilities/libIBAMR_utilities3d_a-get_version.o

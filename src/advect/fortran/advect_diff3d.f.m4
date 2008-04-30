@@ -5,12 +5,12 @@ define(INTEGER,`integer')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Computes the advective flux corresponding to a face centered value
 c     and a face centered advective velocity.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine advect_flux3d(
      &     dt,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
@@ -20,20 +20,20 @@ c
      &     u0,u1,u2,
      &     qhalf0,qhalf1,qhalf2,
      &     flux0,flux1,flux2)
-c     
+c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
-c     
+c
 c     Input.
-c     
+c
       INTEGER ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
-      
+
       INTEGER nugc0,nugc1,nugc2
       INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
       INTEGER nfluxgc0,nfluxgc1,nfluxgc2
-      
+
       REAL dt
-      
+
       REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE3d1VECG(ifirst,ilast,nugc))
       REAL u2(FACE3d2VECG(ifirst,ilast,nugc))
@@ -41,17 +41,17 @@ c
       REAL qhalf0(FACE3d0VECG(ifirst,ilast,nqhalfgc))
       REAL qhalf1(FACE3d1VECG(ifirst,ilast,nqhalfgc))
       REAL qhalf2(FACE3d2VECG(ifirst,ilast,nqhalfgc))
-c     
+c
 c     Input/Output.
-c     
+c
       REAL flux0(FACE3d0VECG(ifirst,ilast,nfluxgc))
       REAL flux1(FACE3d1VECG(ifirst,ilast,nfluxgc))
       REAL flux2(FACE3d2VECG(ifirst,ilast,nfluxgc))
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER ic0,ic1,ic2
-c     
+c
 c     Compute the time integral of the advective flux.
 c
       do ic2 = ifirst2,ilast2
@@ -80,7 +80,7 @@ c
             enddo
          enddo
       enddo
-c     
+c
       return
       end
 c
@@ -200,10 +200,10 @@ c
             do ic0 = ifirst0,ilast0
                divsource = (sixth/dt)*
      &              ( qflux0(ic0+1,ic1,ic2) + qflux0(ic0,ic1,ic2)
-     &              + qflux1(ic1+1,ic2,ic0) + qflux1(ic1,ic2,ic0) 
+     &              + qflux1(ic1+1,ic2,ic0) + qflux1(ic1,ic2,ic0)
      &              + qflux2(ic2+1,ic0,ic1) + qflux2(ic2,ic0,ic1) )*
      &              ( (uflux0(ic0+1,ic1,ic2)-uflux0(ic0,ic1,ic2))/dx(0)
-     &              + (uflux1(ic1+1,ic2,ic0)-uflux1(ic1,ic2,ic0))/dx(1) 
+     &              + (uflux1(ic1+1,ic2,ic0)-uflux1(ic1,ic2,ic0))/dx(1)
      &              + (uflux2(ic2+1,ic0,ic1)-uflux2(ic2,ic0,ic1))/dx(2))
 
                qval(ic0,ic1,ic2) = qval(ic0,ic1,ic2) + divsource
@@ -218,11 +218,11 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Computes the advective derivative N = [u_ADV*grad(q)].
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine advect_derivative3d(
      &     dx,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
@@ -232,20 +232,20 @@ c
      &     q0,q1,q2,
      &     nNgc0,nNgc1,nNgc2,
      &     N)
-c     
+c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
-c     
+c
 c     Input.
-c     
+c
       INTEGER ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
-      
+
       INTEGER nuadvgc0,nuadvgc1,nuadvgc2
       INTEGER nqgc0,nqgc1,nqgc2
       INTEGER nNgc0,nNgc1,nNgc2
 
       REAL dx(0:NDIM-1)
-      
+
       REAL uadv0(FACE3d0VECG(ifirst,ilast,nuadvgc))
       REAL uadv1(FACE3d1VECG(ifirst,ilast,nuadvgc))
       REAL uadv2(FACE3d2VECG(ifirst,ilast,nuadvgc))
@@ -253,19 +253,19 @@ c
       REAL q0(FACE3d0VECG(ifirst,ilast,nqgc))
       REAL q1(FACE3d1VECG(ifirst,ilast,nqgc))
       REAL q2(FACE3d2VECG(ifirst,ilast,nqgc))
-c     
+c
 c     Input/Output.
-c     
+c
       REAL N(CELL3dVECG(ifirst,ilast,nNgc))
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER ic0,ic1,ic2
       REAL U,V,W
       REAL Qx0,Qx1,Qx2
 c
 c     Compute (U,V,W)*grad(q).
-c     
+c
       do ic2 = ifirst2,ilast2
          do ic1 = ifirst1,ilast1
             do ic0 = ifirst0,ilast0
@@ -292,6 +292,87 @@ c
                W = 0.5d0*(uadv2(ic2+1,ic0,ic1)+uadv2(ic2,ic0,ic1))
                Qx2 = (q2(ic2+1,ic0,ic1)-q2(ic2,ic0,ic1))/dx(2)
                N(ic0,ic1,ic2) = N(ic0,ic1,ic2) + W*Qx2
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes the convective derivative N = div[q*u_ADV].
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine convect_derivative3d(
+     &     dx,
+     &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+     &     nuadvgc0,nuadvgc1,nuadvgc2,
+     &     nqgc0,nqgc1,nqgc2,
+     &     uadv0,uadv1,uadv2,
+     &     q0,q1,q2,
+     &     nNgc0,nNgc1,nNgc2,
+     &     N)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
+
+      INTEGER nuadvgc0,nuadvgc1,nuadvgc2
+      INTEGER nqgc0,nqgc1,nqgc2
+      INTEGER nNgc0,nNgc1,nNgc2
+
+      REAL dx(0:NDIM-1)
+
+      REAL uadv0(FACE3d0VECG(ifirst,ilast,nuadvgc))
+      REAL uadv1(FACE3d1VECG(ifirst,ilast,nuadvgc))
+      REAL uadv2(FACE3d2VECG(ifirst,ilast,nuadvgc))
+
+      REAL q0(FACE3d0VECG(ifirst,ilast,nqgc))
+      REAL q1(FACE3d1VECG(ifirst,ilast,nqgc))
+      REAL q2(FACE3d2VECG(ifirst,ilast,nqgc))
+c
+c     Input/Output.
+c
+      REAL N(CELL3dVECG(ifirst,ilast,nNgc))
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1,ic2
+      REAL QUx0,QVx1,QWx2
+c
+c     Compute (U,V,W)*grad(q).
+c
+      do ic2 = ifirst2,ilast2
+         do ic1 = ifirst1,ilast1
+            do ic0 = ifirst0,ilast0
+               QUx0 = (uadv0(ic0+1,ic1,ic2)*q0(ic0+1,ic1,ic2)-
+     &              uadv0(ic0,ic1,ic2)*q0(ic0,ic1,ic2))/dx(0)
+               N(ic0,ic1,ic2) = QUx0
+            enddo
+         enddo
+      enddo
+
+      do ic0 = ifirst0,ilast0
+         do ic2 = ifirst2,ilast2
+            do ic1 = ifirst1,ilast1
+               QVx1 = (uadv1(ic1+1,ic2,ic0)*q1(ic1+1,ic2,ic0)-
+     &              uadv1(ic1,ic2,ic0)*q1(ic1,ic2,ic0))/dx(1)
+               N(ic0,ic1,ic2) = N(ic0,ic1,ic2) + QVx1
+            enddo
+         enddo
+      enddo
+
+      do ic1 = ifirst1,ilast1
+         do ic0 = ifirst0,ilast0
+            do ic2 = ifirst2,ilast2
+               QWx2 = (uadv2(ic2+1,ic0,ic1)*q2(ic2+1,ic0,ic1)-
+     &              uadv2(ic2,ic0,ic1)*q2(ic2,ic0,ic1))/dx(2)
+               N(ic0,ic1,ic2) = N(ic0,ic1,ic2) + QWx2
             enddo
          enddo
       enddo

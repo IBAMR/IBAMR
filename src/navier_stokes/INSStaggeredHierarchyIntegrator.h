@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <18.Apr.2008 16:42:55 griffith@box230.cims.nyu.edu>
+// Last modified: <29.Apr.2008 16:27:04 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1030,7 +1030,7 @@ private:
     /*
      * Patch boundary filling operators.
      */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_scratch_bdry_fill_op, d_P_scratch_bdry_fill_op, d_rhs_bdry_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_scratch_bdry_fill_op, d_U_scratch_bdry_fill_op, d_P_scratch_bdry_fill_op, d_rhs_bdry_fill_op;
 };
 }// namespace IBAMR
 

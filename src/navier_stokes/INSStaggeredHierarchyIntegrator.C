@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <27.Apr.2008 21:22:22 boyce@trasnaform2.local>
+// Last modified: <29.Apr.2008 18:13:12 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -16,7 +16,9 @@
 #define included_SAMRAI_config
 #endif
 
-#define COUPLED_SOLVER 1
+// IBAMR INCLUDES
+#include <ibamr/INSStaggeredLinearOperator.h>
+#include <ibamr/INSStaggeredProjectionPreconditioner.h>
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -39,6 +41,7 @@
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
+#define CONVECT_DERIVATIVE_F77 F77_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
 #define GODUNOV_PREDICT_WITH_SOURCE_F77 F77_FUNC_(godunov_predict_with_source2d, GODUNOV_PREDICT_WITH_SOURCE2D)
 #define NAVIER_STOKES_INTERP_COMPS_F77 F77_FUNC_(navier_stokes_interp_comps2d, NAVIER_STOKES_INTERP_COMPS2D)
 #define NAVIER_STOKES_RESET_ADV_VELOCITY_F77 F77_FUNC_(navier_stokes_reset_adv_velocity2d, NAVIER_STOKES_RESET_ADV_VELOCITY2D)
@@ -47,6 +50,8 @@
 
 #if (NDIM == 3)
 #define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
+#define CONVECT_DERIVATIVE_F77 F77_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
+#define GODUNOV_PREDICT_WITH_SOURCE_F77 F77_FUNC_(godunov_predict_with_source3d, GODUNOV_PREDICT_WITH_SOURCE3D)
 #define NAVIER_STOKES_INTERP_COMPS_F77 F77_FUNC_(navier_stokes_interp_comps_3d, NAVIER_STOKES_INTERP_COMPS_3D)
 #define NAVIER_STOKES_RESET_ADV_VELOCITY_F77 F77_FUNC_(navier_stokes_reset_adv_velocity_3d, NAVIER_STOKES_RESET_ADV_VELOCITY_3D)
 #define NAVIER_STOKES_SC_STABLEDT_F77 F77_FUNC_(navier_stokes_sc_stabledt3d, NAVIER_STOKES_SC_STABLEDT3D)
@@ -56,6 +61,29 @@ extern "C"
 {
     void
     ADVECT_DERIVATIVE_F77(
+        const double*,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+        const double* , const double* ,
+        const int& , const int& ,
+        double*
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        const double* , const double* , const double* ,
+        const int& , const int& , const int& ,
+        double*
+#endif
+                          );
+
+    void
+    CONVECT_DERIVATIVE_F77(
         const double*,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -96,7 +124,7 @@ extern "C"
         const int& , const int& , const int& , const int& , const int& , const int& ,
         const int& , const int& , const int& ,
         const int& , const int& , const int& ,
-        const double* , double* , double* ,
+        const double* , double* , double* , double* , double* , double* ,
         const double* , double* , double* ,
         const int& , const int& , const int& ,
         const int& , const int& , const int& ,
@@ -206,625 +234,6 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Version of INSStaggeredHierarchyIntegrator restart file data.
 static const int INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
-}
-
-namespace
-{
-
-// Linear operator used with the Krylov solver.
-class INSOperator
-    : public IBTK::LinearOperator
-{
-public:
-    /*!
-     * XXXX
-     */
-    INSOperator(
-        const double rho,
-        const double mu,
-        const double lambda,
-        const double dt,
-        const double apply_time,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> U_P_bdry_fill_op)
-        : d_rho(rho),
-          d_mu(mu),
-          d_lambda(lambda),
-          d_dt(dt),
-          d_apply_time(apply_time),
-          d_hier_math_ops(hier_math_ops),
-          d_U_P_bdry_fill_op(U_P_bdry_fill_op),
-          d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL))
-        {
-            // intentionally blank
-            return;
-        }// INSOperator
-
-    /*!
-     * \brief Virtual destructor.
-     */
-    virtual
-    ~INSOperator()
-        {
-            // intentionally blank
-            return;
-        }// ~INSOperator
-
-    /*!
-     * \name Linear operator functionality.
-     */
-    //\{
-
-    /*!
-     * \brief Compute y=Ax.
-     *
-     * Before calling this function, the form of the vectors x and y should be
-     * set properly by the user on all patch interiors on the range of levels
-     * covered by the operator.  All data in these vectors should be allocated.
-     * Thus, the user is responsible for managing the storage for the vectors.
-     *
-     * Conditions on arguments:
-     * - vectors must have same hierarchy
-     * - vectors must have same variables (except that x \em must
-     * have enough ghost cells for computation of Ax).
-     *
-     * \note In general, the vectors x and y \em cannot be the same.
-     *
-     * Upon return from this function, the y vector will contain the result of
-     * the application of A to x.
-     *
-     * initializeOperatorState must be called prior to any calls to
-     * applyOperator.
-     *
-     * \see initializeOperatorState
-     *
-     * \param x input
-     * \param y output: y=Ax
-     */
-    virtual void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
-        {
-            // Get the vector components.
-            const int U_in_idx = x.getComponentDescriptorIndex(0);
-            const int P_in_idx = x.getComponentDescriptorIndex(1);
-
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_in_var = x.getComponentVariable(0);
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_in_var = x.getComponentVariable(1);
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_in_sc_var = U_in_var;
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_in_cc_var = P_in_var;
-
-            const int U_out_idx = y.getComponentDescriptorIndex(0);
-            const int P_out_idx = y.getComponentDescriptorIndex(1);
-
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_out_var = y.getComponentVariable(0);
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_out_var = y.getComponentVariable(1);
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_out_sc_var = U_out_var;
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_out_cc_var = P_out_var;
-
-            // Reset the interpolation operators and fill the data.
-            typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-            InterpolationTransactionComponent U_component(U_in_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
-            InterpolationTransactionComponent P_component(P_in_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-
-            std::vector<InterpolationTransactionComponent> transaction_comps(2);
-            transaction_comps[0] = U_component;
-            transaction_comps[1] = P_component;
-
-            d_U_P_bdry_fill_op->resetTransactionComponents(transaction_comps);
-            d_U_P_bdry_fill_op->fillData(d_apply_time);
-
-            // Compute the action of the operator:
-            //      A*[u;p] = [((rho/dt)*I-0.5*mu*L)*u + grad p; -div u].
-            bool cf_bdry_synch;
-            cf_bdry_synch = true;
-            d_hier_math_ops->grad(
-                U_out_idx, U_out_sc_var,
-                cf_bdry_synch,
-                1.0, P_in_idx, P_in_cc_var, d_no_fill_op, d_apply_time);
-            cf_bdry_synch = false;
-            d_hier_math_ops->div(
-                P_out_idx, P_out_cc_var,
-                -1.0, U_in_idx, U_in_sc_var, d_no_fill_op, d_apply_time,
-                cf_bdry_synch);
-
-            SAMRAI::solv::PoissonSpecifications helmholtz_spec("INSOperator::helmholtz_spec");
-            helmholtz_spec.setCConstant((d_rho/d_dt)+0.5*d_lambda);
-            helmholtz_spec.setDConstant(            -0.5*d_mu    );
-            d_hier_math_ops->laplace(
-                U_out_idx, U_out_sc_var,
-                helmholtz_spec,
-                U_in_idx, U_in_sc_var,
-                d_no_fill_op, d_apply_time,
-                1.0,
-                U_out_idx, U_out_sc_var);
-            return;
-        }// apply
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    virtual void
-    enableLogging(
-        bool enabled=true)
-        {
-            // intentionally blank
-            return;
-        }// enableLogging
-
-    /*!
-     * \brief Print out internal class data for debugging.
-     */
-    virtual void
-    printClassData(
-        std::ostream& os) const
-        {
-            // intentionally blank
-            return;
-        }// printClassData
-
-    //\}
-
-private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    INSOperator();
-
-    /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     *
-     * \param from The value to copy to this object.
-     */
-    INSOperator(
-        const INSOperator& from);
-
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
-     */
-    INSOperator&
-    operator=(
-        const INSOperator& that);
-
-    // Problem coefficients.
-    const double d_rho;
-    const double d_mu;
-    const double d_lambda;
-
-    // The timestep size.
-    const double d_dt;
-
-    // The simulation time.
-    const double d_apply_time;
-
-    // Math objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-
-    // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_bdry_fill_op, d_no_fill_op;
-};
-
-// Preconditioner used with the Krylov solver.
-class INSProjectionPreconditioner
-    : public IBTK::LinearSolver
-{
-public:
-    /*!
-     * XXXX
-     */
-    INSProjectionPreconditioner(
-        const double rho,
-        const double mu,
-        const double lambda,
-        const double current_time,
-        const double new_time,
-        SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> helmholtz_solver,
-        SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
-        SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops,
-        SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> U_bdry_fill_op)
-        : d_rho(rho),
-          d_mu(mu),
-          d_lambda(lambda),
-          d_current_time(current_time),
-          d_new_time(new_time),
-          d_helmholtz_solver(helmholtz_solver),
-          d_hier_projector(hier_projector),
-          d_hier_cc_data_ops(hier_cc_data_ops),
-          d_hier_sc_data_ops(hier_sc_data_ops),
-          d_hier_math_ops(hier_math_ops),
-          d_U_bdry_fill_op(U_bdry_fill_op),
-          d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL))
-        {
-            // Get the control volume weight variables and patch data descriptor
-            // indices.
-            d_wgt_cc_var = d_hier_math_ops->getCellWeightVariable();
-            d_wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-
-            d_wgt_sc_var = d_hier_math_ops->getSideWeightVariable();
-            d_wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
-
-            // Get the volume of the physical domain.
-            d_volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
-            return;
-        }// INSProjectionPreconditioner
-
-    /*!
-     * \brief Virtual destructor.
-     */
-    virtual
-    ~INSProjectionPreconditioner()
-        {
-            // intentionally blank
-            return;
-        }// ~INSProjectionPreconditioner
-
-    /*!
-     * \name Linear solver functionality.
-     */
-    //\{
-
-    /*!
-     * \brief Set y = P[x].
-     */
-    virtual bool
-    solveSystem(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x)
-        {
-            SAMRAI::tbox::pout << "sovleSystem()\n";
-            const double dt = d_new_time-d_current_time;
-
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
-            const int coarsest_ln = 0;
-            const int finest_ln = hierarchy->getFinestLevelNumber();
-
-            // Get the vector components.
-            const int U_in_idx = x.getComponentDescriptorIndex(0);
-            const int P_in_idx = x.getComponentDescriptorIndex(1);
-
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_in_var = x.getComponentVariable(0);
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_in_var = x.getComponentVariable(1);
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_in_sc_var = U_in_var;
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_in_cc_var = P_in_var;
-
-            const int U_out_idx = y.getComponentDescriptorIndex(0);
-            const int P_out_idx = y.getComponentDescriptorIndex(1);
-
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_out_var = y.getComponentVariable(0);
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_out_var = y.getComponentVariable(1);
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_out_sc_var = U_out_var;
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_out_cc_var = P_out_var;
-
-            // Setup the solver vectors.
-            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_in_vec;
-            U_in_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-                "INSProjectionPreconditioner::U_in_vec", hierarchy, coarsest_ln, finest_ln);
-            U_in_vec->addComponent(U_in_sc_var, U_in_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
-
-            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_out_vec;
-            U_out_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-                "INSProjectionPreconditioner::U_out_vec", hierarchy, coarsest_ln, finest_ln);
-            U_out_vec->addComponent(U_out_sc_var, U_out_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
-
-            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > Grad_P_vec;
-            Grad_P_vec = U_out_vec->cloneVector("INSProjectionPreconditioner::Grad_P_vec");
-            Grad_P_vec->allocateVectorData(d_new_time);
-            const int Grad_P_idx = Grad_P_vec->getComponentDescriptorIndex(0);
-            const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > Grad_P_sc_var = Grad_P_vec->getComponentVariable(0);
-
-            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_out_vec, P_scratch_vec;
-            P_out_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-                "INSProjectionPreconditioner::P_out_vec", hierarchy, coarsest_ln, finest_ln);
-            P_out_vec->addComponent(P_out_cc_var, P_out_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
-            P_scratch_vec = P_out_vec->cloneVector("INSProjectionPreconditioner::P_scratch_vec");
-            P_scratch_vec->allocateVectorData(d_current_time);
-
-            const int P_scratch_idx = P_scratch_vec->getComponentDescriptorIndex(0);
-            const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_scratch_cc_var = P_scratch_vec->getComponentVariable(0);
-
-            // Reset the interpolation operators.
-            typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-            InterpolationTransactionComponent U_out_component(U_out_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
-            d_U_bdry_fill_op->resetTransactionComponent(U_out_component);
-
-            // Setup the linear solver.
-            SAMRAI::solv::PoissonSpecifications helmholtz_spec("INSProjectionPreconditioner::helmholtz_spec");
-            helmholtz_spec.setCConstant((d_rho/dt)+0.5*d_lambda);
-            helmholtz_spec.setDConstant(          -0.5*d_mu    );
-            SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator> helmholtz_operator = new IBTK::SCLaplaceOperator(
-                "INSProjectionPreconditioner::Helmholtz Operator", helmholtz_spec, NULL);  // XXXX
-
-            helmholtz_operator->setPoissonSpecifications(helmholtz_spec);
-            //helmholtz_operator->setPhysicalBcCoefs(U_bc_coefs);  // XXXX
-            helmholtz_operator->setHomogeneousBc(true);
-            helmholtz_operator->setTime(d_new_time);
-            helmholtz_operator->setHierarchyMathOps(d_hier_math_ops);
-
-            SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> linear_solver = new IBTK::PETScKrylovLinearSolver(
-                "INSProjectionPreconditioner::PETSc Krylov solver", "adv_diff_");
-            linear_solver->setInitialGuessNonzero(true);
-            linear_solver->setOperator(helmholtz_operator);
-
-            // Solve for u^{*}.
-            linear_solver->solveSystem(*U_out_vec,*U_in_vec);
-            SAMRAI::tbox::plog << "INSProjectionPreconditioner::integrateHierarchy(): linear solve number of iterations = " << linear_solver->getNumIterations() << "\n";
-            SAMRAI::tbox::plog << "INSProjectionPreconditioner::integrateHierarchy(): linear solve residual norm        = " << linear_solver->getResidualNorm()  << "\n";
-            if (linear_solver->getNumIterations() == linear_solver->getMaxIterations())
-            {
-                SAMRAI::tbox::pout << "INSProjectionPreconditioner::integrateHierarchy():"
-                                   <<"  WARNING: linear solver iterations == max iterations\n";
-            }
-
-            // Project the intermediate velocity u^{*}.
-            d_hier_cc_data_ops->setToScalar(P_scratch_idx,0.0);
-            d_hier_projector->projectHierarchy(
-                d_rho, dt, d_current_time+0.5*dt,
-                "pressure_update",
-                U_out_idx, U_out_sc_var,
-                P_in_idx, P_in_cc_var,  // XXXX should this not be p_in ???
-                P_scratch_idx, P_scratch_cc_var,
-                Grad_P_idx, Grad_P_sc_var,
-                U_out_idx, U_out_sc_var);
-
-            // Update the pressure.
-            SAMRAI::solv::PoissonSpecifications pressure_helmholtz_spec("INSProjectionPreconditioner::helmholtz_spec");
-            pressure_helmholtz_spec.setCConstant(1.0+0.5*dt*d_lambda/d_rho);
-            pressure_helmholtz_spec.setDConstant(   -0.5*dt*d_mu    /d_rho);
-            d_hier_math_ops->laplace(
-                P_out_idx, P_out_cc_var,
-                pressure_helmholtz_spec,
-                P_scratch_idx, P_scratch_cc_var,
-                d_no_fill_op, d_current_time);
-
-            // Normalize p^{n+1/2} to have mean (discrete integral) zero.
-            if (true) // XXXX (d_normalize_pressure)
-            {
-                const double P_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(P_out_idx, d_wgt_cc_idx);
-                d_hier_cc_data_ops->addScalar(P_out_idx, P_out_idx, -P_mean);
-            }
-
-            // Deallocate scratch data.
-            Grad_P_vec->deallocateVectorData();
-            P_scratch_vec->deallocateVectorData();
-            return true;
-        }// solveSystem
-
-    //\}
-
-    /*!
-     * \name Functions to access solver parameters.
-     */
-    //\{
-
-    /*!
-     * \brief Set whether the initial guess is non-zero.
-     */
-    virtual void
-    setInitialGuessNonzero(
-        bool initial_guess_nonzero=true)
-        {
-            // intentionally blank
-            return;
-        }// setInitialGuessNonzero
-
-
-    /*!
-     * \brief Get whether the initial guess is non-zero.
-     */
-    virtual bool
-    getInitialGuessNonzero() const
-        {
-            // intentionally blank
-            return true;
-        }// getInitialGuessNonzero
-
-    /*!
-     * \brief Set the maximum number of iterations to use per solve.
-     */
-    virtual void
-    setMaxIterations(
-        int max_iterations)
-        {
-            // intentionally blank
-            return;
-        }// setMaxIterations
-
-    /*!
-     * \brief Get the maximum number of iterations to use per solve.
-     */
-    virtual int
-    getMaxIterations() const
-        {
-            // intentionally blank
-            return 1;
-        }// getMaxIterations
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    virtual void
-    setAbsoluteTolerance(
-        double abs_residual_tol)
-        {
-            // intentionally blank
-            return;
-        }// setAbsoluteTolerance
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    virtual double
-    getAbsoluteTolerance() const
-        {
-            // intentionally blank
-            return 0.0;
-        }// getAbsoluteTolerance
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    virtual void
-    setRelativeTolerance(
-        double rel_residual_tol)
-        {
-            // intentionally blank
-            return;
-        }// setRelativeTolerance
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    virtual double
-    getRelativeTolerance() const
-        {
-            // intentionally blank
-            return 0.0;
-        }// getRelativeTolerance
-
-    //\}
-
-    /*!
-     * \name Functions to access data on the most recent solve.
-     */
-    //\{
-
-    /*!
-     * \brief Return the iteration count from the most recent linear solve.
-     */
-    virtual int
-    getNumIterations() const
-        {
-            // intentionally blank
-            return 0;
-        }// getNumIterations
-
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    virtual double
-    getResidualNorm() const
-        {
-            return 0.0;
-        }// getResidualNorm
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    virtual void
-    enableLogging(
-        bool enabled=true)
-        {
-            // intentionally blank
-            return;
-        }// enableLogging
-
-    /*!
-     * \brief Print out internal class data for debugging.
-     */
-    virtual void
-    printClassData(
-        std::ostream& os) const
-        {
-            // intentionally blank
-            return;
-        }// printClassData
-
-    //\}
-
-private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    INSProjectionPreconditioner();
-
-    /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     *
-     * \param from The value to copy to this object.
-     */
-    INSProjectionPreconditioner(
-        const INSProjectionPreconditioner& from);
-
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
-     */
-    INSProjectionPreconditioner&
-    operator=(
-        const INSProjectionPreconditioner& that);
-
-    // Problem coefficients.
-    const double d_rho;
-    const double d_mu;
-    const double d_lambda;
-
-    // The simulation time.
-    const double d_current_time, d_new_time;
-
-    // Linear solvers.
-    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_helmholtz_solver;
-
-    // Projection functionality.
-    SAMRAI::tbox::Pointer<HierarchyProjector> d_hier_projector;
-
-    // Math objects.
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > d_hier_sc_data_ops;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_wgt_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_wgt_sc_var;
-    int d_wgt_cc_idx, d_wgt_sc_idx;
-    double d_volume;
-
-    // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_fill_op, d_no_fill_op;
-};
-
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -1561,6 +970,11 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     const double dt = new_time - current_time;
     const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
 
+    // Hierarchy ghost cell transaction components.
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
+    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
+
     // Synchronize current state data.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
@@ -1575,7 +989,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         level->allocatePatchData(d_new_data    ,     new_time);
     }
 
-    const int num_cycles = initial_time ? d_num_init_cycles : 1;
+    const int num_cycles = initial_time ? d_num_init_cycles : d_num_cycles;
     for (int cycle = 0; cycle < num_cycles; ++cycle)
     {
         if (d_do_log && initial_time)
@@ -1594,24 +1008,24 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
         U_rhs_vec = U_scratch_vec->cloneVector(d_object_name+"::U_rhs_vec");
         U_rhs_vec->allocateVectorData(current_time);
-
         const int U_rhs_idx = U_rhs_vec->getComponentDescriptorIndex(0);
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_rhs_var = U_rhs_vec->getComponentVariable(0);
-#if COUPLED_SOLVER
+        d_hier_sc_data_ops->setToScalar(U_rhs_idx,0.0);
+
         SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_scratch_vec, P_rhs_vec;
         P_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
             d_object_name+"::P_scratch_vec", d_hierarchy, 0, finest_ln);
         P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
         P_rhs_vec = P_scratch_vec->cloneVector(d_object_name+"::P_rhs_vec");
         P_rhs_vec->allocateVectorData(current_time);
-
         const int P_rhs_idx = P_rhs_vec->getComponentDescriptorIndex(0);
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_rhs_var = P_rhs_vec->getComponentVariable(0);
         d_hier_cc_data_ops->setToScalar(P_rhs_idx,0.0);
-#endif
+
         // Initialize the right-hand side terms.
         static const bool Grad_P_scratch_cf_bdry_synch = true;
         d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_current_idx);
+        d_P_scratch_bdry_fill_op->resetTransactionComponent(P_scratch_component);
         d_hier_math_ops->grad(
             d_Grad_P_scratch_idx, d_Grad_P_var,
             Grad_P_scratch_cf_bdry_synch,
@@ -1630,6 +1044,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         rhs_spec.setCConstant((d_rho/dt)-0.5*d_lambda);
         rhs_spec.setDConstant(          +0.5*d_mu    );
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
+        d_U_scratch_bdry_fill_op->resetTransactionComponent(U_scratch_component);
         d_hier_math_ops->laplace(
             U_rhs_idx, U_rhs_var,
             rhs_spec,
@@ -1637,9 +1052,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
             d_U_scratch_bdry_fill_op, current_time,
             -d_rho,
             U_rhs_idx, U_rhs_var);
-#if (!COUPLED_SOLVER)
-        d_hier_sc_data_ops->subtract(U_rhs_idx, U_rhs_idx, d_Grad_P_scratch_idx);
-#endif
 
         if (!d_F_set.isNull())
         {
@@ -1656,7 +1068,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
             d_hier_sc_data_ops->setToScalar(d_F_new_idx, 0.0);
         }
 
-        // Setup the linear solver.
+        // Setup the Helmholtz solver.
         SAMRAI::solv::PoissonSpecifications helmholtz_spec(d_object_name+"::helmholtz_spec");
         helmholtz_spec.setCConstant((d_rho/dt)+0.5*d_lambda);
         helmholtz_spec.setDConstant(          -0.5*d_mu    );
@@ -1674,54 +1086,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         helmholtz_solver->setInitialGuessNonzero(true);
         helmholtz_solver->setOperator(helmholtz_operator);
 
-#if (!COUPLED_SOLVER)
-        // Solve for u^{*}.
-        helmholtz_solver->solveSystem(*U_scratch_vec,*U_rhs_vec);
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): linear solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
-        if (helmholtz_solver->getNumIterations() == helmholtz_solver->getMaxIterations())
-        {
-            SAMRAI::tbox::pout << d_object_name << "::integrateHierarchy():"
-                               <<"  WARNING: linear solver iterations == max iterations\n";
-        }
-
-        // Deallocate scratch data.
-        U_rhs_vec->deallocateVectorData();
-
-        // Reset the intermediate velocity u^{*} := u^{*} + dt/rho grad p^{n-1/2}.
-        //
-        // XXXX: Switch back to original formulation to allow for correct BCs
-        // for phi...?
-        d_hier_sc_data_ops->axpy(d_U_scratch_idx, dt/d_rho, d_Grad_P_scratch_idx, d_U_scratch_idx);
-
-        // Project the intermediate velocity u^{*}.
-        d_hier_projector->projectHierarchy(
-            d_rho, dt, current_time+0.5*dt,
-            "pressure_update",
-            d_U_scratch_idx, d_U_var,
-            d_P_current_idx, d_P_var,
-            d_P_scratch_idx, d_P_var,
-            d_Grad_P_scratch_idx, d_Grad_P_var,
-            d_U_scratch_idx, d_U_var);
-        d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_scratch_idx); // XXXX
-
-        // Update the pressure.
-        d_hier_cc_data_ops->copyData(d_P_new_idx, d_P_scratch_idx);
-        if (d_second_order_pressure_update)
-        {
-            SAMRAI::solv::PoissonSpecifications pressure_helmholtz_spec(d_object_name+"::helmholtz_spec");
-            pressure_helmholtz_spec.setCConstant(+0.5*dt*d_lambda/d_rho);
-            pressure_helmholtz_spec.setDConstant(-0.5*dt*d_mu    /d_rho);
-            d_hier_cc_data_ops->subtract(d_P_scratch_idx, d_P_scratch_idx, d_P_current_idx);
-            d_hier_math_ops->laplace(
-                d_P_new_idx, d_P_var,
-                pressure_helmholtz_spec,
-                d_P_scratch_idx, d_P_var,
-                d_P_scratch_bdry_fill_op, current_time,
-                1.0,
-                d_P_new_idx, d_P_var);
-        }
-#else
         // Reset the solution, rhs, and nullspace vectors.
         SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
             d_object_name+"::sol_vec", d_hierarchy, 0, finest_ln);
@@ -1746,46 +1110,33 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         static const PetscTruth has_cnst = PETSC_FALSE;
         ierr = MatNullSpaceCreate(PETSC_COMM_SELF, has_cnst, 1, vecs, &petsc_nullsp); IBTK_CHKERRQ(ierr);
 
-        // Setup the patch boundary filling objects.
-        typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL); // XXXX
-        InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-
-        std::vector<InterpolationTransactionComponent> U_P_transaction_comps(2);
-        U_P_transaction_comps[0] = U_scratch_component;
-        U_P_transaction_comps[1] = P_scratch_component;
-
-        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> U_P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-        U_P_bdry_fill_op->initializeOperatorState(U_P_transaction_comps, d_hierarchy);
-
-        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> U_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-        U_bdry_fill_op->initializeOperatorState(U_scratch_component, d_hierarchy);
-
-        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-        P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
-
         // Setup the linear operator.
-        SAMRAI::tbox::Pointer<IBTK::LinearOperator> linear_op = new INSOperator(
+        SAMRAI::tbox::Pointer<IBTK::LinearOperator> linear_op = new INSStaggeredLinearOperator(
             d_rho, d_mu, d_lambda,
-            dt,
-            new_time,
-            d_hier_math_ops, U_P_bdry_fill_op);
+            current_time, new_time,
+            d_hier_math_ops, d_U_P_scratch_bdry_fill_op);
 
         // Setup the linear solver.
         SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> linear_solver = new IBTK::PETScKrylovLinearSolver(
             d_object_name+"::linear_solver", "ins_");
-        linear_solver->setInitialGuessNonzero(false); // XXXXtrue);
+        linear_solver->setInitialGuessNonzero(false);
         linear_solver->setOperator(linear_op);
         linear_solver->initializeSolverState(*sol_vec,*rhs_vec);
-        KSP petsc_ksp = linear_solver->getPETScKSP();
-        ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
+        if (d_normalize_pressure)
+        {
+            KSP petsc_ksp = linear_solver->getPETScKSP();
+            ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
+        }
 
-        SAMRAI::tbox::Pointer<IBTK::LinearSolver> pc_op = new INSProjectionPreconditioner(
+        static const std::string projection_type = "pressure_increment"; // "pressure_update";
+        SAMRAI::tbox::Pointer<IBTK::LinearSolver> pc_op = new INSStaggeredProjectionPreconditioner(
+            projection_type,
             d_rho, d_mu, d_lambda,
             current_time, new_time,
+            d_normalize_pressure,
             helmholtz_solver, d_hier_projector,
             d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops,
-            U_bdry_fill_op);
+            d_P_scratch_bdry_fill_op);
         linear_solver->setPreconditioner(pc_op);
 
         // Solve system.
@@ -1806,13 +1157,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         U_rhs_vec->deallocateVectorData();
         P_rhs_vec->deallocateVectorData();
         nul_vec->deallocateVectorData();
-#endif
-        // Normalize p^{n+1/2} to have mean (discrete integral) zero.
-        if (d_normalize_pressure)
-        {
-            const double P_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(d_P_new_idx, d_wgt_cc_idx);
-            d_hier_cc_data_ops->addScalar(d_P_new_idx, d_P_new_idx, -P_mean);
-        }
 
         // Reset the value the current estimate of the pressure when performing
         // multiple cycles.
@@ -1832,6 +1176,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Setup U_scratch to allow for ghost cell filling.
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
+    d_U_scratch_bdry_fill_op->resetTransactionComponent(U_scratch_component);
     d_U_scratch_bdry_fill_op->fillData(new_time);
 
     // Compute Omega = curl U.
@@ -2306,16 +1651,23 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
 
     // Setup the patch boundary filling objects.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-
     InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
+    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
+    InterpolationTransactionComponent rhs_component(d_Grad_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
+
+    std::vector<InterpolationTransactionComponent> U_P_scratch_components(2);
+    U_P_scratch_components[0] = U_scratch_component;
+    U_P_scratch_components[1] = P_scratch_component;
+
+    d_U_P_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    d_U_P_scratch_bdry_fill_op->initializeOperatorState(U_P_scratch_components, d_hierarchy);
+
     d_U_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_U_scratch_bdry_fill_op->initializeOperatorState(U_scratch_component, d_hierarchy);
 
-    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
     d_P_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_P_scratch_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
 
-    InterpolationTransactionComponent rhs_component(d_Grad_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
     d_rhs_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_rhs_bdry_fill_op->initializeOperatorState(rhs_component, d_hierarchy);
 
@@ -2862,7 +2214,6 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
         static const std::string ralg_name = "gadvect_F_scratch_bdry_fill";
         d_rscheds[ralg_name][ln]->fillData(current_time);
     }
-
 #if (NDIM == 2)
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -2964,22 +2315,37 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
 
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                ADVECT_DERIVATIVE_F77(
-                    dx,
-                    side_boxes[axis].lower(0), side_boxes[axis].upper(0),
-                    side_boxes[axis].lower(1), side_boxes[axis].upper(1),
-                    U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1),
-                    U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1),
-                    U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),
-                    U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),
-                    N_grown_data->getGhostCellWidth()(0), N_grown_data->getGhostCellWidth()(1),
-                    N_grown_data->getPointer(axis));
+                if (conservation_form)
+                {
+                    CONVECT_DERIVATIVE_F77(
+                        dx,
+                        side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                        side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                        U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1),
+                        U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1),
+                        U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),
+                        U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),
+                        N_grown_data->getGhostCellWidth()(0), N_grown_data->getGhostCellWidth()(1),
+                        N_grown_data->getPointer(axis));
+                }
+                else
+                {
+                    ADVECT_DERIVATIVE_F77(
+                        dx,
+                        side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                        side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                        U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1),
+                        U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1),
+                        U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),
+                        U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),
+                        N_grown_data->getGhostCellWidth()(0), N_grown_data->getGhostCellWidth()(1),
+                        N_grown_data->getPointer(axis));
+                }
             }
             N_data->copy(*N_grown_data);
         }
     }
 #endif
-
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {

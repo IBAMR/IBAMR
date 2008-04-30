@@ -26,13 +26,16 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine navier_stokes_interp_comps2d(
-     &     patch_ifirst0,patch_ilast0,patch_ifirst1,patch_ilast1,
+     &     patch_ifirst0,patch_ilast0,
+     &     patch_ifirst1,patch_ilast1,
      &     n_U_gc0,n_U_gc1,
      &     U0,U1,
-     &     side0_ifirst0,side0_ilast0,side0_ifirst1,side0_ilast1,
+     &     side0_ifirst0,side0_ilast0,
+     &     side0_ifirst1,side0_ilast1,
      &     n_V0_gc0,n_V0_gc1,
      &     V00,V01,
-     &     side1_ifirst0,side1_ilast0,side1_ifirst1,side1_ilast1,
+     &     side1_ifirst0,side1_ilast0,
+     &     side1_ifirst1,side1_ilast1,
      &     n_V1_gc0,n_V1_gc1,
      &     V10,V11)
 c
@@ -90,13 +93,7 @@ c
       do    i1 = side0_ifirst1-gc1,side0_ilast1+gc1
          do i0 = side0_ifirst0-gc0,side0_ilast0+gc0
             V00(i0,i1) = 0.5d0*(U0(i0-1,i1)+U0(i0,i1))
-!           V00(i0,i1) = 0.0625d0*
-!    &           ( 9.d0*(U0(i0-1,i1)+U0(i0  ,i1))
-!    &           - 1.d0*(U0(i0-2,i1)+U0(i0+1,i1)) )
             V01(i1,i0) = 0.5d0*(U1(i0-1,i1)+U1(i0,i1))
-!           V01(i1,i0) = 0.0625d0*
-!    &           ( 9.d0*(U1(i0-1,i1)+U1(i0  ,i1))
-!    &           - 1.d0*(U1(i0-2,i1)+U1(i0+1,i1)) )
          enddo
       enddo
 
@@ -106,13 +103,7 @@ c
       do    i0 = side1_ifirst0-gc0,side1_ilast0+gc0
          do i1 = side1_ifirst1-gc1,side1_ilast1+gc1
             V10(i0,i1) = 0.5d0*(U0(i0,i1-1)+U0(i0,i1))
-!           V10(i0,i1) = 0.0625d0*
-!    &           ( 9.d0*(U0(i0,i1-1)+U0(i0,i1  ))
-!    &           - 1.d0*(U0(i0,i1-2)+U0(i0,i1+1)) )
             V11(i1,i0) = 0.5d0*(U1(i0,i1-1)+U1(i0,i1))
-!           V11(i1,i0) = 0.0625d0*
-!    &           ( 9.d0*(U1(i0,i1-1)+U1(i0,i1  ))
-!    &           - 1.d0*(u1(i0,i1-2)+U1(i0,i1+1)) )
          enddo
       enddo
 c
@@ -127,12 +118,14 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine navier_stokes_reset_adv_velocity2d(
-     &     side0_ifirst0,side0_ilast0,side0_ifirst1,side0_ilast1,
+     &     side0_ifirst0,side0_ilast0,
+     &     side0_ifirst1,side0_ilast1,
      &     n_U_adv0_gc0,n_U_adv0_gc1,
      &     U_adv00,U_adv01,
      &     n_U_half0_gc0,n_U_half0_gc1,
      &     U_half00,U_half01,
-     &     side1_ifirst0,side1_ilast0,side1_ifirst1,side1_ilast1,
+     &     side1_ifirst0,side1_ilast0,
+     &     side1_ifirst1,side1_ilast1,
      &     n_U_adv1_gc0,n_U_adv1_gc1,
      &     U_adv10,U_adv11,
      &     n_U_half1_gc0,n_U_half1_gc1,

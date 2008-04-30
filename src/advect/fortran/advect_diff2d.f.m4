@@ -254,3 +254,68 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes the convective derivative N = div[q*u_ADV].
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine convect_derivative2d(
+     &     dx,
+     &     ifirst0,ilast0,ifirst1,ilast1,
+     &     nuadvgc0,nuadvgc1,
+     &     nqgc0,nqgc1,
+     &     uadv0,uadv1,
+     &     q0,q1,
+     &     nNgc0,nNgc1,
+     &     N)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0,ifirst1,ilast1
+
+      INTEGER nuadvgc0,nuadvgc1
+      INTEGER nqgc0,nqgc1
+      INTEGER nNgc0,nNgc1
+
+      REAL dx(0:NDIM-1)
+
+      REAL uadv0(FACE2d0VECG(ifirst,ilast,nuadvgc))
+      REAL uadv1(FACE2d1VECG(ifirst,ilast,nuadvgc))
+
+      REAL q0(FACE2d0VECG(ifirst,ilast,nqgc))
+      REAL q1(FACE2d1VECG(ifirst,ilast,nqgc))
+c
+c     Input/Output.
+c
+      REAL N(CELL2dVECG(ifirst,ilast,nNgc))
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1
+      REAL QUx0,QVx1
+c
+c     Compute div[q*(U,V)].
+c
+      do ic1 = ifirst1,ilast1
+         do ic0 = ifirst0,ilast0
+            QUx0 = (uadv0(ic0+1,ic1)*q0(ic0+1,ic1)-
+     &           uadv0(ic0,ic1)*q0(ic0,ic1))/dx(0)
+            N(ic0,ic1) = QUx0
+         enddo
+      enddo
+
+      do ic0 = ifirst0,ilast0
+         do ic1 = ifirst1,ilast1
+            QVx1 = (uadv1(ic1+1,ic0)*q1(ic1+1,ic0)-
+     &           uadv1(ic1,ic0)*q1(ic1,ic0))/dx(1)
+            N(ic0,ic1) = N(ic0,ic1) + QVx1
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

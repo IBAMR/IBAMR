@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <24.Apr.2008 12:31:01 boyce@trasnaform2.local>
+// Last modified: <29.Apr.2008 17:10:43 griffith@box230.cims.nyu.edu>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -153,7 +153,7 @@ extern "C"
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
         const int& , const int& , const int& ,
-        const double* , double* , double* ,
+        const double* , double* , double* , double* , double* , double* ,
         const int& , const int& , const int& ,
         const int& , const int& , const int& ,
         const double* , const double* , const double* ,
@@ -184,7 +184,7 @@ extern "C"
         const int& , const int& , const int& , const int& , const int& , const int& ,
         const int& , const int& , const int& ,
         const int& , const int& , const int& ,
-        const double* , double* , double* ,
+        const double* , double* , double* , double* , double* , double* ,
         const double* , double* , double* ,
         const int& , const int& , const int& ,
         const int& , const int& , const int& ,
@@ -692,7 +692,7 @@ GodunovAdvector::predict(
             static_cast<unsigned int>(d_using_full_ctu),
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
-            Q.getPointer(depth),Q_temp1.getPointer(0),Q_temp2.getPointer(0),
+            Q.getPointer(depth),dQ.getPointer(0),Q_L.getPointer(0),Q_R.getPointer(0),Q_temp1.getPointer(0),Q_temp2.getPointer(0),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
             q_half_ghost_cells(0),q_half_ghost_cells(1),q_half_ghost_cells(2),
             u_ADV.getPointer(0),u_ADV.getPointer(1),u_ADV.getPointer(2),
@@ -773,7 +773,7 @@ GodunovAdvector::predictWithSourceTerm(
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
             F_ghost_cells(0),F_ghost_cells(1),F_ghost_cells(2),
-            Q.getPointer(depth),Q_temp1.getPointer(0),Q_temp2.getPointer(0),
+            Q.getPointer(depth),dQ.getPointer(0),Q_L.getPointer(0),Q_R.getPointer(0),Q_temp1.getPointer(0),Q_temp2.getPointer(0),
             F.getPointer(depth),F_temp1.getPointer(0),F_temp2.getPointer(0),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
             q_half_ghost_cells(0),q_half_ghost_cells(1),q_half_ghost_cells(2),

@@ -6,6 +6,146 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Compute the minmod function of two values.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      REAL function minmod(a,b)
+      implicit none
+      REAL a,b
+      minmod = (sign(0.5d0,a)+sign(0.5d0,b))*(abs(a+b)-abs(a-b))
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the median function of three values.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      REAL function median(a,b,c)
+      implicit none
+      REAL a,b,c
+      REAL minmod2
+      median = a + minmod2(b-a,c-a)
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Make the left and right values monotone.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine monotonize(Q,Q_L,Q_R,Q_star_L,Q_star_R)
+      implicit none
+      REAL Q(-1:1),Q_L,Q_R,Q_L_tmp,Q_R_tmp,Q_star_L,Q_star_R
+      REAL median
+      Q_L_tmp = median(Q(0),Q_L,Q(-1))
+      Q_R_tmp = median(Q(0),Q_R,Q(+1))
+      Q_star_L = median(Q(0),Q_L_tmp,3.d0*Q(0)-2.d0*Q_R_tmp)
+      Q_star_R = median(Q(0),Q_R_tmp,3.d0*Q(0)-2.d0*Q_L_tmp)
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the WENO5 interpolation of several values.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      REAL function WENO5_interp(Q)
+      implicit none
+      REAL Q(-2:2)
+      REAL f(0:2)
+      REAL IS(0:2)
+      REAL omega_bar(0:2)
+      REAL omega(0:2),omega_sum
+      REAL alpha(0:2),alpha_sum
+      INTEGER i
+c     Compute the candidate interpolations.
+      f(0) = (11.d0*Q( 0)-7.d0*Q(-1)+2.d0*Q(-2))/6.d0
+      f(1) = ( 2.d0*Q(+1)+5.d0*Q( 0)-     Q(-1))/6.d0
+      f(2) = (-1.d0*Q(+2)+5.d0*Q(+1)+2.d0*Q( 0))/6.d0
+c     Compute the smoothness indicators.
+      IS(0) = (13.d0/12.d0)*((Q( 0)-2.d0*Q(-1)+Q(-2))**2.d0) +
+     &     0.25d0*((3.d0*Q( 0)-4.d0*Q(-1)+     Q(-2))**2.d0)
+      IS(1) = (13.d0/12.d0)*((Q(+1)-2.d0*Q( 0)+Q(-1))**2.d0) +
+     &     0.25d0*((     Q(+1)-                Q(-1))**2.d0)
+      IS(2) = (13.d0/12.d0)*((Q(+2)-2.d0*Q(+1)+Q( 0))**2.d0) +
+     &     0.25d0*((     Q(+2)-4.d0*Q(+1)+3.d0*Q( 0))**2.d0)
+c     Compute the weights.
+      omega_bar(0) = 0.1d0
+      omega_bar(1) = 0.6d0
+      omega_bar(2) = 0.3d0
+      do i = 0,2
+         alpha(i) = omega_bar(i)/(IS(i)+1.d-40)
+      enddo
+      alpha_sum = 0.d0
+      do i = 0,2
+         alpha_sum = alpha_sum + alpha(i)
+      enddo
+      do i = 0,2
+         omega(i) = alpha(i)/alpha_sum
+      enddo
+c     Improve the accuracy of the weights (following the approach of
+c     Henrick, Aslam, and Powers).
+      do i = 0,2
+         omega(i) = omega(i)*(omega_bar(i)+omega_bar(i)**2.d0
+     &        -3.d0*omega_bar(i)*omega(i)+omega(i)**2.d0)/
+     &        (omega_bar(i)**2.d0+omega(i)*(1.d0-2.d0*omega_bar(i)))
+      enddo
+      omega_sum = 0.d0
+      do i = 0,2
+         omega_sum = omega_sum + omega(i)
+      enddo
+      do i = 0,2
+         omega(i) = omega(i)/omega_sum
+      enddo
+c     Compute the interpolant.
+      WENO5_interp = 0.d0
+      do i = 0,2
+         WENO5_interp = WENO5_interp + omega(i)*f(i)
+      enddo
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the sign of the input, returning zero if the absolute
+c     value of x is less than a specified tolerance epsilon.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      REAL function sign_eps(x)
+c
+      implicit none
+c
+c     Constants.
+c
+      REAL EPSILON
+      PARAMETER(EPSILON=1.0d-8)
+c
+c     Input.
+c
+      REAL x
+c
+c     Compute the sign of the input, returning zero if the absolute
+c     value of x is less than a tolerance epsilon.
+c
+      if (dabs(x) .le. EPSILON) then
+         sign_eps =  0.d0
+      elseif (x  .ge. EPSILON) then
+         sign_eps = +1.d0
+      else
+         sign_eps = -1.d0
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     A Godunov predictor used to predict face and time centered values
 c     from cell centered values using a Taylor expansion about each cell
 c     center.
@@ -21,10 +161,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine godunov_predict3d(
      &     dx,dt,
-     &     usefullctu,limiter,
+     &     usefullctu,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
-     &     Q,Qscratch1,Qscratch2,
+     &     Q,dQ,Q_L,Q_R,Qscratch1,Qscratch2,
      &     nugc0,nugc1,nugc2,
      &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
      &     u0,u1,u2,
@@ -33,7 +173,6 @@ c
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
-include(TOP_SRCDIR/src/advect/fortran/limitertypes.i)dnl
 c
 c     Input.
 c
@@ -46,11 +185,12 @@ c
 
       LOGICAL usefullctu
 
-      INTEGER limiter
-
       REAL dx(0:NDIM-1), dt
 
       REAL Q(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL dQ(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_L(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_R(CELL3dVECG(ifirst,ilast,nQgc))
       REAL Qscratch1(ifirst1-nQgc1:ilast1+nQgc1,
      &               ifirst2-nQgc2:ilast2+nQgc2,
      &               ifirst0-nQgc0:ilast0+nQgc0)
@@ -94,34 +234,31 @@ c     In this computation, normal derivatives are approximated by
 c     (limited) centered differences.  Transverse derivatives are not
 c     included.
 c
-      call godunov_predict_normal3d( ! predict values on the x-faces
+      call godunov_xsPPM7_predict_normal3d( ! predict values on the x-faces
      &     dx(0),dt,
-     &     limiter,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
-     &     Q,
+     &     Q,dQ,Q_L,Q_R,
      &     nugc0,nugc1,nugc2,
      &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
      &     u0,
      &     qtemp0)
 
-      call godunov_predict_normal3d( ! predict values on the y-faces
+      call godunov_xsPPM7_predict_normal3d( ! predict values on the y-faces
      &     dx(1),dt,
-     &     limiter,
      &     ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
      &     nQgc1,nQgc2,nQgc0,
-     &     Qscratch1,
+     &     Qscratch1,dQ,Q_L,Q_R,
      &     nugc1,nugc2,nugc0,
      &     nqhalfgc1,nqhalfgc2,nqhalfgc0,
      &     u1,
      &     qtemp1)
 
-      call godunov_predict_normal3d( ! predict values on the z-faces
+      call godunov_xsPPM7_predict_normal3d( ! predict values on the z-faces
      &     dx(2),dt,
-     &     limiter,
      &     ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
      &     nQgc2,nQgc0,nQgc1,
-     &     Qscratch2,
+     &     Qscratch2,dQ,Q_L,Q_R,
      &     nugc2,nugc0,nugc1,
      &     nqhalfgc2,nqhalfgc0,nqhalfgc1,
      &     u2,
@@ -164,6 +301,7 @@ c
      &        u2,u0,u1,
      &        qtemp2,qtemp0,qtemp1,
      &        qhalf2)
+
       else
 c
 c     Do not include full corner transport upwinding.
@@ -216,11 +354,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine godunov_predict_with_source3d(
      &     dx,dt,
-     &     usefullctu,limiter,
+     &     usefullctu,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
      &     nFgc0,nFgc1,nFgc2,
-     &     Q,Qscratch1,Qscratch2,
+     &     Q,dQ,Q_L,Q_R,Qscratch1,Qscratch2,
      &     F,Fscratch1,Fscratch2,
      &     nugc0,nugc1,nugc2,
      &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
@@ -230,7 +368,6 @@ c
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
-include(TOP_SRCDIR/src/advect/fortran/limitertypes.i)dnl
 c
 c     Input.
 c
@@ -244,11 +381,12 @@ c
 
       LOGICAL usefullctu
 
-      INTEGER limiter
-
       REAL dx(0:NDIM-1), dt
 
       REAL Q(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL dQ(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_L(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_R(CELL3dVECG(ifirst,ilast,nQgc))
       REAL Qscratch1(ifirst1-nQgc1:ilast1+nQgc1,
      &               ifirst2-nQgc2:ilast2+nQgc2,
      &               ifirst0-nQgc0:ilast0+nQgc0)
@@ -309,39 +447,36 @@ c     In this computation, normal derivatives are approximated by
 c     (limited) centered differences.  Transverse derivatives are not
 c     included.
 c
-      call godunov_predict_normal_with_source3d( ! predict values on the x-faces
+      call godunov_xsPPM7_predict_normal_with_source3d( ! predict values on the x-faces
      &     dx(0),dt,
-     &     limiter,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
      &     nFgc0,nFgc1,nFgc2,
-     &     Q,
+     &     Q,dQ,Q_L,Q_R,
      &     F,
      &     nugc0,nugc1,nugc2,
      &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
      &     u0,
      &     qtemp0)
 
-      call godunov_predict_normal_with_source3d( ! predict values on the y-faces
+      call godunov_xsPPM7_predict_normal_with_source3d( ! predict values on the y-faces
      &     dx(1),dt,
-     &     limiter,
      &     ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
      &     nQgc1,nQgc2,nQgc0,
      &     nFgc1,nFgc2,nFgc0,
-     &     Qscratch1,
+     &     Qscratch1,dQ,Q_L,Q_R,
      &     Fscratch1,
      &     nugc1,nugc2,nugc0,
      &     nqhalfgc1,nqhalfgc2,nqhalfgc0,
      &     u1,
      &     qtemp1)
 
-      call godunov_predict_normal_with_source3d( ! predict values on the z-faces
+      call godunov_xsPPM7_predict_normal_with_source3d( ! predict values on the z-faces
      &     dx(2),dt,
-     &     limiter,
      &     ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
      &     nQgc2,nQgc0,nQgc1,
      &     nFgc2,nFgc0,nFgc1,
-     &     Qscratch2,
+     &     Qscratch2,dQ,Q_L,Q_R,
      &     Fscratch2,
      &     nugc2,nugc0,nugc1,
      &     nqhalfgc2,nqhalfgc0,nqhalfgc1,
@@ -464,7 +599,7 @@ c     Local variables.
 c
       INTEGER gradtype0,gradtype1,gradtype2
 c
-      if ( gradtype.eq.0 ) then
+      if     ( gradtype.eq.0 ) then
          gradtype0 = 0
          gradtype1 = 1
          gradtype2 = 2
@@ -505,12 +640,11 @@ c
       return
       end
 c
-      subroutine godunov_predict_normal3d(
+      subroutine godunov_xsPPM7_predict_normal3d(
      &     dx0,dt,
-     &     limiter,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
-     &     Q,
+     &     Q,dQ,Q_L,Q_R,
      &     nugc0,nugc1,nugc2,
      &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
      &     u0,
@@ -518,11 +652,10 @@ c
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
-include(TOP_SRCDIR/src/advect/fortran/limitertypes.i)dnl
 c
 c     Functions.
 c
-      REAL muscldiff,minmod3
+      REAL median,sign_eps,WENO5_interp
 c
 c     Input.
 c
@@ -533,11 +666,12 @@ c
       INTEGER nugc0,nugc1,nugc2
       INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
 
-      INTEGER limiter
-
       REAL dx0,dt
 
       REAL Q(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL dQ(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_L(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_R(CELL3dVECG(ifirst,ilast,nQgc))
 
       REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
 c
@@ -548,86 +682,140 @@ c
 c     Local variables.
 c
       INTEGER ic0,ic1,ic2
-      REAL Qx,qL,qR
-      REAL unorm
+      REAL QQ,QQ_L,QQ_R
+      REAL QQ_star_L,QQ_star_R
+      REAL QQ_WENO(-2:2)
+      REAL QQ_WENO_L,QQ_WENO_R
+      REAL QQ_4th_L,QQ_4th_R
+      REAL dQQ_C,dQQ_L,dQQ_R,dQQ
+      REAL unorm,nu,P0,P1,P2
+      INTEGER i
 c
-c     Predict face centered values using a Taylor expansion about each
-c     cell center.
-c
-c     (Limited) centered differences are used to approximate normal
-c     derivatives.  Transverse derivatives are NOT included.
+c     Predict face centered values using the xsPPM7 scheme of Rider,
+c     Greenough, and Kamm.
 c
       do ic2 = ifirst2-1,ilast2+1
          do ic1 = ifirst1-1,ilast1+1
-
-      if     ( limiter.eq.second_order ) then
-c     Employ second order slopes (no limiting).
-         Qx = half*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2))
-      elseif ( limiter.eq.fourth_order ) then
-         Qx = twothird*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2))
-     &      - sixth*half*(Q(ifirst0-1+2,ic1,ic2)-Q(ifirst0-1-2,ic1,ic2))
-      elseif ( limiter.eq.mc_limited ) then
-c     Employ van Leer's MC limiter.
-         Qx = minmod3(
-     &        0.5d0*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2)),
-     &        2.0d0*(Q(ifirst0-1  ,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2)),
-     &        2.0d0*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1  ,ic1,ic2)))
-      elseif ( limiter.eq.muscl_limited ) then
-c     Employ Colella's MUSCL limiter.
-         Qx = muscldiff(Q(ifirst0-1-2,ic1,ic2))
-      else
-         Qx = 0.d0
-      endif
-
-      unorm = 0.5d0*(u0(ifirst0-1,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
-!     unorm = fourth*fourth*
-!    &     ( 9.d0*(u0(ifirst0-1  ,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
-!    &     - 1.d0*(u0(ifirst0-1-1,ic1,ic2)+u0(ifirst0-1+2,ic1,ic2)) )
-
-            do ic0 = ifirst0-1,ilast0
-               qL = Q(ic0  ,ic1,ic2)
-     &              + 0.5d0*(1.d0-unorm*dt/dx0)*Qx
-
-               if     ( limiter.eq.second_order ) then
-                  Qx = 0.5d0*(Q(ic0+1+1,ic1,ic2)-Q(ic0+1-1,ic1,ic2))
-               elseif ( limiter.eq.fourth_order ) then
-                  Qx = twothird*(Q(ic0+1+1,ic1,ic2)-Q(ic0+1-1,ic1,ic2))
-     &              - sixth*half*(Q(ic0+1+2,ic1,ic2)-Q(ic0+1-2,ic1,ic2))
-               elseif ( limiter.eq.mc_limited ) then
-             Qx = minmod3(
-     &                 0.5d0*(Q(ic0+1+1,ic1,ic2)-Q(ic0+1-1,ic1,ic2)),
-     &                 2.0d0*(Q(ic0+1  ,ic1,ic2)-Q(ic0+1-1,ic1,ic2)),
-     &                 2.0d0*(Q(ic0+1+1,ic1,ic2)-Q(ic0+1  ,ic1,ic2)))
-               elseif ( limiter.eq.muscl_limited ) then
-                  Qx = muscldiff(Q(ic0+1-2,ic1,ic2))
+            do ic0 = ifirst0-2,ilast0+2
+               dQQ_C = 0.5d0*(Q(ic0+1,ic1,ic2)-Q(ic0-1,ic1,ic2))
+               dQQ_L =       (Q(ic0  ,ic1,ic2)-Q(ic0-1,ic1,ic2))
+               dQQ_R =       (Q(ic0+1,ic1,ic2)-Q(ic0  ,ic1,ic2))
+               if (dQQ_R*dQQ_L .gt. 1.d-12) then
+                  dQQ = min(abs(dQQ_C),2.d0*abs(dQQ_L),2.d0*abs(dQQ_R))*
+     c                 sign(1.d0,dQQ_C)
+               else
+                  dQQ = 0.d0
                endif
-
-               unorm = 0.5d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
-!              unorm = fourth*fourth*
-!    &              ( 9.d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
-!    &              - 1.d0*(u0(ic0  ,ic1,ic2)+u0(ic0+3,ic1,ic2)) )
-
-               qR = Q(ic0+1,ic1,ic2)
-     &              - 0.5d0*(1.d0+unorm*dt/dx0)*Qx
-
-               qhalf0(ic0+1,ic1,ic2) =
-     &              0.5d0*(qL+qR) +
-     &              sign(1.d0,u0(ic0+1,ic1,ic2))*0.5d0*(qL-qR)
+               dQ(ic0,ic1,ic2) = dQQ
             enddo
 
+            do ic0 = ifirst0-1,ilast0+1
+c
+c     Compute a 7th order interpolation.
+c
+               QQ   = Q(ic0,ic1,ic2)
+               QQ_L = (1.0/420.d0)*(
+     &              -   3.d0*Q(ic0+3,ic1,ic2)
+     &              +  25.d0*Q(ic0+2,ic1,ic2)
+     &              - 101.d0*Q(ic0+1,ic1,ic2)
+     &              + 319.d0*Q(ic0  ,ic1,ic2)
+     &              + 214.d0*Q(ic0-1,ic1,ic2)
+     &              -  38.d0*Q(ic0-2,ic1,ic2)
+     &              +   4.d0*Q(ic0-3,ic1,ic2))
+               QQ_R = (1.0/420.d0)*(
+     &              -   3.d0*Q(ic0-3,ic1,ic2)
+     &              +  25.d0*Q(ic0-2,ic1,ic2)
+     &              - 101.d0*Q(ic0-1,ic1,ic2)
+     &              + 319.d0*Q(ic0  ,ic1,ic2)
+     &              + 214.d0*Q(ic0+1,ic1,ic2)
+     &              -  38.d0*Q(ic0+2,ic1,ic2)
+     &              +   4.d0*Q(ic0+3,ic1,ic2))
+               Q_L(ic0,ic1,ic2) = QQ_L
+               Q_R(ic0,ic1,ic2) = QQ_R
+c
+c     Check for extrema or violations of monotonicity.
+c
+               call monotonize(
+     &              Q(ic0-1,ic1,ic2),
+     &              QQ_L,QQ_R,QQ_star_L,QQ_star_R)
+               if ( ((QQ_star_L-QQ_L)**2.d0 .ge. 1.d-12) .or.
+     &              ((QQ_star_R-QQ_R)**2.d0 .ge. 1.d-12) ) then
+                  do i = -2,2
+                     QQ_WENO(i) = Q(ic0-i,ic1,ic2)
+                  enddo
+                  QQ_WENO_L = WENO5_interp(QQ_WENO)
+                  do i = -2,2
+                     QQ_WENO(i) = Q(ic0+i,ic1,ic2)
+                  enddo
+                  QQ_WENO_R = WENO5_interp(QQ_WENO)
+                  if ( ((QQ_star_L-QQ)**2.d0 .le. 1.d-12) .or.
+     &                 ((QQ_star_R-QQ)**2.d0 .le. 1.d-12) ) then
+                     QQ_WENO_L = median(QQ,QQ_WENO_L,QQ_L)
+                     QQ_WENO_R = median(QQ,QQ_WENO_R,QQ_R)
+                     call monotonize(
+     &                    Q(ic0-1,ic1,ic2),
+     &                    QQ_WENO_L,QQ_WENO_R,QQ_star_L,QQ_star_R)
+                  else
+                     QQ_4th_L = 0.5d0*(
+     &                    Q(ic0-1,ic1,ic2)+Q(ic0,ic1,ic2)) -
+     &                    (1.d0/6.d0)*(
+     &                    dQ(ic0,ic1,ic2)-dQ(ic0-1,ic1,ic2))
+                     QQ_4th_R = 0.5d0*(
+     &                    Q(ic0,ic1,ic2)+Q(ic0+1,ic1,ic2)) -
+     &                    (1.d0/6.d0)*(
+     &                    dQ(ic0+1,ic1,ic2)-dQ(ic0,ic1,ic2))
+                     QQ_4th_L = median(QQ_4th_L,QQ_WENO_L,QQ_L)
+                     QQ_4th_R = median(QQ_4th_R,QQ_WENO_R,QQ_R)
+                     call monotonize(
+     &                    Q(ic0-1,ic1,ic2),
+     &                    QQ_4th_L,QQ_4th_R,QQ_star_L,QQ_star_R)
+                  endif
+                  Q_L(ic0,ic1,ic2) = median(QQ_WENO_L,QQ_star_L,QQ_L)
+                  Q_R(ic0,ic1,ic2) = median(QQ_WENO_R,QQ_star_R,QQ_R)
+               endif
+            enddo
+
+            do ic0 = ifirst0-1,ilast0
+               unorm = 0.5d0*(u0(ic0  ,ic1,ic2)+u0(ic0+1,ic1,ic2))
+               nu    = unorm*dt/dx0
+               QQ        = Q  (ic0  ,ic1,ic2)
+               QQ_star_L = Q_L(ic0  ,ic1,ic2)
+               QQ_star_R = Q_R(ic0  ,ic1,ic2)
+               P0 = 1.5d0*QQ-0.25d0*(QQ_star_L+QQ_star_R)
+               P1 = QQ_star_R-QQ_star_L
+               P2 = 3.d0*(QQ_star_L+QQ_star_R)-6.d0*QQ
+               QQ_L = P0 + 0.5d0*P1 + 0.25d0*P2
+     &              - 0.5d0*nu*P1
+     &              + (-(nu/2.d0)+(nu*nu/3.d0))*P2
+
+               unorm = 0.5d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
+               nu    = unorm*dt/dx0
+               QQ        = Q  (ic0+1,ic1,ic2)
+               QQ_star_L = Q_L(ic0+1,ic1,ic2)
+               QQ_star_R = Q_R(ic0+1,ic1,ic2)
+               P0 = 1.5d0*QQ-0.25d0*(QQ_star_L+QQ_star_R)
+               P1 = QQ_star_R-QQ_star_L
+               P2 = 3.d0*(QQ_star_L+QQ_star_R)-6.d0*QQ
+               QQ_R = P0 - 0.5d0*P1 + 0.25d0*P2
+     &              - 0.5d0*nu*P1
+     &              + (+(nu/2.d0)+(nu*nu/3.d0))*P2
+
+               qhalf0(ic0+1,ic1,ic2) =
+     &              0.5d0*(QQ_L+QQ_R)+
+     &              sign_eps(u0(ic0+1,ic1,ic2))*0.5d0*(QQ_L-QQ_R)
+            enddo
          enddo
       enddo
 c
       return
       end
 c
-      subroutine godunov_predict_normal_with_source3d(
+      subroutine godunov_xsPPM7_predict_normal_with_source3d(
      &     dx0,dt,
-     &     limiter,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
      &     nFgc0,nFgc1,nFgc2,
-     &     Q,
+     &     Q,dQ,Q_L,Q_R,
      &     F,
      &     nugc0,nugc1,nugc2,
      &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
@@ -636,11 +824,10 @@ c
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
-include(TOP_SRCDIR/src/advect/fortran/limitertypes.i)dnl
 c
 c     Functions.
 c
-      REAL muscldiff,minmod3
+      REAL median,sign_eps,WENO5_interp
 c
 c     Input.
 c
@@ -652,11 +839,12 @@ c
       INTEGER nugc0,nugc1,nugc2
       INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
 
-      INTEGER limiter
-
       REAL dx0,dt
 
       REAL Q(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL dQ(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_L(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_R(CELL3dVECG(ifirst,ilast,nQgc))
       REAL F(CELL3dVECG(ifirst,ilast,nFgc))
 
       REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
@@ -668,75 +856,130 @@ c
 c     Local variables.
 c
       INTEGER ic0,ic1,ic2
-      REAL Qx,qL,qR
-      REAL unorm
+      REAL QQ,QQ_L,QQ_R
+      REAL QQ_star_L,QQ_star_R
+      REAL QQ_WENO(-2:2)
+      REAL QQ_WENO_L,QQ_WENO_R
+      REAL QQ_4th_L,QQ_4th_R
+      REAL dQQ_C,dQQ_L,dQQ_R,dQQ
+      REAL unorm,nu,P0,P1,P2
+      INTEGER i
 c
-c     Predict face centered values using a Taylor expansion about each
-c     cell center.
-c
-c     (Limited) centered differences are used to approximate normal
-c     derivatives.  Transverse derivatives are NOT included.
+c     Predict face centered values using the xsPPM7 scheme of Rider,
+c     Greenough, and Kamm.
 c
       do ic2 = ifirst2-1,ilast2+1
          do ic1 = ifirst1-1,ilast1+1
+            do ic0 = ifirst0-2,ilast0+2
+               dQQ_C = 0.5d0*(Q(ic0+1,ic1,ic2)-Q(ic0-1,ic1,ic2))
+               dQQ_L =       (Q(ic0  ,ic1,ic2)-Q(ic0-1,ic1,ic2))
+               dQQ_R =       (Q(ic0+1,ic1,ic2)-Q(ic0  ,ic1,ic2))
+               if (dQQ_R*dQQ_L .gt. 1.d-12) then
+                  dQQ = min(abs(dQQ_C),2.d0*abs(dQQ_L),2.d0*abs(dQQ_R))*
+     c                 sign(1.d0,dQQ_C)
+               else
+                  dQQ = 0.d0
+               endif
+               dQ(ic0,ic1,ic2) = dQQ
+            enddo
 
-      if     ( limiter.eq.second_order ) then
-c     Employ second order slopes (no limiting).
-         Qx = half*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2))
-      elseif ( limiter.eq.fourth_order ) then
-         Qx = twothird*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2))
-     &      - sixth*half*(Q(ifirst0-1+2,ic1,ic2)-Q(ifirst0-1-2,ic1,ic2))
-      elseif ( limiter.eq.mc_limited ) then
-c     Employ van Leer's MC limiter.
-         Qx = minmod3(
-     &        0.5d0*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2)),
-     &        2.0d0*(Q(ifirst0-1  ,ic1,ic2)-Q(ifirst0-1-1,ic1,ic2)),
-     &        2.0d0*(Q(ifirst0-1+1,ic1,ic2)-Q(ifirst0-1  ,ic1,ic2)))
-      elseif ( limiter.eq.muscl_limited ) then
-c     Employ Colella's MUSCL limiter.
-         Qx = muscldiff(Q(ifirst0-1-2,ic1,ic2))
-      else
-         Qx = 0.d0
-      endif
-
-      unorm = 0.5d0*(u0(ifirst0-1,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
-!     unorm = fourth*fourth*
-!    &        ( 9.d0*(u0(ifirst0-1  ,ic1,ic2)+u0(ifirst0-1+1,ic1,ic2))
-!    &        - 1.d0*(u0(ifirst0-1-1,ic1,ic2)+u0(ifirst0-1+2,ic1,ic2)) )
+            do ic0 = ifirst0-1,ilast0+1
+c
+c     Compute a 7th order interpolation.
+c
+               QQ   = Q(ic0,ic1,ic2)
+               QQ_L = (1.0/420.d0)*(
+     &              -   3.d0*Q(ic0+3,ic1,ic2)
+     &              +  25.d0*Q(ic0+2,ic1,ic2)
+     &              - 101.d0*Q(ic0+1,ic1,ic2)
+     &              + 319.d0*Q(ic0  ,ic1,ic2)
+     &              + 214.d0*Q(ic0-1,ic1,ic2)
+     &              -  38.d0*Q(ic0-2,ic1,ic2)
+     &              +   4.d0*Q(ic0-3,ic1,ic2))
+               QQ_R = (1.0/420.d0)*(
+     &              -   3.d0*Q(ic0-3,ic1,ic2)
+     &              +  25.d0*Q(ic0-2,ic1,ic2)
+     &              - 101.d0*Q(ic0-1,ic1,ic2)
+     &              + 319.d0*Q(ic0  ,ic1,ic2)
+     &              + 214.d0*Q(ic0+1,ic1,ic2)
+     &              -  38.d0*Q(ic0+2,ic1,ic2)
+     &              +   4.d0*Q(ic0+3,ic1,ic2))
+               Q_L(ic0,ic1,ic2) = QQ_L
+               Q_R(ic0,ic1,ic2) = QQ_R
+c
+c     Check for extrema or violations of monotonicity.
+c
+               call monotonize(
+     &              Q(ic0-1,ic1,ic2),
+     &              QQ_L,QQ_R,QQ_star_L,QQ_star_R)
+               if ( ((QQ_star_L-QQ_L)**2.d0 .ge. 1.d-12) .or.
+     &              ((QQ_star_R-QQ_R)**2.d0 .ge. 1.d-12) ) then
+                  do i = -2,2
+                     QQ_WENO(i) = Q(ic0-i,ic1,ic2)
+                  enddo
+                  QQ_WENO_L = WENO5_interp(QQ_WENO)
+                  do i = -2,2
+                     QQ_WENO(i) = Q(ic0+i,ic1,ic2)
+                  enddo
+                  QQ_WENO_R = WENO5_interp(QQ_WENO)
+                  if ( ((QQ_star_L-QQ)**2.d0 .le. 1.d-12) .or.
+     &                 ((QQ_star_R-QQ)**2.d0 .le. 1.d-12) ) then
+                     QQ_WENO_L = median(QQ,QQ_WENO_L,QQ_L)
+                     QQ_WENO_R = median(QQ,QQ_WENO_R,QQ_R)
+                     call monotonize(
+     &                    Q(ic0-1,ic1,ic2),
+     &                    QQ_WENO_L,QQ_WENO_R,QQ_star_L,QQ_star_R)
+                  else
+                     QQ_4th_L = 0.5d0*(
+     &                    Q(ic0-1,ic1,ic2)+Q(ic0,ic1,ic2)) -
+     &                    (1.d0/6.d0)*(
+     &                    dQ(ic0,ic1,ic2)-dQ(ic0-1,ic1,ic2))
+                     QQ_4th_R = 0.5d0*(
+     &                    Q(ic0,ic1,ic2)+Q(ic0+1,ic1,ic2)) -
+     &                    (1.d0/6.d0)*(
+     &                    dQ(ic0+1,ic1,ic2)-dQ(ic0,ic1,ic2))
+                     QQ_4th_L = median(QQ_4th_L,QQ_WENO_L,QQ_L)
+                     QQ_4th_R = median(QQ_4th_R,QQ_WENO_R,QQ_R)
+                     call monotonize(
+     &                    Q(ic0-1,ic1,ic2),
+     &                    QQ_4th_L,QQ_4th_R,QQ_star_L,QQ_star_R)
+                  endif
+                  Q_L(ic0,ic1,ic2) = median(QQ_WENO_L,QQ_star_L,QQ_L)
+                  Q_R(ic0,ic1,ic2) = median(QQ_WENO_R,QQ_star_R,QQ_R)
+               endif
+            enddo
 
             do ic0 = ifirst0-1,ilast0
-               qL = Q(ic0  ,ic1,ic2)
-     &              + 0.5d0*(1.d0-unorm*dt/dx0)*Qx
+               unorm = 0.5d0*(u0(ic0  ,ic1,ic2)+u0(ic0+1,ic1,ic2))
+               nu    = unorm*dt/dx0
+               QQ        = Q  (ic0  ,ic1,ic2)
+               QQ_star_L = Q_L(ic0  ,ic1,ic2)
+               QQ_star_R = Q_R(ic0  ,ic1,ic2)
+               P0 = 1.5d0*QQ-0.25d0*(QQ_star_L+QQ_star_R)
+               P1 = QQ_star_R-QQ_star_L
+               P2 = 3.d0*(QQ_star_L+QQ_star_R)-6.d0*QQ
+               QQ_L = P0 + 0.5d0*P1 + 0.25d0*P2
+     &              - 0.5d0*nu*P1
+     &              + (-(nu/2.d0)+(nu*nu/3.d0))*P2
      &              + 0.5d0*dt*F(ic0  ,ic1,ic2)
 
-               if     ( limiter.eq.second_order ) then
-                  Qx = 0.5d0*(Q(ic0+1+1,ic1,ic2)-Q(ic0+1-1,ic1,ic2))
-               elseif ( limiter.eq.fourth_order ) then
-                  Qx = twothird*(Q(ic0+1+1,ic1,ic2)-Q(ic0+1-1,ic1,ic2))
-     &              - sixth*half*(Q(ic0+1+2,ic1,ic2)-Q(ic0+1-2,ic1,ic2))
-               elseif ( limiter.eq.mc_limited ) then
-             Qx = minmod3(
-     &                 0.5d0*(Q(ic0+1+1,ic1,ic2)-Q(ic0+1-1,ic1,ic2)),
-     &                 2.0d0*(Q(ic0+1  ,ic1,ic2)-Q(ic0+1-1,ic1,ic2)),
-     &                 2.0d0*(Q(ic0+1+1,ic1,ic2)-Q(ic0+1  ,ic1,ic2)))
-               elseif ( limiter.eq.muscl_limited ) then
-                  Qx = muscldiff(Q(ic0+1-2,ic1,ic2))
-               endif
-
                unorm = 0.5d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
-!              unorm = fourth*fourth*
-!    &              ( 9.d0*(u0(ic0+1,ic1,ic2)+u0(ic0+2,ic1,ic2))
-!    &              - 1.d0*(u0(ic0  ,ic1,ic2)+u0(ic0+3,ic1,ic2)) )
-
-               qR = Q(ic0+1,ic1,ic2)
-     &              - 0.5d0*(1.d0+unorm*dt/dx0)*Qx
+               nu    = unorm*dt/dx0
+               QQ        = Q  (ic0+1,ic1,ic2)
+               QQ_star_L = Q_L(ic0+1,ic1,ic2)
+               QQ_star_R = Q_R(ic0+1,ic1,ic2)
+               P0 = 1.5d0*QQ-0.25d0*(QQ_star_L+QQ_star_R)
+               P1 = QQ_star_R-QQ_star_L
+               P2 = 3.d0*(QQ_star_L+QQ_star_R)-6.d0*QQ
+               QQ_R = P0 - 0.5d0*P1 + 0.25d0*P2
+     &              - 0.5d0*nu*P1
+     &              + (+(nu/2.d0)+(nu*nu/3.d0))*P2
      &              + 0.5d0*dt*F(ic0+1,ic1,ic2)
 
                qhalf0(ic0+1,ic1,ic2) =
-     &              0.5d0*(qL+qR) +
-     &              sign(1.d0,u0(ic0+1,ic1,ic2))*0.5d0*(qL-qR)
+     &              0.5d0*(QQ_L+QQ_R)+
+     &              sign_eps(u0(ic0+1,ic1,ic2))*0.5d0*(QQ_L-QQ_R)
             enddo
-
          enddo
       enddo
 c
@@ -754,6 +997,10 @@ c
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
+c     Functions.
+c
+      REAL sign_eps
 c
 c     Input.
 c
@@ -789,47 +1036,25 @@ c     This computation DOES NOT include full corner transport upwinding.
 c
       do ic2 = ifirst2,ilast2
          do ic1 = ifirst1,ilast1
-
             vtan = 0.5d0*(u1(ic1,ic2,ifirst0-1)+u1(ic1+1,ic2,ifirst0-1))
             wtan = 0.5d0*(u2(ic2,ifirst0-1,ic1)+u2(ic2+1,ifirst0-1,ic1))
-
-!           vtan = fourth*fourth*
-!    &        ( 9.d0*(u1(ic1  ,ic2,ifirst0-1)+u1(ic1+1,ic2,ifirst0-1))
-!    &        - 1.d0*(u1(ic1-1,ic2,ifirst0-1)+u1(ic1+2,ic2,ifirst0-1)) )
-!           wtan = fourth*fourth*
-!    &        ( 9.d0*(u2(ic2  ,ifirst0-1,ic1)+u2(ic2+1,ifirst0-1,ic1))
-!    &        - 1.d0*(u2(ic2-1,ifirst0-1,ic1)+u2(ic2+2,ifirst0-1,ic1)) )
-
             do ic0 = ifirst0-1,ilast0
                Qy = qtemp1(ic1+1,ic2,ic0)-qtemp1(ic1,ic2,ic0)
                Qz = qtemp2(ic2+1,ic0,ic1)-qtemp2(ic2,ic0,ic1)
-
                qL_diff =
      &              - 0.5d0*dt*vtan*Qy/dx1
      &              - 0.5d0*dt*wtan*Qz/dx2
-
                vtan = 0.5d0*(u1(ic1,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
                wtan = 0.5d0*(u2(ic2,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
-
-!              vtan = fourth*fourth*
-!    &              ( 9.d0*(u1(ic1  ,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
-!    &              - 1.d0*(u1(ic1-1,ic2,ic0+1)+u1(ic1+2,ic2,ic0+1)) )
-!              wtan = fourth*fourth*
-!    &              ( 9.d0*(u2(ic2  ,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
-!    &              - 1.d0*(u2(ic2-1,ic0+1,ic1)+u2(ic2+2,ic0+1,ic1)) )
-
                Qy = qtemp1(ic1+1,ic2,ic0+1)-qtemp1(ic1,ic2,ic0+1)
                Qz = qtemp2(ic2+1,ic0+1,ic1)-qtemp2(ic2,ic0+1,ic1)
-
                qR_diff =
      &              - 0.5d0*dt*vtan*Qy/dx1
      &              - 0.5d0*dt*wtan*Qz/dx2
-
                qhalf0(ic0+1,ic1,ic2) = qtemp0(ic0+1,ic1,ic2) +
      &              0.5d0*(qL_diff+qR_diff)+
-     &              sign(1.d0,u0(ic0+1,ic1,ic2))*0.5d0*(qL_diff-qR_diff)
+     &              sign_eps(u0(ic0+1,ic1,ic2))*0.5d0*(qL_diff-qR_diff)
             enddo
-
          enddo
       enddo
 c
@@ -847,6 +1072,10 @@ c
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
+c     Functions.
+c
+      REAL sign_eps
 c
 c     Input.
 c
@@ -883,34 +1112,22 @@ c     This computation DOES include full corner transport upwinding.
 c
       do ic2 = ifirst2,ilast2
          do ic1 = ifirst1,ilast1
-
             vtan = 0.5d0*(u1(ic1,ic2,ifirst0-1)+u1(ic1+1,ic2,ifirst0-1))
             wtan = 0.5d0*(u2(ic2,ifirst0-1,ic1)+u2(ic2+1,ifirst0-1,ic1))
-
-!           vtan = fourth*fourth*
-!    &        ( 9.d0*(u1(ic1  ,ic2,ifirst0-1)+u1(ic1+1,ic2,ifirst0-1))
-!    &        - 1.d0*(u1(ic1-1,ic2,ifirst0-1)+u1(ic1+2,ic2,ifirst0-1)) )
-!           wtan = fourth*fourth*
-!    &        ( 9.d0*(u2(ic2  ,ifirst0-1,ic1)+u2(ic2+1,ifirst0-1,ic1))
-!    &        - 1.d0*(u2(ic2-1,ifirst0-1,ic1)+u2(ic2+2,ifirst0-1,ic1)) )
-
             do ic0 = ifirst0-1,ilast0
                Qy = qtemp1(ic1+1,ic2,ic0)-qtemp1(ic1,ic2,ic0)
                Qz = qtemp2(ic2+1,ic0,ic1)-qtemp2(ic2,ic0,ic1)
-
                if ( vtan.gt.0.d0 ) then
                   wtanupwind =
      &                 0.5d0*(u2(ic2,ic0,ic1-1)+u2(ic2+1,ic0,ic1-1))
                   Qzupwind =
      &                 qtemp2(ic2+1,ic0,ic1-1)-qtemp2(ic2,ic0,ic1-1)
-
                   vDywQz = vtan*(wtan*Qz-wtanupwind*Qzupwind)
                else
                   wtanupwind =
      &                 0.5d0*(u2(ic2,ic0,ic1+1)+u2(ic2+1,ic0,ic1+1))
                   Qzupwind =
      &                 qtemp2(ic2+1,ic0,ic1+1)-qtemp2(ic2,ic0,ic1+1)
-
                   vDywQz = vtan*(wtanupwind*Qzupwind-wtan*Qz)
                endif
 
@@ -919,14 +1136,12 @@ c
      &                 0.5d0*(u1(ic1,ic2-1,ic0)+u1(ic1+1,ic2-1,ic0))
                   Qyupwind =
      &                 qtemp1(ic1+1,ic2-1,ic0)-qtemp1(ic1,ic2-1,ic0)
-
                   wDzvQy = wtan*(vtan*Qy-vtanupwind*Qyupwind)
                else
                   vtanupwind =
      &                 0.5d0*(u1(ic1,ic2+1,ic0)+u1(ic1+1,ic2+1,ic0))
                   Qyupwind =
      &                 qtemp1(ic1+1,ic2+1,ic0)-qtemp1(ic1,ic2+1,ic0)
-
                   wDzvQy = wtan*(vtanupwind*Qyupwind-vtan*Qy)
                endif
 
@@ -937,30 +1152,19 @@ c
 
                vtan = 0.5d0*(u1(ic1,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
                wtan = 0.5d0*(u2(ic2,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
-
-!              vtan = fourth*fourth*
-!    &              ( 9.d0*(u1(ic1  ,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
-!    &              - 1.d0*(u1(ic1-1,ic2,ic0+1)+u1(ic1+2,ic2,ic0+1)) )
-!              wtan = fourth*fourth*
-!    &              ( 9.d0*(u2(ic2  ,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
-!    &              - 1.d0*(u2(ic2-1,ic0+1,ic1)+u2(ic2+2,ic0+1,ic1)) )
-
                Qy = qtemp1(ic1+1,ic2,ic0+1)-qtemp1(ic1,ic2,ic0+1)
                Qz = qtemp2(ic2+1,ic0+1,ic1)-qtemp2(ic2,ic0+1,ic1)
-
                if ( vtan.gt.0.d0 ) then
                   wtanupwind =
      &                 0.5d0*(u2(ic2,ic0+1,ic1-1)+u2(ic2+1,ic0+1,ic1-1))
                   Qzupwind =
      &                 qtemp2(ic2+1,ic0+1,ic1-1)-qtemp2(ic2,ic0+1,ic1-1)
-
                   vDywQz = vtan*(wtan*Qz-wtanupwind*Qzupwind)
                else
                   wtanupwind =
      &                 0.5d0*(u2(ic2,ic0+1,ic1+1)+u2(ic2+1,ic0+1,ic1+1))
                   Qzupwind =
      &                 qtemp2(ic2+1,ic0+1,ic1+1)-qtemp2(ic2,ic0+1,ic1+1)
-
                   vDywQz = vtan*(wtanupwind*Qzupwind-wtan*Qz)
                endif
 
@@ -969,14 +1173,12 @@ c
      &                 0.5d0*(u1(ic1,ic2-1,ic0+1)+u1(ic1+1,ic2-1,ic0+1))
                   Qyupwind =
      &                 qtemp1(ic1+1,ic2-1,ic0+1)-qtemp1(ic1,ic2-1,ic0+1)
-
                   wDzvQy = wtan*(vtan*Qy-vtanupwind*Qyupwind)
                else
                   vtanupwind =
      &                 0.5d0*(u1(ic1,ic2+1,ic0+1)+u1(ic1+1,ic2+1,ic0+1))
                   Qyupwind =
      &                 qtemp1(ic1+1,ic2+1,ic0+1)-qtemp1(ic1,ic2+1,ic0+1)
-
                   wDzvQy = wtan*(vtanupwind*Qyupwind-vtan*Qy)
                endif
 
@@ -987,7 +1189,7 @@ c
 
                qhalf0(ic0+1,ic1,ic2) = qtemp0(ic0+1,ic1,ic2) +
      &              0.5d0*(qL_diff+qR_diff)+
-     &              sign(1.d0,u0(ic0+1,ic1,ic2))*0.5d0*(qL_diff-qR_diff)
+     &              sign_eps(u0(ic0+1,ic1,ic2))*0.5d0*(qL_diff-qR_diff)
             enddo
 
          enddo

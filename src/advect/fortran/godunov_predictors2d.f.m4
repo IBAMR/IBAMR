@@ -1416,9 +1416,9 @@ c
      &                 Q(ic0-1,ic1),
      &                 QQ_WENO_L,QQ_WENO_R,QQ_star_L,QQ_star_R)
                else
-                  QQ_4th_L = 0.5d0*(Q(ic0-1,ic1)+Q(ic0  ,ic1)) -
+                  QQ_4th_L =  0.5d0*(Q(ic0-1,ic1)+ Q(ic0  ,ic1)) -
      &                 (1.d0/6.d0)*(dQ(ic0  ,ic1)-dQ(ic0-1,ic1))
-                  QQ_4th_R = 0.5d0*(Q(ic0  ,ic1)+Q(ic0+1,ic1)) -
+                  QQ_4th_R =  0.5d0*(Q(ic0  ,ic1)+ Q(ic0+1,ic1)) -
      &                 (1.d0/6.d0)*(dQ(ic0+1,ic1)-dQ(ic0  ,ic1))
                   QQ_4th_L = median(QQ_4th_L,QQ_WENO_L,QQ_L)
                   QQ_4th_R = median(QQ_4th_R,QQ_WENO_R,QQ_R)

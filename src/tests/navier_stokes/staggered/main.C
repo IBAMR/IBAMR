@@ -310,7 +310,7 @@ main(
         /*
          * Create initial condition specification objects.
          */
-#if 1
+#if 0
         tbox::Pointer<SetDataStrategy> u_init = new muParserDataSetter(
             "u_init", input_db->getDatabase("VelocitySolution"), grid_geometry);
         tbox::Pointer<SetDataStrategy> p_init = new muParserDataSetter(
@@ -521,7 +521,7 @@ main(
                     patch_hierarchy, iteration_num, loop_time);
             }
         }
-#if 1
+#if 0
         /*
          * Determine the accuracy of the computed solution.
          */
