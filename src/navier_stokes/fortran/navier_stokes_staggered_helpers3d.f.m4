@@ -152,9 +152,10 @@ c
       do       i0 = side1_ifirst0-gc0,side1_ilast0+gc0
          do    i2 = side1_ifirst2-gc2,side1_ilast2+gc2
             do i1 = side1_ifirst1-gc1,side1_ilast1+gc1
-            V10(i0,i1,i2) = 0.5d0*(U0(i0,i1-1,i2)+U0(i0,i1,i2))
-            V11(i1,i2,i0) = 0.5d0*(U1(i0,i1-1,i2)+U1(i0,i1,i2))
-            V12(i2,i0,i1) = 0.5d0*(U2(i0,i1-1,i2)+U2(i0,i1,i2))
+               V10(i0,i1,i2) = 0.5d0*(U0(i0,i1-1,i2)+U0(i0,i1,i2))
+               V11(i1,i2,i0) = 0.5d0*(U1(i0,i1-1,i2)+U1(i0,i1,i2))
+               V12(i2,i0,i1) = 0.5d0*(U2(i0,i1-1,i2)+U2(i0,i1,i2))
+            enddo
          enddo
       enddo
 
@@ -165,9 +166,10 @@ c
       do       i1 = side2_ifirst1-gc1,side2_ilast1+gc1
          do    i0 = side2_ifirst0-gc0,side2_ilast0+gc0
             do i2 = side2_ifirst2-gc2,side2_ilast2+gc2
-            V20(i0,i1,i2) = 0.5d0*(U0(i0,i1,i2-1)+U0(i0,i1,i2))
-            V21(i1,i2,i0) = 0.5d0*(U1(i0,i1,i2-1)+U1(i0,i1,i2))
-            V22(i2,i0,i1) = 0.5d0*(U2(i0,i1,i2-1)+U2(i0,i1,i2))
+               V20(i0,i1,i2) = 0.5d0*(U0(i0,i1,i2-1)+U0(i0,i1,i2))
+               V21(i1,i2,i0) = 0.5d0*(U1(i0,i1,i2-1)+U1(i0,i1,i2))
+               V22(i2,i0,i1) = 0.5d0*(U2(i0,i1,i2-1)+U2(i0,i1,i2))
+            enddo
          enddo
       enddo
 c

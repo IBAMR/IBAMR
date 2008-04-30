@@ -164,7 +164,8 @@ c
      &     usefullctu,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
-     &     Q,dQ,Q_L,Q_R,Qscratch1,Qscratch2,
+     &     Q,Qscratch1,Qscratch2,
+     &     dQ,Q_L,Q_R,
      &     nugc0,nugc1,nugc2,
      &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
      &     u0,u1,u2,
@@ -188,15 +189,15 @@ c
       REAL dx(0:NDIM-1), dt
 
       REAL Q(CELL3dVECG(ifirst,ilast,nQgc))
-      REAL dQ(CELL3dVECG(ifirst,ilast,nQgc))
-      REAL Q_L(CELL3dVECG(ifirst,ilast,nQgc))
-      REAL Q_R(CELL3dVECG(ifirst,ilast,nQgc))
       REAL Qscratch1(ifirst1-nQgc1:ilast1+nQgc1,
      &               ifirst2-nQgc2:ilast2+nQgc2,
      &               ifirst0-nQgc0:ilast0+nQgc0)
       REAL Qscratch2(ifirst2-nQgc2:ilast2+nQgc2,
      &               ifirst0-nQgc0:ilast0+nQgc0,
      &               ifirst1-nQgc1:ilast1+nQgc1)
+      REAL dQ(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_L(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_R(CELL3dVECG(ifirst,ilast,nQgc))
 
       REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE3d1VECG(ifirst,ilast,nugc))
@@ -358,7 +359,8 @@ c
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
      &     nFgc0,nFgc1,nFgc2,
-     &     Q,dQ,Q_L,Q_R,Qscratch1,Qscratch2,
+     &     Q,Qscratch1,Qscratch2,
+     &     dQ,Q_L,Q_R,
      &     F,Fscratch1,Fscratch2,
      &     nugc0,nugc1,nugc2,
      &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
@@ -384,15 +386,15 @@ c
       REAL dx(0:NDIM-1), dt
 
       REAL Q(CELL3dVECG(ifirst,ilast,nQgc))
-      REAL dQ(CELL3dVECG(ifirst,ilast,nQgc))
-      REAL Q_L(CELL3dVECG(ifirst,ilast,nQgc))
-      REAL Q_R(CELL3dVECG(ifirst,ilast,nQgc))
       REAL Qscratch1(ifirst1-nQgc1:ilast1+nQgc1,
      &               ifirst2-nQgc2:ilast2+nQgc2,
      &               ifirst0-nQgc0:ilast0+nQgc0)
       REAL Qscratch2(ifirst2-nQgc2:ilast2+nQgc2,
      &               ifirst0-nQgc0:ilast0+nQgc0,
      &               ifirst1-nQgc1:ilast1+nQgc1)
+      REAL dQ(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_L(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_R(CELL3dVECG(ifirst,ilast,nQgc))
 
       REAL F(CELL3dVECG(ifirst,ilast,nFgc))
       REAL Fscratch1(ifirst1-nFgc1:ilast1+nFgc1,

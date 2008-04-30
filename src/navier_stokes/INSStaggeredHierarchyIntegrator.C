@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <29.Apr.2008 18:13:12 griffith@box230.cims.nyu.edu>
+// Last modified: <29.Apr.2008 23:24:44 boyce@cpe-68-174-125-35.nyc.res.rr.com>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -52,8 +52,8 @@
 #define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
 #define CONVECT_DERIVATIVE_F77 F77_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
 #define GODUNOV_PREDICT_WITH_SOURCE_F77 F77_FUNC_(godunov_predict_with_source3d, GODUNOV_PREDICT_WITH_SOURCE3D)
-#define NAVIER_STOKES_INTERP_COMPS_F77 F77_FUNC_(navier_stokes_interp_comps_3d, NAVIER_STOKES_INTERP_COMPS_3D)
-#define NAVIER_STOKES_RESET_ADV_VELOCITY_F77 F77_FUNC_(navier_stokes_reset_adv_velocity_3d, NAVIER_STOKES_RESET_ADV_VELOCITY_3D)
+#define NAVIER_STOKES_INTERP_COMPS_F77 F77_FUNC_(navier_stokes_interp_comps3d, NAVIER_STOKES_INTERP_COMPS3D)
+#define NAVIER_STOKES_RESET_ADV_VELOCITY_F77 F77_FUNC_(navier_stokes_reset_adv_velocity3d, NAVIER_STOKES_RESET_ADV_VELOCITY3D)
 #define NAVIER_STOKES_SC_STABLEDT_F77 F77_FUNC_(navier_stokes_sc_stabledt3d, NAVIER_STOKES_SC_STABLEDT3D)
 #endif
 
@@ -103,11 +103,14 @@ extern "C"
         const int& , const int& , const int& ,
         double*
 #endif
-                          );
+                           );
 
     void
     GODUNOV_PREDICT_WITH_SOURCE_F77(
         const double* , const double& ,
+#if (NDIM == 3)
+        const unsigned int& ,
+#endif
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -132,7 +135,7 @@ extern "C"
         double* , double* , double* ,
         double* , double* , double*
 #endif
-                                       );
+                                    );
 
     void
     NAVIER_STOKES_INTERP_COMPS_F77(
@@ -148,8 +151,20 @@ extern "C"
         double* , double*
 #endif
 #if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        double* , double* , double* ,
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        double* , double* , double* ,
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        double* , double* , double*
 #endif
-                                    );
+                                   );
 
     void
     NAVIER_STOKES_RESET_ADV_VELOCITY_F77(
@@ -166,8 +181,23 @@ extern "C"
         const double* , const double*
 #endif
 #if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        double* , double* , double* ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        double* , double* , double* ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        double* , double* , double* ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double*
 #endif
-                                          );
+                                         );
 
     void
     NAVIER_STOKES_SC_STABLEDT_F77(
@@ -2214,7 +2244,8 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
         static const std::string ralg_name = "gadvect_F_scratch_bdry_fill";
         d_rscheds[ralg_name][ln]->fillData(current_time);
     }
-#if (NDIM == 2)
+
+    // Compute the convective derivative.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -2236,13 +2267,16 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_data = patch->getPatchData(d_gadvect_U_scratch_idx);
             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_data = patch->getPatchData(d_gadvect_F_scratch_idx);
 
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > N_grown_data = new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,N_data->getDepth(),N_data->getGhostCellWidth()-growth_factor);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_grown_data = new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,U_data->getDepth(),U_data->getGhostCellWidth()-growth_factor);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_grown_data = new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,F_data->getDepth(),F_data->getGhostCellWidth()-growth_factor);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > N_grown_data =
+                new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,N_data->getDepth(),N_data->getGhostCellWidth());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_grown_data =
+                new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,U_data->getDepth(),U_data->getGhostCellWidth());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_grown_data =
+                new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,F_data->getDepth(),F_data->getGhostCellWidth());
             U_grown_data->copy(*U_data);
             F_grown_data->copy(*F_data);
 
-            const SAMRAI::hier::IntVector<NDIM> ghosts = SAMRAI::hier::IntVector<NDIM>(GADVECTG)-growth_factor;
+            const SAMRAI::hier::IntVector<NDIM> ghosts = SAMRAI::hier::IntVector<NDIM>(GADVECTG);
             SAMRAI::hier::Box<NDIM> side_boxes[NDIM];
             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> >  U_adv_data[NDIM];
             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > U_half_data[NDIM];
@@ -2252,7 +2286,7 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                 U_adv_data [axis] = new SAMRAI::pdat::FaceData<NDIM,double>(side_boxes[axis],1,ghosts);
                 U_half_data[axis] = new SAMRAI::pdat::FaceData<NDIM,double>(side_boxes[axis],1,ghosts);
             }
-
+#if (NDIM == 2)
             NAVIER_STOKES_INTERP_COMPS_F77(
                 grown_patch_lower(0), grown_patch_upper(0),
                 grown_patch_lower(1), grown_patch_upper(1),
@@ -2266,7 +2300,30 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                 side_boxes[1].lower(1),                 side_boxes[1].upper(1),
                 U_adv_data[1]->getGhostCellWidth()(0),  U_adv_data[1]->getGhostCellWidth()(1),
                 U_adv_data[1]->getPointer(0),           U_adv_data[1]->getPointer(1));
-
+#endif
+#if (NDIM == 3)
+            NAVIER_STOKES_INTERP_COMPS_F77(
+                grown_patch_lower(0), grown_patch_upper(0),
+                grown_patch_lower(1), grown_patch_upper(1),
+                grown_patch_lower(2), grown_patch_upper(2),
+                U_grown_data->getGhostCellWidth()(0),   U_grown_data->getGhostCellWidth()(1),   U_grown_data->getGhostCellWidth()(2),
+                U_grown_data->getPointer(0),            U_grown_data->getPointer(1),            U_grown_data->getPointer(2),
+                side_boxes[0].lower(0),                 side_boxes[0].upper(0),
+                side_boxes[0].lower(1),                 side_boxes[0].upper(1),
+                side_boxes[0].lower(2),                 side_boxes[0].upper(2),
+                U_adv_data[0]->getGhostCellWidth()(0),  U_adv_data[0]->getGhostCellWidth()(1),  U_adv_data[0]->getGhostCellWidth()(2),
+                U_adv_data[0]->getPointer(0),           U_adv_data[0]->getPointer(1),           U_adv_data[0]->getPointer(2),
+                side_boxes[1].lower(0),                 side_boxes[1].upper(0),
+                side_boxes[1].lower(1),                 side_boxes[1].upper(1),
+                side_boxes[1].lower(2),                 side_boxes[1].upper(2),
+                U_adv_data[1]->getGhostCellWidth()(0),  U_adv_data[1]->getGhostCellWidth()(1),  U_adv_data[1]->getGhostCellWidth()(2),
+                U_adv_data[1]->getPointer(0),           U_adv_data[1]->getPointer(1),           U_adv_data[1]->getPointer(2),
+                side_boxes[2].lower(0),                 side_boxes[2].upper(0),
+                side_boxes[2].lower(1),                 side_boxes[2].upper(1),
+                side_boxes[2].lower(2),                 side_boxes[2].upper(2),
+                U_adv_data[2]->getGhostCellWidth()(0),  U_adv_data[2]->getGhostCellWidth()(1),  U_adv_data[2]->getGhostCellWidth()(2),
+                U_adv_data[2]->getPointer(0),           U_adv_data[2]->getPointer(1),           U_adv_data[2]->getPointer(2));
+#endif
             for (int count = 0; count < NUM_GODUNOV_CYCLES; ++count)
             {
                 for (int axis = 0; axis < NDIM; ++axis)
@@ -2277,27 +2334,55 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                         new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_R_grown_data =
                         new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_grown_scratch_data =
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_grown_scratch1_data =
                         new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_grown_scratch_data =
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_grown_scratch1_data =
                         new SAMRAI::pdat::SideData<NDIM,double>(F_grown_data->getBox(), F_grown_data->getDepth(), F_grown_data->getGhostCellWidth());
+#if (NDIM == 3)
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_grown_scratch2_data =
+                        new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_grown_scratch2_data =
+                        new SAMRAI::pdat::SideData<NDIM,double>(F_grown_data->getBox(), F_grown_data->getDepth(), F_grown_data->getGhostCellWidth());
+#endif
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > U_half_scratch_data =
                         new SAMRAI::pdat::FaceData<NDIM,double>( U_half_data[axis]->getBox(), U_half_data[axis]->getDepth(), U_half_data[axis]->getGhostCellWidth());
+#if (NDIM == 2)
                     GODUNOV_PREDICT_WITH_SOURCE_F77(
                         dx, dt,
                         side_boxes[axis].lower(0), side_boxes[axis].upper(0),
                         side_boxes[axis].lower(1), side_boxes[axis].upper(1),
                         U_grown_data->getGhostCellWidth()(0), U_grown_data->getGhostCellWidth()(1),
                         F_grown_data->getGhostCellWidth()(0), F_grown_data->getGhostCellWidth()(1),
-                        U_grown_data->getPointer(axis), dU_grown_data->getPointer(axis), U_L_grown_data->getPointer(axis), U_R_grown_data->getPointer(axis), U_grown_scratch_data->getPointer(axis),
-                        F_grown_data       ->getPointer(axis),       F_grown_scratch_data->getPointer(axis),
-                        U_adv_data [axis]  ->getGhostCellWidth()(0), U_adv_data [axis]   ->getGhostCellWidth()(1),
-                        U_half_data[axis]  ->getGhostCellWidth()(0), U_half_data[axis]   ->getGhostCellWidth()(1),
-                        U_adv_data [axis]  ->getPointer(0),          U_adv_data [axis]   ->getPointer(1),
-                        U_half_scratch_data->getPointer(0),          U_half_scratch_data ->getPointer(1),
-                        U_half_data[axis]  ->getPointer(0),          U_half_data[axis]   ->getPointer(1));
+                        U_grown_data       ->getPointer(axis),       U_grown_scratch1_data->getPointer(axis),
+                        dU_grown_data      ->getPointer(axis),       U_L_grown_data       ->getPointer(axis),       U_R_grown_data->getPointer(axis),
+                        F_grown_data       ->getPointer(axis),       F_grown_scratch1_data->getPointer(axis),
+                        U_adv_data [axis]  ->getGhostCellWidth()(0), U_adv_data [axis]    ->getGhostCellWidth()(1),
+                        U_half_data[axis]  ->getGhostCellWidth()(0), U_half_data[axis]    ->getGhostCellWidth()(1),
+                        U_adv_data [axis]  ->getPointer(0),          U_adv_data [axis]    ->getPointer(1),
+                        U_half_scratch_data->getPointer(0),          U_half_scratch_data  ->getPointer(1),
+                        U_half_data[axis]  ->getPointer(0),          U_half_data[axis]    ->getPointer(1));
+#endif
+#if (NDIM == 3)
+                    bool using_full_ctu = true;
+                    GODUNOV_PREDICT_WITH_SOURCE_F77(
+                        dx, dt,
+                        static_cast<unsigned int>(using_full_ctu),
+                        side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                        side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                        side_boxes[axis].lower(2), side_boxes[axis].upper(2),
+                        U_grown_data->getGhostCellWidth()(0), U_grown_data->getGhostCellWidth()(1), U_grown_data->getGhostCellWidth()(2),
+                        F_grown_data->getGhostCellWidth()(0), F_grown_data->getGhostCellWidth()(1), F_grown_data->getGhostCellWidth()(2),
+                        U_grown_data       ->getPointer(axis),       U_grown_scratch1_data->getPointer(axis),       U_grown_scratch2_data->getPointer(axis),
+                        dU_grown_data      ->getPointer(axis),       U_L_grown_data       ->getPointer(axis),       U_R_grown_data       ->getPointer(axis),
+                        F_grown_data       ->getPointer(axis),       F_grown_scratch1_data->getPointer(axis),       F_grown_scratch2_data->getPointer(axis),
+                        U_adv_data [axis]  ->getGhostCellWidth()(0), U_adv_data [axis]    ->getGhostCellWidth()(1), U_adv_data [axis]    ->getGhostCellWidth()(2),
+                        U_half_data[axis]  ->getGhostCellWidth()(0), U_half_data[axis]    ->getGhostCellWidth()(1), U_half_data[axis]    ->getGhostCellWidth()(2),
+                        U_adv_data [axis]  ->getPointer(0),          U_adv_data [axis]    ->getPointer(1),          U_adv_data [axis]    ->getPointer(2),
+                        U_half_scratch_data->getPointer(0),          U_half_scratch_data  ->getPointer(1),          U_half_scratch_data  ->getPointer(2),
+                        U_half_data[axis]  ->getPointer(0),          U_half_data[axis]    ->getPointer(1),          U_half_data[axis]    ->getPointer(2));
+#endif
                 }
-
+#if (NDIM == 2)
                 NAVIER_STOKES_RESET_ADV_VELOCITY_F77(
                     side_boxes[0].lower(0), side_boxes[0].upper(0),
                     side_boxes[0].lower(1), side_boxes[0].upper(1),
@@ -2311,12 +2396,38 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                     U_adv_data [1]->getPointer(0),          U_adv_data [1]->getPointer(1),
                     U_half_data[1]->getGhostCellWidth()(0), U_half_data[1]->getGhostCellWidth()(1),
                     U_half_data[1]->getPointer(0),          U_half_data[1]->getPointer(1));
+#endif
+#if (NDIM == 3)
+                NAVIER_STOKES_RESET_ADV_VELOCITY_F77(
+                    side_boxes[0].lower(0), side_boxes[0].upper(0),
+                    side_boxes[0].lower(1), side_boxes[0].upper(1),
+                    side_boxes[0].lower(2), side_boxes[0].upper(2),
+                    U_adv_data [0]->getGhostCellWidth()(0), U_adv_data [0]->getGhostCellWidth()(1), U_adv_data [0]->getGhostCellWidth()(2),
+                    U_adv_data [0]->getPointer(0),          U_adv_data [0]->getPointer(1),          U_adv_data [0]->getPointer(2),
+                    U_half_data[0]->getGhostCellWidth()(0), U_half_data[0]->getGhostCellWidth()(1), U_half_data[0]->getGhostCellWidth()(2),
+                    U_half_data[0]->getPointer(0),          U_half_data[0]->getPointer(1),          U_half_data[0]->getPointer(2),
+                    side_boxes[1].lower(0), side_boxes[1].upper(0),
+                    side_boxes[1].lower(1), side_boxes[1].upper(1),
+                    side_boxes[1].lower(2), side_boxes[1].upper(2),
+                    U_adv_data [1]->getGhostCellWidth()(0), U_adv_data [1]->getGhostCellWidth()(1), U_adv_data [1]->getGhostCellWidth()(2),
+                    U_adv_data [1]->getPointer(0),          U_adv_data [1]->getPointer(1),          U_adv_data [1]->getPointer(2),
+                    U_half_data[1]->getGhostCellWidth()(0), U_half_data[1]->getGhostCellWidth()(1), U_half_data[1]->getGhostCellWidth()(2),
+                    U_half_data[1]->getPointer(0),          U_half_data[1]->getPointer(1),          U_half_data[1]->getPointer(2),
+                    side_boxes[2].lower(0), side_boxes[2].upper(0),
+                    side_boxes[2].lower(1), side_boxes[2].upper(1),
+                    side_boxes[2].lower(2), side_boxes[2].upper(2),
+                    U_adv_data [2]->getGhostCellWidth()(0), U_adv_data [2]->getGhostCellWidth()(1), U_adv_data [2]->getGhostCellWidth()(2),
+                    U_adv_data [2]->getPointer(0),          U_adv_data [2]->getPointer(1),          U_adv_data [2]->getPointer(2),
+                    U_half_data[2]->getGhostCellWidth()(0), U_half_data[2]->getGhostCellWidth()(1), U_half_data[2]->getGhostCellWidth()(2),
+                    U_half_data[2]->getPointer(0),          U_half_data[2]->getPointer(1),          U_half_data[2]->getPointer(2));
+#endif
             }
 
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 if (conservation_form)
                 {
+#if (NDIM == 2)
                     CONVECT_DERIVATIVE_F77(
                         dx,
                         side_boxes[axis].lower(0), side_boxes[axis].upper(0),
@@ -2327,9 +2438,24 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                         U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),
                         N_grown_data->getGhostCellWidth()(0), N_grown_data->getGhostCellWidth()(1),
                         N_grown_data->getPointer(axis));
+#endif
+#if (NDIM == 3)
+                    CONVECT_DERIVATIVE_F77(
+                        dx,
+                        side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                        side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                        side_boxes[axis].lower(2), side_boxes[axis].upper(2),
+                        U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1), U_adv_data [axis]->getGhostCellWidth()(2),
+                        U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
+                        U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),          U_adv_data [axis]->getPointer(2),
+                        U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),          U_half_data[axis]->getPointer(2),
+                        N_grown_data->getGhostCellWidth()(0), N_grown_data->getGhostCellWidth()(1), N_grown_data->getGhostCellWidth()(2),
+                        N_grown_data->getPointer(axis));
+#endif
                 }
                 else
                 {
+#if (NDIM == 2)
                     ADVECT_DERIVATIVE_F77(
                         dx,
                         side_boxes[axis].lower(0), side_boxes[axis].upper(0),
@@ -2340,12 +2466,26 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                         U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),
                         N_grown_data->getGhostCellWidth()(0), N_grown_data->getGhostCellWidth()(1),
                         N_grown_data->getPointer(axis));
+#endif
+#if (NDIM == 3)
+                    ADVECT_DERIVATIVE_F77(
+                        dx,
+                        side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                        side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                        side_boxes[axis].lower(2), side_boxes[axis].upper(2),
+                        U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1), U_adv_data [axis]->getGhostCellWidth()(2),
+                        U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
+                        U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),          U_adv_data [axis]->getPointer(2),
+                        U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),          U_half_data[axis]->getPointer(2),
+                        N_grown_data->getGhostCellWidth()(0), N_grown_data->getGhostCellWidth()(1), N_grown_data->getGhostCellWidth()(2),
+                        N_grown_data->getPointer(axis));
+#endif
                 }
             }
             N_data->copy(*N_grown_data);
         }
     }
-#endif
+
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {

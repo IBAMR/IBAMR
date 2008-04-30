@@ -6,14 +6,14 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // physical parameters
-MU = 0.01
+MU = 1.0e-2
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 2   // maximum number of levels in locally refined grid
+MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 // exact solution function expressions
@@ -42,7 +42,7 @@ PressureSolution {
    function = P
 }
 
-INSHierarchyIntegrator {
+INSStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 1.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
@@ -51,101 +51,36 @@ INSHierarchyIntegrator {
 
    enable_logging = TRUE
 
-   tag_buffer = 1
+   cfl = 1.0
+   dt_max = 1.0/(4.0*NFINEST)
 
-   conservation_form = FALSE
+   tag_buffer = 1
 
    using_vorticity_tagging = TRUE
    vorticity_rel_thresh = 0.25
 
+   output_U = TRUE
    output_P = TRUE
    output_F = FALSE
-   output_Q = FALSE
-
-   output_Omega = FALSE
-
-   output_Div_U = FALSE
-   output_Div_u = FALSE
-   output_Div_u_adv = FALSE
+   output_Omega = TRUE
+   output_Div_U = TRUE
 
    mu  = MU
    rho = RHO
 
-   velocity_projection_type = "pressure_increment"
-   pressure_projection_type = "pressure_update"
-
-   using_synch_projection = FALSE
    second_order_pressure_update = TRUE
    normalize_pressure = TRUE
 
    num_cycles = 1
    num_init_cycles = 5
-
-   helmholtz_max_iterations = 25
-   helmholtz_abs_residual_tol = 1.0e-30
-   helmholtz_rel_residual_tol = 1.0e-12
-}
-
-GodunovAdvector {
-   limiter_type = FOURTH_ORDER
-}
-
-AdvDiffHierarchyIntegrator {
-   viscous_timestepping_type = "CRANK_NICOLSON"
-
-   enable_logging = TRUE
-
-   tag_buffer = 1
-
-   AdvDiffHypPatchOps {
-      compute_init_velocity  = TRUE
-      compute_half_velocity  = FALSE
-      compute_final_velocity = FALSE
-   }
-
-   HyperbolicLevelIntegrator {
-      cfl                      = 0.975e0  // max cfl factor used in problem
-      cfl_init                 = 0.975e0  // initial cfl factor
-      lag_dt_computation       = FALSE
-      use_ghosts_to_compute_dt = FALSE
-   }
-
-   max_iterations = 25
-   abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-12
-   using_FAC = TRUE
-
-   FACOps {
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
-      coarse_solver_choice = "block_jacobi"
-      coarse_solver_tolerance = 1.0e-6
-      coarse_solver_max_iterations = 1
-      prolongation_method = "LINEAR_REFINE"
-      cf_discretization   = "LINEAR_REFINE"
-   }
-
-   FACPreconditioners {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 3
-   }
 }
 
 HierarchyProjector {
    enable_logging = TRUE
 
    max_iterations = 25
-   abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-12
+   abs_residual_tol = 0.0
+   rel_residual_tol = 1.0e-15
 
    FACOp {
       fac_max_cycles = 1

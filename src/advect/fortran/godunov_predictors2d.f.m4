@@ -163,7 +163,8 @@ c
      &     dx,dt,
      &     ifirst0,ilast0,ifirst1,ilast1,
      &     nQgc0,nQgc1,
-     &     Q,dQ,Q_L,Q_R,Qscratch1,
+     &     Q,Qscratch1,
+     &     dQ,Q_L,Q_R,
      &     nugc0,nugc1,
      &     nqhalfgc0,nqhalfgc1,
      &     u0,u1,
@@ -185,11 +186,11 @@ c
       REAL dx(0:NDIM-1),dt
 
       REAL Q(CELL2dVECG(ifirst,ilast,nQgc))
+      REAL Qscratch1(ifirst1-nQgc1:ilast1+nQgc1,
+     &               ifirst0-nQgc0:ilast0+nQgc0)
       REAL dQ(CELL2dVECG(ifirst,ilast,nQgc))
       REAL Q_L(CELL2dVECG(ifirst,ilast,nQgc))
       REAL Q_R(CELL2dVECG(ifirst,ilast,nQgc))
-      REAL Qscratch1(ifirst1-nQgc1:ilast1+nQgc1,
-     &               ifirst0-nQgc0:ilast0+nQgc0)
 
       REAL u0(FACE2d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE2d1VECG(ifirst,ilast,nugc))
@@ -285,7 +286,8 @@ c
      &     ifirst0,ilast0,ifirst1,ilast1,
      &     nQgc0,nQgc1,
      &     nFgc0,nFgc1,
-     &     Q,dQ,Q_L,Q_R,Qscratch1,
+     &     Q,Qscratch1,
+     &     dQ,Q_L,Q_R,
      &     F,Fscratch1,
      &     nugc0,nugc1,
      &     nqhalfgc0,nqhalfgc1,
@@ -309,11 +311,11 @@ c
       REAL dx(0:NDIM-1),dt
 
       REAL Q(CELL2dVECG(ifirst,ilast,nQgc))
+      REAL Qscratch1(ifirst1-nQgc1:ilast1+nQgc1,
+     &               ifirst0-nQgc0:ilast0+nQgc0)
       REAL dQ(CELL2dVECG(ifirst,ilast,nQgc))
       REAL Q_L(CELL2dVECG(ifirst,ilast,nQgc))
       REAL Q_R(CELL2dVECG(ifirst,ilast,nQgc))
-      REAL Qscratch1(ifirst1-nQgc1:ilast1+nQgc1,
-     &               ifirst0-nQgc0:ilast0+nQgc0)
 
       REAL F(CELL2dVECG(ifirst,ilast,nFgc))
       REAL Fscratch1(ifirst1-nFgc1:ilast1+nFgc1,
