@@ -348,8 +348,8 @@ main(
 
         solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
             "u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        u1_bc_coef.setBoundaryValue(0, 0.0);  // x lower boundary
-        u1_bc_coef.setBoundaryValue(1, 0.0);  // x upper boundary
+        u1_bc_coef.setBoundarySlope(0, 0.0);  // x lower boundary
+        u1_bc_coef.setBoundarySlope(1, 0.0);  // x upper boundary
         u1_bc_coef.setBoundarySlope(2, 0.0);  // y lower boundary
         u1_bc_coef.setBoundarySlope(3, 0.0);  // y upper boundary
 
