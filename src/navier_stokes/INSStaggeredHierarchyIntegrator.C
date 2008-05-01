@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <29.Apr.2008 23:24:44 boyce@cpe-68-174-125-35.nyc.res.rr.com>
+// Last modified: <30.Apr.2008 23:45:24 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -711,7 +711,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     ralg_name = "gadvect_U_scratch_bdry_fill";
     d_ralgs[ralg_name] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_gadvect_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    refine_operator = grid_geom->lookupRefineOperator(d_gadvect_U_var, "CONSTANT_REFINE");
     d_ralgs[ralg_name]->registerRefine(d_gadvect_U_scratch_idx, // destination
                                        d_U_current_idx,         // source
                                        d_gadvect_U_scratch_idx, // temporary work space
@@ -720,7 +720,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     ralg_name = "gadvect_F_scratch_bdry_fill";
     d_ralgs[ralg_name] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_gadvect_F_var, "CONSERVATIVE_LINEAR_REFINE");
+    refine_operator = grid_geom->lookupRefineOperator(d_gadvect_F_var, "CONSTANT_REFINE");
     d_ralgs[ralg_name]->registerRefine(d_gadvect_F_scratch_idx, // destination
                                        d_gadvect_F_scratch_idx, // source
                                        d_gadvect_F_scratch_idx, // temporary work space
@@ -1158,7 +1158,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
             ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
         }
 
-        static const std::string projection_type = "pressure_increment"; // "pressure_update";
+        static const std::string projection_type = "pressure_increment"; //"pressure_update";
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> pc_op = new INSStaggeredProjectionPreconditioner(
             projection_type,
             d_rho, d_mu, d_lambda,
@@ -1170,7 +1170,8 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         linear_solver->setPreconditioner(pc_op);
 
         // Solve system.
-        linear_solver->solveSystem(*sol_vec,*rhs_vec);
+        //linear_solver->solveSystem(*sol_vec,*rhs_vec);
+        pc_op->solveSystem(*sol_vec,*rhs_vec);
 
         // Pull out solution components.
         d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
@@ -2211,7 +2212,7 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
 
     refine_operator = grid_geom->lookupRefineOperator(
-        d_gadvect_U_var, "CONSERVATIVE_LINEAR_REFINE");
+        d_gadvect_U_var, "CONSTANT_REFINE");
     ralg->registerRefine(d_gadvect_U_scratch_idx, // destination
                          U_idx,                   // source
                          d_gadvect_U_scratch_idx, // temporary work space

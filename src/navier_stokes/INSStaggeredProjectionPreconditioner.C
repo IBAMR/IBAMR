@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <29.Apr.2008 15:39:02 griffith@box230.cims.nyu.edu>
+// Last modified: <30.Apr.2008 23:33:44 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -15,11 +15,6 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
-
-
-// XXXX
-#include <ibtk/SCLaplaceOperator.h>
-#include <ibtk/PETScKrylovLinearSolver.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -124,6 +119,7 @@ INSStaggeredProjectionPreconditioner::solveSystem(
 
     // Solve for u^{*}.
     d_helmholtz_solver->solveSystem(*U_out,*U_scratch);
+
     SAMRAI::tbox::plog << "INSStaggeredProjectionPreconditioner::solveSystem(): Helmholtz solve number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";
     SAMRAI::tbox::plog << "INSStaggeredProjectionPreconditioner::solveSystem(): Helmholtz solve residual norm        = " << d_helmholtz_solver->getResidualNorm()  << "\n";
     if (d_helmholtz_solver->getNumIterations() == d_helmholtz_solver->getMaxIterations())

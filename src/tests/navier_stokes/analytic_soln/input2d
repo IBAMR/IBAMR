@@ -6,14 +6,14 @@ MC_LIMITED = 2
 MUSCL_LIMITED = 3
 
 // physical parameters
-MU = 0.0001
+MU = 1.0e-12
 RHO = 1.0
 
 // grid spacing parameters
 MAX_LEVELS = 2   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 // exact solution function expressions
@@ -43,6 +43,8 @@ INSHierarchyIntegrator {
 
    enable_logging = TRUE
 
+   dt_max = 1.0/(4.0*NFINEST)
+
    tag_buffer = 1
 
    conservation_form = FALSE
@@ -56,9 +58,9 @@ INSHierarchyIntegrator {
 
    output_Omega = TRUE
 
-   output_Div_U = FALSE
-   output_Div_u = FALSE
-   output_Div_u_adv = FALSE
+   output_Div_U = TRUE
+   output_Div_u = TRUE
+   output_Div_u_adv = TRUE
 
    mu  = MU
    rho = RHO
