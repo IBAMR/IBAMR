@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <30.Apr.2008 23:45:24 griffith@box230.cims.nyu.edu>
+// Last modified: <02.May.2008 22:18:58 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -21,6 +21,7 @@
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
 
 // IBTK INCLUDES
+#include <ibtk/CartSideDoubleCubicCoarsenOperator.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
@@ -590,8 +591,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     const SAMRAI::hier::IntVector<NDIM> cell_ghosts = CELLG;
     const SAMRAI::hier::IntVector<NDIM> side_ghosts = SIDEG;
-    const SAMRAI::hier::IntVector<NDIM> gadvect_velocity_ghosts = GADVECTG;
-    const SAMRAI::hier::IntVector<NDIM> gadvect_force_ghosts = NUM_GODUNOV_CYCLES;
+    const SAMRAI::hier::IntVector<NDIM> gadvect_velocity_ghosts = std::max(GADVECTG,SIDEG);
+    const SAMRAI::hier::IntVector<NDIM> gadvect_force_ghosts    = std::max(GADVECTG,SIDEG);
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
     registerVariable(d_U_current_idx, d_U_new_idx, d_U_scratch_idx,
@@ -1107,7 +1108,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
         helmholtz_operator->setPoissonSpecifications(helmholtz_spec);
         //helmholtz_operator->setPhysicalBcCoefs(U_bc_coefs);  // XXXX
-        helmholtz_operator->setHomogeneousBc(false);
+        helmholtz_operator->setHomogeneousBc(false);  // XXXX
         helmholtz_operator->setTime(new_time);
         helmholtz_operator->setHierarchyMathOps(d_hier_math_ops);
 
@@ -1197,6 +1198,12 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         }
     }
 
+    // Synchronize new state data.
+    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    {
+        d_cscheds["SYNCH_NEW_STATE_DATA"][ln]->coarsenData();
+    }
+
     // Compute the cell-centered approximation to u^{n+1} (used for
     // visualization only).
     reinterpolateVelocity(getNewContext());
@@ -1232,9 +1239,8 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Compute Div U.
     d_hier_math_ops->div(
         d_Div_U_new_idx, d_Div_U_var,
-        1.0, d_U_scratch_idx, d_U_var, d_no_fill_op, new_time, false,
-        0.0, -1, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >(NULL),
-        0, 0);
+        1.0, d_U_scratch_idx, d_U_var,
+        d_no_fill_op, new_time, false);
 #if 0
     // Compute the kinetic energy of the fluid.
     SAMRAI::tbox::pout << "\nkinetic energy = " << 0.5*d_rho*d_hier_cc_data_ops->dot(d_U_cc_new_idx, d_U_cc_new_idx, d_wgt_cc_idx) << std::endl;
@@ -2205,6 +2211,7 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
         level->allocatePatchData(d_gadvect_F_scratch_idx, current_time);
     }
 
+#if 1
     // Setup communications schedules and fill velocity boundary data.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator;
@@ -2224,6 +2231,15 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
         ralg->resetSchedule(d_rscheds[ralg_name][ln]);
         d_rscheds[ralg_name][ln]->fillData(current_time);
         d_ralgs[ralg_name]->resetSchedule(d_rscheds[ralg_name][ln]);
+
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_data = patch->getPatchData(U_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > gadvect_U_data = patch->getPatchData(d_gadvect_U_scratch_idx);
+            gadvect_U_data->copyOnBox(*U_data,patch->getBox());
+        }
     }
 
     // Setup right-hand-side terms for velocity extrapolation.
@@ -2245,7 +2261,64 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
         static const std::string ralg_name = "gadvect_F_scratch_bdry_fill";
         d_rscheds[ralg_name][ln]->fillData(current_time);
     }
+#else
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg;
 
+    // XXXX: Fill velocity boundary data.
+    InterpolationTransactionComponent gadvect_U_scratch_component(d_gadvect_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> gadvect_U_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    gadvect_U_scratch_bdry_fill_op->initializeOperatorState(gadvect_U_scratch_component, d_hierarchy);
+
+    d_hier_sc_data_ops->copyData(d_gadvect_U_scratch_idx, U_idx);
+    gadvect_U_scratch_bdry_fill_op->fillData(current_time);
+
+    coarsen_op = new IBTK::CartSideDoubleCubicCoarsenOperator();
+    coarsen_alg = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
+    coarsen_alg->registerCoarsen(d_gadvect_U_scratch_idx,   // destination
+                                 d_gadvect_U_scratch_idx,   // source
+                                 coarsen_op);
+    for (int src_ln = finest_ln; src_ln >= coarsest_ln+1; --src_ln)
+    {
+        const int dst_ln = src_ln-1;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > src_level = d_hierarchy->getPatchLevel(src_ln);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = d_hierarchy->getPatchLevel(dst_ln);
+        coarsen_alg->createSchedule(dst_level,src_level)->coarsenData();
+    }
+
+    // Setup right-hand-side terms for velocity extrapolation.
+    SAMRAI::solv::PoissonSpecifications gadvect_rhs_spec(d_object_name+"::gadvect_rhs_spec");
+    gadvect_rhs_spec.setCConstant(-d_lambda/d_rho);
+    gadvect_rhs_spec.setDConstant(+d_mu    /d_rho);
+    d_hier_math_ops->laplace(
+        d_gadvect_F_scratch_idx, d_gadvect_F_var,
+        gadvect_rhs_spec,
+        d_gadvect_U_scratch_idx, d_gadvect_U_var,
+        d_no_fill_op, current_time,
+        -1.0/d_rho,
+        Grad_P_idx, d_Grad_P_var);
+    d_hier_sc_data_ops->add(d_gadvect_F_scratch_idx, d_gadvect_F_scratch_idx, F_idx);
+
+    // XXXX: Fill force boundary data.
+    InterpolationTransactionComponent gadvect_F_scratch_component(d_gadvect_F_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> gadvect_F_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    gadvect_F_scratch_bdry_fill_op->initializeOperatorState(gadvect_F_scratch_component, d_hierarchy);
+    gadvect_F_scratch_bdry_fill_op->fillData(current_time);
+
+    coarsen_op = new IBTK::CartSideDoubleCubicCoarsenOperator();
+    coarsen_alg = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
+    coarsen_alg->registerCoarsen(d_gadvect_F_scratch_idx,   // destination
+                                 d_gadvect_F_scratch_idx,   // source
+                                 coarsen_op);
+    for (int src_ln = finest_ln; src_ln >= coarsest_ln+1; --src_ln)
+    {
+        const int dst_ln = src_ln-1;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > src_level = d_hierarchy->getPatchLevel(src_ln);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = d_hierarchy->getPatchLevel(dst_ln);
+        coarsen_alg->createSchedule(dst_level,src_level)->coarsenData();
+    }
+#endif
     // Compute the convective derivative.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
