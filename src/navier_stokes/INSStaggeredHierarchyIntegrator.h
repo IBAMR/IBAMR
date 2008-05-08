@@ -2,13 +2,14 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <29.Apr.2008 16:27:04 griffith@box230.cims.nyu.edu>
+// Last modified: <08.May.2008 02:12:29 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/HierarchyProjector.h>
+#include <ibamr/INSStaggeredNonlinearOperator.h>
 
 // IBTK INCLUDES
 #include <ibtk/HierarchyMathOps.h>
@@ -653,6 +654,8 @@ protected:
         const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0));
 
 private:
+    friend class INSStaggeredNonlinearOperator;
+
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;
     typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* >                                 RefinePatchStrategyMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineSchedMap;
@@ -698,10 +701,7 @@ private:
     computeConvectiveDerivative(
         const int& N_idx,
         const int& U_idx,
-        const int& F_idx,
-        const int& Grad_P_idx,
-        const double current_time,
-        const double new_time,
+        const double data_time,
         const bool conservation_form);
 
     /*!
@@ -990,9 +990,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_Grad_P_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_gadvect_U_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_gadvect_F_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -1017,7 +1015,7 @@ private:
      *
      * Scratch variables have only one context.
      */
-    int d_Grad_P_scratch_idx, d_gadvect_U_scratch_idx, d_gadvect_F_scratch_idx;
+    int d_gadvect_U_scratch_idx;
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
@@ -1030,7 +1028,7 @@ private:
     /*
      * Patch boundary filling operators.
      */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_scratch_bdry_fill_op, d_U_scratch_bdry_fill_op, d_P_scratch_bdry_fill_op, d_rhs_bdry_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_scratch_bdry_fill_op, d_U_scratch_bdry_fill_op, d_P_scratch_bdry_fill_op;
 };
 }// namespace IBAMR
 

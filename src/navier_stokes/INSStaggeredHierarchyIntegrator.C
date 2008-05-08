@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <02.May.2008 22:18:58 griffith@box230.cims.nyu.edu>
+// Last modified: <08.May.2008 15:00:04 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -18,12 +18,14 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSStaggeredLinearOperator.h>
+#include <ibamr/INSStaggeredNonlinearOperator.h>
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartSideDoubleCubicCoarsenOperator.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
+#include <ibtk/PETScNewtonKrylovSolver.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/SCLaplaceOperator.h>
 
@@ -43,7 +45,7 @@
 #if (NDIM == 2)
 #define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
 #define CONVECT_DERIVATIVE_F77 F77_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
-#define GODUNOV_PREDICT_WITH_SOURCE_F77 F77_FUNC_(godunov_predict_with_source2d, GODUNOV_PREDICT_WITH_SOURCE2D)
+#define GODUNOV_PREDICT_F77 F77_FUNC_(godunov_predict2d, GODUNOV_PREDICT2D)
 #define NAVIER_STOKES_INTERP_COMPS_F77 F77_FUNC_(navier_stokes_interp_comps2d, NAVIER_STOKES_INTERP_COMPS2D)
 #define NAVIER_STOKES_RESET_ADV_VELOCITY_F77 F77_FUNC_(navier_stokes_reset_adv_velocity2d, NAVIER_STOKES_RESET_ADV_VELOCITY2D)
 #define NAVIER_STOKES_SC_STABLEDT_F77 F77_FUNC_(navier_stokes_sc_stabledt2d, NAVIER_STOKES_SC_STABLEDT2D)
@@ -52,7 +54,7 @@
 #if (NDIM == 3)
 #define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
 #define CONVECT_DERIVATIVE_F77 F77_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
-#define GODUNOV_PREDICT_WITH_SOURCE_F77 F77_FUNC_(godunov_predict_with_source3d, GODUNOV_PREDICT_WITH_SOURCE3D)
+#define GODUNOV_PREDICT_F77 F77_FUNC_(godunov_predict3d, GODUNOV_PREDICT3D)
 #define NAVIER_STOKES_INTERP_COMPS_F77 F77_FUNC_(navier_stokes_interp_comps3d, NAVIER_STOKES_INTERP_COMPS3D)
 #define NAVIER_STOKES_RESET_ADV_VELOCITY_F77 F77_FUNC_(navier_stokes_reset_adv_velocity3d, NAVIER_STOKES_RESET_ADV_VELOCITY3D)
 #define NAVIER_STOKES_SC_STABLEDT_F77 F77_FUNC_(navier_stokes_sc_stabledt3d, NAVIER_STOKES_SC_STABLEDT3D)
@@ -107,7 +109,7 @@ extern "C"
                            );
 
     void
-    GODUNOV_PREDICT_WITH_SOURCE_F77(
+    GODUNOV_PREDICT_F77(
         const double* , const double& ,
 #if (NDIM == 3)
         const unsigned int& ,
@@ -115,9 +117,7 @@ extern "C"
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
-        const int& , const int& ,
         const double* , double* , double* , double* , double* ,
-        const double* , double* ,
         const int& , const int& ,
         const int& , const int& ,
         const double* , const double* ,
@@ -127,9 +127,7 @@ extern "C"
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
         const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
         const double* , double* , double* , double* , double* , double* ,
-        const double* , double* , double* ,
         const int& , const int& , const int& ,
         const int& , const int& , const int& ,
         const double* , const double* , const double* ,
@@ -249,8 +247,7 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 // depends on the number of cycles we perform and the order of the
 // reconstruction.  These values were chosen to work with xsPPM7 (the modified
 // piecewise parabolic method of Rider, Greenough, and Kamm).
-static const int NUM_GODUNOV_CYCLES = 2;
-static const int GADVECTG = NUM_GODUNOV_CYCLES+3;
+static const int GADVECTG = 4;
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
@@ -576,9 +573,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_Omega_Norm_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::||Omega||_2");
 #endif
     d_Div_U_var      = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Div_U"      );
-    d_Grad_P_var     = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::Grad_P"     );
     d_gadvect_U_var  = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::gadvect_U"  );
-    d_gadvect_F_var  = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::gadvect_F"  );
 
     // Create the default communication algorithms.
     d_fill_after_regrid = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
@@ -592,7 +587,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     const SAMRAI::hier::IntVector<NDIM> cell_ghosts = CELLG;
     const SAMRAI::hier::IntVector<NDIM> side_ghosts = SIDEG;
     const SAMRAI::hier::IntVector<NDIM> gadvect_velocity_ghosts = std::max(GADVECTG,SIDEG);
-    const SAMRAI::hier::IntVector<NDIM> gadvect_force_ghosts    = std::max(GADVECTG,SIDEG);
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
     registerVariable(d_U_current_idx, d_U_new_idx, d_U_scratch_idx,
@@ -635,15 +629,9 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
 
-    // Register scratch variables that are maintained by the
-    // INSStaggeredHierarchyIntegrator.
-    registerVariable(d_Grad_P_scratch_idx, d_Grad_P_var, side_ghosts);
-
     // Register other scratch variables.
     d_gadvect_U_scratch_idx = var_db->registerVariableAndContext(
         d_gadvect_U_var, getScratchContext(), gadvect_velocity_ghosts);
-    d_gadvect_F_scratch_idx = var_db->registerVariableAndContext(
-        d_gadvect_F_var, getScratchContext(), gadvect_force_ghosts);
 
     // Register variables for plotting.
     if (!d_visit_writer.isNull())
@@ -712,21 +700,12 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     ralg_name = "gadvect_U_scratch_bdry_fill";
     d_ralgs[ralg_name] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_gadvect_U_var, "CONSTANT_REFINE");
+    refine_operator = grid_geom->lookupRefineOperator(d_gadvect_U_var, "CONSERVATIVE_LINEAR_REFINE");
     d_ralgs[ralg_name]->registerRefine(d_gadvect_U_scratch_idx, // destination
-                                       d_U_current_idx,         // source
+                                       d_U_scratch_idx,         // source
                                        d_gadvect_U_scratch_idx, // temporary work space
                                        refine_operator);
     d_rstrategies[ralg_name] = new IBTK::CartExtrapPhysBdryOp(d_gadvect_U_scratch_idx, BDRY_EXTRAP_TYPE);
-
-    ralg_name = "gadvect_F_scratch_bdry_fill";
-    d_ralgs[ralg_name] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_gadvect_F_var, "CONSTANT_REFINE");
-    d_ralgs[ralg_name]->registerRefine(d_gadvect_F_scratch_idx, // destination
-                                       d_gadvect_F_scratch_idx, // source
-                                       d_gadvect_F_scratch_idx, // temporary work space
-                                       refine_operator);
-    d_rstrategies[ralg_name] = new IBTK::CartExtrapPhysBdryOp(d_gadvect_F_scratch_idx, BDRY_EXTRAP_TYPE);
 
     // Setup the Hierarchy math operations object.
     d_hier_math_ops = new IBTK::HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy);
@@ -1020,6 +999,27 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         level->allocatePatchData(d_new_data    ,     new_time);
     }
 
+    // Setup the solver vectors.
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_scratch_vec, U_rhs_vec;
+    U_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+        d_object_name+"::U_scratch_vec", d_hierarchy, 0, finest_ln);
+    U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
+    U_rhs_vec = U_scratch_vec->cloneVector(d_object_name+"::U_rhs_vec");
+    U_rhs_vec->allocateVectorData(current_time);
+    const int U_rhs_idx = U_rhs_vec->getComponentDescriptorIndex(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_rhs_var = U_rhs_vec->getComponentVariable(0);
+    d_hier_sc_data_ops->setToScalar(U_rhs_idx,0.0);
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_scratch_vec, P_rhs_vec;
+    P_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+        d_object_name+"::P_scratch_vec", d_hierarchy, 0, finest_ln);
+    P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+    P_rhs_vec = P_scratch_vec->cloneVector(d_object_name+"::P_rhs_vec");
+    P_rhs_vec->allocateVectorData(current_time);
+    const int P_rhs_idx = P_rhs_vec->getComponentDescriptorIndex(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_rhs_var = P_rhs_vec->getComponentVariable(0);
+    d_hier_cc_data_ops->setToScalar(P_rhs_idx,0.0);
+
     const int num_cycles = initial_time ? d_num_init_cycles : d_num_cycles;
     for (int cycle = 0; cycle < num_cycles; ++cycle)
     {
@@ -1032,45 +1032,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
             SAMRAI::tbox::plog << "++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
         }
 
-        // Setup the solver vectors.
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_scratch_vec, U_rhs_vec;
-        U_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-            d_object_name+"::U_scratch_vec", d_hierarchy, 0, finest_ln);
-        U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
-        U_rhs_vec = U_scratch_vec->cloneVector(d_object_name+"::U_rhs_vec");
-        U_rhs_vec->allocateVectorData(current_time);
-        const int U_rhs_idx = U_rhs_vec->getComponentDescriptorIndex(0);
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_rhs_var = U_rhs_vec->getComponentVariable(0);
-        d_hier_sc_data_ops->setToScalar(U_rhs_idx,0.0);
-
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_scratch_vec, P_rhs_vec;
-        P_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-            d_object_name+"::P_scratch_vec", d_hierarchy, 0, finest_ln);
-        P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
-        P_rhs_vec = P_scratch_vec->cloneVector(d_object_name+"::P_rhs_vec");
-        P_rhs_vec->allocateVectorData(current_time);
-        const int P_rhs_idx = P_rhs_vec->getComponentDescriptorIndex(0);
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_rhs_var = P_rhs_vec->getComponentVariable(0);
-        d_hier_cc_data_ops->setToScalar(P_rhs_idx,0.0);
-
         // Initialize the right-hand side terms.
-        static const bool Grad_P_scratch_cf_bdry_synch = true;
-        d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_current_idx);
-        d_P_scratch_bdry_fill_op->resetTransactionComponent(P_scratch_component);
-        d_hier_math_ops->grad(
-            d_Grad_P_scratch_idx, d_Grad_P_var,
-            Grad_P_scratch_cf_bdry_synch,
-            1.0,
-            d_P_scratch_idx, d_P_var,
-            d_P_scratch_bdry_fill_op, current_time);
-
-        computeConvectiveDerivative(
-            U_rhs_idx,
-            d_U_current_idx,
-            d_F_current_idx,
-            d_Grad_P_scratch_idx,
-            current_time, new_time, d_conservation_form);
-
         SAMRAI::solv::PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec");
         rhs_spec.setCConstant((d_rho/dt)-0.5*d_lambda);
         rhs_spec.setDConstant(          +0.5*d_mu    );
@@ -1080,10 +1042,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
             U_rhs_idx, U_rhs_var,
             rhs_spec,
             d_U_scratch_idx, d_U_var,
-            d_U_scratch_bdry_fill_op, current_time,
-            -d_rho,
-            U_rhs_idx, U_rhs_var);
-
+            d_U_scratch_bdry_fill_op, current_time);
         if (!d_F_set.isNull())
         {
             if (d_F_set->isTimeDependent())
@@ -1114,7 +1073,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
         SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
             d_object_name+"::PETSc Krylov solver", "adv_diff_");
-        helmholtz_solver->setInitialGuessNonzero(true);
+        helmholtz_solver->setInitialGuessNonzero(false);
         helmholtz_solver->setOperator(helmholtz_operator);
 
         // Reset the solution, rhs, and nullspace vectors.
@@ -1147,19 +1106,29 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
             current_time, new_time,
             d_hier_math_ops, d_U_P_scratch_bdry_fill_op);
 
-        // Setup the linear solver.
-        SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> linear_solver = new IBTK::PETScKrylovLinearSolver(
-            d_object_name+"::linear_solver", "ins_");
-        linear_solver->setInitialGuessNonzero(false);
-        linear_solver->setOperator(linear_op);
-        linear_solver->initializeSolverState(*sol_vec,*rhs_vec);
+        // Setup the nonlinear operator.
+        SAMRAI::tbox::Pointer<IBTK::GeneralOperator> nonlinear_op = new INSStaggeredNonlinearOperator(
+            d_conservation_form,
+            d_U_current_idx,
+            d_rho, d_mu, d_lambda,
+            current_time, new_time,
+            this, linear_op,
+            d_hier_cc_data_ops, d_hier_sc_data_ops);
+
+        // Setup the nonlinear solver.
+        SAMRAI::tbox::Pointer<IBTK::PETScNewtonKrylovSolver> nonlinear_solver = new IBTK::PETScNewtonKrylovSolver(
+            d_object_name+"::nonlinear_solver", "ins_");
+        nonlinear_solver->setOperator(nonlinear_op);
+        nonlinear_solver->initializeSolverState(*sol_vec,*rhs_vec);
         if (d_normalize_pressure)
         {
-            KSP petsc_ksp = linear_solver->getPETScKSP();
+            SNES petsc_snes = nonlinear_solver->getPETScSNES();
+            KSP petsc_ksp;
+            ierr = SNESGetKSP(petsc_snes, &petsc_ksp); IBTK_CHKERRQ(ierr);
             ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
         }
 
-        static const std::string projection_type = "pressure_increment"; //"pressure_update";
+        static const std::string projection_type = "pressure_increment";
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> pc_op = new INSStaggeredProjectionPreconditioner(
             projection_type,
             d_rho, d_mu, d_lambda,
@@ -1168,11 +1137,12 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
             helmholtz_solver, d_hier_projector,
             d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops,
             d_P_scratch_bdry_fill_op);
-        linear_solver->setPreconditioner(pc_op);
+        nonlinear_solver->getLinearSolver()->setPreconditioner(pc_op);
 
         // Solve system.
-        //linear_solver->solveSystem(*sol_vec,*rhs_vec);
-        pc_op->solveSystem(*sol_vec,*rhs_vec);
+        d_hier_sc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(0), (cycle == 0 ? d_U_current_idx : d_U_new_idx));
+        d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(1), (cycle == 0 ? d_P_current_idx : d_P_new_idx));
+        nonlinear_solver->solveSystem(*sol_vec,*rhs_vec);
 
         // Pull out solution components.
         d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
@@ -1186,8 +1156,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         }
 
         // Deallocate scratch data.
-        U_rhs_vec->deallocateVectorData();
-        P_rhs_vec->deallocateVectorData();
         nul_vec->deallocateVectorData();
 
         // Reset the value the current estimate of the pressure when performing
@@ -1241,10 +1209,14 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_Div_U_new_idx, d_Div_U_var,
         1.0, d_U_scratch_idx, d_U_var,
         d_no_fill_op, new_time, false);
-#if 0
+#if 1
     // Compute the kinetic energy of the fluid.
     SAMRAI::tbox::pout << "\nkinetic energy = " << 0.5*d_rho*d_hier_cc_data_ops->dot(d_U_cc_new_idx, d_U_cc_new_idx, d_wgt_cc_idx) << std::endl;
 #endif
+    // Deallocate scratch data.
+    U_rhs_vec->deallocateVectorData();
+    P_rhs_vec->deallocateVectorData();
+
     t_integrate_hierarchy->stop();
     return getStableTimestep(getNewContext());
 }// integrateHierarchy
@@ -1442,13 +1414,11 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
         level->allocatePatchData(d_scratch_data, init_data_time);
 
         IBTK::CartExtrapPhysBdryOp fill_after_regrid_bc_op(d_fill_after_regrid_bc_idxs, BDRY_EXTRAP_TYPE);
-        d_fill_after_regrid->
-            createSchedule(level,
-                           old_level,
-                           level_number-1,
-                           hierarchy,
-                           &fill_after_regrid_bc_op)->fillData(init_data_time);
-
+        d_fill_after_regrid->createSchedule(level,
+                                            old_level,
+                                            level_number-1,
+                                            hierarchy,
+                                            &fill_after_regrid_bc_op)->fillData(init_data_time);
         level->deallocatePatchData(d_scratch_data);
     }
 
@@ -1690,7 +1660,6 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
     InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
-    InterpolationTransactionComponent rhs_component(d_Grad_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
 
     std::vector<InterpolationTransactionComponent> U_P_scratch_components(2);
     U_P_scratch_components[0] = U_scratch_component;
@@ -1704,9 +1673,6 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
 
     d_P_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_P_scratch_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
-
-    d_rhs_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    d_rhs_bdry_fill_op->initializeOperatorState(rhs_component, d_hierarchy);
 
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
@@ -2193,135 +2159,39 @@ void
 INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
     const int& N_idx,
     const int& U_idx,
-    const int& F_idx,
-    const int& Grad_P_idx,
-    const double current_time,
-    const double new_time,
+    const double data_time,
     const bool conservation_form)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = new_time - current_time;
+    double dt = 0.0;
 
     // Allocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_gadvect_U_scratch_idx, current_time);
-        level->allocatePatchData(d_gadvect_F_scratch_idx, current_time);
+        level->allocatePatchData(d_gadvect_U_scratch_idx, data_time);
     }
 
-#if 1
     // Setup communications schedules and fill velocity boundary data.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator;
-
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator = grid_geom->lookupRefineOperator(d_gadvect_U_var, "CONSERVATIVE_LINEAR_REFINE");
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-
-    refine_operator = grid_geom->lookupRefineOperator(
-        d_gadvect_U_var, "CONSTANT_REFINE");
     ralg->registerRefine(d_gadvect_U_scratch_idx, // destination
                          U_idx,                   // source
                          d_gadvect_U_scratch_idx, // temporary work space
                          refine_operator);
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        static const std::string ralg_name = "gadvect_U_scratch_bdry_fill";
-        ralg->resetSchedule(d_rscheds[ralg_name][ln]);
-        d_rscheds[ralg_name][ln]->fillData(current_time);
-        d_ralgs[ralg_name]->resetSchedule(d_rscheds[ralg_name][ln]);
-
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_data = patch->getPatchData(U_idx);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > gadvect_U_data = patch->getPatchData(d_gadvect_U_scratch_idx);
-            gadvect_U_data->copyOnBox(*U_data,patch->getBox());
-        }
-    }
-
-    // Setup right-hand-side terms for velocity extrapolation.
-    SAMRAI::solv::PoissonSpecifications gadvect_rhs_spec(d_object_name+"::gadvect_rhs_spec");
-    gadvect_rhs_spec.setCConstant(-d_lambda/d_rho);
-    gadvect_rhs_spec.setDConstant(+d_mu    /d_rho);
-    d_hier_math_ops->laplace(
-        d_gadvect_F_scratch_idx, d_gadvect_F_var,
-        gadvect_rhs_spec,
-        d_gadvect_U_scratch_idx, d_gadvect_U_var,
-        d_no_fill_op, current_time,
-        -1.0/d_rho,
-        Grad_P_idx, d_Grad_P_var);
-    d_hier_sc_data_ops->add(d_gadvect_F_scratch_idx, d_gadvect_F_scratch_idx, F_idx);
-
-    // Fill right-hand-side boundary conditions.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        static const std::string ralg_name = "gadvect_F_scratch_bdry_fill";
-        d_rscheds[ralg_name][ln]->fillData(current_time);
-    }
-#else
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg;
-
-    // XXXX: Fill velocity boundary data.
-    InterpolationTransactionComponent gadvect_U_scratch_component(d_gadvect_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> gadvect_U_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    gadvect_U_scratch_bdry_fill_op->initializeOperatorState(gadvect_U_scratch_component, d_hierarchy);
-
-    d_hier_sc_data_ops->copyData(d_gadvect_U_scratch_idx, U_idx);
-    gadvect_U_scratch_bdry_fill_op->fillData(current_time);
-
-    coarsen_op = new IBTK::CartSideDoubleCubicCoarsenOperator();
-    coarsen_alg = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
-    coarsen_alg->registerCoarsen(d_gadvect_U_scratch_idx,   // destination
-                                 d_gadvect_U_scratch_idx,   // source
-                                 coarsen_op);
-    for (int src_ln = finest_ln; src_ln >= coarsest_ln+1; --src_ln)
-    {
-        const int dst_ln = src_ln-1;
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > src_level = d_hierarchy->getPatchLevel(src_ln);
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = d_hierarchy->getPatchLevel(dst_ln);
-        coarsen_alg->createSchedule(dst_level,src_level)->coarsenData();
-    }
-
-    // Setup right-hand-side terms for velocity extrapolation.
-    SAMRAI::solv::PoissonSpecifications gadvect_rhs_spec(d_object_name+"::gadvect_rhs_spec");
-    gadvect_rhs_spec.setCConstant(-d_lambda/d_rho);
-    gadvect_rhs_spec.setDConstant(+d_mu    /d_rho);
-    d_hier_math_ops->laplace(
-        d_gadvect_F_scratch_idx, d_gadvect_F_var,
-        gadvect_rhs_spec,
-        d_gadvect_U_scratch_idx, d_gadvect_U_var,
-        d_no_fill_op, current_time,
-        -1.0/d_rho,
-        Grad_P_idx, d_Grad_P_var);
-    d_hier_sc_data_ops->add(d_gadvect_F_scratch_idx, d_gadvect_F_scratch_idx, F_idx);
-
-    // XXXX: Fill force boundary data.
-    InterpolationTransactionComponent gadvect_F_scratch_component(d_gadvect_F_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> gadvect_F_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    gadvect_F_scratch_bdry_fill_op->initializeOperatorState(gadvect_F_scratch_component, d_hierarchy);
-    gadvect_F_scratch_bdry_fill_op->fillData(current_time);
-
-    coarsen_op = new IBTK::CartSideDoubleCubicCoarsenOperator();
-    coarsen_alg = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
-    coarsen_alg->registerCoarsen(d_gadvect_F_scratch_idx,   // destination
-                                 d_gadvect_F_scratch_idx,   // source
-                                 coarsen_op);
-    for (int src_ln = finest_ln; src_ln >= coarsest_ln+1; --src_ln)
-    {
-        const int dst_ln = src_ln-1;
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > src_level = d_hierarchy->getPatchLevel(src_ln);
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = d_hierarchy->getPatchLevel(dst_ln);
-        coarsen_alg->createSchedule(dst_level,src_level)->coarsenData();
-    }
-#endif
     // Compute the convective derivative.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
+        // Commuincate boundary data.
+        static const std::string ralg_name = "gadvect_U_scratch_bdry_fill";
+        ralg->resetSchedule(d_rscheds[ralg_name][ln]);
+        d_rscheds[ralg_name][ln]->fillData(data_time);
+        d_ralgs[ralg_name]->resetSchedule(d_rscheds[ralg_name][ln]);
+
+        // Compute convective derivative.
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -2330,25 +2200,12 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            static const SAMRAI::hier::IntVector<NDIM> growth_factor = NUM_GODUNOV_CYCLES-1;
-
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            const SAMRAI::hier::Box<NDIM>& grown_patch_box = SAMRAI::hier::Box<NDIM>::grow(patch_box,growth_factor);
-            const SAMRAI::hier::IntVector<NDIM>& grown_patch_lower = grown_patch_box.lower();
-            const SAMRAI::hier::IntVector<NDIM>& grown_patch_upper = grown_patch_box.upper();
+            const SAMRAI::hier::IntVector<NDIM>& patch_lower = patch_box.lower();
+            const SAMRAI::hier::IntVector<NDIM>& patch_upper = patch_box.upper();
 
             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > N_data = patch->getPatchData(N_idx);
             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_data = patch->getPatchData(d_gadvect_U_scratch_idx);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_data = patch->getPatchData(d_gadvect_F_scratch_idx);
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > N_grown_data =
-                new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,N_data->getDepth(),N_data->getGhostCellWidth());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_grown_data =
-                new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,U_data->getDepth(),U_data->getGhostCellWidth());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_grown_data =
-                new SAMRAI::pdat::SideData<NDIM,double>(grown_patch_box,F_data->getDepth(),F_data->getGhostCellWidth());
-            U_grown_data->copy(*U_data);
-            F_grown_data->copy(*F_data);
 
             const SAMRAI::hier::IntVector<NDIM> ghosts = SAMRAI::hier::IntVector<NDIM>(GADVECTG);
             SAMRAI::hier::Box<NDIM> side_boxes[NDIM];
@@ -2356,16 +2213,16 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > U_half_data[NDIM];
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                side_boxes [axis] = SAMRAI::pdat::SideGeometry<NDIM>::toSideBox(grown_patch_box,axis);
+                side_boxes [axis] = SAMRAI::pdat::SideGeometry<NDIM>::toSideBox(patch_box,axis);
                 U_adv_data [axis] = new SAMRAI::pdat::FaceData<NDIM,double>(side_boxes[axis],1,ghosts);
                 U_half_data[axis] = new SAMRAI::pdat::FaceData<NDIM,double>(side_boxes[axis],1,ghosts);
             }
 #if (NDIM == 2)
             NAVIER_STOKES_INTERP_COMPS_F77(
-                grown_patch_lower(0), grown_patch_upper(0),
-                grown_patch_lower(1), grown_patch_upper(1),
-                U_grown_data->getGhostCellWidth()(0),   U_grown_data->getGhostCellWidth()(1),
-                U_grown_data->getPointer(0),            U_grown_data->getPointer(1),
+                patch_lower(0), patch_upper(0),
+                patch_lower(1), patch_upper(1),
+                U_data->getGhostCellWidth()(0),         U_data->getGhostCellWidth()(1),
+                U_data->getPointer(0),                  U_data->getPointer(1),
                 side_boxes[0].lower(0),                 side_boxes[0].upper(0),
                 side_boxes[0].lower(1),                 side_boxes[0].upper(1),
                 U_adv_data[0]->getGhostCellWidth()(0),  U_adv_data[0]->getGhostCellWidth()(1),
@@ -2377,11 +2234,11 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
 #endif
 #if (NDIM == 3)
             NAVIER_STOKES_INTERP_COMPS_F77(
-                grown_patch_lower(0), grown_patch_upper(0),
-                grown_patch_lower(1), grown_patch_upper(1),
-                grown_patch_lower(2), grown_patch_upper(2),
-                U_grown_data->getGhostCellWidth()(0),   U_grown_data->getGhostCellWidth()(1),   U_grown_data->getGhostCellWidth()(2),
-                U_grown_data->getPointer(0),            U_grown_data->getPointer(1),            U_grown_data->getPointer(2),
+                patch_lower(0), patch_upper(0),
+                patch_lower(1), patch_upper(1),
+                patch_lower(2), patch_upper(2),
+                U_data->getGhostCellWidth()(0),         U_data->getGhostCellWidth()(1),         U_data->getGhostCellWidth()(2),
+                U_data->getPointer(0),                  U_data->getPointer(1),                  U_data->getPointer(2),
                 side_boxes[0].lower(0),                 side_boxes[0].upper(0),
                 side_boxes[0].lower(1),                 side_boxes[0].upper(1),
                 side_boxes[0].lower(2),                 side_boxes[0].upper(2),
@@ -2398,105 +2255,93 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                 U_adv_data[2]->getGhostCellWidth()(0),  U_adv_data[2]->getGhostCellWidth()(1),  U_adv_data[2]->getGhostCellWidth()(2),
                 U_adv_data[2]->getPointer(0),           U_adv_data[2]->getPointer(1),           U_adv_data[2]->getPointer(2));
 #endif
-            for (int count = 0; count < NUM_GODUNOV_CYCLES; ++count)
+            for (int axis = 0; axis < NDIM; ++axis)
             {
-                for (int axis = 0; axis < NDIM; ++axis)
-                {
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > dU_grown_data =
-                        new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_L_grown_data =
-                        new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_R_grown_data =
-                        new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_grown_scratch1_data =
-                        new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_grown_scratch1_data =
-                        new SAMRAI::pdat::SideData<NDIM,double>(F_grown_data->getBox(), F_grown_data->getDepth(), F_grown_data->getGhostCellWidth());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > dU_data =
+                    new SAMRAI::pdat::SideData<NDIM,double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_L_data =
+                    new SAMRAI::pdat::SideData<NDIM,double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_R_data =
+                    new SAMRAI::pdat::SideData<NDIM,double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_scratch1_data =
+                    new SAMRAI::pdat::SideData<NDIM,double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #if (NDIM == 3)
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_grown_scratch2_data =
-                        new SAMRAI::pdat::SideData<NDIM,double>(U_grown_data->getBox(), U_grown_data->getDepth(), U_grown_data->getGhostCellWidth());
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_grown_scratch2_data =
-                        new SAMRAI::pdat::SideData<NDIM,double>(F_grown_data->getBox(), F_grown_data->getDepth(), F_grown_data->getGhostCellWidth());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_scratch2_data =
+                    new SAMRAI::pdat::SideData<NDIM,double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #endif
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > U_half_scratch_data =
-                        new SAMRAI::pdat::FaceData<NDIM,double>( U_half_data[axis]->getBox(), U_half_data[axis]->getDepth(), U_half_data[axis]->getGhostCellWidth());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > U_half_scratch_data =
+                    new SAMRAI::pdat::FaceData<NDIM,double>( U_half_data[axis]->getBox(), U_half_data[axis]->getDepth(), U_half_data[axis]->getGhostCellWidth());
 #if (NDIM == 2)
-                    GODUNOV_PREDICT_WITH_SOURCE_F77(
-                        dx, dt,
-                        side_boxes[axis].lower(0), side_boxes[axis].upper(0),
-                        side_boxes[axis].lower(1), side_boxes[axis].upper(1),
-                        U_grown_data->getGhostCellWidth()(0), U_grown_data->getGhostCellWidth()(1),
-                        F_grown_data->getGhostCellWidth()(0), F_grown_data->getGhostCellWidth()(1),
-                        U_grown_data       ->getPointer(axis),       U_grown_scratch1_data->getPointer(axis),
-                        dU_grown_data      ->getPointer(axis),       U_L_grown_data       ->getPointer(axis),       U_R_grown_data->getPointer(axis),
-                        F_grown_data       ->getPointer(axis),       F_grown_scratch1_data->getPointer(axis),
-                        U_adv_data [axis]  ->getGhostCellWidth()(0), U_adv_data [axis]    ->getGhostCellWidth()(1),
-                        U_half_data[axis]  ->getGhostCellWidth()(0), U_half_data[axis]    ->getGhostCellWidth()(1),
-                        U_adv_data [axis]  ->getPointer(0),          U_adv_data [axis]    ->getPointer(1),
-                        U_half_scratch_data->getPointer(0),          U_half_scratch_data  ->getPointer(1),
-                        U_half_data[axis]  ->getPointer(0),          U_half_data[axis]    ->getPointer(1));
+                GODUNOV_PREDICT_F77(
+                    dx, dt,
+                    side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                    side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                    U_data->getGhostCellWidth()(0), U_data->getGhostCellWidth()(1),
+                    U_data       ->getPointer(axis),       U_scratch1_data->getPointer(axis),
+                    dU_data      ->getPointer(axis),       U_L_data       ->getPointer(axis),       U_R_data->getPointer(axis),
+                    U_adv_data [axis]  ->getGhostCellWidth()(0), U_adv_data [axis]    ->getGhostCellWidth()(1),
+                    U_half_data[axis]  ->getGhostCellWidth()(0), U_half_data[axis]    ->getGhostCellWidth()(1),
+                    U_adv_data [axis]  ->getPointer(0),          U_adv_data [axis]    ->getPointer(1),
+                    U_half_scratch_data->getPointer(0),          U_half_scratch_data  ->getPointer(1),
+                    U_half_data[axis]  ->getPointer(0),          U_half_data[axis]    ->getPointer(1));
 #endif
 #if (NDIM == 3)
-                    bool using_full_ctu = true;
-                    GODUNOV_PREDICT_WITH_SOURCE_F77(
-                        dx, dt,
-                        static_cast<unsigned int>(using_full_ctu),
-                        side_boxes[axis].lower(0), side_boxes[axis].upper(0),
-                        side_boxes[axis].lower(1), side_boxes[axis].upper(1),
-                        side_boxes[axis].lower(2), side_boxes[axis].upper(2),
-                        U_grown_data->getGhostCellWidth()(0), U_grown_data->getGhostCellWidth()(1), U_grown_data->getGhostCellWidth()(2),
-                        F_grown_data->getGhostCellWidth()(0), F_grown_data->getGhostCellWidth()(1), F_grown_data->getGhostCellWidth()(2),
-                        U_grown_data       ->getPointer(axis),       U_grown_scratch1_data->getPointer(axis),       U_grown_scratch2_data->getPointer(axis),
-                        dU_grown_data      ->getPointer(axis),       U_L_grown_data       ->getPointer(axis),       U_R_grown_data       ->getPointer(axis),
-                        F_grown_data       ->getPointer(axis),       F_grown_scratch1_data->getPointer(axis),       F_grown_scratch2_data->getPointer(axis),
-                        U_adv_data [axis]  ->getGhostCellWidth()(0), U_adv_data [axis]    ->getGhostCellWidth()(1), U_adv_data [axis]    ->getGhostCellWidth()(2),
-                        U_half_data[axis]  ->getGhostCellWidth()(0), U_half_data[axis]    ->getGhostCellWidth()(1), U_half_data[axis]    ->getGhostCellWidth()(2),
-                        U_adv_data [axis]  ->getPointer(0),          U_adv_data [axis]    ->getPointer(1),          U_adv_data [axis]    ->getPointer(2),
-                        U_half_scratch_data->getPointer(0),          U_half_scratch_data  ->getPointer(1),          U_half_scratch_data  ->getPointer(2),
-                        U_half_data[axis]  ->getPointer(0),          U_half_data[axis]    ->getPointer(1),          U_half_data[axis]    ->getPointer(2));
-#endif
-                }
-#if (NDIM == 2)
-                NAVIER_STOKES_RESET_ADV_VELOCITY_F77(
-                    side_boxes[0].lower(0), side_boxes[0].upper(0),
-                    side_boxes[0].lower(1), side_boxes[0].upper(1),
-                    U_adv_data [0]->getGhostCellWidth()(0), U_adv_data [0]->getGhostCellWidth()(1),
-                    U_adv_data [0]->getPointer(0),          U_adv_data [0]->getPointer(1),
-                    U_half_data[0]->getGhostCellWidth()(0), U_half_data[0]->getGhostCellWidth()(1),
-                    U_half_data[0]->getPointer(0),          U_half_data[0]->getPointer(1),
-                    side_boxes[1].lower(0), side_boxes[1].upper(0),
-                    side_boxes[1].lower(1), side_boxes[1].upper(1),
-                    U_adv_data [1]->getGhostCellWidth()(0), U_adv_data [1]->getGhostCellWidth()(1),
-                    U_adv_data [1]->getPointer(0),          U_adv_data [1]->getPointer(1),
-                    U_half_data[1]->getGhostCellWidth()(0), U_half_data[1]->getGhostCellWidth()(1),
-                    U_half_data[1]->getPointer(0),          U_half_data[1]->getPointer(1));
-#endif
-#if (NDIM == 3)
-                NAVIER_STOKES_RESET_ADV_VELOCITY_F77(
-                    side_boxes[0].lower(0), side_boxes[0].upper(0),
-                    side_boxes[0].lower(1), side_boxes[0].upper(1),
-                    side_boxes[0].lower(2), side_boxes[0].upper(2),
-                    U_adv_data [0]->getGhostCellWidth()(0), U_adv_data [0]->getGhostCellWidth()(1), U_adv_data [0]->getGhostCellWidth()(2),
-                    U_adv_data [0]->getPointer(0),          U_adv_data [0]->getPointer(1),          U_adv_data [0]->getPointer(2),
-                    U_half_data[0]->getGhostCellWidth()(0), U_half_data[0]->getGhostCellWidth()(1), U_half_data[0]->getGhostCellWidth()(2),
-                    U_half_data[0]->getPointer(0),          U_half_data[0]->getPointer(1),          U_half_data[0]->getPointer(2),
-                    side_boxes[1].lower(0), side_boxes[1].upper(0),
-                    side_boxes[1].lower(1), side_boxes[1].upper(1),
-                    side_boxes[1].lower(2), side_boxes[1].upper(2),
-                    U_adv_data [1]->getGhostCellWidth()(0), U_adv_data [1]->getGhostCellWidth()(1), U_adv_data [1]->getGhostCellWidth()(2),
-                    U_adv_data [1]->getPointer(0),          U_adv_data [1]->getPointer(1),          U_adv_data [1]->getPointer(2),
-                    U_half_data[1]->getGhostCellWidth()(0), U_half_data[1]->getGhostCellWidth()(1), U_half_data[1]->getGhostCellWidth()(2),
-                    U_half_data[1]->getPointer(0),          U_half_data[1]->getPointer(1),          U_half_data[1]->getPointer(2),
-                    side_boxes[2].lower(0), side_boxes[2].upper(0),
-                    side_boxes[2].lower(1), side_boxes[2].upper(1),
-                    side_boxes[2].lower(2), side_boxes[2].upper(2),
-                    U_adv_data [2]->getGhostCellWidth()(0), U_adv_data [2]->getGhostCellWidth()(1), U_adv_data [2]->getGhostCellWidth()(2),
-                    U_adv_data [2]->getPointer(0),          U_adv_data [2]->getPointer(1),          U_adv_data [2]->getPointer(2),
-                    U_half_data[2]->getGhostCellWidth()(0), U_half_data[2]->getGhostCellWidth()(1), U_half_data[2]->getGhostCellWidth()(2),
-                    U_half_data[2]->getPointer(0),          U_half_data[2]->getPointer(1),          U_half_data[2]->getPointer(2));
+                bool using_full_ctu = true;
+                GODUNOV_PREDICT_F77(
+                    dx, dt,
+                    static_cast<unsigned int>(using_full_ctu),
+                    side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                    side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                    side_boxes[axis].lower(2), side_boxes[axis].upper(2),
+                    U_data->getGhostCellWidth()(0), U_data->getGhostCellWidth()(1), U_data->getGhostCellWidth()(2),
+                    U_data       ->getPointer(axis),       U_scratch1_data->getPointer(axis),       U_scratch2_data->getPointer(axis),
+                    dU_data      ->getPointer(axis),       U_L_data       ->getPointer(axis),       U_R_data       ->getPointer(axis),
+                    U_adv_data [axis]  ->getGhostCellWidth()(0), U_adv_data [axis]    ->getGhostCellWidth()(1), U_adv_data [axis]    ->getGhostCellWidth()(2),
+                    U_half_data[axis]  ->getGhostCellWidth()(0), U_half_data[axis]    ->getGhostCellWidth()(1), U_half_data[axis]    ->getGhostCellWidth()(2),
+                    U_adv_data [axis]  ->getPointer(0),          U_adv_data [axis]    ->getPointer(1),          U_adv_data [axis]    ->getPointer(2),
+                    U_half_scratch_data->getPointer(0),          U_half_scratch_data  ->getPointer(1),          U_half_scratch_data  ->getPointer(2),
+                    U_half_data[axis]  ->getPointer(0),          U_half_data[axis]    ->getPointer(1),          U_half_data[axis]    ->getPointer(2));
 #endif
             }
-
+#if (NDIM == 2)
+            NAVIER_STOKES_RESET_ADV_VELOCITY_F77(
+                side_boxes[0].lower(0), side_boxes[0].upper(0),
+                side_boxes[0].lower(1), side_boxes[0].upper(1),
+                U_adv_data [0]->getGhostCellWidth()(0), U_adv_data [0]->getGhostCellWidth()(1),
+                U_adv_data [0]->getPointer(0),          U_adv_data [0]->getPointer(1),
+                U_half_data[0]->getGhostCellWidth()(0), U_half_data[0]->getGhostCellWidth()(1),
+                U_half_data[0]->getPointer(0),          U_half_data[0]->getPointer(1),
+                side_boxes[1].lower(0), side_boxes[1].upper(0),
+                side_boxes[1].lower(1), side_boxes[1].upper(1),
+                U_adv_data [1]->getGhostCellWidth()(0), U_adv_data [1]->getGhostCellWidth()(1),
+                U_adv_data [1]->getPointer(0),          U_adv_data [1]->getPointer(1),
+                U_half_data[1]->getGhostCellWidth()(0), U_half_data[1]->getGhostCellWidth()(1),
+                U_half_data[1]->getPointer(0),          U_half_data[1]->getPointer(1));
+#endif
+#if (NDIM == 3)
+            NAVIER_STOKES_RESET_ADV_VELOCITY_F77(
+                side_boxes[0].lower(0), side_boxes[0].upper(0),
+                side_boxes[0].lower(1), side_boxes[0].upper(1),
+                side_boxes[0].lower(2), side_boxes[0].upper(2),
+                U_adv_data [0]->getGhostCellWidth()(0), U_adv_data [0]->getGhostCellWidth()(1), U_adv_data [0]->getGhostCellWidth()(2),
+                U_adv_data [0]->getPointer(0),          U_adv_data [0]->getPointer(1),          U_adv_data [0]->getPointer(2),
+                U_half_data[0]->getGhostCellWidth()(0), U_half_data[0]->getGhostCellWidth()(1), U_half_data[0]->getGhostCellWidth()(2),
+                U_half_data[0]->getPointer(0),          U_half_data[0]->getPointer(1),          U_half_data[0]->getPointer(2),
+                side_boxes[1].lower(0), side_boxes[1].upper(0),
+                side_boxes[1].lower(1), side_boxes[1].upper(1),
+                side_boxes[1].lower(2), side_boxes[1].upper(2),
+                U_adv_data [1]->getGhostCellWidth()(0), U_adv_data [1]->getGhostCellWidth()(1), U_adv_data [1]->getGhostCellWidth()(2),
+                U_adv_data [1]->getPointer(0),          U_adv_data [1]->getPointer(1),          U_adv_data [1]->getPointer(2),
+                U_half_data[1]->getGhostCellWidth()(0), U_half_data[1]->getGhostCellWidth()(1), U_half_data[1]->getGhostCellWidth()(2),
+                U_half_data[1]->getPointer(0),          U_half_data[1]->getPointer(1),          U_half_data[1]->getPointer(2),
+                side_boxes[2].lower(0), side_boxes[2].upper(0),
+                side_boxes[2].lower(1), side_boxes[2].upper(1),
+                side_boxes[2].lower(2), side_boxes[2].upper(2),
+                U_adv_data [2]->getGhostCellWidth()(0), U_adv_data [2]->getGhostCellWidth()(1), U_adv_data [2]->getGhostCellWidth()(2),
+                U_adv_data [2]->getPointer(0),          U_adv_data [2]->getPointer(1),          U_adv_data [2]->getPointer(2),
+                U_half_data[2]->getGhostCellWidth()(0), U_half_data[2]->getGhostCellWidth()(1), U_half_data[2]->getGhostCellWidth()(2),
+                U_half_data[2]->getPointer(0),          U_half_data[2]->getPointer(1),          U_half_data[2]->getPointer(2));
+#endif
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 if (conservation_form)
@@ -2510,8 +2355,8 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                         U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1),
                         U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),
                         U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),
-                        N_grown_data->getGhostCellWidth()(0), N_grown_data->getGhostCellWidth()(1),
-                        N_grown_data->getPointer(axis));
+                        N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1),
+                        N_data->getPointer(axis));
 #endif
 #if (NDIM == 3)
                     CONVECT_DERIVATIVE_F77(
@@ -2523,8 +2368,8 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                         U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
                         U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),          U_adv_data [axis]->getPointer(2),
                         U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),          U_half_data[axis]->getPointer(2),
-                        N_grown_data->getGhostCellWidth()(0), N_grown_data->getGhostCellWidth()(1), N_grown_data->getGhostCellWidth()(2),
-                        N_grown_data->getPointer(axis));
+                        N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1), N_data->getGhostCellWidth()(2),
+                        N_data->getPointer(axis));
 #endif
                 }
                 else
@@ -2538,8 +2383,8 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                         U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1),
                         U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),
                         U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),
-                        N_grown_data->getGhostCellWidth()(0), N_grown_data->getGhostCellWidth()(1),
-                        N_grown_data->getPointer(axis));
+                        N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1),
+                        N_data->getPointer(axis));
 #endif
 #if (NDIM == 3)
                     ADVECT_DERIVATIVE_F77(
@@ -2551,12 +2396,11 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
                         U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
                         U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),          U_adv_data [axis]->getPointer(2),
                         U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),          U_half_data[axis]->getPointer(2),
-                        N_grown_data->getGhostCellWidth()(0), N_grown_data->getGhostCellWidth()(1), N_grown_data->getGhostCellWidth()(2),
-                        N_grown_data->getPointer(axis));
+                        N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1), N_data->getGhostCellWidth()(2),
+                        N_data->getPointer(axis));
 #endif
                 }
             }
-            N_data->copy(*N_grown_data);
         }
     }
 
@@ -2565,7 +2409,6 @@ INSStaggeredHierarchyIntegrator::computeConvectiveDerivative(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_gadvect_U_scratch_idx);
-        level->deallocatePatchData(d_gadvect_F_scratch_idx);
     }
     return;
 }// computeConvectiveDerivative

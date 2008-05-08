@@ -62,6 +62,7 @@ am__objects_1 =  \
 	libIBAMR_navier_stokes2d_a-INSProjectionBcCoef.$(OBJEXT) \
 	libIBAMR_navier_stokes2d_a-INSStaggeredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR_navier_stokes2d_a-INSStaggeredLinearOperator.$(OBJEXT) \
+	libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.$(OBJEXT) \
 	libIBAMR_navier_stokes2d_a-INSStaggeredProjectionPreconditioner.$(OBJEXT) \
 	libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.$(OBJEXT)
 am_libIBAMR_navier_stokes2d_a_OBJECTS = $(am__objects_1)
@@ -76,6 +77,7 @@ am__objects_2 =  \
 	libIBAMR_navier_stokes3d_a-INSProjectionBcCoef.$(OBJEXT) \
 	libIBAMR_navier_stokes3d_a-INSStaggeredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR_navier_stokes3d_a-INSStaggeredLinearOperator.$(OBJEXT) \
+	libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.$(OBJEXT) \
 	libIBAMR_navier_stokes3d_a-INSStaggeredProjectionPreconditioner.$(OBJEXT) \
 	libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.$(OBJEXT)
 am_libIBAMR_navier_stokes3d_a_OBJECTS = $(am__objects_2)
@@ -448,6 +450,7 @@ INSIntermediateVelocityBcCoef.C \
 INSProjectionBcCoef.C \
 INSStaggeredHierarchyIntegrator.C \
 INSStaggeredLinearOperator.C \
+INSStaggeredNonlinearOperator.C \
 INSStaggeredProjectionPreconditioner.C \
 NormalVelocityBcCoefAdapter.C
 
@@ -458,6 +461,7 @@ INSIntermediateVelocityBcCoef.h \
 INSProjectionBcCoef.h \
 INSStaggeredHierarchyIntegrator.h \
 INSStaggeredLinearOperator.h \
+INSStaggeredNonlinearOperator.h \
 INSStaggeredProjectionPreconditioner.h \
 NormalVelocityBcCoefAdapter.h
 
@@ -522,6 +526,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes2d_a-INSProjectionBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes2d_a-INSStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes2d_a-INSStaggeredLinearOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes2d_a-INSStaggeredProjectionPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-HierarchyProjector.Po@am__quote@
@@ -530,6 +535,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-INSProjectionBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-INSStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-INSStaggeredLinearOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-INSStaggeredProjectionPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.Po@am__quote@
 
@@ -630,6 +636,20 @@ libIBAMR_navier_stokes2d_a-INSStaggeredLinearOperator.obj: INSStaggeredLinearOpe
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='INSStaggeredLinearOperator.C' object='libIBAMR_navier_stokes2d_a-INSStaggeredLinearOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_navier_stokes2d_a-INSStaggeredLinearOperator.obj `if test -f 'INSStaggeredLinearOperator.C'; then $(CYGPATH_W) 'INSStaggeredLinearOperator.C'; else $(CYGPATH_W) '$(srcdir)/INSStaggeredLinearOperator.C'; fi`
+
+libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.o: INSStaggeredNonlinearOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.Tpo -c -o libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.o `test -f 'INSStaggeredNonlinearOperator.C' || echo '$(srcdir)/'`INSStaggeredNonlinearOperator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.Tpo $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='INSStaggeredNonlinearOperator.C' object='libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.o `test -f 'INSStaggeredNonlinearOperator.C' || echo '$(srcdir)/'`INSStaggeredNonlinearOperator.C
+
+libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.obj: INSStaggeredNonlinearOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.Tpo -c -o libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.obj `if test -f 'INSStaggeredNonlinearOperator.C'; then $(CYGPATH_W) 'INSStaggeredNonlinearOperator.C'; else $(CYGPATH_W) '$(srcdir)/INSStaggeredNonlinearOperator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.Tpo $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='INSStaggeredNonlinearOperator.C' object='libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_navier_stokes2d_a-INSStaggeredNonlinearOperator.obj `if test -f 'INSStaggeredNonlinearOperator.C'; then $(CYGPATH_W) 'INSStaggeredNonlinearOperator.C'; else $(CYGPATH_W) '$(srcdir)/INSStaggeredNonlinearOperator.C'; fi`
 
 libIBAMR_navier_stokes2d_a-INSStaggeredProjectionPreconditioner.o: INSStaggeredProjectionPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_navier_stokes2d_a-INSStaggeredProjectionPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBAMR_navier_stokes2d_a-INSStaggeredProjectionPreconditioner.Tpo -c -o libIBAMR_navier_stokes2d_a-INSStaggeredProjectionPreconditioner.o `test -f 'INSStaggeredProjectionPreconditioner.C' || echo '$(srcdir)/'`INSStaggeredProjectionPreconditioner.C
@@ -742,6 +762,20 @@ libIBAMR_navier_stokes3d_a-INSStaggeredLinearOperator.obj: INSStaggeredLinearOpe
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='INSStaggeredLinearOperator.C' object='libIBAMR_navier_stokes3d_a-INSStaggeredLinearOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_navier_stokes3d_a-INSStaggeredLinearOperator.obj `if test -f 'INSStaggeredLinearOperator.C'; then $(CYGPATH_W) 'INSStaggeredLinearOperator.C'; else $(CYGPATH_W) '$(srcdir)/INSStaggeredLinearOperator.C'; fi`
+
+libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.o: INSStaggeredNonlinearOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.Tpo -c -o libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.o `test -f 'INSStaggeredNonlinearOperator.C' || echo '$(srcdir)/'`INSStaggeredNonlinearOperator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.Tpo $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='INSStaggeredNonlinearOperator.C' object='libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.o `test -f 'INSStaggeredNonlinearOperator.C' || echo '$(srcdir)/'`INSStaggeredNonlinearOperator.C
+
+libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.obj: INSStaggeredNonlinearOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.Tpo -c -o libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.obj `if test -f 'INSStaggeredNonlinearOperator.C'; then $(CYGPATH_W) 'INSStaggeredNonlinearOperator.C'; else $(CYGPATH_W) '$(srcdir)/INSStaggeredNonlinearOperator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.Tpo $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='INSStaggeredNonlinearOperator.C' object='libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_navier_stokes3d_a-INSStaggeredNonlinearOperator.obj `if test -f 'INSStaggeredNonlinearOperator.C'; then $(CYGPATH_W) 'INSStaggeredNonlinearOperator.C'; else $(CYGPATH_W) '$(srcdir)/INSStaggeredNonlinearOperator.C'; fi`
 
 libIBAMR_navier_stokes3d_a-INSStaggeredProjectionPreconditioner.o: INSStaggeredProjectionPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_navier_stokes3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_navier_stokes3d_a-INSStaggeredProjectionPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBAMR_navier_stokes3d_a-INSStaggeredProjectionPreconditioner.Tpo -c -o libIBAMR_navier_stokes3d_a-INSStaggeredProjectionPreconditioner.o `test -f 'INSStaggeredProjectionPreconditioner.C' || echo '$(srcdir)/'`INSStaggeredProjectionPreconditioner.C

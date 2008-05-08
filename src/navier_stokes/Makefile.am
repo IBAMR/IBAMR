@@ -18,6 +18,7 @@ INSIntermediateVelocityBcCoef.C \
 INSProjectionBcCoef.C \
 INSStaggeredHierarchyIntegrator.C \
 INSStaggeredLinearOperator.C \
+INSStaggeredNonlinearOperator.C \
 INSStaggeredProjectionPreconditioner.C \
 NormalVelocityBcCoefAdapter.C
 
@@ -28,6 +29,7 @@ INSIntermediateVelocityBcCoef.h \
 INSProjectionBcCoef.h \
 INSStaggeredHierarchyIntegrator.h \
 INSStaggeredLinearOperator.h \
+INSStaggeredNonlinearOperator.h \
 INSStaggeredProjectionPreconditioner.h \
 NormalVelocityBcCoefAdapter.h
 
