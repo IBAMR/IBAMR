@@ -38051,7 +38051,7 @@ echo "Outputting files"
 echo "================"
 subdirs="$subdirs ibtk"
 
-ac_config_files="$ac_config_files Makefile config/make.inc doc/Makefile doc/Doxyfile sample/IB/Makefile sample/empty_project/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/utilities/get_version.C src/tests/Makefile src/tests/IB/Makefile src/tests/IB_multilevel/Makefile src/tests/IB_target/Makefile src/tests/adv_diff/Makefile src/tests/advect/Makefile src/tests/navier_stokes/Makefile src/tests/navier_stokes/NK/Makefile src/tests/navier_stokes/analytic_soln/Makefile src/tests/navier_stokes/lid_driven_cavity/Makefile src/tests/navier_stokes/periodic_shear_layer/Makefile src/tests/navier_stokes/staggered/Makefile src/tests/pIB/Makefile src/tools/Makefile"
+ac_config_files="$ac_config_files Makefile config/make.inc doc/Makefile doc/Doxyfile sample/IB/Makefile sample/empty_project/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/utilities/get_version.C src/tests/Makefile src/tests/IB/Makefile src/tests/IB_multilevel/Makefile src/tests/IB_target/Makefile src/tests/adv_diff/Makefile src/tests/advect/Makefile src/tests/navier_stokes/Makefile src/tests/navier_stokes/analytic_soln/Makefile src/tests/navier_stokes/lid_driven_cavity/Makefile src/tests/navier_stokes/periodic_shear_layer/Makefile src/tests/navier_stokes/staggered/Makefile src/tests/pIB/Makefile src/tools/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -38677,7 +38677,6 @@ do
     "src/tests/adv_diff/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/adv_diff/Makefile" ;;
     "src/tests/advect/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/advect/Makefile" ;;
     "src/tests/navier_stokes/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/Makefile" ;;
-    "src/tests/navier_stokes/NK/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/NK/Makefile" ;;
     "src/tests/navier_stokes/analytic_soln/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/analytic_soln/Makefile" ;;
     "src/tests/navier_stokes/lid_driven_cavity/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/lid_driven_cavity/Makefile" ;;
     "src/tests/navier_stokes/periodic_shear_layer/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/periodic_shear_layer/Makefile" ;;
