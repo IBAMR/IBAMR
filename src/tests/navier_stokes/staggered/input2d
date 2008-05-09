@@ -3,10 +3,10 @@ MU = 1.0e-4
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3   // maximum number of levels in locally refined grid
-REF_RATIO  = 2   // refinement ratio between levels
+MAX_LEVELS = 1   // maximum number of levels in locally refined grid
+REF_RATIO  = 4   // refinement ratio between levels
 
-N = 64                                    // coarsest grid spacing
+N = 256                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 // exact solution function expressions
@@ -36,16 +36,17 @@ INSStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 1.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
-   max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = 1        // disable regridding
+   max_integrator_steps  = 10000000 // max number of simulation timesteps
+   regrid_interval       = 10000000 // disable regridding
 
    enable_logging = TRUE
 
-   cfl = 0.75
+   cfl = 0.5
    //dt_max = 1.0/(4.0*NFINEST)
 
    tag_buffer = 1
 
+   conservation_form = FALSE
    using_vorticity_tagging = TRUE
    vorticity_rel_thresh = 0.25
 
@@ -62,7 +63,7 @@ INSStaggeredHierarchyIntegrator {
    normalize_pressure = TRUE
 
    num_cycles = 1
-   num_init_cycles = 5
+   num_init_cycles = 1
 }
 
 HierarchyProjector {
@@ -162,9 +163,11 @@ GriddingAlgorithm {
 StandardTagAndInitialize {
    tagging_method = "GRADIENT_DETECTOR" // "REFINE_BOXES"
    RefineBoxes {
-      level_0 = [((REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*N/4 + 0),(3*(REF_RATIO^0)*N/4 - 1,3*(REF_RATIO^0)*N/4 - 1)]
+      level_0 = [(0*(REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*N/4 + 0),(3*(REF_RATIO^0)*N/4 - 1,3*(REF_RATIO^0)*N/4 - 1)]
+//    level_0 = [((REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*N/4 + 0),(3*(REF_RATIO^0)*N/4 - 1,3*(REF_RATIO^0)*N/4 - 1)]
 //    level_0 = [((REF_RATIO^0)*0   + 0,(REF_RATIO^0)*N/4 + 0),(  (REF_RATIO^0)*N   - 1,3*(REF_RATIO^0)*N/4 - 1)]
 //    level_0 = [((REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*0   + 0),(3*(REF_RATIO^0)*N/4 - 1,  (REF_RATIO^0)*N   - 1)]
+//    level_0 = [(0*(REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*N/4 + 0),(2*(REF_RATIO^0)*N/4 - 1,2*(REF_RATIO^0)*N/4 - 1)] , [((REF_RATIO^0)*N/4  + (REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*N/4 + (REF_RATIO^0)*N/8 + 0),(2*(REF_RATIO^0)*N/4 + (REF_RATIO^0)*N/4 - 1,2*(REF_RATIO^0)*N/4 + (REF_RATIO^0)*N/8 - 1)] , [((REF_RATIO^0)*N/4  + 0,(REF_RATIO^0)*N/4 + (REF_RATIO^0)*N/4 + 0),(2*(REF_RATIO^0)*N/4 - 1,2*(REF_RATIO^0)*N/4 + (REF_RATIO^0)*N/4 - 1)]
       level_1 = [((REF_RATIO^1)*N/4 + 1,(REF_RATIO^1)*N/4 + 1),(3*(REF_RATIO^1)*N/4 - 2,3*(REF_RATIO^1)*N/4 - 2)]
       level_2 = [((REF_RATIO^2)*N/4 + 2,(REF_RATIO^2)*N/4 + 2),(3*(REF_RATIO^2)*N/4 - 3,3*(REF_RATIO^2)*N/4 - 3)]
    }

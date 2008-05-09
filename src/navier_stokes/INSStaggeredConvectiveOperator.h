@@ -1,84 +1,85 @@
-#ifndef included_INSStaggeredNavierStokesOperator
-#define included_INSStaggeredNavierStokesOperator
+#ifndef included_INSStaggeredConvectiveOperator
+#define included_INSStaggeredConvectiveOperator
 
-// Filename: INSStaggeredNavierStokesOperator.h
-// Last modified: <08.May.2008 18:26:38 griffith@box230.cims.nyu.edu>
+// Filename: INSStaggeredConvectiveOperator.h
+// Last modified: <08.May.2008 18:24:33 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/INSStaggeredConvectiveOperator.h>
-#include <ibamr/INSStaggeredStokesOperator.h>
-
 // IBTK INCLUDES
 #include <ibtk/GeneralOperator.h>
-#include <ibtk/HierarchyGhostCellInterpolation.h>
-#include <ibtk/HierarchyMathOps.h>
+
+// SAMRAI INCLUDES
+#include <RefineAlgorithm.h>
+#include <RefineOperator.h>
+
+// C++ STDLIB INCLUDES
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredNavierStokesOperator is a concrete
- * IBTK::GeneralOperator which implements a fully coupled staggered grid (MAC)
- * discretization of the incompressible Navier-Stokes equations.
- *
- * This operator is intended to be used with an iterative (Newton-Krylov)
- * nonlinear solver.
+ * \brief Class INSStaggeredConvectiveOperator is a concrete
+ * IBTK::GeneralOperator which implements a upwind convective differencing
+ * operator based on the piecewise parabolic method (PPM).
  *
  * \see INSStaggeredHierarchyIntegrator
  */
-class INSStaggeredNavierStokesOperator
+class INSStaggeredConvectiveOperator
     : public IBTK::GeneralOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    INSStaggeredNavierStokesOperator(
+    INSStaggeredConvectiveOperator(
         const double rho,
         const double mu,
         const double lambda,
-        SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> stokes_op,
-        SAMRAI::tbox::Pointer<INSStaggeredConvectiveOperator> convective_op,
-        SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops)
+        const bool conservation_form,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > refine_alg,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_op,
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > refine_scheds)
         : d_is_initialized(false),
-          d_U_current_idx(-1),
+          d_U_scratch_idx(),
           d_rho(rho),
           d_mu(mu),
           d_lambda(lambda),
-          d_stokes_op(stokes_op),
-          d_convective_op(convective_op),
-          d_hier_sc_data_ops(hier_sc_data_ops),
-          d_x_scratch(NULL),
-          d_y_scratch(NULL)
+          d_conservation_form(conservation_form),
+          d_refine_alg(refine_alg),
+          d_refine_op(refine_op),
+          d_refine_scheds(refine_scheds),
+          d_hierarchy(NULL),
+          d_coarsest_ln(-1),
+          d_finest_ln(-1)
         {
             // intentionally blank
             return;
-        }// INSStaggeredNavierStokesOperator
+        }// INSStaggeredConvectiveOperator
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~INSStaggeredNavierStokesOperator()
+    ~INSStaggeredConvectiveOperator()
         {
             deallocateOperatorState();
             return;
-        }// ~INSStaggeredNavierStokesOperator
+        }// ~INSStaggeredConvectiveOperator
 
     /*!
-     * \brief Set the patch data index corresponding to the current velocity.
+     * \brief Set the patch data index corresponding to the scratch velocity.
      */
     void
-    setVelocityCurrentPatchDataIndex(
-        const int U_current_idx)
+    setVelocityScratchPatchDataIndex(
+        const int U_scratch_idx)
         {
-            d_U_current_idx = U_current_idx;
+            d_U_scratch_idx = U_scratch_idx;
             return;
-        }// setVelocityCurrentPatchDataIndex
+        }// setVelocityScratchPatchDataIndex
 
     /*!
      * \name General operator functionality.
@@ -109,39 +110,7 @@ public:
     virtual void
     apply(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
-        {
-            // Initialize the operator (if necessary).
-            const bool deallocate_at_completion = !d_is_initialized;
-            if (!d_is_initialized) initializeOperatorState(x,y);
-
-            // Get the vector components.
-            const int U_in_idx          =            x.getComponentDescriptorIndex(0);
-            const int U_out_idx         =            y.getComponentDescriptorIndex(0);
-            const int U_in_scratch_idx  = d_x_scratch->getComponentDescriptorIndex(0);
-            const int U_out_scratch_idx = d_y_scratch->getComponentDescriptorIndex(0);
-
-            d_x_scratch->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&x,false));
-            d_y_scratch->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&y,false));
-
-            // Set U_in_scratch := 0.5*(U(n) + U(n+1)) = U(n+1/2).
-            d_hier_sc_data_ops->linearSum(U_in_scratch_idx, 0.5, d_U_current_idx, 0.5, U_in_idx);
-
-            // Compute the action of the Stokes operator (the linear part of the
-            // problem).
-            d_stokes_op->apply(x,y);
-
-            // Compute the action of the convective operator (the nonlinear part
-            // of the problem)
-            d_convective_op->apply(*d_x_scratch, *d_y_scratch);
-
-            // Compute the final result.
-            d_hier_sc_data_ops->axpy(U_out_idx, d_rho, U_out_scratch_idx, U_out_idx);
-
-            // Deallocate the operator (if necessary).
-            if (deallocate_at_completion) deallocateOperatorState();
-            return;
-        }// apply
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x] and
@@ -180,15 +149,24 @@ public:
         {
             if (d_is_initialized) deallocateOperatorState();
 
-            d_x_scratch =  in.cloneVector("INSStaggeredNavierStokesOperator::x_scratch");
-            d_y_scratch = out.cloneVector("INSStaggeredNavierStokesOperator::y_scratch");
-
-            d_x_scratch->allocateVectorData();
-            d_y_scratch->allocateVectorData();
-
-            d_stokes_op->initializeOperatorState(in,out);
-            d_convective_op->initializeOperatorState(*d_x_scratch,*d_y_scratch);
-
+            // Get the hierarchy configuration.
+            d_hierarchy = in.getPatchHierarchy();
+            d_coarsest_ln = in.getCoarsestLevelNumber();
+            d_finest_ln = in.getFinestLevelNumber();
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
+            TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
+            TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
+#endif
+            // Allocate scratch data.
+            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(d_U_scratch_idx))
+                {
+                    level->allocatePatchData(d_U_scratch_idx);
+                }
+            }
             d_is_initialized = true;
             return;
         }// initializeOperatorState
@@ -207,15 +185,15 @@ public:
         {
             if (!d_is_initialized) return;
 
-            d_x_scratch->deallocateVectorData();
-            d_y_scratch->deallocateVectorData();
-
-            d_x_scratch->freeVectorComponents();
-            d_y_scratch->freeVectorComponents();
-
-            d_x_scratch.setNull();
-            d_y_scratch.setNull();
-
+            // Deallocate scratch data.
+            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                if (level->checkAllocated(d_U_scratch_idx))
+                {
+                    level->deallocatePatchData(d_U_scratch_idx);
+                }
+            }
             d_is_initialized = false;
             return;
         }// deallocateOperatorState
@@ -259,7 +237,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredNavierStokesOperator();
+    INSStaggeredConvectiveOperator();
 
     /*!
      * \brief Copy constructor.
@@ -268,8 +246,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredNavierStokesOperator(
-        const INSStaggeredNavierStokesOperator& from);
+    INSStaggeredConvectiveOperator(
+        const INSStaggeredConvectiveOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -280,39 +258,39 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredNavierStokesOperator&
+    INSStaggeredConvectiveOperator&
     operator=(
-        const INSStaggeredNavierStokesOperator& that);
+        const INSStaggeredConvectiveOperator& that);
 
     // Whether the operator is initialized.
     bool d_is_initialized;
 
-    // The current velocity.
-    int d_U_current_idx;
+    // Scratch data.
+    int d_U_scratch_idx;
 
     // Problem coefficients.
     const double d_rho;
     const double d_mu;
     const double d_lambda;
 
-    // The linear part of the problem.
-    SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
+    // Whether to use conservative or non-conservative differencing.
+    const bool d_conservation_form;
 
-    // The nonlinear part of the problem.
-    SAMRAI::tbox::Pointer<INSStaggeredConvectiveOperator> d_convective_op;
+    // Data communication algorithms, operators, and schedules.
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
 
-    // Math objects.
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > d_hier_sc_data_ops;
-
-    // Scratch data objects.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x_scratch, d_y_scratch;
+    // Hierarchy configuration.
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    int d_coarsest_ln, d_finest_ln;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredNavierStokesOperator.I>
+//#include <ibamr/INSStaggeredConvectiveOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredNavierStokesOperator
+#endif //#ifndef included_INSStaggeredConvectiveOperator

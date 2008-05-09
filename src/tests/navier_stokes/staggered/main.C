@@ -65,7 +65,7 @@ main(
      */
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
     tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    tbox::SAMRAIManager::setMaxNumberPatchDataEntries(16*1024);  // XXXX
+    tbox::SAMRAIManager::setMaxNumberPatchDataEntries(65536);
     tbox::SAMRAIManager::setMaxNumberTimers(256);
     tbox::SAMRAIManager::startup();
 

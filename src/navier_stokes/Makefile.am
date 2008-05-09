@@ -16,10 +16,11 @@ HierarchyProjector.C \
 INSHierarchyIntegrator.C \
 INSIntermediateVelocityBcCoef.C \
 INSProjectionBcCoef.C \
+INSStaggeredConvectiveOperator.C \
 INSStaggeredHierarchyIntegrator.C \
-INSStaggeredLinearOperator.C \
-INSStaggeredNonlinearOperator.C \
+INSStaggeredNavierStokesOperator.C \
 INSStaggeredProjectionPreconditioner.C \
+INSStaggeredStokesOperator.C \
 NormalVelocityBcCoefAdapter.C
 
 pkg_include_HEADERS = \
@@ -27,10 +28,11 @@ HierarchyProjector.h \
 INSHierarchyIntegrator.h \
 INSIntermediateVelocityBcCoef.h \
 INSProjectionBcCoef.h \
+INSStaggeredConvectiveOperator.h \
 INSStaggeredHierarchyIntegrator.h \
-INSStaggeredLinearOperator.h \
-INSStaggeredNonlinearOperator.h \
+INSStaggeredNavierStokesOperator.h \
 INSStaggeredProjectionPreconditioner.h \
+INSStaggeredStokesOperator.h \
 NormalVelocityBcCoefAdapter.h
 
 libIBAMR_navier_stokes2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

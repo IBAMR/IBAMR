@@ -1,8 +1,8 @@
-// Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <08.May.2008 20:58:03 griffith@box230.cims.nyu.edu>
-// Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
+// Filename: IBStaggeredHierarchyIntegrator.C
+// Last modified: <08.May.2008 21:46:57 griffith@box230.cims.nyu.edu>
+// Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
-#include "INSStaggeredHierarchyIntegrator.h"
+#include "IBStaggeredHierarchyIntegrator.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -23,24 +23,40 @@
 #include <ibamr/INSStaggeredStokesOperator.h>
 
 // IBTK INCLUDES
-#include <ibtk/CartSideDoubleCubicCoarsenOperator.h>
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IndexUtilities.h>
+#include <ibtk/LEInteractor.h>
+#include <ibtk/LNodeIndexData2.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScNewtonKrylovSolver.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/SCLaplaceOperator.h>
 
 // SAMRAI INCLUDES
+#include <Box.h>
+#include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
+#include <CellData.h>
+#include <CellIterator.h>
+#include <CellIndex.h>
+#include <CoarsenOperator.h>
 #include <HierarchyDataOpsManager.h>
+#include <Index.h>
+#include <IndexData.h>
+#include <Patch.h>
 #include <PatchCellDataOpsReal.h>
+#include <VariableDatabase.h>
 #include <tbox/MathUtilities.h>
 #include <tbox/RestartManager.h>
+#include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
+#include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
+#include <algorithm>
 #include <iterator>
 #include <limits>
+#include <numeric>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -84,7 +100,6 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_advance_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_get_stable_timestep;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_regrid_hierarchy;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_integrate_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_new_levels;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_time_dependent_data;
@@ -115,24 +130,25 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // interface ghost cells.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
-// Version of INSStaggeredHierarchyIntegrator restart file data.
-static const int INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
+// Version of IBStaggeredHierarchyIntegrator restart file data.
+static const int IB_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
+IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
     const std::string& object_name,
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
+    SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> force_strategy,
     bool register_for_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(!input_db.isNull());
     TBOX_ASSERT(!hierarchy.isNull());
-    TBOX_ASSERT(!hier_projector.isNull());
+    TBOX_ASSERT(!force_strategy.isNull());
 #endif
     d_object_name = object_name;
     d_registered_for_restart = register_for_restart;
@@ -143,7 +159,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
 
     if (d_registered_for_restart)
     {
-        SAMRAI::tbox::RestartManager::getManager()->registerRestartItem(d_object_name, this);
+        SAMRAI::tbox::RestartManager::getManager()->
+            registerRestartItem(d_object_name, this);
     }
 
     // Set some default values.
@@ -200,6 +217,15 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     }
     getFromInput(input_db, from_restart);
 
+    // Determine the ghost cell width required for cell-centered spreading and
+    // interpolating.
+    const int stencil_size = IBTK::LEInteractor::getStencilSize(d_delta_fcn);
+    d_ghosts = int(floor(0.5*double(stencil_size)))+1;
+
+    // Get the Lagrangian Data Manager.
+    d_lag_data_manager = IBTK::LDataManager::getManager(
+        d_object_name+"::LDataManager", d_ghosts, d_registered_for_restart);
+
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =
         SAMRAI::math::HierarchyDataOpsManager<NDIM>::getManager();
@@ -217,39 +243,37 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     if (timers_need_init)
     {
         t_initialize_hierarchy_integrator = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator()");
         t_initialize_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeHierarchy()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::initializeHierarchy()");
         t_advance_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::advanceHierarchy()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::advanceHierarchy()");
         t_get_stable_timestep = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::getStableTimestep()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::getStableTimestep()");
         t_regrid_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::regridHierarchy()");
-        t_integrate_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::regridHierarchy()");
         t_synchronize_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::synchronizeHierarchy()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::synchronizeHierarchy()");
         t_synchronize_new_levels = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::synchronizeNewLevels()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::synchronizeNewLevels()");
         t_reset_time_dependent_data = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetTimeDependentHierData()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::resetTimeDependentHierData()");
         t_reset_data_to_preadvance_state = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()");
         t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeLevelData()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::initializeLevelData()");
         t_reset_hierarchy_configuration = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration()");
         t_apply_gradient_detector = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::applyGradientDetector()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::applyGradientDetector()");
         t_put_to_database = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::putToDatabase()");
+            getTimer("IBAMR::IBStaggeredHierarchyIntegrator::putToDatabase()");
         timers_need_init = false;
     }
     return;
-}// INSStaggeredHierarchyIntegrator
+}// IBStaggeredHierarchyIntegrator
 
-INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
+IBStaggeredHierarchyIntegrator::~IBStaggeredHierarchyIntegrator()
 {
     if (d_registered_for_restart)
     {
@@ -268,16 +292,16 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
         delete (*it).second;
     }
     return;
-}// ~INSStaggeredHierarchyIntegrator
+}// ~IBStaggeredHierarchyIntegrator
 
 const std::string&
-INSStaggeredHierarchyIntegrator::getName() const
+IBStaggeredHierarchyIntegrator::getName() const
 {
     return d_object_name;
 }// getName
 
 void
-INSStaggeredHierarchyIntegrator::registerVelocityInitialConditions(
+IBStaggeredHierarchyIntegrator::registerVelocityInitialConditions(
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init)
 {
     d_U_init = U_init;
@@ -285,7 +309,7 @@ INSStaggeredHierarchyIntegrator::registerVelocityInitialConditions(
 }// registerVelocityInitialConditions
 
 void
-INSStaggeredHierarchyIntegrator::registerPressureInitialConditions(
+IBStaggeredHierarchyIntegrator::registerPressureInitialConditions(
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init)
 {
     d_P_init = P_init;
@@ -293,62 +317,82 @@ INSStaggeredHierarchyIntegrator::registerPressureInitialConditions(
 }// registerPressureInitialConditions
 
 void
-INSStaggeredHierarchyIntegrator::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set)
+IBStaggeredHierarchyIntegrator::registerBodyForceSpecification(
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> body_force_set)
 {
-    d_F_set = F_set;
+    d_body_force_set = body_force_set;
     return;
 }// registerBodyForceSpecification
 
 void
-INSStaggeredHierarchyIntegrator::registerVisItDataWriter(
+IBStaggeredHierarchyIntegrator::registerLNodeInitStrategy(
+    SAMRAI::tbox::Pointer<IBTK::LNodeInitStrategy> lag_init)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!lag_init.isNull());
+#endif
+    d_lag_init = lag_init;
+    d_lag_data_manager->registerLNodeInitStrategy(d_lag_init);
+    return;
+}// registerLNodeInitStrategy
+
+void
+IBStaggeredHierarchyIntegrator::freeLNodeInitStrategy()
+{
+    d_lag_init.setNull();
+    d_lag_data_manager->freeLNodeInitStrategy();
+    return;
+}// freeLNodeInitStrategy
+
+void
+IBStaggeredHierarchyIntegrator::registerVisItDataWriter(
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!visit_writer.isNull());
 #endif
     d_visit_writer = visit_writer;
+    d_lag_data_manager->registerVisItDataWriter(d_visit_writer);
     return;
 }// registerVisItDataWriter
 
-///
-///  The following routines:
-///
-///      getHierarchyMathOps(),
-///      setHierarchyMathOps(),
-///      isManagingHierarchyMathOps()
-///
-///  allow for the sharing of a single HierarchyMathOps object between mutiple
-///  HierarchyIntegrator objects.
-///
-
-SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>
-INSStaggeredHierarchyIntegrator::getHierarchyMathOps() const
+void
+IBStaggeredHierarchyIntegrator::registerLagSiloDataWriter(
+    SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hier_math_ops.isNull());
+    TBOX_ASSERT(!silo_writer.isNull());
 #endif
-    return d_hier_math_ops;
-}// getHierarchyMathOps
+    d_silo_writer = silo_writer;
+    d_lag_data_manager->registerLagSiloDataWriter(d_silo_writer);
+    return;
+}// registerLagSiloDataWriter
+
+#if (NDIM == 3)
+void
+IBStaggeredHierarchyIntegrator::registerLagM3DDataWriter(
+    SAMRAI::tbox::Pointer<IBTK::LagM3DDataWriter> m3D_writer)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!m3D_writer.isNull());
+#endif
+    d_m3D_writer = m3D_writer;
+    d_lag_data_manager->registerLagM3DDataWriter(d_m3D_writer);
+    return;
+}// registerLagM3DDataWriter
+#endif
 
 void
-INSStaggeredHierarchyIntegrator::setHierarchyMathOps(
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-    const bool manage_ops)
+IBStaggeredHierarchyIntegrator::registerLoadBalancer(
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hier_math_ops.isNull());
+    TBOX_ASSERT(!load_balancer.isNull());
 #endif
-    d_hier_math_ops = hier_math_ops;
-    d_is_managing_hier_math_ops = manage_ops;
+    d_load_balancer = load_balancer;
+    d_lag_data_manager->registerLoadBalancer(d_load_balancer);
     return;
-}// setHierarchyMathOps
-
-bool
-INSStaggeredHierarchyIntegrator::isManagingHierarchyMathOps() const
-{
-    return d_is_managing_hier_math_ops;
-}// isManagingHierarchyMathOps
+}// registerLoadBalancer
 
 ///
 ///  The following routines:
@@ -365,13 +409,13 @@ INSStaggeredHierarchyIntegrator::isManagingHierarchyMathOps() const
 ///      stepsRemaining(),
 ///      getPatchHierarchy(),
 ///      getGriddingAlgorithm(),
-///      getHierarchyProjector()
+///      getLDataManager()
 ///
-///  allow the INSStaggeredHierarchyIntegrator to be used as a hierarchy integrator.
+///  allow the IBStaggeredHierarchyIntegrator to be used as a hierarchy integrator.
 ///
 
 void
-INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
+IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg)
 {
     t_initialize_hierarchy_integrator->start();
@@ -547,6 +591,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     std::string ralg_name;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator;
 
     ralg_name = "gadvect_U_scratch_bdry_fill";
     d_ralgs[ralg_name] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
@@ -577,7 +622,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 }// initializeHierarchyIntegrator
 
 double
-INSStaggeredHierarchyIntegrator::initializeHierarchy()
+IBStaggeredHierarchyIntegrator::initializeHierarchy()
 {
     t_initialize_hierarchy->start();
 
@@ -628,6 +673,19 @@ INSStaggeredHierarchyIntegrator::initializeHierarchy()
         }
     }
 
+    // Reset the Lagrangian data distribution.
+    d_lag_data_manager->beginDataRedistribution();
+    d_lag_data_manager->endDataRedistribution();
+
+    // Update the workload.
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    d_lag_data_manager->updateWorkloadData(
+        coarsest_ln, finest_ln);
+
+    // Indicate that the force strategy needs to be re-initialized.
+    d_force_strategy_needs_init = true;
+
     // The next timestep is given by the minimum allowable timestep over all
     // levels in the patch hierarchy.
     const double dt_next = getStableTimestep(getCurrentContext());
@@ -637,9 +695,513 @@ INSStaggeredHierarchyIntegrator::initializeHierarchy()
 }// initializeHierarchy
 
 double
-INSStaggeredHierarchyIntegrator::advanceHierarchy(
+IBStaggeredHierarchyIntegrator::advanceHierarchy(
     const double dt)
 {
+#if 0
+    t_advance_hierarchy->start();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
+#endif
+
+    const double current_time = d_integrator_time;
+    const double new_time     = d_integrator_time+dt;
+    const bool initial_time   = SAMRAI::tbox::MathUtilities<double>::equalEps(current_time,d_start_time);
+
+    // Regrid the patch hierarchy.
+    const bool do_regrid = (d_regrid_interval == 0
+                            ? false
+                            : (d_integrator_step % d_regrid_interval == 0));
+    if (do_regrid)
+    {
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): regridding prior to timestep " << d_integrator_step << "\n";
+        regridHierarchy();
+    }
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+
+    // Set the current time interval in the force specification object.
+    d_force_strategy->setTimeInterval(current_time, new_time);
+
+    // (Re)initialize the force strategy.
+    if (d_force_strategy_needs_init)
+    {
+        resetLagrangianForceStrategy(current_time, initial_time);
+        d_force_strategy_needs_init = false;
+    }
+
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_new_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_new_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_new_data(finest_ln+1);
+
+    // Synchronize the Cartesian grid velocity u(n) on the patch hierarchy.
+    //
+    // NOTE: Since we are maintaining the Lagrangian velocity data, this step is
+    // skipped for each timestep following the initial one, except for those
+    // timesteps that immediately follow a regridding.
+    if (initial_time || d_reinterpolate_after_regrid)
+    {
+        for (int ln = finest_ln; ln > coarsest_ln; --ln)
+        {
+            d_cscheds["U->U::C->C::CONSERVATIVE_COARSEN"][ln]->coarsenData();
+        }
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(d_V_idx, current_time);
+            d_rscheds["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
+        }
+    }
+
+    // Initialize the various LNodeLevelData objects, including X_data, F_data,
+    // U_data, and X_new_data, on each level of the patch hierarchy.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            X_data[ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
+            U_data[ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::VEL_DATA_NAME,ln);
+            F_data[ln] = d_lag_data_manager->createLNodeLevelData("F",ln,NDIM);
+
+            X_data[ln]->restoreLocalFormVec();
+            U_data[ln]->restoreLocalFormVec();
+            F_data[ln]->restoreLocalFormVec();
+
+            X_new_data[ln] = d_lag_data_manager->createLNodeLevelData("X_new",ln,NDIM);
+            U_new_data[ln] = d_lag_data_manager->createLNodeLevelData("U_new",ln,NDIM);
+            F_new_data[ln] = d_lag_data_manager->createLNodeLevelData("F_new",ln,NDIM);
+
+            X_new_data[ln]->restoreLocalFormVec();
+            U_new_data[ln]->restoreLocalFormVec();
+            F_new_data[ln]->restoreLocalFormVec();
+        }
+    }
+
+    // 1. Interpolate u(n) from the Cartesian grid onto the Lagrangian mesh.
+    //
+    // NOTE: Since we are maintaining the Lagrangian velocity data, this step is
+    // skipped for each timestep following the initial one execpt immediately
+    // following a regridding operation.
+    if (initial_time || d_reinterpolate_after_regrid)
+    {
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+            if (d_lag_data_manager->levelContainsLagrangianData(ln))
+            {
+                if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): interpolating u(n) to U(n) on level number " << ln << "\n";
+                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > v_data =
+                        patch->getPatchData(d_V_idx);
+                    const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(
+                        d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+                    IBTK::LEInteractor::interpolate(
+                        U_data[ln], X_data[ln], idx_data, v_data,
+                        patch, patch_box, periodic_shift,
+                        d_delta_fcn);
+                }
+            }
+        }
+    }
+
+    // 2. Compute F(n) = F(X(n),n), the Lagrangian force corresponding to
+    //    configuration X(n) at time t_{n}.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F(n) on level number " << ln << "\n";
+            Vec F_vec = F_data[ln]->getGlobalVec();
+            int ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
+            d_force_strategy->computeLagrangianForce(
+                F_data[ln], X_data[ln],
+                d_hierarchy, ln, current_time, d_lag_data_manager);
+        }
+    }
+
+    // 3. Spread F(n) from the Lagrangian mesh onto the Cartesian grid.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        level->allocatePatchData(d_F_scratch1_idx, current_time);
+
+        // On the coarsest level of the patch hierarchy, simply initialize the
+        // Cartesian force density to equal zero.
+        //
+        // For each of the finer levels in the patch hierarchy, conservatively
+        // interpolate the Cartesian force density from coarser levels in the
+        // patch hierarchy.
+        if (ln == coarsest_ln)
+        {
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_current_data = patch->
+                    getPatchData(d_ins_hier_integrator->getForceVar(),
+                                 d_ins_hier_integrator->getCurrentContext());
+                f_current_data->fillAll(0.0);
+            }
+        }
+        else
+        {
+            // Interpolate the Cartesian force from the next coarser level in
+            // the hierarchy.
+            //
+            // Note that these refine schedules initialize both the force data
+            // maintained by the IBStaggeredHierarchyIntegrator and the current context
+            // of the force data maintained by the Navier-Stokes solver.
+            d_force_current_rscheds[ln]->fillData(current_time);
+        }
+
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            X_data[ln]->beginGhostUpdate();
+            F_data[ln]->beginGhostUpdate();
+            X_data[ln]->endGhostUpdate();
+            F_data[ln]->endGhostUpdate();
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): spreading F(n) to f(n) on level number " << ln << "\n";
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_current_data = patch->
+                    getPatchData(d_ins_hier_integrator->getForceVar(),
+                                 d_ins_hier_integrator->getCurrentContext());
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->
+                    getPatchData(d_lag_data_manager->
+                                 getLNodeIndexPatchDescriptorIndex());
+                IBTK::LEInteractor::spread(
+                    f_current_data, F_data[ln], X_data[ln], idx_data,
+                    patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
+                    d_delta_fcn);
+            }
+        }
+    }
+
+    // 4. Compute X~(n+1), the preliminary structure configuration at time
+    //    t_{n+1}.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing X~(n+1) on level number " << ln << "\n";
+            Vec U_vec = U_data[ln]->getGlobalVec();
+            Vec X_vec = X_data[ln]->getGlobalVec();
+            Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+            int ierr = VecWAXPY(X_new_vec, dt, U_vec, X_vec);  IBTK_CHKERRQ(ierr);
+        }
+    }
+
+    // 5. Compute F~(n+1) = F(X~(n+1),n+1), the Lagrangian force corresponding
+    //    to configuration X~(n+1) at time t_{n+1}.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing F~(n+1) on level number " << ln << "\n";
+            Vec F_new_vec = F_new_data[ln]->getGlobalVec();
+            int ierr = VecSet(F_new_vec, 0.0);  IBTK_CHKERRQ(ierr);
+            d_force_strategy->computeLagrangianForce(
+                F_new_data[ln], X_new_data[ln],
+                d_hierarchy, ln, new_time, d_lag_data_manager);
+        }
+    }
+
+    // 6. Spread F~(n+1) from the Lagrangian mesh onto the Cartesian grid.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        level->allocatePatchData(d_F_idx, current_time);
+        level->allocatePatchData(d_F_scratch2_idx, current_time);
+
+        // On the coarsest level of the patch hierarchy, simply initialize the
+        // Cartesian force density to equal zero.
+        //
+        // For each of the finer levels in the patch hierarchy, conservatively
+        // interpolate the Cartesian force density from coarser levels in the
+        // patch hierarchy.
+        if (ln == coarsest_ln)
+        {
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_new_data = patch->
+                    getPatchData(d_F_idx);
+                f_new_data->fillAll(0.0);
+            }
+        }
+        else
+        {
+            // Interpolate the Cartesian force from the next coarser level in
+            // the hierarchy.
+            //
+            // Note that these refine schedules initialize both the force data
+            // maintained by the IBStaggeredHierarchyIntegrator and the current context
+            // of the force data maintained by the Navier-Stokes solver.
+            d_force_new_rscheds[ln]->fillData(current_time);
+        }
+
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            X_new_data[ln]->beginGhostUpdate();
+            F_new_data[ln]->beginGhostUpdate();
+            X_new_data[ln]->endGhostUpdate();
+            F_new_data[ln]->endGhostUpdate();
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): spreading F~(n+1) to f~(n+1) on level number " << ln << "\n";
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_new_data = patch->
+                    getPatchData(d_F_idx);
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->
+                    getPatchData(d_lag_data_manager->
+                                 getLNodeIndexPatchDescriptorIndex());
+                IBTK::LEInteractor::spread(
+                    f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
+                    patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
+                    d_delta_fcn);
+            }
+        }
+    }
+
+    // 7. If an additional body force specification object is provided, compute
+    //    the body force at the beginning and end of the time step, and add
+    //    those values to f(n) and f(n+1).
+    if (!d_body_force_set.isNull())
+    {
+        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+        const int F_current_idx = var_db->mapVariableAndContextToIndex(
+            d_ins_hier_integrator->getForceVar(),
+            d_ins_hier_integrator->getCurrentContext());
+
+        d_body_force_set->setDataOnPatchHierarchy(
+            d_F_scratch1_idx, d_F_var, d_hierarchy,
+            current_time, false, coarsest_ln, finest_ln);
+
+        d_hier_cc_data_ops->add(F_current_idx, F_current_idx, d_F_scratch1_idx);
+
+        d_body_force_set->setDataOnPatchHierarchy(
+            d_F_scratch2_idx, d_F_var, d_hierarchy,
+            current_time+dt, false, coarsest_ln, finest_ln);
+
+        d_hier_cc_data_ops->add(d_F_idx, d_F_idx, d_F_scratch2_idx);
+    }
+
+    // Synchronize the Cartesian grid force field on the patch hierarchy.
+    //
+    // Note that these coarsen schedules synchronize both the force data
+    // maintained by the IBStaggeredHierarchyIntegrator and the current context of the
+    // force data maintained by the Navier-Stokes solver.
+    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    {
+        d_cscheds["F->F::CONSERVATIVE_COARSEN"][ln]->coarsenData();
+    }
+
+    // Deallocate unneeded scratch data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (initial_time || d_reinterpolate_after_regrid) level->deallocatePatchData(d_V_idx);
+        level->deallocatePatchData(d_F_scratch1_idx);
+        level->deallocatePatchData(d_F_scratch2_idx);
+    }
+
+    // Reset the reinterpolation flag.
+    d_reinterpolate_after_regrid = false;
+
+    // Solve the incompressible Navier-Stokes equations for U(n+1) and P(n+1/2).
+    //
+    // Note that the pressure at start_time is not an initial value for the
+    // incompressible Navier-Stokes equations, so we must solve for it by
+    // cycling the solution for the first timestep:
+    //
+    // Solve the Navier-Stokes equations with initial guess P(n=0)=0, solve for
+    // P(n=1/2), discard U(n=1) and u(n=1), rinse, wash, repeat.
+    //
+    // For all other timesteps, we just use the previous value of P as the guess
+    // for P(n+1/2).
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing u(n+1), p(n+1/2)\n";
+
+    int cycle = 0;
+    const bool performing_init_cycles = initial_time;
+    const int num_cycles = (performing_init_cycles
+                            ? d_num_init_cycles
+                            : d_num_cycles);
+    for (cycle = 0; cycle < num_cycles; ++cycle)
+    {
+        if (d_do_log && performing_init_cycles)
+        {
+            SAMRAI::tbox::plog << "\n\n++++++++++++++++++++++++++++++++++++++++++++++++\n";
+            SAMRAI::tbox::plog << "+\n";
+            SAMRAI::tbox::plog << "+ Performing cycle " << cycle+1 << " of " << d_num_init_cycles << " to initialize P(n=1/2)\n";
+            SAMRAI::tbox::plog << "+\n";
+            SAMRAI::tbox::plog << "++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
+        }
+
+        // Solve the Navier-Stokes equations for U(n+1), u(n+1), P(n+1/2).  For
+        // better or worse, each of the major algorithmic steps of the
+        // projection method is separated into its own member function.
+        d_ins_hier_integrator->predictAdvectionVelocity(current_time, new_time);
+
+        d_ins_hier_integrator->integrateAdvDiff(current_time, new_time);
+
+        d_ins_hier_integrator->projectVelocity(current_time, new_time);
+
+        d_ins_hier_integrator->updatePressure(current_time, new_time, true);
+
+        d_ins_hier_integrator->synchronizeHierarchy();
+
+        if (cycle < (num_cycles-1))
+        {
+            // Reset data to the preadvance state.
+            d_ins_hier_integrator->resetHierDataToPreadvanceState();
+
+            // Reset time of all current data.
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                level->setTime(current_time);
+            }
+        }
+        else
+        {
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                level->setTime(new_time);
+            }
+        }
+    }
+
+    // Synchronize the Cartesian grid velocity u(n+1) on the patch hierarchy.
+    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    {
+        d_cscheds["U->U::N->N::CONSERVATIVE_COARSEN"][ln]->coarsenData();
+    }
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_W_idx, current_time);
+        d_rscheds["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
+    }
+
+    // In the following loop, we perform the following operations:
+    //
+    // 1. Interpolate u(n+1) from the Cartesian grid onto the Lagrangian mesh
+    //    using X~(n+1).
+    //
+    // 2. Compute X(n+1), the final structure configuration at time t_{n+1}.
+    //
+    // 3. Interpolate u(n+1) from the Cartesian grid onto the Lagrangian mesh
+    //    using X(n+1).
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(
+            level->getRatio());
+
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            int ierr;
+
+            // 1. Interpolate u(n+1) from the Cartesian grid onto the Lagrangian
+            //    mesh.
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): interpolating u(n+1) to U(n+1) on level number " << ln << "\n";
+
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > w_data =
+                    patch->getPatchData(d_W_idx);
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(
+                    d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+
+                IBTK::LEInteractor::interpolate(
+                    U_new_data[ln], X_new_data[ln], idx_data, w_data,
+                    patch, patch_box, periodic_shift,
+                    d_delta_fcn);
+            }
+
+            // 2. Compute X(n+1), the final structure configuration at time
+            //    t_{n+1}.
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing X(n+1) on level number " << ln << "\n";
+
+            Vec U_new_vec = U_new_data[ln]->getGlobalVec();
+            Vec X_vec = X_data[ln]->getGlobalVec();
+            Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+            ierr = VecAXPY(X_new_vec, dt, U_new_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecAXPBY(X_vec, 0.5, 0.5, X_new_vec);  IBTK_CHKERRQ(ierr);
+
+            // 3. Interpolate u(n+1) from the Cartesian grid onto the Lagrangian
+            //    mesh using X(n+1).
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): interpolating u(n+1) to U(n+1) on level number " << ln << "\n";
+
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > w_data =
+                    patch->getPatchData(d_W_idx);
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(
+                    d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+
+                IBTK::LEInteractor::interpolate(
+                    U_data[ln], X_data[ln], idx_data, w_data,
+                    patch, patch_box, periodic_shift,
+                    d_delta_fcn);
+            }
+        }
+    }
+
+    // Deallocate any remaining scratch data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_W_idx);
+        level->deallocatePatchData(d_F_idx);
+    }
+
+    // Reset all time dependent data.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): resetting time dependent data\n";
+    resetTimeDependentHierData(new_time);
+
+    // Determine the next stable timestep.
+    double dt_next = d_ins_hier_integrator->getStableTimestep();
+
+    if (d_integrator_time+dt_next >= d_end_time)
+    {
+        dt_next = d_end_time - d_integrator_time;
+    }
+
+    if (d_integrator_time >= d_dt_max_time_min &&
+        d_integrator_time <= d_dt_max_time_max)
+    {
+        dt_next = std::min(d_dt_max,dt_next);
+    }
+
+    if (!initial_time)
+    {
+        dt_next = std::min(dt_next,d_grow_dt*d_old_dt);
+    }
+    t_advance_hierarchy->stop();
+    return dt_next;
+#endif
     t_advance_hierarchy->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -665,169 +1227,8 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(
         if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): regridding prior to timestep " << d_integrator_step << "\n";
         regridHierarchy();
     }
-
-    // Integrate all time dependent data.
-    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): integrating time dependent data\n";
-    integrateHierarchy(current_time, new_time);
-
-    // Synchronize all data.
-    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): synchronizing data\n";
-    synchronizeHierarchy();
-
-    // Reset all time dependent data.
-    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): resetting time dependent data\n";
-    resetTimeDependentHierData(new_time);
-
-    // Determine the next stable timestep from u(n+1).
-    const double dt_next = getStableTimestep(getCurrentContext());
-
-    t_advance_hierarchy->stop();
-    return dt_next;
-}// advanceHierarchy
-
-double
-INSStaggeredHierarchyIntegrator::getStableTimestep(
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx)
-{
-    t_get_stable_timestep->start();
-
-    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    double dt_next = std::numeric_limits<double>::max();
-
-    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        dt_next = std::min(d_cfl*getLevelDt(level,ctx),dt_next);
-    }
-
-    if (d_integrator_time+dt_next >= d_end_time)
-    {
-        dt_next = d_end_time - d_integrator_time;
-    }
-
-    if (d_integrator_time >= d_dt_max_time_min &&
-        d_integrator_time <= d_dt_max_time_max)
-    {
-        dt_next = std::min(d_dt_max,dt_next);
-    }
-
-    if (!initial_time)
-    {
-        dt_next = std::min(dt_next,d_grow_dt*d_old_dt);
-    }
-
-    t_get_stable_timestep->stop();
-    return dt_next;
-}// getStableTimestep()
-
-bool
-INSStaggeredHierarchyIntegrator::atRegridPoint() const
-{
-    const int level_number = 0;
-    return ((d_integrator_step > 0)
-            && d_gridding_alg->levelCanBeRefined(level_number)
-            && (d_regrid_interval == 0
-                ? false
-                : (d_integrator_step % d_regrid_interval == 0)));
-}// atRegridPoint
-
-double
-INSStaggeredHierarchyIntegrator::getIntegratorTime() const
-{
-    return d_integrator_time;
-}// getIntegratorTime
-
-double
-INSStaggeredHierarchyIntegrator::getStartTime() const
-{
-    return d_start_time;
-}// getStartTime
-
-double
-INSStaggeredHierarchyIntegrator::getEndTime() const
-{
-    return d_end_time;
-}// getEndTime
-
-int
-INSStaggeredHierarchyIntegrator::getIntegratorStep() const
-{
-    return d_integrator_step;
-}// getIntegratorStep
-
-int
-INSStaggeredHierarchyIntegrator::getMaxIntegratorSteps() const
-{
-    return d_max_integrator_steps;
-}// getMaxIntegratorSteps
-
-bool
-INSStaggeredHierarchyIntegrator::stepsRemaining() const
-{
-    return (d_integrator_step < d_max_integrator_steps);
-}// stepsRemaining
-
-const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
-INSStaggeredHierarchyIntegrator::getPatchHierarchy() const
-{
-    return d_hierarchy;
-}// getPatchHierarchy
-
-SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
-INSStaggeredHierarchyIntegrator::getGriddingAlgorithm() const
-{
-    return d_gridding_alg;
-}// getGriddingAlgorithm
-
-SAMRAI::tbox::Pointer<HierarchyProjector>
-INSStaggeredHierarchyIntegrator::getHierarchyProjector() const
-{
-    return d_hier_projector;
-}// getHierarchyProjector
-
-///
-///  The following routines:
-///
-///      regridHierarchy(),
-///      synchronizeHierarchy(),
-///      synchronizeNewLevels(),
-///      resetTimeDependentHierData(),
-///      resetHierDataToPreadvanceState()
-///
-///  allow the INSStaggeredHierarchyIntegrator to provide data management for a time
-///  integrator which making use of this class.
-///
-
-void
-INSStaggeredHierarchyIntegrator::regridHierarchy()
-{
-    t_regrid_hierarchy->start();
-
-    const int coarsest_ln = 0;
-    d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    // Synchronize the state data on the patch hierarchy.
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
-    {
-        d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
-    }
-
-    t_regrid_hierarchy->stop();
-    return;
-}// regridHierarchy
-
-double
-INSStaggeredHierarchyIntegrator::integrateHierarchy(
-    const double current_time,
-    const double new_time)
-{
-    t_integrate_hierarchy->start();
-
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = new_time-current_time;
-    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
 
     // Hierarchy ghost cell transaction components.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -1081,20 +1482,186 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_Div_U_new_idx, d_Div_U_var,
         1.0, d_U_scratch_idx, d_U_var,
         d_no_fill_op, new_time, false);
-#if 1
-    // Compute the kinetic energy of the fluid.
-    SAMRAI::tbox::pout << "\nkinetic energy = " << 0.5*d_rho*d_hier_cc_data_ops->dot(d_U_cc_new_idx, d_U_cc_new_idx, d_wgt_cc_idx) << std::endl;
-#endif
+
     // Deallocate scratch data.
     U_rhs_vec->deallocateVectorData();
     P_rhs_vec->deallocateVectorData();
 
-    t_integrate_hierarchy->stop();
-    return getStableTimestep(getNewContext());
-}// integrateHierarchy
+    // Synchronize all data.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): synchronizing data\n";
+    synchronizeHierarchy();
+
+    // Reset all time dependent data.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): resetting time dependent data\n";
+    resetTimeDependentHierData(new_time);
+
+    // Determine the next stable timestep from u(n+1).
+    const double dt_next = getStableTimestep(getCurrentContext());
+
+    t_advance_hierarchy->stop();
+    return dt_next;
+}// advanceHierarchy
+
+double
+IBStaggeredHierarchyIntegrator::getStableTimestep(
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx)
+{
+    t_get_stable_timestep->start();
+
+    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    double dt_next = std::numeric_limits<double>::max();
+
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        dt_next = std::min(d_cfl*getLevelDt(level,ctx),dt_next);
+    }
+
+    if (d_integrator_time+dt_next >= d_end_time)
+    {
+        dt_next = d_end_time - d_integrator_time;
+    }
+
+    if (d_integrator_time >= d_dt_max_time_min &&
+        d_integrator_time <= d_dt_max_time_max)
+    {
+        dt_next = std::min(d_dt_max,dt_next);
+    }
+
+    if (!initial_time)
+    {
+        dt_next = std::min(dt_next,d_grow_dt*d_old_dt);
+    }
+
+    t_get_stable_timestep->stop();
+    return dt_next;
+}// getStableTimestep()
+
+bool
+IBStaggeredHierarchyIntegrator::atRegridPoint() const
+{
+    const int level_number = 0;
+    return ((d_integrator_step > 0)
+            && d_gridding_alg->levelCanBeRefined(level_number)
+            && (d_regrid_interval == 0
+                ? false
+                : (d_integrator_step % d_regrid_interval == 0)));
+}// atRegridPoint
+
+double
+IBStaggeredHierarchyIntegrator::getIntegratorTime() const
+{
+    return d_integrator_time;
+}// getIntegratorTime
+
+double
+IBStaggeredHierarchyIntegrator::getStartTime() const
+{
+    return d_start_time;
+}// getStartTime
+
+double
+IBStaggeredHierarchyIntegrator::getEndTime() const
+{
+    return d_end_time;
+}// getEndTime
+
+int
+IBStaggeredHierarchyIntegrator::getIntegratorStep() const
+{
+    return d_integrator_step;
+}// getIntegratorStep
+
+int
+IBStaggeredHierarchyIntegrator::getMaxIntegratorSteps() const
+{
+    return d_max_integrator_steps;
+}// getMaxIntegratorSteps
+
+bool
+IBStaggeredHierarchyIntegrator::stepsRemaining() const
+{
+    return (d_integrator_step < d_max_integrator_steps);
+}// stepsRemaining
+
+const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+IBStaggeredHierarchyIntegrator::getPatchHierarchy() const
+{
+    return d_hierarchy;
+}// getPatchHierarchy
+
+SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
+IBStaggeredHierarchyIntegrator::getGriddingAlgorithm() const
+{
+    return d_gridding_alg;
+}// getGriddingAlgorithm
+
+SAMRAI::tbox::Pointer<HierarchyProjector>
+IBStaggeredHierarchyIntegrator::getHierarchyProjector() const
+{
+    return d_hier_projector;
+}// getHierarchyProjector
+
+IBTK::LDataManager*
+IBStaggeredHierarchyIntegrator::getLDataManager() const
+{
+    return d_lag_data_manager;
+}// getLDataManager
+
+///
+///  The following routines:
+///
+///      regridHierarchy(),
+///      synchronizeHierarchy(),
+///      synchronizeNewLevels(),
+///      resetTimeDependentHierData(),
+///      resetHierDataToPreadvanceState()
+///
+///  allow the IBStaggeredHierarchyIntegrator to provide data management for a time
+///  integrator which making use of this class.
+///
 
 void
-INSStaggeredHierarchyIntegrator::synchronizeHierarchy()
+IBStaggeredHierarchyIntegrator::regridHierarchy()
+{
+    t_regrid_hierarchy->start();
+
+    // Update the workload pre-regridding.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
+    d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+
+    // Before regriding, begin Lagrangian data movement.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement.\n";
+    d_lag_data_manager->beginDataRedistribution();
+
+    // Regrid the hierarchy.
+    const int coarsest_ln = 0;
+    d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    // Synchronize the state data on the patch hierarchy.
+    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    {
+        d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
+    }
+
+    // After regridding, finish Lagrangian data movement.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement.\n";
+    d_lag_data_manager->endDataRedistribution();
+
+    // Update the workload post-regridding.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
+    d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+
+    // Indicate that the force strategy needs to be re-initialized.
+    d_force_strategy_needs_init  = true;
+
+    t_regrid_hierarchy->stop();
+    return;
+}// regridHierarchy
+
+void
+IBStaggeredHierarchyIntegrator::synchronizeHierarchy()
 {
     t_synchronize_hierarchy->start();
 
@@ -1110,7 +1677,7 @@ INSStaggeredHierarchyIntegrator::synchronizeHierarchy()
 }// synchronizeHierarchy
 
 void
-INSStaggeredHierarchyIntegrator::synchronizeNewLevels(
+IBStaggeredHierarchyIntegrator::synchronizeNewLevels(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int coarsest_level,
     const int finest_level,
@@ -1143,7 +1710,7 @@ INSStaggeredHierarchyIntegrator::synchronizeNewLevels(
 }// synchronizeNewLevels
 
 void
-INSStaggeredHierarchyIntegrator::resetTimeDependentHierData(
+IBStaggeredHierarchyIntegrator::resetTimeDependentHierData(
     const double new_time)
 {
     t_reset_time_dependent_data->start();
@@ -1209,7 +1776,7 @@ INSStaggeredHierarchyIntegrator::resetTimeDependentHierData(
 }// resetTimeDependentHierData
 
 void
-INSStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()
+IBStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()
 {
     t_reset_data_to_preadvance_state->start();
 
@@ -1237,11 +1804,11 @@ INSStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()
 ///      applyGradientDetector()
 ///
 ///  are concrete implementations of functions declared in the
-///  mesh::StandardTagAndInitStrategy<NDIM> abstract base class.
+///  SAMRAI::mesh::StandardTagAndInitStrategy<NDIM> abstract base class.
 ///
 
 void
-INSStaggeredHierarchyIntegrator::initializeLevelData(
+IBStaggeredHierarchyIntegrator::initializeLevelData(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy,
     const int level_number,
     const double init_data_time,
@@ -1475,19 +2042,26 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
         }
     }
 
+    // We use the LDataManager to handle unstructured data management.
+    d_lag_data_manager->setPatchHierarchy(hierarchy);
+    d_lag_data_manager->resetLevels(0,hierarchy->getFinestLevelNumber());
+    d_lag_data_manager->initializeLevelData(
+        hierarchy, level_number, init_data_time,
+        can_be_refined, initial_time, old_level,
+        allocate_data);
+
     t_initialize_level_data->stop();
     return;
 }// initializeLevelData
 
 void
-INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy,
+IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
     t_reset_hierarchy_configuration->start();
 
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
     TBOX_ASSERT((coarsest_level >= 0)
@@ -1499,6 +2073,9 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
+
+    // We use the LDataManager to handle unstructured data management.
+    d_lag_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
     // Reset the HierarchyProjector object.
     d_hier_projector->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
@@ -1594,7 +2171,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
 }// resetHierarchyConfiguration
 
 void
-INSStaggeredHierarchyIntegrator::applyGradientDetector(
+IBStaggeredHierarchyIntegrator::applyGradientDetector(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double error_data_time,
@@ -1620,6 +2197,12 @@ INSStaggeredHierarchyIntegrator::applyGradientDetector(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tags_data = patch->getPatchData(tag_index);
         tags_data->fillAll(0);
     }
+
+    // Tag cells which contain Lagrangian nodes.
+    d_lag_data_manager->
+        applyGradientDetector(hierarchy, level_number, error_data_time,
+                              tag_index, initial_time,
+                              uses_richardson_extrapolation_too);
 
     // Tag cells based on the magnatude of the vorticity.
     //
@@ -1694,19 +2277,19 @@ INSStaggeredHierarchyIntegrator::applyGradientDetector(
 ///
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >
-INSStaggeredHierarchyIntegrator::getVelocityVar()
+IBStaggeredHierarchyIntegrator::getVelocityVar()
 {
     return d_U_var;
 }// getVelocityVar
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-INSStaggeredHierarchyIntegrator::getPressureVar()
+IBStaggeredHierarchyIntegrator::getPressureVar()
 {
     return d_P_var;
 }// getPressureVar
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >
-INSStaggeredHierarchyIntegrator::getForceVar()
+IBStaggeredHierarchyIntegrator::getForceVar()
 {
     return d_F_var;
 }// getForceVar
@@ -1727,19 +2310,19 @@ INSStaggeredHierarchyIntegrator::getForceVar()
 ///
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
-INSStaggeredHierarchyIntegrator::getCurrentContext() const
+IBStaggeredHierarchyIntegrator::getCurrentContext() const
 {
     return d_current_context;
 }// getCurrentContext
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
-INSStaggeredHierarchyIntegrator::getNewContext() const
+IBStaggeredHierarchyIntegrator::getNewContext() const
 {
     return d_new_context;
 }// getNewContext
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
-INSStaggeredHierarchyIntegrator::getScratchContext() const
+IBStaggeredHierarchyIntegrator::getScratchContext() const
 {
     return d_scratch_context;
 }// getScratchContext
@@ -1753,7 +2336,7 @@ INSStaggeredHierarchyIntegrator::getScratchContext() const
 /// are miscelaneous utility functions.
 
 void
-INSStaggeredHierarchyIntegrator::reinterpolateVelocity(
+IBStaggeredHierarchyIntegrator::reinterpolateVelocity(
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx)
 {
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
@@ -1768,7 +2351,7 @@ INSStaggeredHierarchyIntegrator::reinterpolateVelocity(
 }// reinterpolateVelocity
 
 void
-INSStaggeredHierarchyIntegrator::reinterpolateForce(
+IBStaggeredHierarchyIntegrator::reinterpolateForce(
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx)
 {
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
@@ -1792,42 +2375,12 @@ INSStaggeredHierarchyIntegrator::reinterpolateForce(
 ///
 
 void
-INSStaggeredHierarchyIntegrator::putToDatabase(
+IBStaggeredHierarchyIntegrator::putToDatabase(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
     t_put_to_database->start();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
-#endif
-    db->putInteger("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",
-                   INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION);
-    db->putDouble("d_start_time", d_start_time);
-    db->putDouble("d_end_time", d_end_time);
-    db->putDouble("d_grow_dt", d_grow_dt);
-    db->putInteger("d_max_integrator_steps", d_max_integrator_steps);
-    db->putInteger("d_num_cycles", d_num_cycles);
-    db->putInteger("d_num_init_cycles", d_num_init_cycles);
-    db->putInteger("d_regrid_interval", d_regrid_interval);
-    db->putBool("d_using_default_tag_buffer", d_using_default_tag_buffer);
-    db->putIntegerArray("d_tag_buffer", d_tag_buffer);
-    db->putBool("d_conservation_form", d_conservation_form);
-    db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
-    db->putDoubleArray("d_Omega_rel_thresh", d_Omega_rel_thresh);
-    db->putDoubleArray("d_Omega_abs_thresh", d_Omega_abs_thresh);
-    db->putDouble("d_Omega_max", d_Omega_max);
-    db->putBool("d_second_order_pressure_update", d_second_order_pressure_update);
-    db->putBool("d_normalize_pressure", d_normalize_pressure);
-    db->putDouble("d_old_dt", d_old_dt);
-    db->putDouble("d_integrator_time", d_integrator_time);
-    db->putInteger("d_integrator_step", d_integrator_step);
-    db->putDouble("d_dt_max", d_dt_max);
-    db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
-    db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
-    db->putDouble("d_rho", d_rho);
-    db->putDouble("d_mu", d_mu);
-    db->putDouble("d_nu", d_nu);
-    db->putDouble("d_lambda", d_lambda);
+    TBOX_ASSERT(false);
 
     t_put_to_database->stop();
     return;
@@ -1842,74 +2395,17 @@ INSStaggeredHierarchyIntegrator::putToDatabase(
 ///
 
 void
-INSStaggeredHierarchyIntegrator::printClassData(
+IBStaggeredHierarchyIntegrator::printClassData(
     std::ostream& os) const
 {
-    os << "\nINSStaggeredHierarchyIntegrator::printClassData..." << std::endl;
-    os << "this = " << const_cast<INSStaggeredHierarchyIntegrator*>(this) << std::endl;
-    os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
-    os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
-       << "d_gridding_alg = " << d_gridding_alg.getPointer() << std::endl;
-    os << "d_visit_writer = " << d_visit_writer.getPointer() << "\n"
-       << "d_U_scale = " << d_U_scale << "\n"
-       << "d_P_scale = " << d_P_scale << "\n"
-       << "d_F_scale = " << d_F_scale << std::endl;
-    os << "d_hier_projector = " << d_hier_projector.getPointer() << std::endl;
-    os << "d_start_time = " << d_start_time << "\n"
-       << "d_end_time = " << d_end_time << "\n"
-       << "d_grow_dt = " << d_grow_dt << "\n"
-       << "d_max_integrator_steps = " << d_max_integrator_steps << std::endl;
-    os << "d_num_cycles = " << d_num_cycles << std::endl;
-    os << "d_num_init_cycles = " << d_num_init_cycles << std::endl;
-    os << "d_regrid_interval = " << d_regrid_interval << std::endl;
-    os << "d_using_default_tag_buffer = " << d_using_default_tag_buffer << "\n"
-       << "d_tag_buffer = [ ";
-    std::copy(d_tag_buffer.getPointer(), d_tag_buffer.getPointer()+d_tag_buffer.size(), std::ostream_iterator<int>(os, " , "));
-    os << " ]" << std::endl;
-    os << "d_conservation_form = " << d_conservation_form << std::endl;
-    os << "d_using_vorticity_tagging = " << d_using_vorticity_tagging << "\n"
-       << "d_Omega_rel_thresh = [ ";
-    std::copy(d_Omega_rel_thresh.getPointer(), d_Omega_rel_thresh.getPointer()+d_Omega_rel_thresh.size(), std::ostream_iterator<double>(os, " , "));
-    os << " ]\n"
-       << "d_Omega_abs_thresh = [ ";
-    std::copy(d_Omega_abs_thresh.getPointer(), d_Omega_abs_thresh.getPointer()+d_Omega_abs_thresh.size(), std::ostream_iterator<double>(os, " , "));
-    os << " ]\n"
-       << "d_Omega_max = " << d_Omega_max << std::endl;
-    os << "d_second_order_pressure_update = " << d_second_order_pressure_update << std::endl;
-    os << "d_normalize_pressure = " << d_normalize_pressure << std::endl;
-    os << "d_output_U = " << d_output_U << "\n"
-       << "d_output_P = " << d_output_P << "\n"
-       << "d_output_F = " << d_output_F << "\n"
-       << "d_output_Omega = " << d_output_Omega << "\n"
-       << "d_output_Div_U = " << d_output_Div_U << std::endl;
-    os << "d_old_dt = " << d_old_dt << "\n"
-       << "d_integrator_time = " << d_integrator_time << "\n"
-       << "d_integrator_step = " << d_integrator_step << std::endl;
-    os << "d_cfl = " << d_cfl << std::endl;
-    os << "d_dt_max = " << d_dt_max << "\n"
-       << "d_dt_max_time_max = " << d_dt_max_time_max << "\n"
-       << "d_dt_max_time_min = " << d_dt_max_time_min << std::endl;
-    os << "d_do_log = " << d_do_log << std::endl;
-    os << "d_rho = " << d_rho << "\n"
-       << "d_mu = " << d_mu << "\n"
-       << "d_nu = " << d_nu << "\n"
-       << "d_lambda = " << d_lambda << std::endl;
-    os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n"
-       << "d_hier_sc_data_ops = " << d_hier_sc_data_ops.getPointer() << "=n"
-       << "d_hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
-       << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << std::endl;
-    os << "d_wgt_cc_var = " << d_wgt_cc_var.getPointer() << "\n"
-       << "d_wgt_sc_var = " << d_wgt_sc_var.getPointer() << "\n"
-       << "d_volume = " << d_volume << std::endl;
-    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << std::endl;
+    TBOX_ASSERT(false);
     return;
 }// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-INSStaggeredHierarchyIntegrator::registerVariable(
+IBStaggeredHierarchyIntegrator::registerVariable(
     int& current_idx,
     int& new_idx,
     int& scratch_idx,
@@ -2002,7 +2498,7 @@ INSStaggeredHierarchyIntegrator::registerVariable(
 }// registerVariable
 
 void
-INSStaggeredHierarchyIntegrator::registerVariable(
+IBStaggeredHierarchyIntegrator::registerVariable(
     int& scratch_idx,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
     const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts)
@@ -2028,7 +2524,7 @@ INSStaggeredHierarchyIntegrator::registerVariable(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 double
-INSStaggeredHierarchyIntegrator::getLevelDt(
+IBStaggeredHierarchyIntegrator::getLevelDt(
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx) const
 {
@@ -2042,7 +2538,7 @@ INSStaggeredHierarchyIntegrator::getLevelDt(
 }// getLevelDt
 
 double
-INSStaggeredHierarchyIntegrator::getPatchDt(
+IBStaggeredHierarchyIntegrator::getPatchDt(
     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx) const
 {
@@ -2078,7 +2574,25 @@ INSStaggeredHierarchyIntegrator::getPatchDt(
 }// getPatchDt
 
 void
-INSStaggeredHierarchyIntegrator::getFromInput(
+IBStaggeredHierarchyIntegrator::resetLagrangianForceStrategy(
+    const double init_data_time,
+    const bool initial_time)
+{
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            d_force_strategy->initializeLevelData(
+                d_hierarchy, ln, init_data_time, initial_time,
+                d_lag_data_manager);
+        }
+    }
+
+    return;
+}// resetLagrangianForceStrategy
+
+void
+IBStaggeredHierarchyIntegrator::getFromInput(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
     bool is_from_restart)
 {
@@ -2229,70 +2743,26 @@ INSStaggeredHierarchyIntegrator::getFromInput(
         }
 
         d_lambda = d_lambda/d_rho;
+
+        d_delta_fcn = db->getStringWithDefault("delta_fcn", d_delta_fcn);
     }
     return;
 }// getFromInput
 
 void
-INSStaggeredHierarchyIntegrator::getFromRestart()
+IBStaggeredHierarchyIntegrator::getFromRestart()
 {
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> restart_db =
-        SAMRAI::tbox::RestartManager::getManager()->getRootDatabase();
-
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db;
-    if (restart_db->isDatabase(d_object_name))
-    {
-        db = restart_db->getDatabase(d_object_name);
-    }
-    else
-    {
-        TBOX_ERROR("Restart database corresponding to "
-                   << d_object_name << " not found in restart file.");
-    }
-
-    int ver = db->getInteger("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION");
-    if (ver != INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION)
-    {
-        TBOX_ERROR(d_object_name << ":  "
-                   << "Restart file version different than class version.");
-    }
-
-    d_start_time = db->getDouble("d_start_time");
-    d_end_time = db->getDouble("d_end_time");
-    d_grow_dt = db->getDouble("d_grow_dt");
-    d_max_integrator_steps = db->getInteger("d_max_integrator_steps");
-    d_num_cycles = db->getInteger("d_num_cycles");
-    d_num_init_cycles = db->getInteger("d_num_init_cycles");
-    d_regrid_interval = db->getInteger("d_regrid_interval");
-    d_using_default_tag_buffer = db->getBool("d_using_default_tag_buffer");
-    d_tag_buffer = db->getIntegerArray("d_tag_buffer");
-    d_conservation_form = db->getBool("d_conservation_form");
-    d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
-    d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
-    d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
-    d_Omega_max = db->getDouble("d_Omega_max");
-    d_second_order_pressure_update = db->getBool("d_second_order_pressure_update");
-    d_normalize_pressure = db->getBool("d_normalize_pressure");
-    d_old_dt = db->getDouble("d_old_dt");
-    d_integrator_time = db->getDouble("d_integrator_time");
-    d_integrator_step = db->getInteger("d_integrator_step");
-    d_dt_max = db->getDouble("d_dt_max");
-    d_dt_max_time_max = db->getDouble("d_dt_max_time_max");
-    d_dt_max_time_min = db->getDouble("d_dt_max_time_min");
-    d_rho = db->getDouble("d_rho");
-    d_mu = db->getDouble("d_mu");
-    d_nu = db->getDouble("d_nu");
-    d_lambda = db->getDouble("d_lambda");
+    TBOX_ASSERT(false);
     return;
 }// getFromRestart
 
-//////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
+/////////////////////////////// TEMPLATE INTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator>;
+template class SAMRAI::tbox::Pointer<IBAMR::IBStaggeredHierarchyIntegrator>;
 
 //////////////////////////////////////////////////////////////////////////////

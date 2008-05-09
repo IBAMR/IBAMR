@@ -71,6 +71,7 @@ am__objects_1 = libIBAMR_IB2d_a-IBBeamForceGen.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBSpringForceGen.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBSpringForceSpec.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBSpringForceSpecFactory.$(OBJEXT) \
+	libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBStandardForceGen.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBStandardInitializer.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBTargetPointForceGen.$(OBJEXT) \
@@ -96,6 +97,7 @@ am__objects_2 = libIBAMR_IB3d_a-IBBeamForceGen.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBSpringForceGen.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBSpringForceSpec.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBSpringForceSpecFactory.$(OBJEXT) \
+	libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBStandardForceGen.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBStandardInitializer.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBTargetPointForceGen.$(OBJEXT) \
@@ -479,6 +481,7 @@ IBLagrangianSourceStrategy.C \
 IBSpringForceGen.C \
 IBSpringForceSpec.C \
 IBSpringForceSpecFactory.C \
+IBStaggeredHierarchyIntegrator.C \
 IBStandardForceGen.C \
 IBStandardInitializer.C \
 IBTargetPointForceGen.C \
@@ -505,6 +508,7 @@ IBSpringForceGen.h \
 IBSpringForceSpec.h \
 IBSpringForceSpec.I \
 IBSpringForceSpecFactory.h \
+IBStaggeredHierarchyIntegrator.h \
 IBStandardForceGen.h \
 IBStandardInitializer.h \
 IBTargetPointForceGen.h \
@@ -583,6 +587,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBSpringForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBSpringForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBSpringForceSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBStandardForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBStandardInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBTargetPointForceGen.Po@am__quote@
@@ -604,6 +609,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBSpringForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBSpringForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBSpringForceSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBStandardForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBStandardInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBTargetPointForceGen.Po@am__quote@
@@ -847,6 +853,20 @@ libIBAMR_IB2d_a-IBSpringForceSpecFactory.obj: IBSpringForceSpecFactory.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBSpringForceSpecFactory.C' object='libIBAMR_IB2d_a-IBSpringForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBSpringForceSpecFactory.obj `if test -f 'IBSpringForceSpecFactory.C'; then $(CYGPATH_W) 'IBSpringForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/IBSpringForceSpecFactory.C'; fi`
+
+libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.o: IBStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.Tpo -c -o libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.o `test -f 'IBStaggeredHierarchyIntegrator.C' || echo '$(srcdir)/'`IBStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBStaggeredHierarchyIntegrator.C' object='libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.o `test -f 'IBStaggeredHierarchyIntegrator.C' || echo '$(srcdir)/'`IBStaggeredHierarchyIntegrator.C
+
+libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.obj: IBStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.Tpo -c -o libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.obj `if test -f 'IBStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBStaggeredHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBStaggeredHierarchyIntegrator.C' object='libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.obj `if test -f 'IBStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBStaggeredHierarchyIntegrator.C'; fi`
 
 libIBAMR_IB2d_a-IBStandardForceGen.o: IBStandardForceGen.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBStandardForceGen.o -MD -MP -MF $(DEPDIR)/libIBAMR_IB2d_a-IBStandardForceGen.Tpo -c -o libIBAMR_IB2d_a-IBStandardForceGen.o `test -f 'IBStandardForceGen.C' || echo '$(srcdir)/'`IBStandardForceGen.C
@@ -1141,6 +1161,20 @@ libIBAMR_IB3d_a-IBSpringForceSpecFactory.obj: IBSpringForceSpecFactory.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBSpringForceSpecFactory.C' object='libIBAMR_IB3d_a-IBSpringForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBSpringForceSpecFactory.obj `if test -f 'IBSpringForceSpecFactory.C'; then $(CYGPATH_W) 'IBSpringForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/IBSpringForceSpecFactory.C'; fi`
+
+libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.o: IBStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.Tpo -c -o libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.o `test -f 'IBStaggeredHierarchyIntegrator.C' || echo '$(srcdir)/'`IBStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBStaggeredHierarchyIntegrator.C' object='libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.o `test -f 'IBStaggeredHierarchyIntegrator.C' || echo '$(srcdir)/'`IBStaggeredHierarchyIntegrator.C
+
+libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.obj: IBStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.Tpo -c -o libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.obj `if test -f 'IBStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBStaggeredHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBStaggeredHierarchyIntegrator.C' object='libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.obj `if test -f 'IBStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBStaggeredHierarchyIntegrator.C'; fi`
 
 libIBAMR_IB3d_a-IBStandardForceGen.o: IBStandardForceGen.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBStandardForceGen.o -MD -MP -MF $(DEPDIR)/libIBAMR_IB3d_a-IBStandardForceGen.Tpo -c -o libIBAMR_IB3d_a-IBStandardForceGen.o `test -f 'IBStandardForceGen.C' || echo '$(srcdir)/'`IBStandardForceGen.C

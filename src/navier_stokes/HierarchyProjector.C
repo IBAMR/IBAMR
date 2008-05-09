@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <07.May.2008 21:54:38 griffith@box230.cims.nyu.edu>
+// Last modified: <08.May.2008 18:41:53 griffith@box230.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -552,6 +552,13 @@ HierarchyProjector::projectHierarchy(
         level->deallocatePatchData(scratch_idxs);
     }
 
+    // Reset the transaction components.
+    InterpolationTransactionComponent d_P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    d_P_hier_bdry_fill_op->resetTransactionComponent(d_P_transaction_comp);
+
+    InterpolationTransactionComponent d_Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    d_Phi_hier_bdry_fill_op->resetTransactionComponent(d_Phi_transaction_comp);
+
     t_project_hierarchy->stop();
     return;
 }// projectHierarchy
@@ -683,6 +690,13 @@ HierarchyProjector::projectHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
+
+    // Reset the transaction components.
+    InterpolationTransactionComponent d_P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    d_P_hier_bdry_fill_op->resetTransactionComponent(d_P_transaction_comp);
+
+    InterpolationTransactionComponent d_Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    d_Phi_hier_bdry_fill_op->resetTransactionComponent(d_Phi_transaction_comp);
 
     t_project_hierarchy->stop();
     return;

@@ -28,6 +28,7 @@ IBLagrangianSourceStrategy.C \
 IBSpringForceGen.C \
 IBSpringForceSpec.C \
 IBSpringForceSpecFactory.C \
+IBStaggeredHierarchyIntegrator.C \
 IBStandardForceGen.C \
 IBStandardInitializer.C \
 IBTargetPointForceGen.C \
@@ -54,6 +55,7 @@ IBSpringForceGen.h \
 IBSpringForceSpec.h \
 IBSpringForceSpec.I \
 IBSpringForceSpecFactory.h \
+IBStaggeredHierarchyIntegrator.h \
 IBStandardForceGen.h \
 IBStandardInitializer.h \
 IBTargetPointForceGen.h \

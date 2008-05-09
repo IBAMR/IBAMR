@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <07.May.2008 21:55:02 griffith@box230.cims.nyu.edu>
+// Last modified: <08.May.2008 18:35:21 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -40,65 +40,70 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 bool
 INSStaggeredProjectionPreconditioner::solveSystem(
-    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y,
-    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x)
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b)
 {
-    // Get the patch hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = hierarchy->getFinestLevelNumber();
+    // Initialize the solver (if necessary).
+    const bool deallocate_at_completion = !d_is_initialized;
+    if (!d_is_initialized) initializeSolverState(x,b);
 
     // Get the vector components.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > x_scratch = x.cloneVector("INSStaggeredLinearOperator::scratch");
-    x_scratch->allocateVectorData(d_new_time);
-    x_scratch->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&x,false));
+    const int U_scratch_idx      = d_b_scratch->getComponentDescriptorIndex(0);
+    const int Grad_P_scratch_idx = d_x_scratch->getComponentDescriptorIndex(0);
+    const int P_scratch_idx      = d_b_scratch->getComponentDescriptorIndex(1);
 
-    const int U_scratch_idx = x_scratch->getComponentDescriptorIndex(0);
-    const int P_scratch_idx = x_scratch->getComponentDescriptorIndex(1);
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_scratch_var      = d_b_scratch->getComponentVariable(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& Grad_P_scratch_var = d_x_scratch->getComponentVariable(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_scratch_var      = d_b_scratch->getComponentVariable(1);
 
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_scratch_var = x_scratch->getComponentVariable(0);
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_scratch_var = x_scratch->getComponentVariable(1);
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_scratch_sc_var      = U_scratch_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > Grad_P_scratch_sc_var = Grad_P_scratch_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_scratch_cc_var      = P_scratch_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_scratch_sc_var = U_scratch_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_scratch_cc_var = P_scratch_var;
+    const int U_in_idx = b.getComponentDescriptorIndex(0);
+    const int P_in_idx = b.getComponentDescriptorIndex(1);
 
-    const int P_in_idx = x.getComponentDescriptorIndex(1);
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_in_var = b.getComponentVariable(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_in_var = b.getComponentVariable(1);
 
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_in_var = x.getComponentVariable(1);
-
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_in_sc_var = U_in_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_in_cc_var = P_in_var;
 
-    const int U_out_idx = y.getComponentDescriptorIndex(0);
-    const int P_out_idx = y.getComponentDescriptorIndex(1);
+    (void) U_in_idx;
+    (void) U_in_var;
+    (void) U_in_sc_var;
 
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_out_var = y.getComponentVariable(0);
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_out_var = y.getComponentVariable(1);
+    const int U_out_idx = x.getComponentDescriptorIndex(0);
+    const int P_out_idx = x.getComponentDescriptorIndex(1);
+
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_out_var = x.getComponentVariable(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_out_var = x.getComponentVariable(1);
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_out_sc_var = U_out_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_out_cc_var = P_out_var;
 
-    // Setup the solver vectors.
+    d_b_scratch->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&b,false));
+
+    // Setup the component solver vectors.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_scratch;
     U_scratch = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-        "INSStaggeredProjectionPreconditioner::U_scratch", hierarchy, coarsest_ln, finest_ln);
+        "INSStaggeredProjectionPreconditioner::U_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
     U_scratch->addComponent(U_scratch_sc_var, U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_out;
     U_out = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-        "INSStaggeredProjectionPreconditioner::U_out", hierarchy, coarsest_ln, finest_ln);
+        "INSStaggeredProjectionPreconditioner::U_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
     U_out->addComponent(U_out_sc_var, U_out_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_out;
     P_out = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-        "INSStaggeredProjectionPreconditioner::P_out", hierarchy, coarsest_ln, finest_ln);
+        "INSStaggeredProjectionPreconditioner::P_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_out->addComponent(P_out_cc_var, P_out_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
-    // Setup the scratch vectors.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > Grad_P_scratch;
-    Grad_P_scratch = U_out->cloneVector("INSStaggeredProjectionPreconditioner::Grad_P_scratch");
-    Grad_P_scratch->allocateVectorData(d_new_time);
-    const int Grad_P_scratch_idx = Grad_P_scratch->getComponentDescriptorIndex(0);
-    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > Grad_P_scratch_sc_var = Grad_P_scratch->getComponentVariable(0);
+    Grad_P_scratch = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+        "INSStaggeredProjectionPreconditioner::Grad_P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    Grad_P_scratch->addComponent(Grad_P_scratch_sc_var, Grad_P_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
 
     // Include the pressure gradient in the right-hand-side when employing a
     // pressure-increment (BCG-like) projection.
@@ -139,12 +144,9 @@ INSStaggeredProjectionPreconditioner::solveSystem(
         U_out_idx, U_out_sc_var);
 
     // Compute p^{n+1/2}.
-    SAMRAI::solv::PoissonSpecifications pressure_helmholtz_spec("INSStaggeredProjectionPreconditioner::pressure_helmholtz_spec");
-    pressure_helmholtz_spec.setCConstant(1.0+0.5*d_dt*d_lambda/d_rho);
-    pressure_helmholtz_spec.setDConstant(   -0.5*d_dt*d_mu    /d_rho);
     d_hier_math_ops->laplace(
         P_out_idx, P_out_cc_var,
-        pressure_helmholtz_spec,
+        d_pressure_helmholtz_spec,
         P_scratch_idx, P_scratch_cc_var,
         d_no_fill_op, d_current_time,
         (d_projection_type == "pressure_increment" ? 1.0 : 0.0),
@@ -155,9 +157,8 @@ INSStaggeredProjectionPreconditioner::solveSystem(
         d_hier_cc_data_ops->addScalar(P_out_idx, P_out_idx, -P_mean);
     }
 
-    // Deallocate scratch data.
-    x_scratch->deallocateVectorData();
-    Grad_P_scratch->deallocateVectorData();
+    // Deallocate the solver (if necessary).
+    if (deallocate_at_completion) deallocateSolverState();
     return true;
 }// solveSystem
 

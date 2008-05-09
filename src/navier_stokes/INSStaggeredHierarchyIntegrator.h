@@ -2,14 +2,14 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <08.May.2008 02:12:29 griffith@box230.cims.nyu.edu>
+// Last modified: <08.May.2008 16:49:09 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/HierarchyProjector.h>
-#include <ibamr/INSStaggeredNonlinearOperator.h>
+#include <ibamr/INSStaggeredNavierStokesOperator.h>
 
 // IBTK INCLUDES
 #include <ibtk/HierarchyMathOps.h>
@@ -654,8 +654,6 @@ protected:
         const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0));
 
 private:
-    friend class INSStaggeredNonlinearOperator;
-
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;
     typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* >                                 RefinePatchStrategyMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineSchedMap;
@@ -693,16 +691,6 @@ private:
     INSStaggeredHierarchyIntegrator&
     operator=(
         const INSStaggeredHierarchyIntegrator& that);
-
-    /*!
-     * Compute the time-centered convective derivative (u*grad)u^{n+1/2}.
-     */
-    void
-    computeConvectiveDerivative(
-        const int& N_idx,
-        const int& U_idx,
-        const double data_time,
-        const bool conservation_form);
 
     /*!
      * Determine the largest stable timestep on an individual patch level.
@@ -1038,4 +1026,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_HierarchyProjector
+#endif //#ifndef included_INSStaggeredHierarchyIntegrator
