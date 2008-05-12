@@ -2,7 +2,7 @@
 #define included_INSStaggeredConvectiveOperator
 
 // Filename: INSStaggeredConvectiveOperator.h
-// Last modified: <08.May.2008 18:24:33 griffith@box230.cims.nyu.edu>
+// Last modified: <09.May.2008 20:27:55 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -13,6 +13,7 @@
 // SAMRAI INCLUDES
 #include <RefineAlgorithm.h>
 #include <RefineOperator.h>
+#include <SideVariable.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -39,47 +40,21 @@ public:
         const double rho,
         const double mu,
         const double lambda,
-        const bool conservation_form,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > refine_alg,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_op,
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > refine_scheds)
-        : d_is_initialized(false),
-          d_U_scratch_idx(),
-          d_rho(rho),
-          d_mu(mu),
-          d_lambda(lambda),
-          d_conservation_form(conservation_form),
-          d_refine_alg(refine_alg),
-          d_refine_op(refine_op),
-          d_refine_scheds(refine_scheds),
-          d_hierarchy(NULL),
-          d_coarsest_ln(-1),
-          d_finest_ln(-1)
-        {
-            // intentionally blank
-            return;
-        }// INSStaggeredConvectiveOperator
+        const bool conservation_form);
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~INSStaggeredConvectiveOperator()
-        {
-            deallocateOperatorState();
-            return;
-        }// ~INSStaggeredConvectiveOperator
+    ~INSStaggeredConvectiveOperator();
 
     /*!
-     * \brief Set the patch data index corresponding to the scratch velocity.
+     * \brief Compute the actaion of the convective operator.
      */
     void
-    setVelocityScratchPatchDataIndex(
-        const int U_scratch_idx)
-        {
-            d_U_scratch_idx = U_scratch_idx;
-            return;
-        }// setVelocityScratchPatchDataIndex
+    applyConvectiveOperator(
+        const int U_idx,
+        const int N_idx);
 
     /*!
      * \name General operator functionality.
@@ -110,7 +85,23 @@ public:
     virtual void
     apply(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
+        {
+            // Initialize the operator (if necessary).
+            const bool deallocate_at_completion = !d_is_initialized;
+            if (!d_is_initialized) initializeOperatorState(x,y);
+
+            // Get the vector components.
+            const int U_idx = x.getComponentDescriptorIndex(0);
+            const int N_idx = y.getComponentDescriptorIndex(0);
+
+            // Compute the action of the operator.
+            applyConvectiveOperator(U_idx, N_idx);
+
+            // Deallocate the operator (if necessary).
+            if (deallocate_at_completion) deallocateOperatorState();
+            return;
+        }// apply
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x] and
@@ -145,31 +136,7 @@ public:
     virtual void
     initializeOperatorState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out)
-        {
-            if (d_is_initialized) deallocateOperatorState();
-
-            // Get the hierarchy configuration.
-            d_hierarchy = in.getPatchHierarchy();
-            d_coarsest_ln = in.getCoarsestLevelNumber();
-            d_finest_ln = in.getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
-            TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
-            TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
-#endif
-            // Allocate scratch data.
-            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-                if (!level->checkAllocated(d_U_scratch_idx))
-                {
-                    level->allocatePatchData(d_U_scratch_idx);
-                }
-            }
-            d_is_initialized = true;
-            return;
-        }// initializeOperatorState
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -181,22 +148,7 @@ public:
      * \see initializeOperatorState
      */
     virtual void
-    deallocateOperatorState()
-        {
-            if (!d_is_initialized) return;
-
-            // Deallocate scratch data.
-            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-                if (level->checkAllocated(d_U_scratch_idx))
-                {
-                    level->deallocatePatchData(d_U_scratch_idx);
-                }
-            }
-            d_is_initialized = false;
-            return;
-        }// deallocateOperatorState
+    deallocateOperatorState();
 
     //\}
 
@@ -266,6 +218,7 @@ private:
     bool d_is_initialized;
 
     // Scratch data.
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_scratch_var;
     int d_U_scratch_idx;
 
     // Problem coefficients.
@@ -279,6 +232,7 @@ private:
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_refine_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
 
     // Hierarchy configuration.

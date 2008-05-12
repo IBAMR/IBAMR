@@ -2,7 +2,7 @@
 #define included_IBStandardForceGen
 
 // Filename: IBStandardForceGen.h
-// Last modified: <12.Mar.2008 23:00:41 griffith@box221.cims.nyu.edu>
+// Last modified: <09.May.2008 17:32:11 griffith@box230.cims.nyu.edu>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -70,6 +70,22 @@ public:
     virtual void
     computeLagrangianForce(
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double data_time,
+        IBTK::LDataManager* const lag_manager);
+
+    /*!
+     * \brief Compute the Jacobian of the force with respect to the present
+     * structure configuration.
+     *
+     * \note The elements of the Jacobian should be "accumulated" in the
+     * provided matrix J.
+     */
+    virtual void
+    computeLagrangianForceJacobian(
+        Mat& J_mat,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

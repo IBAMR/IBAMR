@@ -34,6 +34,7 @@ IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o \
 IB/libIBAMR_IB2d_a-IBSpringForceGen.o \
 IB/libIBAMR_IB2d_a-IBSpringForceSpecFactory.o \
 IB/libIBAMR_IB2d_a-IBSpringForceSpec.o \
+IB/libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.o \
 IB/libIBAMR_IB2d_a-IBStandardForceGen.o \
 IB/libIBAMR_IB2d_a-IBStandardInitializer.o \
 IB/libIBAMR_IB2d_a-IBTargetPointForceGen.o \
@@ -83,6 +84,7 @@ IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o \
 IB/libIBAMR_IB3d_a-IBSpringForceGen.o \
 IB/libIBAMR_IB3d_a-IBSpringForceSpecFactory.o \
 IB/libIBAMR_IB3d_a-IBSpringForceSpec.o \
+IB/libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.o \
 IB/libIBAMR_IB3d_a-IBStandardForceGen.o \
 IB/libIBAMR_IB3d_a-IBStandardInitializer.o \
 IB/libIBAMR_IB3d_a-IBTargetPointForceGen.o \

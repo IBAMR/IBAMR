@@ -387,7 +387,7 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = IB IB_multilevel IB_target adv_diff advect navier_stokes pIB
+SUBDIRS = IB IB_multilevel IB_staggered IB_target adv_diff advect navier_stokes pIB
 all: all-recursive
 
 .SUFFIXES:

@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <08.May.2008 18:35:21 griffith@box230.cims.nyu.edu>
+// Last modified: <11.May.2008 18:52:48 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -112,21 +112,23 @@ INSStaggeredProjectionPreconditioner::solveSystem(
         typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
         d_P_bdry_fill_op->resetTransactionComponent(P_scratch_component);
+        d_P_bdry_fill_op->fillData(d_current_time);
+
         static const bool Grad_P_scratch_cf_bdry_synch = true;
         d_hier_math_ops->grad(
             Grad_P_scratch_idx, Grad_P_scratch_sc_var,
             Grad_P_scratch_cf_bdry_synch,
             1.0,
             P_scratch_idx, P_scratch_cc_var,
-            d_P_bdry_fill_op, d_current_time);
+            d_no_fill_op, d_current_time);
         d_hier_sc_data_ops->subtract(U_scratch_idx, U_scratch_idx, Grad_P_scratch_idx);
     }
 
     // Solve for u^{*}.
     d_helmholtz_solver->solveSystem(*U_out,*U_scratch);
 
-    SAMRAI::tbox::plog << "INSStaggeredProjectionPreconditioner::solveSystem(): Helmholtz solve number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";
-    SAMRAI::tbox::plog << "INSStaggeredProjectionPreconditioner::solveSystem(): Helmholtz solve residual norm        = " << d_helmholtz_solver->getResidualNorm()  << "\n";
+    if (d_do_log) SAMRAI::tbox::plog << "INSStaggeredProjectionPreconditioner::solveSystem(): Helmholtz solve number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";
+    if (d_do_log) SAMRAI::tbox::plog << "INSStaggeredProjectionPreconditioner::solveSystem(): Helmholtz solve residual norm        = " << d_helmholtz_solver->getResidualNorm()  << "\n";
     if (d_helmholtz_solver->getNumIterations() == d_helmholtz_solver->getMaxIterations())
     {
         SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem():"
@@ -161,6 +163,61 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     if (deallocate_at_completion) deallocateSolverState();
     return true;
 }// solveSystem
+
+void
+INSStaggeredProjectionPreconditioner::initializeSolverState(
+    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b)
+{
+    if (d_is_initialized) deallocateSolverState();
+
+    d_x_scratch = x.cloneVector("INSStaggeredProjectionPreconditioner::x_scratch");
+    d_b_scratch = b.cloneVector("INSStaggeredProjectionPreconditioner::b_scratch");
+
+    d_x_scratch->allocateVectorData();
+    d_b_scratch->allocateVectorData();
+
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    InterpolationTransactionComponent P_scratch_component(d_b_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
+    d_P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_b_scratch->getPatchHierarchy());
+
+    d_hierarchy = x.getPatchHierarchy();
+    d_coarsest_ln = x.getCoarsestLevelNumber();
+    d_finest_ln = x.getFinestLevelNumber();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_hierarchy == b.getPatchHierarchy());
+    TBOX_ASSERT(d_coarsest_ln == b.getCoarsestLevelNumber());
+    TBOX_ASSERT(d_finest_ln == b.getFinestLevelNumber());
+#endif
+
+    d_wgt_cc_var = d_hier_math_ops->getCellWeightVariable();
+    d_wgt_sc_var = d_hier_math_ops->getSideWeightVariable();
+    d_wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    d_wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
+    d_volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
+
+    d_is_initialized = true;
+    return;
+}// initializeSolverState
+
+void
+INSStaggeredProjectionPreconditioner::deallocateSolverState()
+{
+    if (!d_is_initialized) return;
+
+    d_x_scratch->deallocateVectorData();
+    d_b_scratch->deallocateVectorData();
+
+    d_x_scratch->freeVectorComponents();
+    d_b_scratch->freeVectorComponents();
+
+    d_x_scratch.setNull();
+    d_b_scratch.setNull();
+
+    d_is_initialized = false;
+    return;
+}// deallocateSolverState
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -1,5 +1,5 @@
 // Filename: INSStaggeredConvectiveOperator.C
-// Last modified: <08.May.2008 17:16:38 griffith@box230.cims.nyu.edu>
+// Last modified: <09.May.2008 20:35:02 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredConvectiveOperator.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBTK INCLUDES
+#include <ibtk/CartExtrapPhysBdryOp.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -193,26 +196,75 @@ namespace
 // with xsPPM7 (the modified piecewise parabolic method of Rider, Greenough, and
 // Kamm).
 static const int GADVECTG = 4;
+
+// Type of coarsening to perform prior to setting coarse-fine boundary and
+// physical boundary ghost cell values.
+static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
+
+// Type of extrapolation to use at physical boundaries.
+static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
+
+// Whether to enforce consistent interpolated values at Type 2 coarse-fine
+// interface ghost cells.
+static const bool CONSISTENT_TYPE_2_BDRY = false;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void
-INSStaggeredConvectiveOperator::apply(
-    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
+INSStaggeredConvectiveOperator::INSStaggeredConvectiveOperator(
+    const double rho,
+    const double mu,
+    const double lambda,
+    const bool conservation_form)
+  : d_is_initialized(false),
+    d_U_scratch_var(NULL),
+    d_U_scratch_idx(-1),
+    d_rho(rho),
+    d_mu(mu),
+    d_lambda(lambda),
+    d_conservation_form(conservation_form),
+    d_refine_alg(NULL),
+    d_refine_op(NULL),
+    d_refine_scheds(),
+    d_hierarchy(NULL),
+    d_coarsest_ln(-1),
+    d_finest_ln(-1)
 {
-    // Initialize the operator (if necessary).
-    const bool deallocate_at_completion = !d_is_initialized;
-    if (!d_is_initialized) initializeOperatorState(x,y);
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context = var_db->getContext("INSStaggeredConvectiveOperator::CONTEXT");
+    d_U_scratch_var = new SAMRAI::pdat::SideVariable<NDIM,double>("INSStaggeredConvectiveOperator::U_scratch");
+    if (var_db->checkVariableExists(d_U_scratch_var->getName()))
+    {
+        d_U_scratch_var = var_db->getVariable(d_U_scratch_var->getName());
+        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_scratch_var, context);
+    }
+    else
+    {
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_scratch_var, context, SAMRAI::hier::IntVector<NDIM>(GADVECTG));
+    }
+    return;
+}// INSStaggeredConvectiveOperator
+
+INSStaggeredConvectiveOperator::~INSStaggeredConvectiveOperator()
+{
+    deallocateOperatorState();
+    return;
+}// ~INSStaggeredConvectiveOperator
+
+void
+INSStaggeredConvectiveOperator::applyConvectiveOperator(
+    const int U_idx,
+    const int N_idx)
+{
+    if (!d_is_initialized)
+    {
+        TBOX_ERROR("INSStaggeredConvectiveOperator::applyConvectiveOperator():\n"
+                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+    }
 
     // The timestep is set to equal zero since the data is already centered in
     // time.
     static const double dt = 0.0;
-
-    // Get the vector components.
-    const int U_idx = x.getComponentDescriptorIndex(0);
-    const int N_idx = y.getComponentDescriptorIndex(0);
 
     // Setup communications schedules.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -439,11 +491,71 @@ INSStaggeredConvectiveOperator::apply(
             }
         }
     }
-
-    // Deallocate the operator (if necessary).
-    if (deallocate_at_completion) deallocateOperatorState();
     return;
-}// INSStaggeredConvectiveOperator
+}// applyConvectiveOperator
+
+void
+INSStaggeredConvectiveOperator::initializeOperatorState(
+    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
+    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out)
+{
+    if (d_is_initialized) deallocateOperatorState();
+
+    // Get the hierarchy configuration.
+    d_hierarchy = in.getPatchHierarchy();
+    d_coarsest_ln = in.getCoarsestLevelNumber();
+    d_finest_ln = in.getFinestLevelNumber();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
+    TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
+    TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
+#endif
+    // Setup the refine algorithm, operator, patch strategy, and schedules.
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    d_refine_op = grid_geom->lookupRefineOperator(d_U_scratch_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_refine_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    d_refine_alg->registerRefine(d_U_scratch_idx,                   // destination
+                                 in.getComponentDescriptorIndex(0), // source
+                                 d_U_scratch_idx,                   // temporary work space
+                                 d_refine_op);
+    d_refine_strategy = new IBTK::CartExtrapPhysBdryOp(d_U_scratch_idx, BDRY_EXTRAP_TYPE);
+    d_refine_scheds.resize(d_finest_ln+1);
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        d_refine_scheds[ln] = d_refine_alg->createSchedule(level, ln-1, d_hierarchy, d_refine_strategy);
+    }
+
+    // Allocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_U_scratch_idx))
+        {
+            level->allocatePatchData(d_U_scratch_idx);
+        }
+    }
+    d_is_initialized = true;
+    return;
+}// initializeOperatorState
+
+void
+INSStaggeredConvectiveOperator::deallocateOperatorState()
+{
+    if (!d_is_initialized) return;
+
+    // Deallocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (level->checkAllocated(d_U_scratch_idx))
+        {
+            level->deallocatePatchData(d_U_scratch_idx);
+        }
+    }
+    d_is_initialized = false;
+    return;
+}// deallocateOperatorState
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

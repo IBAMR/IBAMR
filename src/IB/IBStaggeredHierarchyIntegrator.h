@@ -2,25 +2,31 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <08.May.2008 21:17:05 griffith@box230.cims.nyu.edu>
+// Last modified: <11.May.2008 23:52:43 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSC INCLUDES
-#include <petsc.h>
+#include <petscsnes.h>
 
 // IBAMR INCLUDES
 #include <ibamr/HierarchyProjector.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
+#include <ibamr/INSStaggeredConvectiveOperator.h>
+#include <ibamr/INSStaggeredNavierStokesOperator.h>
+#include <ibamr/INSStaggeredProjectionPreconditioner.h>
+#include <ibamr/INSStaggeredStokesOperator.h>
 
 // IBTK INCLUDES
+#include <ibtk/KrylovLinearSolver.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/LNodeInitStrategy.h>
 #if (NDIM == 3)
 #include <ibtk/LagM3DDataWriter.h>
 #endif
 #include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
@@ -98,7 +104,7 @@ public:
      */
     void
     registerVelocityInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_init);
 
     /*!
      * Supply initial conditions for the (cell centered) pressure.
@@ -108,7 +114,7 @@ public:
      */
     void
     registerPressureInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> p_init);
 
     /*!
      * Supply an optional side centered body forcing term.
@@ -117,7 +123,7 @@ public:
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> f_set);
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
@@ -690,6 +696,64 @@ private:
     operator=(
         const IBStaggeredHierarchyIntegrator& that);
 
+    static PetscErrorCode
+    FormFunction_SAMRAI(
+        SNES snes,
+        Vec x,
+        Vec f,
+        void* p_ctx);
+
+    void
+    FormFunction(
+        Vec x,
+        Vec f);
+
+    static PetscErrorCode
+    FormJacobian_SAMRAI(
+        SNES snes,
+        Vec x,
+        Mat* A,
+        Mat* B,
+        MatStructure* mat_structure,
+        void* p_ctx);
+
+    void
+    FormJacobian(
+        Vec x);
+
+    static PetscErrorCode
+    MatVecMult_SAMRAI(
+        Mat A,
+        Vec x,
+        Vec y);
+
+    void
+    MatVecMult(
+        Vec x,
+        Vec y);
+
+    static PetscErrorCode
+    MatVecMult_strct_SAMRAI(
+        Mat A,
+        Vec x,
+        Vec y);
+
+    void
+    MatVecMult_strct(
+        Vec x,
+        Vec y);
+
+    static PetscErrorCode
+    PCApply_SAMRAI(
+        void* p_ctx,
+        Vec x,
+        Vec y);
+
+    void
+    PCApply(
+        Vec x,
+        Vec y);
+
     /*!
      * Determine the largest stable timestep on an individual patch level.
      */
@@ -772,7 +836,7 @@ private:
 #if (NDIM == 3)
     SAMRAI::tbox::Pointer<IBTK::LagM3DDataWriter> d_m3D_writer;
 #endif
-    double d_U_scale, d_P_scale, d_F_scale;
+    double d_u_scale, d_p_scale, d_f_scale;
 
     /*
      * We cache a pointer to the load balancer.
@@ -786,28 +850,17 @@ private:
     SAMRAI::tbox::Pointer<HierarchyProjector> d_hier_projector;
 
     /*
+     * Whether to use the exact Jacobian or the matrix-free Jacobian.
+     */
+    bool d_use_exact_jacobian;
+
+    /*
      * Integrator data read from input or set at initialization.
      */
     double d_start_time;
     double d_end_time;
     double d_grow_dt;
     int d_max_integrator_steps;
-
-    /*
-     * The number of cycles to perform each timestep.  During each cycle, the
-     * most recently available pressure is employed as the time centered
-     * approximation to the pressure gradient that appears in the momentum
-     * equation.  (During the first cycle, this is simply the lagged pressure
-     * computed during the previous timestep.)  Typically, num_cycles will equal
-     * 1.
-     */
-    int d_num_cycles;
-
-    /*
-     * The number of cycles to perform during the first timestep in order to
-     * initialize the pressure.
-     */
-    int d_num_init_cycles;
 
     /*
      * The regrid interval indicates the number of integration steps taken
@@ -837,18 +890,8 @@ private:
      * vorticity.
      */
     bool d_using_vorticity_tagging;
-    SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
-    double d_Omega_max;
-
-    /*
-     * This boolean value determines whether the pressure update is second-order
-     * accurate in time.
-     *
-     * The string indicates the type of viscous timestepping scheme that is
-     * being employed; its value is provided by class
-     * AdvDiffHierarchyIntegrator.
-     */
-    bool d_second_order_pressure_update;
+    SAMRAI::tbox::Array<double> d_omega_rel_thresh, d_omega_abs_thresh;
+    double d_omega_max;
 
     /*
      * This boolean value determines whether the pressure is normalized to have
@@ -860,31 +903,31 @@ private:
      * This boolean value indicates whether to output the velocity for
      * visualization.
      */
-    bool d_output_U;
+    bool d_output_u;
 
     /*
      * This boolean value indicates whether to output the pressure for
      * visualization.
      */
-    bool d_output_P;
+    bool d_output_p;
 
     /*
      * This boolean value indicates whether to output the force for
      * visualization.
      */
-    bool d_output_F;
+    bool d_output_f;
 
     /*
      * This boolean value indicates whether to store the cell centered vorticity
      * (curl U) for visualization.
      */
-    bool d_output_Omega;
+    bool d_output_omega;
 
     /*
      * These boolean values indicate whether to store the cell centered
      * divergences of U, u, and u_adv for visualization.
      */
-    bool d_output_Div_U;
+    bool d_output_div_u;
 
     /*
      * Integrator data that evolves during time integration and maintains the
@@ -939,6 +982,22 @@ private:
     double d_volume;
 
     /*
+     * Hierarchy operators and solvers.
+     */
+    SAMRAI::tbox::Pointer<INSStaggeredConvectiveOperator> d_convective_op;
+    SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
+
+    bool d_helmholtz_solver_needs_init;
+    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>  d_helmholtz_op;
+    SAMRAI::solv::PoissonSpecifications*            d_helmholtz_spec;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> d_helmholtz_solver;
+
+    bool d_projection_pc_needs_init;
+    SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> d_projection_pc;
+
+    double d_current_time, d_new_time, d_dt;
+
+    /*
      * Communications algorithms, patch strategies, and schedules.
      */
     RefineAlgMap           d_ralgs;
@@ -952,15 +1011,15 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
 
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_u_scratch_bdry_fill_op, d_no_fill_op;
 
     /*
      * Objects to set initial conditions (note that the initial value of the
      * pressure is only used for visualization) as well as constant or
      * time-dependent body forcing.
      */
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_U_init, d_P_init;
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_init, d_p_init;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_f_set;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
@@ -984,17 +1043,17 @@ private:
     /*!
      * State and scratch variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_u_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_p_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_f_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_f_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_omega_var;
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_omega_norm_var;
 #endif
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_gadvect_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_div_u_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_interp_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -1002,16 +1061,16 @@ private:
      *
      * State variables have three contexts: current, scratch, and new.
      */
-    int          d_U_current_idx,          d_U_new_idx,          d_U_scratch_idx;
-    int       d_U_cc_current_idx,       d_U_cc_new_idx,       d_U_cc_scratch_idx;
-    int          d_P_current_idx,          d_P_new_idx,          d_P_scratch_idx;
-    int          d_F_current_idx,          d_F_new_idx,          d_F_scratch_idx;
-    int       d_F_cc_current_idx,       d_F_cc_new_idx,       d_F_cc_scratch_idx;
-    int      d_Omega_current_idx,      d_Omega_new_idx,      d_Omega_scratch_idx;
+    int          d_u_current_idx,          d_u_new_idx,          d_u_scratch_idx;
+    int       d_u_cc_current_idx,       d_u_cc_new_idx,       d_u_cc_scratch_idx;
+    int          d_p_current_idx,          d_p_new_idx,          d_p_scratch_idx;
+    int          d_f_current_idx,          d_f_new_idx,          d_f_scratch_idx;
+    int       d_f_cc_current_idx,       d_f_cc_new_idx,       d_f_cc_scratch_idx;
+    int      d_omega_current_idx,      d_omega_new_idx,      d_omega_scratch_idx;
 #if (NDIM == 3)
-    int d_Omega_Norm_current_idx, d_Omega_Norm_new_idx, d_Omega_Norm_scratch_idx;
+    int d_omega_norm_current_idx, d_omega_norm_new_idx, d_omega_norm_scratch_idx;
 #endif
-    int      d_Div_U_current_idx,      d_Div_U_new_idx,      d_Div_U_scratch_idx;
+    int      d_div_u_current_idx,      d_div_u_new_idx,      d_div_u_scratch_idx;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the
@@ -1019,7 +1078,9 @@ private:
      *
      * Scratch variables have only one context.
      */
-    int d_gadvect_U_scratch_idx;
+    int d_u_rhs_idx, d_u_nul_idx, d_u_half_idx, d_n_idx, d_u_interp_idx;
+    int d_p_rhs_idx, d_p_nul_idx;
+    int d_gadvect_u_scratch_idx;
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
@@ -1028,11 +1089,6 @@ private:
      * Such variables have only one context.
      */
     int d_wgt_cc_idx, d_wgt_sc_idx;
-
-    /*
-     * Patch boundary filling operators.
-     */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_scratch_bdry_fill_op, d_U_scratch_bdry_fill_op, d_P_scratch_bdry_fill_op;
 
     /*
      * The name of the discrete delta function to employ for interpolation and
@@ -1059,6 +1115,24 @@ private:
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_body_force_set;
     SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_force_strategy;
     bool d_force_strategy_needs_init;
+
+    /*
+     * Lagrangian data.
+     */
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_mid_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_U_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_F_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_F_half_data;
+    std::vector<Mat> d_J_mat, d_F_mat, d_F_pre_mat;
+    std::vector<KSP> d_F_ksp;
+
+    /*
+     * Solvers.
+     */
+    SNES d_petsc_snes;
 };
 }// namespace IBAMR
 

@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <01.Apr.2008 17:08:17 griffith@box221.cims.nyu.edu>
+// Last modified: <11.May.2008 16:11:57 griffith@box230.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -43,6 +43,7 @@ namespace
 {
 // Timers.
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 }
 
@@ -51,6 +52,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 IBSpringForceGen::IBSpringForceGen(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_D_mats(),
+      d_J_mats(),
       d_lag_mastr_node_idxs(),
       d_lag_slave_node_idxs(),
       d_petsc_mastr_node_idxs(),
@@ -59,13 +61,15 @@ IBSpringForceGen::IBSpringForceGen(
       d_stiffnesses(),
       d_rest_lengths(),
       d_is_initialized(),
-      d_force_fcn_map()
+      d_force_fcn_map(),
+      d_force_jacobian_fcn_map()
 {
     // Initialize object with data read from the input database.
     getFromInput(input_db);
 
     // Setup the default force generation functions.
     registerSpringForceFunction(0, &IBAMR::default_linear_spring_force);
+    registerSpringForceJacobianFunction(0, &IBAMR::default_linear_spring_force_jacobian);
 
     // Setup Timers.
     static bool timers_need_init = true;
@@ -73,6 +77,8 @@ IBSpringForceGen::IBSpringForceGen(
     {
         t_compute_lagrangian_force = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBSpringForceGen::computeLagrangianForce()");
+        t_compute_lagrangian_force_jacobian = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBSpringForceGen::computeLagrangianForceJacobian()");
         t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBSpringForceGen::initializeLevelData()");
         timers_need_init = false;
@@ -90,6 +96,13 @@ IBSpringForceGen::~IBSpringForceGen()
             ierr = MatDestroy(*it);  IBTK_CHKERRQ(ierr);
         }
     }
+    for (std::vector<Mat>::iterator it = d_J_mats.begin(); it != d_J_mats.end(); ++it)
+    {
+        if (*it)
+        {
+            ierr = MatDestroy(*it);  IBTK_CHKERRQ(ierr);
+        }
+    }
     return;
 }// ~IBSpringForceGen
 
@@ -101,6 +114,15 @@ IBSpringForceGen::registerSpringForceFunction(
     d_force_fcn_map[force_fcn_index] = force_fcn;
     return;
 }// registerSpringForceFunction
+
+void
+IBSpringForceGen::registerSpringForceJacobianFunction(
+    const int force_fcn_index,
+    void (*force_jacobian_fcn)(double dF_dX[NDIM*NDIM], const double D[NDIM], const double& stf, const double& rst, const int& lag_mastr_idx, const int& lag_slave_idx))
+{
+    d_force_jacobian_fcn_map[force_fcn_index] = force_jacobian_fcn;
+    return;
+}// registerSpringForceJacobianFunction
 
 void
 IBSpringForceGen::initializeLevelData(
@@ -127,6 +149,7 @@ IBSpringForceGen::initializeLevelData(
     const int new_size = std::max(level_number+1, int(d_is_initialized.size()));
 
     d_D_mats.resize(new_size);
+    d_J_mats.resize(new_size);
     d_lag_mastr_node_idxs.resize(new_size);
     d_lag_slave_node_idxs.resize(new_size);
     d_petsc_mastr_node_idxs.resize(new_size);
@@ -137,6 +160,7 @@ IBSpringForceGen::initializeLevelData(
     d_is_initialized.resize(new_size, false);
 
     Mat& D_mat = d_D_mats[level_number];
+    Mat& J_mat = d_J_mats[level_number];
     std::vector<int>& lag_mastr_node_idxs = d_lag_mastr_node_idxs[level_number];
     std::vector<int>& lag_slave_node_idxs = d_lag_slave_node_idxs[level_number];
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
@@ -148,6 +172,10 @@ IBSpringForceGen::initializeLevelData(
     if (D_mat)
     {
         ierr = MatDestroy(D_mat);  IBTK_CHKERRQ(ierr);
+    }
+    if (J_mat)
+    {
+        ierr = MatDestroy(J_mat);  IBTK_CHKERRQ(ierr);
     }
     lag_mastr_node_idxs.clear();
     lag_slave_node_idxs.clear();
@@ -224,10 +252,10 @@ IBSpringForceGen::initializeLevelData(
     const int global_node_offset = lag_manager->getGlobalNodeOffset(level_number);
     const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_number);
 
-    // Determine the non-zero structure for the matrix.
+    // Determine the non-zero structure for the matrix used to compute nodal
+    // displacements.
     const int local_sz = petsc_mastr_node_idxs.size();
     std::vector<int> d_nz(local_sz,1), o_nz(local_sz,0);
-
     for (int k = 0; k < local_sz; ++k)
     {
         const int& slave_idx = petsc_slave_node_idxs[k];
@@ -242,8 +270,8 @@ IBSpringForceGen::initializeLevelData(
         }
     }
 
-    // Create a new MPI block AIJ matrix and set the values of the non-zero
-    // entries.
+    // Create a new MPI block AIJ matrix used to compute nodal displacements and
+    // set the values of the non-zero entries.
     ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
                             NDIM, NDIM*local_sz, NDIM*num_local_nodes,
                             PETSC_DETERMINE, PETSC_DETERMINE,
@@ -277,9 +305,102 @@ IBSpringForceGen::initializeLevelData(
                                    INSERT_VALUES);  IBTK_CHKERRQ(ierr);
     }
 
-    // Assemble the matrix.
+    // Determine the non-zero structure for the matrix used to store the
+    // Jacobian of the force.
+    //
+    // NOTE: Each edge is *only* associated with a single node in the mesh.  We
+    // must take this into account when determining the non-zero structure of
+    // the matrix.
+    MPI_Comm comm = SAMRAI::tbox::SAMRAI_MPI::getCommunicator();
+    Vec d_nz_vec, o_nz_vec;
+    ierr = VecCreateMPI(comm, num_local_nodes, PETSC_DETERMINE, &d_nz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecCreateMPI(comm, num_local_nodes, PETSC_DETERMINE, &o_nz_vec);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecSet(d_nz_vec, 1.0);  IBTK_CHKERRQ(ierr);
+    ierr = VecSet(o_nz_vec, 0.0);  IBTK_CHKERRQ(ierr);
+
+    TBOX_ASSERT(local_sz == int(petsc_mastr_node_idxs.size()));
+    for (int k = 0; k < local_sz; ++k)
+    {
+        const int& mastr_idx = petsc_mastr_node_idxs[k];
+        const int& slave_idx = petsc_slave_node_idxs[k];
+
+        static const int N = 2;
+        const int idxs[N] = { mastr_idx , slave_idx };
+        const double vals[N] = { 1.0 , 1.0 };
+        if (slave_idx >= global_node_offset &&
+            slave_idx <  global_node_offset+num_local_nodes)
+        {
+            ierr = VecSetValues(d_nz_vec, N, idxs, vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            ierr = VecSetValues(o_nz_vec, N, idxs, vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+    }
+
+    ierr = VecAssemblyBegin(d_nz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(o_nz_vec);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecAssemblyEnd(d_nz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(o_nz_vec);  IBTK_CHKERRQ(ierr);
+
+    double* d_nz_vec_arr;
+    double* o_nz_vec_arr;
+
+    ierr = VecGetArray(d_nz_vec, &d_nz_vec_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecGetArray(o_nz_vec, &o_nz_vec_arr);  IBTK_CHKERRQ(ierr);
+
+    d_nz.clear();
+    o_nz.clear();
+    d_nz.resize(num_local_nodes,1);
+    o_nz.resize(num_local_nodes,0);
+    for (int k = 0; k < num_local_nodes; ++k)
+    {
+        d_nz[k] = int(d_nz_vec_arr[k]);
+        o_nz[k] = int(o_nz_vec_arr[k]);
+    }
+
+    ierr = VecRestoreArray(d_nz_vec, &d_nz_vec_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArray(o_nz_vec, &o_nz_vec_arr);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecDestroy(d_nz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(o_nz_vec);  IBTK_CHKERRQ(ierr);
+
+    // Create a new MPI block AIJ matrix used to store the Jacobian of the force
+    // and set dummy values for the matrix entries.
+    ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
+                            NDIM, NDIM*num_local_nodes, NDIM*num_local_nodes,
+                            PETSC_DETERMINE, PETSC_DETERMINE,
+                            PETSC_DEFAULT, &d_nz[0],
+                            PETSC_DEFAULT, &o_nz[0],
+                            &J_mat);  IBTK_CHKERRQ(ierr);
+
+    static const int N = 2;
+    std::vector<double> dummy_vals(N*NDIM*NDIM,1.0);
+    ierr = MatGetOwnershipRange(J_mat, &i_offset, PETSC_NULL);
+    IBTK_CHKERRQ(ierr);
+    i_offset /= NDIM;
+
+    for (int k = 0; k < local_sz; ++k)
+    {
+        const int& i = petsc_mastr_node_idxs[k];
+        const int& j = petsc_slave_node_idxs[k];
+
+        // Set entries on row i.
+        const int idxs_i[N] = { j , i };
+        ierr = MatSetValuesBlocked(J_mat,1,&i,N,idxs_i,&(dummy_vals[0]),INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+
+        // Set entries on row j.
+        const int idxs_j[N] = { i , j };
+        ierr = MatSetValuesBlocked(J_mat,1,&j,N,idxs_j,&(dummy_vals[0]),INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+    }
+
+    // Assemble the matrices.
     ierr = MatAssemblyBegin(D_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(J_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyEnd(D_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(J_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
 
     // Indicate that the level data has been initialized.
     d_is_initialized[level_number] = true;
@@ -341,11 +462,11 @@ IBSpringForceGen::computeLagrangianForce(
         // Compute the force applied by the spring to the "master" node.
         double* const F_mastr_node = &F_mastr_node_arr[k*NDIM];
         const double* const D = &D_arr[k*NDIM];
+        const double& stf = stiffnesses[k];
+        const double& rst = rest_lengths[k];
         const int& lag_mastr_idx = lag_mastr_node_idxs[k];
         const int& lag_slave_idx = lag_slave_node_idxs[k];
         const int& force_fcn_id = force_fcn_idxs[k];
-        const double& stf = stiffnesses[k];
-        const double& rst = rest_lengths[k];
         d_force_fcn_map[force_fcn_id](F_mastr_node,D,stf,rst,lag_mastr_idx,lag_slave_idx);
 
         // Compute the force applied by the spring to the corresponding "slave"
@@ -369,6 +490,107 @@ IBSpringForceGen::computeLagrangianForce(
     t_compute_lagrangian_force->stop();
     return;
 }// computeLagrangianForce
+
+void
+IBSpringForceGen::computeLagrangianForceJacobian(
+    Mat& J_mat,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    t_compute_lagrangian_force_jacobian->start();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(level_number < int(d_is_initialized.size()));
+    TBOX_ASSERT(d_is_initialized[level_number]);
+#endif
+
+    int ierr;
+
+    TBOX_WARNING("this should ADD to the Jacobian, not destroy it!\n");
+    if (J_mat)
+    {
+        ierr = MatDestroy(J_mat);  IBTK_CHKERRQ(ierr);
+    }
+    ierr = MatDuplicate(d_J_mats[level_number], MAT_DO_NOT_COPY_VALUES, &J_mat);  IBTK_CHKERRQ(ierr);
+
+    // Create an appropriately sized temporary vector to store the node
+    // displacements.
+    int i_start, i_stop;
+    ierr = MatGetOwnershipRange(d_D_mats[level_number], &i_start, &i_stop);
+    IBTK_CHKERRQ(ierr);
+
+    Vec D_vec;
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &D_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetBlockSize(D_vec, NDIM);                                          IBTK_CHKERRQ(ierr);
+
+    // Compute the node displacements.
+    ierr = MatMult(d_D_mats[level_number], X_data->getGlobalVec(), D_vec);
+    IBTK_CHKERRQ(ierr);
+
+    // Compute the force Jacobians and insert them into the Jacobian matrix.
+    double* D_arr;
+    ierr = VecGetArray(D_vec, &D_arr);  IBTK_CHKERRQ(ierr);
+
+    std::vector<int>& lag_mastr_node_idxs = d_lag_mastr_node_idxs[level_number];
+    std::vector<int>& lag_slave_node_idxs = d_lag_slave_node_idxs[level_number];
+    std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
+    std::vector<int>& petsc_slave_node_idxs = d_petsc_slave_node_idxs[level_number];
+    std::vector<int>& force_fcn_idxs = d_force_fcn_idxs[level_number];
+    std::vector<double>& stiffnesses = d_stiffnesses[level_number];
+    std::vector<double>& rest_lengths = d_rest_lengths[level_number];
+
+    const int local_sz = petsc_mastr_node_idxs.size();
+    for (int k = 0; k < local_sz; ++k)
+    {
+        // Compute the Jacobian of the force applied by the spring to the
+        // "master" node with respect to the position of the "slave" node.
+        std::vector<double> dF_dX(NDIM*NDIM,0.0);
+        const double* const D = &D_arr[k*NDIM];
+        const double& stf = stiffnesses[k];
+        const double& rst = rest_lengths[k];
+        const int& lag_mastr_idx = lag_mastr_node_idxs[k];
+        const int& lag_slave_idx = lag_slave_node_idxs[k];
+        const int& force_fcn_id = force_fcn_idxs[k];
+        d_force_jacobian_fcn_map[force_fcn_id](&dF_dX[0],D,stf,rst,lag_mastr_idx,lag_slave_idx);
+
+        // Get the PETSc indices corresponding to the "master" and "slave"
+        // nodes.
+        const int& petsc_mastr_idx = petsc_mastr_node_idxs[k];
+        const int& petsc_slave_idx = petsc_slave_node_idxs[k];
+
+        // Accumulate the off-diagonal parts of the matrix.
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_slave_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_slave_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+
+        // Negate dF_dX to obtain the Jacobian of the force applied by the
+        // spring to the "master" node with respect to the position of the
+        // "master" node.
+        for (int beta = 0; beta < NDIM; ++beta)
+        {
+            for (int alpha = 0; alpha < NDIM; ++alpha)
+            {
+                dF_dX[alpha+beta*NDIM] = -dF_dX[alpha+beta*NDIM];
+            }
+        }
+
+        // Accumulate the diagonal parts of the matrix.
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_slave_idx,1,&petsc_slave_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    }
+
+    ierr = VecRestoreArray(D_vec, &D_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(D_vec);               IBTK_CHKERRQ(ierr);
+
+    // Assemble the matrix.
+    ierr = MatAssemblyBegin(J_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(J_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+
+    t_compute_lagrangian_force_jacobian->stop();
+    return;
+}// computeLagrangianForceJacobian
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

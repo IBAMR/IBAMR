@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <08.May.2008 16:49:09 griffith@box230.cims.nyu.edu>
+// Last modified: <09.May.2008 20:51:07 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -778,22 +778,6 @@ private:
     int d_max_integrator_steps;
 
     /*
-     * The number of cycles to perform each timestep.  During each cycle, the
-     * most recently available pressure is employed as the time centered
-     * approximation to the pressure gradient that appears in the momentum
-     * equation.  (During the first cycle, this is simply the lagged pressure
-     * computed during the previous timestep.)  Typically, num_cycles will equal
-     * 1.
-     */
-    int d_num_cycles;
-
-    /*
-     * The number of cycles to perform during the first timestep in order to
-     * initialize the pressure.
-     */
-    int d_num_init_cycles;
-
-    /*
      * The regrid interval indicates the number of integration steps taken
      * between invocations of the regridding process.
      */
@@ -823,16 +807,6 @@ private:
     bool d_using_vorticity_tagging;
     SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
     double d_Omega_max;
-
-    /*
-     * This boolean value determines whether the pressure update is second-order
-     * accurate in time.
-     *
-     * The string indicates the type of viscous timestepping scheme that is
-     * being employed; its value is provided by class
-     * AdvDiffHierarchyIntegrator.
-     */
-    bool d_second_order_pressure_update;
 
     /*
      * This boolean value determines whether the pressure is normalized to have
@@ -936,7 +910,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
 
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_scratch_bdry_fill_op, d_no_fill_op;
 
     /*
      * Objects to set initial conditions (note that the initial value of the
@@ -978,7 +952,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_gadvect_U_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -998,25 +971,12 @@ private:
     int      d_Div_U_current_idx,      d_Div_U_new_idx,      d_Div_U_scratch_idx;
 
     /*
-     * Patch data descriptor indices for all "scratch" variables managed by the
-     * integrator.
-     *
-     * Scratch variables have only one context.
-     */
-    int d_gadvect_U_scratch_idx;
-
-    /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
      * class.
      *
      * Such variables have only one context.
      */
     int d_wgt_cc_idx, d_wgt_sc_idx;
-
-    /*
-     * Patch boundary filling operators.
-     */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_scratch_bdry_fill_op, d_U_scratch_bdry_fill_op, d_P_scratch_bdry_fill_op;
 };
 }// namespace IBAMR
 

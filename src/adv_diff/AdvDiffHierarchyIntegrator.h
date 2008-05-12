@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <06.Feb.2008 20:10:15 griffith@box221.cims.nyu.edu>
+// Last modified: <09.May.2008 21:20:44 griffith@box230.cims.nyu.edu>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1021,10 +1021,10 @@ private:
     double d_abs_residual_tol, d_rel_residual_tol;
     bool d_using_FAC;
 
-    std::vector<SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> >              d_helmholtz_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> >                d_helmholtz_ops;
     std::vector<SAMRAI::solv::PoissonSpecifications>                            d_helmholtz_specs;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> >             d_helmholtz_solvers;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator> >           d_helmholtz_fac_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> >               d_helmholtz_solvers;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator> >             d_helmholtz_fac_ops;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > > d_helmholtz_fac_pcs;
 
     std::vector<bool> d_helmholtz_solvers_need_init;

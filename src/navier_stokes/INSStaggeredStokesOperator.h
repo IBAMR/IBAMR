@@ -2,7 +2,7 @@
 #define included_INSStaggeredStokesOperator
 
 // Filename: INSStaggeredStokesOperator.h
-// Last modified: <08.May.2008 18:24:56 griffith@box230.cims.nyu.edu>
+// Last modified: <09.May.2008 20:49:38 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -37,8 +37,7 @@ public:
         const double rho,
         const double mu,
         const double lambda,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> U_P_bdry_fill_op)
+        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
         : d_is_initialized(false),
           d_current_time(std::numeric_limits<double>::quiet_NaN()),
           d_new_time(std::numeric_limits<double>::quiet_NaN()),
@@ -48,7 +47,7 @@ public:
           d_lambda(lambda),
           d_helmholtz_spec("INSStaggeredStokesOperator::helmholtz_spec"),
           d_hier_math_ops(hier_math_ops),
-          d_U_P_bdry_fill_op(U_P_bdry_fill_op),
+          d_U_P_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
           d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
           d_x_scratch(NULL)
         {
@@ -70,7 +69,7 @@ public:
      * \brief Set the current time interval.
      */
     void
-    setCurrentTimeInterval(
+    setTimeInterval(
         const double current_time,
         const double new_time)
         {
@@ -80,7 +79,7 @@ public:
             d_helmholtz_spec.setCConstant((d_rho/d_dt)+0.5*d_lambda);
             d_helmholtz_spec.setDConstant(            -0.5*d_mu    );
             return;
-        }// setCurrentTimeInterval
+        }// setTimeInterval
 
     /*!
      * \name Linear operator functionality.
@@ -116,80 +115,7 @@ public:
     virtual void
     apply(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
-        {
-            // Initialize the operator (if necessary).
-            const bool deallocate_at_completion = !d_is_initialized;
-            if (!d_is_initialized) initializeOperatorState(x,y);
-
-            // Get the vector components.
-            const int U_out_idx      =            y.getComponentDescriptorIndex(0);
-            const int P_out_idx      =            y.getComponentDescriptorIndex(1);
-            const int U_scratch_idx  = d_x_scratch->getComponentDescriptorIndex(0);
-            const int P_scratch_idx  = d_x_scratch->getComponentDescriptorIndex(1);
-
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_out_var = y.getComponentVariable(0);
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_out_var = y.getComponentVariable(1);
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_out_sc_var = U_out_var;
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_out_cc_var = P_out_var;
-
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_scratch_var = d_x_scratch->getComponentVariable(0);
-            const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_scratch_var = d_x_scratch->getComponentVariable(1);
-
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_scratch_sc_var = U_scratch_var;
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_scratch_cc_var = P_scratch_var;
-
-            d_x_scratch->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&x,false));
-
-            // Type of coarsening to perform prior to setting coarse-fine
-            // boundary and physical boundary ghost cell values.
-            static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
-
-            // Type of extrapolation to use at physical boundaries.
-            static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
-
-            // Whether to enforce consistent interpolated values at Type 2
-            // coarse-fine interface ghost cells.
-            static const bool CONSISTENT_TYPE_2_BDRY = false;
-
-            // Reset the interpolation operators and fill the data.
-            typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-            InterpolationTransactionComponent U_component(U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
-            InterpolationTransactionComponent P_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-
-            std::vector<InterpolationTransactionComponent> transaction_comps(2);
-            transaction_comps[0] = U_component;
-            transaction_comps[1] = P_component;
-
-            d_U_P_bdry_fill_op->resetTransactionComponents(transaction_comps);
-            d_U_P_bdry_fill_op->fillData(d_new_time);
-
-            // Compute the action of the operator:
-            //      A*[u;p] = [((rho/dt)*I-0.5*mu*L)*u + grad p; -div u].
-            bool cf_bdry_synch;
-            cf_bdry_synch = true;
-            d_hier_math_ops->grad(
-                U_out_idx, U_out_sc_var,
-                cf_bdry_synch,
-                1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time);
-            cf_bdry_synch = false;
-            d_hier_math_ops->div(
-                P_out_idx, P_out_cc_var,
-                -1.0, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
-                cf_bdry_synch);
-            d_hier_math_ops->laplace(
-                U_out_idx, U_out_sc_var,
-                d_helmholtz_spec,
-                U_scratch_idx, U_scratch_sc_var,
-                d_no_fill_op, d_new_time,
-                1.0,
-                U_out_idx, U_out_sc_var);
-
-            // Deallocate the operator (if necessary).
-            if (deallocate_at_completion) deallocateOperatorState();
-            return;
-        }// apply
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -224,16 +150,7 @@ public:
     virtual void
     initializeOperatorState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out)
-        {
-            if (d_is_initialized) deallocateOperatorState();
-
-            d_x_scratch = in.cloneVector("INSStaggeredStokesOperator::x_scratch");
-            d_x_scratch->allocateVectorData();
-
-            d_is_initialized = true;
-            return;
-        }// initializeOperatorState
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -246,17 +163,7 @@ public:
      * \see initializeOperatorState
      */
     virtual void
-    deallocateOperatorState()
-        {
-            if (!d_is_initialized) return;
-
-            d_x_scratch->deallocateVectorData();
-            d_x_scratch->freeVectorComponents();
-            d_x_scratch.setNull();
-
-            d_is_initialized = false;
-            return;
-        }// deallocateOperatorState
+    deallocateOperatorState();
 
     //\}
 

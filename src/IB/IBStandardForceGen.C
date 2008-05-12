@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <12.Mar.2008 23:00:40 griffith@box221.cims.nyu.edu>
+// Last modified: <09.May.2008 17:32:28 griffith@box230.cims.nyu.edu>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBStandardForceGen.h"
@@ -99,6 +99,20 @@ IBStandardForceGen::computeLagrangianForce(
         F_data, X_data, hierarchy, level_number, data_time, lag_manager);
     return;
 }// computeLagrangianForce
+
+void
+IBStandardForceGen::computeLagrangianForceJacobian(
+    Mat& J_mat,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    d_force_strategy_set->computeLagrangianForceJacobian(
+        J_mat, X_data, hierarchy, level_number, data_time, lag_manager);
+    return;
+}// computeLagrangianForceJacobian
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

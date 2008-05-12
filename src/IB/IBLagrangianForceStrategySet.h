@@ -2,7 +2,7 @@
 #define included_IBLagrangianForceStrategySet
 
 // Filename: IBLagrangianForceStrategySet.h
-// Last modified: <12.Mar.2008 23:00:40 griffith@box221.cims.nyu.edu>
+// Last modified: <09.May.2008 17:31:42 griffith@box230.cims.nyu.edu>
 // Created on 04 April 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -72,6 +72,22 @@ public:
     virtual void
     computeLagrangianForce(
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double data_time,
+        IBTK::LDataManager* const lag_manager);
+
+    /*!
+     * \brief Compute the Jacobian of the force with respect to the present
+     * structure configuration.
+     *
+     * \note The elements of the Jacobian should be "accumulated" in the
+     * provided matrix J.
+     */
+    virtual void
+    computeLagrangianForceJacobian(
+        Mat& J_mat,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

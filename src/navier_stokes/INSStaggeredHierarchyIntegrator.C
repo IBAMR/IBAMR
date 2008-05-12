@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <08.May.2008 20:58:03 griffith@box230.cims.nyu.edu>
+// Last modified: <09.May.2008 20:52:12 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -98,12 +98,6 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
-// NOTE: The number of ghost cells required by the Godunov advection scheme
-// depends on the order of the reconstruction.  These values were chosen to work
-// with xsPPM7 (the modified piecewise parabolic method of Rider, Greenough, and
-// Kamm).
-static const int GADVECTG = 4;
-
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
 static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
@@ -159,10 +153,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_using_vorticity_tagging = false;
     d_Omega_max = 0.0;
 
-    d_second_order_pressure_update = false;
     d_normalize_pressure = false;
-
-    d_num_init_cycles = 5;
 
     d_regrid_interval = 1;
     d_old_dt = -1.0;
@@ -423,7 +414,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_Omega_Norm_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::||Omega||_2");
 #endif
     d_Div_U_var      = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Div_U"      );
-    d_gadvect_U_var  = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::gadvect_U"  );
 
     // Create the default communication algorithms.
     d_fill_after_regrid = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
@@ -436,7 +426,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     const SAMRAI::hier::IntVector<NDIM> cell_ghosts = CELLG;
     const SAMRAI::hier::IntVector<NDIM> side_ghosts = SIDEG;
-    const SAMRAI::hier::IntVector<NDIM> gadvect_velocity_ghosts = std::max(GADVECTG,SIDEG);
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
     registerVariable(d_U_current_idx, d_U_new_idx, d_U_scratch_idx,
@@ -478,10 +467,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                      d_Div_U_var, cell_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
-
-    // Register other scratch variables.
-    d_gadvect_U_scratch_idx = var_db->registerVariableAndContext(
-        d_gadvect_U_var, getScratchContext(), gadvect_velocity_ghosts);
 
     // Register variables for plotting.
     if (!d_visit_writer.isNull())
@@ -541,21 +526,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 d_Div_U_var->getName(), "SCALAR", d_Div_U_current_idx);
         }
     }
-
-    // Create several refinement communications algorithms, used in filling
-    // ghost cell data.
-    std::string ralg_name;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator;
-
-    ralg_name = "gadvect_U_scratch_bdry_fill";
-    d_ralgs[ralg_name] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_gadvect_U_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_ralgs[ralg_name]->registerRefine(d_gadvect_U_scratch_idx, // destination
-                                       d_U_scratch_idx,         // source
-                                       d_gadvect_U_scratch_idx, // temporary work space
-                                       refine_operator);
-    d_rstrategies[ralg_name] = new IBTK::CartExtrapPhysBdryOp(d_gadvect_U_scratch_idx, BDRY_EXTRAP_TYPE);
 
     // Setup the Hierarchy math operations object.
     d_hier_math_ops = new IBTK::HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy);
@@ -827,12 +797,10 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
-    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
 
     // Hierarchy ghost cell transaction components.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
 
     // Synchronize current state data.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
@@ -869,174 +837,135 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_rhs_var = P_rhs_vec->getComponentVariable(0);
     d_hier_cc_data_ops->setToScalar(P_rhs_idx,0.0);
 
-    const int num_cycles = initial_time ? d_num_init_cycles : d_num_cycles;
-    for (int cycle = 0; cycle < num_cycles; ++cycle)
+    // Initialize the right-hand side terms.
+    SAMRAI::solv::PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec");
+    rhs_spec.setCConstant((d_rho/dt)-0.5*d_lambda);
+    rhs_spec.setDConstant(          +0.5*d_mu    );
+    d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
+    d_U_scratch_bdry_fill_op->resetTransactionComponent(U_scratch_component);
+    d_hier_math_ops->laplace(
+        U_rhs_idx, U_rhs_var,
+        rhs_spec,
+        d_U_scratch_idx, d_U_var,
+        d_U_scratch_bdry_fill_op, current_time);
+    if (!d_F_set.isNull())
     {
-        if (d_do_log && initial_time)
+        if (d_F_set->isTimeDependent())
         {
-            SAMRAI::tbox::plog << "\n\n++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            SAMRAI::tbox::plog << "+\n";
-            SAMRAI::tbox::plog << "+ Performing cycle " << cycle+1 << " of " << d_num_init_cycles << " to initialize the pressure at time t=dt/2\n";
-            SAMRAI::tbox::plog << "+\n";
-            SAMRAI::tbox::plog << "++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
+            d_F_set->setDataOnPatchHierarchy(
+                d_F_new_idx, d_F_var, d_hierarchy, new_time);
         }
-
-        // Initialize the right-hand side terms.
-        SAMRAI::solv::PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec");
-        rhs_spec.setCConstant((d_rho/dt)-0.5*d_lambda);
-        rhs_spec.setDConstant(          +0.5*d_mu    );
-        d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-        d_U_scratch_bdry_fill_op->resetTransactionComponent(U_scratch_component);
-        d_hier_math_ops->laplace(
-            U_rhs_idx, U_rhs_var,
-            rhs_spec,
-            d_U_scratch_idx, d_U_var,
-            d_U_scratch_bdry_fill_op, current_time);
-        if (!d_F_set.isNull())
-        {
-            if (d_F_set->isTimeDependent())
-            {
-                d_F_set->setDataOnPatchHierarchy(
-                    d_F_new_idx, d_F_var, d_hierarchy, new_time);
-            }
-            d_hier_sc_data_ops->axpy(U_rhs_idx, +0.5, d_F_current_idx, U_rhs_idx);
-            d_hier_sc_data_ops->axpy(U_rhs_idx, +0.5, d_F_new_idx    , U_rhs_idx);
-        }
-        else
-        {
-            d_hier_sc_data_ops->setToScalar(d_F_new_idx, 0.0);
-        }
-
-        // Setup the Helmholtz solver.
-        SAMRAI::solv::PoissonSpecifications helmholtz_spec(d_object_name+"::helmholtz_spec");
-        helmholtz_spec.setCConstant((d_rho/dt)+0.5*d_lambda);
-        helmholtz_spec.setDConstant(          -0.5*d_mu    );
-        SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator> helmholtz_operator = new IBTK::SCLaplaceOperator(
-            d_object_name+"::Helmholtz Operator", helmholtz_spec, NULL);  // XXXX
-
-        helmholtz_operator->setPoissonSpecifications(helmholtz_spec);
-        //helmholtz_operator->setPhysicalBcCoefs(U_bc_coefs);  // XXXX
-        helmholtz_operator->setHomogeneousBc(false);  // XXXX
-        helmholtz_operator->setTime(new_time);
-        helmholtz_operator->setHierarchyMathOps(d_hier_math_ops);
-
-        SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
-            d_object_name+"::PETSc Krylov solver", "adv_diff_");
-        helmholtz_solver->setInitialGuessNonzero(false);
-        helmholtz_solver->setOperator(helmholtz_operator);
-
-        // Reset the solution, rhs, and nullspace vectors.
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-            d_object_name+"::sol_vec", d_hierarchy, 0, finest_ln);
-        sol_vec->addComponent(d_U_var,d_U_scratch_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
-        sol_vec->addComponent(d_P_var,d_P_scratch_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
-
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > rhs_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-            d_object_name+"::rhs_vec", d_hierarchy, 0, finest_ln);
-        rhs_vec->addComponent(d_U_var,U_rhs_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
-        rhs_vec->addComponent(d_P_var,P_rhs_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
-
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > nul_vec = sol_vec->cloneVector(d_object_name+"::nul_vec");
-        nul_vec->allocateVectorData(current_time);
-        d_hier_sc_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(0), 0.0);
-        d_hier_cc_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(1), 1.0);
-
-        // Setup the nullspace object.
-        PetscErrorCode ierr;
-        MatNullSpace petsc_nullsp;
-        Vec petsc_nullsp_vec = IBTK::PETScSAMRAIVectorReal<double>::createPETScVector(nul_vec, PETSC_COMM_SELF);
-        Vec vecs[] = {petsc_nullsp_vec};
-        static const PetscTruth has_cnst = PETSC_FALSE;
-        ierr = MatNullSpaceCreate(PETSC_COMM_SELF, has_cnst, 1, vecs, &petsc_nullsp); IBTK_CHKERRQ(ierr);
-
-        // Setup the Stokes operator.
-        SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> stokes_op = new INSStaggeredStokesOperator(
-            d_rho, d_mu, d_lambda,
-            d_hier_math_ops,
-            d_U_P_scratch_bdry_fill_op);
-        stokes_op->setCurrentTimeInterval(current_time,new_time);
-
-        // Setup the convective operator.
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator = grid_geom->lookupRefineOperator(d_gadvect_U_var, "CONSERVATIVE_LINEAR_REFINE");
-        SAMRAI::tbox::Pointer<INSStaggeredConvectiveOperator> convective_op = new INSStaggeredConvectiveOperator(
-            d_rho, d_mu, d_lambda,
-            d_conservation_form,
-            d_ralgs["gadvect_U_scratch_bdry_fill"], refine_operator, d_rscheds["gadvect_U_scratch_bdry_fill"]);
-        convective_op->setVelocityScratchPatchDataIndex(d_gadvect_U_scratch_idx);
-
-        // Setup the Navier-Stokes operator.
-        SAMRAI::tbox::Pointer<INSStaggeredNavierStokesOperator> navier_stokes_op = new INSStaggeredNavierStokesOperator(
-            d_rho, d_mu, d_lambda,
-            stokes_op, convective_op,
-            d_hier_sc_data_ops);
-        navier_stokes_op->setVelocityCurrentPatchDataIndex(d_U_current_idx);
-
-        // Setup the projection preconditioner.
-        static const std::string projection_type = "pressure_increment";
-        SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> projection_pc = new INSStaggeredProjectionPreconditioner(
-            d_rho, d_mu, d_lambda,
-            projection_type,
-            d_normalize_pressure,
-            helmholtz_solver, d_hier_projector,
-            d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops,
-            d_P_scratch_bdry_fill_op);
-        projection_pc->setCurrentTimeInterval(current_time,new_time);
-        projection_pc->initializeSolverState(*sol_vec,*rhs_vec);
-
-        // Setup the nonlinear solver.
-        SAMRAI::tbox::Pointer<IBTK::PETScNewtonKrylovSolver> nonlinear_solver = new IBTK::PETScNewtonKrylovSolver(
-            d_object_name+"::nonlinear_solver", "ins_");
-        nonlinear_solver->setOperator(navier_stokes_op);
-        nonlinear_solver->initializeSolverState(*sol_vec,*rhs_vec);
-        if (d_normalize_pressure)
-        {
-            SNES petsc_snes = nonlinear_solver->getPETScSNES();
-            KSP petsc_ksp;
-            ierr = SNESGetKSP(petsc_snes, &petsc_ksp); IBTK_CHKERRQ(ierr);
-            ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
-        }
-        nonlinear_solver->getLinearSolver()->setPreconditioner(projection_pc);
-
-        // Solve system.
-        d_hier_sc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(0), (cycle == 0 ? d_U_current_idx : d_U_new_idx));
-        d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(1), (cycle == 0 ? d_P_current_idx : d_P_new_idx));
-        nonlinear_solver->solveSystem(*sol_vec,*rhs_vec);
-
-        // Pull out solution components.
-        d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
-        d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
-
-        // Deallocate the nullspace object.
-        if (petsc_nullsp != static_cast<MatNullSpace>(NULL))
-        {
-            ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(petsc_nullsp_vec); IBTK_CHKERRQ(ierr);
-        }
-
-        // Deallocate scratch data.
-        nul_vec->deallocateVectorData();
-
-        // Reset the value the current estimate of the pressure when performing
-        // multiple cycles.
-        if (cycle < num_cycles-1)
-        {
-            d_hier_cc_data_ops->copyData(d_P_current_idx, d_P_new_idx);
-        }
-
-        // Reset the transaction components.
-        typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
-        InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
-
-        std::vector<InterpolationTransactionComponent> U_P_scratch_components(2);
-        U_P_scratch_components[0] = U_scratch_component;
-        U_P_scratch_components[1] = P_scratch_component;
-
-        d_U_P_scratch_bdry_fill_op->resetTransactionComponents(U_P_scratch_components);
-        d_U_scratch_bdry_fill_op->resetTransactionComponent(U_scratch_component);
-        d_P_scratch_bdry_fill_op->resetTransactionComponent(P_scratch_component);
+        d_hier_sc_data_ops->axpy(U_rhs_idx, +0.5, d_F_current_idx, U_rhs_idx);
+        d_hier_sc_data_ops->axpy(U_rhs_idx, +0.5, d_F_new_idx    , U_rhs_idx);
     }
+    else
+    {
+        d_hier_sc_data_ops->setToScalar(d_F_new_idx, 0.0);
+    }
+
+    // Setup the Helmholtz solver.
+    SAMRAI::solv::PoissonSpecifications helmholtz_spec(d_object_name+"::helmholtz_spec");
+    helmholtz_spec.setCConstant((d_rho/dt)+0.5*d_lambda);
+    helmholtz_spec.setDConstant(          -0.5*d_mu    );
+    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator> helmholtz_operator = new IBTK::SCLaplaceOperator(
+        d_object_name+"::Helmholtz Operator", helmholtz_spec, NULL);  // XXXX
+
+    helmholtz_operator->setPoissonSpecifications(helmholtz_spec);
+    //helmholtz_operator->setPhysicalBcCoefs(U_bc_coefs);  // XXXX
+    helmholtz_operator->setHomogeneousBc(false);  // XXXX
+    helmholtz_operator->setTime(new_time);
+    helmholtz_operator->setHierarchyMathOps(d_hier_math_ops);
+
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
+        d_object_name+"::PETSc Krylov solver", "adv_diff_");
+    helmholtz_solver->setInitialGuessNonzero(false);
+    helmholtz_solver->setOperator(helmholtz_operator);
+
+    // Reset the solution, rhs, and nullspace vectors.
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+        d_object_name+"::sol_vec", d_hierarchy, 0, finest_ln);
+    sol_vec->addComponent(d_U_var,d_U_scratch_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
+    sol_vec->addComponent(d_P_var,d_P_scratch_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > rhs_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+        d_object_name+"::rhs_vec", d_hierarchy, 0, finest_ln);
+    rhs_vec->addComponent(d_U_var,U_rhs_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
+    rhs_vec->addComponent(d_P_var,P_rhs_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > nul_vec = sol_vec->cloneVector(d_object_name+"::nul_vec");
+    nul_vec->allocateVectorData(current_time);
+    d_hier_sc_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(0), 0.0);
+    d_hier_cc_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(1), 1.0);
+
+    // Setup the nullspace object.
+    PetscErrorCode ierr;
+    MatNullSpace petsc_nullsp;
+    Vec petsc_nullsp_vec = IBTK::PETScSAMRAIVectorReal<double>::createPETScVector(nul_vec, PETSC_COMM_SELF);
+    Vec vecs[] = {petsc_nullsp_vec};
+    static const PetscTruth has_cnst = PETSC_FALSE;
+    ierr = MatNullSpaceCreate(PETSC_COMM_SELF, has_cnst, 1, vecs, &petsc_nullsp); IBTK_CHKERRQ(ierr);
+
+    // Setup the Stokes operator.
+    SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> stokes_op = new INSStaggeredStokesOperator(
+        d_rho, d_mu, d_lambda,
+        d_hier_math_ops);
+    stokes_op->setTimeInterval(current_time,new_time);
+
+    // Setup the convective operator.
+    SAMRAI::tbox::Pointer<INSStaggeredConvectiveOperator> convective_op = new INSStaggeredConvectiveOperator(
+        d_rho, d_mu, d_lambda,
+        d_conservation_form);
+
+    // Setup the Navier-Stokes operator.
+    SAMRAI::tbox::Pointer<INSStaggeredNavierStokesOperator> navier_stokes_op = new INSStaggeredNavierStokesOperator(
+        d_rho, d_mu, d_lambda,
+        stokes_op, convective_op,
+        d_hier_sc_data_ops);
+    navier_stokes_op->setVelocityCurrentPatchDataIndex(d_U_current_idx);
+
+    // Setup the projection preconditioner.
+    static const std::string projection_type = "pressure_increment";
+    SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> projection_pc = new INSStaggeredProjectionPreconditioner(
+        d_rho, d_mu, d_lambda,
+        projection_type,
+        d_normalize_pressure,
+        helmholtz_solver, d_hier_projector,
+        d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
+    projection_pc->setTimeInterval(current_time,new_time);
+    projection_pc->initializeSolverState(*sol_vec,*rhs_vec);
+
+    // Setup the nonlinear solver.
+    SAMRAI::tbox::Pointer<IBTK::PETScNewtonKrylovSolver> nonlinear_solver = new IBTK::PETScNewtonKrylovSolver(
+        d_object_name+"::nonlinear_solver", "ins_");
+    nonlinear_solver->setOperator(navier_stokes_op);
+    nonlinear_solver->initializeSolverState(*sol_vec,*rhs_vec);
+    if (d_normalize_pressure)
+    {
+        SNES petsc_snes = nonlinear_solver->getPETScSNES();
+        KSP petsc_ksp;
+        ierr = SNESGetKSP(petsc_snes, &petsc_ksp); IBTK_CHKERRQ(ierr);
+        ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
+    }
+    nonlinear_solver->getLinearSolver()->setPreconditioner(projection_pc);
+
+    // Solve system.
+    d_hier_sc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(0), d_U_current_idx);
+    d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(1), d_P_current_idx);
+    nonlinear_solver->solveSystem(*sol_vec,*rhs_vec);
+
+    // Pull out solution components.
+    d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
+    d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
+
+    // Deallocate the nullspace object.
+    if (petsc_nullsp != static_cast<MatNullSpace>(NULL))
+    {
+        ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(petsc_nullsp_vec); IBTK_CHKERRQ(ierr);
+    }
+
+    // Deallocate scratch data.
+    nul_vec->deallocateVectorData();
 
     // Synchronize new state data.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
@@ -1531,20 +1460,8 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     // Setup the patch boundary filling objects.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
-    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
-
-    std::vector<InterpolationTransactionComponent> U_P_scratch_components(2);
-    U_P_scratch_components[0] = U_scratch_component;
-    U_P_scratch_components[1] = P_scratch_component;
-
-    d_U_P_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    d_U_P_scratch_bdry_fill_op->initializeOperatorState(U_P_scratch_components, d_hierarchy);
-
     d_U_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_U_scratch_bdry_fill_op->initializeOperatorState(U_scratch_component, d_hierarchy);
-
-    d_P_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    d_P_scratch_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
 
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
@@ -1800,34 +1717,7 @@ INSStaggeredHierarchyIntegrator::putToDatabase(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
-    db->putInteger("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",
-                   INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION);
-    db->putDouble("d_start_time", d_start_time);
-    db->putDouble("d_end_time", d_end_time);
-    db->putDouble("d_grow_dt", d_grow_dt);
-    db->putInteger("d_max_integrator_steps", d_max_integrator_steps);
-    db->putInteger("d_num_cycles", d_num_cycles);
-    db->putInteger("d_num_init_cycles", d_num_init_cycles);
-    db->putInteger("d_regrid_interval", d_regrid_interval);
-    db->putBool("d_using_default_tag_buffer", d_using_default_tag_buffer);
-    db->putIntegerArray("d_tag_buffer", d_tag_buffer);
-    db->putBool("d_conservation_form", d_conservation_form);
-    db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
-    db->putDoubleArray("d_Omega_rel_thresh", d_Omega_rel_thresh);
-    db->putDoubleArray("d_Omega_abs_thresh", d_Omega_abs_thresh);
-    db->putDouble("d_Omega_max", d_Omega_max);
-    db->putBool("d_second_order_pressure_update", d_second_order_pressure_update);
-    db->putBool("d_normalize_pressure", d_normalize_pressure);
-    db->putDouble("d_old_dt", d_old_dt);
-    db->putDouble("d_integrator_time", d_integrator_time);
-    db->putInteger("d_integrator_step", d_integrator_step);
-    db->putDouble("d_dt_max", d_dt_max);
-    db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
-    db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
-    db->putDouble("d_rho", d_rho);
-    db->putDouble("d_mu", d_mu);
-    db->putDouble("d_nu", d_nu);
-    db->putDouble("d_lambda", d_lambda);
+    TBOX_ASSERT(false);
 
     t_put_to_database->stop();
     return;
@@ -1845,64 +1735,7 @@ void
 INSStaggeredHierarchyIntegrator::printClassData(
     std::ostream& os) const
 {
-    os << "\nINSStaggeredHierarchyIntegrator::printClassData..." << std::endl;
-    os << "this = " << const_cast<INSStaggeredHierarchyIntegrator*>(this) << std::endl;
-    os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
-    os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
-       << "d_gridding_alg = " << d_gridding_alg.getPointer() << std::endl;
-    os << "d_visit_writer = " << d_visit_writer.getPointer() << "\n"
-       << "d_U_scale = " << d_U_scale << "\n"
-       << "d_P_scale = " << d_P_scale << "\n"
-       << "d_F_scale = " << d_F_scale << std::endl;
-    os << "d_hier_projector = " << d_hier_projector.getPointer() << std::endl;
-    os << "d_start_time = " << d_start_time << "\n"
-       << "d_end_time = " << d_end_time << "\n"
-       << "d_grow_dt = " << d_grow_dt << "\n"
-       << "d_max_integrator_steps = " << d_max_integrator_steps << std::endl;
-    os << "d_num_cycles = " << d_num_cycles << std::endl;
-    os << "d_num_init_cycles = " << d_num_init_cycles << std::endl;
-    os << "d_regrid_interval = " << d_regrid_interval << std::endl;
-    os << "d_using_default_tag_buffer = " << d_using_default_tag_buffer << "\n"
-       << "d_tag_buffer = [ ";
-    std::copy(d_tag_buffer.getPointer(), d_tag_buffer.getPointer()+d_tag_buffer.size(), std::ostream_iterator<int>(os, " , "));
-    os << " ]" << std::endl;
-    os << "d_conservation_form = " << d_conservation_form << std::endl;
-    os << "d_using_vorticity_tagging = " << d_using_vorticity_tagging << "\n"
-       << "d_Omega_rel_thresh = [ ";
-    std::copy(d_Omega_rel_thresh.getPointer(), d_Omega_rel_thresh.getPointer()+d_Omega_rel_thresh.size(), std::ostream_iterator<double>(os, " , "));
-    os << " ]\n"
-       << "d_Omega_abs_thresh = [ ";
-    std::copy(d_Omega_abs_thresh.getPointer(), d_Omega_abs_thresh.getPointer()+d_Omega_abs_thresh.size(), std::ostream_iterator<double>(os, " , "));
-    os << " ]\n"
-       << "d_Omega_max = " << d_Omega_max << std::endl;
-    os << "d_second_order_pressure_update = " << d_second_order_pressure_update << std::endl;
-    os << "d_normalize_pressure = " << d_normalize_pressure << std::endl;
-    os << "d_output_U = " << d_output_U << "\n"
-       << "d_output_P = " << d_output_P << "\n"
-       << "d_output_F = " << d_output_F << "\n"
-       << "d_output_Omega = " << d_output_Omega << "\n"
-       << "d_output_Div_U = " << d_output_Div_U << std::endl;
-    os << "d_old_dt = " << d_old_dt << "\n"
-       << "d_integrator_time = " << d_integrator_time << "\n"
-       << "d_integrator_step = " << d_integrator_step << std::endl;
-    os << "d_cfl = " << d_cfl << std::endl;
-    os << "d_dt_max = " << d_dt_max << "\n"
-       << "d_dt_max_time_max = " << d_dt_max_time_max << "\n"
-       << "d_dt_max_time_min = " << d_dt_max_time_min << std::endl;
-    os << "d_do_log = " << d_do_log << std::endl;
-    os << "d_rho = " << d_rho << "\n"
-       << "d_mu = " << d_mu << "\n"
-       << "d_nu = " << d_nu << "\n"
-       << "d_lambda = " << d_lambda << std::endl;
-    os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n"
-       << "d_hier_sc_data_ops = " << d_hier_sc_data_ops.getPointer() << "=n"
-       << "d_hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
-       << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << std::endl;
-    os << "d_wgt_cc_var = " << d_wgt_cc_var.getPointer() << "\n"
-       << "d_wgt_sc_var = " << d_wgt_sc_var.getPointer() << "\n"
-       << "d_volume = " << d_volume << std::endl;
-    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << std::endl;
+    TBOX_ASSERT(false);
     return;
 }// printClassData
 
@@ -2093,8 +1926,6 @@ INSStaggeredHierarchyIntegrator::getFromInput(
     d_max_integrator_steps = db->getIntegerWithDefault(
         "max_integrator_steps", d_max_integrator_steps);
 
-    d_num_cycles = db->getIntegerWithDefault("num_cycles", d_num_cycles);
-
     d_regrid_interval = db->getIntegerWithDefault(
         "regrid_interval", d_regrid_interval);
 
@@ -2188,12 +2019,6 @@ INSStaggeredHierarchyIntegrator::getFromInput(
     {
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
 
-        d_num_init_cycles = db->getIntegerWithDefault(
-            "num_init_cycles", d_num_init_cycles);
-
-        d_second_order_pressure_update = db->getBoolWithDefault(
-            "second_order_pressure_update", d_second_order_pressure_update);
-
         d_normalize_pressure = db->getBoolWithDefault(
             "normalize_pressure", d_normalize_pressure);
 
@@ -2236,53 +2061,7 @@ INSStaggeredHierarchyIntegrator::getFromInput(
 void
 INSStaggeredHierarchyIntegrator::getFromRestart()
 {
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> restart_db =
-        SAMRAI::tbox::RestartManager::getManager()->getRootDatabase();
-
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db;
-    if (restart_db->isDatabase(d_object_name))
-    {
-        db = restart_db->getDatabase(d_object_name);
-    }
-    else
-    {
-        TBOX_ERROR("Restart database corresponding to "
-                   << d_object_name << " not found in restart file.");
-    }
-
-    int ver = db->getInteger("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION");
-    if (ver != INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION)
-    {
-        TBOX_ERROR(d_object_name << ":  "
-                   << "Restart file version different than class version.");
-    }
-
-    d_start_time = db->getDouble("d_start_time");
-    d_end_time = db->getDouble("d_end_time");
-    d_grow_dt = db->getDouble("d_grow_dt");
-    d_max_integrator_steps = db->getInteger("d_max_integrator_steps");
-    d_num_cycles = db->getInteger("d_num_cycles");
-    d_num_init_cycles = db->getInteger("d_num_init_cycles");
-    d_regrid_interval = db->getInteger("d_regrid_interval");
-    d_using_default_tag_buffer = db->getBool("d_using_default_tag_buffer");
-    d_tag_buffer = db->getIntegerArray("d_tag_buffer");
-    d_conservation_form = db->getBool("d_conservation_form");
-    d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
-    d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
-    d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
-    d_Omega_max = db->getDouble("d_Omega_max");
-    d_second_order_pressure_update = db->getBool("d_second_order_pressure_update");
-    d_normalize_pressure = db->getBool("d_normalize_pressure");
-    d_old_dt = db->getDouble("d_old_dt");
-    d_integrator_time = db->getDouble("d_integrator_time");
-    d_integrator_step = db->getInteger("d_integrator_step");
-    d_dt_max = db->getDouble("d_dt_max");
-    d_dt_max_time_max = db->getDouble("d_dt_max_time_max");
-    d_dt_max_time_min = db->getDouble("d_dt_max_time_min");
-    d_rho = db->getDouble("d_rho");
-    d_mu = db->getDouble("d_mu");
-    d_nu = db->getDouble("d_nu");
-    d_lambda = db->getDouble("d_lambda");
+    TBOX_ASSERT(false);
     return;
 }// getFromRestart
 

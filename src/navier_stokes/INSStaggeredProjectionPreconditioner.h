@@ -2,7 +2,7 @@
 #define included_INSStaggeredProjectionPreconditioner
 
 // Filename: INSStaggeredProjectionPreconditioner.h
-// Last modified: <08.May.2008 18:24:46 griffith@box230.cims.nyu.edu>
+// Last modified: <11.May.2008 18:56:22 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -46,9 +46,9 @@ public:
         SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
         SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops,
         SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> P_bdry_fill_op)
-        : d_is_initialized(false),
+        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
+        : d_do_log(false),
+          d_is_initialized(false),
           d_current_time(std::numeric_limits<double>::quiet_NaN()),
           d_new_time(std::numeric_limits<double>::quiet_NaN()),
           d_dt(std::numeric_limits<double>::quiet_NaN()),
@@ -63,12 +63,12 @@ public:
           d_hier_cc_data_ops(hier_cc_data_ops),
           d_hier_sc_data_ops(hier_sc_data_ops),
           d_hier_math_ops(hier_math_ops),
-          d_wgt_cc_var(d_hier_math_ops->getCellWeightVariable()),
-          d_wgt_sc_var(d_hier_math_ops->getSideWeightVariable()),
-          d_wgt_cc_idx(d_hier_math_ops->getCellWeightPatchDescriptorIndex()),
-          d_wgt_sc_idx(d_hier_math_ops->getSideWeightPatchDescriptorIndex()),
-          d_volume(d_hier_math_ops->getVolumeOfPhysicalDomain()),
-          d_P_bdry_fill_op(P_bdry_fill_op),
+          d_wgt_cc_var(NULL),
+          d_wgt_sc_var(NULL),
+          d_wgt_cc_idx(-1),
+          d_wgt_sc_idx(-1),
+          d_volume(std::numeric_limits<double>::quiet_NaN()),
+          d_P_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
           d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
           d_x_scratch(NULL),
           d_b_scratch(NULL),
@@ -94,7 +94,7 @@ public:
      * \brief Set the current time interval.
      */
     void
-    setCurrentTimeInterval(
+    setTimeInterval(
         const double current_time,
         const double new_time)
         {
@@ -104,7 +104,7 @@ public:
             d_pressure_helmholtz_spec.setCConstant(1.0+0.5*d_dt*d_lambda/d_rho);
             d_pressure_helmholtz_spec.setDConstant(   -0.5*d_dt*d_mu    /d_rho);
             return;
-        }// setCurrentTimeInterval
+        }// setTimeInterval
 
     /*!
      * \name Linear solver functionality.
@@ -139,28 +139,7 @@ public:
     virtual void
     initializeSolverState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b)
-        {
-            if (d_is_initialized) deallocateSolverState();
-
-            d_x_scratch = x.cloneVector("INSStaggeredProjectionPreconditioner::x_scratch");
-            d_b_scratch = b.cloneVector("INSStaggeredProjectionPreconditioner::b_scratch");
-
-            d_x_scratch->allocateVectorData();
-            d_b_scratch->allocateVectorData();
-
-            // Get the hierarchy configuration.
-            d_hierarchy = x.getPatchHierarchy();
-            d_coarsest_ln = x.getCoarsestLevelNumber();
-            d_finest_ln = x.getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(d_hierarchy == b.getPatchHierarchy());
-            TBOX_ASSERT(d_coarsest_ln == b.getCoarsestLevelNumber());
-            TBOX_ASSERT(d_finest_ln == b.getFinestLevelNumber());
-#endif
-            d_is_initialized = true;
-            return;
-        }// initializeSolverState
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -174,22 +153,7 @@ public:
      * \note A default implementation is provided which does nothing.
      */
     virtual void
-    deallocateSolverState()
-        {
-            if (!d_is_initialized) return;
-
-            d_x_scratch->deallocateVectorData();
-            d_b_scratch->deallocateVectorData();
-
-            d_x_scratch->freeVectorComponents();
-            d_b_scratch->freeVectorComponents();
-
-            d_x_scratch.setNull();
-            d_b_scratch.setNull();
-
-            d_is_initialized = false;
-            return;
-        }// deallocateSolverState
+    deallocateSolverState();
 
     //\}
 
@@ -325,7 +289,7 @@ public:
     enableLogging(
         bool enabled=true)
         {
-            // intentionally blank
+            d_do_log = enabled;
             return;
         }// enableLogging
 
@@ -372,6 +336,9 @@ private:
     INSStaggeredProjectionPreconditioner&
     operator=(
         const INSStaggeredProjectionPreconditioner& that);
+
+    // Indicates whether the preconditioner should output logging messages.
+    bool d_do_log;
 
     // Whether the operator is initialized.
     bool d_is_initialized;

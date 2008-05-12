@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <11.Apr.2008 12:59:31 griffith@box230.cims.nyu.edu>
+// Last modified: <11.May.2008 18:56:25 griffith@box230.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -418,7 +418,7 @@ private:
     bool d_registered_for_restart;
 
     /*
-     * Indicates whether the integrator should output logging messages.
+     * Indicates whether the projector should output logging messages.
      */
     bool d_do_log;
 
