@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <08.May.2008 23:02:38 griffith@box230.cims.nyu.edu>
+// Last modified: <03.Jun.2008 17:07:11 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2565,8 +2565,8 @@ IBHierarchyIntegrator::applyGradientDetector(
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
         if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
 
-        const SAMRAI::hier::Index<NDIM>& lower = grid_geom->getPhysicalDomain()(0).lower();
-        const SAMRAI::hier::Index<NDIM>& upper = grid_geom->getPhysicalDomain()(0).upper();
+        const SAMRAI::hier::Index<NDIM>& lower = grid_geom->getPhysicalDomain()[0].lower();
+        const SAMRAI::hier::Index<NDIM>& upper = grid_geom->getPhysicalDomain()[0].upper();
         const double* const xLower = grid_geom->getXLower();
         const double* const xUpper = grid_geom->getXUpper();
         const double* const dx = grid_geom->getDx();
@@ -3045,7 +3045,7 @@ IBHierarchyIntegrator::pruneDuplicateMarkers(
             const SAMRAI::hier::Box<NDIM>& ghost_box = mark_data->getGhostBox();
             for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
             {
-                const SAMRAI::hier::Box<NDIM>& refined_box = refined_region_boxes(i);
+                const SAMRAI::hier::Box<NDIM>& refined_box = refined_region_boxes[i];
                 const SAMRAI::hier::Box<NDIM> intersection = ghost_box * refined_box;
                 if (!intersection.empty())
                 {
@@ -3455,7 +3455,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom =
         d_hierarchy->getGridGeometry();
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-    const SAMRAI::hier::Box<NDIM> domain_box = grid_geom->getPhysicalDomain()(0);
+    const SAMRAI::hier::Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
     const double* const dx_coarsest = grid_geom->getDx();
 
     SAMRAI::hier::Box<NDIM> interior_box = domain_box;
@@ -3522,7 +3522,7 @@ IBHierarchyIntegrator::computeSourcePressures(
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom =
         d_hierarchy->getGridGeometry();
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-    const SAMRAI::hier::Box<NDIM> domain_box = grid_geom->getPhysicalDomain()(0);
+    const SAMRAI::hier::Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
 
     SAMRAI::hier::Box<NDIM> interior_box = domain_box;
     for (int d = 0; d < NDIM-1; ++d)

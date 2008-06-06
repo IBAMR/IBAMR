@@ -1,5 +1,5 @@
 // Filename: FeedbackForcer.C
-// Last modified: <12.Feb.2008 21:25:05 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Jun.2008 17:25:54 griffith@box230.cims.nyu.edu>
 // Created on 19 Oct 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "FeedbackForcer.h"
@@ -109,7 +109,7 @@ FeedbackForcer::setDataOnPatch(
     const int offset = int(R/dx[0])-1;
 
     const hier::IntVector<NDIM>& ratio = pgeom->getRatio();
-    const hier::Box<NDIM> domain_box = hier::Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()(0),ratio);
+    const hier::Box<NDIM> domain_box = hier::Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0],ratio);
     const hier::Index<NDIM>& domain_lower = domain_box.lower();
 
     hier::Box<NDIM> bdry_box = domain_box;

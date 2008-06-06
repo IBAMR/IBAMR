@@ -2,7 +2,7 @@
 #define included_IBInstrumentPanel
 
 // Filename: IBInstrumentPanel.h
-// Last modified: <12.Mar.2008 23:00:46 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Jun.2008 13:22:04 griffith@box230.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -280,6 +280,7 @@ private:
     std::string d_log_file_name;
     std::ofstream d_log_file_stream;
     double d_flow_conv, d_pres_conv;
+    std::string d_flow_units, d_pres_units;
 };
 }// namespace IBAMR
 

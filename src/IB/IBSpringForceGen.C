@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <11.May.2008 16:11:57 griffith@box230.cims.nyu.edu>
+// Last modified: <12.May.2008 18:43:33 griffith@box230.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -510,7 +510,7 @@ IBSpringForceGen::computeLagrangianForceJacobian(
     int ierr;
 
     TBOX_WARNING("this should ADD to the Jacobian, not destroy it!\n");
-    if (J_mat)
+    if (J_mat != static_cast<Mat>(NULL))
     {
         ierr = MatDestroy(J_mat);  IBTK_CHKERRQ(ierr);
     }

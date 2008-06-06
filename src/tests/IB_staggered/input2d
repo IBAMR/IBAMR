@@ -3,28 +3,24 @@ MU = 1.0e-4
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
-REF_RATIO  = 4   // refinement ratio between levels
+MAX_LEVELS = 2   // maximum number of levels in locally refined grid
+REF_RATIO  = 2   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
-// exact solution function expressions
-//U = "1.0 - 2.0*(cos(2.0*PI*(X_0-t))*sin(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
-//V = "1.0 + 2.0*(sin(2.0*PI*(X_0-t))*cos(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
-//P = "-(cos(4.0*PI*(X_0-t)) + cos(4.0*PI*(X_1-t)))*exp(-16.0*PI*PI*nu*t)"
 U = "0.0"
 V = "0.0"
 P = "0.0"
 
-VelocitySolution {
+VelocityInitialConditions {
    constant_names = "nu"
    nu = MU/RHO
    function_0 = U
    function_1 = V
 }
 
-PressureSolution {
+PressureInitialConditions {
    constant_names = "nu"
    nu = MU/RHO
    function = P
@@ -35,7 +31,7 @@ IBStaggeredHierarchyIntegrator {
    end_time              = 100.0e0  // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
-   regrid_interval       = 10000000 // disable regridding
+   regrid_interval       = 12       // disable regridding
 
    use_exact_jacobian = FALSE
 
@@ -47,13 +43,13 @@ IBStaggeredHierarchyIntegrator {
    normalize_pressure = TRUE
    conservation_form = FALSE
 
-   tag_buffer = 1
+   tag_buffer = 3
    using_vorticity_tagging = TRUE
    vorticity_rel_thresh = 0.25
 
-   cfl = 0.5
-   dt_max = 8.0*8.0e-2/NFINEST
-   dt_max_time_max = 0.0
+   cfl = 0.9
+   dt_max = 4.0*8.0e-2/NFINEST
+   //dt_max_time_max = 0.0
 
    output_u = TRUE
    output_p = TRUE
@@ -66,8 +62,8 @@ IBStaggeredHierarchyIntegrator {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_0 = "shell2d_128"
-   shell2d_128 {
+   base_filenames_1 = "curve2d_128"
+   curve2d_128 {
       uniform_spring_rest_length = 0.125/NFINEST
    }
 }
@@ -157,7 +153,7 @@ GriddingAlgorithm {
    }
 
    smallest_patch_size {
-      level_0 =  4,  4 // smallest patch allowed in hierarchy
+      level_0 =  8,  8 // smallest patch allowed in hierarchy
                        // all finer levels will use same values as level_0...
    }
 

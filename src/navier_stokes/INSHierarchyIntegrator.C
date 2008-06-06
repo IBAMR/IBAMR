@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <18.Apr.2008 13:31:08 griffith@box230.cims.nyu.edu>
+// Last modified: <03.Jun.2008 17:12:08 griffith@box230.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -21,7 +21,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
-#include <ibtk/CartRobinPhysBdryOp.h>
 #include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PatchMathOps.h>
@@ -3251,7 +3250,7 @@ INSHierarchyIntegrator::printClassData(
        << "d_nu = " << d_nu << "\n"
        << "d_lambda = " << d_lambda << std::endl;
     os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n"
-       << "d_hier_fc_data_ops = " << d_hier_fc_data_ops.getPointer() << "=n"
+       << "d_hier_fc_data_ops = " << d_hier_fc_data_ops.getPointer() << "\n"
        << "d_hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
        << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << std::endl;
     os << "d_wgt_var = " << d_wgt_var.getPointer() << "\n"

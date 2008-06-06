@@ -427,7 +427,7 @@ main(
             int number_of_level_cells = 0;
             for (int k = 0; k < level_boxes.size(); ++k)
             {
-                number_of_level_cells += level_boxes(k).size();
+                number_of_level_cells += level_boxes[k].size();
             }
             tbox::pout << "level " << ln << " cells = " << number_of_level_cells << "\n";
             number_of_cells += number_of_level_cells;

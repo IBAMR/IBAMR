@@ -1,5 +1,5 @@
 // Filename: marker_flooder.C
-// Last modified: <01.Apr.2008 17:28:42 griffith@box221.cims.nyu.edu>
+// Last modified: <05.Jun.2008 20:51:42 griffith@box230.cims.nyu.edu>
 // Created on 10 Oct 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -52,9 +52,9 @@ discard_comments(
 }// discard_comments
 
 // Mesh spacing parameters.
-static const int N = 64;                 // number of Cartesian grid points in each coordinate direction
-static const double L = 10.0;            // length of computational domain
-static const double dx = L/double(N);    // Cartesian grid spacing
+static const int N[NDIM] = {64 , 64 , 96};                                                  // number of Cartesian grid points in each coordinate direction
+static const double L[NDIM] = {10.0 , 10.0 , 15.0};                                         // length of computational domain
+static const double dx[NDIM] = {L[0]/double(N[0]) , L[1]/double(N[1]) , L[2]/double(N[2])}; // Cartesian grid spacing
 
 inline TinyVector<int,NDIM>
 get_index(
@@ -63,7 +63,7 @@ get_index(
     TinyVector<int,NDIM> i;
     for (int d = 0; d < NDIM; ++d)
     {
-        i[d] = int(floor(X[d]/dx));
+        i[d] = int(floor(X[d]/dx[d]));
     }
     return i;
 }// get_index
@@ -75,7 +75,7 @@ get_posn(
     TinyVector<double,NDIM> X;
     for (int d = 0; d < NDIM; ++d)
     {
-        X[d] = (double(i[d])+0.5)*dx;
+        X[d] = (double(i[d])+0.5)*dx[d];
     }
     return X;
 }// get_posn
@@ -86,7 +86,7 @@ valid_index(
 {
     for (int d = 0; d < NDIM; ++d)
     {
-        if (i[d] < 0 || i[d] >= N) return false;
+        if (i[d] < 0 || i[d] >= N[d]) return false;
     }
     return true;
 }// valid_point
@@ -129,45 +129,45 @@ main(
     TinyVector<int,NDIM> extents;
     for (int d = 0; d < NDIM; ++d)
     {
-        extents[d] = N;
+        extents[d] = N[d];
     }
     Array<bool,NDIM> occupied(extents, ColumnMajorArray<NDIM>());
     occupied = false;
 
     // Don't allow any markers within two meshwidths of the domain boundary.
-    for (int k = 0; k < N; ++k)
+    for (int k = 0; k < N[2]; ++k)
     {
-        for (int j = 0; j < N; ++j)
+        for (int j = 0; j < N[1]; ++j)
         {
             occupied(  0,j,k) = true;
             occupied(  1,j,k) = true;
 
-            occupied(N-2,j,k) = true;
-            occupied(N-1,j,k) = true;
+            occupied(N[0]-2,j,k) = true;
+            occupied(N[0]-1,j,k) = true;
         }
     }
 
-    for (int k = 0; k < N; ++k)
+    for (int k = 0; k < N[2]; ++k)
     {
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N[0]; ++i)
         {
             occupied(i,  0,k) = true;
             occupied(i,  1,k) = true;
 
-            occupied(i,N-2,k) = true;
-            occupied(i,N-1,k) = true;
+            occupied(i,N[1]-2,k) = true;
+            occupied(i,N[1]-1,k) = true;
         }
     }
 
-    for (int j = 0; j < N; ++j)
+    for (int j = 0; j < N[1]; ++j)
     {
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N[0]; ++i)
         {
             occupied(i,j,  0) = true;
             occupied(i,j,  1) = true;
 
-            occupied(i,j,N-2) = true;
-            occupied(i,j,N-1) = true;
+            occupied(i,j,N[2]-2) = true;
+            occupied(i,j,N[2]-1) = true;
         }
     }
 
@@ -219,7 +219,7 @@ main(
     TinyVector<double,NDIM> X_seed;
     X_seed[0] = 5.0;
     X_seed[1] = 5.0;
-    X_seed[2] = 8.0;
+    X_seed[2] = 2.0;
     TinyVector<int,NDIM> i_seed = get_index(X_seed);
 
     assert(valid_index(i_seed));

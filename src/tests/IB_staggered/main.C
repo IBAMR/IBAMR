@@ -362,9 +362,9 @@ main(
          * Create initial condition specification objects.
          */
         tbox::Pointer<SetDataStrategy> u_init = new muParserDataSetter(
-            "u_init", input_db->getDatabase("VelocitySolution"), grid_geometry);
+            "u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
         tbox::Pointer<SetDataStrategy> p_init = new muParserDataSetter(
-            "p_init", input_db->getDatabase("PressureSolution"), grid_geometry);
+            "p_init", input_db->getDatabase("PressureInitialConditions"), grid_geometry);
 
         time_integrator->registerVelocityInitialConditions(u_init);
         time_integrator->registerPressureInitialConditions(p_init);

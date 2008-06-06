@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <12.May.2008 01:44:58 griffith@box230.cims.nyu.edu>
+// Last modified: <13.May.2008 03:14:57 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -1043,20 +1043,15 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     // Deallocate the force Jacobian objects and preconditioner solvers.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_F_mat[ln] != static_cast<Mat>(NULL))
+        if (d_strct_pc_mat[ln] != static_cast<Mat>(NULL))
         {
-            ierr = MatDestroy(d_F_mat[ln]);
-            d_F_mat[ln] = static_cast<Mat>(NULL);
+            ierr = MatDestroy(d_strct_pc_mat[ln]);
+            d_strct_pc_mat[ln] = static_cast<Mat>(NULL);
         }
-        if (d_F_pre_mat[ln] != static_cast<Mat>(NULL))
+        if (d_strct_pc[ln] != static_cast<PC>(NULL))
         {
-            ierr = MatDestroy(d_F_pre_mat[ln]);
-            d_F_pre_mat[ln] = static_cast<Mat>(NULL);
-        }
-        if (d_F_ksp[ln] != static_cast<KSP>(NULL))
-        {
-            ierr = KSPDestroy(d_F_ksp[ln]);
-            d_F_ksp[ln] = static_cast<KSP>(NULL);
+            ierr = PCDestroy(d_strct_pc[ln]);
+            d_strct_pc[ln] = static_cast<PC>(NULL);
         }
         if (d_J_mat[ln] != static_cast<Mat>(NULL))
         {
@@ -1829,9 +1824,8 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     d_F_half_data.resize(finest_hier_level+1);
     d_F_new_data .resize(finest_hier_level+1);
     d_J_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
-    d_F_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
-    d_F_pre_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
-    d_F_ksp.resize(finest_hier_level+1,static_cast<KSP>(NULL));
+    d_strct_pc_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
+    d_strct_pc.resize(finest_hier_level+1,static_cast<PC>(NULL));
     for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -2448,20 +2442,15 @@ IBStaggeredHierarchyIntegrator::FormJacobian(
     ierr = VecAXPBY(X_half_vec, 0.5, 0.5, X_new_vec);  IBTK_CHKERRQ(ierr);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_F_mat[ln] != static_cast<Mat>(NULL))
+        if (d_strct_pc_mat[ln] != static_cast<Mat>(NULL))
         {
-            ierr = MatDestroy(d_F_mat[ln]);
-            d_F_mat[ln] = static_cast<Mat>(NULL);
+            ierr = MatDestroy(d_strct_pc_mat[ln]);
+            d_strct_pc_mat[ln] = static_cast<Mat>(NULL);
         }
-        if (d_F_pre_mat[ln] != static_cast<Mat>(NULL))
+        if (d_strct_pc[ln] != static_cast<PC>(NULL))
         {
-            ierr = MatDestroy(d_F_pre_mat[ln]);
-            d_F_pre_mat[ln] = static_cast<Mat>(NULL);
-        }
-        if (d_F_ksp[ln] != static_cast<KSP>(NULL))
-        {
-            ierr = KSPDestroy(d_F_ksp[ln]);
-            d_F_ksp[ln] = static_cast<KSP>(NULL);
+            ierr = PCDestroy(d_strct_pc[ln]);
+            d_strct_pc[ln] = static_cast<PC>(NULL);
         }
         if (d_J_mat[ln] != static_cast<Mat>(NULL))
         {
@@ -2474,25 +2463,19 @@ IBStaggeredHierarchyIntegrator::FormJacobian(
                 d_J_mat[ln], d_X_half_data[ln],
                 d_hierarchy, ln, d_current_time+0.5*d_dt, d_lag_data_manager);
 
-            const int local_sz = NDIM*d_X_half_data[ln]->getLocalNodeCount();
-            ierr = MatCreateShell(PETSC_COMM_WORLD, local_sz, local_sz, PETSC_DETERMINE, PETSC_DETERMINE,
-                                  static_cast<void*>(this),
-                                  &d_F_mat[ln]); IBTK_CHKERRQ(ierr);
-            ierr = MatShellSetOperation(d_F_mat[ln], MATOP_MULT, reinterpret_cast<void(*)(void)>(IBStaggeredHierarchyIntegrator::MatVecMult_strct_SAMRAI));  IBTK_CHKERRQ(ierr);
-
-            ierr = MatDuplicate(d_J_mat[ln], MAT_COPY_VALUES, &d_F_pre_mat[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = MatScale(d_F_pre_mat[ln], -0.5*d_dt/d_rho);  IBTK_CHKERRQ(ierr);
-            ierr = MatDiagonalScale(d_F_pre_mat[ln], d_U_half_data[ln]->getGlobalVec(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
-            ierr = MatShift(d_F_pre_mat[ln], 1.0/d_dt);  IBTK_CHKERRQ(ierr);
+            ierr = MatDuplicate(d_J_mat[ln], MAT_COPY_VALUES, &d_strct_pc_mat[ln]);  IBTK_CHKERRQ(ierr);
+//          ierr = MatConvert(d_J_mat[ln], MATMPIAIJ, MAT_INITIAL_MATRIX, &d_strct_pc_mat[ln]);  IBTK_CHKERRQ(ierr);
+            ierr = MatScale(d_strct_pc_mat[ln], -0.5*d_dt/d_rho);  IBTK_CHKERRQ(ierr);
+            ierr = MatDiagonalScale(d_strct_pc_mat[ln], d_U_half_data[ln]->getGlobalVec(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
+            ierr = MatShift(d_strct_pc_mat[ln], 1.0/d_dt);  IBTK_CHKERRQ(ierr);
 
             static const std::string options_prefix = "strct_";
-            ierr = KSPCreate(PETSC_COMM_WORLD, &d_F_ksp[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = KSPSetOperators(d_F_ksp[ln], d_F_mat[ln], d_F_pre_mat[ln], DIFFERENT_NONZERO_PATTERN);  IBTK_CHKERRQ(ierr);
-            ierr = KSPSetOptionsPrefix(d_F_ksp[ln], options_prefix.c_str());  IBTK_CHKERRQ(ierr);
-            ierr = KSPSetFromOptions(d_F_ksp[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = KSPSetInitialGuessNonzero(d_F_ksp[ln], PETSC_FALSE);  IBTK_CHKERRQ(ierr);
-            ierr = KSPSetUp(d_F_ksp[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = KSPSetUpOnBlocks(d_F_ksp[ln]);  IBTK_CHKERRQ(ierr);
+            ierr = PCCreate(PETSC_COMM_WORLD, &d_strct_pc[ln]);  IBTK_CHKERRQ(ierr);
+            ierr = PCSetOperators(d_strct_pc[ln], d_strct_pc_mat[ln], d_strct_pc_mat[ln], SAME_PRECONDITIONER);  IBTK_CHKERRQ(ierr);
+            ierr = PCSetOptionsPrefix(d_strct_pc[ln], options_prefix.c_str());  IBTK_CHKERRQ(ierr);
+            ierr = PCSetFromOptions(d_strct_pc[ln]);  IBTK_CHKERRQ(ierr);
+            ierr = PCSetUp(d_strct_pc[ln]);  IBTK_CHKERRQ(ierr);
+            ierr = PCSetUpOnBlocks(d_strct_pc[ln]);  IBTK_CHKERRQ(ierr);
         }
     }
     return;
@@ -2615,100 +2598,6 @@ IBStaggeredHierarchyIntegrator::MatVecMult(
 }// MatVecMult
 
 #undef __FUNCT__
-#define __FUNCT__ "IBStaggeredHierarchyIntegrator::MatVecMult_strct_SAMRAI"
-PetscErrorCode
-IBStaggeredHierarchyIntegrator::MatVecMult_strct_SAMRAI(
-    Mat A,
-    Vec x,
-    Vec y)
-{
-    PetscErrorCode ierr;
-    void* p_ctx;
-    ierr = MatShellGetContext(A, &p_ctx);  IBTK_CHKERRQ(ierr);
-    IBStaggeredHierarchyIntegrator* hier_integrator = static_cast<IBStaggeredHierarchyIntegrator*>(p_ctx);
-#if DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(hier_integrator != NULL);
-#endif
-    hier_integrator->MatVecMult_strct(x,y);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
-    PetscFunctionReturn(0);
-}// MatVecMult_strct_SAMRAI
-
-void
-IBStaggeredHierarchyIntegrator::MatVecMult_strct(
-    Vec x,
-    Vec y)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-
-    PetscErrorCode ierr;
-
-    Vec X_new_vec  = x;
-    Vec F_half_vec = d_F_half_data[finest_ln]->getGlobalVec();
-    ierr = MatMult(d_J_mat[finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
-        {
-            d_F_half_data[ln]->beginGhostUpdate();
-        }
-    }
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_scratch_data = patch->getPatchData(d_f_scratch_idx);
-            f_scratch_data->fillAll(0.0);
-        }
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
-        {
-            d_F_half_data[ln]->endGhostUpdate();
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_scratch_data = patch->getPatchData(d_f_scratch_idx);
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-                IBTK::LEInteractor::spread(
-                    f_scratch_data, d_F_half_data[ln], d_X_mid_data[ln], idx_data,
-                    patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
-                    d_delta_fcn);
-            }
-        }
-    }
-    d_hier_sc_data_ops->copyData(d_u_interp_idx, d_f_scratch_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        d_rscheds["u_interp->u_interp::S->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(d_integrator_time);
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
-        {
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_interp_data = patch->getPatchData(d_u_interp_idx);
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-                IBTK::LEInteractor::interpolate(
-                    d_U_half_data[ln], d_X_mid_data[ln], idx_data, u_interp_data,
-                    patch, patch_box, periodic_shift,
-                    d_delta_fcn);
-            }
-        }
-    }
-    ierr = VecAXPY(y,1.0/d_dt,x);  IBTK_CHKERRQ(ierr);
-    ierr = VecAXPY(y,-0.5*d_dt/d_rho,d_U_half_data[finest_ln]->getGlobalVec());  IBTK_CHKERRQ(ierr);
-    return;
-}// MatVecMult_strct
-
-#undef __FUNCT__
 #define __FUNCT__ "IBStaggeredHierarchyIntegrator::PCApply_SAMRAI"
 PetscErrorCode
 IBStaggeredHierarchyIntegrator::PCApply_SAMRAI(
@@ -2754,9 +2643,6 @@ IBStaggeredHierarchyIntegrator::PCApply(
     Vec petsc_fluid_y_vec = petsc_y_multivecs[0];
     Vec petsc_strct_y_vec = petsc_y_multivecs[1];
 
-    ierr = KSPSetInitialGuessNonzero(d_F_ksp[finest_ln], PETSC_FALSE);  IBTK_CHKERRQ(ierr);
-    ierr = KSPSolve(d_F_ksp[finest_ln], petsc_strct_x_vec, petsc_strct_y_vec);  IBTK_CHKERRQ(ierr);
-
     Vec X_new_vec  = petsc_strct_y_vec;
     Vec F_half_vec = d_F_half_data[finest_ln]->getGlobalVec();
     ierr = MatMult(d_J_mat[finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
@@ -2790,16 +2676,10 @@ IBStaggeredHierarchyIntegrator::PCApply(
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_x_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_x_vec);
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_y_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_y_vec);
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_rhs_vec = fluid_x_vec->cloneVector("");
-    fluid_rhs_vec->allocateVectorData();
-    fluid_rhs_vec->copyVector(fluid_x_vec);
-    d_hier_sc_data_ops->axpy(fluid_rhs_vec->getComponentDescriptorIndex(0), 0.5, d_f_scratch_idx, fluid_rhs_vec->getComponentDescriptorIndex(0));
     fluid_y_vec->setToScalar(0.0);
-    d_projection_pc->solveSystem(*fluid_y_vec, *fluid_rhs_vec);
-    fluid_rhs_vec->deallocateVectorData();
-    fluid_rhs_vec->freeVectorComponents();
+    d_projection_pc->solveSystem(*fluid_y_vec, *fluid_x_vec);
 
-    d_hier_sc_data_ops->scale(d_u_interp_idx, 0.5, fluid_y_vec->getComponentDescriptorIndex(0));
+    d_hier_sc_data_ops->linearSum(d_u_interp_idx, 0.5, fluid_y_vec->getComponentDescriptorIndex(0), 0.5*d_dt/d_rho, fluid_x_vec->getComponentDescriptorIndex(0));
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         d_rscheds["u_interp->u_interp::S->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(d_integrator_time);
@@ -2820,12 +2700,12 @@ IBStaggeredHierarchyIntegrator::PCApply(
             }
         }
     }
-    Vec petsc_strct_rhs_vec;
-    ierr = VecDuplicate(petsc_strct_x_vec, &petsc_strct_rhs_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecWAXPY(petsc_strct_rhs_vec, 1.0, d_U_half_data[finest_ln]->getGlobalVec(), petsc_strct_x_vec);  IBTK_CHKERRQ(ierr);
-    ierr = KSPSetInitialGuessNonzero(d_F_ksp[finest_ln], PETSC_TRUE);  IBTK_CHKERRQ(ierr);
-    ierr = KSPSolve(d_F_ksp[finest_ln], petsc_strct_rhs_vec, petsc_strct_y_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(petsc_strct_rhs_vec);  IBTK_CHKERRQ(ierr);
+    Vec petsc_strct_x_mod_vec;
+    ierr = VecDuplicate(petsc_strct_x_vec, &petsc_strct_x_mod_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecWAXPY(petsc_strct_x_mod_vec, 1.0, d_U_half_data[finest_ln]->getGlobalVec(), petsc_strct_x_vec);  IBTK_CHKERRQ(ierr);
+    ierr = ::PCApply(d_strct_pc[finest_ln], petsc_strct_x_mod_vec, petsc_strct_y_vec);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecDestroy(petsc_strct_x_mod_vec);  IBTK_CHKERRQ(ierr);
 
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_y_vec));  IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_strct_y_vec));  IBTK_CHKERRQ(ierr);

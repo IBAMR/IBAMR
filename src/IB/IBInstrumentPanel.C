@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <01.Apr.2008 17:12:59 griffith@box221.cims.nyu.edu>
+// Last modified: <06.Jun.2008 13:24:43 griffith@box230.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -348,7 +348,9 @@ IBInstrumentPanel::IBInstrumentPanel(
       d_log_file_name(NDIM == 2 ? "inst2d.log" : "inst3d.log"),
       d_log_file_stream(),
       d_flow_conv(1.0),
-      d_pres_conv(1.0)
+      d_pres_conv(1.0),
+      d_flow_units(""),
+      d_pres_units("")
 {
 #if HAVE_LIBSILO
     // intentionally blank
@@ -556,6 +558,8 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
         else
         {
             d_log_file_stream.open(d_log_file_name.c_str(),std::ios::out);
+            if (d_flow_units != "") d_log_file_stream << "flow     units: " << d_flow_units << "\n";
+            if (d_pres_units != "") d_log_file_stream << "pressure units: " << d_pres_units << "\n";
             d_log_file_stream << std::string(d_max_instrument_name_len,' ')
                               << "  time       "
                               << "  x_centroid "
@@ -713,7 +717,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     const double* const domainXUpper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-    const SAMRAI::hier::Box<NDIM> domain_box = grid_geom->getPhysicalDomain()(0);
+    const SAMRAI::hier::Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
 
     const SAMRAI::hier::IntVector<NDIM>& ratio_to_level_zero =
         hierarchy->getPatchLevel(finest_ln)->getRatio();
@@ -1097,6 +1101,8 @@ IBInstrumentPanel::readInstrumentData(
                        << "\n";
 
     outputLogData(SAMRAI::tbox::plog);
+    if (d_flow_units != "") SAMRAI::tbox::plog << "flow     units: " << d_flow_units << "\n";
+    if (d_pres_units != "") SAMRAI::tbox::plog << "pressure units: " << d_pres_units << "\n";
     SAMRAI::tbox::plog << std::string(d_max_instrument_name_len+94,'*') << "\n";
 
     if (d_output_log_file && SAMRAI::tbox::SAMRAI_MPI::getRank() == 0)
@@ -1288,6 +1294,8 @@ IBInstrumentPanel::getFromInput(
     }
     d_flow_conv = db->getDoubleWithDefault("flow_conv", d_flow_conv);
     d_pres_conv = db->getDoubleWithDefault("pres_conv", d_pres_conv);
+    d_flow_units = db->getStringWithDefault("flow_units", d_flow_units);
+    d_pres_units = db->getStringWithDefault("pres_units", d_pres_units);
     return;
 }// getFromInput
 

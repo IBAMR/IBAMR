@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <11.May.2008 23:52:43 griffith@box230.cims.nyu.edu>
+// Last modified: <12.May.2008 16:37:57 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -733,17 +733,6 @@ private:
         Vec y);
 
     static PetscErrorCode
-    MatVecMult_strct_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y);
-
-    void
-    MatVecMult_strct(
-        Vec x,
-        Vec y);
-
-    static PetscErrorCode
     PCApply_SAMRAI(
         void* p_ctx,
         Vec x,
@@ -1126,8 +1115,8 @@ private:
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_U_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_F_new_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_F_half_data;
-    std::vector<Mat> d_J_mat, d_F_mat, d_F_pre_mat;
-    std::vector<KSP> d_F_ksp;
+    std::vector<Mat> d_J_mat, d_strct_pc_mat;
+    std::vector<PC> d_strct_pc;
 
     /*
      * Solvers.
