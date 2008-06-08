@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <07.Jun.2008 21:15:55 griffith@box230.cims.nyu.edu>
+// Last modified: <07.Jun.2008 22:54:27 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1807,28 +1807,18 @@ IBHierarchyIntegrator::advanceHierarchy(
                 patch, patch_box, d_delta_fcn);
 
             // Prevent markers from leaving the computational domain.
+            static const double eps = sqrt(std::numeric_limits<double>::epsilon());
             const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
             if (periodic_shift.min() == 0)
             {
                 const double* const xLower = grid_geom->getXLower();
                 const double* const xUpper = grid_geom->getXUpper();
-                const double* const dx = grid_geom->getDx();
                 for (size_t k = 0; k < X_mark_new.size()/NDIM; ++k)
                 {
                     double* const X = &X_mark_new[NDIM*k];
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        if (periodic_shift[d] == 0)
-                        {
-                            if      (X[d] < xLower[d]+dx[d]-sqrt(std::numeric_limits<double>::epsilon()))
-                            {
-                                X[d] = xLower[d]+dx[d];
-                            }
-                            else if (X[d] > xUpper[d]-dx[d]+sqrt(std::numeric_limits<double>::epsilon()))
-                            {
-                                X[d] = xUpper[d]-dx[d];
-                            }
-                        }
+                        if (periodic_shift[d] == 0) X[d] = std::min(std::max(X[d],xLower[d]+eps),xUpper[d]-eps);
                     }
                 }
             }
