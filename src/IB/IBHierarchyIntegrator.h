@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <28.Mar.2008 13:03:11 griffith@box221.cims.nyu.edu>
+// Last modified: <08.Jun.2008 14:45:22 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -678,8 +678,7 @@ private:
     int
     countMarkers(
         const int coarsest_ln,
-        const int finest_ln,
-        const bool skip_refined_regions=true);
+        const int finest_ln);
 
     /*!
      * Update constraint force data structures over the specified levels in the
