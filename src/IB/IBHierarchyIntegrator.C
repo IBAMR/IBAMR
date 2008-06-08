@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <03.Jun.2008 17:07:11 griffith@box230.cims.nyu.edu>
+// Last modified: <07.Jun.2008 21:15:55 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1867,6 +1867,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             d_total_flow_volume[m] += flow_data[m]*dt;
             SAMRAI::tbox::plog << "flow volume through " << instrument_name[m] << ":\t " << d_total_flow_volume[m] << "\n";
         }
+        SAMRAI::tbox::plog << "NOTE: flow volume in default units\n";
     }
 
     // Compute the pressure at the updated locations of any distributed internal
@@ -3064,7 +3065,7 @@ IBHierarchyIntegrator::countMarkers(
     const bool skip_refined_regions)
 {
     const int finest_hier_level_number = d_hierarchy->getFinestLevelNumber();
-    int num_marks = 0;
+    std::vector<int> num_marks(finest_ln+1,0);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         const bool at_finest_hier_level = ln == finest_hier_level_number;
@@ -3088,13 +3089,18 @@ IBHierarchyIntegrator::countMarkers(
                     const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
                     if (patch_box.contains(i))
                     {
-                        num_marks += mark.getNumberOfMarkers();
+                        num_marks[ln] += mark.getNumberOfMarkers();
                     }
                 }
             }
         }
     }
-    return SAMRAI::tbox::SAMRAI_MPI::sumReduction(num_marks);
+    SAMRAI::tbox::SAMRAI_MPI::sumReduction(&num_marks[0],finest_ln+1);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::plog << "number of markers on level " << ln << ": " << num_marks[ln] << "\n";
+    }
+    return std::accumulate(num_marks.begin(), num_marks.end(), 0);
 }// countMarkers
 
 void

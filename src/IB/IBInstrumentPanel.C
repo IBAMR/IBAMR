@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <06.Jun.2008 13:24:43 griffith@box230.cims.nyu.edu>
+// Last modified: <07.Jun.2008 16:59:22 griffith@box230.cims.nyu.edu>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -558,8 +558,9 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
         else
         {
             d_log_file_stream.open(d_log_file_name.c_str(),std::ios::out);
-            if (d_flow_units != "") d_log_file_stream << "flow     units: " << d_flow_units << "\n";
-            if (d_pres_units != "") d_log_file_stream << "pressure units: " << d_pres_units << "\n";
+            if (d_flow_units != "") d_log_file_stream << "flow units: " << d_flow_units << "    ";
+            if (d_pres_units != "") d_log_file_stream << "pressure units: " << d_pres_units << "    ";
+            if (d_flow_units != "" || d_pres_units != "") d_log_file_stream << "\n";
             d_log_file_stream << std::string(d_max_instrument_name_len,' ')
                               << "  time       "
                               << "  x_centroid "
@@ -1101,8 +1102,9 @@ IBInstrumentPanel::readInstrumentData(
                        << "\n";
 
     outputLogData(SAMRAI::tbox::plog);
-    if (d_flow_units != "") SAMRAI::tbox::plog << "flow     units: " << d_flow_units << "\n";
-    if (d_pres_units != "") SAMRAI::tbox::plog << "pressure units: " << d_pres_units << "\n";
+    if (d_flow_units != "") SAMRAI::tbox::plog << "flow units: " << d_flow_units << "    ";
+    if (d_pres_units != "") SAMRAI::tbox::plog << "pressure units: " << d_pres_units;
+    if (d_flow_units !="" || d_pres_units != "") SAMRAI::tbox::plog << "\n";
     SAMRAI::tbox::plog << std::string(d_max_instrument_name_len+94,'*') << "\n";
 
     if (d_output_log_file && SAMRAI::tbox::SAMRAI_MPI::getRank() == 0)
