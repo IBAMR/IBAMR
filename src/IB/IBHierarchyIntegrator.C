@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <08.Jun.2008 17:57:39 griffith@box230.cims.nyu.edu>
+// Last modified: <08.Jun.2008 20:45:06 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2853,11 +2853,11 @@ IBHierarchyIntegrator::resetMarkersOnPatchHierarchy()
         level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
         mark_level_fill_alg->createSchedule(level, ln-1, d_hierarchy, NULL)->fillData(d_integrator_time);
         level->deallocatePatchData(d_mark_scratch_idx);
-
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+
             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
             const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
@@ -2906,6 +2906,7 @@ IBHierarchyIntegrator::resetMarkersOnPatchHierarchy()
                         {
                             new_mark_data->appendItem(i, IBTK::LagMarker());
                         }
+
                         IBTK::LagMarker& new_mark = *(new_mark_data->getItem(i));
                         std::vector<double>& new_X = new_mark.getPositions();
                         std::vector<double>& new_U = new_mark.getVelocities();
