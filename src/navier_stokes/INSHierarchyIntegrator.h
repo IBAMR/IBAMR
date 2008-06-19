@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <08.May.2008 16:33:33 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Jun.2008 18:09:46 griffith@box230.cims.nyu.edu>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1113,8 +1113,8 @@ private:
 
     /*
      * Objects to set initial conditions (note that the initial value of the
-     * pressure is for visualization purposes only) as well as constant or
-     * time-dependent body forcing.
+     * pressure is for visualization purposes only), boundary conditions, and
+     * body forcing.
      */
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;

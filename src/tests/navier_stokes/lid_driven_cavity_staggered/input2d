@@ -1,96 +1,47 @@
-// advective term options
-CTU_ONLY = -1
-SECOND_ORDER = 0
-FOURTH_ORDER = 1
-MC_LIMITED = 2
-MUSCL_LIMITED = 3
-
 // physical parameters
-MU = 0.0001
+MU = 0.001
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3   // maximum number of levels in locally refined grid
-REF_RATIO  = 2   // refinement ratio between levels
+MAX_LEVELS = 1   // maximum number of levels in locally refined grid
+REF_RATIO  = 4   // refinement ratio between levels
 
-N = 64                                    // coarsest grid spacing
+N = 128                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
-INSHierarchyIntegrator {
+INSStaggeredHierarchyIntegrator {
    start_time            =   00.e0    // initial simulation time
-   end_time              = 100.0e0    // final simulation time
+   end_time              =   1.0e5    // final simulation time
    grow_dt               =   2.0e0    // growth factor for timesteps
    max_integrator_steps  = 1000000    // max number of simulation timesteps
 
-   dt_max = 1.0/NFINEST
-   dt_max_time_max = 10.0*dt_max
-
    enable_logging = TRUE
+
+   cfl = 0.9
+   dt_max = 1.0/NFINEST
+   dt_max_time_max = dt_max
 
    tag_buffer = 1
 
    conservation_form = FALSE
 
    using_vorticity_tagging = TRUE
-   vorticity_rel_thresh = 0.125 , 0.25
+   vorticity_rel_thresh = 0.25
 
+   output_U = TRUE
    output_P = TRUE
    output_F = FALSE
-   output_Q = FALSE
-
    output_Omega = TRUE
-
-   output_Div_U = FALSE
-   output_Div_u = FALSE
-   output_Div_u_adv = FALSE
+   output_Div_U = TRUE
 
    mu  = MU
    rho = RHO
 
-   velocity_projection_type = "pressure_increment"
-   pressure_projection_type = "pressure_update"
-
-   using_synch_projection = FALSE
    second_order_pressure_update = TRUE
    normalize_pressure = TRUE
 
    num_cycles = 1
-   num_init_cycles = 5
-
-   helmholtz_max_iterations = 100
-   helmholtz_abs_residual_tol = 1.0e-30
-   helmholtz_rel_residual_tol = 1.0e-12
-}
-
-GodunovAdvector {
-   limiter_type = FOURTH_ORDER
-}
-
-AdvDiffHierarchyIntegrator {
-   viscous_timestepping_type = "CRANK_NICOLSON"
-
-   enable_logging = TRUE
-
-   tag_buffer = 1
-
-   AdvDiffHypPatchOps {
-      compute_init_velocity  = TRUE
-      compute_half_velocity  = FALSE
-      compute_final_velocity = FALSE
-      extrap_type = "LINEAR"
-   }
-
-   HyperbolicLevelIntegrator {
-      cfl                      = 0.975e0  // max cfl factor used in problem
-      cfl_init                 = 0.975e0  // initial cfl factor
-      lag_dt_computation       = FALSE
-      use_ghosts_to_compute_dt = FALSE
-   }
-
-   using_FAC = FALSE
-   max_iterations = 100
-   abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-12
+   num_init_cycles = 1
 }
 
 HierarchyProjector {
@@ -143,7 +94,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST     // zero to turn off
+   viz_dump_interval     = 1 // NFINEST     // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 

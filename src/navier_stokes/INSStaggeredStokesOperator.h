@@ -2,7 +2,7 @@
 #define included_INSStaggeredStokesOperator
 
 // Filename: INSStaggeredStokesOperator.h
-// Last modified: <09.May.2008 20:49:38 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Jun.2008 15:33:47 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -37,6 +37,7 @@ public:
         const double rho,
         const double mu,
         const double lambda,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
         : d_is_initialized(false),
           d_current_time(std::numeric_limits<double>::quiet_NaN()),
@@ -47,6 +48,9 @@ public:
           d_lambda(lambda),
           d_helmholtz_spec("INSStaggeredStokesOperator::helmholtz_spec"),
           d_hier_math_ops(hier_math_ops),
+          d_homogeneous_bc(false),
+          d_correcting_rhs(false),
+          d_U_bc_coefs(U_bc_coefs),
           d_U_P_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
           d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
           d_x_scratch(NULL)
@@ -64,6 +68,17 @@ public:
             deallocateOperatorState();
             return;
         }// ~INSStaggeredStokesOperator
+
+    /*!
+     * \brief Specify whether the boundary conditions are homogeneous.
+     */
+    void
+    setHomogeneousBc(
+        const bool homogeneous_bc)
+        {
+            d_homogeneous_bc = homogeneous_bc;
+            return;
+        }// setHomogeneousBc
 
     /*!
      * \brief Set the current time interval.
@@ -85,6 +100,22 @@ public:
      * \name Linear operator functionality.
      */
     //\{
+
+    /*!
+     * \brief Modify y to account for inhomogeneous boundary conditions.
+     *
+     * Before calling this function, the form of the vector y should be set
+     * properly by the user on all patch interiors on the range of levels
+     * covered by the operator.  All data in this vector should be allocated.
+     * The user is responsible for managing the storage for the vectors.
+     *
+     * \see initializeOperatorState
+     *
+     * \param y output: y=Ax
+     */
+    virtual void
+    modifyRhsForInhomogeneousBc(
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
      * \brief Compute y=Ax.
@@ -245,6 +276,9 @@ private:
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
     // Boundary condition objects.
+    bool d_homogeneous_bc;
+    bool d_correcting_rhs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_bdry_fill_op, d_no_fill_op;
 
     // Scratch data objects.

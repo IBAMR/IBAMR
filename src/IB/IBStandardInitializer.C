@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <01.Apr.2008 17:09:37 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Jun.2008 14:02:08 griffith@box230.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -305,26 +305,14 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             {
                 node_X[d] = X[d];
 
-                if (SAMRAI::tbox::MathUtilities<double>::equalEps(X[d],XLower[d]))
-                {
-                    TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
-                               << "  encountered node intersecting lower physical boundary.\n"
-                               << "  please ensure that all nodes are within the computational domain."<< std::endl);
-                }
-                else if (X[d] <= XLower[d])
+                if (X[d] <= XLower[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node below lower physical boundary\n"
                                << "  please ensure that all nodes are within the computational domain."<< std::endl);
                 }
 
-                if (SAMRAI::tbox::MathUtilities<double>::equalEps(X[d],XUpper[d]))
-                {
-                    TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
-                               << "  encountered node intersecting upper physical boundary.\n"
-                               << "  please ensure that all nodes are within the computational domain."<< std::endl);
-                }
-                else if (X[d] >= XUpper[d])
+                if (X[d] >= XUpper[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node above upper physical boundary\n"

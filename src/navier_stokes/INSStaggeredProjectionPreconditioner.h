@@ -2,7 +2,7 @@
 #define included_INSStaggeredProjectionPreconditioner
 
 // Filename: INSStaggeredProjectionPreconditioner.h
-// Last modified: <11.May.2008 18:56:22 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Jun.2008 18:14:48 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -40,6 +40,7 @@ public:
         const double rho,
         const double mu,
         const double lambda,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
         const std::string projection_type,
         const bool normalize_pressure,
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> helmholtz_solver,
@@ -68,6 +69,8 @@ public:
           d_wgt_cc_idx(-1),
           d_wgt_sc_idx(-1),
           d_volume(std::numeric_limits<double>::quiet_NaN()),
+          d_U_bc_coefs(U_bc_coefs),
+          d_U_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
           d_P_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
           d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
           d_x_scratch(NULL),
@@ -375,7 +378,8 @@ private:
     double d_volume;
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op, d_no_fill_op;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_fill_op, d_P_bdry_fill_op, d_no_fill_op;
 
     // Scratch data objects.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x_scratch, d_b_scratch;

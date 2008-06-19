@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <09.May.2008 20:51:07 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Jun.2008 18:09:44 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -23,6 +23,7 @@
 #include <GriddingAlgorithm.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <HierarchySideDataOpsReal.h>
+#include <LocationIndexRobinBcCoefs.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <RefineAlgorithm.h>
@@ -91,6 +92,13 @@ public:
     void
     registerVelocityInitialConditions(
         SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init);
+
+    /*!
+     * Supply physical boundary conditions for the (side centered) velocity.
+     */
+    void
+    registerVelocityPhysicalBcCoefs(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
 
     /*!
      * Supply initial conditions for the (cell centered) pressure.
@@ -914,10 +922,12 @@ private:
 
     /*
      * Objects to set initial conditions (note that the initial value of the
-     * pressure is only used for visualization) as well as constant or
-     * time-dependent body forcing.
+     * pressure is only used for visualization), boundary conditions, and body
+     * forcing.
      */
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_U_init, d_P_init;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_set;
 
     /*

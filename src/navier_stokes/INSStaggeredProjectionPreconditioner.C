@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <11.May.2008 18:52:48 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Jun.2008 18:58:51 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -110,7 +110,7 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     if (d_projection_type == "pressure_increment")
     {
         typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
+        InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
         d_P_bdry_fill_op->resetTransactionComponent(P_scratch_component);
         d_P_bdry_fill_op->fillData(d_current_time);
 
@@ -125,6 +125,11 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     }
 
     // Solve for u^{*}.
+    TBOX_ASSERT(U_scratch->getComponentDescriptorIndex(0) == d_b_scratch->getComponentDescriptorIndex(0));
+    d_U_bdry_fill_op->setHomogeneousBc(true);
+    d_U_bdry_fill_op->fillData(d_new_time);
+    U_out->copyVector(U_scratch);
+    d_helmholtz_solver->setInitialGuessNonzero(true);
     d_helmholtz_solver->solveSystem(*U_out,*U_scratch);
 
     if (d_do_log) SAMRAI::tbox::plog << "INSStaggeredProjectionPreconditioner::solveSystem(): Helmholtz solve number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";
@@ -178,7 +183,11 @@ INSStaggeredProjectionPreconditioner::initializeSolverState(
     d_b_scratch->allocateVectorData();
 
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_scratch_component(d_b_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
+    InterpolationTransactionComponent U_scratch_component(d_b_scratch->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
+    d_U_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    d_U_bdry_fill_op->initializeOperatorState(U_scratch_component, d_b_scratch->getPatchHierarchy());
+
+    InterpolationTransactionComponent P_scratch_component(d_b_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
     d_P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_b_scratch->getPatchHierarchy());
 

@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <08.Jun.2008 17:39:24 griffith@box230.cims.nyu.edu>
+// Last modified: <10.Jun.2008 13:49:36 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -688,6 +688,16 @@ private:
         const int finest_ln);
 
     /*!
+     * Zero-out the inactive elements of a Lagrangian force or velocity vector
+     * over the specified range of levels in the patch hierarchy.
+     */
+    void
+    zeroInactiveElements(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > V_data,
+        const int coarsest_ln,
+        const int finest_ln);
+
+    /*!
      * Update constraint force data structures over the specified levels in the
      * patch hierarchy.
      */
@@ -955,6 +965,17 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker> > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
     int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_mark_current_idx, d_mark_scratch_idx, d_Q_idx, d_Q_scratch_idx;
+
+    /*
+     * List of local indicies of local inactive IB points.
+     *
+     * NOTE: IB points are considered "inactive" if they are located within a
+     * tolerance epsilon of a physical boundary.
+     *
+     * Presently, inactive points are not allowed to move, nor are they allowed
+     * to apply force to the domain.
+     */
+    std::vector<std::vector<int> > d_inactive_local_nodes;
 
     /*
      * Constraint force data.

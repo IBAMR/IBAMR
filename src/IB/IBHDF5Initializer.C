@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <01.Apr.2008 17:06:24 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Jun.2008 13:59:37 griffith@box230.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -248,16 +248,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             // Ensure the point lies within the physical domain.
             for (int d = 0; d < NDIM; ++d)
             {
-                if (SAMRAI::tbox::MathUtilities<double>::equalEps(X[d],gridXLower[d]))
-                {
-                    TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
-                               << "  encountered node intersecting lower physical boundary.\n"
-                               << "  level number = " << level_number << "\n"
-                               << "  file name = " << d_filenames[level_number][j] << "\n"
-                               << "  vertex index = " << k << "\n"
-                               << "  please ensure that all nodes are within the computational domain.\n");
-                }
-                else if (X[d] <= gridXLower[d])
+                if (X[d] <= gridXLower[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node below lower physical boundary\n"
@@ -267,16 +258,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
                                << "  please ensure that all nodes are within the computational domain.\n");
                 }
 
-                if (SAMRAI::tbox::MathUtilities<double>::equalEps(X[d],gridXUpper[d]))
-                {
-                    TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
-                               << "  encountered node intersecting upper physical boundary.\n"
-                               << "  level number = " << level_number << "\n"
-                               << "  file name = " << d_filenames[level_number][j] << "\n"
-                               << "  vertex index = " << k << "\n"
-                               << "  please ensure that all nodes are within the computational domain.\n");
-                }
-                else if (X[d] >= gridXUpper[d])
+                if (X[d] >= gridXUpper[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node above upper physical boundary\n"

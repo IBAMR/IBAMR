@@ -28,8 +28,7 @@
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/GodunovAdvector.h>
-#include <ibamr/INSHierarchyIntegrator.h>
+#include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibtk/TimeDependentLocationIndexRobinBcCoefs.h>
 
 using namespace IBAMR;
@@ -61,7 +60,7 @@ main(
      */
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
     tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    tbox::SAMRAIManager::setMaxNumberPatchDataEntries(1024);
+    tbox::SAMRAIManager::setMaxNumberPatchDataEntries(65536);
     tbox::SAMRAIManager::setMaxNumberTimers(256);
     tbox::SAMRAIManager::startup();
 
@@ -257,33 +256,40 @@ main(
         /*
          * Create boundary condition specification objects.
          */
-        TimeDependentLocationIndexRobinBcCoefs u0_bc_coef(
+//         TimeDependentLocationIndexRobinBcCoefs u0_bc_coef(
+//             "u0_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+//         for (int i = 0; i < 2*NDIM; ++i)
+//         {
+//             u0_bc_coef.setBoundaryTimeConstant(i,1.0);
+//         }
+//         u0_bc_coef.setBoundaryInitialValue(0,0.0);  // x lower boundary
+//         u0_bc_coef.setBoundaryInitialValue(1,0.0);  // x upper boundary
+//         u0_bc_coef.setBoundaryInitialValue(2,0.0);  // y lower boundary
+//         u0_bc_coef.setBoundaryInitialValue(3,0.0);  // y upper boundary
+// #if (NDIM > 2)
+//         u0_bc_coef.setBoundaryInitialValue(4,0.0);  // z lower boundary
+//         u0_bc_coef.setBoundaryInitialValue(5,0.0);  // z upper boundary
+// #endif
+//         u0_bc_coef.setBoundaryFinalValue(0,0.0);  // x lower boundary
+//         u0_bc_coef.setBoundaryFinalValue(1,0.0);  // x upper boundary
+//         u0_bc_coef.setBoundaryFinalValue(2,0.0);  // y lower boundary
+//         u0_bc_coef.setBoundaryFinalValue(3,1.0);  // y upper boundary
+// #if (NDIM > 2)
+//         u0_bc_coef.setBoundaryFinalValue(4,0.0);  // z lower boundary
+//         u0_bc_coef.setBoundaryFinalValue(5,0.0);  // z upper boundary
+// #endif
+        solv::LocationIndexRobinBcCoefs<NDIM> u0_bc_coef(
             "u0_bc_coef", tbox::Pointer<tbox::Database>(NULL));
         for (int i = 0; i < 2*NDIM; ++i)
         {
-            u0_bc_coef.setBoundaryTimeConstant(i,1.0);
+            u0_bc_coef.setBoundaryValue(i,(i == 3) ? 1.0 : 0.0);
         }
-        u0_bc_coef.setBoundaryInitialValue(0,0.0);  // x lower boundary
-        u0_bc_coef.setBoundaryInitialValue(1,0.0);  // x upper boundary
-        u0_bc_coef.setBoundaryInitialValue(2,0.0);  // y lower boundary
-        u0_bc_coef.setBoundaryInitialValue(3,0.0);  // y upper boundary
-#if (NDIM > 2)
-        u0_bc_coef.setBoundaryInitialValue(4,0.0);  // z lower boundary
-        u0_bc_coef.setBoundaryInitialValue(5,0.0);  // z upper boundary
-#endif
-        u0_bc_coef.setBoundaryFinalValue(0,0.0);  // x lower boundary
-        u0_bc_coef.setBoundaryFinalValue(1,0.0);  // x upper boundary
-        u0_bc_coef.setBoundaryFinalValue(2,0.0);  // y lower boundary
-        u0_bc_coef.setBoundaryFinalValue(3,1.0);  // y upper boundary
-#if (NDIM > 2)
-        u0_bc_coef.setBoundaryFinalValue(4,0.0);  // z lower boundary
-        u0_bc_coef.setBoundaryFinalValue(5,0.0);  // z upper boundary
-#endif
+
         solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
             "u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
         for (int i = 0; i < 2*NDIM; ++i)
         {
-            u1_bc_coef.setBoundaryValue(i,0.0);
+            u1_bc_coef.setBoundaryValue(i, 0.0);
         }
 #if (NDIM > 2)
         solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef(
@@ -317,28 +323,17 @@ main(
                 "PatchHierarchy",
                 grid_geometry);
 
-        tbox::Pointer<GodunovAdvector> predictor =
-            new GodunovAdvector(
-                "GodunovAdvector",
-                input_db->getDatabase("GodunovAdvector"));
-
-        tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator =
-            new AdvDiffHierarchyIntegrator(
-                "AdvDiffHierarchyIntegrator",
-                input_db->getDatabase("AdvDiffHierarchyIntegrator"),
-                patch_hierarchy, predictor);
-
         tbox::Pointer<HierarchyProjector> hier_projector =
             new HierarchyProjector(
                 "HierarchyProjector",
                 input_db->getDatabase("HierarchyProjector"),
                 patch_hierarchy);
 
-        tbox::Pointer<INSHierarchyIntegrator> time_integrator =
-            new INSHierarchyIntegrator(
-                "INSHierarchyIntegrator",
-                input_db->getDatabase("INSHierarchyIntegrator"),
-                patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
+        tbox::Pointer<INSStaggeredHierarchyIntegrator> time_integrator =
+            new INSStaggeredHierarchyIntegrator(
+                "INSStaggeredHierarchyIntegrator",
+                input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
+                patch_hierarchy, hier_projector);
         time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =

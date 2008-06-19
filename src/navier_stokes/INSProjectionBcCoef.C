@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <13.Feb.2008 13:31:39 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Jun.2008 20:19:46 griffith@box230.cims.nyu.edu>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -239,6 +239,7 @@ INSProjectionBcCoef::setBcCoefs(
 
     // Do not further modify the boundary condition coefficients unless we are
     // setting inhomogeneous boundary conditions.
+    return; // XXXX  BREAKS PHYSICAL BC SUPPORT !!!
     if (d_homogeneous_bc) return;
 
     // Loop over the boundary box and reset the inhomogeneous coefficients.

@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <08.Jun.2008 20:45:06 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Jun.2008 14:23:52 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1162,6 +1162,8 @@ IBHierarchyIntegrator::advanceHierarchy(
         }
     }
 
+    zeroInactiveElements(U_data, coarsest_ln, finest_ln);
+
     // 2. Compute F(n) = F(X(n),n), the Lagrangian force corresponding to
     //    configuration X(n) at time t_{n}.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1240,6 +1242,8 @@ IBHierarchyIntegrator::advanceHierarchy(
     }
 
     computeConstraintForces(X_data, F_data, coarsest_ln, finest_ln, current_time, initial_time);
+
+    zeroInactiveElements(F_data, coarsest_ln, finest_ln);
 
     // 3. Spread F(n) from the Lagrangian mesh onto the Cartesian grid.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1362,8 +1366,6 @@ IBHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    computeConstraintForces(X_new_data, F_new_data, coarsest_ln, finest_ln, new_time, false);
-
     // 5. Compute F~(n+1) = F(X~(n+1),n+1), the Lagrangian force corresponding
     //    to configuration X~(n+1) at time t_{n+1}.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1412,6 +1414,10 @@ IBHierarchyIntegrator::advanceHierarchy(
             }
         }
     }
+
+    computeConstraintForces(X_new_data, F_new_data, coarsest_ln, finest_ln, new_time, false);
+
+    zeroInactiveElements(F_new_data, coarsest_ln, finest_ln);
 
     // 6. Spread F~(n+1) from the Lagrangian mesh onto the Cartesian grid.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1641,6 +1647,8 @@ IBHierarchyIntegrator::advanceHierarchy(
                     d_delta_fcn);
             }
 
+            zeroInactiveElements(U_new_data, ln, ln);
+
             // 2. Compute X(n+1), the final structure configuration at time
             //    t_{n+1}.
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): computing X(n+1) on level number " << ln << "\n";
@@ -1776,7 +1784,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 patch, patch_box, d_delta_fcn);
 
             // Prevent markers from leaving the computational domain.
-            static const double eps = sqrt(std::numeric_limits<double>::epsilon());
+            static const double eps = 2.0*sqrt(std::numeric_limits<double>::epsilon());
             const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
             if (periodic_shift.min() == 0)
             {
@@ -2009,7 +2017,7 @@ IBHierarchyIntegrator::regridHierarchy()
     d_force_strategy_needs_init  = true;
     d_source_strategy_needs_init = true;
 
-    // Update any constraint force information.
+    // Lookup the re-distributed Lagrangian position data.
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data(d_hierarchy->getFinestLevelNumber()+1);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
@@ -2018,6 +2026,34 @@ IBHierarchyIntegrator::regridHierarchy()
             X_data[ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
         }
     }
+
+    // Compute the list of inactive IB points.
+    static const double eps = 2.0*sqrt(std::numeric_limits<double>::epsilon());
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    const double* const grid_xLower = grid_geom->getXLower();
+    const double* const grid_xUpper = grid_geom->getXUpper();
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            for (int i = 0; i < X_data[ln]->getLocalNodeCount(); ++i)
+            {
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    if ((periodic_shift[d] == 0) &&
+                        ((*X_data[ln])(i,d) - grid_xLower[d] <= eps ||
+                         grid_xUpper[d] - (*X_data[ln])(i,d) <= eps))
+                    {
+                        d_inactive_local_nodes[ln].push_back(i);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // Update any constraint force information.
     d_constraint_force_src_is.resize(d_hierarchy->getFinestLevelNumber()+1,static_cast<IS>(NULL));
     d_constraint_force_dst_is.resize(d_hierarchy->getFinestLevelNumber()+1,static_cast<IS>(NULL));
     d_constraint_force_vec_scatter.resize(d_hierarchy->getFinestLevelNumber()+1,static_cast<VecScatter>(NULL));
@@ -2349,6 +2385,10 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
     d_P_src.resize(finest_hier_level+1);
     d_Q_src.resize(finest_hier_level+1);
     d_n_src.resize(finest_hier_level+1,0);
+
+    // If we have added or removed a level, resize the inactive IB point vectors.
+    d_inactive_local_nodes.clear();
+    d_inactive_local_nodes.resize(finest_hier_level+1);
 
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
@@ -3050,6 +3090,38 @@ IBHierarchyIntegrator::countMarkers(
     }
     return std::accumulate(num_marks.begin(), num_marks.end(), 0);
 }// countMarkers
+
+void
+IBHierarchyIntegrator::zeroInactiveElements(
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > V_data,
+    const int coarsest_ln,
+    const int finest_ln)
+{
+    int ierr;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            const int depth = V_data[ln]->getDepth();
+            Vec V_vec = V_data[ln]->getGlobalVec();
+            double* V_arr;
+            ierr = VecGetArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
+
+            for (std::vector<int>::const_iterator cit = d_inactive_local_nodes[ln].begin();
+                 cit != d_inactive_local_nodes[ln].end(); ++cit)
+            {
+                const int& i = *cit;
+                for (int d = 0; d < depth; ++d)
+                {
+                    V_arr[depth*i+d] = 0.0;
+                }
+            }
+
+            ierr = VecRestoreArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
+        }
+    }
+    return;
+}// zeroInactiveElements
 
 void
 IBHierarchyIntegrator::computeConstraintForceDataStructures(

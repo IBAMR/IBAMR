@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <09.May.2008 20:52:12 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Jun.2008 21:13:35 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -18,7 +18,6 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSStaggeredConvectiveOperator.h>
-#include <ibamr/INSStaggeredNavierStokesOperator.h>
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
 
@@ -26,7 +25,6 @@
 #include <ibtk/CartSideDoubleCubicCoarsenOperator.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
-#include <ibtk/PETScNewtonKrylovSolver.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/SCLaplaceOperator.h>
 
@@ -183,6 +181,20 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
 
     d_do_log = false;
 
+    // Setup default boundary condition objects that specify homogeneous
+    // Dirichlet boundary conditions for the velocity.
+    d_default_U_bc_coef = new SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>(
+        d_object_name+"::default_U_bc_coef", SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL));
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_default_U_bc_coef->setBoundaryValue(2*d  ,0.0);
+        d_default_U_bc_coef->setBoundaryValue(2*d+1,0.0);
+    }
+
+    registerVelocityPhysicalBcCoefs(
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
+            NDIM,d_default_U_bc_coef));
+
     // Initialize object with data read from the input and restart databases.
     const bool from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
     if (from_restart)
@@ -258,6 +270,8 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     {
         delete (*it).second;
     }
+
+    delete d_default_U_bc_coef;
     return;
 }// ~INSStaggeredHierarchyIntegrator
 
@@ -274,6 +288,27 @@ INSStaggeredHierarchyIntegrator::registerVelocityInitialConditions(
     d_U_init = U_init;
     return;
 }// registerVelocityInitialConditions
+
+void
+INSStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs)
+{
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::registerVelocityPhysicalBcCoefs():\n"
+                   << "  velocity boundary conditions must be registered prior to initialization\n"
+                   << "  of the hierarchy integrator object." << std::endl);
+    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned l = 0; l < U_bc_coefs.size(); ++l)
+    {
+        TBOX_ASSERT(U_bc_coefs[l] != NULL);
+    }
+#endif
+    d_U_bc_coefs = U_bc_coefs;
+    d_hier_projector->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
+    return;
+}// registerVelocityPhysicalBcCoefs
 
 void
 INSStaggeredHierarchyIntegrator::registerPressureInitialConditions(
@@ -800,7 +835,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Hierarchy ghost cell transaction components.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
+    InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
 
     // Synchronize current state data.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
@@ -848,6 +883,42 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         rhs_spec,
         d_U_scratch_idx, d_U_var,
         d_U_scratch_bdry_fill_op, current_time);
+
+    // XXXX
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+            const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+            const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_rhs_data = patch->getPatchData(U_rhs_idx);
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                static const int lower = 0;
+                if (pgeom->getTouchesRegularBoundary(axis,lower))
+                {
+                    SAMRAI::hier::Box<NDIM> lower_box = patch_box;
+                    lower_box.lower()(axis) = patch_lower(axis)-1;
+                    lower_box.upper()(axis) = patch_lower(axis)-1;
+                    U_rhs_data->fillAll(0.0,lower_box);
+                }
+                static const int upper = 1;
+                if (pgeom->getTouchesRegularBoundary(axis,upper))
+                {
+                    SAMRAI::hier::Box<NDIM> upper_box = patch_box;
+                    upper_box.lower()(axis) = patch_upper(axis)+1;
+                    upper_box.upper()(axis) = patch_upper(axis)+1;
+                    U_rhs_data->fillAll(0.0,upper_box);
+                }
+            }
+        }
+    }
+    // XXXX
+
     if (!d_F_set.isNull())
     {
         if (d_F_set->isTimeDependent())
@@ -868,17 +939,16 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     helmholtz_spec.setCConstant((d_rho/dt)+0.5*d_lambda);
     helmholtz_spec.setDConstant(          -0.5*d_mu    );
     SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator> helmholtz_operator = new IBTK::SCLaplaceOperator(
-        d_object_name+"::Helmholtz Operator", helmholtz_spec, NULL);  // XXXX
+        d_object_name+"::Helmholtz Operator", helmholtz_spec, d_U_bc_coefs, true);
 
     helmholtz_operator->setPoissonSpecifications(helmholtz_spec);
-    //helmholtz_operator->setPhysicalBcCoefs(U_bc_coefs);  // XXXX
-    helmholtz_operator->setHomogeneousBc(false);  // XXXX
+    helmholtz_operator->setPhysicalBcCoefs(d_U_bc_coefs);
+    helmholtz_operator->setHomogeneousBc(true);
     helmholtz_operator->setTime(new_time);
     helmholtz_operator->setHierarchyMathOps(d_hier_math_ops);
 
     SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
         d_object_name+"::PETSc Krylov solver", "adv_diff_");
-    helmholtz_solver->setInitialGuessNonzero(false);
     helmholtz_solver->setOperator(helmholtz_operator);
 
     // Reset the solution, rhs, and nullspace vectors.
@@ -908,6 +978,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Setup the Stokes operator.
     SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> stokes_op = new INSStaggeredStokesOperator(
         d_rho, d_mu, d_lambda,
+        d_U_bc_coefs,
         d_hier_math_ops);
     stokes_op->setTimeInterval(current_time,new_time);
 
@@ -916,42 +987,43 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_rho, d_mu, d_lambda,
         d_conservation_form);
 
-    // Setup the Navier-Stokes operator.
-    SAMRAI::tbox::Pointer<INSStaggeredNavierStokesOperator> navier_stokes_op = new INSStaggeredNavierStokesOperator(
-        d_rho, d_mu, d_lambda,
-        stokes_op, convective_op,
-        d_hier_sc_data_ops);
-    navier_stokes_op->setVelocityCurrentPatchDataIndex(d_U_current_idx);
-
     // Setup the projection preconditioner.
     static const std::string projection_type = "pressure_increment";
     SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> projection_pc = new INSStaggeredProjectionPreconditioner(
         d_rho, d_mu, d_lambda,
-        projection_type,
-        d_normalize_pressure,
+        d_U_bc_coefs,
+        projection_type, d_normalize_pressure,
         helmholtz_solver, d_hier_projector,
         d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
     projection_pc->setTimeInterval(current_time,new_time);
     projection_pc->initializeSolverState(*sol_vec,*rhs_vec);
 
-    // Setup the nonlinear solver.
-    SAMRAI::tbox::Pointer<IBTK::PETScNewtonKrylovSolver> nonlinear_solver = new IBTK::PETScNewtonKrylovSolver(
-        d_object_name+"::nonlinear_solver", "ins_");
-    nonlinear_solver->setOperator(navier_stokes_op);
-    nonlinear_solver->initializeSolverState(*sol_vec,*rhs_vec);
+    // Setup the linear solver.
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> linear_solver = new IBTK::PETScKrylovLinearSolver(
+        d_object_name+"::linear_solver", "ins_");
+    linear_solver->setInitialGuessNonzero(true);
+    linear_solver->setOperator(stokes_op);
+    linear_solver->initializeSolverState(*sol_vec,*rhs_vec);
     if (d_normalize_pressure)
     {
-        SNES petsc_snes = nonlinear_solver->getPETScSNES();
-        KSP petsc_ksp;
-        ierr = SNESGetKSP(petsc_snes, &petsc_ksp); IBTK_CHKERRQ(ierr);
+        KSP petsc_ksp = linear_solver->getPETScKSP();
         ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
     }
-    nonlinear_solver->getLinearSolver()->setPreconditioner(projection_pc);
+    linear_solver->setPreconditioner(projection_pc);
 
-    // Solve system.
+    // Set the initial guess.
     d_hier_sc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(0), d_U_current_idx);
     d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(1), d_P_current_idx);
-    nonlinear_solver->solveSystem(*sol_vec,*rhs_vec);
+
+    // Setup inhomogeneous boundary conditions.
+    stokes_op->setHomogeneousBc(false);
+    stokes_op->modifyRhsForInhomogeneousBc(*rhs_vec);
+    stokes_op->setHomogeneousBc(true);
+    TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
+    d_U_scratch_bdry_fill_op->fillData(new_time);
+
+    // Solve for u(n+1), p(n+1/2).
+    linear_solver->solveSystem(*sol_vec,*rhs_vec);
 
     // Pull out solution components.
     d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
@@ -1459,7 +1531,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
 
     // Setup the patch boundary filling objects.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
+    InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
     d_U_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_U_scratch_bdry_fill_op->initializeOperatorState(U_scratch_component, d_hierarchy);
 

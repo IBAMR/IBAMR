@@ -388,7 +388,7 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = analytic_soln lid_driven_cavity periodic_shear_layer staggered
+SUBDIRS = analytic_soln analytic_soln_staggered lid_driven_cavity lid_driven_cavity_staggered periodic_shear_layer
 all: all-recursive
 
 .SUFFIXES:

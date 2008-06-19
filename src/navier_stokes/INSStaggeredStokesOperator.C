@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <09.May.2008 21:05:43 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Jun.2008 17:24:23 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -39,6 +39,40 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void
+INSStaggeredStokesOperator::modifyRhsForInhomogeneousBc(
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
+{
+    // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
+    // inhomogeneous boundary conditions.
+    if (!d_homogeneous_bc)
+    {
+        d_correcting_rhs = true;
+
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > x = y.cloneVector("");
+        x->allocateVectorData();
+        x->setToScalar(0.0);
+
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > b = y.cloneVector("");
+        b->allocateVectorData();
+        b->setToScalar(0.0);
+
+        apply(*x,*b);
+        y.subtract(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&y, false), b);
+
+        x->deallocateVectorData();
+        x->freeVectorComponents();
+        x.setNull();
+
+        b->deallocateVectorData();
+        b->freeVectorComponents();
+        b.setNull();
+
+        d_correcting_rhs = false;
+    }
+    return;
+}// modifyRhsForInhomogeneousBc
+
+void
 INSStaggeredStokesOperator::apply(
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
@@ -69,14 +103,16 @@ INSStaggeredStokesOperator::apply(
 
     // Reset the interpolation operators and fill the data.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_scratch_component(U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
+    InterpolationTransactionComponent U_scratch_component(U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
     InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
 
     std::vector<InterpolationTransactionComponent> U_P_scratch_components(2);
     U_P_scratch_components[0] = U_scratch_component;
     U_P_scratch_components[1] = P_scratch_component;
 
+    const bool homogeneous_bc = d_correcting_rhs ? d_homogeneous_bc : true;
     d_U_P_bdry_fill_op->resetTransactionComponents(U_P_scratch_components);
+    d_U_P_bdry_fill_op->setHomogeneousBc(homogeneous_bc);
     d_U_P_bdry_fill_op->fillData(d_new_time);
 
     // Compute the action of the operator:
@@ -100,6 +136,44 @@ INSStaggeredStokesOperator::apply(
         1.0,
         U_out_idx, U_out_sc_var);
 
+    // XXXX
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = y.getPatchHierarchy();
+    const int coarsest_ln = y.getCoarsestLevelNumber();
+    const int finest_ln = y.getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+            const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+            const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_out_data = patch->getPatchData(U_out_idx);
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                static const int lower = 0;
+                if (pgeom->getTouchesRegularBoundary(axis,lower))
+                {
+                    SAMRAI::hier::Box<NDIM> lower_box = patch_box;
+                    lower_box.lower()(axis) = patch_lower(axis)-1;
+                    lower_box.upper()(axis) = patch_lower(axis)-1;
+                    U_out_data->fillAll(0.0,lower_box);
+                }
+                static const int upper = 1;
+                if (pgeom->getTouchesRegularBoundary(axis,upper))
+                {
+                    SAMRAI::hier::Box<NDIM> upper_box = patch_box;
+                    upper_box.lower()(axis) = patch_upper(axis)+1;
+                    upper_box.upper()(axis) = patch_upper(axis)+1;
+                    U_out_data->fillAll(0.0,upper_box);
+                }
+            }
+        }
+    }
+    // XXXX
+
     // Deallocate the operator (if necessary).
     if (deallocate_at_completion) deallocateOperatorState();
     return;
@@ -116,8 +190,8 @@ INSStaggeredStokesOperator::initializeOperatorState(
     d_x_scratch->allocateVectorData();
 
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_scratch_component(d_x_scratch->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
-    InterpolationTransactionComponent P_scratch_component(d_x_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
+    InterpolationTransactionComponent U_scratch_component(d_x_scratch->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
+    InterpolationTransactionComponent P_scratch_component(d_x_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
 
     std::vector<InterpolationTransactionComponent> U_P_scratch_components(2);
     U_P_scratch_components[0] = U_scratch_component;
