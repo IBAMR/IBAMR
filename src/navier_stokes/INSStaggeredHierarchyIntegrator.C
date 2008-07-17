@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <18.Jun.2008 21:13:35 griffith@box230.cims.nyu.edu>
+// Last modified: <16.Jul.2008 18:12:06 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -852,20 +852,36 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     }
 
     // Setup the solver vectors.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_scratch_vec, U_rhs_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_scratch_vec, U_rhs_vec, U_half_vec, N_vec;
+
     U_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         d_object_name+"::U_scratch_vec", d_hierarchy, 0, finest_ln);
     U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
+
     U_rhs_vec = U_scratch_vec->cloneVector(d_object_name+"::U_rhs_vec");
     U_rhs_vec->allocateVectorData(current_time);
     const int U_rhs_idx = U_rhs_vec->getComponentDescriptorIndex(0);
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_rhs_var = U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->setToScalar(U_rhs_idx,0.0);
 
+    U_half_vec = U_scratch_vec->cloneVector(d_object_name+"::U_half_vec");
+    U_half_vec->allocateVectorData(current_time);
+    const int U_half_idx = U_half_vec->getComponentDescriptorIndex(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_half_var = U_half_vec->getComponentVariable(0);
+    d_hier_sc_data_ops->setToScalar(U_half_idx,0.0);
+
+    N_vec = U_scratch_vec->cloneVector(d_object_name+"::N_vec");
+    N_vec->allocateVectorData(current_time);
+    const int N_idx = N_vec->getComponentDescriptorIndex(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > N_var = N_vec->getComponentVariable(0);
+    d_hier_sc_data_ops->setToScalar(N_idx,0.0);
+
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_scratch_vec, P_rhs_vec;
+
     P_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         d_object_name+"::P_scratch_vec", d_hierarchy, 0, finest_ln);
     P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+
     P_rhs_vec = P_scratch_vec->cloneVector(d_object_name+"::P_rhs_vec");
     P_rhs_vec->allocateVectorData(current_time);
     const int P_rhs_idx = P_rhs_vec->getComponentDescriptorIndex(0);
@@ -883,41 +899,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         rhs_spec,
         d_U_scratch_idx, d_U_var,
         d_U_scratch_bdry_fill_op, current_time);
-
-    // XXXX
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-            const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_rhs_data = patch->getPatchData(U_rhs_idx);
-            for (int axis = 0; axis < NDIM; ++axis)
-            {
-                static const int lower = 0;
-                if (pgeom->getTouchesRegularBoundary(axis,lower))
-                {
-                    SAMRAI::hier::Box<NDIM> lower_box = patch_box;
-                    lower_box.lower()(axis) = patch_lower(axis)-1;
-                    lower_box.upper()(axis) = patch_lower(axis)-1;
-                    U_rhs_data->fillAll(0.0,lower_box);
-                }
-                static const int upper = 1;
-                if (pgeom->getTouchesRegularBoundary(axis,upper))
-                {
-                    SAMRAI::hier::Box<NDIM> upper_box = patch_box;
-                    upper_box.lower()(axis) = patch_upper(axis)+1;
-                    upper_box.upper()(axis) = patch_upper(axis)+1;
-                    U_rhs_data->fillAll(0.0,upper_box);
-                }
-            }
-        }
-    }
-    // XXXX
 
     if (!d_F_set.isNull())
     {
@@ -986,13 +967,13 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     SAMRAI::tbox::Pointer<INSStaggeredConvectiveOperator> convective_op = new INSStaggeredConvectiveOperator(
         d_rho, d_mu, d_lambda,
         d_conservation_form);
+    convective_op->initializeOperatorState(*sol_vec,*rhs_vec);
 
     // Setup the projection preconditioner.
-    static const std::string projection_type = "pressure_increment";
     SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> projection_pc = new INSStaggeredProjectionPreconditioner(
         d_rho, d_mu, d_lambda,
         d_U_bc_coefs,
-        projection_type, d_normalize_pressure,
+        d_normalize_pressure,
         helmholtz_solver, d_hier_projector,
         d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
     projection_pc->setTimeInterval(current_time,new_time);
@@ -1014,6 +995,8 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Set the initial guess.
     d_hier_sc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(0), d_U_current_idx);
     d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(1), d_P_current_idx);
+    d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
+    d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
 
     // Setup inhomogeneous boundary conditions.
     stokes_op->setHomogeneousBc(false);
@@ -1023,11 +1006,63 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_U_scratch_bdry_fill_op->fillData(new_time);
 
     // Solve for u(n+1), p(n+1/2).
-    linear_solver->solveSystem(*sol_vec,*rhs_vec);
+    static const int num_cycles = 3;
+    for (int cycle = 0; cycle < num_cycles; ++cycle)
+    {
+        // Compute U_half := 0.5*(u(n)+u(n+1)).
+        d_hier_sc_data_ops->linearSum(U_half_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
 
-    // Pull out solution components.
-    d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
-    d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
+        // Compute (u_half*grad)u_half.
+        convective_op->applyConvectiveOperator(U_half_idx, N_idx);
+
+        // Setup the righ-hand side vector.
+        d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+
+        // XXXX
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+                const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_rhs_data = patch->getPatchData(U_rhs_idx);
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    static const int lower = 0;
+                    if (pgeom->getTouchesRegularBoundary(axis,lower))
+                    {
+                        SAMRAI::hier::Box<NDIM> lower_box = patch_box;
+                        lower_box.lower()(axis) = patch_lower(axis)-1;
+                        lower_box.upper()(axis) = patch_lower(axis)-1;
+                        U_rhs_data->fillAll(0.0,lower_box);
+                    }
+                    static const int upper = 1;
+                    if (pgeom->getTouchesRegularBoundary(axis,upper))
+                    {
+                        SAMRAI::hier::Box<NDIM> upper_box = patch_box;
+                        upper_box.lower()(axis) = patch_upper(axis)+1;
+                        upper_box.upper()(axis) = patch_upper(axis)+1;
+                        U_rhs_data->fillAll(0.0,upper_box);
+                }
+                }
+            }
+        }
+        // XXXX
+
+        // Solve for u(n+1), p(n+1/2).
+        linear_solver->solveSystem(*sol_vec,*rhs_vec);
+
+        // Pull out solution components.
+        d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
+        d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
+
+        // Reset the right-hand side vector.
+        d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), +d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+    }
 
     // Deallocate the nullspace object.
     if (petsc_nullsp != static_cast<MatNullSpace>(NULL))

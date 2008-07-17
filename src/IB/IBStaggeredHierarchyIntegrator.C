@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <18.Jun.2008 18:16:24 griffith@box230.cims.nyu.edu>
+// Last modified: <16.Jul.2008 18:11:11 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -637,11 +637,10 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Setup the projection preconditioner.
     d_projection_pc_needs_init = true;
-    static const std::string projection_type = "pressure_increment";
     d_projection_pc = new INSStaggeredProjectionPreconditioner(
         d_rho, d_mu, d_lambda,
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,NULL),  // XXXX
-        projection_type, d_normalize_pressure,
+        d_normalize_pressure,
         d_helmholtz_solver, d_hier_projector,
         d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
 

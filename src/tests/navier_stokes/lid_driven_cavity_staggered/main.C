@@ -29,7 +29,6 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibtk/TimeDependentLocationIndexRobinBcCoefs.h>
 
 using namespace IBAMR;
 using namespace IBTK;
@@ -60,7 +59,7 @@ main(
      */
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
     tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    tbox::SAMRAIManager::setMaxNumberPatchDataEntries(65536);
+    tbox::SAMRAIManager::setMaxNumberPatchDataEntries(4*65536);
     tbox::SAMRAIManager::setMaxNumberTimers(256);
     tbox::SAMRAIManager::startup();
 
@@ -256,28 +255,6 @@ main(
         /*
          * Create boundary condition specification objects.
          */
-//         TimeDependentLocationIndexRobinBcCoefs u0_bc_coef(
-//             "u0_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-//         for (int i = 0; i < 2*NDIM; ++i)
-//         {
-//             u0_bc_coef.setBoundaryTimeConstant(i,1.0);
-//         }
-//         u0_bc_coef.setBoundaryInitialValue(0,0.0);  // x lower boundary
-//         u0_bc_coef.setBoundaryInitialValue(1,0.0);  // x upper boundary
-//         u0_bc_coef.setBoundaryInitialValue(2,0.0);  // y lower boundary
-//         u0_bc_coef.setBoundaryInitialValue(3,0.0);  // y upper boundary
-// #if (NDIM > 2)
-//         u0_bc_coef.setBoundaryInitialValue(4,0.0);  // z lower boundary
-//         u0_bc_coef.setBoundaryInitialValue(5,0.0);  // z upper boundary
-// #endif
-//         u0_bc_coef.setBoundaryFinalValue(0,0.0);  // x lower boundary
-//         u0_bc_coef.setBoundaryFinalValue(1,0.0);  // x upper boundary
-//         u0_bc_coef.setBoundaryFinalValue(2,0.0);  // y lower boundary
-//         u0_bc_coef.setBoundaryFinalValue(3,1.0);  // y upper boundary
-// #if (NDIM > 2)
-//         u0_bc_coef.setBoundaryFinalValue(4,0.0);  // z lower boundary
-//         u0_bc_coef.setBoundaryFinalValue(5,0.0);  // z upper boundary
-// #endif
         solv::LocationIndexRobinBcCoefs<NDIM> u0_bc_coef(
             "u0_bc_coef", tbox::Pointer<tbox::Database>(NULL));
         for (int i = 0; i < 2*NDIM; ++i)

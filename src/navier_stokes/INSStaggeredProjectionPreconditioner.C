@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <18.Jun.2008 18:58:51 griffith@box230.cims.nyu.edu>
+// Last modified: <16.Jul.2008 18:42:48 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -49,16 +49,19 @@ INSStaggeredProjectionPreconditioner::solveSystem(
 
     // Get the vector components.
     const int U_scratch_idx      = d_b_scratch->getComponentDescriptorIndex(0);
-    const int Grad_P_scratch_idx = d_x_scratch->getComponentDescriptorIndex(0);
     const int P_scratch_idx      = d_b_scratch->getComponentDescriptorIndex(1);
+    const int Grad_P_scratch_idx = d_x_scratch->getComponentDescriptorIndex(0);
+    const int Div_U_scratch_idx  = d_x_scratch->getComponentDescriptorIndex(1);
 
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_scratch_var      = d_b_scratch->getComponentVariable(0);
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& Grad_P_scratch_var = d_x_scratch->getComponentVariable(0);
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_scratch_var      = d_b_scratch->getComponentVariable(1);
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& Grad_P_scratch_var = d_x_scratch->getComponentVariable(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& Div_U_scratch_var  = d_x_scratch->getComponentVariable(1);
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_scratch_sc_var      = U_scratch_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > Grad_P_scratch_sc_var = Grad_P_scratch_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_scratch_cc_var      = P_scratch_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > Grad_P_scratch_sc_var = Grad_P_scratch_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Div_U_scratch_cc_var  = Div_U_scratch_var;
 
     const int U_in_idx = b.getComponentDescriptorIndex(0);
     const int P_in_idx = b.getComponentDescriptorIndex(1);
@@ -105,25 +108,6 @@ INSStaggeredProjectionPreconditioner::solveSystem(
         "INSStaggeredProjectionPreconditioner::Grad_P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
     Grad_P_scratch->addComponent(Grad_P_scratch_sc_var, Grad_P_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
 
-    // Include the pressure gradient in the right-hand-side when employing a
-    // pressure-increment (BCG-like) projection.
-    if (d_projection_type == "pressure_increment")
-    {
-        typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-        d_P_bdry_fill_op->resetTransactionComponent(P_scratch_component);
-        d_P_bdry_fill_op->fillData(d_current_time);
-
-        static const bool Grad_P_scratch_cf_bdry_synch = true;
-        d_hier_math_ops->grad(
-            Grad_P_scratch_idx, Grad_P_scratch_sc_var,
-            Grad_P_scratch_cf_bdry_synch,
-            1.0,
-            P_scratch_idx, P_scratch_cc_var,
-            d_no_fill_op, d_current_time);
-        d_hier_sc_data_ops->subtract(U_scratch_idx, U_scratch_idx, Grad_P_scratch_idx);
-    }
-
     // Solve for u^{*}.
     TBOX_ASSERT(U_scratch->getComponentDescriptorIndex(0) == d_b_scratch->getComponentDescriptorIndex(0));
     d_U_bdry_fill_op->setHomogeneousBc(true);
@@ -141,14 +125,17 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     }
 
     // Project the intermediate velocity u^{*} to obtain u^{n+1}.
+    static const std::string projection_type = "pressure_update";
+    d_hier_cc_data_ops->scale(Div_U_scratch_idx, -1.0, P_in_idx);
     d_hier_projector->projectHierarchy(
         d_rho, d_dt, d_current_time+0.5*d_dt,
-        d_projection_type,
+        projection_type,
         U_out_idx, U_out_sc_var,
         P_scratch_idx, P_scratch_cc_var,
         P_scratch_idx, P_scratch_cc_var,
         Grad_P_scratch_idx, Grad_P_scratch_sc_var,
-        U_out_idx, U_out_sc_var);
+        U_out_idx, U_out_sc_var,
+        Div_U_scratch_idx, Div_U_scratch_cc_var);
 
     // Compute p^{n+1/2}.
     d_hier_math_ops->laplace(
@@ -156,7 +143,7 @@ INSStaggeredProjectionPreconditioner::solveSystem(
         d_pressure_helmholtz_spec,
         P_scratch_idx, P_scratch_cc_var,
         d_no_fill_op, d_current_time,
-        (d_projection_type == "pressure_increment" ? 1.0 : 0.0),
+        (projection_type == "pressure_increment" ? 1.0 : 0.0),
         P_in_idx, P_in_cc_var);
     if (d_normalize_pressure)
     {

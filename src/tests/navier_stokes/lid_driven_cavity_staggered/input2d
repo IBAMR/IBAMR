@@ -1,12 +1,13 @@
 // physical parameters
-MU = 0.001
+Re = 10000.0
+MU = 1/Re
 RHO = 1.0
 
 // grid spacing parameters
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 129                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 INSStaggeredHierarchyIntegrator {
@@ -94,7 +95,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 1 // NFINEST     // zero to turn off
+   viz_dump_interval     = NFINEST/2   // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 

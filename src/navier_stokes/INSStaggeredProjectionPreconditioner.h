@@ -2,7 +2,7 @@
 #define included_INSStaggeredProjectionPreconditioner
 
 // Filename: INSStaggeredProjectionPreconditioner.h
-// Last modified: <18.Jun.2008 18:14:48 griffith@box230.cims.nyu.edu>
+// Last modified: <16.Jul.2008 18:07:09 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -41,7 +41,6 @@ public:
         const double mu,
         const double lambda,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-        const std::string projection_type,
         const bool normalize_pressure,
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> helmholtz_solver,
         SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
@@ -57,7 +56,6 @@ public:
           d_mu(mu),
           d_lambda(lambda),
           d_pressure_helmholtz_spec("INSStaggeredProjectionPreconditioner::pressure_helmholtz_spec"),
-          d_projection_type(projection_type),
           d_normalize_pressure(normalize_pressure),
           d_helmholtz_solver(helmholtz_solver),
           d_hier_projector(hier_projector),
@@ -354,10 +352,6 @@ private:
     const double d_mu;
     const double d_lambda;
     SAMRAI::solv::PoissonSpecifications d_pressure_helmholtz_spec;
-
-    // The type of projection to perform ("pressure_increment" or
-    // "pressure_update").
-    const std::string d_projection_type;
 
     // Normalize the pressure when necessary.
     const bool d_normalize_pressure;
