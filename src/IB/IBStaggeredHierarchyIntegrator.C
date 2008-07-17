@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <16.Jul.2008 18:11:11 griffith@box230.cims.nyu.edu>
+// Last modified: <16.Jul.2008 23:38:38 boyce@trasnaform2.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -623,13 +623,13 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the Stokes operator.
     d_stokes_op = new INSStaggeredStokesOperator(
         d_rho, d_mu, d_lambda,
-        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,NULL),
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),
         d_hier_math_ops); // XXXX
 
     // Setup the Helmholtz solver.
     d_helmholtz_solver_needs_init = true;
     d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
-    d_helmholtz_op = new IBTK::SCLaplaceOperator(d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,NULL), true);  // XXXX
+    d_helmholtz_op = new IBTK::SCLaplaceOperator(d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)), true);  // XXXX
     d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
     d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::PETSc Krylov solver", "adv_diff_");
     d_helmholtz_solver->setInitialGuessNonzero(false);
@@ -639,7 +639,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_projection_pc_needs_init = true;
     d_projection_pc = new INSStaggeredProjectionPreconditioner(
         d_rho, d_mu, d_lambda,
-        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,NULL),  // XXXX
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),  // XXXX
         d_normalize_pressure,
         d_helmholtz_solver, d_hier_projector,
         d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
