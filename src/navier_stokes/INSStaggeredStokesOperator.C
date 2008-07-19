@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <18.Jun.2008 17:24:23 griffith@box230.cims.nyu.edu>
+// Last modified: <17.Jul.2008 19:07:43 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -38,6 +38,59 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+INSStaggeredStokesOperator::INSStaggeredStokesOperator(
+    const double rho,
+    const double mu,
+    const double lambda,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
+    : d_is_initialized(false),
+      d_current_time(std::numeric_limits<double>::quiet_NaN()),
+      d_new_time(std::numeric_limits<double>::quiet_NaN()),
+      d_dt(std::numeric_limits<double>::quiet_NaN()),
+      d_rho(rho),
+      d_mu(mu),
+      d_lambda(lambda),
+      d_helmholtz_spec("INSStaggeredStokesOperator::helmholtz_spec"),
+      d_hier_math_ops(hier_math_ops),
+      d_homogeneous_bc(false),
+      d_correcting_rhs(false),
+      d_U_bc_coefs(U_bc_coefs),
+      d_U_P_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
+      d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
+      d_x_scratch(NULL)
+{
+    // intentionally blank
+    return;
+}// INSStaggeredStokesOperator
+
+INSStaggeredStokesOperator::~INSStaggeredStokesOperator()
+{
+    deallocateOperatorState();
+    return;
+}// ~INSStaggeredStokesOperator
+
+void
+INSStaggeredStokesOperator::setHomogeneousBc(
+    const bool homogeneous_bc)
+{
+    d_homogeneous_bc = homogeneous_bc;
+    return;
+}// setHomogeneousBc
+
+void
+INSStaggeredStokesOperator::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    d_current_time = current_time;
+    d_new_time = new_time;
+    d_dt = d_new_time-d_current_time;
+    d_helmholtz_spec.setCConstant((d_rho/d_dt)+0.5*d_lambda);
+    d_helmholtz_spec.setDConstant(            -0.5*d_mu    );
+    return;
+}// setTimeInterval
+
 void
 INSStaggeredStokesOperator::modifyRhsForInhomogeneousBc(
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
@@ -59,11 +112,9 @@ INSStaggeredStokesOperator::modifyRhsForInhomogeneousBc(
         apply(*x,*b);
         y.subtract(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&y, false), b);
 
-        x->deallocateVectorData();
         x->freeVectorComponents();
         x.setNull();
 
-        b->deallocateVectorData();
         b->freeVectorComponents();
         b.setNull();
 
@@ -209,13 +260,28 @@ INSStaggeredStokesOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
-    d_x_scratch->deallocateVectorData();
     d_x_scratch->freeVectorComponents();
     d_x_scratch.setNull();
 
     d_is_initialized = false;
     return;
 }// deallocateOperatorState
+
+void
+INSStaggeredStokesOperator::enableLogging(
+    bool enabled)
+{
+    // intentionally blank
+    return;
+}// enableLogging
+
+void
+INSStaggeredStokesOperator::printClassData(
+    std::ostream& os) const
+{
+    // intentionally blank
+    return;
+}// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -2,17 +2,21 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <12.Jun.2008 18:09:44 griffith@box230.cims.nyu.edu>
+// Last modified: <17.Jul.2008 17:01:27 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/HierarchyProjector.h>
-#include <ibamr/INSStaggeredNavierStokesOperator.h>
+#include <ibamr/INSStaggeredConvectiveOperator.h>
+#include <ibamr/INSStaggeredProjectionPreconditioner.h>
+#include <ibamr/INSStaggeredStokesOperator.h>
 
 // IBTK INCLUDES
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/PETScKrylovLinearSolver.h>
+#include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
@@ -903,6 +907,25 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_wgt_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_wgt_sc_var;
     double d_volume;
+
+     /*
+     * Hierarchy operators and solvers.
+     */
+    SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
+
+    bool d_convective_op_needs_init;
+    SAMRAI::tbox::Pointer<INSStaggeredConvectiveOperator> d_convective_op;
+
+    bool d_helmholtz_solver_needs_init;
+    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>  d_helmholtz_op;
+    SAMRAI::solv::PoissonSpecifications*            d_helmholtz_spec;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> d_helmholtz_solver;
+
+    bool d_projection_pc_needs_init;
+    SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> d_projection_pc;
+
+    bool d_stokes_solver_needs_init;
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;
 
     /*
      * Communications algorithms, patch strategies, and schedules.

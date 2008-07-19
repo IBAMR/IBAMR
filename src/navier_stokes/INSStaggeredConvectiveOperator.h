@@ -2,7 +2,7 @@
 #define included_INSStaggeredConvectiveOperator
 
 // Filename: INSStaggeredConvectiveOperator.h
-// Last modified: <09.May.2008 20:27:55 griffith@box230.cims.nyu.edu>
+// Last modified: <17.Jul.2008 15:23:08 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -217,10 +217,6 @@ private:
     // Whether the operator is initialized.
     bool d_is_initialized;
 
-    // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_scratch_var;
-    int d_U_scratch_idx;
-
     // Problem coefficients.
     const double d_rho;
     const double d_mu;
@@ -238,6 +234,10 @@ private:
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
+
+    // Scratch data.
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;
+    int d_U_scratch_idx;
 };
 }// namespace IBAMR
 

@@ -2,7 +2,7 @@
 #define included_INSStaggeredStokesOperator
 
 // Filename: INSStaggeredStokesOperator.h
-// Last modified: <18.Jun.2008 15:33:47 griffith@box230.cims.nyu.edu>
+// Last modified: <17.Jul.2008 15:24:19 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -38,47 +38,20 @@ public:
         const double mu,
         const double lambda,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
-        : d_is_initialized(false),
-          d_current_time(std::numeric_limits<double>::quiet_NaN()),
-          d_new_time(std::numeric_limits<double>::quiet_NaN()),
-          d_dt(std::numeric_limits<double>::quiet_NaN()),
-          d_rho(rho),
-          d_mu(mu),
-          d_lambda(lambda),
-          d_helmholtz_spec("INSStaggeredStokesOperator::helmholtz_spec"),
-          d_hier_math_ops(hier_math_ops),
-          d_homogeneous_bc(false),
-          d_correcting_rhs(false),
-          d_U_bc_coefs(U_bc_coefs),
-          d_U_P_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
-          d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
-          d_x_scratch(NULL)
-        {
-            // intentionally blank
-            return;
-        }// INSStaggeredStokesOperator
+        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~INSStaggeredStokesOperator()
-        {
-            deallocateOperatorState();
-            return;
-        }// ~INSStaggeredStokesOperator
+    ~INSStaggeredStokesOperator();
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.
      */
     void
     setHomogeneousBc(
-        const bool homogeneous_bc)
-        {
-            d_homogeneous_bc = homogeneous_bc;
-            return;
-        }// setHomogeneousBc
+        const bool homogeneous_bc);
 
     /*!
      * \brief Set the current time interval.
@@ -86,15 +59,7 @@ public:
     void
     setTimeInterval(
         const double current_time,
-        const double new_time)
-        {
-            d_current_time = current_time;
-            d_new_time = new_time;
-            d_dt = d_new_time-d_current_time;
-            d_helmholtz_spec.setCConstant((d_rho/d_dt)+0.5*d_lambda);
-            d_helmholtz_spec.setDConstant(            -0.5*d_mu    );
-            return;
-        }// setTimeInterval
+        const double new_time);
 
     /*!
      * \name Linear operator functionality.
@@ -210,22 +175,14 @@ public:
      */
     virtual void
     enableLogging(
-        bool enabled=true)
-        {
-            // intentionally blank
-            return;
-        }// enableLogging
+        bool enabled=true);
 
     /*!
      * \brief Print out internal class data for debugging.
      */
     virtual void
     printClassData(
-        std::ostream& os) const
-        {
-            // intentionally blank
-            return;
-        }// printClassData
+        std::ostream& os) const;
 
     //\}
 
@@ -281,7 +238,7 @@ private:
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_bdry_fill_op, d_no_fill_op;
 
-    // Scratch data objects.
+    // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x_scratch;
 };
 }// namespace IBAMR

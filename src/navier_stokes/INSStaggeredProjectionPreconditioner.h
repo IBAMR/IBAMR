@@ -2,7 +2,7 @@
 #define included_INSStaggeredProjectionPreconditioner
 
 // Filename: INSStaggeredProjectionPreconditioner.h
-// Last modified: <16.Jul.2008 18:07:09 griffith@box230.cims.nyu.edu>
+// Last modified: <17.Jul.2008 15:41:30 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -46,50 +46,13 @@ public:
         SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
         SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops,
         SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
-        : d_do_log(false),
-          d_is_initialized(false),
-          d_current_time(std::numeric_limits<double>::quiet_NaN()),
-          d_new_time(std::numeric_limits<double>::quiet_NaN()),
-          d_dt(std::numeric_limits<double>::quiet_NaN()),
-          d_rho(rho),
-          d_mu(mu),
-          d_lambda(lambda),
-          d_pressure_helmholtz_spec("INSStaggeredProjectionPreconditioner::pressure_helmholtz_spec"),
-          d_normalize_pressure(normalize_pressure),
-          d_helmholtz_solver(helmholtz_solver),
-          d_hier_projector(hier_projector),
-          d_hier_cc_data_ops(hier_cc_data_ops),
-          d_hier_sc_data_ops(hier_sc_data_ops),
-          d_hier_math_ops(hier_math_ops),
-          d_wgt_cc_var(NULL),
-          d_wgt_sc_var(NULL),
-          d_wgt_cc_idx(-1),
-          d_wgt_sc_idx(-1),
-          d_volume(std::numeric_limits<double>::quiet_NaN()),
-          d_U_bc_coefs(U_bc_coefs),
-          d_U_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
-          d_P_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
-          d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
-          d_x_scratch(NULL),
-          d_b_scratch(NULL),
-          d_hierarchy(NULL),
-          d_coarsest_ln(-1),
-          d_finest_ln(-1)
-        {
-            // intentionally blank
-            return;
-        }// INSStaggeredProjectionPreconditioner
+        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~INSStaggeredProjectionPreconditioner()
-        {
-            deallocateSolverState();
-            return;
-        }// ~INSStaggeredProjectionPreconditioner
+    ~INSStaggeredProjectionPreconditioner();
 
     /*!
      * \brief Set the current time interval.
@@ -97,15 +60,7 @@ public:
     void
     setTimeInterval(
         const double current_time,
-        const double new_time)
-        {
-            d_current_time = current_time;
-            d_new_time = new_time;
-            d_dt = d_new_time-d_current_time;
-            d_pressure_helmholtz_spec.setCConstant(1.0+0.5*d_dt*d_lambda/d_rho);
-            d_pressure_helmholtz_spec.setDConstant(   -0.5*d_dt*d_mu    /d_rho);
-            return;
-        }// setTimeInterval
+        const double new_time);
 
     /*!
      * \name Linear solver functionality.
@@ -168,85 +123,52 @@ public:
      */
     virtual void
     setInitialGuessNonzero(
-        bool initial_guess_nonzero=true)
-        {
-            // intentionally blank
-            return;
-        }// setInitialGuessNonzero
-
+        bool initial_guess_nonzero=true);
 
     /*!
      * \brief Get whether the initial guess is non-zero.
      */
     virtual bool
-    getInitialGuessNonzero() const
-        {
-            // intentionally blank
-            return true;
-        }// getInitialGuessNonzero
+    getInitialGuessNonzero() const;
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
     virtual void
     setMaxIterations(
-        int max_iterations)
-        {
-            // intentionally blank
-            return;
-        }// setMaxIterations
+        int max_iterations);
 
     /*!
      * \brief Get the maximum number of iterations to use per solve.
      */
     virtual int
-    getMaxIterations() const
-        {
-            // intentionally blank
-            return 1;
-        }// getMaxIterations
+    getMaxIterations() const;
 
     /*!
      * \brief Set the absolute residual tolerance for convergence.
      */
     virtual void
     setAbsoluteTolerance(
-        double abs_residual_tol)
-        {
-            // intentionally blank
-            return;
-        }// setAbsoluteTolerance
+        double abs_residual_tol);
 
     /*!
      * \brief Get the absolute residual tolerance for convergence.
      */
     virtual double
-    getAbsoluteTolerance() const
-        {
-            // intentionally blank
-            return 0.0;
-        }// getAbsoluteTolerance
+    getAbsoluteTolerance() const;
 
     /*!
      * \brief Set the relative residual tolerance for convergence.
      */
     virtual void
     setRelativeTolerance(
-        double rel_residual_tol)
-        {
-            // intentionally blank
-            return;
-        }// setRelativeTolerance
+        double rel_residual_tol);
 
     /*!
      * \brief Get the relative residual tolerance for convergence.
      */
     virtual double
-    getRelativeTolerance() const
-        {
-            // intentionally blank
-            return 0.0;
-        }// getRelativeTolerance
+    getRelativeTolerance() const;
 
     //\}
 
@@ -259,20 +181,13 @@ public:
      * \brief Return the iteration count from the most recent linear solve.
      */
     virtual int
-    getNumIterations() const
-        {
-            // intentionally blank
-            return 0;
-        }// getNumIterations
+    getNumIterations() const;
 
     /*!
      * \brief Return the residual norm from the most recent iteration.
      */
     virtual double
-    getResidualNorm() const
-        {
-            return 0.0;
-        }// getResidualNorm
+    getResidualNorm() const;
 
     //\}
 
@@ -288,22 +203,14 @@ public:
      */
     virtual void
     enableLogging(
-        bool enabled=true)
-        {
-            d_do_log = enabled;
-            return;
-        }// enableLogging
+        bool enabled=true);
 
     /*!
      * \brief Print out internal class data for debugging.
      */
     virtual void
     printClassData(
-        std::ostream& os) const
-        {
-            // intentionally blank
-            return;
-        }// printClassData
+        std::ostream& os) const;
 
     //\}
 
@@ -373,14 +280,17 @@ private:
 
     // Boundary condition objects.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_fill_op, d_P_bdry_fill_op, d_no_fill_op;
-
-    // Scratch data objects.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x_scratch, d_b_scratch;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
+
+    // Scratch data.
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var, d_Grad_Phi_var;
+    int d_U_scratch_idx, d_Grad_Phi_scratch_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var, d_Div_U_var;
+    int d_Phi_scratch_idx, d_Div_U_scratch_idx;
 };
 }// namespace IBAMR
 

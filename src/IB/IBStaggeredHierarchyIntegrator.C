@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <16.Jul.2008 23:38:38 boyce@trasnaform2.local>
+// Last modified: <18.Jul.2008 20:30:33 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -194,6 +194,20 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
 
     d_do_log = false;
 
+    // Setup default boundary condition objects that specify homogeneous
+    // Dirichlet boundary conditions for the velocity.
+    d_default_u_bc_coef = new SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>(
+        d_object_name+"::default_u_bc_coef", SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL));
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_default_u_bc_coef->setBoundaryValue(2*d  ,0.0);
+        d_default_u_bc_coef->setBoundaryValue(2*d+1,0.0);
+    }
+
+    registerVelocityPhysicalBcCoefs(
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
+            NDIM,d_default_u_bc_coef));
+
     // Initialize object with data read from the input and restart databases.
     const bool from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
     if (from_restart)
@@ -278,6 +292,7 @@ IBStaggeredHierarchyIntegrator::~IBStaggeredHierarchyIntegrator()
     }
 
     delete d_helmholtz_spec;
+    delete d_default_u_bc_coef;
     return;
 }// ~IBStaggeredHierarchyIntegrator
 
@@ -294,6 +309,27 @@ IBStaggeredHierarchyIntegrator::registerVelocityInitialConditions(
     d_u_init = u_init;
     return;
 }// registerVelocityInitialConditions
+
+void
+IBStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+{
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::registerVelocityPhysicalBcCoefs():\n"
+                   << "  velocity boundary conditions must be registered prior to initialization\n"
+                   << "  of the hierarchy integrator object." << std::endl);
+    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned l = 0; l < u_bc_coefs.size(); ++l)
+    {
+        TBOX_ASSERT(u_bc_coefs[l] != NULL);
+    }
+#endif
+    d_u_bc_coefs = u_bc_coefs;
+    d_hier_projector->setVelocityPhysicalBcCoefs(d_u_bc_coefs);
+    return;
+}// registerVelocityPhysicalBcCoefs
 
 void
 IBStaggeredHierarchyIntegrator::registerPressureInitialConditions(
@@ -615,23 +651,26 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_integrator_step = 0;
     }
 
+    // Setup the Stokes operator.
+    d_stokes_op = new INSStaggeredStokesOperator(
+        d_rho, d_mu, d_lambda,
+        d_u_bc_coefs,
+        d_hier_math_ops);
+
     // Setup the convective operator.
     d_convective_op = new INSStaggeredConvectiveOperator(
         d_rho, d_mu, d_lambda,
         d_conservation_form);
 
-    // Setup the Stokes operator.
-    d_stokes_op = new INSStaggeredStokesOperator(
-        d_rho, d_mu, d_lambda,
-        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),
-        d_hier_math_ops); // XXXX
-
     // Setup the Helmholtz solver.
-    d_helmholtz_solver_needs_init = true;
     d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
-    d_helmholtz_op = new IBTK::SCLaplaceOperator(d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)), true);  // XXXX
+    d_helmholtz_op = new IBTK::SCLaplaceOperator(
+        d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_u_bc_coefs, true);
     d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
-    d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::PETSc Krylov solver", "adv_diff_");
+
+    d_helmholtz_solver_needs_init = true;
+    d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
+        d_object_name+"::PETSc Krylov solver", "adv_diff_");
     d_helmholtz_solver->setInitialGuessNonzero(false);
     d_helmholtz_solver->setOperator(d_helmholtz_op);
 
@@ -778,7 +817,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 
     // Hierarchy ghost cell transaction components.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent u_scratch_component(d_u_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
+    InterpolationTransactionComponent u_scratch_component(d_u_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_u_bc_coefs);
 
     // Synchronize current state data.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
@@ -864,7 +903,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     d_helmholtz_spec->setDConstant(          -0.5*d_mu    );
 
     d_helmholtz_op->setPoissonSpecifications(*d_helmholtz_spec);
-    //d_helmholtz_op->setPhysicalBcCoefs(u_bc_coefs);XXXX
+    d_helmholtz_op->setPhysicalBcCoefs(d_u_bc_coefs);
     d_helmholtz_op->setHomogeneousBc(true);
     d_helmholtz_op->setTime(new_time);
     d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
@@ -931,7 +970,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, has_cnst, 1, vecs, &petsc_nullsp);  IBTK_CHKERRQ(ierr);
 
     // Setup the PETSc solver.
-    static const std::string options_prefix = "ins_";
+    static const std::string options_prefix = "ib_";
     ierr = SNESCreate(PETSC_COMM_WORLD, &d_petsc_snes);  IBTK_CHKERRQ(ierr);
     ierr = SNESSetFunction(d_petsc_snes, petsc_res_multivec, IBStaggeredHierarchyIntegrator::FormFunction_SAMRAI, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
 
@@ -964,8 +1003,17 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     ierr = SNESSetOptionsPrefix(d_petsc_snes, options_prefix.c_str());  IBTK_CHKERRQ(ierr);
     ierr = SNESSetFromOptions(d_petsc_snes);  IBTK_CHKERRQ(ierr);
 
-    // Solve the system using fixed point iteration.
-    for (int cycle = 0; cycle < 3; ++cycle)
+    // Setup inhomogeneous boundary conditions.
+    d_stokes_op->setHomogeneousBc(false);
+    d_stokes_op->modifyRhsForInhomogeneousBc(*fluid_rhs_vec);
+    d_stokes_op->setHomogeneousBc(true);
+    TBOX_ASSERT(fluid_sol_vec->getComponentDescriptorIndex(0) == d_u_scratch_idx);
+    d_u_scratch_bdry_fill_op->fillData(new_time);
+
+    // Solve for u(n+1), p(n+1/2), and X(n+1) using truncated fixed point
+    // iteration.
+    static const int num_cycles = 3;
+    for (int cycle = 0; cycle < num_cycles; ++cycle)
     {
         // Compute u_half := 0.5*(u(n)+u(n+1)).
         d_hier_sc_data_ops->linearSum(d_u_half_idx, 0.5, d_u_current_idx, 0.5, d_u_new_idx);
@@ -982,8 +1030,46 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         // Compute (u_half*grad)u_half.
         d_convective_op->applyConvectiveOperator(d_u_half_idx, d_n_idx);
 
-        // Solve system.
+        // Setup the right-hand side vector.
         d_hier_sc_data_ops->axpy(fluid_rhs_vec->getComponentDescriptorIndex(0), -d_rho, d_n_idx, fluid_rhs_vec->getComponentDescriptorIndex(0));
+
+        // XXXX
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+                const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_rhs_data = patch->getPatchData(d_u_rhs_idx);
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    static const int lower = 0;
+                    if (pgeom->getTouchesRegularBoundary(axis,lower))
+                    {
+                        SAMRAI::hier::Box<NDIM> lower_box = patch_box;
+                        lower_box.lower()(axis) = patch_lower(axis)-1;
+                        lower_box.upper()(axis) = patch_lower(axis)-1;
+                        u_rhs_data->fillAll(0.0,lower_box);
+                    }
+                    static const int upper = 1;
+                    if (pgeom->getTouchesRegularBoundary(axis,upper))
+                    {
+                        SAMRAI::hier::Box<NDIM> upper_box = patch_box;
+                        upper_box.lower()(axis) = patch_upper(axis)+1;
+                        upper_box.upper()(axis) = patch_upper(axis)+1;
+                        u_rhs_data->fillAll(0.0,upper_box);
+                    }
+                }
+            }
+        }
+        ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_rhs_vec));  IBTK_CHKERRQ(ierr);
+        // XXXX
+
+        // Solve for u(n+1), p(n+1/2), and X(n+1).
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_sol_multivec));  IBTK_CHKERRQ(ierr);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_rhs_multivec));  IBTK_CHKERRQ(ierr);
         ierr = SNESSolve(d_petsc_snes, petsc_rhs_multivec, petsc_sol_multivec);  IBTK_CHKERRQ(ierr);
@@ -1043,15 +1129,20 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     // Deallocate the force Jacobian objects and preconditioner solvers.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
+        if (d_strct_mat[ln] != static_cast<Mat>(NULL))
+        {
+            ierr = MatDestroy(d_strct_mat[ln]);
+            d_strct_mat[ln] = static_cast<Mat>(NULL);
+        }
         if (d_strct_pc_mat[ln] != static_cast<Mat>(NULL))
         {
             ierr = MatDestroy(d_strct_pc_mat[ln]);
             d_strct_pc_mat[ln] = static_cast<Mat>(NULL);
         }
-        if (d_strct_pc[ln] != static_cast<PC>(NULL))
+        if (d_strct_ksp[ln] != static_cast<KSP>(NULL))
         {
-            ierr = PCDestroy(d_strct_pc[ln]);
-            d_strct_pc[ln] = static_cast<PC>(NULL);
+            ierr = KSPDestroy(d_strct_ksp[ln]);
+            d_strct_ksp[ln] = static_cast<KSP>(NULL);
         }
         if (d_J_mat[ln] != static_cast<Mat>(NULL))
         {
@@ -1754,7 +1845,7 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
 
     // Setup the patch boundary filling objects.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent u_scratch_component(d_u_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);  // XXXX
+    InterpolationTransactionComponent u_scratch_component(d_u_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_u_bc_coefs);
     d_u_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_u_scratch_bdry_fill_op->initializeOperatorState(u_scratch_component, d_hierarchy);
 
@@ -1824,8 +1915,9 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     d_F_half_data.resize(finest_hier_level+1);
     d_F_new_data .resize(finest_hier_level+1);
     d_J_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
+    d_strct_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
     d_strct_pc_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
-    d_strct_pc.resize(finest_hier_level+1,static_cast<PC>(NULL));
+    d_strct_ksp.resize(finest_hier_level+1,static_cast<KSP>(NULL));
     for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -2328,8 +2420,10 @@ IBStaggeredHierarchyIntegrator::FormFunction(
     ierr = VecWAXPY(R_vec,-1.0,X_current_vec,X_new_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAXPBY(R_vec,-1.0,(1.0/d_dt),U_half_vec);  IBTK_CHKERRQ(ierr);
 
+    // Flush any cached data associated with the modified PETSc vectors.
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_f_vec));  IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_strct_f_vec));  IBTK_CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));  IBTK_CHKERRQ(ierr);
     return;
 }// FormFunction
 
@@ -2377,64 +2471,32 @@ IBStaggeredHierarchyIntegrator::FormJacobian(
     Vec petsc_strct_x_vec = petsc_x_multivecs[1];
     (void) petsc_fluid_x_vec;
 
+    // Destroy any old Jacobian data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_strct_mat[ln] != static_cast<Mat>(NULL))
         {
-            Vec F_half_vec = d_F_half_data[ln]->getGlobalVec();
-            PetscErrorCode ierr = VecSet(F_half_vec, 1.0);  IBTK_CHKERRQ(ierr);
-            d_F_half_data[ln]->beginGhostUpdate();
+            ierr = MatDestroy(d_strct_mat[ln]);
+            d_strct_mat[ln] = static_cast<Mat>(NULL);
         }
-    }
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        if (d_strct_pc_mat[ln] != static_cast<Mat>(NULL))
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_scratch_data = patch->getPatchData(d_f_scratch_idx);
-            f_scratch_data->fillAll(0.0);
+            ierr = MatDestroy(d_strct_pc_mat[ln]);
+            d_strct_pc_mat[ln] = static_cast<Mat>(NULL);
         }
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_strct_ksp[ln] != static_cast<KSP>(NULL))
         {
-            d_F_half_data[ln]->endGhostUpdate();
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_scratch_data = patch->getPatchData(d_f_scratch_idx);
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-                IBTK::LEInteractor::spread(
-                    f_scratch_data, d_F_half_data[ln], d_X_mid_data[ln], idx_data,
-                    patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
-                    d_delta_fcn);
-            }
+            ierr = KSPDestroy(d_strct_ksp[ln]);
+            d_strct_ksp[ln] = static_cast<KSP>(NULL);
         }
-    }
-    d_hier_sc_data_ops->copyData(d_u_interp_idx, d_f_scratch_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        d_rscheds["u_interp->u_interp::S->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(d_integrator_time);
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_J_mat[ln] != static_cast<Mat>(NULL))
         {
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_interp_data = patch->getPatchData(d_u_interp_idx);
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-                IBTK::LEInteractor::interpolate(
-                    d_U_half_data[ln], d_X_mid_data[ln], idx_data, u_interp_data,
-                    patch, patch_box, periodic_shift,
-                    d_delta_fcn);
-            }
+            ierr = MatDestroy(d_J_mat[ln]);
+            d_J_mat[ln] = static_cast<Mat>(NULL);
         }
     }
 
+    // Compute J = dF/dX at the current approximation to X_half.
     Vec X_new_vec     = petsc_strct_x_vec;
     Vec X_current_vec = d_X_data[finest_ln]->getGlobalVec();
     Vec X_half_vec    = d_X_half_data[finest_ln]->getGlobalVec();
@@ -2442,40 +2504,46 @@ IBStaggeredHierarchyIntegrator::FormJacobian(
     ierr = VecAXPBY(X_half_vec, 0.5, 0.5, X_new_vec);  IBTK_CHKERRQ(ierr);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_strct_pc_mat[ln] != static_cast<Mat>(NULL))
-        {
-            ierr = MatDestroy(d_strct_pc_mat[ln]);
-            d_strct_pc_mat[ln] = static_cast<Mat>(NULL);
-        }
-        if (d_strct_pc[ln] != static_cast<PC>(NULL))
-        {
-            ierr = PCDestroy(d_strct_pc[ln]);
-            d_strct_pc[ln] = static_cast<PC>(NULL);
-        }
-        if (d_J_mat[ln] != static_cast<Mat>(NULL))
-        {
-            ierr = MatDestroy(d_J_mat[ln]);
-            d_J_mat[ln] = static_cast<Mat>(NULL);
-        }
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             d_force_strategy->computeLagrangianForceJacobian(
                 d_J_mat[ln], d_X_half_data[ln],
                 d_hierarchy, ln, d_current_time+0.5*d_dt, d_lag_data_manager);
+        }
+    }
+
+    // Form the structure Jacobian matrix: I - (dt^2)/(4*rho) diag(S S^{*}) J.
+    double volume_element = 1.0;
+    const double* const dx_coarsest = grid_geom->getDx();
+    for (int d = 0; d < NDIM; ++d)
+    {
+        volume_element *= dx_coarsest[d];
+    }
+    TBOX_ASSERT(finest_ln == coarsest_ln);  // XXXX: volume element corresponds to coarsest level.
+
+    static const double C = pow(3.0/8.0,NDIM);
+    TBOX_ASSERT(d_delta_fcn == "IB_4");  // XXXX: C corresponds to the 4-point delta function.
+
+    int local_sz;
+    ierr = VecGetLocalSize(petsc_strct_x_vec, &local_sz);  IBTK_CHKERRQ(ierr);
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            ierr = MatCreateShell(PETSC_COMM_WORLD, local_sz, local_sz, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_strct_mat[ln]);  IBTK_CHKERRQ(ierr);
+            ierr = MatShellSetOperation(d_strct_mat[ln], MATOP_MULT, reinterpret_cast<void(*)(void)>(IBStaggeredHierarchyIntegrator::MatVecMult_structure_SAMRAI));  IBTK_CHKERRQ(ierr);
 
             ierr = MatDuplicate(d_J_mat[ln], MAT_COPY_VALUES, &d_strct_pc_mat[ln]);  IBTK_CHKERRQ(ierr);
 //          ierr = MatConvert(d_J_mat[ln], MATMPIAIJ, MAT_INITIAL_MATRIX, &d_strct_pc_mat[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = MatScale(d_strct_pc_mat[ln], -0.5*d_dt/d_rho);  IBTK_CHKERRQ(ierr);
-            ierr = MatDiagonalScale(d_strct_pc_mat[ln], d_U_half_data[ln]->getGlobalVec(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
-            ierr = MatShift(d_strct_pc_mat[ln], 1.0/d_dt);  IBTK_CHKERRQ(ierr);
+            ierr = MatScale(d_strct_pc_mat[ln], -0.25*d_dt*d_dt*C*volume_element/d_rho);  IBTK_CHKERRQ(ierr);
+            ierr = MatShift(d_strct_pc_mat[ln], 1.0);  IBTK_CHKERRQ(ierr);
 
             static const std::string options_prefix = "strct_";
-            ierr = PCCreate(PETSC_COMM_WORLD, &d_strct_pc[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = PCSetOperators(d_strct_pc[ln], d_strct_pc_mat[ln], d_strct_pc_mat[ln], SAME_PRECONDITIONER);  IBTK_CHKERRQ(ierr);
-            ierr = PCSetOptionsPrefix(d_strct_pc[ln], options_prefix.c_str());  IBTK_CHKERRQ(ierr);
-            ierr = PCSetFromOptions(d_strct_pc[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = PCSetUp(d_strct_pc[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = PCSetUpOnBlocks(d_strct_pc[ln]);  IBTK_CHKERRQ(ierr);
+            ierr = KSPCreate(PETSC_COMM_WORLD, &d_strct_ksp[ln]);  IBTK_CHKERRQ(ierr);
+            ierr = KSPSetOperators(d_strct_ksp[ln], d_strct_mat[ln], d_strct_pc_mat[ln], SAME_PRECONDITIONER);  IBTK_CHKERRQ(ierr);
+            ierr = KSPSetOptionsPrefix(d_strct_ksp[ln], options_prefix.c_str());  IBTK_CHKERRQ(ierr);
+            ierr = KSPSetFromOptions(d_strct_ksp[ln]);  IBTK_CHKERRQ(ierr);
         }
     }
     return;
@@ -2592,8 +2660,10 @@ IBStaggeredHierarchyIntegrator::MatVecMult(
     ierr = VecCopy(X_new_vec,R_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAXPBY(R_vec,-1.0,(1.0/d_dt),U_half_vec);  IBTK_CHKERRQ(ierr);
 
+    // Flush any cached data associated with the modified PETSc vectors.
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_y_vec));  IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_strct_y_vec));  IBTK_CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
     return;
 }// MatVecMult
 
@@ -2620,6 +2690,57 @@ IBStaggeredHierarchyIntegrator::PCApply(
     Vec x,
     Vec y)
 {
+    PetscErrorCode ierr;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    int N_x;
+    ierr = IBTK::VecMultiVecGetNumberOfVecs(x,&N_x);  IBTK_CHKERRQ(ierr);
+    int N_y;
+    ierr = IBTK::VecMultiVecGetNumberOfVecs(y,&N_y);  IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(N_x == 2);
+    TBOX_ASSERT(N_y == 2);
+#endif
+    Vec* petsc_y_multivecs;
+    ierr = IBTK::VecMultiVecGetVecs(y, &petsc_y_multivecs);  IBTK_CHKERRQ(ierr);
+    Vec petsc_fluid_y_vec = petsc_y_multivecs[0];
+    Vec petsc_strct_y_vec = petsc_y_multivecs[1];
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_y_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_y_vec);
+
+    // Get the Jacobian matrix.
+    Mat A;
+    ierr = SNESGetJacobian(d_petsc_snes, &A, PETSC_NULL, PETSC_NULL, PETSC_NULL);  IBTK_CHKERRQ(ierr);
+
+    // Allocate temporary vectors.
+    Vec x_work, y_work;
+    ierr = VecDuplicate(x, &x_work);  IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(y, &y_work);  IBTK_CHKERRQ(ierr);
+
+    // Apply the structure preconditioner.
+    PCApply_structure(x, y);
+
+    // Update the residual.
+    ierr = MatMult(A, y, y_work);  IBTK_CHKERRQ(ierr);
+    ierr = VecWAXPY(x_work, -1.0, y_work, x);  IBTK_CHKERRQ(ierr);
+
+    // Apply the fluid preconditioner.
+    PCApply_fluid(x_work, y_work);
+    ierr = VecAXPY(y, 1.0, y_work);  IBTK_CHKERRQ(ierr);
+
+    // Deallocate temporary vectors.
+    ierr = VecDestroy(x_work);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(y_work);  IBTK_CHKERRQ(ierr);
+
+    // Flush any cached data associated with the modified PETSc vectors.
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_y_vec));  IBTK_CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_strct_y_vec));  IBTK_CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
+    return;
+}// PCApply
+
+void
+IBStaggeredHierarchyIntegrator::PCApply_structure(
+    Vec x,
+    Vec y)
+{
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -2643,9 +2764,54 @@ IBStaggeredHierarchyIntegrator::PCApply(
     Vec petsc_fluid_y_vec = petsc_y_multivecs[0];
     Vec petsc_strct_y_vec = petsc_y_multivecs[1];
 
-    Vec X_new_vec  = petsc_strct_y_vec;
-    Vec F_half_vec = d_F_half_data[finest_ln]->getGlobalVec();
-    ierr = MatMult(d_J_mat[finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_x_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_x_vec);
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_y_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_y_vec);
+
+    // Initialze the result to equal zero.
+    ierr = VecSet(y, 0.0);  IBTK_CHKERRQ(ierr);
+
+    // Allocate temporary data.
+    Vec petsc_strct_f_vec;
+    ierr = VecDuplicate(petsc_strct_x_vec, &petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
+
+    // Compute the right hand side term.
+    ierr = VecCopy(petsc_strct_x_vec, petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
+
+    d_hier_sc_data_ops->copyData(d_u_interp_idx, fluid_x_vec->getComponentDescriptorIndex(0));
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        d_rscheds["u_interp->u_interp::S->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(d_integrator_time);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_interp_data = patch->getPatchData(d_u_interp_idx);
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+                IBTK::LEInteractor::interpolate(
+                    d_U_half_data[ln], d_X_mid_data[ln], idx_data, u_interp_data,
+                    patch, patch_box, periodic_shift,
+                    d_delta_fcn);
+            }
+        }
+    }
+    ierr = VecAXPBY(petsc_strct_f_vec, 0.5*d_dt*d_dt/d_rho, d_dt, d_U_half_data[finest_ln]->getGlobalVec());  IBTK_CHKERRQ(ierr);
+
+    // Compute the application of the structure preconditioner.
+    ierr = KSPSolve(d_strct_ksp[finest_ln], petsc_strct_f_vec, petsc_strct_y_vec);  IBTK_CHKERRQ(ierr);
+
+    // Compute the fluid component.
+    ierr = MatMult(d_J_mat[finest_ln], petsc_strct_y_vec, d_F_half_data[finest_ln]->getGlobalVec());  IBTK_CHKERRQ(ierr);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            d_F_half_data[ln]->beginGhostUpdate();
+        }
+    }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -2673,13 +2839,85 @@ IBStaggeredHierarchyIntegrator::PCApply(
             }
         }
     }
+    d_hier_sc_data_ops->linearSum(fluid_y_vec->getComponentDescriptorIndex(0), d_dt/d_rho, fluid_x_vec->getComponentDescriptorIndex(0), -0.5*d_dt/d_rho, d_f_scratch_idx);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_x_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_x_vec);
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_y_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_y_vec);
-    fluid_y_vec->setToScalar(0.0);
-    d_projection_pc->solveSystem(*fluid_y_vec, *fluid_x_vec);
+    // Deallocate temporary data.
+    ierr = VecDestroy(petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
 
-    d_hier_sc_data_ops->linearSum(d_u_interp_idx, 0.5, fluid_y_vec->getComponentDescriptorIndex(0), 0.5*d_dt/d_rho, fluid_x_vec->getComponentDescriptorIndex(0));
+    // Flush any cached data associated with the modified PETSc vectors.
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_y_vec));  IBTK_CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_strct_y_vec));  IBTK_CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
+    return;
+}// PCApply_structure
+
+#undef __FUNCT__
+#define __FUNCT__ "IBStaggeredHierarchyIntegrator::MatVecMult_structure_SAMRAI"
+PetscErrorCode
+IBStaggeredHierarchyIntegrator::MatVecMult_structure_SAMRAI(
+    Mat A,
+    Vec x,
+    Vec y)
+{
+    PetscErrorCode ierr;
+    void* p_ctx;
+    ierr = MatShellGetContext(A, &p_ctx);  IBTK_CHKERRQ(ierr);
+    IBStaggeredHierarchyIntegrator* hier_integrator = static_cast<IBStaggeredHierarchyIntegrator*>(p_ctx);
+#if DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(hier_integrator != NULL);
+#endif
+    hier_integrator->MatVecMult_structure(x,y);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+}// MatVecMult_structure_SAMRAI
+
+void
+IBStaggeredHierarchyIntegrator::MatVecMult_structure(
+    Vec x,
+    Vec y)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+
+    PetscErrorCode ierr;
+
+    ierr = MatMult(d_J_mat[finest_ln], x, d_F_half_data[finest_ln]->getGlobalVec());  IBTK_CHKERRQ(ierr);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            d_F_half_data[ln]->beginGhostUpdate();
+        }
+    }
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_scratch_data = patch->getPatchData(d_f_scratch_idx);
+            f_scratch_data->fillAll(0.0);
+        }
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            d_F_half_data[ln]->endGhostUpdate();
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_scratch_data = patch->getPatchData(d_f_scratch_idx);
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+                IBTK::LEInteractor::spread(
+                    f_scratch_data, d_F_half_data[ln], d_X_mid_data[ln], idx_data,
+                    patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
+                    d_delta_fcn);
+            }
+        }
+    }
+    d_hier_sc_data_ops->copyData(d_u_interp_idx, d_f_scratch_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         d_rscheds["u_interp->u_interp::S->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(d_integrator_time);
@@ -2700,17 +2938,50 @@ IBStaggeredHierarchyIntegrator::PCApply(
             }
         }
     }
-    Vec petsc_strct_x_mod_vec;
-    ierr = VecDuplicate(petsc_strct_x_vec, &petsc_strct_x_mod_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecWAXPY(petsc_strct_x_mod_vec, 1.0, d_U_half_data[finest_ln]->getGlobalVec(), petsc_strct_x_vec);  IBTK_CHKERRQ(ierr);
-    ierr = ::PCApply(d_strct_pc[finest_ln], petsc_strct_x_mod_vec, petsc_strct_y_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecWAXPY(y, -0.25*d_dt*d_dt/d_rho, d_U_half_data[finest_ln]->getGlobalVec(), x);  IBTK_CHKERRQ(ierr);
+    return;
+}// MatVecMult_structure
 
-    ierr = VecDestroy(petsc_strct_x_mod_vec);  IBTK_CHKERRQ(ierr);
+void
+IBStaggeredHierarchyIntegrator::PCApply_fluid(
+    Vec x,
+    Vec y)
+{
+    PetscErrorCode ierr;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    int N_x;
+    ierr = IBTK::VecMultiVecGetNumberOfVecs(x,&N_x);  IBTK_CHKERRQ(ierr);
+    int N_y;
+    ierr = IBTK::VecMultiVecGetNumberOfVecs(y,&N_y);  IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(N_x == 2);
+    TBOX_ASSERT(N_y == 2);
+#endif
+    Vec* petsc_x_multivecs;
+    ierr = IBTK::VecMultiVecGetVecs(x, &petsc_x_multivecs);  IBTK_CHKERRQ(ierr);
+    Vec petsc_fluid_x_vec = petsc_x_multivecs[0];
+    Vec petsc_strct_x_vec = petsc_x_multivecs[1];
+    (void) petsc_strct_x_vec;
 
+    Vec* petsc_y_multivecs;
+    ierr = IBTK::VecMultiVecGetVecs(y, &petsc_y_multivecs);  IBTK_CHKERRQ(ierr);
+    Vec petsc_fluid_y_vec = petsc_y_multivecs[0];
+    Vec petsc_strct_y_vec = petsc_y_multivecs[1];
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_x_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_x_vec);
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_y_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_y_vec);
+
+    // Initialize the results to equal zero.
+    ierr = VecSet(y, 0.0);  IBTK_CHKERRQ(ierr);
+
+    // Compute the action of the fluid preconditioner.
+    d_projection_pc->solveSystem(*fluid_y_vec, *fluid_x_vec);
+
+    // Flush any cached data associated with the modified PETSc vectors.
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_y_vec));  IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_strct_y_vec));  IBTK_CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
     return;
-}// PCApply
+}// PCApply_fluid
 
 double
 IBStaggeredHierarchyIntegrator::getLevelDt(

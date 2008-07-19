@@ -11,7 +11,7 @@ N = 65                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 INSStaggeredHierarchyIntegrator {
-   start_time            =   00.e0    // initial simulation time
+   start_time            =   0.0e0    // initial simulation time
    end_time              =   1.0e5    // final simulation time
    grow_dt               =   2.0e0    // growth factor for timesteps
    max_integrator_steps  = 1000000    // max number of simulation timesteps

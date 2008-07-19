@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <16.Jul.2008 18:42:48 griffith@box230.cims.nyu.edu>
+// Last modified: <17.Jul.2008 16:13:44 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -24,6 +24,10 @@ namespace IBAMR
 
 namespace
 {
+// Number of ghosts cells used for each variable quantity.
+static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
 static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
@@ -38,6 +42,132 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
+    const double rho,
+    const double mu,
+    const double lambda,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+    const bool normalize_pressure,
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver> helmholtz_solver,
+    SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops,
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops,
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
+    : d_do_log(false),
+      d_is_initialized(false),
+      d_current_time(std::numeric_limits<double>::quiet_NaN()),
+      d_new_time(std::numeric_limits<double>::quiet_NaN()),
+      d_dt(std::numeric_limits<double>::quiet_NaN()),
+      d_rho(rho),
+      d_mu(mu),
+      d_lambda(lambda),
+      d_pressure_helmholtz_spec("INSStaggeredProjectionPreconditioner::pressure_helmholtz_spec"),
+      d_normalize_pressure(normalize_pressure),
+      d_helmholtz_solver(helmholtz_solver),
+      d_hier_projector(hier_projector),
+      d_hier_cc_data_ops(hier_cc_data_ops),
+      d_hier_sc_data_ops(hier_sc_data_ops),
+      d_hier_math_ops(hier_math_ops),
+      d_wgt_cc_var(NULL),
+      d_wgt_sc_var(NULL),
+      d_wgt_cc_idx(-1),
+      d_wgt_sc_idx(-1),
+      d_volume(std::numeric_limits<double>::quiet_NaN()),
+      d_U_bc_coefs(U_bc_coefs),
+      d_no_fill_op(NULL),
+      d_hierarchy(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_U_var(NULL),
+      d_Grad_Phi_var(NULL),
+      d_U_scratch_idx(-1),
+      d_Grad_Phi_scratch_idx(-1),
+      d_Phi_var(NULL),
+      d_Div_U_var(NULL),
+      d_Phi_scratch_idx(-1),
+      d_Div_U_scratch_idx(-1)
+{
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context = var_db->getContext("INSStaggeredProjectionPreconditionerOperator::CONTEXT");
+
+    const std::string U_var_name = "INSStaggeredProjectionPreconditioner::U";
+    d_U_var = var_db->getVariable(U_var_name);
+    if (d_U_var.isNull())
+    {
+        d_U_var = new SAMRAI::pdat::SideVariable<NDIM,double>(U_var_name);
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, SAMRAI::hier::IntVector<NDIM>(SIDEG));
+    }
+    else
+    {
+        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
+    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_U_scratch_idx >= 0);
+#endif
+    const std::string Grad_Phi_var_name = "INSStaggeredProjectionPreconditioner::Grad_Phi";
+    d_Grad_Phi_var = var_db->getVariable(Grad_Phi_var_name);
+    if (d_Grad_Phi_var.isNull())
+    {
+        d_Grad_Phi_var = new SAMRAI::pdat::SideVariable<NDIM,double>(Grad_Phi_var_name);
+        d_Grad_Phi_scratch_idx = var_db->registerVariableAndContext(d_Grad_Phi_var, context, SAMRAI::hier::IntVector<NDIM>(SIDEG));
+    }
+    else
+    {
+        d_Grad_Phi_scratch_idx = var_db->mapVariableAndContextToIndex(d_Grad_Phi_var, context);
+    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Grad_Phi_scratch_idx >= 0);
+#endif
+    const std::string Phi_var_name = "INSStaggeredProjectionPreconditioner::Phi";
+    d_Phi_var = var_db->getVariable(Phi_var_name);
+    if (d_Phi_var.isNull())
+    {
+        d_Phi_var = new SAMRAI::pdat::CellVariable<NDIM,double>(Phi_var_name);
+        d_Phi_scratch_idx = var_db->registerVariableAndContext(d_Phi_var, context, SAMRAI::hier::IntVector<NDIM>(CELLG));
+    }
+    else
+    {
+        d_Phi_scratch_idx = var_db->mapVariableAndContextToIndex(d_Phi_var, context);
+    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Phi_scratch_idx >= 0);
+#endif
+    const std::string Div_U_var_name = "INSStaggeredProjectionPreconditioner::Div_U";
+    d_Div_U_var = var_db->getVariable(Div_U_var_name);
+    if (d_Div_U_var.isNull())
+    {
+        d_Div_U_var = new SAMRAI::pdat::CellVariable<NDIM,double>(Div_U_var_name);
+        d_Div_U_scratch_idx = var_db->registerVariableAndContext(d_Div_U_var, context, SAMRAI::hier::IntVector<NDIM>(CELLG));
+    }
+    else
+    {
+        d_Div_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_Div_U_var, context);
+    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Div_U_scratch_idx >= 0);
+#endif
+    return;
+}// INSStaggeredProjectionPreconditioner
+
+INSStaggeredProjectionPreconditioner::~INSStaggeredProjectionPreconditioner()
+{
+    deallocateSolverState();
+    return;
+}// ~INSStaggeredProjectionPreconditioner
+
+void
+INSStaggeredProjectionPreconditioner::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    d_current_time = current_time;
+    d_new_time = new_time;
+    d_dt = d_new_time-d_current_time;
+    d_pressure_helmholtz_spec.setCConstant(1.0+0.5*d_dt*d_lambda/d_rho);
+    d_pressure_helmholtz_spec.setDConstant(   -0.5*d_dt*d_mu    /d_rho);
+    return;
+}// setTimeInterval
+
 bool
 INSStaggeredProjectionPreconditioner::solveSystem(
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
@@ -48,21 +178,6 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     if (!d_is_initialized) initializeSolverState(x,b);
 
     // Get the vector components.
-    const int U_scratch_idx      = d_b_scratch->getComponentDescriptorIndex(0);
-    const int P_scratch_idx      = d_b_scratch->getComponentDescriptorIndex(1);
-    const int Grad_P_scratch_idx = d_x_scratch->getComponentDescriptorIndex(0);
-    const int Div_U_scratch_idx  = d_x_scratch->getComponentDescriptorIndex(1);
-
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_scratch_var      = d_b_scratch->getComponentVariable(0);
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_scratch_var      = d_b_scratch->getComponentVariable(1);
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& Grad_P_scratch_var = d_x_scratch->getComponentVariable(0);
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& Div_U_scratch_var  = d_x_scratch->getComponentVariable(1);
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_scratch_sc_var      = U_scratch_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_scratch_cc_var      = P_scratch_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > Grad_P_scratch_sc_var = Grad_P_scratch_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Div_U_scratch_cc_var  = Div_U_scratch_var;
-
     const int U_in_idx = b.getComponentDescriptorIndex(0);
     const int P_in_idx = b.getComponentDescriptorIndex(1);
 
@@ -71,10 +186,6 @@ INSStaggeredProjectionPreconditioner::solveSystem(
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_in_sc_var = U_in_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_in_cc_var = P_in_var;
-
-    (void) U_in_idx;
-    (void) U_in_var;
-    (void) U_in_sc_var;
 
     const int U_out_idx = x.getComponentDescriptorIndex(0);
     const int P_out_idx = x.getComponentDescriptorIndex(1);
@@ -85,13 +196,11 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_out_sc_var = U_out_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_out_cc_var = P_out_var;
 
-    d_b_scratch->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&b,false));
-
     // Setup the component solver vectors.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_scratch;
     U_scratch = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         "INSStaggeredProjectionPreconditioner::U_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    U_scratch->addComponent(U_scratch_sc_var, U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
+    U_scratch->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_out;
     U_out = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
@@ -103,15 +212,8 @@ INSStaggeredProjectionPreconditioner::solveSystem(
         "INSStaggeredProjectionPreconditioner::P_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_out->addComponent(P_out_cc_var, P_out_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > Grad_P_scratch;
-    Grad_P_scratch = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-        "INSStaggeredProjectionPreconditioner::Grad_P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    Grad_P_scratch->addComponent(Grad_P_scratch_sc_var, Grad_P_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
-
     // Solve for u^{*}.
-    TBOX_ASSERT(U_scratch->getComponentDescriptorIndex(0) == d_b_scratch->getComponentDescriptorIndex(0));
-    d_U_bdry_fill_op->setHomogeneousBc(true);
-    d_U_bdry_fill_op->fillData(d_new_time);
+    d_hier_sc_data_ops->copyData(d_U_scratch_idx, U_in_idx);
     U_out->copyVector(U_scratch);
     d_helmholtz_solver->setInitialGuessNonzero(true);
     d_helmholtz_solver->solveSystem(*U_out,*U_scratch);
@@ -126,22 +228,23 @@ INSStaggeredProjectionPreconditioner::solveSystem(
 
     // Project the intermediate velocity u^{*} to obtain u^{n+1}.
     static const std::string projection_type = "pressure_update";
-    d_hier_cc_data_ops->scale(Div_U_scratch_idx, -1.0, P_in_idx);
+    d_hier_cc_data_ops->scale(d_Div_U_scratch_idx, -1.0, P_in_idx);
+    d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
     d_hier_projector->projectHierarchy(
         d_rho, d_dt, d_current_time+0.5*d_dt,
         projection_type,
         U_out_idx, U_out_sc_var,
-        P_scratch_idx, P_scratch_cc_var,
-        P_scratch_idx, P_scratch_cc_var,
-        Grad_P_scratch_idx, Grad_P_scratch_sc_var,
+        d_Phi_scratch_idx, d_Phi_var,
+        d_Phi_scratch_idx, d_Phi_var,
+        d_Grad_Phi_scratch_idx, d_Grad_Phi_var,
         U_out_idx, U_out_sc_var,
-        Div_U_scratch_idx, Div_U_scratch_cc_var);
+        d_Div_U_scratch_idx, d_Div_U_var);
 
     // Compute p^{n+1/2}.
     d_hier_math_ops->laplace(
         P_out_idx, P_out_cc_var,
         d_pressure_helmholtz_spec,
-        P_scratch_idx, P_scratch_cc_var,
+        d_Phi_scratch_idx, d_Phi_var,
         d_no_fill_op, d_current_time,
         (projection_type == "pressure_increment" ? 1.0 : 0.0),
         P_in_idx, P_in_cc_var);
@@ -163,21 +266,7 @@ INSStaggeredProjectionPreconditioner::initializeSolverState(
 {
     if (d_is_initialized) deallocateSolverState();
 
-    d_x_scratch = x.cloneVector("INSStaggeredProjectionPreconditioner::x_scratch");
-    d_b_scratch = b.cloneVector("INSStaggeredProjectionPreconditioner::b_scratch");
-
-    d_x_scratch->allocateVectorData();
-    d_b_scratch->allocateVectorData();
-
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_scratch_component(d_b_scratch->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
-    d_U_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    d_U_bdry_fill_op->initializeOperatorState(U_scratch_component, d_b_scratch->getPatchHierarchy());
-
-    InterpolationTransactionComponent P_scratch_component(d_b_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-    d_P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_b_scratch->getPatchHierarchy());
-
+    // Get the hierarchy configuration.
     d_hierarchy = x.getPatchHierarchy();
     d_coarsest_ln = x.getCoarsestLevelNumber();
     d_finest_ln = x.getFinestLevelNumber();
@@ -186,13 +275,33 @@ INSStaggeredProjectionPreconditioner::initializeSolverState(
     TBOX_ASSERT(d_coarsest_ln == b.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == b.getFinestLevelNumber());
 #endif
-
     d_wgt_cc_var = d_hier_math_ops->getCellWeightVariable();
     d_wgt_sc_var = d_hier_math_ops->getSideWeightVariable();
     d_wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     d_wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
     d_volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
 
+    // Allocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_U_scratch_idx))
+        {
+            level->allocatePatchData(d_U_scratch_idx);
+        }
+        if (!level->checkAllocated(d_Grad_Phi_scratch_idx))
+        {
+            level->allocatePatchData(d_Grad_Phi_scratch_idx);
+        }
+        if (!level->checkAllocated(d_Phi_scratch_idx))
+        {
+            level->allocatePatchData(d_Phi_scratch_idx);
+        }
+        if (!level->checkAllocated(d_Div_U_scratch_idx))
+        {
+            level->allocatePatchData(d_Div_U_scratch_idx);
+        }
+    }
     d_is_initialized = true;
     return;
 }// initializeSolverState
@@ -202,18 +311,119 @@ INSStaggeredProjectionPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
-    d_x_scratch->deallocateVectorData();
-    d_b_scratch->deallocateVectorData();
-
-    d_x_scratch->freeVectorComponents();
-    d_b_scratch->freeVectorComponents();
-
-    d_x_scratch.setNull();
-    d_b_scratch.setNull();
-
+    // Deallocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (level->checkAllocated(d_U_scratch_idx))
+        {
+            level->deallocatePatchData(d_U_scratch_idx);
+        }
+        if (level->checkAllocated(d_Grad_Phi_scratch_idx))
+        {
+            level->deallocatePatchData(d_Grad_Phi_scratch_idx);
+        }
+        if (level->checkAllocated(d_Phi_scratch_idx))
+        {
+            level->deallocatePatchData(d_Phi_scratch_idx);
+        }
+        if (level->checkAllocated(d_Div_U_scratch_idx))
+        {
+            level->deallocatePatchData(d_Div_U_scratch_idx);
+        }
+    }
     d_is_initialized = false;
     return;
 }// deallocateSolverState
+
+void
+INSStaggeredProjectionPreconditioner::setInitialGuessNonzero(
+    bool initial_guess_nonzero)
+{
+    // intentionally blank
+    return;
+}// setInitialGuessNonzero
+
+bool
+INSStaggeredProjectionPreconditioner::getInitialGuessNonzero() const
+{
+    // intentionally blank
+    return true;
+}// getInitialGuessNonzero
+
+void
+INSStaggeredProjectionPreconditioner::setMaxIterations(
+    int max_iterations)
+{
+    // intentionally blank
+    return;
+}// setMaxIterations
+
+int
+INSStaggeredProjectionPreconditioner::getMaxIterations() const
+{
+    // intentionally blank
+    return 1;
+}// getMaxIterations
+
+void
+INSStaggeredProjectionPreconditioner::setAbsoluteTolerance(
+    double abs_residual_tol)
+{
+    // intentionally blank
+    return;
+}// setAbsoluteTolerance
+
+double
+INSStaggeredProjectionPreconditioner::getAbsoluteTolerance() const
+{
+    // intentionally blank
+    return 0.0;
+}// getAbsoluteTolerance
+
+void
+INSStaggeredProjectionPreconditioner::setRelativeTolerance(
+    double rel_residual_tol)
+{
+    // intentionally blank
+    return;
+}// setRelativeTolerance
+
+double
+INSStaggeredProjectionPreconditioner::getRelativeTolerance() const
+{
+    // intentionally blank
+    return 0.0;
+}// getRelativeTolerance
+
+int
+INSStaggeredProjectionPreconditioner::getNumIterations() const
+{
+    // intentionally blank
+    return 0;
+}// getNumIterations
+
+double
+INSStaggeredProjectionPreconditioner::getResidualNorm() const
+{
+    return 0.0;
+}// getResidualNorm
+
+void
+INSStaggeredProjectionPreconditioner::enableLogging(
+    bool enabled)
+{
+    d_do_log = enabled;
+    return;
+}// enableLogging
+
+void
+INSStaggeredProjectionPreconditioner::printClassData(
+    std::ostream& os) const
+{
+    // intentionally blank
+    return;
+}// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

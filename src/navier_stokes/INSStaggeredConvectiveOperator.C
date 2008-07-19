@@ -1,5 +1,5 @@
 // Filename: INSStaggeredConvectiveOperator.C
-// Last modified: <09.May.2008 20:35:02 griffith@box230.cims.nyu.edu>
+// Last modified: <17.Jul.2008 16:08:34 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredConvectiveOperator.h"
@@ -217,8 +217,6 @@ INSStaggeredConvectiveOperator::INSStaggeredConvectiveOperator(
     const double lambda,
     const bool conservation_form)
   : d_is_initialized(false),
-    d_U_scratch_var(NULL),
-    d_U_scratch_idx(-1),
     d_rho(rho),
     d_mu(mu),
     d_lambda(lambda),
@@ -228,20 +226,27 @@ INSStaggeredConvectiveOperator::INSStaggeredConvectiveOperator(
     d_refine_scheds(),
     d_hierarchy(NULL),
     d_coarsest_ln(-1),
-    d_finest_ln(-1)
+    d_finest_ln(-1),
+    d_U_var(NULL),
+    d_U_scratch_idx(-1)
 {
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context = var_db->getContext("INSStaggeredConvectiveOperator::CONTEXT");
-    d_U_scratch_var = new SAMRAI::pdat::SideVariable<NDIM,double>("INSStaggeredConvectiveOperator::U_scratch");
-    if (var_db->checkVariableExists(d_U_scratch_var->getName()))
+
+    const std::string U_var_name = "INSStaggeredConvectiveOperator::U";
+    d_U_var = var_db->getVariable(U_var_name);
+    if (d_U_var.isNull())
     {
-        d_U_scratch_var = var_db->getVariable(d_U_scratch_var->getName());
-        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_scratch_var, context);
+        d_U_var = new SAMRAI::pdat::SideVariable<NDIM,double>(U_var_name);
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, SAMRAI::hier::IntVector<NDIM>(GADVECTG));
     }
     else
     {
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_scratch_var, context, SAMRAI::hier::IntVector<NDIM>(GADVECTG));
+        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
     }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_U_scratch_idx >= 0);
+#endif
     return;
 }// INSStaggeredConvectiveOperator
 
@@ -512,7 +517,7 @@ INSStaggeredConvectiveOperator::initializeOperatorState(
 #endif
     // Setup the refine algorithm, operator, patch strategy, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    d_refine_op = grid_geom->lookupRefineOperator(d_U_scratch_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     d_refine_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     d_refine_alg->registerRefine(d_U_scratch_idx,                   // destination
                                  in.getComponentDescriptorIndex(0), // source
@@ -553,6 +558,17 @@ INSStaggeredConvectiveOperator::deallocateOperatorState()
             level->deallocatePatchData(d_U_scratch_idx);
         }
     }
+
+    // Deallocate the refine algorithm, operator, patch strategy, and schedules.
+    d_refine_op.setNull();
+    d_refine_alg.setNull();
+    d_refine_strategy.setNull();
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        d_refine_scheds[ln].setNull();
+    }
+    d_refine_scheds.clear();
+
     d_is_initialized = false;
     return;
 }// deallocateOperatorState

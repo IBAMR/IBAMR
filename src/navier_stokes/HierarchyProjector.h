@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <11.May.2008 18:56:25 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Jul.2008 12:56:07 griffith@box230.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -477,6 +477,7 @@ private:
 
     int d_max_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
+    bool d_initial_guess_nonzero;
 
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;

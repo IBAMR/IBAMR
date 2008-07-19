@@ -2,9 +2,6 @@
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
-// Headers for IO routines for file locking
-#include <fcntl.h>
-
 // Headers for basic PETSc functions
 #include <petsc.h>
 
@@ -33,15 +30,11 @@
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/IBStaggeredHierarchyIntegrator.h>
-#include <ibamr/IBStandardForceGen.h>
-#include <ibamr/IBStandardInitializer.h>
-#include <ibtk/LagSiloDataWriter.h>
-#include <ibtk/muParserDataSetter.h>
-#include <ibtk/muParserRobinBcCoefs.h>
+#include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
+#include "UInit.h"
 
 using namespace IBAMR;
-using namespace IBTK;
 using namespace SAMRAI;
 using namespace std;
 
@@ -69,7 +62,6 @@ main(
      */
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
     tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    tbox::SAMRAIManager::setMaxNumberPatchDataEntries(65536);
     tbox::SAMRAIManager::setMaxNumberTimers(256);
     tbox::SAMRAIManager::startup();
 
@@ -136,7 +128,7 @@ main(
          */
         tbox::Pointer<tbox::Database> main_db = input_db->getDatabase("Main");
 
-        string log_file_name = "IB.log";
+        string log_file_name = "navier_stokes.log";
         if (main_db->keyExists("log_file_name"))
         {
             log_file_name = main_db->getString("log_file_name");
@@ -208,7 +200,8 @@ main(
                 }
                 if (main_db->keyExists("visit_number_procs_per_file"))
                 {
-                    visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
+                    visit_number_procs_per_file =
+                        main_db->getInteger("visit_number_procs_per_file");
                 }
             }
         }
@@ -238,15 +231,6 @@ main(
         const bool write_restart = restart_interval > 0
             && !restart_write_dirname.empty();
 
-        bool stop_after_writing_restart = false;
-        if (write_restart)
-        {
-            if (main_db->keyExists("stop_after_writing_restart"))
-            {
-                stop_after_writing_restart = main_db->getBool("stop_after_writing_restart");
-            }
-        }
-
         int timer_dump_interval = 0;
         if (main_db->keyExists("timer_dump_interval"))
         {
@@ -260,28 +244,6 @@ main(
         }
 
         /*
-         * Create the lock file.
-         */
-        string lock_file_name;
-        if (main_db->keyExists("lock_file_name"))
-        {
-            lock_file_name = main_db->getString("lock_file_name");
-        }
-
-        const bool enable_lock_file = !lock_file_name.empty();
-
-        if (enable_lock_file && tbox::SAMRAI_MPI::getRank() == 0)
-        {
-            int fd = open(lock_file_name.c_str(), O_WRONLY | O_CREAT | O_EXCL);
-            if (fd < 0)
-            {
-                tbox::pout << "ERROR: could not create lock file: " << lock_file_name << endl;
-                tbox::SAMRAI_MPI::abort();
-                return -1;
-            }
-        }
-
-        /*
          * Get the restart manager and root restart database.  If run is from
          * restart, open the restart file.
          */
@@ -291,6 +253,11 @@ main(
             restart_manager->openRestartFile(
                 restart_read_dirname, restore_num, tbox::SAMRAI_MPI::getNodes());
         }
+
+        /*
+         * Create initial condition specification objects.
+         */
+        UInit u_init("UInit", input_db->getDatabase("UInit"));
 
         /*
          * Create major algorithm and data objects which comprise the
@@ -315,28 +282,13 @@ main(
                 input_db->getDatabase("HierarchyProjector"),
                 patch_hierarchy);
 
-        tbox::Pointer<IBSpringForceGen> spring_force_generator =
-            new IBSpringForceGen();
-//        tbox::Pointer<IBBeamForceGen> beam_force_generator =
-//            new IBBeamForceGen();
-//        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator =
-//            new IBTargetPointForceGen();
-
-//      tbox::Pointer<IBStandardForceGen> force_generator =
-//          new IBStandardForceGen(
-//              spring_force_generator, beam_force_generator, target_point_force_generator);
-
-        tbox::Pointer<IBStaggeredHierarchyIntegrator> time_integrator =
-            new IBStaggeredHierarchyIntegrator(
-                "IBStaggeredHierarchyIntegrator",
-                input_db->getDatabase("IBStaggeredHierarchyIntegrator"),
-                patch_hierarchy, hier_projector, spring_force_generator);
-
-        tbox::Pointer<IBStandardInitializer> initializer =
-            new IBStandardInitializer(
-                "IBStandardInitializer",
-                input_db->getDatabase("IBStandardInitializer"));
-        time_integrator->registerLNodeInitStrategy(initializer);
+        tbox::Pointer<INSStaggeredHierarchyIntegrator> time_integrator =
+            new INSStaggeredHierarchyIntegrator(
+                "INSStaggeredHierarchyIntegrator",
+                input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
+                patch_hierarchy, hier_projector);
+        time_integrator->registerVelocityInitialConditions(
+            tbox::Pointer<SetDataStrategy>(&u_init,false));
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -359,76 +311,16 @@ main(
                 error_detector, box_generator, load_balancer);
 
         /*
-         * Create initial condition specification objects.
-         */
-        tbox::Pointer<SetDataStrategy> u_init = new muParserDataSetter(
-            "u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
-        tbox::Pointer<SetDataStrategy> p_init = new muParserDataSetter(
-            "p_init", input_db->getDatabase("PressureInitialConditions"), grid_geometry);
-
-        time_integrator->registerVelocityInitialConditions(u_init);
-        time_integrator->registerPressureInitialConditions(p_init);
-        /*
-         * Create boundary condition specification objects (when necessary).
-         */
-        const hier::IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        const bool periodic_domain = periodic_shift.min() != 0;
-
-        vector<solv::RobinBcCoefStrategy<NDIM>*> u_bc_coefs;
-        if (!periodic_domain)
-        {
-            for (int d = 0; d < NDIM; ++d)
-            {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
-
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
-
-                u_bc_coefs.push_back(
-                    new muParserRobinBcCoefs(
-                        bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry));
-            }
-            time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
-        }
-
-        solv::RobinBcCoefStrategy<NDIM>* P_bc_coef = NULL;
-        if (!periodic_domain && input_db->isDatabase("PressureBcCoef"))
-        {
-            P_bc_coef = new muParserRobinBcCoefs(
-                "PressureBcCoef", input_db->getDatabase("PressureBcCoef"), grid_geometry);
-            //time_integrator->registerPressurePhysicalBcCoef(P_bc_coef);  XXXX
-        }
-
-        /*
-         * Create body force function specification objects (when necessary).
-         */
-        if (input_db->keyExists("ForcingFunction"))
-        {
-            tbox::Pointer<SetDataStrategy> f_set = new muParserDataSetter(
-                "f_set", input_db->getDatabase("ForcingFunction"), grid_geometry);
-            time_integrator->registerBodyForceSpecification(f_set);
-        }
-
-        /*
          * Set up visualization plot file writer.
          */
         tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
             new appu::VisItDataWriter<NDIM>(
                 "VisIt Writer",
                 visit_dump_dirname, visit_number_procs_per_file);
-        tbox::Pointer<LagSiloDataWriter> silo_data_writer =
-            new LagSiloDataWriter(
-                "LagSiloDataWriter",
-                visit_dump_dirname);
 
         if (uses_visit)
         {
-            initializer->registerLagSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
-            time_integrator->registerLagSiloDataWriter(silo_data_writer);
         }
 
         /*
@@ -438,12 +330,6 @@ main(
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
         tbox::RestartManager::getManager()->closeRestartFile();
-
-        /*
-         * Deallocate the Lagrangian initializer, as it is no longer needed.
-         */
-        time_integrator->freeLNodeInitStrategy();
-        initializer.setNull();
 
         /*
          * After creating all objects and initializing their state, we print the
@@ -463,9 +349,6 @@ main(
                 tbox::pout << "\nWriting visualization files...\n\n";
                 visit_data_writer->writePlotData(
                     patch_hierarchy,
-                    time_integrator->getIntegratorStep(),
-                    time_integrator->getIntegratorTime());
-                silo_data_writer->writePlotData(
                     time_integrator->getIntegratorStep(),
                     time_integrator->getIntegratorTime());
             }
@@ -513,6 +396,13 @@ main(
                 tbox::TimerManager::getManager()->print(tbox::plog);
             }
 
+            if (write_restart && iteration_num%restart_interval == 0)
+            {
+                tbox::pout << "\nWriting restart files...\n\n";
+                tbox::RestartManager::getManager()->writeRestartFile(
+                    restart_write_dirname, iteration_num);
+            }
+
             if (viz_dump_data && iteration_num%viz_dump_interval == 0)
             {
                 if (uses_visit)
@@ -520,18 +410,7 @@ main(
                     tbox::pout << "\nWriting visualization files...\n\n";
                     visit_data_writer->writePlotData(
                         patch_hierarchy, iteration_num, loop_time);
-                    silo_data_writer->writePlotData(
-                        iteration_num, loop_time);
                 }
-            }
-
-            if (write_restart && iteration_num%restart_interval == 0)
-            {
-                tbox::pout << "\nWriting restart files...\n\n";
-                tbox::RestartManager::getManager()->writeRestartFile(
-                    restart_write_dirname, iteration_num);
-
-                if (stop_after_writing_restart) break;
             }
         }
 
@@ -554,36 +433,9 @@ main(
                 tbox::pout << "\nWriting visualization files...\n\n";
                 visit_data_writer->writePlotData(
                     patch_hierarchy, iteration_num, loop_time);
-                silo_data_writer->writePlotData(
-                    iteration_num, loop_time);
             }
         }
 
-        /*
-         * Delete the lock file.
-         */
-        if (enable_lock_file && tbox::SAMRAI_MPI::getRank() == 0)
-        {
-            if (remove(lock_file_name.c_str()) != 0)
-            {
-                tbox::pout << "ERROR: could not remove lock file: " << lock_file_name << endl;
-                tbox::SAMRAI_MPI::abort();
-                return -1;
-            }
-        }
-
-        /*
-         * Cleanup boundary condition specification objects (when necessary).
-         */
-        if (!periodic_domain)
-        {
-            for (vector<solv::RobinBcCoefStrategy<NDIM>*>::const_iterator cit = u_bc_coefs.begin();
-                 cit != u_bc_coefs.end(); ++cit)
-            {
-                delete (*cit);
-            }
-            if (P_bc_coef != NULL) delete P_bc_coef;
-        }
     }// cleanup all smart Pointers prior to shutdown
 
     tbox::SAMRAIManager::shutdown();

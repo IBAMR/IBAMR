@@ -2,7 +2,7 @@
 #define included_INSStaggeredNavierStokesOperator
 
 // Filename: INSStaggeredNavierStokesOperator.h
-// Last modified: <08.May.2008 18:26:38 griffith@box230.cims.nyu.edu>
+// Last modified: <17.Jul.2008 15:23:27 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -43,42 +43,20 @@ public:
         const double lambda,
         SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> stokes_op,
         SAMRAI::tbox::Pointer<INSStaggeredConvectiveOperator> convective_op,
-        SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops)
-        : d_is_initialized(false),
-          d_U_current_idx(-1),
-          d_rho(rho),
-          d_mu(mu),
-          d_lambda(lambda),
-          d_stokes_op(stokes_op),
-          d_convective_op(convective_op),
-          d_hier_sc_data_ops(hier_sc_data_ops),
-          d_x_scratch(NULL),
-          d_y_scratch(NULL)
-        {
-            // intentionally blank
-            return;
-        }// INSStaggeredNavierStokesOperator
+        SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops);
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~INSStaggeredNavierStokesOperator()
-        {
-            deallocateOperatorState();
-            return;
-        }// ~INSStaggeredNavierStokesOperator
+    ~INSStaggeredNavierStokesOperator();
 
     /*!
      * \brief Set the patch data index corresponding to the current velocity.
      */
     void
     setVelocityCurrentPatchDataIndex(
-        const int U_current_idx)
-        {
-            d_U_current_idx = U_current_idx;
-            return;
-        }// setVelocityCurrentPatchDataIndex
+        const int U_current_idx);
 
     /*!
      * \name General operator functionality.
@@ -109,39 +87,7 @@ public:
     virtual void
     apply(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
-        {
-            // Initialize the operator (if necessary).
-            const bool deallocate_at_completion = !d_is_initialized;
-            if (!d_is_initialized) initializeOperatorState(x,y);
-
-            // Get the vector components.
-            const int U_in_idx          =            x.getComponentDescriptorIndex(0);
-            const int U_out_idx         =            y.getComponentDescriptorIndex(0);
-            const int U_in_scratch_idx  = d_x_scratch->getComponentDescriptorIndex(0);
-            const int U_out_scratch_idx = d_y_scratch->getComponentDescriptorIndex(0);
-
-            d_x_scratch->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&x,false));
-            d_y_scratch->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&y,false));
-
-            // Set U_in_scratch := 0.5*(U(n) + U(n+1)) = U(n+1/2).
-            d_hier_sc_data_ops->linearSum(U_in_scratch_idx, 0.5, d_U_current_idx, 0.5, U_in_idx);
-
-            // Compute the action of the Stokes operator (the linear part of the
-            // problem).
-            d_stokes_op->apply(x,y);
-
-            // Compute the action of the convective operator (the nonlinear part
-            // of the problem)
-            d_convective_op->apply(*d_x_scratch, *d_y_scratch);
-
-            // Compute the final result.
-            d_hier_sc_data_ops->axpy(U_out_idx, d_rho, U_out_scratch_idx, U_out_idx);
-
-            // Deallocate the operator (if necessary).
-            if (deallocate_at_completion) deallocateOperatorState();
-            return;
-        }// apply
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x] and
@@ -176,22 +122,7 @@ public:
     virtual void
     initializeOperatorState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out)
-        {
-            if (d_is_initialized) deallocateOperatorState();
-
-            d_x_scratch =  in.cloneVector("INSStaggeredNavierStokesOperator::x_scratch");
-            d_y_scratch = out.cloneVector("INSStaggeredNavierStokesOperator::y_scratch");
-
-            d_x_scratch->allocateVectorData();
-            d_y_scratch->allocateVectorData();
-
-            d_stokes_op->initializeOperatorState(in,out);
-            d_convective_op->initializeOperatorState(*d_x_scratch,*d_y_scratch);
-
-            d_is_initialized = true;
-            return;
-        }// initializeOperatorState
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -203,22 +134,7 @@ public:
      * \see initializeOperatorState
      */
     virtual void
-    deallocateOperatorState()
-        {
-            if (!d_is_initialized) return;
-
-            d_x_scratch->deallocateVectorData();
-            d_y_scratch->deallocateVectorData();
-
-            d_x_scratch->freeVectorComponents();
-            d_y_scratch->freeVectorComponents();
-
-            d_x_scratch.setNull();
-            d_y_scratch.setNull();
-
-            d_is_initialized = false;
-            return;
-        }// deallocateOperatorState
+    deallocateOperatorState();
 
     //\}
 
@@ -234,22 +150,14 @@ public:
      */
     virtual void
     enableLogging(
-        bool enabled=true)
-        {
-            // intentionally blank
-            return;
-        }// enableLogging
+        bool enabled=true);
 
     /*!
      * \brief Print out internal class data for debugging.
      */
     virtual void
     printClassData(
-        std::ostream& os) const
-        {
-            // intentionally blank
-            return;
-        }// printClassData
+        std::ostream& os) const;
 
     //\}
 
@@ -304,7 +212,7 @@ private:
     // Math objects.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > d_hier_sc_data_ops;
 
-    // Scratch data objects.
+    // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x_scratch, d_y_scratch;
 };
 }// namespace IBAMR

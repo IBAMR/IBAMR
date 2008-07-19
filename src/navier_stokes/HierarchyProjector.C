@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <08.May.2008 18:41:53 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Jul.2008 12:56:08 griffith@box230.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -100,6 +100,7 @@ HierarchyProjector::HierarchyProjector(
       d_max_iterations(50),
       d_abs_residual_tol(1.0e-12),
       d_rel_residual_tol(1.0e-8),
+      d_initial_guess_nonzero(true),
       d_poisson_spec(d_object_name+"::Poisson spec"),
       d_u_bc_coefs(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_default_u_bc_coefs(),
@@ -262,7 +263,7 @@ HierarchyProjector::HierarchyProjector(
     d_poisson_solver->setMaxIterations(d_max_iterations);
     d_poisson_solver->setAbsoluteTolerance(d_abs_residual_tol);
     d_poisson_solver->setRelativeTolerance(d_rel_residual_tol);
-    d_poisson_solver->setInitialGuessNonzero(true);
+    d_poisson_solver->setInitialGuessNonzero(d_initial_guess_nonzero);
     d_poisson_solver->setOperator(d_laplace_op);
     d_poisson_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_poisson_fac_pc, fac_pc_db));
 
@@ -898,6 +899,7 @@ HierarchyProjector::getFromInput(
     d_max_iterations = db->getIntegerWithDefault("max_iterations", d_max_iterations);
     d_abs_residual_tol = db->getDoubleWithDefault("abs_residual_tol", d_abs_residual_tol);
     d_rel_residual_tol = db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol);
+    d_initial_guess_nonzero = db->getBoolWithDefault("initial_guess_nonzero", d_initial_guess_nonzero);
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
     return;
 }// getFromInput

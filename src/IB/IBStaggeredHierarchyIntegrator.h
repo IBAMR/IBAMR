@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <12.May.2008 16:37:57 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Jul.2008 17:57:22 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -105,6 +105,13 @@ public:
     void
     registerVelocityInitialConditions(
         SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_init);
+
+    /*!
+     * Supply physical boundary conditions for the (side centered) velocity.
+     */
+    void
+    registerVelocityPhysicalBcCoefs(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
 
     /*!
      * Supply initial conditions for the (cell centered) pressure.
@@ -743,6 +750,27 @@ private:
         Vec x,
         Vec y);
 
+    void
+    PCApply_structure(
+        Vec x,
+        Vec y);
+
+    static PetscErrorCode
+    MatVecMult_structure_SAMRAI(
+        Mat A,
+        Vec x,
+        Vec y);
+
+    void
+    MatVecMult_structure(
+        Vec x,
+        Vec y);
+
+    void
+    PCApply_fluid(
+        Vec x,
+        Vec y);
+
     /*!
      * Determine the largest stable timestep on an individual patch level.
      */
@@ -1004,10 +1032,12 @@ private:
 
     /*
      * Objects to set initial conditions (note that the initial value of the
-     * pressure is only used for visualization) as well as constant or
-     * time-dependent body forcing.
+     * pressure is only used for visualization), boundary conditions, and body
+     * forcing.
      */
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_init, d_p_init;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_u_bc_coef;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_f_set;
 
     /*
@@ -1115,8 +1145,8 @@ private:
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_U_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_F_new_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_F_half_data;
-    std::vector<Mat> d_J_mat, d_strct_pc_mat;
-    std::vector<PC> d_strct_pc;
+    std::vector<Mat> d_J_mat, d_strct_mat, d_strct_pc_mat;
+    std::vector<KSP> d_strct_ksp;
 
     /*
      * Solvers.

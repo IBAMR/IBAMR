@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <16.Jul.2008 18:12:06 griffith@box230.cims.nyu.edu>
+// Last modified: <17.Jul.2008 19:58:02 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -16,17 +16,10 @@
 #define included_SAMRAI_config
 #endif
 
-// IBAMR INCLUDES
-#include <ibamr/INSStaggeredConvectiveOperator.h>
-#include <ibamr/INSStaggeredProjectionPreconditioner.h>
-#include <ibamr/INSStaggeredStokesOperator.h>
-
 // IBTK INCLUDES
 #include <ibtk/CartSideDoubleCubicCoarsenOperator.h>
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
-#include <ibtk/SCLaplaceOperator.h>
 
 // SAMRAI INCLUDES
 #include <CartesianPatchGeometry.h>
@@ -574,6 +567,46 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_integrator_step = 0;
     }
 
+    // Setup the Stokes operator.
+    d_stokes_op = new INSStaggeredStokesOperator(
+        d_rho, d_mu, d_lambda,
+        d_U_bc_coefs,
+        d_hier_math_ops);
+
+    // Setup the convective operator.
+    d_convective_op_needs_init = true;
+    d_convective_op = new INSStaggeredConvectiveOperator(
+        d_rho, d_mu, d_lambda,
+        d_conservation_form);
+
+    // Setup the Helmholtz solver.
+    d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
+    d_helmholtz_op = new IBTK::SCLaplaceOperator(
+        d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_U_bc_coefs, true);
+    d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
+
+    d_helmholtz_solver_needs_init = true;
+    d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
+        d_object_name+"::PETSc Krylov solver", "adv_diff_");
+    d_helmholtz_solver->setInitialGuessNonzero(false);
+    d_helmholtz_solver->setOperator(d_helmholtz_op);
+
+    // Setup the projection preconditioner.
+    d_projection_pc_needs_init = true;
+    d_projection_pc = new INSStaggeredProjectionPreconditioner(
+        d_rho, d_mu, d_lambda,
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),  // XXXX
+        d_normalize_pressure,
+        d_helmholtz_solver, d_hier_projector,
+        d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
+
+    // Setup the linear solver.
+    d_stokes_solver_needs_init = true;
+    d_stokes_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::ins_solver", "ins_");
+    d_stokes_solver->setInitialGuessNonzero(true);
+    d_stokes_solver->setOperator(d_stokes_op);
+    d_stokes_solver->setPreconditioner(d_projection_pc);
+
     // Indicate that the integrator has been initialized.
     d_is_initialized = true;
 
@@ -915,23 +948,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_hier_sc_data_ops->setToScalar(d_F_new_idx, 0.0);
     }
 
-    // Setup the Helmholtz solver.
-    SAMRAI::solv::PoissonSpecifications helmholtz_spec(d_object_name+"::helmholtz_spec");
-    helmholtz_spec.setCConstant((d_rho/dt)+0.5*d_lambda);
-    helmholtz_spec.setDConstant(          -0.5*d_mu    );
-    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator> helmholtz_operator = new IBTK::SCLaplaceOperator(
-        d_object_name+"::Helmholtz Operator", helmholtz_spec, d_U_bc_coefs, true);
-
-    helmholtz_operator->setPoissonSpecifications(helmholtz_spec);
-    helmholtz_operator->setPhysicalBcCoefs(d_U_bc_coefs);
-    helmholtz_operator->setHomogeneousBc(true);
-    helmholtz_operator->setTime(new_time);
-    helmholtz_operator->setHierarchyMathOps(d_hier_math_ops);
-
-    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
-        d_object_name+"::PETSc Krylov solver", "adv_diff_");
-    helmholtz_solver->setOperator(helmholtz_operator);
-
     // Reset the solution, rhs, and nullspace vectors.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         d_object_name+"::sol_vec", d_hierarchy, 0, finest_ln);
@@ -948,6 +964,50 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_hier_sc_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(0), 0.0);
     d_hier_cc_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(1), 1.0);
 
+    // Setup the operators and solvers.
+    d_stokes_op->setTimeInterval(current_time,new_time);
+
+    if (d_convective_op_needs_init)
+    {
+        d_convective_op->initializeOperatorState(*U_scratch_vec,*U_rhs_vec);
+    }
+    d_convective_op_needs_init = false;
+
+    d_helmholtz_spec->setCConstant((d_rho/dt)+0.5*d_lambda);
+    d_helmholtz_spec->setDConstant(          -0.5*d_mu    );
+
+    d_helmholtz_op->setPoissonSpecifications(*d_helmholtz_spec);
+    d_helmholtz_op->setPhysicalBcCoefs(d_U_bc_coefs);
+    d_helmholtz_op->setHomogeneousBc(true);
+    d_helmholtz_op->setTime(new_time);
+    d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
+
+    d_helmholtz_solver->setInitialGuessNonzero(false);
+    d_helmholtz_solver->setOperator(d_helmholtz_op);
+    if (d_helmholtz_solver_needs_init || !SAMRAI::tbox::MathUtilities<double>::equalEps(dt,d_old_dt))
+    {
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << ": Initializing Helmholtz solver; dt = " << dt << "\n";
+        d_helmholtz_solver->initializeSolverState(*U_scratch_vec,*U_rhs_vec);
+    }
+    d_helmholtz_solver_needs_init = false;
+
+    d_projection_pc->setTimeInterval(current_time,new_time);
+    if (d_projection_pc_needs_init && !d_stokes_solver_needs_init)
+    {
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << ": Initializing projection preconditioner; dt = " << dt << "\n";
+        d_projection_pc->initializeSolverState(*sol_vec,*rhs_vec);
+    }
+    d_projection_pc_needs_init = false;
+
+    d_stokes_solver->setInitialGuessNonzero(true);
+    d_stokes_solver->setOperator(d_stokes_op);
+    if (d_stokes_solver_needs_init)
+    {
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << ": Initializing time-dependent incompressible Stokes solver; dt = " << dt << "\n";
+        d_stokes_solver->initializeSolverState(*sol_vec,*rhs_vec);
+    }
+    d_stokes_solver_needs_init = false;
+
     // Setup the nullspace object.
     PetscErrorCode ierr;
     MatNullSpace petsc_nullsp;
@@ -955,42 +1015,11 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     Vec vecs[] = {petsc_nullsp_vec};
     static const PetscTruth has_cnst = PETSC_FALSE;
     ierr = MatNullSpaceCreate(PETSC_COMM_SELF, has_cnst, 1, vecs, &petsc_nullsp); IBTK_CHKERRQ(ierr);
-
-    // Setup the Stokes operator.
-    SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> stokes_op = new INSStaggeredStokesOperator(
-        d_rho, d_mu, d_lambda,
-        d_U_bc_coefs,
-        d_hier_math_ops);
-    stokes_op->setTimeInterval(current_time,new_time);
-
-    // Setup the convective operator.
-    SAMRAI::tbox::Pointer<INSStaggeredConvectiveOperator> convective_op = new INSStaggeredConvectiveOperator(
-        d_rho, d_mu, d_lambda,
-        d_conservation_form);
-    convective_op->initializeOperatorState(*sol_vec,*rhs_vec);
-
-    // Setup the projection preconditioner.
-    SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> projection_pc = new INSStaggeredProjectionPreconditioner(
-        d_rho, d_mu, d_lambda,
-        d_U_bc_coefs,
-        d_normalize_pressure,
-        helmholtz_solver, d_hier_projector,
-        d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
-    projection_pc->setTimeInterval(current_time,new_time);
-    projection_pc->initializeSolverState(*sol_vec,*rhs_vec);
-
-    // Setup the linear solver.
-    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> linear_solver = new IBTK::PETScKrylovLinearSolver(
-        d_object_name+"::linear_solver", "ins_");
-    linear_solver->setInitialGuessNonzero(true);
-    linear_solver->setOperator(stokes_op);
-    linear_solver->initializeSolverState(*sol_vec,*rhs_vec);
     if (d_normalize_pressure)
     {
-        KSP petsc_ksp = linear_solver->getPETScKSP();
+        KSP petsc_ksp = d_stokes_solver->getPETScKSP();
         ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
     }
-    linear_solver->setPreconditioner(projection_pc);
 
     // Set the initial guess.
     d_hier_sc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(0), d_U_current_idx);
@@ -999,13 +1028,13 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
 
     // Setup inhomogeneous boundary conditions.
-    stokes_op->setHomogeneousBc(false);
-    stokes_op->modifyRhsForInhomogeneousBc(*rhs_vec);
-    stokes_op->setHomogeneousBc(true);
+    d_stokes_op->setHomogeneousBc(false);
+    d_stokes_op->modifyRhsForInhomogeneousBc(*rhs_vec);
+    d_stokes_op->setHomogeneousBc(true);
     TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
     d_U_scratch_bdry_fill_op->fillData(new_time);
 
-    // Solve for u(n+1), p(n+1/2).
+    // Solve for u(n+1) and p(n+1/2) using truncated fixed point iteration.
     static const int num_cycles = 3;
     for (int cycle = 0; cycle < num_cycles; ++cycle)
     {
@@ -1013,7 +1042,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_hier_sc_data_ops->linearSum(U_half_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
 
         // Compute (u_half*grad)u_half.
-        convective_op->applyConvectiveOperator(U_half_idx, N_idx);
+        d_convective_op->applyConvectiveOperator(U_half_idx, N_idx);
 
         // Setup the righ-hand side vector.
         d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
@@ -1054,7 +1083,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         // XXXX
 
         // Solve for u(n+1), p(n+1/2).
-        linear_solver->solveSystem(*sol_vec,*rhs_vec);
+        d_stokes_solver->solveSystem(*sol_vec,*rhs_vec);
 
         // Pull out solution components.
         d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
@@ -1065,14 +1094,8 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     }
 
     // Deallocate the nullspace object.
-    if (petsc_nullsp != static_cast<MatNullSpace>(NULL))
-    {
-        ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(petsc_nullsp_vec); IBTK_CHKERRQ(ierr);
-    }
-
-    // Deallocate scratch data.
-    nul_vec->deallocateVectorData();
+    ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(petsc_nullsp_vec); IBTK_CHKERRQ(ierr);
 
     // Synchronize new state data.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
@@ -1121,9 +1144,13 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Compute the kinetic energy of the fluid.
     SAMRAI::tbox::pout << "\nkinetic energy = " << 0.5*d_rho*d_hier_cc_data_ops->dot(d_U_cc_new_idx, d_U_cc_new_idx, d_wgt_cc_idx) << std::endl;
 #endif
+
     // Deallocate scratch data.
-    U_rhs_vec->deallocateVectorData();
-    P_rhs_vec->deallocateVectorData();
+    U_rhs_vec->freeVectorComponents();
+    U_half_vec->freeVectorComponents();
+    N_vec->freeVectorComponents();
+    P_rhs_vec->freeVectorComponents();
+    nul_vec->freeVectorComponents();
 
     t_integrate_hierarchy->stop();
     return getStableTimestep(getNewContext());
@@ -1612,6 +1639,12 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
                 createSchedule(coarser_level, level, d_cstrategies[(*it).first]);
         }
     }
+
+    // Indicate that solvers need to be re-initialized.
+    d_convective_op_needs_init = true;
+    d_helmholtz_solver_needs_init = true;
+    d_projection_pc_needs_init = true;
+    d_stokes_solver_needs_init = true;
 
     t_reset_hierarchy_configuration->stop();
     return;

@@ -565,6 +565,7 @@ AC_CONFIG_FILES([
   src/tests/navier_stokes/lid_driven_cavity/Makefile
   src/tests/navier_stokes/lid_driven_cavity_staggered/Makefile
   src/tests/navier_stokes/periodic_shear_layer/Makefile
+  src/tests/navier_stokes/periodic_shear_layer_staggered/Makefile
   src/tests/pIB/Makefile
   src/tools/Makefile
 ])
