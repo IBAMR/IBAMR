@@ -1,8 +1,8 @@
-// Filename: INSStaggeredPhysicalBoundaryUtilities.C
-// Last modified: <22.Jul.2008 14:30:33 griffith@box230.cims.nyu.edu>
+// Filename: INSStaggeredPhysicalBoundaryHelper.C
+// Last modified: <22.Jul.2008 19:10:26 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
-#include "INSStaggeredPhysicalBoundaryUtilities.h"
+#include "INSStaggeredPhysicalBoundaryHelper.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -33,30 +33,28 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredPhysicalBoundaryUtilities::INSStaggeredPhysicalBoundaryUtilities()
+INSStaggeredPhysicalBoundaryHelper::INSStaggeredPhysicalBoundaryHelper()
     : d_hierarchy(NULL),
       d_dirichlet_bdry()
 {
     // intentionally blank
     return;
-}// INSStaggeredPhysicalBoundaryUtilities
+}// INSStaggeredPhysicalBoundaryHelper
 
-INSStaggeredPhysicalBoundaryUtilities::~INSStaggeredPhysicalBoundaryUtilities()
+INSStaggeredPhysicalBoundaryHelper::~INSStaggeredPhysicalBoundaryHelper()
 {
     // intentionally blank
     return;
-}// ~INSStaggeredPhysicalBoundaryUtilities
+}// ~INSStaggeredPhysicalBoundaryHelper
 
 void
-INSStaggeredPhysicalBoundaryUtilities::zeroValuesAtDirichletBoundaries(
+INSStaggeredPhysicalBoundaryHelper::zeroValuesAtDirichletBoundaries(
     const int patch_data_idx,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >& hierarchy,
     const int coarsest_ln,
-    const int finest_ln)
+    const int finest_ln) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_hierarchy.isNull());
-    TBOX_ASSERT(d_hierarchy == hierarchy);
 #endif
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln);
@@ -74,20 +72,19 @@ INSStaggeredPhysicalBoundaryUtilities::zeroValuesAtDirichletBoundaries(
             const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 
             // Compute the locations of the Dirichlet boundary.
-            std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,int> > >& dirichlet_bdry = d_dirichlet_bdry[ln][patch_num];
+            const std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,int> > >& dirichlet_bdry = (*d_dirichlet_bdry[ln].find(patch_num)).second;
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
                 const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
                 const int location_index   = bdry_box.getLocationIndex();
                 const int bdry_normal_axis = location_index / 2;
-                const bool side            = (location_index % 2 == 0 ? 1 : 0);
                 const SAMRAI::hier::Box<NDIM>& bc_coef_box = dirichlet_bdry[n]->getBox();
                 for (SAMRAI::hier::Box<NDIM>::Iterator it(bc_coef_box); it; it++)
                 {
                     const SAMRAI::hier::Index<NDIM>& i = it();
                     if ((*dirichlet_bdry[n])(i,0) == 1)
                     {
-                        const SAMRAI::pdat::SideIndex<NDIM> i_s(i, bdry_normal_axis, side);
+                        const SAMRAI::pdat::SideIndex<NDIM> i_s(i, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
                         (*patch_data)(i_s) = 0.0;
                     }
                 }
@@ -98,7 +95,7 @@ INSStaggeredPhysicalBoundaryUtilities::zeroValuesAtDirichletBoundaries(
 }// zeroValuesAtDirichletBoundaries
 
 void
-INSStaggeredPhysicalBoundaryUtilities::cacheBcCoefData(
+INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& u_var,
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const double fill_time,
@@ -162,7 +159,7 @@ INSStaggeredPhysicalBoundaryUtilities::cacheBcCoefData(
 }// cacheBcCoefData
 
 void
-INSStaggeredPhysicalBoundaryUtilities::clearBcCoefData()
+INSStaggeredPhysicalBoundaryHelper::clearBcCoefData()
 {
     d_hierarchy.setNull();
     d_dirichlet_bdry.clear();
@@ -180,6 +177,6 @@ INSStaggeredPhysicalBoundaryUtilities::clearBcCoefData()
 /////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::INSStaggeredPhysicalBoundaryUtilities>;
+template class SAMRAI::tbox::Pointer<IBAMR::INSStaggeredPhysicalBoundaryHelper>;
 
 //////////////////////////////////////////////////////////////////////////////

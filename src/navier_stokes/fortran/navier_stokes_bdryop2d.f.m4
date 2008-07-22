@@ -4,7 +4,7 @@ c
 c     Created on 26 Aug 2007
 c             by Boyce Griffith (boyce@bigboy.nyconnect.com).
 c
-c     Last modified: <16.Dec.2007 17:50:50 boyce@trasnaform2.local>
+c     Last modified: <22.Jul.2008 16:35:03 griffith@box230.cims.nyu.edu>
 c
 define(NDIM,2)dnl
 define(REAL,`double precision')dnl
@@ -385,7 +385,7 @@ c     the projection Poisson equation.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine navier_stokes_inhomogeneous_projection_bc_coefs2d(
+      subroutine navier_stokes_fc_inhomogeneous_projection_bc_coefs2d(
      &     u0,u1,u_gcw,
      &     P,P_gcw,
      &     acoef,bcoef,gcoef,P_bdry,
@@ -501,6 +501,137 @@ c
                endif
             else
                gcoef(i,j_s) = sgn*(rho/dt)*(u1(j_s,i) - gcoef(i,j_s))
+            endif
+         enddo
+
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Set the inhomogeneous Robin boundary condition coefficients for
+c     the projection Poisson equation.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine navier_stokes_sc_inhomogeneous_projection_bc_coefs2d(
+     &     u0,u1,u_gcw,
+     &     P,P_gcw,
+     &     acoef,bcoef,gcoef,P_bdry,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     blower0,bupper0,
+     &     blower1,bupper1,
+     &     location_index,
+     &     using_pressure_increment,
+     &     rho,dt)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER u_gcw,P_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      INTEGER blower0,bupper0
+      INTEGER blower1,bupper1
+
+      INTEGER location_index,using_pressure_increment
+
+      REAL u0(SIDE2d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE2d1(ilower,iupper,u_gcw))
+
+      REAL P(CELL2d(ilower,iupper,P_gcw))
+
+      REAL acoef(blower0:bupper0,blower1:bupper1)
+      REAL bcoef(blower0:bupper0,blower1:bupper1)
+      REAL P_bdry(blower0:bupper0,blower1:bupper1)
+
+      REAL rho,dt
+c
+c     Input/Output.
+c
+      REAL gcoef(blower0:bupper0,blower1:bupper1)
+c
+c     Local variables.
+c
+      INTEGER i,i_intr,i_bdry,i_s
+      INTEGER j,j_intr,j_bdry,j_s
+      REAL sgn
+c
+c     Initialize index variables to yield errors in most cases.
+c
+      i      = 2**15
+      i_intr = 2**15
+      i_bdry = 2**15
+      i_s    = 2**15
+
+      j      = 2**15
+      j_intr = 2**15
+      j_bdry = 2**15
+      j_s    = 2**15
+c
+c     Set the boundary condition coefficients.
+c
+      if ( (location_index .eq. 0) .or.
+     &     (location_index .eq. 1) ) then
+
+         if (location_index .eq. 0) then
+            sgn = -1.d0
+            i_intr = ilower0
+            i_bdry = ilower0-1
+            i_s    = ilower0
+         else
+            sgn = +1.d0
+            i_intr = iupper0
+            i_bdry = iupper0+1
+            i_s    = iupper0+1
+         endif
+
+         do j = ilower1,iupper1
+            if ( abs(acoef(i_s,j) - 1.d0) .lt. 1.0d-12 .or.
+     &           abs(bcoef(i_s,j)       ) .lt. 1.0d-12 ) then
+               if (using_pressure_increment .eq. 1) then
+                  gcoef(i_s,j) = P_bdry(i_s,j) -
+     &                 0.5d0*(P(i_intr,j)+P(i_bdry,j))
+               else
+                  gcoef(i_s,j) = P_bdry(i_s,j)
+               endif
+            else
+               gcoef(i_s,j) = sgn*(rho/dt)*(u0(i_s,j) - gcoef(i_s,j))
+            endif
+         enddo
+
+      elseif ( (location_index .eq. 2) .or.
+     &         (location_index .eq. 3) ) then
+
+         if (location_index .eq. 2) then
+            sgn = -1.d0
+            j_intr = ilower1
+            j_bdry = ilower1-1
+            j_s    = ilower1
+         else
+            sgn = +1.d0
+            j_intr = iupper1
+            j_bdry = iupper1+1
+            j_s    = iupper1+1
+         endif
+
+         do i = ilower0,iupper0
+            if ( abs(acoef(i,j_s) - 1.d0) .lt. 1.0d-12 .or.
+     &           abs(bcoef(i,j_s)       ) .lt. 1.0d-12 ) then
+               if (using_pressure_increment .eq. 1) then
+                  gcoef(i,j_s) = P_bdry(i,j_s) -
+     &                 0.5d0*(P(i,j_intr)+P(i,j_bdry))
+               else
+                  gcoef(i,j_s) = P_bdry(i,j_s)
+               endif
+            else
+               gcoef(i,j_s) = sgn*(rho/dt)*(u1(i,j_s) - gcoef(i,j_s))
             endif
          enddo
 

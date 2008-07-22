@@ -6,7 +6,7 @@ RHO = 1.0
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 // exact solution function expressions
@@ -14,22 +14,57 @@ U = "1.0 - 2.0*(cos(2.0*PI*(X_0-t))*sin(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
 V = "1.0 + 2.0*(sin(2.0*PI*(X_0-t))*cos(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
 P = "-(cos(4.0*PI*(X_0-t)) + cos(4.0*PI*(X_1-t)))*exp(-16.0*PI*PI*nu*t)"
 
-VelocitySolution {
+VelocityInitialConditions {
    constant_names = "nu"
    nu = MU/RHO
-   function_0 = U
-   function_1 = V
+   function_0 = "0.0" // U
+   function_1 = "0.0" // V
 }
 
-PressureSolution {
+VelocityBcCoefs_0 {
    constant_names = "nu"
    nu = MU/RHO
-   function = P
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = " sin(2.0*PI*t)" // U
+   gcoef_function_1 = "-sin(2.0*PI*t)" // U
+   gcoef_function_2 = "0.0" // U
+   gcoef_function_3 = "0.0" // U
 }
 
-UInit {
-   rho = 80.0
-   delta = 0.05
+VelocityBcCoefs_1 {
+   constant_names = "nu"
+   nu = MU/RHO
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0" // V
+   gcoef_function_1 = "0.0" // V
+   gcoef_function_2 = "0.0" // V
+   gcoef_function_3 = "0.0" // V
+}
+
+PressureInitialConditions {
+   constant_names = "nu"
+   nu = MU/RHO
+   function = "0.0" // P
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -42,7 +77,8 @@ INSStaggeredHierarchyIntegrator {
    enable_logging = TRUE
 
    cfl = 1.0
-   dt_max = 1.0/(4.0*NFINEST)
+   dt_max = cfl/(NFINEST)
+   dt_max_time_max = dt_max
 
    tag_buffer = 1
 
@@ -60,7 +96,7 @@ INSStaggeredHierarchyIntegrator {
    rho = RHO
 
    second_order_pressure_update = TRUE
-   normalize_pressure = TRUE
+   normalize_pressure = FALSE
 
    num_cycles = 1
    num_init_cycles = 1
@@ -72,6 +108,7 @@ HierarchyProjector {
    max_iterations = 25
    abs_residual_tol = 0.0
    rel_residual_tol = 1.0e-15
+   initial_guess_nonzero = FALSE
 
    FACOp {
       fac_max_cycles = 1
@@ -93,7 +130,7 @@ HierarchyProjector {
          solver_type = "PFMG"
          rap_type = 1
          relax_type = 3
-         num_pre_relax_steps   = 3
+         num_pre_relax_steps   = 0
          num_post_relax_steps  = 3
          max_iterations        = 1
          relative_residual_tol = 1.0e-12
@@ -116,7 +153,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/8   // zero to turn off
+   viz_dump_interval     = 1 // NFINEST/8   // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 
@@ -132,7 +169,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         =  0, 0          // lower end of computational domain.
    x_up         =  1, 1          // upper end of computational domain.
-   periodic_dimension = 1, 1
+   periodic_dimension = 0, 0
 }
 
 GriddingAlgorithm {

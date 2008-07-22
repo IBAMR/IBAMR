@@ -7,7 +7,7 @@ RHO = 1.0
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 65                                    // coarsest grid spacing
+N = 129                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 INSStaggeredHierarchyIntegrator {
@@ -51,6 +51,7 @@ HierarchyProjector {
    max_iterations = 25
    abs_residual_tol = 1.0e-30
    rel_residual_tol = 1.0e-12
+   initial_guess_nonzero = FALSE
 
    FACOp {
       fac_max_cycles = 1

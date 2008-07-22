@@ -1,5 +1,5 @@
 // Filename: INSStaggeredConvectiveOperator.C
-// Last modified: <17.Jul.2008 16:08:34 griffith@box230.cims.nyu.edu>
+// Last modified: <22.Jul.2008 15:02:51 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredConvectiveOperator.h"
@@ -215,7 +215,8 @@ INSStaggeredConvectiveOperator::INSStaggeredConvectiveOperator(
     const double rho,
     const double mu,
     const double lambda,
-    const bool conservation_form)
+    const bool conservation_form,
+    const SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper>& U_bc_helper)
   : d_is_initialized(false),
     d_rho(rho),
     d_mu(mu),
@@ -227,6 +228,7 @@ INSStaggeredConvectiveOperator::INSStaggeredConvectiveOperator(
     d_hierarchy(NULL),
     d_coarsest_ln(-1),
     d_finest_ln(-1),
+    d_U_bc_helper(U_bc_helper),
     d_U_var(NULL),
     d_U_scratch_idx(-1)
 {
@@ -496,6 +498,7 @@ INSStaggeredConvectiveOperator::applyConvectiveOperator(
             }
         }
     }
+    d_U_bc_helper->zeroValuesAtDirichletBoundaries(N_idx);
     return;
 }// applyConvectiveOperator
 

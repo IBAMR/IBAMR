@@ -51,7 +51,7 @@ CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES =
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
 @SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT)
-am__objects_1 = main2d-main.$(OBJEXT) main2d-UInit.$(OBJEXT)
+am__objects_1 = main2d-main.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(top_builddir)/src/libIBAMR2d.a \
@@ -60,7 +60,7 @@ main2d_DEPENDENCIES = $(top_builddir)/src/libIBAMR2d.a \
 	$(top_builddir)/ibtk/src/libIBTK.a
 main2d_LINK = $(CXXLD) $(main2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am__objects_2 = main3d-main.$(OBJEXT) main3d-UInit.$(OBJEXT)
+am__objects_2 = main3d-main.$(OBJEXT)
 am_main3d_OBJECTS = $(am__objects_2)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
 main3d_DEPENDENCIES = $(top_builddir)/src/libIBAMR3d.a \
@@ -77,10 +77,6 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES)
 ETAGS = etags
 CTAGS = ctags
@@ -412,7 +408,7 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = main.C UInit.C UInit.h
+SOURCES = main.C
 EXTRA_DIST = input2d input3d
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/ibtk/src/libIBTK2d.a $(top_builddir)/ibtk/src/libIBTK.a
@@ -469,9 +465,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-UInit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-UInit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-main.Po@am__quote@
 
 .C.o:
@@ -502,20 +496,6 @@ main2d-main.obj: main.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
 
-main2d-UInit.o: UInit.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-UInit.o -MD -MP -MF $(DEPDIR)/main2d-UInit.Tpo -c -o main2d-UInit.o `test -f 'UInit.C' || echo '$(srcdir)/'`UInit.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/main2d-UInit.Tpo $(DEPDIR)/main2d-UInit.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='UInit.C' object='main2d-UInit.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-UInit.o `test -f 'UInit.C' || echo '$(srcdir)/'`UInit.C
-
-main2d-UInit.obj: UInit.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-UInit.obj -MD -MP -MF $(DEPDIR)/main2d-UInit.Tpo -c -o main2d-UInit.obj `if test -f 'UInit.C'; then $(CYGPATH_W) 'UInit.C'; else $(CYGPATH_W) '$(srcdir)/UInit.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/main2d-UInit.Tpo $(DEPDIR)/main2d-UInit.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='UInit.C' object='main2d-UInit.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-UInit.obj `if test -f 'UInit.C'; then $(CYGPATH_W) 'UInit.C'; else $(CYGPATH_W) '$(srcdir)/UInit.C'; fi`
-
 main3d-main.o: main.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.o -MD -MP -MF $(DEPDIR)/main3d-main.Tpo -c -o main3d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/main3d-main.Tpo $(DEPDIR)/main3d-main.Po
@@ -529,20 +509,6 @@ main3d-main.obj: main.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main3d-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
-
-main3d-UInit.o: UInit.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-UInit.o -MD -MP -MF $(DEPDIR)/main3d-UInit.Tpo -c -o main3d-UInit.o `test -f 'UInit.C' || echo '$(srcdir)/'`UInit.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/main3d-UInit.Tpo $(DEPDIR)/main3d-UInit.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='UInit.C' object='main3d-UInit.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-UInit.o `test -f 'UInit.C' || echo '$(srcdir)/'`UInit.C
-
-main3d-UInit.obj: UInit.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-UInit.obj -MD -MP -MF $(DEPDIR)/main3d-UInit.Tpo -c -o main3d-UInit.obj `if test -f 'UInit.C'; then $(CYGPATH_W) 'UInit.C'; else $(CYGPATH_W) '$(srcdir)/UInit.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/main3d-UInit.Tpo $(DEPDIR)/main3d-UInit.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='UInit.C' object='main3d-UInit.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-UInit.obj `if test -f 'UInit.C'; then $(CYGPATH_W) 'UInit.C'; else $(CYGPATH_W) '$(srcdir)/UInit.C'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

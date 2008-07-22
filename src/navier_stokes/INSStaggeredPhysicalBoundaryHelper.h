@@ -1,8 +1,8 @@
-#ifndef included_INSStaggeredPhysicalBoundaryUtilities
-#define included_INSStaggeredPhysicalBoundaryUtilities
+#ifndef included_INSStaggeredPhysicalBoundaryHelper
+#define included_INSStaggeredPhysicalBoundaryHelper
 
-// Filename: INSStaggeredPhysicalBoundaryUtilities.h
-// Last modified: <22.Jul.2008 14:29:53 griffith@box230.cims.nyu.edu>
+// Filename: INSStaggeredPhysicalBoundaryHelper.h
+// Last modified: <22.Jul.2008 14:59:22 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -22,22 +22,23 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredPhysicalBoundaryUtilities provides various helper
+ * \brief Class INSStaggeredPhysicalBoundaryHelper provides various helper
  * functions required to specify physical boundary conditions for a staggered
  * grid discretization of the incompressible Navier-Stokes equations.
  */
-class INSStaggeredPhysicalBoundaryUtilities
+class INSStaggeredPhysicalBoundaryHelper
+    : SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    INSStaggeredPhysicalBoundaryUtilities();
+    INSStaggeredPhysicalBoundaryHelper();
 
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredPhysicalBoundaryUtilities();
+    ~INSStaggeredPhysicalBoundaryHelper();
 
     /*!
      * \brief Set values located on the physical boundary to zero on the
@@ -49,9 +50,8 @@ public:
     void
     zeroValuesAtDirichletBoundaries(
         const int patch_data_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >& hierarchy,
         const int coarsest_level_number=-1,
-        const int finest_ln=-1);
+        const int finest_ln=-1) const;
 
     /*!
      * \brief Cache boundary coefficient data.
@@ -78,8 +78,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredPhysicalBoundaryUtilities(
-        const INSStaggeredPhysicalBoundaryUtilities& from);
+    INSStaggeredPhysicalBoundaryHelper(
+        const INSStaggeredPhysicalBoundaryHelper& from);
 
     /*!
      * \brief Assignment operator.
@@ -90,9 +90,9 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredPhysicalBoundaryUtilities&
+    INSStaggeredPhysicalBoundaryHelper&
     operator=(
-        const INSStaggeredPhysicalBoundaryUtilities& that);
+        const INSStaggeredPhysicalBoundaryHelper& that);
 
     /*!
      * Cached hierarchy-related information.
@@ -104,8 +104,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredPhysicalBoundaryUtilities.I>
+//#include <ibamr/INSStaggeredPhysicalBoundaryHelper.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredPhysicalBoundaryUtilities
+#endif //#ifndef included_INSStaggeredPhysicalBoundaryHelper

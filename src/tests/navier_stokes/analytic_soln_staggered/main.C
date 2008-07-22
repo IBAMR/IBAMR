@@ -34,8 +34,6 @@
 #include <ibtk/muParserDataSetter.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-#include "UInit.h"
-
 using namespace IBAMR;
 using namespace IBTK;
 using namespace SAMRAI;
@@ -310,19 +308,13 @@ main(
         /*
          * Create initial condition specification objects.
          */
-#if 1
         tbox::Pointer<SetDataStrategy> u_init = new muParserDataSetter(
-            "u_init", input_db->getDatabase("VelocitySolution"), grid_geometry);
+            "u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
         tbox::Pointer<SetDataStrategy> p_init = new muParserDataSetter(
-            "p_init", input_db->getDatabase("PressureSolution"), grid_geometry);
+            "p_init", input_db->getDatabase("PressureInitialConditions"), grid_geometry);
 
         time_integrator->registerVelocityInitialConditions(u_init);
         time_integrator->registerPressureInitialConditions(p_init);
-#else
-        tbox::Pointer<SetDataStrategy> u_init = new UInit(
-            "u_init", input_db->getDatabase("UInit"));
-        time_integrator->registerVelocityInitialConditions(u_init);
-#endif
 
         /*
          * Create boundary condition specification objects (when necessary).
@@ -347,7 +339,7 @@ main(
                     new muParserRobinBcCoefs(
                         bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry));
             }
-            //time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);  XXXX
+            time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
         }
 
         solv::RobinBcCoefStrategy<NDIM>* P_bc_coef = NULL;

@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <17.Jul.2008 16:13:44 griffith@box230.cims.nyu.edu>
+// Last modified: <21.Jul.2008 18:23:44 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -215,7 +215,7 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     // Solve for u^{*}.
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, U_in_idx);
     U_out->copyVector(U_scratch);
-    d_helmholtz_solver->setInitialGuessNonzero(true);
+    d_helmholtz_solver->setInitialGuessNonzero(false);
     d_helmholtz_solver->solveSystem(*U_out,*U_scratch);
 
     if (d_do_log) SAMRAI::tbox::plog << "INSStaggeredProjectionPreconditioner::solveSystem(): Helmholtz solve number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";

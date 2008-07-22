@@ -87,17 +87,17 @@ IBStaggeredHierarchyIntegrator {
 
    output_u = TRUE
    output_p = TRUE
-   output_f = TRUE
-   output_omega = TRUE
-   output_div_u = TRUE
+   output_f = FALSE
+   output_omega = FALSE
+   output_div_u = FALSE
 
    enable_logging = TRUE
 }
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_0 = "shell2d_64"
-   shell2d_64 {
+   base_filenames_0 = "curve2d_64"
+   curve2d_64 {
       uniform_spring_rest_length = 0.125/NFINEST
    }
 }

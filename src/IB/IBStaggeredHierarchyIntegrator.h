@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <18.Jul.2008 17:57:22 griffith@box230.cims.nyu.edu>
+// Last modified: <22.Jul.2008 15:14:25 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -14,7 +14,7 @@
 #include <ibamr/HierarchyProjector.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
 #include <ibamr/INSStaggeredConvectiveOperator.h>
-#include <ibamr/INSStaggeredNavierStokesOperator.h>
+#include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
 
@@ -1038,6 +1038,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_init, d_p_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_u_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_u_bc_helper;
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_f_set;
 
     /*

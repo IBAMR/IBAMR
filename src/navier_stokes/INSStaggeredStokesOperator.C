@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <17.Jul.2008 19:07:43 griffith@box230.cims.nyu.edu>
+// Last modified: <22.Jul.2008 18:03:13 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <INSStaggeredVelocityBcCoef.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -43,6 +46,7 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
     const double mu,
     const double lambda,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+    const SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper>& U_bc_helper,
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
     : d_is_initialized(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
@@ -56,6 +60,7 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
       d_homogeneous_bc(false),
       d_correcting_rhs(false),
       d_U_bc_coefs(U_bc_coefs),
+      d_U_bc_helper(U_bc_helper),
       d_U_P_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
       d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
       d_x_scratch(NULL)
@@ -157,12 +162,18 @@ INSStaggeredStokesOperator::apply(
     InterpolationTransactionComponent U_scratch_component(U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
     InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
 
-    std::vector<InterpolationTransactionComponent> U_P_scratch_components(2);
-    U_P_scratch_components[0] = U_scratch_component;
-    U_P_scratch_components[1] = P_scratch_component;
+    std::vector<InterpolationTransactionComponent> U_P_components(2);
+    U_P_components[0] = U_scratch_component;
+    U_P_components[1] = P_scratch_component;
+
+    for (int d = 0; d < NDIM; ++d)
+    {
+        INSStaggeredVelocityBcCoef* bc_coef = dynamic_cast<INSStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
+        bc_coef->setPressurePatchDataIndex(P_scratch_idx);
+    }
 
     const bool homogeneous_bc = d_correcting_rhs ? d_homogeneous_bc : true;
-    d_U_P_bdry_fill_op->resetTransactionComponents(U_P_scratch_components);
+    d_U_P_bdry_fill_op->resetTransactionComponents(U_P_components);
     d_U_P_bdry_fill_op->setHomogeneousBc(homogeneous_bc);
     d_U_P_bdry_fill_op->fillData(d_new_time);
 
@@ -174,6 +185,7 @@ INSStaggeredStokesOperator::apply(
         U_out_idx, U_out_sc_var,
         cf_bdry_synch,
         1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time);
+    d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
     cf_bdry_synch = false;
     d_hier_math_ops->div(
         P_out_idx, P_out_cc_var,
@@ -186,44 +198,6 @@ INSStaggeredStokesOperator::apply(
         d_no_fill_op, d_new_time,
         1.0,
         U_out_idx, U_out_sc_var);
-
-    // XXXX
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = y.getPatchHierarchy();
-    const int coarsest_ln = y.getCoarsestLevelNumber();
-    const int finest_ln = y.getFinestLevelNumber();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-            const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_out_data = patch->getPatchData(U_out_idx);
-            for (int axis = 0; axis < NDIM; ++axis)
-            {
-                static const int lower = 0;
-                if (pgeom->getTouchesRegularBoundary(axis,lower))
-                {
-                    SAMRAI::hier::Box<NDIM> lower_box = patch_box;
-                    lower_box.lower()(axis) = patch_lower(axis)-1;
-                    lower_box.upper()(axis) = patch_lower(axis)-1;
-                    U_out_data->fillAll(0.0,lower_box);
-                }
-                static const int upper = 1;
-                if (pgeom->getTouchesRegularBoundary(axis,upper))
-                {
-                    SAMRAI::hier::Box<NDIM> upper_box = patch_box;
-                    upper_box.lower()(axis) = patch_upper(axis)+1;
-                    upper_box.upper()(axis) = patch_upper(axis)+1;
-                    U_out_data->fillAll(0.0,upper_box);
-                }
-            }
-        }
-    }
-    // XXXX
 
     // Deallocate the operator (if necessary).
     if (deallocate_at_completion) deallocateOperatorState();
@@ -244,12 +218,12 @@ INSStaggeredStokesOperator::initializeOperatorState(
     InterpolationTransactionComponent U_scratch_component(d_x_scratch->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
     InterpolationTransactionComponent P_scratch_component(d_x_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
 
-    std::vector<InterpolationTransactionComponent> U_P_scratch_components(2);
-    U_P_scratch_components[0] = U_scratch_component;
-    U_P_scratch_components[1] = P_scratch_component;
+    std::vector<InterpolationTransactionComponent> U_P_components(2);
+    U_P_components[0] = U_scratch_component;
+    U_P_components[1] = P_scratch_component;
 
     d_U_P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    d_U_P_bdry_fill_op->initializeOperatorState(U_P_scratch_components, d_x_scratch->getPatchHierarchy());
+    d_U_P_bdry_fill_op->initializeOperatorState(U_P_components, d_x_scratch->getPatchHierarchy());
 
     d_is_initialized = true;
     return;

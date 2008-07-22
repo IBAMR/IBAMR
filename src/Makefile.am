@@ -61,8 +61,10 @@ navier_stokes/libIBAMR_navier_stokes2d_a-INSProjectionBcCoef.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredConvectiveOperator.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredHierarchyIntegrator.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredNavierStokesOperator.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredStokesOperator.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredPhysicalBoundaryHelper.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredProjectionPreconditioner.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredStokesOperator.o \
+navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredVelocityBcCoef.o \
 navier_stokes/libIBAMR_navier_stokes2d_a-NormalVelocityBcCoefAdapter.o \
 utilities/libIBAMR_utilities2d_a-get_version.o
 libIBAMR2d_a_SOURCES = # intentionally blank
@@ -110,8 +112,10 @@ navier_stokes/libIBAMR_navier_stokes3d_a-INSProjectionBcCoef.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredConvectiveOperator.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredHierarchyIntegrator.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredNavierStokesOperator.o \
+navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredPhysicalBoundaryHelper.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredProjectionPreconditioner.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredStokesOperator.o \
+navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredVelocityBcCoef.o \
 navier_stokes/libIBAMR_navier_stokes3d_a-NormalVelocityBcCoefAdapter.o \
 utilities/libIBAMR_utilities3d_a-get_version.o
 libIBAMR3d_a_SOURCES = # intentionally blank

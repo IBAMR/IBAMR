@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <17.Jul.2008 19:58:02 griffith@box230.cims.nyu.edu>
+// Last modified: <22.Jul.2008 18:45:42 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/INSStaggeredVelocityBcCoef.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartSideDoubleCubicCoarsenOperator.h>
@@ -265,6 +268,13 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     }
 
     delete d_default_U_bc_coef;
+    if (!d_U_bc_coefs.empty())
+    {
+        for (int d = 0; d < NDIM; ++d)
+        {
+            delete d_U_bc_coefs[d];
+        }
+    }
     return;
 }// ~INSStaggeredHierarchyIntegrator
 
@@ -298,7 +308,19 @@ INSStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
         TBOX_ASSERT(U_bc_coefs[l] != NULL);
     }
 #endif
-    d_U_bc_coefs = U_bc_coefs;
+    if (!d_U_bc_coefs.empty())
+    {
+        for (int d = 0; d < NDIM; ++d)
+        {
+            delete d_U_bc_coefs[d];
+        }
+    }
+    d_U_bc_coefs.clear();
+    d_U_bc_coefs.resize(NDIM,NULL);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,d_P_scratch_idx,d_mu,U_bc_coefs);
+    }
     d_hier_projector->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
     return;
 }// registerVelocityPhysicalBcCoefs
@@ -567,17 +589,21 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_integrator_step = 0;
     }
 
+    // Setup physical boundary conditions helper.
+    d_U_bc_helper = new INSStaggeredPhysicalBoundaryHelper();
+
     // Setup the Stokes operator.
     d_stokes_op = new INSStaggeredStokesOperator(
         d_rho, d_mu, d_lambda,
-        d_U_bc_coefs,
+        d_U_bc_coefs, d_U_bc_helper,
         d_hier_math_ops);
 
     // Setup the convective operator.
     d_convective_op_needs_init = true;
     d_convective_op = new INSStaggeredConvectiveOperator(
         d_rho, d_mu, d_lambda,
-        d_conservation_form);
+        d_conservation_form,
+        d_U_bc_helper);
 
     // Setup the Helmholtz solver.
     d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
@@ -587,7 +613,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_helmholtz_solver_needs_init = true;
     d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
-        d_object_name+"::PETSc Krylov solver", "adv_diff_");
+        d_object_name+"::PETSc Krylov solver", "helmholtz_");
     d_helmholtz_solver->setInitialGuessNonzero(false);
     d_helmholtz_solver->setOperator(d_helmholtz_op);
 
@@ -866,10 +892,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
 
-    // Hierarchy ghost cell transaction components.
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
-
     // Synchronize current state data.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
@@ -921,17 +943,20 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_rhs_var = P_rhs_vec->getComponentVariable(0);
     d_hier_cc_data_ops->setToScalar(P_rhs_idx,0.0);
 
+    // Hierarchy ghost cell transaction components.
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    InterpolationTransactionComponent U_P_bc_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
+
     // Initialize the right-hand side terms.
     SAMRAI::solv::PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec");
     rhs_spec.setCConstant((d_rho/dt)-0.5*d_lambda);
     rhs_spec.setDConstant(          +0.5*d_mu    );
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-    d_U_scratch_bdry_fill_op->resetTransactionComponent(U_scratch_component);
     d_hier_math_ops->laplace(
         U_rhs_idx, U_rhs_var,
         rhs_spec,
         d_U_scratch_idx, d_U_var,
-        d_U_scratch_bdry_fill_op, current_time);
+        d_U_bdry_extrap_fill_op, current_time);
 
     if (!d_F_set.isNull())
     {
@@ -1028,13 +1053,16 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
 
     // Setup inhomogeneous boundary conditions.
+    d_U_bc_helper->cacheBcCoefData(d_U_var, d_U_bc_coefs, new_time, SAMRAI::hier::IntVector<NDIM>(SIDEG), d_hierarchy);
+
     d_stokes_op->setHomogeneousBc(false);
     d_stokes_op->modifyRhsForInhomogeneousBc(*rhs_vec);
     d_stokes_op->setHomogeneousBc(true);
-    TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
-    d_U_scratch_bdry_fill_op->fillData(new_time);
 
-    // Solve for u(n+1) and p(n+1/2) using truncated fixed point iteration.
+    TBOX_ASSERT(rhs_vec->getComponentDescriptorIndex(0) == U_rhs_idx);
+    d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_rhs_idx);
+
+    // Solve for u(n+1) and p(n+1/2) using (truncated) fixed point iteration.
     static const int num_cycles = 3;
     for (int cycle = 0; cycle < num_cycles; ++cycle)
     {
@@ -1045,52 +1073,29 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_convective_op->applyConvectiveOperator(U_half_idx, N_idx);
 
         // Setup the righ-hand side vector.
-        d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
-
-        // XXXX
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-                const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_rhs_data = patch->getPatchData(U_rhs_idx);
-                for (int axis = 0; axis < NDIM; ++axis)
-                {
-                    static const int lower = 0;
-                    if (pgeom->getTouchesRegularBoundary(axis,lower))
-                    {
-                        SAMRAI::hier::Box<NDIM> lower_box = patch_box;
-                        lower_box.lower()(axis) = patch_lower(axis)-1;
-                        lower_box.upper()(axis) = patch_lower(axis)-1;
-                        U_rhs_data->fillAll(0.0,lower_box);
-                    }
-                    static const int upper = 1;
-                    if (pgeom->getTouchesRegularBoundary(axis,upper))
-                    {
-                        SAMRAI::hier::Box<NDIM> upper_box = patch_box;
-                        upper_box.lower()(axis) = patch_upper(axis)+1;
-                        upper_box.upper()(axis) = patch_upper(axis)+1;
-                        U_rhs_data->fillAll(0.0,upper_box);
-                }
-                }
-            }
-        }
-        // XXXX
+//      d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
 
         // Solve for u(n+1), p(n+1/2).
+        TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
+        d_U_bc_helper->zeroValuesAtDirichletBoundaries(d_U_scratch_idx);
         d_stokes_solver->solveSystem(*sol_vec,*rhs_vec);
+
+        // Reset physical boundary conditions.
+        for (int d = 0; d < NDIM; ++d)
+        {
+            INSStaggeredVelocityBcCoef* bc_coef = dynamic_cast<INSStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
+            bc_coef->setPressurePatchDataIndex(sol_vec->getComponentDescriptorIndex(1));
+        }
+        TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
+        TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(1) == d_P_scratch_idx);
+        d_U_P_bdry_bc_fill_op->fillData(new_time);
 
         // Pull out solution components.
         d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
         d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
 
         // Reset the right-hand side vector.
-        d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), +d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+//      d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), +d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
     }
 
     // Deallocate the nullspace object.
@@ -1110,11 +1115,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Compute the cell-centered approximation to f^{n+1} (used for
     // visualization only).
     reinterpolateForce(getNewContext());
-
-    // Setup U_scratch to allow for ghost cell filling.
-    d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
-    d_U_scratch_bdry_fill_op->resetTransactionComponent(U_scratch_component);
-    d_U_scratch_bdry_fill_op->fillData(new_time);
 
     // Compute Omega = curl U.
     d_hier_math_ops->curl(
@@ -1593,9 +1593,18 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
 
     // Setup the patch boundary filling objects.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_scratch_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
-    d_U_scratch_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    d_U_scratch_bdry_fill_op->initializeOperatorState(U_scratch_component, d_hierarchy);
+
+    InterpolationTransactionComponent U_scratch_bc_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
+    InterpolationTransactionComponent P_scratch_bc_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
+    std::vector<InterpolationTransactionComponent> U_P_bc_components(2);
+    U_P_bc_components[0] = U_scratch_bc_component;
+    U_P_bc_components[1] = P_scratch_bc_component;
+    d_U_P_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    d_U_P_bdry_bc_fill_op->initializeOperatorState(U_P_bc_components, d_hierarchy);
+
+    InterpolationTransactionComponent U_scratch_extrap_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
+    d_U_bdry_extrap_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    d_U_bdry_extrap_fill_op->initializeOperatorState(U_scratch_extrap_component, d_hierarchy);
 
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();

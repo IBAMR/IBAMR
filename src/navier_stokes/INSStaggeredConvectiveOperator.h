@@ -2,10 +2,13 @@
 #define included_INSStaggeredConvectiveOperator
 
 // Filename: INSStaggeredConvectiveOperator.h
-// Last modified: <17.Jul.2008 15:23:08 griffith@box230.cims.nyu.edu>
+// Last modified: <22.Jul.2008 15:11:37 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+// IBAMR INCLUDES
+#include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 
 // IBTK INCLUDES
 #include <ibtk/GeneralOperator.h>
@@ -40,7 +43,8 @@ public:
         const double rho,
         const double mu,
         const double lambda,
-        const bool conservation_form);
+        const bool conservation_form,
+        const SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper>& U_bc_helper);
 
     /*!
      * \brief Virtual destructor.
@@ -234,6 +238,9 @@ private:
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
+
+    // Boundary condition objects.
+    const SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper>& d_U_bc_helper;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;

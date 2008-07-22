@@ -19,8 +19,10 @@ INSProjectionBcCoef.C \
 INSStaggeredConvectiveOperator.C \
 INSStaggeredHierarchyIntegrator.C \
 INSStaggeredNavierStokesOperator.C \
+INSStaggeredPhysicalBoundaryHelper.C \
 INSStaggeredProjectionPreconditioner.C \
 INSStaggeredStokesOperator.C \
+INSStaggeredVelocityBcCoef.C \
 NormalVelocityBcCoefAdapter.C
 
 pkg_include_HEADERS = \
@@ -31,8 +33,10 @@ INSProjectionBcCoef.h \
 INSStaggeredConvectiveOperator.h \
 INSStaggeredHierarchyIntegrator.h \
 INSStaggeredNavierStokesOperator.h \
+INSStaggeredPhysicalBoundaryHelper.h \
 INSStaggeredProjectionPreconditioner.h \
 INSStaggeredStokesOperator.h \
+INSStaggeredVelocityBcCoef.h \
 NormalVelocityBcCoefAdapter.h
 
 libIBAMR_navier_stokes2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
