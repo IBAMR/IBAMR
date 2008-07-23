@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <21.Jul.2008 18:23:44 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Jul.2008 15:51:19 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -46,7 +46,6 @@ INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
     const double rho,
     const double mu,
     const double lambda,
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     const bool normalize_pressure,
     SAMRAI::tbox::Pointer<IBTK::LinearSolver> helmholtz_solver,
     SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
@@ -73,7 +72,6 @@ INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
       d_wgt_cc_idx(-1),
       d_wgt_sc_idx(-1),
       d_volume(std::numeric_limits<double>::quiet_NaN()),
-      d_U_bc_coefs(U_bc_coefs),
       d_no_fill_op(NULL),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),

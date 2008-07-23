@@ -20,6 +20,7 @@ INSStaggeredConvectiveOperator.C \
 INSStaggeredHierarchyIntegrator.C \
 INSStaggeredNavierStokesOperator.C \
 INSStaggeredPhysicalBoundaryHelper.C \
+INSStaggeredPressureBcCoef.C \
 INSStaggeredProjectionPreconditioner.C \
 INSStaggeredStokesOperator.C \
 INSStaggeredVelocityBcCoef.C \
@@ -34,6 +35,7 @@ INSStaggeredConvectiveOperator.h \
 INSStaggeredHierarchyIntegrator.h \
 INSStaggeredNavierStokesOperator.h \
 INSStaggeredPhysicalBoundaryHelper.h \
+INSStaggeredPressureBcCoef.h \
 INSStaggeredProjectionPreconditioner.h \
 INSStaggeredStokesOperator.h \
 INSStaggeredVelocityBcCoef.h \

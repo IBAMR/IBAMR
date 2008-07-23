@@ -1,5 +1,5 @@
 // Filename: INSStaggeredConvectiveOperator.C
-// Last modified: <22.Jul.2008 15:02:51 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Jul.2008 15:49:42 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredConvectiveOperator.h"
@@ -215,8 +215,7 @@ INSStaggeredConvectiveOperator::INSStaggeredConvectiveOperator(
     const double rho,
     const double mu,
     const double lambda,
-    const bool conservation_form,
-    const SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper>& U_bc_helper)
+    const bool conservation_form)
   : d_is_initialized(false),
     d_rho(rho),
     d_mu(mu),
@@ -228,7 +227,6 @@ INSStaggeredConvectiveOperator::INSStaggeredConvectiveOperator(
     d_hierarchy(NULL),
     d_coarsest_ln(-1),
     d_finest_ln(-1),
-    d_U_bc_helper(U_bc_helper),
     d_U_var(NULL),
     d_U_scratch_idx(-1)
 {
@@ -498,9 +496,29 @@ INSStaggeredConvectiveOperator::applyConvectiveOperator(
             }
         }
     }
-    d_U_bc_helper->zeroValuesAtDirichletBoundaries(N_idx);
     return;
 }// applyConvectiveOperator
+
+void
+INSStaggeredConvectiveOperator::apply(
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
+{
+    // Initialize the operator (if necessary).
+    const bool deallocate_at_completion = !d_is_initialized;
+    if (!d_is_initialized) initializeOperatorState(x,y);
+
+    // Get the vector components.
+    const int U_idx = x.getComponentDescriptorIndex(0);
+    const int N_idx = y.getComponentDescriptorIndex(0);
+
+    // Compute the action of the operator.
+    applyConvectiveOperator(U_idx, N_idx);
+
+    // Deallocate the operator (if necessary).
+    if (deallocate_at_completion) deallocateOperatorState();
+    return;
+}// apply
 
 void
 INSStaggeredConvectiveOperator::initializeOperatorState(
@@ -575,6 +593,22 @@ INSStaggeredConvectiveOperator::deallocateOperatorState()
     d_is_initialized = false;
     return;
 }// deallocateOperatorState
+
+void
+INSStaggeredConvectiveOperator::enableLogging(
+    bool enabled)
+{
+    // intentionally blank
+    return;
+}// enableLogging
+
+void
+INSStaggeredConvectiveOperator::printClassData(
+    std::ostream& os) const
+{
+    // intentionally blank
+    return;
+}// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

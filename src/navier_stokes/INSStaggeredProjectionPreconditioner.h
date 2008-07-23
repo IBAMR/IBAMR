@@ -2,7 +2,7 @@
 #define included_INSStaggeredProjectionPreconditioner
 
 // Filename: INSStaggeredProjectionPreconditioner.h
-// Last modified: <17.Jul.2008 15:41:30 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Jul.2008 15:52:02 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -40,7 +40,6 @@ public:
         const double rho,
         const double mu,
         const double lambda,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
         const bool normalize_pressure,
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> helmholtz_solver,
         SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
@@ -279,7 +278,6 @@ private:
     double d_volume;
 
     // Boundary condition objects.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
 
     // Hierarchy configuration.

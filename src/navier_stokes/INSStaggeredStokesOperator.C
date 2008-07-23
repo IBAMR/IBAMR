@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <22.Jul.2008 18:03:13 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Jul.2008 16:58:51 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -17,7 +17,7 @@
 #endif
 
 // IBAMR INCLUDES
-#include <INSStaggeredVelocityBcCoef.h>
+#include <INSStaggeredPressureBcCoef.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -46,7 +46,7 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
     const double mu,
     const double lambda,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-    const SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper>& U_bc_helper,
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
     : d_is_initialized(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
@@ -60,7 +60,7 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
       d_homogeneous_bc(false),
       d_correcting_rhs(false),
       d_U_bc_coefs(U_bc_coefs),
-      d_U_bc_helper(U_bc_helper),
+      d_P_bc_coef(P_bc_coef),
       d_U_P_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
       d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
       d_x_scratch(NULL)
@@ -138,6 +138,7 @@ INSStaggeredStokesOperator::apply(
     if (!d_is_initialized) initializeOperatorState(x,y);
 
     // Get the vector components.
+    const int U_in_idx       =            x.getComponentDescriptorIndex(0);
     const int U_out_idx      =            y.getComponentDescriptorIndex(0);
     const int P_out_idx      =            y.getComponentDescriptorIndex(1);
     const int U_scratch_idx  = d_x_scratch->getComponentDescriptorIndex(0);
@@ -160,21 +161,18 @@ INSStaggeredStokesOperator::apply(
     // Reset the interpolation operators and fill the data.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent U_scratch_component(U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
-    InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-
+    InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef);
     std::vector<InterpolationTransactionComponent> U_P_components(2);
     U_P_components[0] = U_scratch_component;
     U_P_components[1] = P_scratch_component;
-
-    for (int d = 0; d < NDIM; ++d)
-    {
-        INSStaggeredVelocityBcCoef* bc_coef = dynamic_cast<INSStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
-        bc_coef->setPressurePatchDataIndex(P_scratch_idx);
-    }
+    d_U_P_bdry_fill_op->resetTransactionComponents(U_P_components);
 
     const bool homogeneous_bc = d_correcting_rhs ? d_homogeneous_bc : true;
-    d_U_P_bdry_fill_op->resetTransactionComponents(U_P_components);
     d_U_P_bdry_fill_op->setHomogeneousBc(homogeneous_bc);
+
+    INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
+    P_bc_coef->setVelocityNewPatchDataIndex(U_in_idx);
+
     d_U_P_bdry_fill_op->fillData(d_new_time);
 
     // Compute the action of the operator:
@@ -185,7 +183,6 @@ INSStaggeredStokesOperator::apply(
         U_out_idx, U_out_sc_var,
         cf_bdry_synch,
         1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time);
-    d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
     cf_bdry_synch = false;
     d_hier_math_ops->div(
         P_out_idx, P_out_cc_var,
@@ -216,7 +213,7 @@ INSStaggeredStokesOperator::initializeOperatorState(
 
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent U_scratch_component(d_x_scratch->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
-    InterpolationTransactionComponent P_scratch_component(d_x_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
+    InterpolationTransactionComponent P_scratch_component(d_x_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef);
 
     std::vector<InterpolationTransactionComponent> U_P_components(2);
     U_P_components[0] = U_scratch_component;

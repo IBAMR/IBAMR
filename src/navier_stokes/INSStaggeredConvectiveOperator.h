@@ -2,13 +2,10 @@
 #define included_INSStaggeredConvectiveOperator
 
 // Filename: INSStaggeredConvectiveOperator.h
-// Last modified: <22.Jul.2008 15:11:37 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Jul.2008 15:49:10 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-// IBAMR INCLUDES
-#include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 
 // IBTK INCLUDES
 #include <ibtk/GeneralOperator.h>
@@ -43,8 +40,7 @@ public:
         const double rho,
         const double mu,
         const double lambda,
-        const bool conservation_form,
-        const SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper>& U_bc_helper);
+        const bool conservation_form);
 
     /*!
      * \brief Virtual destructor.
@@ -89,23 +85,7 @@ public:
     virtual void
     apply(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
-        {
-            // Initialize the operator (if necessary).
-            const bool deallocate_at_completion = !d_is_initialized;
-            if (!d_is_initialized) initializeOperatorState(x,y);
-
-            // Get the vector components.
-            const int U_idx = x.getComponentDescriptorIndex(0);
-            const int N_idx = y.getComponentDescriptorIndex(0);
-
-            // Compute the action of the operator.
-            applyConvectiveOperator(U_idx, N_idx);
-
-            // Deallocate the operator (if necessary).
-            if (deallocate_at_completion) deallocateOperatorState();
-            return;
-        }// apply
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x] and
@@ -168,22 +148,14 @@ public:
      */
     virtual void
     enableLogging(
-        bool enabled=true)
-        {
-            // intentionally blank
-            return;
-        }// enableLogging
+        bool enabled=true);
 
     /*!
      * \brief Print out internal class data for debugging.
      */
     virtual void
     printClassData(
-        std::ostream& os) const
-        {
-            // intentionally blank
-            return;
-        }// printClassData
+        std::ostream& os) const;
 
     //\}
 
@@ -238,9 +210,6 @@ private:
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
-
-    // Boundary condition objects.
-    const SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper>& d_U_bc_helper;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;

@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <22.Jul.2008 18:45:42 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Jul.2008 17:22:48 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -17,6 +17,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
 
 // IBTK INCLUDES
@@ -274,6 +275,7 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
         {
             delete d_U_bc_coefs[d];
         }
+        delete d_P_bc_coef;
     }
     return;
 }// ~INSStaggeredHierarchyIntegrator
@@ -314,14 +316,17 @@ INSStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
         {
             delete d_U_bc_coefs[d];
         }
+        delete d_P_bc_coef;
     }
     d_U_bc_coefs.clear();
     d_U_bc_coefs.resize(NDIM,NULL);
     for (int d = 0; d < NDIM; ++d)
     {
-        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,d_P_scratch_idx,d_mu,U_bc_coefs);
+        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,d_mu,U_bc_coefs);
     }
+    d_P_bc_coef = new INSStaggeredPressureBcCoef(d_mu,U_bc_coefs);
     d_hier_projector->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
+    d_hier_projector->setPressurePhysicalBcCoef(d_P_bc_coef);
     return;
 }// registerVelocityPhysicalBcCoefs
 
@@ -595,15 +600,14 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the Stokes operator.
     d_stokes_op = new INSStaggeredStokesOperator(
         d_rho, d_mu, d_lambda,
-        d_U_bc_coefs, d_U_bc_helper,
+        d_U_bc_coefs, d_P_bc_coef,
         d_hier_math_ops);
 
     // Setup the convective operator.
     d_convective_op_needs_init = true;
     d_convective_op = new INSStaggeredConvectiveOperator(
         d_rho, d_mu, d_lambda,
-        d_conservation_form,
-        d_U_bc_helper);
+        d_conservation_form);
 
     // Setup the Helmholtz solver.
     d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
@@ -621,7 +625,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_projection_pc_needs_init = true;
     d_projection_pc = new INSStaggeredProjectionPreconditioner(
         d_rho, d_mu, d_lambda,
-        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),  // XXXX
         d_normalize_pressure,
         d_helmholtz_solver, d_hier_projector,
         d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
@@ -945,7 +948,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Hierarchy ghost cell transaction components.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_P_bc_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
+    InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
 
     // Initialize the right-hand side terms.
     SAMRAI::solv::PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec");
@@ -990,6 +993,16 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_hier_cc_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(1), 1.0);
 
     // Setup the operators and solvers.
+    for (int d = 0; d < NDIM; ++d)
+    {
+        INSStaggeredVelocityBcCoef* U_bc_coef = dynamic_cast<INSStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
+        U_bc_coef->setTimeInterval(current_time,new_time);
+    }
+    INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
+    P_bc_coef->setTimeInterval(current_time,new_time);
+    P_bc_coef->setVelocityCurrentPatchDataIndex(d_U_current_idx);
+    P_bc_coef->setVelocityNewPatchDataIndex(d_U_new_idx);
+
     d_stokes_op->setTimeInterval(current_time,new_time);
 
     if (d_convective_op_needs_init)
@@ -1071,9 +1084,10 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
         // Compute (u_half*grad)u_half.
         d_convective_op->applyConvectiveOperator(U_half_idx, N_idx);
+        d_U_bc_helper->zeroValuesAtDirichletBoundaries(N_idx);
 
         // Setup the righ-hand side vector.
-//      d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+        d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
 
         // Solve for u(n+1), p(n+1/2).
         TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
@@ -1081,21 +1095,14 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_stokes_solver->solveSystem(*sol_vec,*rhs_vec);
 
         // Reset physical boundary conditions.
-        for (int d = 0; d < NDIM; ++d)
-        {
-            INSStaggeredVelocityBcCoef* bc_coef = dynamic_cast<INSStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
-            bc_coef->setPressurePatchDataIndex(sol_vec->getComponentDescriptorIndex(1));
-        }
-        TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
-        TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(1) == d_P_scratch_idx);
-        d_U_P_bdry_bc_fill_op->fillData(new_time);
+        d_U_bdry_bc_fill_op->fillData(new_time);
 
         // Pull out solution components.
         d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
         d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
 
         // Reset the right-hand side vector.
-//      d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), +d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+        d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), +d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
     }
 
     // Deallocate the nullspace object.
@@ -1595,12 +1602,8 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 
     InterpolationTransactionComponent U_scratch_bc_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
-    InterpolationTransactionComponent P_scratch_bc_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-    std::vector<InterpolationTransactionComponent> U_P_bc_components(2);
-    U_P_bc_components[0] = U_scratch_bc_component;
-    U_P_bc_components[1] = P_scratch_bc_component;
-    d_U_P_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    d_U_P_bdry_bc_fill_op->initializeOperatorState(U_P_bc_components, d_hierarchy);
+    d_U_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    d_U_bdry_bc_fill_op->initializeOperatorState(U_scratch_bc_component, d_hierarchy);
 
     InterpolationTransactionComponent U_scratch_extrap_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
     d_U_bdry_extrap_fill_op = new IBTK::HierarchyGhostCellInterpolation();

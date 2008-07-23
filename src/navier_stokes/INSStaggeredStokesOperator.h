@@ -2,13 +2,10 @@
 #define included_INSStaggeredStokesOperator
 
 // Filename: INSStaggeredStokesOperator.h
-// Last modified: <22.Jul.2008 14:43:56 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Jul.2008 16:53:23 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-// IBAMR INCLUDES
-#include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 
 // IBTK INCLUDES
 #include <ibtk/LinearOperator.h>
@@ -41,7 +38,7 @@ public:
         const double mu,
         const double lambda,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-        const SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper>& U_bc_helper,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
 
     /*!
@@ -239,8 +236,8 @@ private:
     // Boundary condition objects.
     bool d_homogeneous_bc;
     bool d_correcting_rhs;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    const SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper>& d_U_bc_helper;
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.

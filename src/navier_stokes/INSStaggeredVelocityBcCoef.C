@@ -1,5 +1,5 @@
 // Filename: INSStaggeredVelocityBcCoef.C
-// Last modified: <22.Jul.2008 19:30:13 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Jul.2008 16:15:58 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredVelocityBcCoef.h"
@@ -38,18 +38,17 @@ namespace IBAMR
 
 INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(
     const int comp_idx,
-    const int P_idx,
     const double mu,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
-      d_target_idx(-1),
-      d_P_idx(-1),
       d_mu(mu),
       d_u_bc_coefs(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_current_time(std::numeric_limits<double>::quiet_NaN()),
+      d_new_time(std::numeric_limits<double>::quiet_NaN()),
+      d_target_idx(-1),
       d_homogeneous_bc(false)
 {
-    setPressurePatchDataIndex(P_idx);
     setVelocityPhysicalBcCoefs(u_bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
@@ -60,14 +59,6 @@ INSStaggeredVelocityBcCoef::~INSStaggeredVelocityBcCoef()
     // intentionally blank
     return;
 }// ~INSStaggeredVelocityBcCoef
-
-void
-INSStaggeredVelocityBcCoef::setPressurePatchDataIndex(
-    const int P_idx)
-{
-    d_P_idx = P_idx;
-    return;
-}// setPressurePatchDataIndex
 
 void
 INSStaggeredVelocityBcCoef::setVelocityPhysicalBcCoefs(
@@ -81,6 +72,16 @@ INSStaggeredVelocityBcCoef::setVelocityPhysicalBcCoefs(
     d_u_bc_coefs = u_bc_coefs;
     return;
 }// setVelocityPhysicalBcCoefs
+
+void
+INSStaggeredVelocityBcCoef::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    d_current_time = current_time;
+    d_new_time = new_time;
+    return;
+}// setTimeInterval
 
 void
 INSStaggeredVelocityBcCoef::setTargetPatchDataIndex(
@@ -128,23 +129,10 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
 
     // Modify Neumann boundary conditions to correspond to traction (stress)
     // boundary conditions.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_data =
-        patch.checkAllocated(d_target_idx)
-        ? patch.getPatchData(d_target_idx)
-        : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!u_data.isNull());
-    TBOX_ASSERT(u_data->getGhostCellWidth().max() == u_data->getGhostCellWidth().min());
-#endif
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > P_data =
-        patch.checkAllocated(d_P_idx)
-        ? patch.getPatchData(d_P_idx)
-        : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!P_data.isNull());
-    TBOX_ASSERT(P_data->getGhostCellWidth().max() == P_data->getGhostCellWidth().min());
     TBOX_ASSERT(!acoef_data.isNull());
     TBOX_ASSERT(!bcoef_data.isNull());
+    TBOX_ASSERT(!gcoef_data.isNull());
 #endif
     const int location_index   = bdry_box.getLocationIndex();
     const int bdry_normal_axis = location_index/2;
@@ -155,6 +143,15 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_data =
+        patch.checkAllocated(d_target_idx)
+        ? patch.getPatchData(d_target_idx)
+        : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!u_data.isNull());
+    TBOX_ASSERT(u_data->getGhostCellWidth().max() == u_data->getGhostCellWidth().min());
+#endif
+    const SAMRAI::hier::Box<NDIM>& ghost_box = u_data->getGhostBox();
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     for (SAMRAI::hier::Box<NDIM>::Iterator it(bc_coef_box); it; it++)
@@ -162,50 +159,75 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
         const SAMRAI::hier::Index<NDIM>& i = it();
         const double& alpha = (*acoef_data)(i,0);
         const double& beta  = (*bcoef_data)(i,0);
-        double& g = (*gcoef_data)(i,0);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(alpha+beta,1.0));
-        TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(alpha,1.0) || SAMRAI::tbox::MathUtilities<double>::equalEps(beta,1.0));
-#endif
+        double& gamma = (*gcoef_data)(i,0);
+
+        const bool velocity_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(beta ,1.0);
-        if (traction_bc)
+        if (velocity_bc)
+        {
+            // intentionally blank
+        }
+        else if (traction_bc)
         {
             if (d_comp_idx == bdry_normal_axis)
             {
-                // Compute the pressure at the boundary using normal
-                // extrapolation.
-                SAMRAI::hier::Index<NDIM> i_bdry = i;
-                SAMRAI::hier::Index<NDIM> i_intr = i;
+                SAMRAI::hier::Index<NDIM> i_intr0 = i;
+                SAMRAI::hier::Index<NDIM> i_intr1 = i;
+
                 if (is_lower)
                 {
-                    i_bdry(bdry_normal_axis) += 0;
-                    i_intr(bdry_normal_axis) += 1;
+                    i_intr0(bdry_normal_axis) += 0;
+                    i_intr1(bdry_normal_axis) += 1;
                 }
                 else
                 {
-                    i_bdry(bdry_normal_axis) -= 1;
-                    i_intr(bdry_normal_axis) -= 2;
+                    i_intr0(bdry_normal_axis) -= 1;
+                    i_intr1(bdry_normal_axis) -= 2;
                 }
-                const double P = 1.5*(*P_data)(i_bdry) - 0.5*(*P_data)(i_intr);
 
-                // Correct the boundary condition value.
-                g = 0.5*(g+P)/d_mu;
+                // Specify a Neumann boundary condition which corresponds to a
+                // finite difference approximation to the divergence free
+                // condition at the boundary of the domain using extrapolated
+                // values of the tangential velocities.
+                double du_norm_dn = 0.0;
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    if (axis != bdry_normal_axis)
+                    {
+                        const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
+                        const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
+                        const double u_tan_upper = 1.5*(*u_data)(i_s_intr0_upper)-0.5*(*u_data)(i_s_intr1_upper);
+
+                        const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
+                        const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
+                        const double u_tan_lower = 1.5*(*u_data)(i_s_intr0_lower)-0.5*(*u_data)(i_s_intr1_lower);
+
+                        du_norm_dn += (is_lower ? +1.0 : -1.0)*(u_tan_upper-u_tan_lower)/dx[axis];
+                    }
+                }
+                gamma = du_norm_dn;
             }
             else
             {
                 // Compute the tangential derivative of the normal component of
                 // the velocity at the boundary.
                 SAMRAI::hier::Index<NDIM> i_upper = i;
-                SAMRAI::hier::Index<NDIM> i_lower = i;
-                i_upper(d_comp_idx) += 1;
-                i_lower(d_comp_idx) -= 0;
+                i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx),i(d_comp_idx)+1);
                 const SAMRAI::pdat::SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
+
+                SAMRAI::hier::Index<NDIM> i_lower = i;
+                i_lower(d_comp_idx) = i_upper(d_comp_idx)-1;
                 const SAMRAI::pdat::SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-                const double du_norm_dtan = ((*u_data)(i_s_upper)-(*u_data)(i_s_lower))/dx[d_comp_idx];
+
+                const double du_norm_dt = ((*u_data)(i_s_upper)-(*u_data)(i_s_lower))/dx[d_comp_idx];
 
                 // Correct the boundary condition value.
-                g = g/d_mu-du_norm_dtan;
+                gamma = gamma/d_mu-du_norm_dt;
             }
+        }
+        else
+        {
+            TBOX_ERROR("this statement should not be reached!\n");
         }
     }
     return;
