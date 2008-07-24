@@ -2,13 +2,14 @@
 #define included_INSStaggeredProjectionPreconditioner
 
 // Filename: INSStaggeredProjectionPreconditioner.h
-// Last modified: <23.Jul.2008 15:52:02 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 15:50:04 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/HierarchyProjector.h>
+#include <ibamr/INSCoefs.h>
 
 // IBTK INCLUDES
 #include <ibtk/LinearSolver.h>
@@ -37,9 +38,7 @@ public:
      * \brief Class constructor
      */
     INSStaggeredProjectionPreconditioner(
-        const double rho,
-        const double mu,
-        const double lambda,
+        const INSCoefs& problem_coefs,
         const bool normalize_pressure,
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> helmholtz_solver,
         SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
@@ -254,9 +253,7 @@ private:
     double d_current_time, d_new_time, d_dt;
 
     // Problem coefficients.
-    const double d_rho;
-    const double d_mu;
-    const double d_lambda;
+    const INSCoefs& d_problem_coefs;
     SAMRAI::solv::PoissonSpecifications d_pressure_helmholtz_spec;
 
     // Normalize the pressure when necessary.

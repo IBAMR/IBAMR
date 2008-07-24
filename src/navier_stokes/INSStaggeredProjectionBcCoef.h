@@ -1,14 +1,14 @@
-#ifndef included_NormalVelocityBcCoefAdapter
-#define included_NormalVelocityBcCoefAdapter
+#ifndef included_INSStaggeredProjectionBcCoef
+#define included_INSStaggeredProjectionBcCoef
 
-// Filename: NormalVelocityBcCoefAdapter.h
-// Last modified: <13.Feb.2008 13:29:59 griffith@box221.cims.nyu.edu>
-// Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
+// Filename: INSStaggeredProjectionBcCoef.h
+// Last modified: <23.Jul.2008 17:38:33 griffith@box230.cims.nyu.edu>
+// Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <RobinBcCoefStrategy.h>
+// IBTK INCLUDES
+#include <ibtk/ExtendedRobinBcCoefStrategy.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -18,45 +18,73 @@
 namespace IBAMR
 {
 /*!
- * \brief Class NormalVelocityBcCoefAdapter is a concrete
- * SAMRAI::solv::RobinBcCoefStrategy that converts a std::vector containing
- * boundary condition specification objects for the individual components of a
- * co-located velocity field into a single boundary condition specification
- * object for a face- or side-centered MAC velocity field.
+ * \brief Class INSStaggeredProjectionBcCoef is a concrete
+ * SAMRAI::solv::RobinBcCoefStrategy that is used to specify boundary conditions
+ * for the projection solve embedded in the preconditioner for the staggered
+ * grid incompressible Navier-Stokes solver.
+ *
+ * This class interprets pure Dirichlet boundary conditions on the velocity as
+ * prescribed velocity boundary conditions, whereas pure Neumann boundary
+ * conditions are interpreted as prescribed traction (stress) boundary
+ * conditions.  These are translated into Neumann and Dirichlet boundary
+ * conditions, respectively.  Since the projection solve is performed within the
+ * context of a preconditioning step, homogeneous boundary conditions are
+ * prescribed.
  */
-class NormalVelocityBcCoefAdapter
-    : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+class INSStaggeredProjectionBcCoef
+    : public virtual IBTK::ExtendedRobinBcCoefStrategy
 {
 public:
     /*!
      * \brief Constructor.
      *
-     * \param bc_coefs  Vector of boundary condition specification objects corresponding to the components of the velocity.
+     * \param u_bc_coefs      Vector of boundary condition specification objects corresponding to the components of the velocity
+     * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
      *
      * \note Precisely NDIM boundary condition objects must be provided to the
      * class constructor.
      */
-    NormalVelocityBcCoefAdapter(
-        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    INSStaggeredProjectionBcCoef(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+        const bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.
      */
     virtual
-    ~NormalVelocityBcCoefAdapter();
+    ~INSStaggeredProjectionBcCoef();
 
     /*!
-     * \brief Reset the Robin boundary condition specification object employed
-     * by this class to specify physical boundary conditions.
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
+     * physical boundary conditions for the velocity.
      *
-     * \param bc_coefs  Vector of boundary condition specification objects corresponding to the components of the velocity.
-     *
-     * \note Precisely NDIM boundary condition objects must be provided to this
-     * member function.
+     * \param u_bc_coefs  Vector of boundary condition specification objects corresponding to the components of the velocity
      */
     void
-    setPhysicalBcCoefs(
-        const std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    setVelocityPhysicalBcCoefs(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+
+    /*!
+     * \name Implementation of IBTK::ExtendedRobinBcCoefStrategy interface.
+     */
+    //\{
+
+    /*!
+     * \brief Set the target data index.
+     */
+    virtual void
+    setTargetPatchDataIndex(
+        const int target_idx);
+
+    /*!
+     * \brief Set whether the class is filling homogeneous or inhomogeneous
+     * boundary conditions.
+     */
+    virtual void
+    setHomogeneousBc(
+        const bool homogeneous_bc);
+
+    //\}
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
@@ -130,7 +158,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    NormalVelocityBcCoefAdapter();
+    INSStaggeredProjectionBcCoef();
 
     /*!
      * \brief Copy constructor.
@@ -139,8 +167,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    NormalVelocityBcCoefAdapter(
-        const NormalVelocityBcCoefAdapter& from);
+    INSStaggeredProjectionBcCoef(
+        const INSStaggeredProjectionBcCoef& from);
 
     /*!
      * \brief Assignment operator.
@@ -151,21 +179,31 @@ private:
      *
      * \return A reference to this object.
      */
-    NormalVelocityBcCoefAdapter&
+    INSStaggeredProjectionBcCoef&
     operator=(
-        const NormalVelocityBcCoefAdapter& that);
+        const INSStaggeredProjectionBcCoef& that);
 
     /*
-     * The boundary condition specification objects.
+     * The boundary condition specification objects for the updated velocity.
      */
-    std::vector<const SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+
+    /*
+     * The patch data index corresponding to the current value of P.
+     */
+    int d_target_idx;
+
+    /*
+     * Whether to use homogeneous boundary conditions.
+     */
+    bool d_homogeneous_bc;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/NormalVelocityBcCoefAdapter.I>
+//#include <ibamr/INSStaggeredProjectionBcCoef.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_NormalVelocityBcCoefAdapter
+#endif //#ifndef included_INSStaggeredProjectionBcCoef

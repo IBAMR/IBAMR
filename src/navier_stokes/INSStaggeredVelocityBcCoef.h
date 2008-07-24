@@ -2,10 +2,13 @@
 #define included_INSStaggeredVelocityBcCoef
 
 // Filename: INSStaggeredVelocityBcCoef.h
-// Last modified: <23.Jul.2008 16:52:47 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 16:29:46 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+// IBAMR INCLUDES
+#include <ibamr/INSCoefs.h>
 
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
@@ -35,7 +38,7 @@ public:
      * \brief Constructor.
      *
      * \param comp_idx        Component of the velocity which this boundary condition specification is to operate on
-     * \param mu              Dynamic viscosity mu
+     * \param problem_coefs   Problem coefficients
      * \param u_bc_coefs      Vector of boundary condition specification objects corresponding to the components of the velocity
      * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
      *
@@ -44,7 +47,7 @@ public:
      */
     INSStaggeredVelocityBcCoef(
         const int comp_idx,
-        const double mu,
+        const INSCoefs& problem_coefs,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
         const bool homogeneous_bc=false);
 
@@ -192,14 +195,15 @@ private:
         const INSStaggeredVelocityBcCoef& that);
 
     /*
-     * Component of the velocity which this boundary condition specification is to operate on.
+     * Component of the velocity which this boundary condition specification is
+     * to operate on.
      */
     const int d_comp_idx;
 
     /*
-     * The dynamic viscosity.
+     * Problem coefficients.
      */
-    const double d_mu;
+    const INSCoefs& d_problem_coefs;
 
     /*
      * The boundary condition specification objects for the velocity.

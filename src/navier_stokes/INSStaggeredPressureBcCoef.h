@@ -2,10 +2,13 @@
 #define included_INSStaggeredPressureBcCoef
 
 // Filename: INSStaggeredPressureBcCoef.h
-// Last modified: <23.Jul.2008 16:52:34 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 16:24:44 griffith@box230.cims.nyu.edu>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+// IBAMR INCLUDES
+#include <ibamr/INSCoefs.h>
 
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
@@ -34,7 +37,7 @@ public:
     /*!
      * \brief Constructor.
      *
-     * \param mu              Dynamic viscosity mu
+     * \param problem_coefs   Problem coefficients
      * \param u_bc_coefs      Vector of boundary condition specification objects corresponding to the components of the velocity
      * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
      *
@@ -42,7 +45,7 @@ public:
      * class constructor.
      */
     INSStaggeredPressureBcCoef(
-        const double mu,
+        const INSCoefs& problem_coefs,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
         const bool homogeneous_bc=false);
 
@@ -204,9 +207,9 @@ private:
         const INSStaggeredPressureBcCoef& that);
 
     /*
-     * The dynamic viscosity.
+     * Problem coefficients.
      */
-    const double d_mu;
+    const INSCoefs& d_problem_coefs;
 
     /*
      * The current and new velocities.

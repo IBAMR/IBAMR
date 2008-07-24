@@ -2,10 +2,13 @@
 #define included_INSStaggeredStokesOperator
 
 // Filename: INSStaggeredStokesOperator.h
-// Last modified: <23.Jul.2008 16:53:23 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 15:50:27 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+// IBAMR INCLUDES
+#include <ibamr/INSCoefs.h>
 
 // IBTK INCLUDES
 #include <ibtk/LinearOperator.h>
@@ -34,9 +37,7 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredStokesOperator(
-        const double rho,
-        const double mu,
-        const double lambda,
+        const INSCoefs& problem_coefs,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
@@ -225,9 +226,7 @@ private:
     double d_current_time, d_new_time, d_dt;
 
     // Problem coefficients.
-    const double d_rho;
-    const double d_mu;
-    const double d_lambda;
+    const INSCoefs& d_problem_coefs;
     SAMRAI::solv::PoissonSpecifications d_helmholtz_spec;
 
     // Math objects.

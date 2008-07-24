@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <23.Jul.2008 17:22:48 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 16:27:40 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSStaggeredPressureBcCoef.h>
+#include <ibamr/INSStaggeredProjectionBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
 
 // IBTK INCLUDES
@@ -165,7 +166,6 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
 
     d_rho    = std::numeric_limits<double>::quiet_NaN();
     d_mu     = std::numeric_limits<double>::quiet_NaN();
-    d_nu     = std::numeric_limits<double>::quiet_NaN();
     d_lambda = std::numeric_limits<double>::quiet_NaN();
 
     d_cfl = 0.9;
@@ -199,6 +199,9 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
         getFromRestart();
     }
     getFromInput(input_db, from_restart);
+
+    // Set the problem coefs.
+    d_problem_coefs = new INSCoefs(d_rho, d_mu, d_lambda);
 
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =
@@ -276,6 +279,7 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
             delete d_U_bc_coefs[d];
         }
         delete d_P_bc_coef;
+        delete d_Phi_bc_coef;
     }
     return;
 }// ~INSStaggeredHierarchyIntegrator
@@ -317,16 +321,18 @@ INSStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
             delete d_U_bc_coefs[d];
         }
         delete d_P_bc_coef;
+        delete d_Phi_bc_coef;
     }
     d_U_bc_coefs.clear();
     d_U_bc_coefs.resize(NDIM,NULL);
     for (int d = 0; d < NDIM; ++d)
     {
-        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,d_mu,U_bc_coefs);
+        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,*d_problem_coefs,U_bc_coefs);
     }
-    d_P_bc_coef = new INSStaggeredPressureBcCoef(d_mu,U_bc_coefs);
+    d_P_bc_coef = new INSStaggeredPressureBcCoef(*d_problem_coefs,U_bc_coefs);
+    d_Phi_bc_coef = new INSStaggeredProjectionBcCoef(U_bc_coefs);
     d_hier_projector->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
-    d_hier_projector->setPressurePhysicalBcCoef(d_P_bc_coef);
+    d_hier_projector->setPressurePhysicalBcCoef(d_Phi_bc_coef);
     return;
 }// registerVelocityPhysicalBcCoefs
 
@@ -599,14 +605,14 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Setup the Stokes operator.
     d_stokes_op = new INSStaggeredStokesOperator(
-        d_rho, d_mu, d_lambda,
+        *d_problem_coefs,
         d_U_bc_coefs, d_P_bc_coef,
         d_hier_math_ops);
 
     // Setup the convective operator.
     d_convective_op_needs_init = true;
-    d_convective_op = new INSStaggeredConvectiveOperator(
-        d_rho, d_mu, d_lambda,
+    d_convective_op = new INSStaggeredPPMConvectiveOperator(
+        *d_problem_coefs,
         d_conservation_form);
 
     // Setup the Helmholtz solver.
@@ -624,7 +630,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the projection preconditioner.
     d_projection_pc_needs_init = true;
     d_projection_pc = new INSStaggeredProjectionPreconditioner(
-        d_rho, d_mu, d_lambda,
+        *d_problem_coefs,
         d_normalize_pressure,
         d_helmholtz_solver, d_hier_projector,
         d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
@@ -1037,7 +1043,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     }
     d_projection_pc_needs_init = false;
 
-    d_stokes_solver->setInitialGuessNonzero(true);
     d_stokes_solver->setOperator(d_stokes_op);
     if (d_stokes_solver_needs_init)
     {
@@ -2194,8 +2199,6 @@ INSStaggeredHierarchyIntegrator::getFromInput(
                        << "Key data `mu' not found in input.");
         }
 
-        d_nu = d_mu/d_rho;  // the kinematic viscosity
-
         if (db->keyExists("lambda"))
         {
             d_lambda = db->getDouble("lambda");
@@ -2204,8 +2207,6 @@ INSStaggeredHierarchyIntegrator::getFromInput(
         {
             d_lambda = 0.0;
         }
-
-        d_lambda = d_lambda/d_rho;
     }
     return;
 }// getFromInput

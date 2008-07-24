@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPressureBcCoef.C
-// Last modified: <23.Jul.2008 16:56:30 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 18:17:59 griffith@box230.cims.nyu.edu>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPressureBcCoef.h"
@@ -37,10 +37,10 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(
-    const double mu,
+    const INSCoefs& problem_coefs,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const bool homogeneous_bc)
-    : d_mu(mu),
+    : d_problem_coefs(problem_coefs),
       d_u_current_idx(-1),
       d_u_new_idx(-1),
       d_u_bc_coefs(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),
@@ -172,6 +172,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
+    const double mu = d_problem_coefs.getMu();
     for (SAMRAI::hier::Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const SAMRAI::hier::Index<NDIM>& i = it();
@@ -233,7 +234,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(
             // pressure.
             alpha = 1.0;
             beta  = 0.0;
-            gamma = (d_homogeneous_bc ? 0.0 : gamma - d_mu*du_norm_current_dn) - d_mu*du_norm_new_dn;
+            gamma = mu*du_norm_new_dn + (d_homogeneous_bc ? 0.0 : mu*du_norm_current_dn - gamma);
         }
         else
         {

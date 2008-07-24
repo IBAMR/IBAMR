@@ -16,30 +16,28 @@ HierarchyProjector.C \
 INSHierarchyIntegrator.C \
 INSIntermediateVelocityBcCoef.C \
 INSProjectionBcCoef.C \
-INSStaggeredConvectiveOperator.C \
 INSStaggeredHierarchyIntegrator.C \
-INSStaggeredNavierStokesOperator.C \
+INSStaggeredPPMConvectiveOperator.C \
 INSStaggeredPhysicalBoundaryHelper.C \
 INSStaggeredPressureBcCoef.C \
+INSStaggeredProjectionBcCoef.C \
 INSStaggeredProjectionPreconditioner.C \
 INSStaggeredStokesOperator.C \
-INSStaggeredVelocityBcCoef.C \
-NormalVelocityBcCoefAdapter.C
+INSStaggeredVelocityBcCoef.C
 
 pkg_include_HEADERS = \
 HierarchyProjector.h \
 INSHierarchyIntegrator.h \
 INSIntermediateVelocityBcCoef.h \
 INSProjectionBcCoef.h \
-INSStaggeredConvectiveOperator.h \
 INSStaggeredHierarchyIntegrator.h \
-INSStaggeredNavierStokesOperator.h \
+INSStaggeredPPMConvectiveOperator.h \
 INSStaggeredPhysicalBoundaryHelper.h \
 INSStaggeredPressureBcCoef.h \
+INSStaggeredProjectionBcCoef.h \
 INSStaggeredProjectionPreconditioner.h \
 INSStaggeredStokesOperator.h \
-INSStaggeredVelocityBcCoef.h \
-NormalVelocityBcCoefAdapter.h
+INSStaggeredVelocityBcCoef.h
 
 libIBAMR_navier_stokes2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR_navier_stokes2d_a_SOURCES = $(SOURCES)

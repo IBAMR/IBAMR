@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <23.Jul.2008 16:58:51 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 16:13:44 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -42,9 +42,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredStokesOperator::INSStaggeredStokesOperator(
-    const double rho,
-    const double mu,
-    const double lambda,
+    const INSCoefs& problem_coefs,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
@@ -52,9 +50,7 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_dt(std::numeric_limits<double>::quiet_NaN()),
-      d_rho(rho),
-      d_mu(mu),
-      d_lambda(lambda),
+      d_problem_coefs(problem_coefs),
       d_helmholtz_spec("INSStaggeredStokesOperator::helmholtz_spec"),
       d_hier_math_ops(hier_math_ops),
       d_homogeneous_bc(false),
@@ -88,11 +84,14 @@ INSStaggeredStokesOperator::setTimeInterval(
     const double current_time,
     const double new_time)
 {
+    const double rho    = d_problem_coefs.getRho();
+    const double mu     = d_problem_coefs.getMu();
+    const double lambda = d_problem_coefs.getLambda();
     d_current_time = current_time;
     d_new_time = new_time;
     d_dt = d_new_time-d_current_time;
-    d_helmholtz_spec.setCConstant((d_rho/d_dt)+0.5*d_lambda);
-    d_helmholtz_spec.setDConstant(            -0.5*d_mu    );
+    d_helmholtz_spec.setCConstant((rho/d_dt)+0.5*lambda);
+    d_helmholtz_spec.setDConstant(          -0.5*mu    );
     return;
 }// setTimeInterval
 

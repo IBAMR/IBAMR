@@ -1,11 +1,14 @@
-#ifndef included_INSStaggeredConvectiveOperator
-#define included_INSStaggeredConvectiveOperator
+#ifndef included_INSStaggeredPPMConvectiveOperator
+#define included_INSStaggeredPPMConvectiveOperator
 
-// Filename: INSStaggeredConvectiveOperator.h
-// Last modified: <23.Jul.2008 15:49:10 griffith@box230.cims.nyu.edu>
+// Filename: INSStaggeredPPMConvectiveOperator.h
+// Last modified: <24.Jul.2008 15:50:17 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+// IBAMR INCLUDES
+#include <ibamr/INSCoefs.h>
 
 // IBTK INCLUDES
 #include <ibtk/GeneralOperator.h>
@@ -23,30 +26,32 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredConvectiveOperator is a concrete
+ * \brief Class INSStaggeredPPMConvectiveOperator is a concrete
  * IBTK::GeneralOperator which implements a upwind convective differencing
  * operator based on the piecewise parabolic method (PPM).
  *
+ * Class INSStaggeredPPMConvectiveOperator computes the convective derivative of
+ * a side-centered velocity field using the xsPPM7 method of Rider, Greenough,
+ * and Kamm.
+ *
  * \see INSStaggeredHierarchyIntegrator
  */
-class INSStaggeredConvectiveOperator
+class INSStaggeredPPMConvectiveOperator
     : public IBTK::GeneralOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    INSStaggeredConvectiveOperator(
-        const double rho,
-        const double mu,
-        const double lambda,
+    INSStaggeredPPMConvectiveOperator(
+        const INSCoefs& problem_coefs,
         const bool conservation_form);
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~INSStaggeredConvectiveOperator();
+    ~INSStaggeredPPMConvectiveOperator();
 
     /*!
      * \brief Compute the actaion of the convective operator.
@@ -165,7 +170,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredConvectiveOperator();
+    INSStaggeredPPMConvectiveOperator();
 
     /*!
      * \brief Copy constructor.
@@ -174,8 +179,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredConvectiveOperator(
-        const INSStaggeredConvectiveOperator& from);
+    INSStaggeredPPMConvectiveOperator(
+        const INSStaggeredPPMConvectiveOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -186,17 +191,15 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredConvectiveOperator&
+    INSStaggeredPPMConvectiveOperator&
     operator=(
-        const INSStaggeredConvectiveOperator& that);
+        const INSStaggeredPPMConvectiveOperator& that);
 
     // Whether the operator is initialized.
     bool d_is_initialized;
 
     // Problem coefficients.
-    const double d_rho;
-    const double d_mu;
-    const double d_lambda;
+    const INSCoefs& d_problem_coefs;
 
     // Whether to use conservative or non-conservative differencing.
     const bool d_conservation_form;
@@ -219,8 +222,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredConvectiveOperator.I>
+//#include <ibamr/INSStaggeredPPMConvectiveOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredConvectiveOperator
+#endif //#ifndef included_INSStaggeredPPMConvectiveOperator

@@ -1,8 +1,8 @@
-// Filename: INSStaggeredConvectiveOperator.C
-// Last modified: <23.Jul.2008 15:49:42 griffith@box230.cims.nyu.edu>
+// Filename: INSStaggeredPPMConvectiveOperator.C
+// Last modified: <24.Jul.2008 15:59:26 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
-#include "INSStaggeredConvectiveOperator.h"
+#include "INSStaggeredPPMConvectiveOperator.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -211,15 +211,11 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredConvectiveOperator::INSStaggeredConvectiveOperator(
-    const double rho,
-    const double mu,
-    const double lambda,
+INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
+    const INSCoefs& problem_coefs,
     const bool conservation_form)
   : d_is_initialized(false),
-    d_rho(rho),
-    d_mu(mu),
-    d_lambda(lambda),
+    d_problem_coefs(problem_coefs),
     d_conservation_form(conservation_form),
     d_refine_alg(NULL),
     d_refine_op(NULL),
@@ -231,9 +227,9 @@ INSStaggeredConvectiveOperator::INSStaggeredConvectiveOperator(
     d_U_scratch_idx(-1)
 {
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context = var_db->getContext("INSStaggeredConvectiveOperator::CONTEXT");
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context = var_db->getContext("INSStaggeredPPMConvectiveOperator::CONTEXT");
 
-    const std::string U_var_name = "INSStaggeredConvectiveOperator::U";
+    const std::string U_var_name = "INSStaggeredPPMConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
     if (d_U_var.isNull())
     {
@@ -248,22 +244,22 @@ INSStaggeredConvectiveOperator::INSStaggeredConvectiveOperator(
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
     return;
-}// INSStaggeredConvectiveOperator
+}// INSStaggeredPPMConvectiveOperator
 
-INSStaggeredConvectiveOperator::~INSStaggeredConvectiveOperator()
+INSStaggeredPPMConvectiveOperator::~INSStaggeredPPMConvectiveOperator()
 {
     deallocateOperatorState();
     return;
-}// ~INSStaggeredConvectiveOperator
+}// ~INSStaggeredPPMConvectiveOperator
 
 void
-INSStaggeredConvectiveOperator::applyConvectiveOperator(
+INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
     const int U_idx,
     const int N_idx)
 {
     if (!d_is_initialized)
     {
-        TBOX_ERROR("INSStaggeredConvectiveOperator::applyConvectiveOperator():\n"
+        TBOX_ERROR("INSStaggeredPPMConvectiveOperator::applyConvectiveOperator():\n"
                    << "  operator must be initialized prior to call to applyConvectiveOperator\n");
     }
 
@@ -500,7 +496,7 @@ INSStaggeredConvectiveOperator::applyConvectiveOperator(
 }// applyConvectiveOperator
 
 void
-INSStaggeredConvectiveOperator::apply(
+INSStaggeredPPMConvectiveOperator::apply(
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
 {
@@ -521,7 +517,7 @@ INSStaggeredConvectiveOperator::apply(
 }// apply
 
 void
-INSStaggeredConvectiveOperator::initializeOperatorState(
+INSStaggeredPPMConvectiveOperator::initializeOperatorState(
     const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out)
 {
@@ -566,7 +562,7 @@ INSStaggeredConvectiveOperator::initializeOperatorState(
 }// initializeOperatorState
 
 void
-INSStaggeredConvectiveOperator::deallocateOperatorState()
+INSStaggeredPPMConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -595,7 +591,7 @@ INSStaggeredConvectiveOperator::deallocateOperatorState()
 }// deallocateOperatorState
 
 void
-INSStaggeredConvectiveOperator::enableLogging(
+INSStaggeredPPMConvectiveOperator::enableLogging(
     bool enabled)
 {
     // intentionally blank
@@ -603,7 +599,7 @@ INSStaggeredConvectiveOperator::enableLogging(
 }// enableLogging
 
 void
-INSStaggeredConvectiveOperator::printClassData(
+INSStaggeredPPMConvectiveOperator::printClassData(
     std::ostream& os) const
 {
     // intentionally blank
@@ -621,6 +617,6 @@ INSStaggeredConvectiveOperator::printClassData(
 /////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::INSStaggeredConvectiveOperator>;
+template class SAMRAI::tbox::Pointer<IBAMR::INSStaggeredPPMConvectiveOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

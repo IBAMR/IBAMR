@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <23.Jul.2008 15:51:19 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 18:24:54 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -43,9 +43,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
-    const double rho,
-    const double mu,
-    const double lambda,
+    const INSCoefs& problem_coefs,
     const bool normalize_pressure,
     SAMRAI::tbox::Pointer<IBTK::LinearSolver> helmholtz_solver,
     SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
@@ -57,9 +55,7 @@ INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_dt(std::numeric_limits<double>::quiet_NaN()),
-      d_rho(rho),
-      d_mu(mu),
-      d_lambda(lambda),
+      d_problem_coefs(problem_coefs),
       d_pressure_helmholtz_spec("INSStaggeredProjectionPreconditioner::pressure_helmholtz_spec"),
       d_normalize_pressure(normalize_pressure),
       d_helmholtz_solver(helmholtz_solver),
@@ -158,11 +154,14 @@ INSStaggeredProjectionPreconditioner::setTimeInterval(
     const double current_time,
     const double new_time)
 {
+    const double rho    = d_problem_coefs.getRho();
+    const double mu     = d_problem_coefs.getMu();
+    const double lambda = d_problem_coefs.getLambda();
     d_current_time = current_time;
     d_new_time = new_time;
     d_dt = d_new_time-d_current_time;
-    d_pressure_helmholtz_spec.setCConstant(1.0+0.5*d_dt*d_lambda/d_rho);
-    d_pressure_helmholtz_spec.setDConstant(   -0.5*d_dt*d_mu    /d_rho);
+    d_pressure_helmholtz_spec.setCConstant(1.0+0.5*d_dt*lambda/rho);
+    d_pressure_helmholtz_spec.setDConstant(   -0.5*d_dt*mu    /rho);
     return;
 }// setTimeInterval
 
@@ -218,18 +217,19 @@ INSStaggeredProjectionPreconditioner::solveSystem(
 
     if (d_do_log) SAMRAI::tbox::plog << "INSStaggeredProjectionPreconditioner::solveSystem(): Helmholtz solve number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";
     if (d_do_log) SAMRAI::tbox::plog << "INSStaggeredProjectionPreconditioner::solveSystem(): Helmholtz solve residual norm        = " << d_helmholtz_solver->getResidualNorm()  << "\n";
-    if (d_helmholtz_solver->getNumIterations() == d_helmholtz_solver->getMaxIterations())
-    {
-        SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem():"
-                           <<"  WARNING: Helmholtz solver iterations == max iterations\n";
-    }
+//  if (d_helmholtz_solver->getNumIterations() == d_helmholtz_solver->getMaxIterations())
+//  {
+//      SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem():"
+//                         <<"  WARNING: Helmholtz solver iterations == max iterations\n";
+//  }
 
     // Project the intermediate velocity u^{*} to obtain u^{n+1}.
+    const double rho = d_problem_coefs.getRho();
     static const std::string projection_type = "pressure_update";
     d_hier_cc_data_ops->scale(d_Div_U_scratch_idx, -1.0, P_in_idx);
     d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0);
     d_hier_projector->projectHierarchy(
-        d_rho, d_dt, d_current_time+0.5*d_dt,
+        rho, d_dt, d_current_time+0.5*d_dt,
         projection_type,
         U_out_idx, U_out_sc_var,
         d_Phi_scratch_idx, d_Phi_var,
