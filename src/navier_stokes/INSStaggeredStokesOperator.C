@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <24.Jul.2008 16:13:44 griffith@box230.cims.nyu.edu>
+// Last modified: <25.Jul.2008 11:42:28 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -137,7 +137,6 @@ INSStaggeredStokesOperator::apply(
     if (!d_is_initialized) initializeOperatorState(x,y);
 
     // Get the vector components.
-    const int U_in_idx       =            x.getComponentDescriptorIndex(0);
     const int U_out_idx      =            y.getComponentDescriptorIndex(0);
     const int P_out_idx      =            y.getComponentDescriptorIndex(1);
     const int U_scratch_idx  = d_x_scratch->getComponentDescriptorIndex(0);
@@ -170,7 +169,7 @@ INSStaggeredStokesOperator::apply(
     d_U_P_bdry_fill_op->setHomogeneousBc(homogeneous_bc);
 
     INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
-    P_bc_coef->setVelocityNewPatchDataIndex(U_in_idx);
+    P_bc_coef->setVelocityNewPatchDataIndex(U_scratch_idx);
 
     d_U_P_bdry_fill_op->fillData(d_new_time);
 

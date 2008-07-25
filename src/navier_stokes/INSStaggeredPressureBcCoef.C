@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPressureBcCoef.C
-// Last modified: <24.Jul.2008 20:26:09 griffith@box230.cims.nyu.edu>
+// Last modified: <25.Jul.2008 13:48:27 griffith@box230.cims.nyu.edu>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPressureBcCoef.h"
@@ -220,7 +220,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr2_upper(i_intr2, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
-//                  const double u_tan_current_upper = 1.5*(*u_current_data)(i_s_intr0_upper)-0.5*(*u_current_data)(i_s_intr1_upper)
+//                  const double u_tan_current_upper = 1.5*(*u_current_data)(i_s_intr0_upper)-0.5*(*u_current_data)(i_s_intr1_upper);
 //                  const double u_tan_new_upper     = 1.5*(*u_new_data    )(i_s_intr0_upper)-0.5*(*u_new_data    )(i_s_intr1_upper);
                     const double u_tan_current_upper = 3.0*(*u_current_data)(i_s_intr0_upper)-3.0*(*u_current_data)(i_s_intr1_upper)+1.0*(*u_current_data)(i_s_intr2_upper);
                     const double u_tan_new_upper     = 3.0*(*u_new_data    )(i_s_intr0_upper)-3.0*(*u_new_data    )(i_s_intr1_upper)+1.0*(*u_new_data    )(i_s_intr2_upper);
@@ -244,8 +244,6 @@ INSStaggeredPressureBcCoef::setBcCoefs(
             alpha = 1.0;
             beta  = 0.0;
             gamma = (is_lower ? -1.0 : +1.0)*(mu*du_norm_new_dn + (d_homogeneous_bc ? 0.0 : mu*du_norm_current_dn - gamma));
-
-            if (i(0) == 0) SAMRAI::tbox::pout << gamma << "\n";
         }
         else
         {
