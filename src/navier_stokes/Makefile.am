@@ -17,6 +17,7 @@ INSHierarchyIntegrator.C \
 INSIntermediateVelocityBcCoef.C \
 INSProjectionBcCoef.C \
 INSStaggeredHierarchyIntegrator.C \
+INSStaggeredIntermediateVelocityBcCoef.C \
 INSStaggeredPPMConvectiveOperator.C \
 INSStaggeredPhysicalBoundaryHelper.C \
 INSStaggeredPressureBcCoef.C \
@@ -31,6 +32,7 @@ INSHierarchyIntegrator.h \
 INSIntermediateVelocityBcCoef.h \
 INSProjectionBcCoef.h \
 INSStaggeredHierarchyIntegrator.h \
+INSStaggeredIntermediateVelocityBcCoef.h \
 INSStaggeredPPMConvectiveOperator.h \
 INSStaggeredPhysicalBoundaryHelper.h \
 INSStaggeredPressureBcCoef.h \

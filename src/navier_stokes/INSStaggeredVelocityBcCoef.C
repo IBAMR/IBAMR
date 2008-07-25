@@ -1,5 +1,5 @@
 // Filename: INSStaggeredVelocityBcCoef.C
-// Last modified: <24.Jul.2008 18:17:21 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 19:48:06 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredVelocityBcCoef.h"
@@ -174,16 +174,19 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
             {
                 SAMRAI::hier::Index<NDIM> i_intr0 = i;
                 SAMRAI::hier::Index<NDIM> i_intr1 = i;
+                SAMRAI::hier::Index<NDIM> i_intr2 = i;
 
                 if (is_lower)
                 {
                     i_intr0(bdry_normal_axis) += 0;
                     i_intr1(bdry_normal_axis) += 1;
+                    i_intr2(bdry_normal_axis) += 2;
                 }
                 else
                 {
                     i_intr0(bdry_normal_axis) -= 1;
                     i_intr1(bdry_normal_axis) -= 2;
+                    i_intr2(bdry_normal_axis) -= 3;
                 }
 
                 // Specify a Neumann boundary condition which corresponds to a
@@ -197,11 +200,15 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
                     {
                         const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
                         const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
-                        const double u_tan_upper = 1.5*(*u_data)(i_s_intr0_upper)-0.5*(*u_data)(i_s_intr1_upper);
+                        const SAMRAI::pdat::SideIndex<NDIM> i_s_intr2_upper(i_intr2, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
+//                      const double u_tan_upper = 1.5*(*u_data)(i_s_intr0_upper)-0.5*(*u_data)(i_s_intr1_upper)
+                        const double u_tan_upper = 3.0*(*u_data)(i_s_intr0_upper)-3.0*(*u_data)(i_s_intr1_upper)+1.0*(*u_data)(i_s_intr2_upper);
 
                         const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
                         const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-                        const double u_tan_lower = 1.5*(*u_data)(i_s_intr0_lower)-0.5*(*u_data)(i_s_intr1_lower);
+                        const SAMRAI::pdat::SideIndex<NDIM> i_s_intr2_lower(i_intr2, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
+//                      const double u_tan_lower = 1.5*(*u_data)(i_s_intr0_lower)-0.5*(*u_data)(i_s_intr1_lower)
+                        const double u_tan_lower = 3.0*(*u_data)(i_s_intr0_lower)-3.0*(*u_data)(i_s_intr1_lower)+1.0*(*u_data)(i_s_intr2_lower);
 
                         du_norm_dn += (is_lower ? +1.0 : -1.0)*(u_tan_upper-u_tan_lower)/dx[axis];
                     }
@@ -212,18 +219,18 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
             {
                 // Compute the tangential derivative of the normal component of
                 // the velocity at the boundary.
-                SAMRAI::hier::Index<NDIM> i_upper = i;
-                i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx),i(d_comp_idx)+1);
-                const SAMRAI::pdat::SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-
                 SAMRAI::hier::Index<NDIM> i_lower = i;
-                i_lower(d_comp_idx) = i_upper(d_comp_idx)-1;
+                i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx),i(d_comp_idx)-1);
                 const SAMRAI::pdat::SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
+
+                SAMRAI::hier::Index<NDIM> i_upper = i;
+                i_upper(d_comp_idx) = i_lower(d_comp_idx)+1;
+                const SAMRAI::pdat::SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
 
                 const double du_norm_dt = ((*u_data)(i_s_upper)-(*u_data)(i_s_lower))/dx[d_comp_idx];
 
                 // Correct the boundary condition value.
-                gamma = gamma/mu-du_norm_dt;
+                gamma = gamma/mu + (is_lower ? +1.0 : -1.0)*du_norm_dt;
             }
         }
         else

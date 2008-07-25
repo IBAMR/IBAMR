@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <22.Jul.2008 15:14:25 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 16:04:12 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -13,7 +13,8 @@
 // IBAMR INCLUDES
 #include <ibamr/HierarchyProjector.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
-#include <ibamr/INSStaggeredConvectiveOperator.h>
+#include <ibamr/INSCoefs.h>
+#include <ibamr/INSStaggeredPPMConvectiveOperator.h>
 #include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
@@ -984,7 +985,8 @@ private:
      *       mu_water  = 0.01 g cm^-1 s^-1
      *       nu_water  = 0.01 cm^2 s^-1
      */
-    double d_rho, d_mu, d_nu, d_lambda;
+    double d_rho, d_mu, d_lambda;
+    SAMRAI::tbox::Pointer<INSCoefs> d_problem_coefs;
 
     /*
      * Hierarchy operations objects.
@@ -1001,7 +1003,7 @@ private:
     /*
      * Hierarchy operators and solvers.
      */
-    SAMRAI::tbox::Pointer<INSStaggeredConvectiveOperator> d_convective_op;
+    SAMRAI::tbox::Pointer<INSStaggeredPPMConvectiveOperator> d_convective_op;
     SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
 
     bool d_helmholtz_solver_needs_init;

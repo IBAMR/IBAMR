@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <22.Jul.2008 15:20:40 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 16:13:45 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -181,7 +181,6 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
 
     d_rho    = std::numeric_limits<double>::quiet_NaN();
     d_mu     = std::numeric_limits<double>::quiet_NaN();
-    d_nu     = std::numeric_limits<double>::quiet_NaN();
     d_lambda = std::numeric_limits<double>::quiet_NaN();
 
     d_cfl = 0.9;
@@ -215,6 +214,9 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
         getFromRestart();
     }
     getFromInput(input_db, from_restart);
+
+    // Set the problem coefs.
+    d_problem_coefs = new INSCoefs(d_rho, d_mu, d_lambda);
 
     // Determine the ghost cell width required for cell-centered spreading and
     // interpolating.
@@ -656,15 +658,14 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Setup the Stokes operator.
     d_stokes_op = new INSStaggeredStokesOperator(
-        d_rho, d_mu, d_lambda,
-        d_u_bc_coefs, d_u_bc_helper,
+        *d_problem_coefs,
+        d_u_bc_coefs, NULL,  // XXXX
         d_hier_math_ops);
 
     // Setup the convective operator.
-    d_convective_op = new INSStaggeredConvectiveOperator(
-        d_rho, d_mu, d_lambda,
-        d_conservation_form,
-        d_u_bc_helper);
+    d_convective_op = new INSStaggeredPPMConvectiveOperator(
+        *d_problem_coefs,
+        d_conservation_form);
 
     // Setup the Helmholtz solver.
     d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
@@ -681,8 +682,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the projection preconditioner.
     d_projection_pc_needs_init = true;
     d_projection_pc = new INSStaggeredProjectionPreconditioner(
-        d_rho, d_mu, d_lambda,
-        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),  // XXXX
+        *d_problem_coefs,
         d_normalize_pressure,
         d_helmholtz_solver, d_hier_projector,
         d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
@@ -3310,8 +3310,6 @@ IBStaggeredHierarchyIntegrator::getFromInput(
                        << "Key data `mu' not found in input.");
         }
 
-        d_nu = d_mu/d_rho;  // the kinematic viscosity
-
         if (db->keyExists("lambda"))
         {
             d_lambda = db->getDouble("lambda");
@@ -3320,8 +3318,6 @@ IBStaggeredHierarchyIntegrator::getFromInput(
         {
             d_lambda = 0.0;
         }
-
-        d_lambda = d_lambda/d_rho;
 
         d_delta_fcn = db->getStringWithDefault("delta_fcn", d_delta_fcn);
     }

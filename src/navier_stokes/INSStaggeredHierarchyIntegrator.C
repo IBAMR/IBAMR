@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <24.Jul.2008 16:27:40 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 19:58:24 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -17,6 +17,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/INSStaggeredIntermediateVelocityBcCoef.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredProjectionBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
@@ -277,6 +278,7 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
         for (int d = 0; d < NDIM; ++d)
         {
             delete d_U_bc_coefs[d];
+            delete d_U_star_bc_coefs[d];
         }
         delete d_P_bc_coef;
         delete d_Phi_bc_coef;
@@ -319,6 +321,7 @@ INSStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
         for (int d = 0; d < NDIM; ++d)
         {
             delete d_U_bc_coefs[d];
+            delete d_U_star_bc_coefs[d];
         }
         delete d_P_bc_coef;
         delete d_Phi_bc_coef;
@@ -329,9 +332,15 @@ INSStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
     {
         d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,*d_problem_coefs,U_bc_coefs);
     }
+    d_U_star_bc_coefs.clear();
+    d_U_star_bc_coefs.resize(NDIM,NULL);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_U_star_bc_coefs[d] = new INSStaggeredIntermediateVelocityBcCoef(d,U_bc_coefs);
+    }
     d_P_bc_coef = new INSStaggeredPressureBcCoef(*d_problem_coefs,U_bc_coefs);
     d_Phi_bc_coef = new INSStaggeredProjectionBcCoef(U_bc_coefs);
-    d_hier_projector->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
+    d_hier_projector->setVelocityPhysicalBcCoefs(d_U_star_bc_coefs);
     d_hier_projector->setPressurePhysicalBcCoef(d_Phi_bc_coef);
     return;
 }// registerVelocityPhysicalBcCoefs
@@ -618,7 +627,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the Helmholtz solver.
     d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
     d_helmholtz_op = new IBTK::SCLaplaceOperator(
-        d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_U_bc_coefs, true);
+        d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_U_star_bc_coefs, true);
     d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
     d_helmholtz_solver_needs_init = true;
@@ -1021,7 +1030,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_helmholtz_spec->setDConstant(          -0.5*d_mu    );
 
     d_helmholtz_op->setPoissonSpecifications(*d_helmholtz_spec);
-    d_helmholtz_op->setPhysicalBcCoefs(d_U_bc_coefs);
+    d_helmholtz_op->setPhysicalBcCoefs(d_U_star_bc_coefs);
     d_helmholtz_op->setHomogeneousBc(true);
     d_helmholtz_op->setTime(new_time);
     d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);

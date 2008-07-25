@@ -6,7 +6,7 @@ RHO = 1.0
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 64                                    // coarsest grid spacing
+N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 // exact solution function expressions
@@ -17,28 +17,28 @@ P = "-(cos(4.0*PI*(X_0-t)) + cos(4.0*PI*(X_1-t)))*exp(-16.0*PI*PI*nu*t)"
 VelocityInitialConditions {
    constant_names = "nu"
    nu = MU/RHO
-   function_0 = "0.0" // U
-   function_1 = "0.0" // V
+   function_0 = "1.0"
+   function_1 = "0.0"
 }
 
 VelocityBcCoefs_0 {
    constant_names = "nu"
    nu = MU/RHO
 
-   acoef_function_0 = "0.0"
+   acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
    acoef_function_3 = "0.0"
 
-   bcoef_function_0 = "1.0"
+   bcoef_function_0 = "0.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = " sin(2.0*PI*t)" // U
-   gcoef_function_1 = "-sin(2.0*PI*t)" // U
-   gcoef_function_2 = "0.0" // U
-   gcoef_function_3 = "0.0" // U
+   gcoef_function_0 = "1.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
 }
 
 VelocityBcCoefs_1 {
@@ -47,29 +47,29 @@ VelocityBcCoefs_1 {
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "1.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "0.0" // V
-   gcoef_function_1 = "0.0" // V
-   gcoef_function_2 = "0.0" // V
-   gcoef_function_3 = "0.0" // V
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
 }
 
 PressureInitialConditions {
    constant_names = "nu"
    nu = MU/RHO
-   function = "0.0" // P
+   function = "0.0"
 }
 
 INSStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 1.0e0    // final simulation time
+   end_time              = 2.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 10000000 // disable regridding

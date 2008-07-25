@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPressureBcCoef.C
-// Last modified: <24.Jul.2008 18:17:59 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Jul.2008 20:26:09 griffith@box230.cims.nyu.edu>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPressureBcCoef.h"
@@ -196,16 +196,19 @@ INSStaggeredPressureBcCoef::setBcCoefs(
             // divergence free condition to the boundary.
             SAMRAI::hier::Index<NDIM> i_intr0 = i;
             SAMRAI::hier::Index<NDIM> i_intr1 = i;
+            SAMRAI::hier::Index<NDIM> i_intr2 = i;
 
             if (is_lower)
             {
                 i_intr0(bdry_normal_axis) += 0;
                 i_intr1(bdry_normal_axis) += 1;
+                i_intr2(bdry_normal_axis) += 2;
             }
             else
             {
                 i_intr0(bdry_normal_axis) -= 1;
                 i_intr1(bdry_normal_axis) -= 2;
+                i_intr2(bdry_normal_axis) -= 3;
             }
 
             double du_norm_current_dn = 0.0;
@@ -216,13 +219,19 @@ INSStaggeredPressureBcCoef::setBcCoefs(
                 {
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
-                    const double u_tan_current_upper = 1.5*(*u_current_data)(i_s_intr0_upper)-0.5*(*u_current_data)(i_s_intr1_upper);
-                    const double u_tan_new_upper     = 1.5*(*u_new_data    )(i_s_intr0_upper)-0.5*(*u_new_data    )(i_s_intr1_upper);
+                    const SAMRAI::pdat::SideIndex<NDIM> i_s_intr2_upper(i_intr2, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
+//                  const double u_tan_current_upper = 1.5*(*u_current_data)(i_s_intr0_upper)-0.5*(*u_current_data)(i_s_intr1_upper)
+//                  const double u_tan_new_upper     = 1.5*(*u_new_data    )(i_s_intr0_upper)-0.5*(*u_new_data    )(i_s_intr1_upper);
+                    const double u_tan_current_upper = 3.0*(*u_current_data)(i_s_intr0_upper)-3.0*(*u_current_data)(i_s_intr1_upper)+1.0*(*u_current_data)(i_s_intr2_upper);
+                    const double u_tan_new_upper     = 3.0*(*u_new_data    )(i_s_intr0_upper)-3.0*(*u_new_data    )(i_s_intr1_upper)+1.0*(*u_new_data    )(i_s_intr2_upper);
 
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-                    const double u_tan_current_lower = 1.5*(*u_current_data)(i_s_intr0_lower)-0.5*(*u_current_data)(i_s_intr1_lower);
-                    const double u_tan_new_lower     = 1.5*(*u_new_data    )(i_s_intr0_lower)-0.5*(*u_new_data    )(i_s_intr1_lower);
+                    const SAMRAI::pdat::SideIndex<NDIM> i_s_intr2_lower(i_intr2, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
+//                  const double u_tan_current_lower = 1.5*(*u_current_data)(i_s_intr0_lower)-0.5*(*u_current_data)(i_s_intr1_lower);
+//                  const double u_tan_new_lower     = 1.5*(*u_new_data    )(i_s_intr0_lower)-0.5*(*u_new_data    )(i_s_intr1_lower);
+                    const double u_tan_current_lower = 3.0*(*u_current_data)(i_s_intr0_lower)-3.0*(*u_current_data)(i_s_intr1_lower)+1.0*(*u_current_data)(i_s_intr2_lower);
+                    const double u_tan_new_lower     = 3.0*(*u_new_data    )(i_s_intr0_lower)-3.0*(*u_new_data    )(i_s_intr1_lower)+1.0*(*u_new_data    )(i_s_intr2_lower);
 
                     du_norm_current_dn += (is_lower ? +1.0 : -1.0)*(u_tan_current_upper-u_tan_current_lower)/dx[axis];
                     du_norm_new_dn     += (is_lower ? +1.0 : -1.0)*(u_tan_new_upper    -u_tan_new_lower    )/dx[axis];
@@ -234,7 +243,9 @@ INSStaggeredPressureBcCoef::setBcCoefs(
             // pressure.
             alpha = 1.0;
             beta  = 0.0;
-            gamma = mu*du_norm_new_dn + (d_homogeneous_bc ? 0.0 : mu*du_norm_current_dn - gamma);
+            gamma = (is_lower ? -1.0 : +1.0)*(mu*du_norm_new_dn + (d_homogeneous_bc ? 0.0 : mu*du_norm_current_dn - gamma));
+
+            if (i(0) == 0) SAMRAI::tbox::pout << gamma << "\n";
         }
         else
         {
