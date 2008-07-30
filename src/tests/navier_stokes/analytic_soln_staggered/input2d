@@ -1,5 +1,5 @@
 // physical parameters
-MU = 1.0e-2
+MU = 1.0e-3
 RHO = 1.0
 
 // grid spacing parameters
@@ -17,28 +17,28 @@ P = "-(cos(4.0*PI*(X_0-t)) + cos(4.0*PI*(X_1-t)))*exp(-16.0*PI*PI*nu*t)"
 VelocityInitialConditions {
    constant_names = "nu"
    nu = MU/RHO
-   function_0 = "0.0"
-   function_1 = "0.0"
+   function_0 = U
+   function_1 = V
 }
 
 VelocityBcCoefs_0 {
    constant_names = "nu"
    nu = MU/RHO
 
-   acoef_function_0 = "0.0"
-   acoef_function_1 = "0.0"
-   acoef_function_2 = "0.0"
-   acoef_function_3 = "0.0"
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
 
-   bcoef_function_0 = "1.0"
-   bcoef_function_1 = "1.0"
-   bcoef_function_2 = "1.0"
-   bcoef_function_3 = "1.0"
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "2.0*sin(PI*X_1)"
-   gcoef_function_1 = "-2.0*sin(PI*X_1)"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
+   gcoef_function_0 = U
+   gcoef_function_1 = U
+   gcoef_function_2 = U
+   gcoef_function_3 = U
 }
 
 VelocityBcCoefs_1 {
@@ -47,29 +47,29 @@ VelocityBcCoefs_1 {
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
-   acoef_function_2 = "0.0"
-   acoef_function_3 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
-   bcoef_function_2 = "1.0"
-   bcoef_function_3 = "1.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
+   gcoef_function_0 = V
+   gcoef_function_1 = V
+   gcoef_function_2 = V
+   gcoef_function_3 = V
 }
 
 PressureInitialConditions {
    constant_names = "nu"
    nu = MU/RHO
-   function = "0.0"
+   function = P
 }
 
 INSStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 2.0e5    // final simulation time
+   end_time              = 1.0      // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 10000000 // disable regridding
@@ -77,8 +77,7 @@ INSStaggeredHierarchyIntegrator {
    enable_logging = TRUE
 
    cfl = 1.0
-   dt_max = cfl/(NFINEST)
-   dt_max_time_max = dt_max
+   dt_max = cfl/(3*NFINEST)
 
    tag_buffer = 1
 
@@ -132,7 +131,7 @@ HierarchyProjector {
          relax_type = 3
          num_pre_relax_steps   = 0
          num_post_relax_steps  = 3
-         max_iterations        = 1
+         max_iterations        = 2
          relative_residual_tol = 1.0e-12
          enable_logging = FALSE
       }
@@ -141,7 +140,7 @@ HierarchyProjector {
    FACPreconditioner {
       max_cycles = 1
       residual_tol = 1.0e-12
-      num_pre_sweeps  = 3  // this should always be 0
+      num_pre_sweeps  = 0  // this should always be 0
       num_post_sweeps = 3
    }
 }
@@ -153,7 +152,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 1 // NFINEST/8   // zero to turn off
+   viz_dump_interval     = NFINEST/8   // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 

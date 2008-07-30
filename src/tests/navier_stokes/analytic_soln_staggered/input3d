@@ -1,10 +1,3 @@
-// advective term options
-CTU_ONLY = -1
-SECOND_ORDER = 0
-FOURTH_ORDER = 1
-MC_LIMITED = 2
-MUSCL_LIMITED = 3
-
 // physical parameters
 MU = 1.0e-2
 RHO = 1.0
@@ -22,24 +15,102 @@ V = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*sin(2*PI*(X_0-t)) + A*cos(2*PI*(X_2-t)))"
 W = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*cos(2*PI*(X_0-t)) + C*sin(2*PI*(X_1-t)))"
 P = "-exp(-8.0*PI*PI*nu*t)*(A*C*cos(2*PI*(X_1-t))*sin(2*PI*(X_2-t)) + A*B*sin(2*PI*(X_0-t))*cos(2*PI*(X_2-t)) + B*C*cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))"
 
-VelocitySolution {
+VelocityInitialConditions {
    constant_names = "nu" , "A" , "B" , "C"
    nu = MU/RHO
    A = 1.0
    B = 1.0
    C = 1.0
-   function_0 = U
-   function_1 = V
-   function_2 = W
+   function_0 = "0.0"
+   function_1 = "0.0"
+   function_2 = "0.0"
 }
 
-PressureSolution {
+VelocityBcCoefs_0 {
+   constant_names = "nu"
+   nu = MU/RHO
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
+
+   gcoef_function_0 = "1.0"
+   gcoef_function_1 = "-1.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   constant_names = "nu"
+   nu = MU/RHO
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+VelocityBcCoefs_2 {
+   constant_names = "nu"
+   nu = MU/RHO
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+PressureInitialConditions {
    constant_names = "nu" , "A" , "B" , "C"
    nu = MU/RHO
    A = 1.0
    B = 1.0
    C = 1.0
-   function = P
+   function = "0.0"
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -52,10 +123,11 @@ INSStaggeredHierarchyIntegrator {
    enable_logging = TRUE
 
    cfl = 1.0
-   dt_max = 1.0/(4.0*NFINEST)
+   dt_max = 1.0/(3.0*NFINEST)
 
    tag_buffer = 1
 
+   conservation_form = FALSE
    using_vorticity_tagging = TRUE
    vorticity_rel_thresh = 0.25
 
@@ -69,7 +141,7 @@ INSStaggeredHierarchyIntegrator {
    rho = RHO
 
    second_order_pressure_update = TRUE
-   normalize_pressure = TRUE
+   normalize_pressure = FALSE
 
    num_cycles = 1
    num_init_cycles = 5
@@ -81,6 +153,7 @@ HierarchyProjector {
    max_iterations = 25
    abs_residual_tol = 0.0
    rel_residual_tol = 1.0e-15
+   initial_guess_nonzero = FALSE
 
    FACOp {
       fac_max_cycles = 1
@@ -96,14 +169,14 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization   = "LINEAR_REFINE"
+      cf_discretization   = "Ewing"
 
       hypre_solver {
          solver_type = "PFMG"
          rap_type = 1
          relax_type = 3
-         num_pre_relax_steps   = 2
-         num_post_relax_steps  = 2
+         num_pre_relax_steps   = 0
+         num_post_relax_steps  = 3
          max_iterations        = 1
          relative_residual_tol = 1.0e-12
          enable_logging = FALSE
@@ -125,7 +198,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/8   // zero to turn off
+   viz_dump_interval     = 1 // NFINEST/8   // zero to turn off
    viz_dump_dirname      = "viz_INS3d"
    visit_number_procs_per_file = 1
 
@@ -141,7 +214,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0,0) , (N - 1,N - 1,N - 1) ]
    x_lo         =  0, 0, 0    // lower end of computational domain.
    x_up         =  1, 1, 1    // upper end of computational domain.
-   periodic_dimension = 1, 1, 1
+   periodic_dimension = 0, 0, 0
 }
 
 GriddingAlgorithm {

@@ -2,7 +2,7 @@
 #define included_IBSpringForceGen
 
 // Filename: IBSpringForceGen.h
-// Last modified: <11.May.2008 16:04:34 griffith@box230.cims.nyu.edu>
+// Last modified: <29.Jul.2008 15:38:29 griffith@box230.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -259,6 +259,20 @@ public:
         IBTK::LDataManager* const lag_manager);
 
     /*!
+     * \brief Compute the non-zero structure of the force Jacobian matrix.
+     *
+     * \note Elements indices must be global PETSc indices.
+     */
+    virtual void
+    computeLagrangianForceJacobianNonzeroStructure(
+        std::vector<int>& d_nnz,
+        std::vector<int>& o_nnz,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double data_time,
+        IBTK::LDataManager* const lag_manager);
+
+    /*!
      * \brief Compute the Jacobian of the force with respect to the present
      * structure configuration.
      *
@@ -268,6 +282,7 @@ public:
     virtual void
     computeLagrangianForceJacobian(
         Mat& J_mat,
+        MatAssemblyType assembly_type,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -311,7 +326,7 @@ private:
      * \name Data maintained separately for each level of the patch hierarchy.
      */
     //\{
-    std::vector<Mat> d_D_mats, d_J_mats;
+    std::vector<Mat> d_D_mats;
     std::vector<std::vector<int> > d_lag_mastr_node_idxs, d_lag_slave_node_idxs;
     std::vector<std::vector<int> > d_petsc_mastr_node_idxs, d_petsc_slave_node_idxs;
     std::vector<std::vector<int> > d_force_fcn_idxs;

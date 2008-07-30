@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <24.Jul.2008 16:04:12 griffith@box230.cims.nyu.edu>
+// Last modified: <28.Jul.2008 19:25:00 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1030,7 +1030,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
 
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_u_scratch_bdry_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_u_bdry_bc_fill_op, d_u_bdry_extrap_fill_op, d_no_fill_op;
 
     /*
      * Objects to set initial conditions (note that the initial value of the
@@ -1040,7 +1040,10 @@ private:
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_init, d_p_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_u_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_star_bc_coefs;
     SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_u_bc_helper;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_p_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_f_set;
 
     /*

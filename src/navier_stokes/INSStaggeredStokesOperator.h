@@ -2,7 +2,7 @@
 #define included_INSStaggeredStokesOperator
 
 // Filename: INSStaggeredStokesOperator.h
-// Last modified: <24.Jul.2008 15:50:27 griffith@box230.cims.nyu.edu>
+// Last modified: <28.Jul.2008 19:17:48 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -62,6 +62,16 @@ public:
     setTimeInterval(
         const double current_time,
         const double new_time);
+
+    /*!
+     * \brief Implementation of the apply method which supports either
+     * homogeneous or inhomogeneous boundary conditions.
+     */
+    void
+    apply(
+        const bool homogeneous_bc,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
      * \name Linear operator functionality.

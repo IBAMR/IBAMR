@@ -340,16 +340,11 @@ main(
                 input_db->getDatabase("INSHierarchyIntegrator"),
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
 
-        tbox::Pointer<IBSpringForceGen> spring_force_generator =
-            new IBSpringForceGen();
-        tbox::Pointer<IBBeamForceGen> beam_force_generator =
-            new IBBeamForceGen();
-        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator =
-            new IBTargetPointForceGen();
-
-        tbox::Pointer<IBStandardForceGen> force_generator =
-            new IBStandardForceGen(
-                spring_force_generator, beam_force_generator, target_point_force_generator);
+        tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
+        tbox::Pointer<IBBeamForceGen> beam_force_generator = NULL;
+        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator = new IBTargetPointForceGen();
+        tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen(
+            spring_force_generator, beam_force_generator, target_point_force_generator);
 
         tbox::Pointer<IBHierarchyIntegrator> time_integrator =
             new IBHierarchyIntegrator(

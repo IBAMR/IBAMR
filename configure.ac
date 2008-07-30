@@ -557,6 +557,7 @@ AC_CONFIG_FILES([
   src/tests/IB_multilevel/Makefile
   src/tests/IB_staggered/Makefile
   src/tests/IB_target/Makefile
+  src/tests/IB_target_staggered/Makefile
   src/tests/adv_diff/Makefile
   src/tests/advect/Makefile
   src/tests/navier_stokes/Makefile

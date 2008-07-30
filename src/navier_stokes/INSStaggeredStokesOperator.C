@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <25.Jul.2008 11:42:28 griffith@box230.cims.nyu.edu>
+// Last modified: <28.Jul.2008 19:19:24 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -129,6 +129,7 @@ INSStaggeredStokesOperator::modifyRhsForInhomogeneousBc(
 
 void
 INSStaggeredStokesOperator::apply(
+    const bool homogeneous_bc,
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
 {
@@ -163,14 +164,10 @@ INSStaggeredStokesOperator::apply(
     std::vector<InterpolationTransactionComponent> U_P_components(2);
     U_P_components[0] = U_scratch_component;
     U_P_components[1] = P_scratch_component;
-    d_U_P_bdry_fill_op->resetTransactionComponents(U_P_components);
-
-    const bool homogeneous_bc = d_correcting_rhs ? d_homogeneous_bc : true;
-    d_U_P_bdry_fill_op->setHomogeneousBc(homogeneous_bc);
-
     INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
     P_bc_coef->setVelocityNewPatchDataIndex(U_scratch_idx);
-
+    d_U_P_bdry_fill_op->setHomogeneousBc(homogeneous_bc);
+    d_U_P_bdry_fill_op->resetTransactionComponents(U_P_components);
     d_U_P_bdry_fill_op->fillData(d_new_time);
 
     // Compute the action of the operator:
@@ -198,6 +195,16 @@ INSStaggeredStokesOperator::apply(
     if (deallocate_at_completion) deallocateOperatorState();
     return;
 }// apply
+
+void
+INSStaggeredStokesOperator::apply(
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
+{
+    apply(d_correcting_rhs ? d_homogeneous_bc : true,x,y);
+    return;
+}// apply
+
 
 void
 INSStaggeredStokesOperator::initializeOperatorState(

@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <24.Jul.2008 19:58:24 griffith@box230.cims.nyu.edu>
+// Last modified: <29.Jul.2008 17:14:49 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -272,6 +272,7 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
         delete (*it).second;
     }
 
+    delete d_helmholtz_spec;
     delete d_default_U_bc_coef;
     if (!d_U_bc_coefs.empty())
     {
@@ -974,17 +975,13 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         U_rhs_idx, U_rhs_var,
         rhs_spec,
         d_U_scratch_idx, d_U_var,
-        d_U_bdry_extrap_fill_op, current_time);
+        d_U_bdry_bc_fill_op /* XXXX d_U_bdry_extrap_fill_op XXXX */, current_time);
 
     if (!d_F_set.isNull())
     {
-        if (d_F_set->isTimeDependent())
-        {
-            d_F_set->setDataOnPatchHierarchy(
-                d_F_new_idx, d_F_var, d_hierarchy, new_time);
-        }
-        d_hier_sc_data_ops->axpy(U_rhs_idx, +0.5, d_F_current_idx, U_rhs_idx);
-        d_hier_sc_data_ops->axpy(U_rhs_idx, +0.5, d_F_new_idx    , U_rhs_idx);
+        d_F_set->setDataOnPatchHierarchy(
+            d_F_new_idx, d_F_var, d_hierarchy, current_time+0.5*dt);
+        d_hier_sc_data_ops->add(U_rhs_idx, d_F_new_idx, U_rhs_idx);
     }
     else
     {
@@ -1615,13 +1612,13 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     // Setup the patch boundary filling objects.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 
-    InterpolationTransactionComponent U_scratch_bc_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
+    InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
     d_U_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    d_U_bdry_bc_fill_op->initializeOperatorState(U_scratch_bc_component, d_hierarchy);
+    d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
 
-    InterpolationTransactionComponent U_scratch_extrap_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
+    InterpolationTransactionComponent U_extrap_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
     d_U_bdry_extrap_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    d_U_bdry_extrap_fill_op->initializeOperatorState(U_scratch_extrap_component, d_hierarchy);
+    d_U_bdry_extrap_fill_op->initializeOperatorState(U_extrap_component, d_hierarchy);
 
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();

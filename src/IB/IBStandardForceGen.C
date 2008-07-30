@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <09.May.2008 17:32:28 griffith@box230.cims.nyu.edu>
+// Last modified: <29.Jul.2008 15:38:46 griffith@box230.cims.nyu.edu>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBStandardForceGen.h"
@@ -101,8 +101,23 @@ IBStandardForceGen::computeLagrangianForce(
 }// computeLagrangianForce
 
 void
+IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& d_nnz,
+    std::vector<int>& o_nnz,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    d_force_strategy_set->computeLagrangianForceJacobianNonzeroStructure(
+        d_nnz, o_nnz, hierarchy, level_number, data_time, lag_manager);
+    return;
+}// computeLagrangianForceJacobianNonzeroStructure
+
+void
 IBStandardForceGen::computeLagrangianForceJacobian(
     Mat& J_mat,
+    MatAssemblyType assembly_type,
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
@@ -110,7 +125,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(
     IBTK::LDataManager* const lag_manager)
 {
     d_force_strategy_set->computeLagrangianForceJacobian(
-        J_mat, X_data, hierarchy, level_number, data_time, lag_manager);
+        J_mat, assembly_type, X_data, hierarchy, level_number, data_time, lag_manager);
     return;
 }// computeLagrangianForceJacobian
 

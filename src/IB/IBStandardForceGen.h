@@ -2,7 +2,7 @@
 #define included_IBStandardForceGen
 
 // Filename: IBStandardForceGen.h
-// Last modified: <09.May.2008 17:32:11 griffith@box230.cims.nyu.edu>
+// Last modified: <29.Jul.2008 15:40:37 griffith@box230.cims.nyu.edu>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -77,6 +77,20 @@ public:
         IBTK::LDataManager* const lag_manager);
 
     /*!
+     * \brief Compute the non-zero structure of the force Jacobian matrix.
+     *
+     * \note Elements indices must be global PETSc indices.
+     */
+    virtual void
+    computeLagrangianForceJacobianNonzeroStructure(
+        std::vector<int>& d_nnz,
+        std::vector<int>& o_nnz,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double data_time,
+        IBTK::LDataManager* const lag_manager);
+
+    /*!
      * \brief Compute the Jacobian of the force with respect to the present
      * structure configuration.
      *
@@ -86,6 +100,7 @@ public:
     virtual void
     computeLagrangianForceJacobian(
         Mat& J_mat,
+        MatAssemblyType assembly_type,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

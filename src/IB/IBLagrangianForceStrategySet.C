@@ -1,5 +1,5 @@
 // Filename: IBLagrangianForceStrategySet.C
-// Last modified: <09.May.2008 17:31:58 griffith@box230.cims.nyu.edu>
+// Last modified: <29.Jul.2008 15:38:02 griffith@box230.cims.nyu.edu>
 // Created on 04 April 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBLagrangianForceStrategySet.h"
@@ -79,8 +79,27 @@ IBLagrangianForceStrategySet::computeLagrangianForce(
 }// computeLagrangianForce
 
 void
+IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& d_nnz,
+    std::vector<int>& o_nnz,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    for (std::vector<SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> >::iterator it = d_strategy_set.begin();
+         it != d_strategy_set.end(); ++it)
+    {
+        (*it)->computeLagrangianForceJacobianNonzeroStructure(
+            d_nnz, o_nnz, hierarchy, level_number, data_time, lag_manager);
+    }
+    return;
+}// computeLagrangianForceJacobianNonzeroStructure
+
+void
 IBLagrangianForceStrategySet::computeLagrangianForceJacobian(
     Mat& J_mat,
+    MatAssemblyType assembly_type,
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
@@ -91,7 +110,13 @@ IBLagrangianForceStrategySet::computeLagrangianForceJacobian(
          it != d_strategy_set.end(); ++it)
     {
         (*it)->computeLagrangianForceJacobian(
-            J_mat, X_data, hierarchy, level_number, data_time, lag_manager);
+            J_mat, MAT_FLUSH_ASSEMBLY, X_data, hierarchy, level_number, data_time, lag_manager);
+    }
+    if (assembly_type != MAT_FLUSH_ASSEMBLY)
+    {
+        int ierr;
+        ierr = MatAssemblyBegin(J_mat, assembly_type);  IBTK_CHKERRQ(ierr);
+        ierr = MatAssemblyEnd(J_mat, assembly_type);  IBTK_CHKERRQ(ierr);
     }
     return;
 }// computeLagrangianForceJacobian

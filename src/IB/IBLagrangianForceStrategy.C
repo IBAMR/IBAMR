@@ -1,5 +1,5 @@
 // Filename: IBLagrangianForceStrategy.C
-// Last modified: <09.May.2008 17:31:32 griffith@box230.cims.nyu.edu>
+// Last modified: <29.Jul.2008 15:37:46 griffith@box230.cims.nyu.edu>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBLagrangianForceStrategy.h"
@@ -58,8 +58,23 @@ IBLagrangianForceStrategy::initializeLevelData(
 }// initializeLevelData
 
 void
+IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& d_nnz,
+    std::vector<int>& o_nnz,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure():\n"
+               << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy." << std::endl);
+    return;
+}// initializeLevelData
+
+void
 IBLagrangianForceStrategy::computeLagrangianForceJacobian(
     Mat& J_mat,
+    MatAssemblyType assembly_type,
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,

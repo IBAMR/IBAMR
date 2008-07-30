@@ -315,22 +315,17 @@ main(
                 input_db->getDatabase("HierarchyProjector"),
                 patch_hierarchy);
 
-        tbox::Pointer<IBSpringForceGen> spring_force_generator =
-            new IBSpringForceGen();
-//        tbox::Pointer<IBBeamForceGen> beam_force_generator =
-//            new IBBeamForceGen();
-//        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator =
-//            new IBTargetPointForceGen();
-
-//      tbox::Pointer<IBStandardForceGen> force_generator =
-//          new IBStandardForceGen(
-//              spring_force_generator, beam_force_generator, target_point_force_generator);
+        tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
+        tbox::Pointer<IBBeamForceGen> beam_force_generator = NULL;
+        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator = new IBTargetPointForceGen();
+        tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen(
+            spring_force_generator, beam_force_generator, target_point_force_generator);
 
         tbox::Pointer<IBStaggeredHierarchyIntegrator> time_integrator =
             new IBStaggeredHierarchyIntegrator(
                 "IBStaggeredHierarchyIntegrator",
                 input_db->getDatabase("IBStaggeredHierarchyIntegrator"),
-                patch_hierarchy, hier_projector, spring_force_generator);
+                patch_hierarchy, hier_projector, force_generator);
 
         tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(
@@ -368,6 +363,7 @@ main(
 
         time_integrator->registerVelocityInitialConditions(u_init);
         time_integrator->registerPressureInitialConditions(p_init);
+
         /*
          * Create boundary condition specification objects (when necessary).
          */
@@ -392,14 +388,6 @@ main(
                         bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry));
             }
             time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
-        }
-
-        solv::RobinBcCoefStrategy<NDIM>* P_bc_coef = NULL;
-        if (!periodic_domain && input_db->isDatabase("PressureBcCoef"))
-        {
-            P_bc_coef = new muParserRobinBcCoefs(
-                "PressureBcCoef", input_db->getDatabase("PressureBcCoef"), grid_geometry);
-            //time_integrator->registerPressurePhysicalBcCoef(P_bc_coef);  XXXX
         }
 
         /*

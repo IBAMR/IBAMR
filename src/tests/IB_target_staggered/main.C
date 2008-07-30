@@ -33,21 +33,12 @@
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/GodunovAdvector.h>
-#include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBStaggeredHierarchyIntegrator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
-#include <ibamr/INSHierarchyIntegrator.h>
 #include <ibtk/LagSiloDataWriter.h>
-#include <ibtk/TimeDependentLocationIndexRobinBcCoefs.h>
-
-#include "VelocityBcCoefs.h"
-
-#define USE_FEEDBACK_FORCING 0
-
-#if (USE_FEEDBACK_FORCING == 1)
-#include "FeedbackForcer.h"
-#endif
+#include <ibtk/muParserDataSetter.h>
+#include <ibtk/muParserRobinBcCoefs.h>
 
 using namespace IBAMR;
 using namespace IBTK;
@@ -317,81 +308,23 @@ main(
                 "PatchHierarchy",
                 grid_geometry);
 
-        tbox::Pointer<GodunovAdvector> predictor =
-            new GodunovAdvector(
-                "GodunovAdvector",
-                input_db->getDatabase("GodunovAdvector"));
-
-        tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator =
-            new AdvDiffHierarchyIntegrator(
-                "AdvDiffHierarchyIntegrator",
-                input_db->getDatabase("AdvDiffHierarchyIntegrator"),
-                patch_hierarchy, predictor);
-
         tbox::Pointer<HierarchyProjector> hier_projector =
             new HierarchyProjector(
                 "HierarchyProjector",
                 input_db->getDatabase("HierarchyProjector"),
                 patch_hierarchy);
 
-        tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator =
-            new INSHierarchyIntegrator(
-                "INSHierarchyIntegrator",
-                input_db->getDatabase("INSHierarchyIntegrator"),
-                patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
+        tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
+        tbox::Pointer<IBBeamForceGen> beam_force_generator = NULL;
+        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator = new IBTargetPointForceGen();
+        tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen(
+            spring_force_generator, beam_force_generator, target_point_force_generator);
 
-        tbox::Pointer<IBSpringForceGen> spring_force_generator =
-            new IBSpringForceGen();
-        tbox::Pointer<IBBeamForceGen> beam_force_generator =
-            new IBBeamForceGen();
-        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator =
-            new IBTargetPointForceGen();
-
-        tbox::Pointer<IBStandardForceGen> force_generator =
-            new IBStandardForceGen(
-                spring_force_generator, beam_force_generator, target_point_force_generator);
-
-        tbox::Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBHierarchyIntegrator(
-                "IBHierarchyIntegrator",
-                input_db->getDatabase("IBHierarchyIntegrator"),
-                patch_hierarchy, navier_stokes_integrator, force_generator);
-
-        VelocityBcCoefs u0_bc_coef(
-            "u0_bc_coef", grid_geometry);
-        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
-            "u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        u1_bc_coef.setBoundaryValue(0,0.0);  // x lower boundary
-        u1_bc_coef.setBoundarySlope(1,0.0);  // x upper boundary
-        u1_bc_coef.setBoundaryValue(2,0.0);  // y lower boundary
-        u1_bc_coef.setBoundaryValue(3,0.0);  // y upper boundary
-#if (NDIM > 2)
-        u1_bc_coef.setBoundarySlope(4,0.0);  // z lower boundary
-        u1_bc_coef.setBoundarySlope(5,0.0);  // z upper boundary
-#endif
-#if (NDIM > 2)
-        solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef(
-            "u2_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        u2_bc_coef.setBoundaryValue(0,0.0);  // x lower boundary
-        u2_bc_coef.setBoundarySlope(1,0.0);  // x upper boundary
-        u2_bc_coef.setBoundarySlope(2,0.0);  // y lower boundary
-        u2_bc_coef.setBoundarySlope(3,0.0);  // y upper boundary
-        u2_bc_coef.setBoundaryValue(4,0.0);  // z lower boundary
-        u2_bc_coef.setBoundaryValue(5,0.0);  // z upper boundary
-#endif
-
-        vector<solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
-        U_bc_coefs[0] = &u0_bc_coef;
-        U_bc_coefs[1] = &u1_bc_coef;
-#if (NDIM > 2)
-        U_bc_coefs[2] = &u2_bc_coef;
-#endif
-
-#if (USE_FEEDBACK_FORCING == 1)
-        FeedbackForcer feedback_forcer("feedback_forcer", grid_geometry);
-        time_integrator->registerBodyForceSpecification(tbox::Pointer<SetDataStrategy>(&feedback_forcer,false));
-#endif
-        time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
+        tbox::Pointer<IBStaggeredHierarchyIntegrator> time_integrator =
+            new IBStaggeredHierarchyIntegrator(
+                "IBStaggeredHierarchyIntegrator",
+                input_db->getDatabase("IBStaggeredHierarchyIntegrator"),
+                patch_hierarchy, hier_projector, force_generator);
 
         tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(
@@ -418,6 +351,43 @@ main(
                 "GriddingAlgorithm",
                 input_db->getDatabase("GriddingAlgorithm"),
                 error_detector, box_generator, load_balancer);
+
+        /*
+         * Create initial condition specification objects.
+         */
+        tbox::Pointer<SetDataStrategy> u_init = new muParserDataSetter(
+            "u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
+        tbox::Pointer<SetDataStrategy> p_init = new muParserDataSetter(
+            "p_init", input_db->getDatabase("PressureInitialConditions"), grid_geometry);
+
+        time_integrator->registerVelocityInitialConditions(u_init);
+        time_integrator->registerPressureInitialConditions(p_init);
+
+        /*
+         * Create boundary condition specification objects (when necessary).
+         */
+        const hier::IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
+        const bool periodic_domain = periodic_shift.min() != 0;
+
+        vector<solv::RobinBcCoefStrategy<NDIM>*> u_bc_coefs;
+        if (!periodic_domain)
+        {
+            for (int d = 0; d < NDIM; ++d)
+            {
+                ostringstream bc_coefs_name_stream;
+                bc_coefs_name_stream << "u_bc_coefs_" << d;
+                const string bc_coefs_name = bc_coefs_name_stream.str();
+
+                ostringstream bc_coefs_db_name_stream;
+                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
+                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+
+                u_bc_coefs.push_back(
+                    new muParserRobinBcCoefs(
+                        bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry));
+            }
+            time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
+        }
 
         /*
          * Set up visualization plot file writer.

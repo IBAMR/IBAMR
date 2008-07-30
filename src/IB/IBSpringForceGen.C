@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <12.May.2008 18:43:33 griffith@box230.cims.nyu.edu>
+// Last modified: <29.Jul.2008 15:38:22 griffith@box230.cims.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -44,6 +44,7 @@ namespace
 // Timers.
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian_nonzero_structure;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 }
 
@@ -52,7 +53,6 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 IBSpringForceGen::IBSpringForceGen(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_D_mats(),
-      d_J_mats(),
       d_lag_mastr_node_idxs(),
       d_lag_slave_node_idxs(),
       d_petsc_mastr_node_idxs(),
@@ -79,6 +79,8 @@ IBSpringForceGen::IBSpringForceGen(
             getTimer("IBAMR::IBSpringForceGen::computeLagrangianForce()");
         t_compute_lagrangian_force_jacobian = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBSpringForceGen::computeLagrangianForceJacobian()");
+        t_compute_lagrangian_force_jacobian_nonzero_structure = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure()");
         t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBSpringForceGen::initializeLevelData()");
         timers_need_init = false;
@@ -90,13 +92,6 @@ IBSpringForceGen::~IBSpringForceGen()
 {
     int ierr;
     for (std::vector<Mat>::iterator it = d_D_mats.begin(); it != d_D_mats.end(); ++it)
-    {
-        if (*it)
-        {
-            ierr = MatDestroy(*it);  IBTK_CHKERRQ(ierr);
-        }
-    }
-    for (std::vector<Mat>::iterator it = d_J_mats.begin(); it != d_J_mats.end(); ++it)
     {
         if (*it)
         {
@@ -149,7 +144,6 @@ IBSpringForceGen::initializeLevelData(
     const int new_size = std::max(level_number+1, int(d_is_initialized.size()));
 
     d_D_mats.resize(new_size);
-    d_J_mats.resize(new_size);
     d_lag_mastr_node_idxs.resize(new_size);
     d_lag_slave_node_idxs.resize(new_size);
     d_petsc_mastr_node_idxs.resize(new_size);
@@ -160,7 +154,6 @@ IBSpringForceGen::initializeLevelData(
     d_is_initialized.resize(new_size, false);
 
     Mat& D_mat = d_D_mats[level_number];
-    Mat& J_mat = d_J_mats[level_number];
     std::vector<int>& lag_mastr_node_idxs = d_lag_mastr_node_idxs[level_number];
     std::vector<int>& lag_slave_node_idxs = d_lag_slave_node_idxs[level_number];
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
@@ -172,10 +165,6 @@ IBSpringForceGen::initializeLevelData(
     if (D_mat)
     {
         ierr = MatDestroy(D_mat);  IBTK_CHKERRQ(ierr);
-    }
-    if (J_mat)
-    {
-        ierr = MatDestroy(J_mat);  IBTK_CHKERRQ(ierr);
     }
     lag_mastr_node_idxs.clear();
     lag_slave_node_idxs.clear();
@@ -255,18 +244,18 @@ IBSpringForceGen::initializeLevelData(
     // Determine the non-zero structure for the matrix used to compute nodal
     // displacements.
     const int local_sz = petsc_mastr_node_idxs.size();
-    std::vector<int> d_nz(local_sz,1), o_nz(local_sz,0);
+    std::vector<int> d_nnz(local_sz,1), o_nnz(local_sz,0);
     for (int k = 0; k < local_sz; ++k)
     {
         const int& slave_idx = petsc_slave_node_idxs[k];
         if (slave_idx >= global_node_offset &&
             slave_idx <  global_node_offset+num_local_nodes)
         {
-            ++d_nz[k]; // a "local"    slave index
+            ++d_nnz[k]; // a "local"    slave index
         }
         else
         {
-            ++o_nz[k]; // a "nonlocal" slave index
+            ++o_nnz[k]; // a "nonlocal" slave index
         }
     }
 
@@ -275,8 +264,8 @@ IBSpringForceGen::initializeLevelData(
     ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
                             NDIM, NDIM*local_sz, NDIM*num_local_nodes,
                             PETSC_DETERMINE, PETSC_DETERMINE,
-                            PETSC_DEFAULT, &d_nz[0],
-                            PETSC_DEFAULT, &o_nz[0],
+                            PETSC_DEFAULT, &d_nnz[0],
+                            PETSC_DEFAULT, &o_nnz[0],
                             &D_mat);  IBTK_CHKERRQ(ierr);
 
     std::vector<double> mastr_vals(NDIM*NDIM,0.0);
@@ -305,102 +294,9 @@ IBSpringForceGen::initializeLevelData(
                                    INSERT_VALUES);  IBTK_CHKERRQ(ierr);
     }
 
-    // Determine the non-zero structure for the matrix used to store the
-    // Jacobian of the force.
-    //
-    // NOTE: Each edge is *only* associated with a single node in the mesh.  We
-    // must take this into account when determining the non-zero structure of
-    // the matrix.
-    MPI_Comm comm = SAMRAI::tbox::SAMRAI_MPI::getCommunicator();
-    Vec d_nz_vec, o_nz_vec;
-    ierr = VecCreateMPI(comm, num_local_nodes, PETSC_DETERMINE, &d_nz_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecCreateMPI(comm, num_local_nodes, PETSC_DETERMINE, &o_nz_vec);  IBTK_CHKERRQ(ierr);
-
-    ierr = VecSet(d_nz_vec, 1.0);  IBTK_CHKERRQ(ierr);
-    ierr = VecSet(o_nz_vec, 0.0);  IBTK_CHKERRQ(ierr);
-
-    TBOX_ASSERT(local_sz == int(petsc_mastr_node_idxs.size()));
-    for (int k = 0; k < local_sz; ++k)
-    {
-        const int& mastr_idx = petsc_mastr_node_idxs[k];
-        const int& slave_idx = petsc_slave_node_idxs[k];
-
-        static const int N = 2;
-        const int idxs[N] = { mastr_idx , slave_idx };
-        const double vals[N] = { 1.0 , 1.0 };
-        if (slave_idx >= global_node_offset &&
-            slave_idx <  global_node_offset+num_local_nodes)
-        {
-            ierr = VecSetValues(d_nz_vec, N, idxs, vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
-        }
-        else
-        {
-            ierr = VecSetValues(o_nz_vec, N, idxs, vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
-        }
-    }
-
-    ierr = VecAssemblyBegin(d_nz_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyBegin(o_nz_vec);  IBTK_CHKERRQ(ierr);
-
-    ierr = VecAssemblyEnd(d_nz_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(o_nz_vec);  IBTK_CHKERRQ(ierr);
-
-    double* d_nz_vec_arr;
-    double* o_nz_vec_arr;
-
-    ierr = VecGetArray(d_nz_vec, &d_nz_vec_arr);  IBTK_CHKERRQ(ierr);
-    ierr = VecGetArray(o_nz_vec, &o_nz_vec_arr);  IBTK_CHKERRQ(ierr);
-
-    d_nz.clear();
-    o_nz.clear();
-    d_nz.resize(num_local_nodes,1);
-    o_nz.resize(num_local_nodes,0);
-    for (int k = 0; k < num_local_nodes; ++k)
-    {
-        d_nz[k] = int(d_nz_vec_arr[k]);
-        o_nz[k] = int(o_nz_vec_arr[k]);
-    }
-
-    ierr = VecRestoreArray(d_nz_vec, &d_nz_vec_arr);  IBTK_CHKERRQ(ierr);
-    ierr = VecRestoreArray(o_nz_vec, &o_nz_vec_arr);  IBTK_CHKERRQ(ierr);
-
-    ierr = VecDestroy(d_nz_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(o_nz_vec);  IBTK_CHKERRQ(ierr);
-
-    // Create a new MPI block AIJ matrix used to store the Jacobian of the force
-    // and set dummy values for the matrix entries.
-    ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
-                            NDIM, NDIM*num_local_nodes, NDIM*num_local_nodes,
-                            PETSC_DETERMINE, PETSC_DETERMINE,
-                            PETSC_DEFAULT, &d_nz[0],
-                            PETSC_DEFAULT, &o_nz[0],
-                            &J_mat);  IBTK_CHKERRQ(ierr);
-
-    static const int N = 2;
-    std::vector<double> dummy_vals(N*NDIM*NDIM,1.0);
-    ierr = MatGetOwnershipRange(J_mat, &i_offset, PETSC_NULL);
-    IBTK_CHKERRQ(ierr);
-    i_offset /= NDIM;
-
-    for (int k = 0; k < local_sz; ++k)
-    {
-        const int& i = petsc_mastr_node_idxs[k];
-        const int& j = petsc_slave_node_idxs[k];
-
-        // Set entries on row i.
-        const int idxs_i[N] = { j , i };
-        ierr = MatSetValuesBlocked(J_mat,1,&i,N,idxs_i,&(dummy_vals[0]),INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-
-        // Set entries on row j.
-        const int idxs_j[N] = { i , j };
-        ierr = MatSetValuesBlocked(J_mat,1,&j,N,idxs_j,&(dummy_vals[0]),INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-    }
-
     // Assemble the matrices.
     ierr = MatAssemblyBegin(D_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyBegin(J_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyEnd(D_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(J_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
 
     // Indicate that the level data has been initialized.
     d_is_initialized[level_number] = true;
@@ -492,8 +388,96 @@ IBSpringForceGen::computeLagrangianForce(
 }// computeLagrangianForce
 
 void
+IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& d_nnz,
+    std::vector<int>& o_nnz,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    t_compute_lagrangian_force_jacobian_nonzero_structure->start();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(level_number < int(d_is_initialized.size()));
+    TBOX_ASSERT(d_is_initialized[level_number]);
+#endif
+
+    int ierr;
+
+    // Lookup the cached connectivity information.
+    std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
+    std::vector<int>& petsc_slave_node_idxs = d_petsc_slave_node_idxs[level_number];
+    const int local_sz = petsc_mastr_node_idxs.size();
+
+    // Determine the global node offset and the number of local nodes.
+    const int global_node_offset = lag_manager->getGlobalNodeOffset(level_number);
+    const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_number);
+
+    // Determine the non-zero structure for the matrix used to store the
+    // Jacobian of the force.
+    //
+    // NOTE: Each edge is *only* associated with a single node in the mesh.  We
+    // must take this into account when determining the non-zero structure of
+    // the matrix.
+    Vec d_nnz_vec, o_nnz_vec;
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, num_local_nodes, PETSC_DETERMINE, &d_nnz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, num_local_nodes, PETSC_DETERMINE, &o_nnz_vec);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecSet(d_nnz_vec, 1.0);  IBTK_CHKERRQ(ierr);
+    ierr = VecSet(o_nnz_vec, 0.0);  IBTK_CHKERRQ(ierr);
+
+    for (int k = 0; k < local_sz; ++k)
+    {
+        const int& mastr_idx = petsc_mastr_node_idxs[k];
+        const int& slave_idx = petsc_slave_node_idxs[k];
+
+        static const int N = 2;
+        const int idxs[N] = { mastr_idx , slave_idx };
+        const double vals[N] = { 1.0 , 1.0 };
+        if (slave_idx >= global_node_offset &&
+            slave_idx <  global_node_offset+num_local_nodes)
+        {
+            ierr = VecSetValues(d_nnz_vec, N, idxs, vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            ierr = VecSetValues(o_nnz_vec, N, idxs, vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+    }
+
+    ierr = VecAssemblyBegin(d_nnz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(o_nnz_vec);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecAssemblyEnd(d_nnz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(o_nnz_vec);  IBTK_CHKERRQ(ierr);
+
+    double* d_nnz_vec_arr;
+    double* o_nnz_vec_arr;
+
+    ierr = VecGetArray(d_nnz_vec, &d_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecGetArray(o_nnz_vec, &o_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
+
+    for (int k = 0; k < num_local_nodes; ++k)
+    {
+        d_nnz[k] += int(d_nnz_vec_arr[k]);
+        o_nnz[k] += int(o_nnz_vec_arr[k]);
+    }
+
+    ierr = VecRestoreArray(d_nnz_vec, &d_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArray(o_nnz_vec, &o_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecDestroy(d_nnz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(o_nnz_vec);  IBTK_CHKERRQ(ierr);
+
+    t_compute_lagrangian_force_jacobian_nonzero_structure->stop();
+    return;
+}// computeLagrangianForceJacobianNonzeroStructure
+
+void
 IBSpringForceGen::computeLagrangianForceJacobian(
     Mat& J_mat,
+    MatAssemblyType assembly_type,
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
@@ -508,13 +492,6 @@ IBSpringForceGen::computeLagrangianForceJacobian(
 #endif
 
     int ierr;
-
-    TBOX_WARNING("this should ADD to the Jacobian, not destroy it!\n");
-    if (J_mat != static_cast<Mat>(NULL))
-    {
-        ierr = MatDestroy(J_mat);  IBTK_CHKERRQ(ierr);
-    }
-    ierr = MatDuplicate(d_J_mats[level_number], MAT_DO_NOT_COPY_VALUES, &J_mat);  IBTK_CHKERRQ(ierr);
 
     // Create an appropriately sized temporary vector to store the node
     // displacements.
@@ -585,8 +562,8 @@ IBSpringForceGen::computeLagrangianForceJacobian(
     ierr = VecDestroy(D_vec);               IBTK_CHKERRQ(ierr);
 
     // Assemble the matrix.
-    ierr = MatAssemblyBegin(J_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(J_mat, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(J_mat, assembly_type);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(J_mat, assembly_type);    IBTK_CHKERRQ(ierr);
 
     t_compute_lagrangian_force_jacobian->stop();
     return;
