@@ -2,7 +2,7 @@
 #define included_IBTargetPointForceSpec
 
 // Filename: IBTargetPointForceSpec.h
-// Last modified: <12.Mar.2008 22:38:42 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:12:20 griffith@box230.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -55,6 +55,7 @@ public:
     IBTargetPointForceSpec(
         const int master_idx=-1,
         const double& kappa_target=0.0,
+        const double& eta_target=0.0,
         const std::vector<double>& X_target=std::vector<double>(NDIM,0.0));
 
     /*!
@@ -88,6 +89,20 @@ public:
      */
     double&
     getStiffness();
+
+    /*!
+     * \return A const reference to the damping factor of the spring attached to
+     * the target point.
+     */
+    const double&
+    getDamping() const;
+
+    /*!
+     * \return A non-const reference to the damping factor of the spring
+     * attached to the target point.
+     */
+    double&
+    getDamping();
 
     /*!
      * \return A const reference to the position of the target point attached to
@@ -173,7 +188,7 @@ private:
      * Data required to define the target point penalty forces.
      */
     int d_master_idx;
-    double d_kappa_target;
+    double d_kappa_target, d_eta_target;
     std::vector<double> d_X_target;
 };
 }// namespace IBAMR

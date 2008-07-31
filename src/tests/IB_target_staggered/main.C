@@ -448,21 +448,7 @@ main(
             }
         }
 
-#if (USE_FEEDBACK_FORCING == 1)
-        /*
-         * Set the current velocity data index for the feedback forcer.
-         */
-        hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-        feedback_forcer.d_U_data_idx = var_db->mapVariableAndContextToIndex(
-            navier_stokes_integrator->getVelocityVar(),
-            navier_stokes_integrator->getCurrentContext());
-
-        /*
-         * Set the feedback forcing parmeter.
-         */
-        feedback_forcer.d_kappa = 0.5*input_db->getDouble("RHO")/dt_now;
-#endif
-
+#if 0
         /*
          * Open files to output the lift and drag coefficients.
          */
@@ -489,6 +475,7 @@ main(
                 lift_stream << 0.0 << " " << 0.0 << endl;
             }
         }
+#endif
 
         /*
          * Time step loop.  Note that the step count and integration time are
@@ -519,7 +506,7 @@ main(
             tbox::pout << "Simulation time is " << loop_time                 << endl;
             tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
             tbox::pout <<                                                       endl;
-
+#if 0
             /*
              * Compute the drag and lift coefficients by integrating the
              * components of the Lagrangian force field over the computational
@@ -556,7 +543,7 @@ main(
                 drag_stream << loop_time << " " << F_D/radius << endl;
                 lift_stream << loop_time << " " << F_L/radius << endl;
             }
-
+#endif
             /*
              * At specified intervals, output timer data and write visualization
              * and restart and files.
@@ -613,6 +600,7 @@ main(
             }
         }
 
+#if 0
         /*
          * Close the files used to store the lift and drag coefficients.
          */
@@ -621,6 +609,7 @@ main(
             drag_stream.close();
             lift_stream.close();
         }
+#endif
 
         /*
          * Delete the lock file.

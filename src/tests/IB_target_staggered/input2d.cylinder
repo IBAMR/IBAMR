@@ -63,11 +63,11 @@ PressureInitialConditions {
 IBStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 300.0e0  // final simulation time
-   grow_dt               = 2.0e0    // growth factor for timesteps
+   grow_dt               = 1.25e0   // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 12       // disable regridding
 
-   use_exact_jacobian = TRUE
+   use_exact_jacobian = FALSE
 
    delta_fcn = "IB_4"
 
@@ -102,15 +102,17 @@ IBStaggeredHierarchyIntegrator {
 // Note that these stiffness must be modified if generate_mesh2d.m
 // is modified.
 
-K_s = 20000.0*NFINEST/Re
+K_s = 2000.0*NFINEST/Re
+E_s = 20.0*NFINEST/Re
 ds = 2.0*PI*R/(0.375*NFINEST)
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
 
-   base_filenames_0 = "cylinder2d_256"   // corresponds to NFINEST = 128
+   base_filenames_0 = "cylinder2d_256"   // corresponds to NFINEST = 256
    cylinder2d_256 {
       uniform_target_stiffness = K_s*ds
+      uniform_target_damping = E_s*ds
    }
 }
 
@@ -169,7 +171,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 8           // zero to turn off
+   viz_dump_interval     = 1           // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 

@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <10.Jun.2008 14:02:08 griffith@box230.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:42:38 griffith@box230.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -111,8 +111,11 @@ IBStandardInitializer::IBStandardInitializer(
       d_uniform_beam_bend_rigidity(),
       d_enable_target_points(),
       d_target_stiffness(),
+      d_target_damping(),
       d_using_uniform_target_stiffness(),
       d_uniform_target_stiffness(),
+      d_using_uniform_target_damping(),
+      d_uniform_target_damping(),
       d_enable_bdry_mass(),
       d_bdry_mass(),
       d_bdry_mass_stiffness(),
@@ -986,12 +989,14 @@ IBStandardInitializer::readTargetPointFiles()
     {
         const int num_base_filename = d_base_filename[ln].size();
         d_target_stiffness[ln].resize(num_base_filename);
+        d_target_damping  [ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
             d_target_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
+            d_target_damping  [ln][j].resize(d_num_vertex[ln][j], 0.0);  // XXXX: values not set!
 
             const std::string target_point_stiffness_filename = d_base_filename[ln][j] + ".target";
             std::ifstream file_stream;
@@ -1003,8 +1008,8 @@ IBStandardInitializer::readTargetPointFiles()
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of target
-                // point stiffnesses in the input file.
-                int num_target_stiffness;
+                // point specifications in the input file.
+                int num_target_points;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << target_point_stiffness_filename << std::endl);
@@ -1013,20 +1018,20 @@ IBStandardInitializer::readTargetPointFiles()
                 {
                     line_string = discard_comments(line_string);
                     std::istringstream line_stream(line_string);
-                    if (!(line_stream >> num_target_stiffness))
+                    if (!(line_stream >> num_target_points))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << target_point_stiffness_filename << std::endl);
                     }
                 }
 
-                if (num_target_stiffness <= 0)
+                if (num_target_points <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << target_point_stiffness_filename << std::endl);
                 }
 
                 // Each successive line indicates the vertex number and spring
                 // constant associated with any target points.
-                for (int k = 0; k < num_target_stiffness; ++k)
+                for (int k = 0; k < num_target_points; ++k)
                 {
                     int n;
                     if (!std::getline(file_stream, line_string))
@@ -1063,7 +1068,7 @@ IBStandardInitializer::readTargetPointFiles()
                 file_stream.close();
 
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_target_stiffness << " target points from input filename " << target_point_stiffness_filename << std::endl
+                                   << "read " << num_target_points << " target points from input filename " << target_point_stiffness_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
             }
 
@@ -1072,16 +1077,18 @@ IBStandardInitializer::readTargetPointFiles()
             // values are to be employed, for this particular structure.
             if (!d_enable_target_points[ln][j])
             {
-                d_target_stiffness[ln][j] = std::vector<double>(
-                    d_num_vertex[ln][j], 0.0);
+                d_target_stiffness[ln][j] = std::vector<double>(d_num_vertex[ln][j], 0.0);
+                d_target_damping  [ln][j] = std::vector<double>(d_num_vertex[ln][j], 0.0);
             }
             else
             {
                 if (d_using_uniform_target_stiffness[ln][j])
                 {
-                    d_target_stiffness[ln][j] = std::vector<double>(
-                        d_num_vertex[ln][j],
-                        d_uniform_target_stiffness[ln][j]);
+                    d_target_stiffness[ln][j] = std::vector<double>(d_num_vertex[ln][j], d_uniform_target_stiffness[ln][j]);
+                }
+                if (d_using_uniform_target_damping[ln][j])
+                {
+                    d_target_damping[ln][j] = std::vector<double>(d_num_vertex[ln][j], d_uniform_target_damping[ln][j]);
                 }
             }
 
@@ -1514,6 +1521,14 @@ IBStandardInitializer::getVertexTargetStiffness(
 }// getVertexTargetStiffness
 
 double
+IBStandardInitializer::getVertexTargetDamping(
+    const std::pair<int,int>& point_index,
+    const int level_number) const
+{
+    return d_target_damping[level_number][point_index.first][point_index.second];
+}// getVertexTargetDamping
+
+double
 IBStandardInitializer::getVertexMass(
     const std::pair<int,int>& point_index,
     const int level_number) const
@@ -1611,13 +1626,14 @@ IBStandardInitializer::initializeSpecs(
     }
 
     const double kappa_target = getVertexTargetStiffness(point_index, level_number);
+    const double eta_target = getVertexTargetDamping(point_index, level_number);
     const std::vector<double> X_target = getVertexPosn(point_index, level_number);
 
     if (!SAMRAI::tbox::MathUtilities<double>::equalEps(kappa_target,0.0))
     {
         vertex_specs.push_back(
             new IBTargetPointForceSpec(
-                mastr_idx, kappa_target, X_target));
+                mastr_idx, kappa_target, eta_target, X_target));
     }
 
     const std::pair<int,int> inst_idx = getVertexInstrumentationIndices(point_index, level_number);
@@ -1690,8 +1706,11 @@ IBStandardInitializer::getFromInput(
 
     d_enable_target_points.resize(d_max_levels);
     d_target_stiffness.resize(d_max_levels);
+    d_target_damping.resize(d_max_levels);
     d_using_uniform_target_stiffness.resize(d_max_levels);
     d_uniform_target_stiffness.resize(d_max_levels);
+    d_using_uniform_target_damping.resize(d_max_levels);
+    d_uniform_target_damping.resize(d_max_levels);
 
     d_enable_bdry_mass.resize(d_max_levels);
     d_bdry_mass.resize(d_max_levels);
@@ -1761,6 +1780,9 @@ IBStandardInitializer::getFromInput(
 
         d_using_uniform_target_stiffness[ln].resize(num_base_filename,false);
         d_uniform_target_stiffness[ln].resize(num_base_filename,-1.0);
+
+        d_using_uniform_target_damping[ln].resize(num_base_filename,false);
+        d_uniform_target_damping[ln].resize(num_base_filename,-1.0);
 
         d_enable_bdry_mass[ln].resize(num_base_filename,true);
 
@@ -1857,6 +1879,18 @@ IBStandardInitializer::getFromInput(
                     }
                 }
 
+                if (sub_db->keyExists("uniform_target_damping"))
+                {
+                    d_using_uniform_target_damping[ln][j] = true;
+                    d_uniform_target_damping[ln][j] = sub_db->getDouble("uniform_target_damping");
+
+                    if (d_uniform_target_damping[ln][j] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_damping' in database " << base_filename << std::endl
+                                   << "  target point spring constant is negative" << std::endl);
+                    }
+                }
+
                 if (sub_db->keyExists("uniform_bdry_mass"))
                 {
                     d_using_uniform_bdry_mass[ln][j] = true;
@@ -1942,6 +1976,11 @@ IBStandardInitializer::getFromInput(
                 {
                     SAMRAI::tbox::pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << base_filename << std::endl
                                        << "        any target point stiffness information in optional file " << base_filename << ".target will be IGNORED" << std::endl;
+                }
+                if (d_using_uniform_target_damping[ln][j])
+                {
+                    SAMRAI::tbox::pout << "  NOTE: uniform target point damping factors are being employed for the structure named " << base_filename << std::endl
+                                       << "        any target point damping factor information in optional file " << base_filename << ".target will be IGNORED" << std::endl;
                 }
             }
 

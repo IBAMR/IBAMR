@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceSpecFactory.C
-// Last modified: <12.Mar.2008 23:08:21 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:13:46 griffith@box230.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceSpecFactory.h"
@@ -67,9 +67,11 @@ IBTargetPointForceSpecFactory::unpackStream(
     stream.unpack(&mastr_idx,1);
     double kappa_target;
     stream.unpack(&kappa_target,1);
+    double eta_target;
+    stream.unpack(&eta_target,1);
     std::vector<double> X_target(NDIM);
     stream.unpack(&X_target[0],NDIM);
-    return new IBTargetPointForceSpec(mastr_idx,kappa_target,X_target);
+    return new IBTargetPointForceSpec(mastr_idx,kappa_target,eta_target,X_target);
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

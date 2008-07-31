@@ -2,7 +2,7 @@
 #define included_IBTargetPointForceGen
 
 // Filename: IBTargetPointForceGen.h
-// Last modified: <29.Jul.2008 15:39:01 griffith@box230.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:08:06 griffith@box230.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -48,6 +48,7 @@ public:
     computeLagrangianForce(
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,

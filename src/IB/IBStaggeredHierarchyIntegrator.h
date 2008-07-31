@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <28.Jul.2008 19:25:00 griffith@box230.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:19:56 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1149,7 +1149,6 @@ private:
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_new_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_U_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_F_new_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_F_half_data;
     std::vector<Mat> d_J_mat, d_strct_mat, d_strct_pc_mat;
     std::vector<KSP> d_strct_ksp;

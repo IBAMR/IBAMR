@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <29.Jul.2008 15:38:54 griffith@box230.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:10:59 griffith@box230.cims.nyu.edu>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
@@ -84,6 +84,7 @@ void
 IBTargetPointForceGen::computeLagrangianForce(
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -101,6 +102,10 @@ IBTargetPointForceGen::computeLagrangianForce(
     Vec X_vec = X_data->getGlobalVec();
     double* X_arr;
     ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
+
+    Vec U_vec = U_data->getGlobalVec();
+    double* U_arr;
+    ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
 
     // Get the grid geometry object and determine the extents of the physical
     // domain.
@@ -133,8 +138,7 @@ IBTargetPointForceGen::computeLagrangianForce(
                  n != node_set.end(); ++n)
             {
                 const IBTK::LNodeIndexSet::value_type& node_idx = *n;
-                const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data =
-                    node_idx->getStashData();
+                const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data = node_idx->getStashData();
                 for (unsigned l = 0; l < stash_data.size(); ++l)
                 {
                     SAMRAI::tbox::Pointer<IBTargetPointForceSpec> force_spec = stash_data[l];
@@ -145,17 +149,19 @@ IBTargetPointForceGen::computeLagrangianForce(
                         TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
                         const double& kappa_target = force_spec->getStiffness();
+                        const double& eta_target = force_spec->getDamping();
                         if (!SAMRAI::tbox::MathUtilities<double>::equalEps(kappa_target,0.0))
                         {
                             const int& petsc_idx = node_idx->getLocalPETScIndex();
                             const double* const X = &X_arr[NDIM*petsc_idx];
+                            const double* const U = &U_arr[NDIM*petsc_idx];
                             const std::vector<double>& X_target = force_spec->getTargetPointPosition();
 
                             double* const F = &F_arr[NDIM*petsc_idx];
                             double displacement = 0.0;
                             for (int d = 0; d < NDIM; ++d)
                             {
-                                F[d] += kappa_target*(X_target[d] - X[d]);
+                                F[d] += kappa_target*(X_target[d] - X[d]) - eta_target*(U[d]);
                                 displacement += pow(X_target[d] - X[d],2.0);
                             }
                             displacement = sqrt(displacement);
@@ -172,6 +178,7 @@ IBTargetPointForceGen::computeLagrangianForce(
 
     ierr = VecRestoreArray(F_vec, &F_arr);  IBTK_CHKERRQ(ierr);
     ierr = VecRestoreArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
 
     max_config_displacement = SAMRAI::tbox::SAMRAI_MPI::maxReduction(max_config_displacement);
     if (max_config_displacement > max_displacement)

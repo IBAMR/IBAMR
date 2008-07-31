@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPressureBcCoef.C
-// Last modified: <25.Jul.2008 13:48:27 griffith@box230.cims.nyu.edu>
+// Last modified: <30.Jul.2008 19:09:23 griffith@box230.cims.nyu.edu>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPressureBcCoef.h"
@@ -220,16 +220,12 @@ INSStaggeredPressureBcCoef::setBcCoefs(
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr2_upper(i_intr2, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
-//                  const double u_tan_current_upper = 1.5*(*u_current_data)(i_s_intr0_upper)-0.5*(*u_current_data)(i_s_intr1_upper);
-//                  const double u_tan_new_upper     = 1.5*(*u_new_data    )(i_s_intr0_upper)-0.5*(*u_new_data    )(i_s_intr1_upper);
                     const double u_tan_current_upper = 3.0*(*u_current_data)(i_s_intr0_upper)-3.0*(*u_current_data)(i_s_intr1_upper)+1.0*(*u_current_data)(i_s_intr2_upper);
                     const double u_tan_new_upper     = 3.0*(*u_new_data    )(i_s_intr0_upper)-3.0*(*u_new_data    )(i_s_intr1_upper)+1.0*(*u_new_data    )(i_s_intr2_upper);
 
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr2_lower(i_intr2, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-//                  const double u_tan_current_lower = 1.5*(*u_current_data)(i_s_intr0_lower)-0.5*(*u_current_data)(i_s_intr1_lower);
-//                  const double u_tan_new_lower     = 1.5*(*u_new_data    )(i_s_intr0_lower)-0.5*(*u_new_data    )(i_s_intr1_lower);
                     const double u_tan_current_lower = 3.0*(*u_current_data)(i_s_intr0_lower)-3.0*(*u_current_data)(i_s_intr1_lower)+1.0*(*u_current_data)(i_s_intr2_lower);
                     const double u_tan_new_lower     = 3.0*(*u_new_data    )(i_s_intr0_lower)-3.0*(*u_new_data    )(i_s_intr1_lower)+1.0*(*u_new_data    )(i_s_intr2_lower);
 

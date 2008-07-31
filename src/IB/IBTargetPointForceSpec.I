@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceSpec.C
-// Last modified: <01.Apr.2008 17:09:50 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:13:13 griffith@box230.cims.nyu.edu>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -26,9 +26,11 @@ inline
 IBTargetPointForceSpec::IBTargetPointForceSpec(
     const int master_idx,
     const double& kappa_target,
+    const double& eta_target,
     const std::vector<double>& X_target)
     : d_master_idx(master_idx),
       d_kappa_target(kappa_target),
+      d_eta_target(eta_target),
       d_X_target(X_target)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -74,6 +76,18 @@ IBTargetPointForceSpec::getStiffness()
     return d_kappa_target;
 }// getStiffness
 
+inline const double&
+IBTargetPointForceSpec::getDamping() const
+{
+    return d_eta_target;
+}// getDamping
+
+inline double&
+IBTargetPointForceSpec::getDamping()
+{
+    return d_eta_target;
+}// getDamping
+
 inline const std::vector<double>&
 IBTargetPointForceSpec::getTargetPointPosition() const
 {
@@ -96,7 +110,7 @@ inline size_t
 IBTargetPointForceSpec::getDataStreamSize() const
 {
     return ((1     )*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (1+NDIM)*SAMRAI::tbox::AbstractStream::sizeofDouble());
+            (2+NDIM)*SAMRAI::tbox::AbstractStream::sizeofDouble());
 }// getDataStreamSize
 
 inline void
@@ -108,6 +122,7 @@ IBTargetPointForceSpec::packStream(
 #endif
     stream.pack(&d_master_idx,1);
     stream.pack(&d_kappa_target,1);
+    stream.pack(&d_eta_target,1);
     stream.pack(&d_X_target[0],NDIM);
     return;
 }// packStream

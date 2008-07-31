@@ -61,7 +61,6 @@ am__objects_1 = libIBAMR_IB2d_a-IBBeamForceGen.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBEulerianForceSetter.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBEulerianSourceSetter.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBHDF5Initializer.$(OBJEXT) \
-	libIBAMR_IB2d_a-IBHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR_IB2d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
@@ -87,7 +86,6 @@ am__objects_2 = libIBAMR_IB3d_a-IBBeamForceGen.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBEulerianForceSetter.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBEulerianSourceSetter.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBHDF5Initializer.$(OBJEXT) \
-	libIBAMR_IB3d_a-IBHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR_IB3d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
@@ -472,7 +470,6 @@ IBBeamForceSpecFactory.C \
 IBEulerianForceSetter.C \
 IBEulerianSourceSetter.C \
 IBHDF5Initializer.C \
-IBHierarchyIntegrator.C \
 IBInstrumentPanel.C \
 IBInstrumentationSpec.C \
 IBInstrumentationSpecFactory.C \
@@ -497,7 +494,6 @@ IBBeamForceSpecFactory.h \
 IBEulerianForceSetter.h \
 IBEulerianSourceSetter.h \
 IBHDF5Initializer.h \
-IBHierarchyIntegrator.h \
 IBInstrumentPanel.h \
 IBInstrumentationSpec.h \
 IBInstrumentationSpec.I \
@@ -578,7 +574,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianForceSetter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBEulerianSourceSetter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBHDF5Initializer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.Po@am__quote@
@@ -600,7 +595,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianForceSetter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBEulerianSourceSetter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBHDF5Initializer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.Po@am__quote@
@@ -714,20 +708,6 @@ libIBAMR_IB2d_a-IBHDF5Initializer.obj: IBHDF5Initializer.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHDF5Initializer.C' object='libIBAMR_IB2d_a-IBHDF5Initializer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBHDF5Initializer.obj `if test -f 'IBHDF5Initializer.C'; then $(CYGPATH_W) 'IBHDF5Initializer.C'; else $(CYGPATH_W) '$(srcdir)/IBHDF5Initializer.C'; fi`
-
-libIBAMR_IB2d_a-IBHierarchyIntegrator.o: IBHierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Tpo -c -o libIBAMR_IB2d_a-IBHierarchyIntegrator.o `test -f 'IBHierarchyIntegrator.C' || echo '$(srcdir)/'`IBHierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHierarchyIntegrator.C' object='libIBAMR_IB2d_a-IBHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBHierarchyIntegrator.o `test -f 'IBHierarchyIntegrator.C' || echo '$(srcdir)/'`IBHierarchyIntegrator.C
-
-libIBAMR_IB2d_a-IBHierarchyIntegrator.obj: IBHierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Tpo -c -o libIBAMR_IB2d_a-IBHierarchyIntegrator.obj `if test -f 'IBHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBHierarchyIntegrator.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR_IB2d_a-IBHierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHierarchyIntegrator.C' object='libIBAMR_IB2d_a-IBHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB2d_a-IBHierarchyIntegrator.obj `if test -f 'IBHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBHierarchyIntegrator.C'; fi`
 
 libIBAMR_IB2d_a-IBInstrumentPanel.o: IBInstrumentPanel.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB2d_a-IBInstrumentPanel.o -MD -MP -MF $(DEPDIR)/libIBAMR_IB2d_a-IBInstrumentPanel.Tpo -c -o libIBAMR_IB2d_a-IBInstrumentPanel.o `test -f 'IBInstrumentPanel.C' || echo '$(srcdir)/'`IBInstrumentPanel.C
@@ -1022,20 +1002,6 @@ libIBAMR_IB3d_a-IBHDF5Initializer.obj: IBHDF5Initializer.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHDF5Initializer.C' object='libIBAMR_IB3d_a-IBHDF5Initializer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBHDF5Initializer.obj `if test -f 'IBHDF5Initializer.C'; then $(CYGPATH_W) 'IBHDF5Initializer.C'; else $(CYGPATH_W) '$(srcdir)/IBHDF5Initializer.C'; fi`
-
-libIBAMR_IB3d_a-IBHierarchyIntegrator.o: IBHierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Tpo -c -o libIBAMR_IB3d_a-IBHierarchyIntegrator.o `test -f 'IBHierarchyIntegrator.C' || echo '$(srcdir)/'`IBHierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHierarchyIntegrator.C' object='libIBAMR_IB3d_a-IBHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBHierarchyIntegrator.o `test -f 'IBHierarchyIntegrator.C' || echo '$(srcdir)/'`IBHierarchyIntegrator.C
-
-libIBAMR_IB3d_a-IBHierarchyIntegrator.obj: IBHierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Tpo -c -o libIBAMR_IB3d_a-IBHierarchyIntegrator.obj `if test -f 'IBHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBHierarchyIntegrator.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR_IB3d_a-IBHierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IBHierarchyIntegrator.C' object='libIBAMR_IB3d_a-IBHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_IB3d_a-IBHierarchyIntegrator.obj `if test -f 'IBHierarchyIntegrator.C'; then $(CYGPATH_W) 'IBHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/IBHierarchyIntegrator.C'; fi`
 
 libIBAMR_IB3d_a-IBInstrumentPanel.o: IBInstrumentPanel.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_IB3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_IB3d_a-IBInstrumentPanel.o -MD -MP -MF $(DEPDIR)/libIBAMR_IB3d_a-IBInstrumentPanel.Tpo -c -o libIBAMR_IB3d_a-IBInstrumentPanel.o `test -f 'IBInstrumentPanel.C' || echo '$(srcdir)/'`IBInstrumentPanel.C

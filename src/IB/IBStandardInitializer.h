@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <12.Mar.2008 23:08:20 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:42:41 griffith@box230.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -413,11 +413,19 @@ private:
 
     /*!
      * \return The target point penalty force spring constant associated with a
-     * particular node.  (Note that if this value is zero for any particular
-     * node, there will be no target point penalty force at that node.)
+     * particular node.
      */
     double
     getVertexTargetStiffness(
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
+
+    /*!
+     * \return The target point penalty force damping parameter associated with
+     * a particular node.
+     */
+    double
+    getVertexTargetDamping(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
@@ -561,10 +569,13 @@ private:
      * Target point information.
      */
     std::vector<std::vector<bool> > d_enable_target_points;
-    std::vector<std::vector<std::vector<double> > > d_target_stiffness;
+    std::vector<std::vector<std::vector<double> > > d_target_stiffness, d_target_damping;
 
     std::vector<std::vector<bool> > d_using_uniform_target_stiffness;
     std::vector<std::vector<double> > d_uniform_target_stiffness;
+
+    std::vector<std::vector<bool> > d_using_uniform_target_damping;
+    std::vector<std::vector<double> > d_uniform_target_damping;
 
     /*
      * Mass information for the pIB method.

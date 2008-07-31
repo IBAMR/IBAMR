@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <29.Jul.2008 15:38:46 griffith@box230.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:34:04 griffith@box230.cims.nyu.edu>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBStandardForceGen.h"
@@ -90,13 +90,14 @@ void
 IBStandardForceGen::computeLagrangianForce(
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
     d_force_strategy_set->computeLagrangianForce(
-        F_data, X_data, hierarchy, level_number, data_time, lag_manager);
+        F_data, X_data, U_data, hierarchy, level_number, data_time, lag_manager);
     return;
 }// computeLagrangianForce
 

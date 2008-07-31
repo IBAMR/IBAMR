@@ -2,7 +2,7 @@
 #define included_IBHDF5Initializer
 
 // Filename: IBHDF5Initializer.h
-// Last modified: <12.Mar.2008 22:44:32 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:31:15 griffith@box230.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -357,6 +357,8 @@ private:
     std::vector<std::vector<bool> >   d_enable_target_points;
     std::vector<std::vector<bool> >   d_using_uniform_target_stiffness;
     std::vector<std::vector<double> > d_uniform_target_stiffness;
+    std::vector<std::vector<bool> >   d_using_uniform_target_damping;
+    std::vector<std::vector<double> > d_uniform_target_damping;
 
     /*
      * Instrumentation information.

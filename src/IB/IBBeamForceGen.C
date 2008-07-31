@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <01.Apr.2008 17:24:11 griffith@box221.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:07:26 griffith@box230.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -318,6 +318,7 @@ void
 IBBeamForceGen::computeLagrangianForce(
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,

@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <10.Jun.2008 13:59:37 griffith@box230.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:33:33 griffith@box230.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -128,6 +128,8 @@ IBHDF5Initializer::IBHDF5Initializer(
       d_enable_target_points(),
       d_using_uniform_target_stiffness(),
       d_uniform_target_stiffness(),
+      d_using_uniform_target_damping(),
+      d_uniform_target_damping(),
       d_enable_instrumentation(),
       d_instrument_names(),
       d_cache_level_number(-1),
@@ -1530,6 +1532,7 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
             {
                 const int& node_idx = node_idx_buf[k];
                 const double& stiffness = stiffness_buf[k];
+                const double& damping = 0.0;  // XXXX
                 if (local_vertex_idx_set.find(node_idx) != local_vertex_idx_set.end())
                 {
                     ++num_local_target_point;
@@ -1548,6 +1551,7 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
                     }
                     target_point_data->getMasterNodeIndex() = node_idx;
                     target_point_data->getStiffness() = stiffness;
+                    target_point_data->getDamping() = damping;
                 }
             }
         }
@@ -1891,11 +1895,15 @@ IBHDF5Initializer::initializeSpecs(
     // vertex.
     if (d_enable_target_points[ln][j])
     {
-        if (d_using_uniform_target_stiffness[ln][j])
+        if (d_using_uniform_target_stiffness[ln][j] && d_using_uniform_target_damping[ln][j])
         {
             SAMRAI::tbox::Pointer<IBTargetPointForceSpec> target_point_data = new IBTargetPointForceSpec(
-                k+vertex_offset, d_uniform_target_stiffness[ln][j], d_level_posns[j_local][k_local]);
+                k+vertex_offset, d_uniform_target_stiffness[ln][j], d_uniform_target_damping[ln][j], d_level_posns[j_local][k_local]);
             vertex_specs.push_back(target_point_data);
+        }
+        else if (d_using_uniform_target_stiffness[ln][j] || d_using_uniform_target_damping[ln][j])
+        {
+            TBOX_ERROR(d_object_name << ":\n  Uniform properties for target point springs incorrectly specified\n");
         }
         else
         {
@@ -2002,6 +2010,8 @@ IBHDF5Initializer::getFromInput(
     d_enable_target_points.resize(d_max_levels);
     d_using_uniform_target_stiffness.resize(d_max_levels);
     d_uniform_target_stiffness.resize(d_max_levels);
+    d_using_uniform_target_damping.resize(d_max_levels);
+    d_uniform_target_damping.resize(d_max_levels);
 
     d_enable_instrumentation.resize(d_max_levels);
     d_instrument_names.resize(d_max_levels);
@@ -2050,6 +2060,9 @@ IBHDF5Initializer::getFromInput(
 
         d_using_uniform_target_stiffness[ln].resize(num_filenames,false);
         d_uniform_target_stiffness[ln].resize(num_filenames,-1.0);
+
+        d_using_uniform_target_damping[ln].resize(num_filenames,false);
+        d_uniform_target_damping[ln].resize(num_filenames,-1.0);
 
         d_enable_instrumentation[ln].resize(num_filenames,true);
 
@@ -2132,6 +2145,18 @@ IBHDF5Initializer::getFromInput(
                                    << "  target point spring constant is negative\n");
                     }
                 }
+
+                if (sub_db->keyExists("uniform_target_damping"))
+                {
+                    d_using_uniform_target_damping[ln][j] = true;
+                    d_uniform_target_damping[ln][j] = sub_db->getDouble("uniform_target_damping");
+
+                    if (d_uniform_target_damping[ln][j] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_damping' in database " << filename << "\n"
+                                   << "  target point spring constant is negative\n");
+                    }
+                }
             }
         }
     }
@@ -2193,6 +2218,11 @@ IBHDF5Initializer::getFromInput(
                 {
                     SAMRAI::tbox::pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << filename << "\n"
                                        << "        any target point stiffness information in input file " << filename << " will be IGNORED\n";
+                }
+                if (d_using_uniform_target_damping[ln][j])
+                {
+                    SAMRAI::tbox::pout << "  NOTE: uniform target point damping factors are being employed for the structure named " << filename << "\n"
+                                       << "        any target point damping factor information in input file " << filename << " will be IGNORED\n";
                 }
             }
 

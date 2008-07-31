@@ -1,5 +1,5 @@
 // Filename: IBLagrangianForceStrategySet.C
-// Last modified: <29.Jul.2008 15:38:02 griffith@box230.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:07:08 griffith@box230.cims.nyu.edu>
 // Created on 04 April 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBLagrangianForceStrategySet.h"
@@ -64,6 +64,7 @@ void
 IBLagrangianForceStrategySet::computeLagrangianForce(
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -73,7 +74,7 @@ IBLagrangianForceStrategySet::computeLagrangianForce(
          it != d_strategy_set.end(); ++it)
     {
         (*it)->computeLagrangianForce(
-            F_data, X_data, hierarchy, level_number, data_time, lag_manager);
+            F_data, X_data, U_data, hierarchy, level_number, data_time, lag_manager);
     }
     return;
 }// computeLagrangianForce

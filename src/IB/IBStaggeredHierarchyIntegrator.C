@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <29.Jul.2008 16:37:25 griffith@box230.cims.nyu.edu>
+// Last modified: <30.Jul.2008 17:25:20 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -1101,18 +1101,89 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         d_hier_sc_data_ops->axpy(fluid_rhs_vec->getComponentDescriptorIndex(0), +d_rho, d_n_idx, fluid_rhs_vec->getComponentDescriptorIndex(0));
     }
 
+    /*
+     * Compute the drag and lift coefficients by integrating the components of
+     * the Lagrangian force field over the computational domain.
+     */
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            std::ofstream drag_stream, lift_stream;
+            if (SAMRAI::tbox::SAMRAI_MPI::getRank() == 0)
+            {
+                drag_stream.open("C_D.curve", SAMRAI::tbox::RestartManager::getManager()->isFromRestart() || !initial_time ? std::ios::app : std::ios::out);
+                lift_stream.open("C_L.curve", SAMRAI::tbox::RestartManager::getManager()->isFromRestart() || !initial_time ? std::ios::app : std::ios::out);
+
+                drag_stream.setf(std::ios_base::scientific);
+                drag_stream.setf(std::ios_base::showpos);
+                drag_stream.setf(std::ios_base::showpoint);
+                drag_stream.width(16); drag_stream.precision(15);
+
+                lift_stream.setf(std::ios_base::scientific);
+                lift_stream.setf(std::ios_base::showpos);
+                lift_stream.setf(std::ios_base::showpoint);
+                lift_stream.width(16); lift_stream.precision(15);
+            }
+
+            Vec X_vec      = d_X_data     [ln]->getGlobalVec();
+            Vec X_new_vec  = d_X_new_data [ln]->getGlobalVec();
+            Vec X_half_vec = d_X_half_data[ln]->getGlobalVec();
+            ierr = VecCopy(X_vec,X_half_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecAXPBY(X_half_vec,0.5,0.5,X_new_vec);  IBTK_CHKERRQ(ierr);
+            Vec U_half_vec = d_U_half_data[ln]->getGlobalVec();
+            ierr = VecCopy(X_vec,U_half_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecAXPBY(U_half_vec,1.0/d_dt,-1.0/d_dt,X_new_vec);  IBTK_CHKERRQ(ierr);
+
+            d_force_strategy->computeLagrangianForce(
+                d_F_half_data[ln], d_X_half_data[ln], d_U_half_data[ln],
+                d_hierarchy, ln, d_current_time+0.5*d_dt, d_lag_data_manager);
+
+            double F_D = 0.0;
+            double F_L = 0.0;
+            for (int i = 0; i < d_F_half_data[ln]->getLocalNodeCount(); ++i)
+            {
+                F_D -= (*d_F_half_data[ln])(i,0);
+                F_L -= (*d_F_half_data[ln])(i,1);
+            }
+
+            F_D = SAMRAI::tbox::SAMRAI_MPI::sumReduction(F_D);
+            F_L = SAMRAI::tbox::SAMRAI_MPI::sumReduction(F_L);
+
+            static const double radius = 0.5;
+            if (SAMRAI::tbox::SAMRAI_MPI::getRank() == 0)
+            {
+                drag_stream << d_current_time+0.5*d_dt << " " << F_D/radius << std::endl;
+                lift_stream << d_current_time+0.5*d_dt << " " << F_L/radius << std::endl;
+            }
+
+            if (SAMRAI::tbox::SAMRAI_MPI::getRank() == 0)
+            {
+                drag_stream.close();
+                lift_stream.close();
+            }
+        }
+    }
+
     // Compute the updated force for visualization purposes.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec F_new_vec = d_F_new_data[ln]->getGlobalVec();
-            PetscErrorCode ierr = VecSet(F_new_vec, 0.0);  IBTK_CHKERRQ(ierr);
+            Vec X_new_vec     = d_X_new_data [ln]->getGlobalVec();
+            Vec X_current_vec = d_X_data     [ln]->getGlobalVec();
+            Vec X_half_vec    = d_X_half_data[ln]->getGlobalVec();
+            ierr = VecCopy(X_current_vec,X_half_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecAXPBY(X_half_vec,0.5,0.5,X_new_vec);  IBTK_CHKERRQ(ierr);
+            Vec U_half_vec = d_U_half_data[ln]->getGlobalVec();
+            ierr = VecCopy(X_current_vec,U_half_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecAXPBY(U_half_vec,1.0/d_dt,-1.0/d_dt,X_new_vec);  IBTK_CHKERRQ(ierr);
+
             d_force_strategy->computeLagrangianForce(
-                d_F_new_data[ln], d_X_new_data[ln],
-                d_hierarchy, ln, d_new_time, d_lag_data_manager);
-            d_X_new_data[ln]->beginGhostUpdate();
-            d_F_new_data[ln]->beginGhostUpdate();
+                d_F_half_data[ln], d_X_half_data[ln], d_U_half_data[ln],
+                d_hierarchy, ln, d_current_time+0.5*d_dt, d_lag_data_manager);
+
+            d_F_half_data[ln]->beginGhostUpdate();
         }
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1127,8 +1198,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         }
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            d_X_new_data[ln]->endGhostUpdate();
-            d_F_new_data[ln]->endGhostUpdate();
+            d_F_half_data[ln]->endGhostUpdate();
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1137,7 +1207,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_new_data = patch->getPatchData(d_f_new_idx);
                 const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
                 IBTK::LEInteractor::spread(
-                    f_new_data, d_F_new_data[ln], d_X_new_data[ln], idx_data,
+                    f_new_data, d_F_half_data[ln], d_X_mid_data[ln], idx_data,
                     patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
                     d_delta_fcn);
             }
@@ -1936,7 +2006,6 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     d_X_half_data.resize(finest_hier_level+1);
     d_U_half_data.resize(finest_hier_level+1);
     d_F_half_data.resize(finest_hier_level+1);
-    d_F_new_data .resize(finest_hier_level+1);
     d_J_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
     d_strct_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
     d_strct_pc_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
@@ -1953,7 +2022,6 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
             d_X_new_data [ln] = d_lag_data_manager->createLNodeLevelData("X_new" ,ln,NDIM);
             d_X_half_data[ln] = d_lag_data_manager->createLNodeLevelData("X_half",ln,NDIM);
             d_U_half_data[ln] = d_lag_data_manager->createLNodeLevelData("U_half",ln,NDIM);
-            d_F_new_data [ln] = d_lag_data_manager->createLNodeLevelData("F_new" ,ln,NDIM);
             d_F_half_data[ln] = d_lag_data_manager->createLNodeLevelData("F_half",ln,NDIM);
         }
     }
@@ -2373,33 +2441,14 @@ IBStaggeredHierarchyIntegrator::FormFunction(
     d_stokes_op->apply(homogeneous_bc, *fluid_x_vec, *fluid_f_vec);
 
     // The structure function evaluation.
-    d_hier_sc_data_ops->linearSum(d_u_interp_idx, 0.5, fluid_x_vec->getComponentDescriptorIndex(0), 0.5, d_u_current_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        d_rscheds["u_interp->u_interp::S->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(d_integrator_time);
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
-        {
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_interp_data = patch->getPatchData(d_u_interp_idx);
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-                IBTK::LEInteractor::interpolate(
-                    d_U_half_data[ln], d_X_mid_data[ln], idx_data, u_interp_data,
-                    patch, patch_box, periodic_shift,
-                    d_delta_fcn);
-            }
-        }
-    }
-
     Vec X_new_vec     = petsc_strct_x_vec;
     Vec X_current_vec = d_X_data[finest_ln]->getGlobalVec();
     Vec X_half_vec    = d_X_half_data[finest_ln]->getGlobalVec();
     ierr = VecCopy(X_current_vec, X_half_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAXPBY(X_half_vec, 0.5, 0.5, X_new_vec);  IBTK_CHKERRQ(ierr);
+    Vec U_half_vec = d_U_half_data[finest_ln]->getGlobalVec();
+    ierr = VecCopy(X_current_vec,U_half_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAXPBY(U_half_vec,1.0/d_dt,-1.0/d_dt,X_new_vec);  IBTK_CHKERRQ(ierr);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -2407,7 +2456,7 @@ IBStaggeredHierarchyIntegrator::FormFunction(
             Vec F_half_vec = d_F_half_data[ln]->getGlobalVec();
             PetscErrorCode ierr = VecSet(F_half_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(
-                d_F_half_data[ln], d_X_half_data[ln],
+                d_F_half_data[ln], d_X_half_data[ln], d_U_half_data[ln],
                 d_hierarchy, ln, d_current_time+0.5*d_dt, d_lag_data_manager);
             d_F_half_data[ln]->beginGhostUpdate();
         }
@@ -2441,8 +2490,29 @@ IBStaggeredHierarchyIntegrator::FormFunction(
     }
     d_hier_sc_data_ops->axpy(fluid_f_vec->getComponentDescriptorIndex(0), -1.0, d_f_scratch_idx, fluid_f_vec->getComponentDescriptorIndex(0));
 
-    Vec U_half_vec = d_U_half_data[finest_ln]->getGlobalVec();
-    Vec R_vec      = petsc_strct_f_vec;
+    d_hier_sc_data_ops->linearSum(d_u_interp_idx, 0.5, fluid_x_vec->getComponentDescriptorIndex(0), 0.5, d_u_current_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        d_rscheds["u_interp->u_interp::S->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(d_integrator_time);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_interp_data = patch->getPatchData(d_u_interp_idx);
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+                IBTK::LEInteractor::interpolate(
+                    d_U_half_data[ln], d_X_mid_data[ln], idx_data, u_interp_data,
+                    patch, patch_box, periodic_shift,
+                    d_delta_fcn);
+            }
+        }
+    }
+
+    Vec R_vec = petsc_strct_f_vec;
     ierr = VecWAXPY(R_vec,-1.0,X_current_vec,X_new_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAXPBY(R_vec,-1.0,(1.0/d_dt),U_half_vec);  IBTK_CHKERRQ(ierr);
 
