@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <29.Jul.2008 17:14:49 griffith@box230.cims.nyu.edu>
+// Last modified: <31.Jul.2008 23:17:36 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1060,10 +1060,10 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Setup the nullspace object.
     PetscErrorCode ierr;
     MatNullSpace petsc_nullsp;
-    Vec petsc_nullsp_vec = IBTK::PETScSAMRAIVectorReal<double>::createPETScVector(nul_vec, PETSC_COMM_SELF);
+    Vec petsc_nullsp_vec = IBTK::PETScSAMRAIVectorReal<double>::createPETScVector(nul_vec, PETSC_COMM_WORLD);
     Vec vecs[] = {petsc_nullsp_vec};
     static const PetscTruth has_cnst = PETSC_FALSE;
-    ierr = MatNullSpaceCreate(PETSC_COMM_SELF, has_cnst, 1, vecs, &petsc_nullsp); IBTK_CHKERRQ(ierr);
+    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, has_cnst, 1, vecs, &petsc_nullsp); IBTK_CHKERRQ(ierr);
     if (d_normalize_pressure)
     {
         KSP petsc_ksp = d_stokes_solver->getPETScKSP();
@@ -1101,11 +1101,12 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
 
         // Solve for u(n+1), p(n+1/2).
-        TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
-        d_U_bc_helper->zeroValuesAtDirichletBoundaries(d_U_scratch_idx);
+        d_U_bc_helper->zeroValuesAtDirichletBoundaries(sol_vec->getComponentDescriptorIndex(0));
+        d_U_bc_helper->zeroValuesAtDirichletBoundaries(rhs_vec->getComponentDescriptorIndex(0));
         d_stokes_solver->solveSystem(*sol_vec,*rhs_vec);
 
         // Reset physical boundary conditions.
+        TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
         d_U_bdry_bc_fill_op->fillData(new_time);
 
         // Pull out solution components.
@@ -2034,6 +2035,7 @@ INSStaggeredHierarchyIntegrator::getLevelDt(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         stable_dt = std::min(stable_dt,getPatchDt(patch,ctx));
     }
+    stable_dt = SAMRAI::tbox::SAMRAI_MPI::minReduction(stable_dt);
     return stable_dt;
 }// getLevelDt
 

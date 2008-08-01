@@ -1,5 +1,5 @@
 // physical parameters
-Re = 10000.0
+Re = 1000.0
 MU = 1/Re
 RHO = 1.0
 
@@ -7,14 +7,14 @@ RHO = 1.0
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 257                                   // coarsest grid spacing
+N = 128                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 INSStaggeredHierarchyIntegrator {
    start_time            =   0.0e0    // initial simulation time
    end_time              =   1.0e5    // final simulation time
    grow_dt               =   2.0e0    // growth factor for timesteps
-   max_integrator_steps  = 1000000    // max number of simulation timesteps
+   max_integrator_steps  = 100 // 1000000    // max number of simulation timesteps
 
    enable_logging = TRUE
 

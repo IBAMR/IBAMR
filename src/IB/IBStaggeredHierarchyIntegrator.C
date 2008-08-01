@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <30.Jul.2008 17:25:20 griffith@box230.cims.nyu.edu>
+// Last modified: <31.Jul.2008 23:02:47 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -2630,12 +2630,10 @@ IBStaggeredHierarchyIntegrator::FormJacobian(
     const double* const dx_coarsest = grid_geom->getDx();
     for (int d = 0; d < NDIM; ++d)
     {
-        volume_element *= dx_coarsest[d];
+        volume_element *= dx_coarsest[d];  // XXXX: volume element corresponds to coarsest level
     }
-    TBOX_ASSERT(finest_ln == coarsest_ln);  // XXXX: volume element corresponds to coarsest level.
-
-    static const double C = pow(3.0/8.0,NDIM);
-    TBOX_ASSERT(d_delta_fcn == "IB_4");  // XXXX: C corresponds to the 4-point delta function.
+    TBOX_ASSERT(finest_ln == coarsest_ln);
+    static const double C = pow(IBTK::LEInteractor::getC(d_delta_fcn),NDIM);
 
     int local_sz;
     ierr = VecGetLocalSize(petsc_strct_x_vec, &local_sz);  IBTK_CHKERRQ(ierr);
@@ -2649,7 +2647,7 @@ IBStaggeredHierarchyIntegrator::FormJacobian(
 
             ierr = MatDuplicate(d_J_mat[ln], MAT_COPY_VALUES, &d_strct_pc_mat[ln]);  IBTK_CHKERRQ(ierr);
 //          ierr = MatConvert(d_J_mat[ln], MATMPIAIJ, MAT_INITIAL_MATRIX, &d_strct_pc_mat[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = MatScale(d_strct_pc_mat[ln], -0.25*d_dt*d_dt*C*volume_element/d_rho);  IBTK_CHKERRQ(ierr);
+            ierr = MatScale(d_strct_pc_mat[ln], -0.25*d_dt*d_dt*(C/volume_element)/d_rho);  IBTK_CHKERRQ(ierr);
             ierr = MatShift(d_strct_pc_mat[ln], 1.0);  IBTK_CHKERRQ(ierr);
 
             static const std::string options_prefix = "strct_";
@@ -3115,6 +3113,7 @@ IBStaggeredHierarchyIntegrator::getLevelDt(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         stable_dt = std::min(stable_dt,getPatchDt(patch,ctx));
     }
+    stable_dt = SAMRAI::tbox::SAMRAI_MPI::minReduction(stable_dt);
     return stable_dt;
 }// getLevelDt
 

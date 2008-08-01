@@ -157,7 +157,7 @@ main(
     static const double R = 0.5;
 
     // The desired edge length.
-    static const double target_edge_len = 0.03125;
+    static const double target_edge_len = 0.25; //0.03125;
 
 #if 0
     // Setup the initial mesh to correspond to a tetrahedron.
