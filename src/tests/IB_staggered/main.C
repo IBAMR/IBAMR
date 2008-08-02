@@ -570,7 +570,6 @@ main(
             {
                 delete (*cit);
             }
-            if (P_bc_coef != NULL) delete P_bc_coef;
         }
     }// cleanup all smart Pointers prior to shutdown
 
