@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <12.Jun.2008 14:23:52 griffith@box230.cims.nyu.edu>
+// Last modified: <14.Aug.2008 15:38:02 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -147,6 +147,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_U_init(NULL),
       d_P_init(NULL),
       d_U_bc_coefs(),
+      d_P_bc_coef(NULL),
       d_lag_init(NULL),
       d_body_force_set(NULL),
       d_eulerian_force_set(NULL),
@@ -549,6 +550,24 @@ IBHierarchyIntegrator::registerPressureInitialConditions(
     d_ins_hier_integrator->registerPressureInitialConditions(d_P_init);
     return;
 }// registerPressureInitialConditions
+
+void
+IBHierarchyIntegrator::registerPressurePhysicalBcCoef(
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef)
+{
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::registerPressurePhysicalBcCoefs():\n"
+                   << "  pressure boundary conditions must be registered prior to initialization\n"
+                   << "  of the hierarchy integrator object." << std::endl);
+    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(P_bc_coef != NULL);
+#endif
+    d_P_bc_coef = P_bc_coef;
+    d_ins_hier_integrator->registerPressurePhysicalBcCoef(d_P_bc_coef);
+    return;
+}// registerPressurePhysicalBcCoef
 
 void
 IBHierarchyIntegrator::registerBodyForceSpecification(
@@ -1174,7 +1193,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             Vec F_vec = F_data[ln]->getGlobalVec();
             int ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(
-                F_data[ln], X_data[ln],
+                F_data[ln], X_data[ln], U_data[ln],
                 d_hierarchy, ln, current_time, d_lag_data_manager);
             if (d_using_pIB_method)
             {
@@ -1376,7 +1395,7 @@ IBHierarchyIntegrator::advanceHierarchy(
             Vec F_new_vec = F_new_data[ln]->getGlobalVec();
             int ierr = VecSet(F_new_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(
-                F_new_data[ln], X_new_data[ln],
+                F_new_data[ln], X_new_data[ln], U_data[ln],
                 d_hierarchy, ln, new_time, d_lag_data_manager);
             if (d_using_pIB_method)
             {

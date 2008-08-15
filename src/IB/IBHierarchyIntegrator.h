@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <10.Jun.2008 13:49:36 griffith@box230.cims.nyu.edu>
+// Last modified: <14.Aug.2008 15:11:02 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -116,6 +116,13 @@ public:
     void
     registerPressureInitialConditions(
         SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init);
+
+    /*!
+     * Supply physical boundary conditions for the (cell centered) pressure.
+     */
+    void
+    registerPressurePhysicalBcCoef(
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef);
 
     /*!
      * Supply an optional cell centered body forcing term.
@@ -843,6 +850,7 @@ private:
      */
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_U_init, d_P_init;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
 
     /*
      * The specification and initialization information for the Lagrangian data

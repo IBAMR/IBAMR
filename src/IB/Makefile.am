@@ -18,12 +18,16 @@ IBBeamForceSpecFactory.C \
 IBEulerianForceSetter.C \
 IBEulerianSourceSetter.C \
 IBHDF5Initializer.C \
+IBHierarchyIntegrator.C \
 IBInstrumentPanel.C \
 IBInstrumentationSpec.C \
 IBInstrumentationSpecFactory.C \
 IBLagrangianForceStrategy.C \
 IBLagrangianForceStrategySet.C \
 IBLagrangianSourceStrategy.C \
+IBMovingTargetPointForceGen.C \
+IBMovingTargetPointForceSpec.C \
+IBMovingTargetPointForceSpecFactory.C \
 IBSpringForceGen.C \
 IBSpringForceSpec.C \
 IBSpringForceSpecFactory.C \
@@ -42,6 +46,7 @@ IBBeamForceSpecFactory.h \
 IBEulerianForceSetter.h \
 IBEulerianSourceSetter.h \
 IBHDF5Initializer.h \
+IBHierarchyIntegrator.h \
 IBInstrumentPanel.h \
 IBInstrumentationSpec.h \
 IBInstrumentationSpec.I \
@@ -49,6 +54,9 @@ IBInstrumentationSpecFactory.h \
 IBLagrangianForceStrategy.h \
 IBLagrangianForceStrategySet.h \
 IBLagrangianSourceStrategy.h \
+IBMovingTargetPointForceGen.h \
+IBMovingTargetPointForceSpec.h \
+IBMovingTargetPointForceSpecFactory.h \
 IBSpringForceGen.h \
 IBSpringForceSpec.h \
 IBSpringForceSpec.I \

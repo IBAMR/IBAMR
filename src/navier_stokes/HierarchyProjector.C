@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <22.Jul.2008 17:04:02 griffith@box230.cims.nyu.edu>
+// Last modified: <14.Aug.2008 15:48:53 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -254,7 +254,7 @@ HierarchyProjector::HierarchyProjector(
     d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
 
     // Initialize the Poisson solver.
-    static const bool homogeneous_bc = true; // XXXX false;
+    static const bool homogeneous_bc = false;
     d_laplace_op = new IBTK::CCLaplaceOperator(
         d_object_name+"::Laplace Operator",
         d_poisson_spec, d_Phi_bc_coef, homogeneous_bc);
@@ -530,8 +530,8 @@ HierarchyProjector::projectHierarchy(
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(Phi_transaction_comp);
 
     // Fill the physical boundary conditions for Phi.
-    d_Phi_bc_coef->setHomogeneousBc(true /* XXXX false XXXX */);
-    d_Phi_hier_bdry_fill_op->setHomogeneousBc(true /* XXXX false XXXX*/);
+    d_Phi_bc_coef->setHomogeneousBc(false);
+    d_Phi_hier_bdry_fill_op->setHomogeneousBc(false);
     d_Phi_hier_bdry_fill_op->fillData(time);
     d_Phi_bc_coef->setHomogeneousBc(true);
 
@@ -669,8 +669,8 @@ HierarchyProjector::projectHierarchy(
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(Phi_transaction_comp);
 
     // Fill the physical boundary conditions for Phi.
-    d_Phi_bc_coef->setHomogeneousBc(true /* XXXX false XXXX */);
-    d_Phi_hier_bdry_fill_op->setHomogeneousBc(true /* XXXX false XXXX */);
+    d_Phi_bc_coef->setHomogeneousBc(false);
+    d_Phi_hier_bdry_fill_op->setHomogeneousBc(false);
     d_Phi_hier_bdry_fill_op->fillData(time);
     d_Phi_bc_coef->setHomogeneousBc(true);
 
