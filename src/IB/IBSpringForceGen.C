@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <30.Jul.2008 17:07:58 griffith@box230.cims.nyu.edu>
+// Last modified: <15.Aug.2008 14:54:06 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -31,6 +31,8 @@
 #include <tbox/TimerManager.h>
 
 // C++ STDLIB INCLUDES
+#include <algorithm>
+#include <functional>
 #include <numeric>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -479,7 +481,10 @@ void
 IBSpringForceGen::computeLagrangianForceJacobian(
     Mat& J_mat,
     MatAssemblyType assembly_type,
+    const double X_coef,
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    const double U_coef,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -534,6 +539,9 @@ IBSpringForceGen::computeLagrangianForceJacobian(
         const int& force_fcn_id = force_fcn_idxs[k];
         d_force_jacobian_fcn_map[force_fcn_id](&dF_dX[0],D,stf,rst,lag_mastr_idx,lag_slave_idx);
 
+        // Scale the Jacobian entries appropriately.
+        std::transform(dF_dX.begin(), dF_dX.end(), dF_dX.begin(), std::bind2nd(std::multiplies<double>(),X_coef));
+
         // Get the PETSc indices corresponding to the "master" and "slave"
         // nodes.
         const int& petsc_mastr_idx = petsc_mastr_node_idxs[k];
@@ -546,13 +554,7 @@ IBSpringForceGen::computeLagrangianForceJacobian(
         // Negate dF_dX to obtain the Jacobian of the force applied by the
         // spring to the "master" node with respect to the position of the
         // "master" node.
-        for (int beta = 0; beta < NDIM; ++beta)
-        {
-            for (int alpha = 0; alpha < NDIM; ++alpha)
-            {
-                dF_dX[alpha+beta*NDIM] = -dF_dX[alpha+beta*NDIM];
-            }
-        }
+        std::transform(dF_dX.begin(), dF_dX.end(), dF_dX.begin(), std::bind2nd(std::multiplies<double>(),-1.0));
 
         // Accumulate the diagonal parts of the matrix.
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);

@@ -1,5 +1,5 @@
 // Filename: IBLagrangianForceStrategy.C
-// Last modified: <29.Jul.2008 15:37:46 griffith@box230.cims.nyu.edu>
+// Last modified: <15.Aug.2008 14:40:57 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBLagrangianForceStrategy.h"
@@ -75,7 +75,10 @@ void
 IBLagrangianForceStrategy::computeLagrangianForceJacobian(
     Mat& J_mat,
     MatAssemblyType assembly_type,
+    const double X_coef,
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    const double U_coef,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,

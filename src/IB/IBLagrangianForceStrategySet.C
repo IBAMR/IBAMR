@@ -1,5 +1,5 @@
 // Filename: IBLagrangianForceStrategySet.C
-// Last modified: <30.Jul.2008 17:07:08 griffith@box230.cims.nyu.edu>
+// Last modified: <15.Aug.2008 15:12:54 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 04 April 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBLagrangianForceStrategySet.h"
@@ -101,7 +101,10 @@ void
 IBLagrangianForceStrategySet::computeLagrangianForceJacobian(
     Mat& J_mat,
     MatAssemblyType assembly_type,
+    const double X_coef,
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    const double U_coef,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -111,7 +114,7 @@ IBLagrangianForceStrategySet::computeLagrangianForceJacobian(
          it != d_strategy_set.end(); ++it)
     {
         (*it)->computeLagrangianForceJacobian(
-            J_mat, MAT_FLUSH_ASSEMBLY, X_data, hierarchy, level_number, data_time, lag_manager);
+            J_mat, MAT_FLUSH_ASSEMBLY, X_coef, X_data, U_coef, U_data, hierarchy, level_number, data_time, lag_manager);
     }
     if (assembly_type != MAT_FLUSH_ASSEMBLY)
     {

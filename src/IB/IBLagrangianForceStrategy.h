@@ -2,7 +2,7 @@
 #define included_IBLagrangianForceStrategy
 
 // Filename: IBLagrangianForceStrategy.h
-// Last modified: <30.Jul.2008 17:00:18 griffith@box230.cims.nyu.edu>
+// Last modified: <15.Aug.2008 14:37:41 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -110,7 +110,7 @@ public:
 
     /*!
      * \brief Compute the Jacobian of the force with respect to the present
-     * structure configuration.
+     * structure configuration and velocity.
      *
      * \note The elements of the Jacobian should be "accumulated" in the
      * provided matrix J.
@@ -122,7 +122,10 @@ public:
     computeLagrangianForceJacobian(
         Mat& J_mat,
         MatAssemblyType assembly_type,
+        const double X_coef,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+        const double U_coef,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,

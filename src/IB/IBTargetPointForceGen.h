@@ -2,7 +2,7 @@
 #define included_IBTargetPointForceGen
 
 // Filename: IBTargetPointForceGen.h
-// Last modified: <14.Aug.2008 12:32:23 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <15.Aug.2008 14:57:54 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -79,7 +79,10 @@ public:
     computeLagrangianForceJacobian(
         Mat& J_mat,
         MatAssemblyType assembly_type,
+        const double X_coef,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+        const double U_coef,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,

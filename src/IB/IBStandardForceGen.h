@@ -2,7 +2,7 @@
 #define included_IBStandardForceGen
 
 // Filename: IBStandardForceGen.h
-// Last modified: <30.Jul.2008 17:34:22 griffith@box230.cims.nyu.edu>
+// Last modified: <15.Aug.2008 14:54:57 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -102,7 +102,10 @@ public:
     computeLagrangianForceJacobian(
         Mat& J_mat,
         MatAssemblyType assembly_type,
+        const double X_coef,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+        const double U_coef,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,

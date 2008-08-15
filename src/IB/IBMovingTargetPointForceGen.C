@@ -1,5 +1,5 @@
 // Filename: IBMovingTargetPointForceGen.C
-// Last modified: <14.Aug.2008 14:29:52 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <15.Aug.2008 15:12:28 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 14 Aug 2008 by Boyce Griffith (boyce@dm-linux.maths.gla.ac.uk)
 
 #include "IBMovingTargetPointForceGen.h"
@@ -155,8 +155,8 @@ IBMovingTargetPointForceGen::computeLagrangianForce(
                     SAMRAI::tbox::Pointer<IBMovingTargetPointForceSpec> force_spec = stash_data[l];
                     if (!force_spec.isNull())
                     {
-#ifdef DEBUG_CHECK_ASSERTIONS
                         const int& mastr_idx = node_idx->getLagrangianIndex();
+#ifdef DEBUG_CHECK_ASSERTIONS
                         TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
                         const double& kappa_target = force_spec->getStiffness();
@@ -266,7 +266,10 @@ void
 IBMovingTargetPointForceGen::computeLagrangianForceJacobian(
     Mat& J_mat,
     MatAssemblyType assembly_type,
+    const double X_coef,
     SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    const double U_coef,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -283,7 +286,7 @@ IBMovingTargetPointForceGen::computeLagrangianForceJacobian(
     // corresponding target force spring constants.
     const int global_node_offset = lag_manager->getGlobalNodeOffset(level_number);
     std::vector<int> global_petsc_idxs;
-    std::vector<double> target_spring_stiffnesses;
+    std::vector<double> spring_stiffnesses, damping_coefficients;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -313,8 +316,11 @@ IBMovingTargetPointForceGen::computeLagrangianForceJacobian(
                         const int global_petsc_idx = local_petsc_idx+global_node_offset;
                         global_petsc_idxs.push_back(global_petsc_idx);
 
-                        const double& target_spring_stiffness = force_spec->getStiffness();
-                        target_spring_stiffnesses.push_back(target_spring_stiffness);
+                        const double& spring_stiffness = force_spec->getStiffness();
+                        spring_stiffnesses.push_back(spring_stiffness);
+
+                        const double& damping_coefficient = force_spec->getDamping();
+                        damping_coefficients.push_back(damping_coefficient);
                     }
                 }
             }
@@ -322,18 +328,17 @@ IBMovingTargetPointForceGen::computeLagrangianForceJacobian(
     }
 
     // Compute the elements of the Jacobian matrix.
+    std::vector<double> dF_dX(NDIM*NDIM,0.0);
     const int num_local_idxs = global_petsc_idxs.size();
     for (int k = 0; k < num_local_idxs; ++k)
     {
         const int& global_petsc_idx = global_petsc_idxs[k];
-        const double& target_spring_stiffness = target_spring_stiffnesses[k];
-
-        std::vector<double> dF_dX(NDIM*NDIM,0.0);
+        const double& spring_stiffness = spring_stiffnesses[k];
+        const double& damping_coefficient = damping_coefficients[k];
         for (int alpha = 0; alpha < NDIM; ++alpha)
         {
-            dF_dX[alpha+alpha*NDIM] = -target_spring_stiffness;
+            dF_dX[alpha+alpha*NDIM] = -X_coef*spring_stiffness-U_coef*damping_coefficient;
         }
-
         ierr = MatSetValuesBlocked(J_mat,1,&global_petsc_idx,1,&global_petsc_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
     }
 

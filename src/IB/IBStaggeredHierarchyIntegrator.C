@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <14.Aug.2008 21:38:32 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <15.Aug.2008 15:01:44 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -2620,12 +2620,12 @@ IBStaggeredHierarchyIntegrator::FormJacobian(
 
             // Compute the Jacobian of the force.
             d_force_strategy->computeLagrangianForceJacobian(
-                d_J_mat[ln], MAT_FINAL_ASSEMBLY, d_X_half_data[ln],
+                d_J_mat[ln], MAT_FINAL_ASSEMBLY, 0.5, d_X_half_data[ln], 1.0/d_dt, d_U_half_data[ln],
                 d_hierarchy, ln, d_current_time+0.5*d_dt, d_lag_data_manager);
         }
     }
 
-    // Form the structure Jacobian matrix: I - (dt^2)/(4*rho) diag(S S^{*}) J.
+    // Form the structure Jacobian matrix: I - (dt^2)/(2*rho) diag(S S^{*}) J.
     double volume_element = 1.0;
     const double* const dx_coarsest = grid_geom->getDx();
     for (int d = 0; d < NDIM; ++d)
@@ -2647,7 +2647,7 @@ IBStaggeredHierarchyIntegrator::FormJacobian(
 
             ierr = MatDuplicate(d_J_mat[ln], MAT_COPY_VALUES, &d_strct_pc_mat[ln]);  IBTK_CHKERRQ(ierr);
 //          ierr = MatConvert(d_J_mat[ln], MATMPIAIJ, MAT_INITIAL_MATRIX, &d_strct_pc_mat[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = MatScale(d_strct_pc_mat[ln], -0.25*d_dt*d_dt*(C/volume_element)/d_rho);  IBTK_CHKERRQ(ierr);
+            ierr = MatScale(d_strct_pc_mat[ln], -0.5*d_dt*d_dt*(C/volume_element)/d_rho);  IBTK_CHKERRQ(ierr);
             ierr = MatShift(d_strct_pc_mat[ln], 1.0);  IBTK_CHKERRQ(ierr);
 
             static const std::string options_prefix = "strct_";
@@ -2766,7 +2766,7 @@ IBStaggeredHierarchyIntegrator::MatVecMult(
             }
         }
     }
-    d_hier_sc_data_ops->axpy(fluid_y_vec->getComponentDescriptorIndex(0), -0.5, d_f_scratch_idx, fluid_y_vec->getComponentDescriptorIndex(0));
+    d_hier_sc_data_ops->axpy(fluid_y_vec->getComponentDescriptorIndex(0), -1.0, d_f_scratch_idx, fluid_y_vec->getComponentDescriptorIndex(0));
 
     Vec U_half_vec = d_U_half_data[finest_ln]->getGlobalVec();
     Vec R_vec      = petsc_strct_y_vec;
@@ -2958,7 +2958,7 @@ IBStaggeredHierarchyIntegrator::PCApply_structure(
             }
         }
     }
-    d_hier_sc_data_ops->linearSum(fluid_y_vec->getComponentDescriptorIndex(0), d_dt/d_rho, fluid_x_vec->getComponentDescriptorIndex(0), -0.5*d_dt/d_rho, d_f_scratch_idx);
+    d_hier_sc_data_ops->linearSum(fluid_y_vec->getComponentDescriptorIndex(0), d_dt/d_rho, fluid_x_vec->getComponentDescriptorIndex(0), -d_dt/d_rho, d_f_scratch_idx);
 
     // Deallocate temporary data.
     ierr = VecDestroy(petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
@@ -3057,7 +3057,7 @@ IBStaggeredHierarchyIntegrator::MatVecMult_structure(
             }
         }
     }
-    ierr = VecWAXPY(y, -0.25*d_dt*d_dt/d_rho, d_U_half_data[finest_ln]->getGlobalVec(), x);  IBTK_CHKERRQ(ierr);
+    ierr = VecWAXPY(y, -0.5*d_dt*d_dt/d_rho, d_U_half_data[finest_ln]->getGlobalVec(), x);  IBTK_CHKERRQ(ierr);
     return;
 }// MatVecMult_structure
 

@@ -2,7 +2,7 @@
 #define included_IBSpringForceGen
 
 // Filename: IBSpringForceGen.h
-// Last modified: <30.Jul.2008 17:07:39 griffith@box230.cims.nyu.edu>
+// Last modified: <15.Aug.2008 14:39:50 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -275,16 +275,22 @@ public:
 
     /*!
      * \brief Compute the Jacobian of the force with respect to the present
-     * structure configuration.
+     * structure configuration and velocity.
      *
      * \note The elements of the Jacobian should be "accumulated" in the
      * provided matrix J.
+     *
+     * \note A default implementation is provided with results in an assertion
+     * failure for structures for which no Jacobian is available.
      */
     virtual void
     computeLagrangianForceJacobian(
         Mat& J_mat,
         MatAssemblyType assembly_type,
+        const double X_coef,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+        const double U_coef,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
