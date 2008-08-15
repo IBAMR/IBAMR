@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <14.Aug.2008 15:38:02 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <15.Aug.2008 21:27:16 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2052,20 +2052,19 @@ IBHierarchyIntegrator::regridHierarchy()
     const double* const grid_xLower = grid_geom->getXLower();
     const double* const grid_xUpper = grid_geom->getXUpper();
     const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
-    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    for (int d = 0; d < NDIM; ++d)
     {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            for (int i = 0; i < X_data[ln]->getLocalNodeCount(); ++i)
+            if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                for (int d = 0; d < NDIM; ++d)
+                for (int i = 0; i < X_data[ln]->getLocalNodeCount(); ++i)
                 {
                     if ((periodic_shift[d] == 0) &&
                         ((*X_data[ln])(i,d) - grid_xLower[d] <= eps ||
                          grid_xUpper[d] - (*X_data[ln])(i,d) <= eps))
                     {
-                        d_inactive_local_nodes[ln].push_back(i);
-                        break;
+                        d_inactive_local_nodes[d][ln].push_back(i);
                     }
                 }
             }
@@ -2407,7 +2406,7 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
 
     // If we have added or removed a level, resize the inactive IB point vectors.
     d_inactive_local_nodes.clear();
-    d_inactive_local_nodes.resize(finest_hier_level+1);
+    d_inactive_local_nodes.resize(NDIM,std::vector<std::vector<int> >(finest_hier_level+1));
 
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
@@ -3117,26 +3116,27 @@ IBHierarchyIntegrator::zeroInactiveElements(
     const int finest_ln)
 {
     int ierr;
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    for (int d = 0; d < NDIM; ++d)
     {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            const int depth = V_data[ln]->getDepth();
-            Vec V_vec = V_data[ln]->getGlobalVec();
-            double* V_arr;
-            ierr = VecGetArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
-
-            for (std::vector<int>::const_iterator cit = d_inactive_local_nodes[ln].begin();
-                 cit != d_inactive_local_nodes[ln].end(); ++cit)
+            if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                const int& i = *cit;
-                for (int d = 0; d < depth; ++d)
+#ifdef DEBUG_CHECK_ASSERTIONS
+                const int depth = V_data[ln]->getDepth();
+                TBOX_ASSERT(depth == NDIM);
+#endif
+                Vec V_vec = V_data[ln]->getGlobalVec();
+                double* V_arr;
+                ierr = VecGetArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
+                for (std::vector<int>::const_iterator cit = d_inactive_local_nodes[d][ln].begin();
+                     cit != d_inactive_local_nodes[d][ln].end(); ++cit)
                 {
-                    V_arr[depth*i+d] = 0.0;
+                    const int& i = *cit;
+                    V_arr[NDIM*i+d] = 0.0;
                 }
+                ierr = VecRestoreArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
             }
-
-            ierr = VecRestoreArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
         }
     }
     return;

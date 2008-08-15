@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <14.Aug.2008 15:11:02 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <15.Aug.2008 21:19:47 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -983,7 +983,7 @@ private:
      * Presently, inactive points are not allowed to move, nor are they allowed
      * to apply force to the domain.
      */
-    std::vector<std::vector<int> > d_inactive_local_nodes;
+    std::vector<std::vector<std::vector<int> > > d_inactive_local_nodes;
 
     /*
      * Constraint force data.
