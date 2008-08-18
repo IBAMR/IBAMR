@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <30.Jul.2008 17:19:56 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Aug.2008 15:14:24 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -798,6 +798,16 @@ private:
         const bool initial_time);
 
     /*!
+     * Set the elements of the Lagrangian vector to zero at anchored nodes of
+     * the curvilinear mesh.
+     */
+    void
+    resetAnchorPointValues(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > V_data,
+        const int coarsest_ln,
+        const int finest_ln);
+
+    /*!
      * Read input values, indicated above, from given database.  The boolean
      * argument is_from_restart should be set to true if the simulation is
      * beginning from restart.  Otherwise it should be set to false.
@@ -1157,6 +1167,14 @@ private:
      * Solvers.
      */
     SNES d_petsc_snes;
+
+    /*
+     * List of local indicies of local anchor points.
+     *
+     * NOTE: IB points are automatically considered to be anchored if they are
+     * within 2.0*sqrt(epsilon_mach) of the physical boundary.
+     */
+    std::vector<std::set<int > > d_anchor_point_local_idxs;
 };
 }// namespace IBAMR
 

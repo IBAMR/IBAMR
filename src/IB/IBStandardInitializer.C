@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <30.Jul.2008 17:42:38 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Aug.2008 14:00:02 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -17,6 +17,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/IBAnchorPointSpec.h>
 #include <ibamr/IBBeamForceSpec.h>
 #include <ibamr/IBInstrumentationSpec.h>
 #include <ibamr/IBSpringForceSpec.h>
@@ -116,6 +117,8 @@ IBStandardInitializer::IBStandardInitializer(
       d_uniform_target_stiffness(),
       d_using_uniform_target_damping(),
       d_uniform_target_damping(),
+      d_enable_anchor_points(),
+      d_is_anchor_point(),
       d_enable_bdry_mass(),
       d_bdry_mass(),
       d_bdry_mass_stiffness(),
@@ -133,10 +136,11 @@ IBStandardInitializer::IBStandardInitializer(
 #endif
 
     // Register the specification objects with the IBTK::StashableManager class.
-    IBSpringForceSpec::registerWithStashableManager();
+    IBAnchorPointSpec::registerWithStashableManager();
     IBBeamForceSpec::registerWithStashableManager();
-    IBTargetPointForceSpec::registerWithStashableManager();
     IBInstrumentationSpec::registerWithStashableManager();
+    IBSpringForceSpec::registerWithStashableManager();
+    IBTargetPointForceSpec::registerWithStashableManager();
 
     // Initialize object with data read from the input database.
     getFromInput(input_db);
@@ -159,6 +163,9 @@ IBStandardInitializer::IBStandardInitializer(
 
         // Process the (optional) target point information.
         readTargetPointFiles();
+
+        // Process the (optional) anchor point information.
+        readAnchorPointFiles();
 
         // Process the (optional) mass information.
         readBoundaryMassFiles();
@@ -1103,6 +1110,107 @@ IBStandardInitializer::readTargetPointFiles()
 }// readTargetPointFiles
 
 void
+IBStandardInitializer::readAnchorPointFiles()
+{
+    std::string line_string;
+    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const int num_base_filename = d_base_filename[ln].size();
+        d_is_anchor_point[ln].resize(num_base_filename);
+        for (int j = 0; j < num_base_filename; ++j)
+        {
+            // Wait for the previous MPI process to finish reading the current file.
+            if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+
+            d_is_anchor_point[ln][j].resize(d_num_vertex[ln][j], false);
+
+            const std::string anchor_point_filename = d_base_filename[ln][j] + ".anchor";
+            std::ifstream file_stream;
+            file_stream.open(anchor_point_filename.c_str(), std::ios::in);
+            if (file_stream.is_open())
+            {
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "processing anchor point data from input filename " << anchor_point_filename << std::endl
+                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+
+                // The first line in the file indicates the number of anchor
+                // points in the input file.
+                int num_anchor_pts;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << anchor_point_filename << std::endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_anchor_pts))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << anchor_point_filename << std::endl);
+                    }
+                }
+
+                if (num_anchor_pts <= 0)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << anchor_point_filename << std::endl);
+                }
+
+                // Each successive line indicates the vertex number of the
+                // anchor points in the input file.
+                for (int k = 0; k < num_anchor_pts; ++k)
+                {
+                    int n;
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << anchor_point_filename << std::endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+                        std::istringstream line_stream(line_string);
+                        if (!(line_stream >> n))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << anchor_point_filename << std::endl);
+                        }
+                        else if ((n < 0) || (n >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << anchor_point_filename << std::endl
+                                       << "  vertex index " << n << " is out of range" << std::endl);
+                        }
+
+                        d_is_anchor_point[ln][j][n] = true;
+                    }
+                }
+
+                // Close the input file.
+                file_stream.close();
+
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "read " << num_anchor_pts << " anchor points from input filename " << anchor_point_filename << std::endl
+                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+            }
+
+            // Modify the anchor point information if anchor points are
+            // disabled.
+            if (!d_enable_anchor_points[ln][j])
+            {
+                d_is_anchor_point[ln][j] = std::vector<bool>(
+                    d_num_vertex[ln][j], false);
+            }
+
+            // Free the next MPI process to start reading the current file.
+            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+        }
+    }
+    return;
+}// readAnchorPointFiles
+
+void
 IBStandardInitializer::readBoundaryMassFiles()
 {
     std::string line_string;
@@ -1528,6 +1636,14 @@ IBStandardInitializer::getVertexTargetDamping(
     return d_target_damping[level_number][point_index.first][point_index.second];
 }// getVertexTargetDamping
 
+bool
+IBStandardInitializer::getIsAnchorPoint(
+    const std::pair<int,int>& point_index,
+    const int level_number) const
+{
+    return d_is_anchor_point[level_number][point_index.first][point_index.second];
+}// getIsAnchorPoint
+
 double
 IBStandardInitializer::getVertexMass(
     const std::pair<int,int>& point_index,
@@ -1636,6 +1752,14 @@ IBStandardInitializer::initializeSpecs(
                 mastr_idx, kappa_target, eta_target, X_target));
     }
 
+    const bool is_anchor_point = getIsAnchorPoint(point_index, level_number);
+
+    if (is_anchor_point)
+    {
+        vertex_specs.push_back(
+            new IBAnchorPointSpec(mastr_idx));
+    }
+
     const std::pair<int,int> inst_idx = getVertexInstrumentationIndices(point_index, level_number);
 
     if (inst_idx.first != -1 && inst_idx.second != -1)
@@ -1712,6 +1836,9 @@ IBStandardInitializer::getFromInput(
     d_using_uniform_target_damping.resize(d_max_levels);
     d_uniform_target_damping.resize(d_max_levels);
 
+    d_enable_anchor_points.resize(d_max_levels);
+    d_is_anchor_point.resize(d_max_levels);
+
     d_enable_bdry_mass.resize(d_max_levels);
     d_bdry_mass.resize(d_max_levels);
     d_bdry_mass_stiffness.resize(d_max_levels);
@@ -1784,6 +1911,8 @@ IBStandardInitializer::getFromInput(
         d_using_uniform_target_damping[ln].resize(num_base_filename,false);
         d_uniform_target_damping[ln].resize(num_base_filename,-1.0);
 
+        d_enable_anchor_points[ln].resize(num_base_filename,true);
+
         d_enable_bdry_mass[ln].resize(num_base_filename,true);
 
         d_using_uniform_bdry_mass[ln].resize(num_base_filename,false);
@@ -1815,6 +1944,10 @@ IBStandardInitializer::getFromInput(
                 if (sub_db->keyExists("enable_target_points"))
                 {
                     d_enable_target_points[ln][j] = sub_db->getBool("enable_target_points");
+                }
+                if (sub_db->keyExists("enable_anchor_points"))
+                {
+                    d_enable_anchor_points[ln][j] = sub_db->getBool("enable_anchor_points");
                 }
                 if (sub_db->keyExists("enable_bdry_mass"))
                 {
@@ -1929,7 +2062,7 @@ IBStandardInitializer::getFromInput(
             SAMRAI::tbox::pout << "  base filename: " << base_filename << std::endl
                                << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << std::endl
                                << "     required files: " << base_filename << ".vertex" << std::endl
-                               << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".target, " << base_filename << ".mass, " << base_filename << ".inst " << std::endl;
+                               << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".target, " << base_filename << ".anchor, " << base_filename << ".mass, " << base_filename << ".inst " << std::endl;
             if (!d_enable_springs[ln][j])
             {
                 SAMRAI::tbox::pout << "  NOTE: spring forces are DISABLED for " << base_filename << std::endl;
@@ -1982,6 +2115,11 @@ IBStandardInitializer::getFromInput(
                     SAMRAI::tbox::pout << "  NOTE: uniform target point damping factors are being employed for the structure named " << base_filename << std::endl
                                        << "        any target point damping factor information in optional file " << base_filename << ".target will be IGNORED" << std::endl;
                 }
+            }
+
+            if (!d_enable_anchor_points[ln][j])
+            {
+                SAMRAI::tbox::pout << "  NOTE: anchor points are DISABLED for " << base_filename << std::endl;
             }
 
             if (!d_enable_bdry_mass[ln][j])

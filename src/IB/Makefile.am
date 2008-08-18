@@ -12,6 +12,8 @@ endif
 
 ## Dimension-dependent libraries
 SOURCES = \
+IBAnchorPointSpec.C \
+IBAnchorPointSpecFactory.C \
 IBBeamForceGen.C \
 IBBeamForceSpec.C \
 IBBeamForceSpecFactory.C \
@@ -39,6 +41,9 @@ IBTargetPointForceSpec.C \
 IBTargetPointForceSpecFactory.C
 
 pkg_include_HEADERS = \
+IBAnchorPointSpec.h \
+IBAnchorPointSpec.I \
+IBAnchorPointSpecFactory.h \
 IBBeamForceGen.h \
 IBBeamForceSpec.h \
 IBBeamForceSpec.I \

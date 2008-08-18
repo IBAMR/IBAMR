@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <15.Aug.2008 22:25:25 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <18.Aug.2008 14:14:43 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -48,6 +48,7 @@
 
 // STL INCLUDES
 #include <map>
+#include <set>
 #include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -695,11 +696,11 @@ private:
         const int finest_ln);
 
     /*!
-     * Zero-out the inactive elements of a Lagrangian force or velocity vector
-     * over the specified range of levels in the patch hierarchy.
+     * Set the elements of the Lagrangian vector to zero at anchored nodes of
+     * the curvilinear mesh.
      */
     void
-    zeroInactiveElements(
+    resetAnchorPointValues(
         std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > V_data,
         const int coarsest_ln,
         const int finest_ln);
@@ -975,15 +976,12 @@ private:
     int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_mark_current_idx, d_mark_scratch_idx, d_Q_idx, d_Q_scratch_idx;
 
     /*
-     * List of local indicies of local inactive IB points.
+     * List of local indicies of local anchor points.
      *
-     * NOTE: IB points are considered "inactive" if they are located within a
-     * tolerance epsilon of a physical boundary.
-     *
-     * Presently, inactive points are not allowed to move, nor are they allowed
-     * to apply force to the domain.
+     * NOTE: IB points are automatically considered to be anchored if they are
+     * within 2.0*sqrt(epsilon_mach) of the physical boundary.
      */
-    std::vector<std::vector<int > > d_inactive_local_nodes;
+    std::vector<std::set<int > > d_anchor_point_local_idxs;
 
     /*
      * Constraint force data.

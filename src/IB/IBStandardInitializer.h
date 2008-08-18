@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <30.Jul.2008 17:42:41 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Aug.2008 13:44:26 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -137,6 +137,22 @@ namespace IBAMR
  *
  * \see IBTargetPointForceGen
  * \see IBTargetPointForceSpec
+ *
+ * <HR>
+ *
+ * <B>Anchor point file format</B>
+ *
+ * Anchor point input files end with the extension <TT>".anchor"</TT> and have
+ * the following format:
+ \verbatim
+ M                           # number of anchor points in the file
+ i_0                         # vertex index
+ i_1
+ i_2
+ ...
+ \endverbatim
+ * \note Anchor points are immersed boundary nodes which are "anchored" in
+ * place.  Such points neither spread force nor interpolate velocity.
  *
  * <HR>
  *
@@ -373,6 +389,12 @@ private:
     readTargetPointFiles();
 
     /*!
+     * \brief Read the anchor point data from one or more input files.
+     */
+    void
+    readAnchorPointFiles();
+
+    /*!
      * \brief Read the boundary mass data from one or more input files.
      */
     void
@@ -426,6 +448,14 @@ private:
      */
     double
     getVertexTargetDamping(
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
+
+    /*!
+     * \return Boolean indicating whether a particular node is an anchor point.
+     */
+    bool
+    getIsAnchorPoint(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
@@ -576,6 +606,12 @@ private:
 
     std::vector<std::vector<bool> > d_using_uniform_target_damping;
     std::vector<std::vector<double> > d_uniform_target_damping;
+
+    /*
+     * Anchor point information.
+     */
+    std::vector<std::vector<bool> > d_enable_anchor_points;
+    std::vector<std::vector<std::vector<bool> > > d_is_anchor_point;
 
     /*
      * Mass information for the pIB method.

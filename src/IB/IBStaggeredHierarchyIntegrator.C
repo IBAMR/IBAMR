@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <15.Aug.2008 15:01:44 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <18.Aug.2008 15:14:33 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -17,6 +17,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/IBAnchorPointSpec.h>
 #include <ibamr/INSStaggeredIntermediateVelocityBcCoef.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredProjectionBcCoef.h>
@@ -1474,6 +1475,62 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
     // Indicate that the force strategy needs to be re-initialized.
     d_force_strategy_needs_init  = true;
 
+    // Compute the set of local anchor points.
+    static const double eps = 2.0*sqrt(std::numeric_limits<double>::epsilon());
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    const double* const grid_xLower = grid_geom->getXLower();
+    const double* const grid_xUpper = grid_geom->getXUpper();
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        d_anchor_point_local_idxs[ln].clear();
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const int lag_node_index_idx = d_lag_data_manager->getLNodeIndexPatchDescriptorIndex();
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(lag_node_index_idx);
+                for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
+                {
+                    const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
+                    const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
+                    for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin();
+                         n != node_set.end(); ++n)
+                    {
+                        const IBTK::LNodeIndexSet::value_type& node_idx = *n;
+                        const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data = node_idx->getStashData();
+                        for (unsigned l = 0; l < stash_data.size(); ++l)
+                        {
+                            SAMRAI::tbox::Pointer<IBAnchorPointSpec> anchor_point_spec = stash_data[l];
+                            if (!anchor_point_spec.isNull())
+                            {
+                                d_anchor_point_local_idxs[ln].insert(node_idx->getLocalPETScIndex());
+                            }
+                        }
+                    }
+                }
+            }
+
+            SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
+            for (int i = 0; i < X_data->getLocalNodeCount(); ++i)
+            {
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    if ((periodic_shift[d] == 0) &&
+                        ((*X_data)(i,d) - grid_xLower[d] <= eps ||
+                         grid_xUpper[d] - (*X_data)(i,d) <= eps))
+                    {
+                        d_anchor_point_local_idxs[ln].insert(i);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     t_regrid_hierarchy->stop();
     return;
 }// regridHierarchy
@@ -1955,6 +2012,10 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
 
     d_convective_op->initializeOperatorState(*fluid_sol_vec,*fluid_rhs_vec);
     d_stokes_op->initializeOperatorState(*fluid_sol_vec,*fluid_rhs_vec);
+
+    // If we have added or removed a level, resize the anchor point vectors.
+    d_anchor_point_local_idxs.clear();
+    d_anchor_point_local_idxs.resize(finest_hier_level+1);
 
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
@@ -2474,6 +2535,7 @@ IBStaggeredHierarchyIntegrator::FormFunction(
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             d_F_half_data[ln]->endGhostUpdate();
+            resetAnchorPointValues(d_F_half_data, ln, ln);
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -2511,6 +2573,8 @@ IBStaggeredHierarchyIntegrator::FormFunction(
             }
         }
     }
+
+    resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
 
     Vec R_vec = petsc_strct_f_vec;
     ierr = VecWAXPY(R_vec,-1.0,X_current_vec,X_new_vec);  IBTK_CHKERRQ(ierr);
@@ -2736,6 +2800,8 @@ IBStaggeredHierarchyIntegrator::MatVecMult(
         }
     }
 
+    resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
+
     Vec X_new_vec  = petsc_strct_x_vec;
     Vec F_half_vec = d_F_half_data[finest_ln]->getGlobalVec();
     ierr = MatMult(d_J_mat[finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
@@ -2752,6 +2818,7 @@ IBStaggeredHierarchyIntegrator::MatVecMult(
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             d_F_half_data[ln]->endGhostUpdate();
+            resetAnchorPointValues(d_F_half_data, ln, ln);
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -3170,6 +3237,35 @@ IBStaggeredHierarchyIntegrator::resetLagrangianForceStrategy(
 
     return;
 }// resetLagrangianForceStrategy
+
+void
+IBStaggeredHierarchyIntegrator::resetAnchorPointValues(
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > V_data,
+    const int coarsest_ln,
+    const int finest_ln)
+{
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            const int depth = V_data[ln]->getDepth();
+            Vec V_vec = V_data[ln]->getGlobalVec();
+            double* V_arr;
+            int ierr = VecGetArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
+            for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin();
+                 cit != d_anchor_point_local_idxs[ln].end(); ++cit)
+            {
+                const int& i = *cit;
+                for (int d = 0; d < depth; ++d)
+                {
+                    V_arr[depth*i+d] = 0.0;
+                }
+            }
+            ierr = VecRestoreArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
+        }
+    }
+    return;
+}// resetAnchorPointValues
 
 void
 IBStaggeredHierarchyIntegrator::getFromInput(
