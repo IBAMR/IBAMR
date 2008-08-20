@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <15.Aug.2008 14:54:06 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <20.Aug.2008 20:21:31 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -435,11 +435,13 @@ IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure(
         const int& mastr_idx = petsc_mastr_node_idxs[k];
         const int& slave_idx = petsc_slave_node_idxs[k];
 
+        const bool slave_is_local = (slave_idx >= global_node_offset &&
+                                     slave_idx <  global_node_offset + num_local_nodes);
+
         static const int N = 2;
         const int idxs[N] = { mastr_idx , slave_idx };
         const double vals[N] = { 1.0 , 1.0 };
-        if (slave_idx >= global_node_offset &&
-            slave_idx <  global_node_offset+num_local_nodes)
+        if (slave_is_local)
         {
             ierr = VecSetValues(d_nnz_vec, N, idxs, vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
         }

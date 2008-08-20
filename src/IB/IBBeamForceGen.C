@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <30.Jul.2008 17:07:26 griffith@box230.cims.nyu.edu>
+// Last modified: <20.Aug.2008 20:18:03 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -43,6 +43,8 @@ namespace
 {
 // Timers.
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian_nonzero_structure;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 }
 
@@ -67,6 +69,10 @@ IBBeamForceGen::IBBeamForceGen(
     {
         t_compute_lagrangian_force = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBBeamForceGen::computeLagrangianForce()");
+        t_compute_lagrangian_force_jacobian = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBBeamForceGen::computeLagrangianForceJacobian()");
+        t_compute_lagrangian_force_jacobian_nonzero_structure = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure()");
         t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBBeamForceGen::initializeLevelData()");
         timers_need_init = false;
@@ -400,6 +406,201 @@ IBBeamForceGen::computeLagrangianForce(
     t_compute_lagrangian_force->stop();
     return;
 }// computeLagrangianForce
+
+void
+IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& d_nnz,
+    std::vector<int>& o_nnz,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    t_compute_lagrangian_force_jacobian_nonzero_structure->start();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(level_number < int(d_is_initialized.size()));
+    TBOX_ASSERT(d_is_initialized[level_number]);
+#endif
+
+    int ierr;
+
+    // Lookup the cached connectivity information.
+    std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
+    std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
+    std::vector<int>& petsc_prev_node_idxs = d_petsc_prev_node_idxs[level_number];
+    const int local_sz = petsc_mastr_node_idxs.size();
+
+    // Determine the global node offset and the number of local nodes.
+    const int global_node_offset = lag_manager->getGlobalNodeOffset(level_number);
+    const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_number);
+
+    // Determine the non-zero structure for the matrix used to store the
+    // Jacobian of the force.
+    Vec d_nnz_vec, o_nnz_vec;
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, num_local_nodes, PETSC_DETERMINE, &d_nnz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, num_local_nodes, PETSC_DETERMINE, &o_nnz_vec);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecSet(d_nnz_vec, 1.0);  IBTK_CHKERRQ(ierr);
+    ierr = VecSet(o_nnz_vec, 0.0);  IBTK_CHKERRQ(ierr);
+
+    for (int k = 0; k < local_sz; ++k)
+    {
+        const int& mastr_idx = petsc_mastr_node_idxs[k];
+        const int& next_idx = petsc_next_node_idxs[k];
+        const int& prev_idx = petsc_prev_node_idxs[k];
+
+        const bool next_is_local = (next_idx >= global_node_offset &&
+                                    next_idx <  global_node_offset + num_local_nodes);
+        const bool prev_is_local = (prev_idx >= global_node_offset &&
+                                    prev_idx <  global_node_offset + num_local_nodes);
+        if (next_is_local && prev_is_local)
+        {
+            static const int d_N = 3;
+            const int d_idxs[d_N] = { mastr_idx , next_idx , prev_idx };
+            const double d_vals[d_N] = { 2.0 , 2.0 , 2.0 };
+            ierr = VecSetValues(d_nnz_vec, d_N, d_idxs, d_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+        else if (next_is_local)
+        {
+            static const int d_N = 2;
+            const int d_idxs[d_N] = { mastr_idx , next_idx };
+            const double d_vals[d_N] = { 1.0 , 1.0 };
+            ierr = VecSetValues(d_nnz_vec, d_N, d_idxs, d_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+
+            static const int o_N = 3;
+            const int o_idxs[o_N] = { mastr_idx , next_idx , prev_idx };
+            const double o_vals[o_N] = { 1.0 , 1.0 , 2.0 };
+            ierr = VecSetValues(o_nnz_vec, o_N, o_idxs, o_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+        else if (prev_is_local)
+        {
+            static const int d_N = 2;
+            const int d_idxs[d_N] = { mastr_idx , prev_idx };
+            const double d_vals[d_N] = { 1.0 , 1.0 };
+            ierr = VecSetValues(d_nnz_vec, d_N, d_idxs, d_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+
+            static const int o_N = 3;
+            const int o_idxs[o_N] = { mastr_idx , next_idx , prev_idx };
+            const double o_vals[o_N] = { 1.0 , 2.0 , 1.0 };
+            ierr = VecSetValues(o_nnz_vec, o_N, o_idxs, o_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            // NOTE: Here, we are slightly pessimisticly allocating space both
+            // for the case that the previous and next nodes are on different
+            // processors, and for the case that the previous and next nodes are
+            // on the same processor.
+            static const int d_N = 2;
+            const int d_idxs[d_N] = { next_idx , prev_idx };
+            const double d_vals[d_N] = { 2.0 , 2.0 };
+            ierr = VecSetValues(d_nnz_vec, d_N, d_idxs, d_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+
+            static const int o_N = 3;
+            const int o_idxs[o_N] = { mastr_idx , next_idx , prev_idx };
+            const double o_vals[o_N] = { 2.0 , 2.0 , 2.0 };
+            ierr = VecSetValues(o_nnz_vec, o_N, o_idxs, o_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+    }
+
+    ierr = VecAssemblyBegin(d_nnz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(o_nnz_vec);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecAssemblyEnd(d_nnz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(o_nnz_vec);  IBTK_CHKERRQ(ierr);
+
+    double* d_nnz_vec_arr;
+    double* o_nnz_vec_arr;
+
+    ierr = VecGetArray(d_nnz_vec, &d_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecGetArray(o_nnz_vec, &o_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
+
+    for (int k = 0; k < num_local_nodes; ++k)
+    {
+        d_nnz[k] += int(d_nnz_vec_arr[k]);
+        o_nnz[k] += int(o_nnz_vec_arr[k]);
+    }
+
+    ierr = VecRestoreArray(d_nnz_vec, &d_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArray(o_nnz_vec, &o_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecDestroy(d_nnz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(o_nnz_vec);  IBTK_CHKERRQ(ierr);
+
+    t_compute_lagrangian_force_jacobian_nonzero_structure->stop();
+    return;
+}// computeLagrangianForceJacobianNonzeroStructure
+
+void
+IBBeamForceGen::computeLagrangianForceJacobian(
+    Mat& J_mat,
+    MatAssemblyType assembly_type,
+    const double X_coef,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    const double U_coef,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    t_compute_lagrangian_force_jacobian->start();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(level_number < int(d_is_initialized.size()));
+    TBOX_ASSERT(d_is_initialized[level_number]);
+#endif
+
+    int ierr;
+
+    // Lookup the cached connectivity information.
+    std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
+    std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
+    std::vector<int>& petsc_prev_node_idxs = d_petsc_prev_node_idxs[level_number];
+    const int local_sz = petsc_mastr_node_idxs.size();
+
+    // Compute the matrix elements and add them to the Jacobian matrix.
+    std::vector<double>& bend_rigidities = d_bend_rigidities[level_number];
+    std::vector<double> dF_dX(NDIM*NDIM,0.0);
+    for (int k = 0; k < local_sz; ++k)
+    {
+        const int& petsc_mastr_idx = petsc_mastr_node_idxs[k];
+        const int& petsc_next_idx = petsc_next_node_idxs[k];
+        const int& petsc_prev_idx = petsc_prev_node_idxs[k];
+        const double& bnd = bend_rigidities[k];
+
+        for (int alpha = 0; alpha < NDIM; ++alpha)
+        {
+            dF_dX[alpha+alpha*NDIM] = -1.0*bnd;
+        }
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_prev_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_next_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_prev_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_next_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+
+        for (int alpha = 0; alpha < NDIM; ++alpha)
+        {
+            dF_dX[alpha+alpha*NDIM] = +2.0*bnd;
+        }
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_prev_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_next_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+
+        for (int alpha = 0; alpha < NDIM; ++alpha)
+        {
+            dF_dX[alpha+alpha*NDIM] = -4.0*bnd;
+        }
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    }
+
+    // Assemble the matrix.
+    ierr = MatAssemblyBegin(J_mat, assembly_type);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(J_mat, assembly_type);    IBTK_CHKERRQ(ierr);
+
+    t_compute_lagrangian_force_jacobian->stop();
+    return;
+}// computeLagrangianForceJacobian
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
