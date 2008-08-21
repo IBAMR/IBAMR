@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <18.Aug.2008 15:14:24 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <21.Aug.2008 17:51:10 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -741,18 +741,30 @@ private:
         Vec y);
 
     static PetscErrorCode
-    PCApply_SAMRAI(
+    MatGetVecs_SAMRAI(
+        Mat A,
+        Vec* right,
+        Vec* left);
+
+    static PetscErrorCode
+    PCApplyFluid_SAMRAI(
         void* p_ctx,
         Vec x,
         Vec y);
 
     void
-    PCApply(
+    PCApplyFluid(
+        Vec x,
+        Vec y);
+
+    static PetscErrorCode
+    PCApplyStrct_SAMRAI(
+        void* p_ctx,
         Vec x,
         Vec y);
 
     void
-    PCApply_structure(
+    PCApplyStrct(
         Vec x,
         Vec y);
 
@@ -768,9 +780,24 @@ private:
         Vec y);
 
     void
-    PCApply_fluid(
-        Vec x,
-        Vec y);
+    spread(
+        const int f_data_idx,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data,
+        const bool F_data_ghost_node_update,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
+        const bool X_data_ghost_node_update,
+        const int coarsest_ln=-1,
+        const int finest_ln=-1);
+
+    void
+    interp(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_data,
+        const int u_data_idx,
+        const bool u_data_ghost_cell_update,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
+        const bool X_data_ghost_node_update,
+        const int coarsest_ln=-1,
+        const int finest_ln=-1);
 
     /*!
      * Determine the largest stable timestep on an individual patch level.
@@ -1167,6 +1194,7 @@ private:
      * Solvers.
      */
     SNES d_petsc_snes;
+    Vec d_petsc_x_vec, d_petsc_f_vec;
 
     /*
      * List of local indicies of local anchor points.
