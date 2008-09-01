@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpec.I
-// Last modified: <01.Apr.2008 17:05:54 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Sep.2008 13:44:55 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -26,15 +26,18 @@ inline
 IBBeamForceSpec::IBBeamForceSpec(
     const int master_idx,
     const std::vector<NeighborIdxs>& neighbor_idxs,
-    const std::vector<double>& bend_rigidities)
+    const std::vector<double>& bend_rigidities,
+    const std::vector<double>& mesh_dependent_curvatures)
     : d_num_beams(neighbor_idxs.size()),
       d_master_idx(master_idx),
       d_neighbor_idxs(neighbor_idxs),
-      d_bend_rigidities(bend_rigidities)
+      d_bend_rigidities(bend_rigidities),
+      d_mesh_dependent_curvatures(mesh_dependent_curvatures)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_num_beams == int(d_neighbor_idxs.size()));
     TBOX_ASSERT(d_num_beams == int(d_bend_rigidities.size()));
+    TBOX_ASSERT(d_num_beams == int(d_mesh_dependent_curvatures.size()));
 #endif
     if (!s_registered_factory)
     {
@@ -98,6 +101,18 @@ IBBeamForceSpec::getBendingRigidities()
     return d_bend_rigidities;
 }// getBendingRigidities
 
+inline const std::vector<double>&
+IBBeamForceSpec::getMeshDependentCurvatures() const
+{
+    return d_mesh_dependent_curvatures;
+}// getMeshDependentCurvatures
+
+inline std::vector<double>&
+IBBeamForceSpec::getMeshDependentCurvatures()
+{
+    return d_mesh_dependent_curvatures;
+}// getMeshDependentCurvatures
+
 inline int
 IBBeamForceSpec::getStashableID() const
 {
@@ -108,7 +123,7 @@ inline size_t
 IBBeamForceSpec::getDataStreamSize() const
 {
     return ((2+2*d_num_beams)*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (  1*d_num_beams)*SAMRAI::tbox::AbstractStream::sizeofDouble());
+            (  2*d_num_beams)*SAMRAI::tbox::AbstractStream::sizeofDouble());
 }// getDataStreamSize
 
 inline void
@@ -118,6 +133,7 @@ IBBeamForceSpec::packStream(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_num_beams == int(d_neighbor_idxs.size()));
     TBOX_ASSERT(d_num_beams == int(d_bend_rigidities.size()));
+    TBOX_ASSERT(d_num_beams == int(d_mesh_dependent_curvatures.size()));
 #endif
     std::vector<int> tmp_neighbor_idxs(2*d_num_beams);
     for (int k = 0; k < d_num_beams; ++k)
@@ -129,6 +145,7 @@ IBBeamForceSpec::packStream(
     stream.pack(&d_master_idx,1);
     stream.pack(&tmp_neighbor_idxs[0],2*d_num_beams);
     stream.pack(&d_bend_rigidities[0],1*d_num_beams);
+    stream.pack(&d_mesh_dependent_curvatures[0],1*d_num_beams);
     return;
 }// packStream
 

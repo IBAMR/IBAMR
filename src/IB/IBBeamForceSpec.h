@@ -2,7 +2,7 @@
 #define included_IBBeamForceSpec
 
 // Filename: IBBeamForceSpec.h
-// Last modified: <12.Mar.2008 22:33:46 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Sep.2008 13:42:51 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -65,7 +65,8 @@ public:
     IBBeamForceSpec(
         const int master_idx=-1,
         const std::vector<NeighborIdxs>& neighbor_idxs=std::vector<NeighborIdxs>(),
-        const std::vector<double>& bend_rigidities=std::vector<double>());
+        const std::vector<double>& bend_rigidities=std::vector<double>(),
+        const std::vector<double>& mesh_dependent_curvatures=std::vector<double>());
 
     /*!
      * \brief Virtual destructor.
@@ -118,6 +119,20 @@ public:
      */
     std::vector<double>&
     getBendingRigidities();
+
+    /*!
+     * \return A const reference to the mesh-dependent curvatures of the beams
+     * attached to the master node.
+     */
+    const std::vector<double>&
+    getMeshDependentCurvatures() const;
+
+    /*!
+     * \return A non-const reference to the mesh-dependent curvatures of the
+     * beams attached to the master node.
+     */
+    std::vector<double>&
+    getMeshDependentCurvatures();
 
     /*!
      * \brief Return the unique identifier used to specify the IBTK::StashableFactory
@@ -181,7 +196,7 @@ private:
      */
     int d_num_beams, d_master_idx;
     std::vector<NeighborIdxs> d_neighbor_idxs;
-    std::vector<double> d_bend_rigidities;
+    std::vector<double> d_bend_rigidities, d_mesh_dependent_curvatures;
 };
 }// namespace IBAMR
 

@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <18.Aug.2008 14:00:02 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <01.Sep.2008 13:55:06 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -883,7 +883,7 @@ IBStandardInitializer::readBeamFiles()
                 for (int k = 0; k < num_beams; ++k)
                 {
                     int prev_idx, curr_idx, next_idx;
-                    double kappa;
+                    double bend, curv;
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << beam_filename << std::endl);
@@ -922,29 +922,24 @@ IBStandardInitializer::readBeamFiles()
                                        << "  vertex index " << next_idx << " is out of range" << std::endl);
                         }
 
-                        if (!(line_stream >> kappa))
+                        if (!(line_stream >> curv))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << std::endl);
-                        }
-                        else if (kappa < 0.0)
-                        {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << std::endl
-                                       << "  beam constant is negative" << std::endl);
+                            curv = 0.0;  // mesh-dependent curvature information is optional
                         }
                     }
 
-                    // Modify kappa according to whether beam forces are
-                    // enabled, or whether uniform values are to be employed,
-                    // for this particular structure.
+                    // Modify the value of bend according to whether beam forces
+                    // are enabled, or whether uniform values are to be
+                    // employed, for this particular structure.
                     if (!d_enable_beams[ln][j])
                     {
-                        kappa = 0.0;
+                        bend = 0.0;
                     }
                     else
                     {
                         if (d_using_uniform_beam_bend_rigidity[ln][j])
                         {
-                            kappa = d_uniform_beam_bend_rigidity[ln][j];
+                            bend = d_uniform_beam_bend_rigidity[ln][j];
                         }
                     }
 
@@ -962,7 +957,8 @@ IBStandardInitializer::readBeamFiles()
                     d_beam_specs[ln][j].insert(
                         std::make_pair(
                             curr_idx, std::make_pair(
-                                std::make_pair(next_idx,prev_idx),kappa)));
+                                std::make_pair(next_idx,prev_idx),
+                                std::make_pair(bend,curv))));
                 }
 
                 // Close the input file.
@@ -1721,16 +1717,18 @@ IBStandardInitializer::initializeSpecs(
     }
 
     std::vector<std::pair<int,int> > beam_neighbor_idxs;
-    std::vector<double> beam_bend_rigidity;
-    for (std::multimap<int,std::pair<Neighbors,double> >::const_iterator it = d_beam_specs[level_number][j].lower_bound(mastr_idx);
+    std::vector<double> beam_bend_rigidity, beam_mesh_dependent_curvature;
+    for (std::multimap<int,std::pair<Neighbors,std::pair<double,double> > >::const_iterator it = d_beam_specs[level_number][j].lower_bound(mastr_idx);
          it != d_beam_specs[level_number][j].upper_bound(mastr_idx); ++it)
     {
         const std::pair<int,int>& neighbor_idxs = (*it).second.first;
-        const double& bend_rigidity = (*it).second.second;
+        const double& bend_rigidity = (*it).second.second.first;
+        const double& mesh_dependent_curvature = (*it).second.second.second;
         if (!SAMRAI::tbox::MathUtilities<double>::equalEps(bend_rigidity,0.0))
         {
             beam_neighbor_idxs.push_back(neighbor_idxs);
             beam_bend_rigidity.push_back(bend_rigidity);
+            beam_mesh_dependent_curvature.push_back(mesh_dependent_curvature);
         }
     }
 
@@ -1738,7 +1736,7 @@ IBStandardInitializer::initializeSpecs(
     {
         vertex_specs.push_back(
             new IBBeamForceSpec(
-                mastr_idx, beam_neighbor_idxs, beam_bend_rigidity));
+                mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature));
     }
 
     const double kappa_target = getVertexTargetStiffness(point_index, level_number);

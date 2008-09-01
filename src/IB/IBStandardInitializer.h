@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <18.Aug.2008 13:44:26 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <01.Sep.2008 13:52:44 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -590,7 +590,7 @@ private:
      */
     typedef std::pair<int,int> Neighbors;
     std::vector<std::vector<bool> > d_enable_beams;
-    std::vector<std::vector<std::multimap<int,std::pair<Neighbors,double> > > > d_beam_specs;
+    std::vector<std::vector<std::multimap<int,std::pair<Neighbors,std::pair<double,double> > > > > d_beam_specs;
 
     std::vector<std::vector<bool> > d_using_uniform_beam_bend_rigidity;
     std::vector<std::vector<double> > d_uniform_beam_bend_rigidity;
