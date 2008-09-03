@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <01.Sep.2008 13:51:45 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <01.Sep.2008 14:13:02 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -393,7 +393,7 @@ IBBeamForceGen::computeLagrangianForce(
 
         for (int d = 0; d < NDIM; ++d)
         {
-            F_mastr_node[d] = bend*(+2.0*(D_next[d]+D_prev[d])-curv);
+            F_mastr_node[d] = bend*(+2.0*(D_next[d]+D_prev[d])-curv);   // XXXX: Is this formula correct?
             F_nghbr_node[d] = bend*(-1.0*(D_next[d]+D_prev[d])-curv);
         }
     }

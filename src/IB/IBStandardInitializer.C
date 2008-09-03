@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <01.Sep.2008 13:55:06 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <01.Sep.2008 14:11:35 boyce@dm-linux.maths.gla.ac.uk>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -1722,8 +1722,8 @@ IBStandardInitializer::initializeSpecs(
          it != d_beam_specs[level_number][j].upper_bound(mastr_idx); ++it)
     {
         const std::pair<int,int>& neighbor_idxs = (*it).second.first;
-        const double& bend_rigidity = (*it).second.second.first;
-        const double& mesh_dependent_curvature = (*it).second.second.second;
+        const double& bend_rigidity             = (*it).second.second.first;
+        const double& mesh_dependent_curvature  = (*it).second.second.second;
         if (!SAMRAI::tbox::MathUtilities<double>::equalEps(bend_rigidity,0.0))
         {
             beam_neighbor_idxs.push_back(neighbor_idxs);
