@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <03.Sep.2008 17:39:46 griffith@box230.cims.nyu.edu>
+// Last modified: <03.Sep.2008 19:00:31 griffith@box230.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -923,19 +923,32 @@ IBStandardInitializer::readBeamFiles()
                                        << "  vertex index " << next_idx << " is out of range" << std::endl);
                         }
 
+                        if (!(line_stream >> bend))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << std::endl);
+                        }
+                        else if (bend < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << std::endl
+                                       << "  beam constant is negative" << std::endl);
+                        }
+
+                        bool curv_found_in_input = false;
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            if (!(line_stream >> curv[d]))
+                            double c;
+                            if (!(line_stream >> c))
                             {
-                                if (d == 0)
-                                {
-                                    break;  // curvature information is optional
-                                }
-                                else
+                                if (curv_found_in_input)
                                 {
                                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << std::endl
                                                << "  incomplete beam curvature specification" << std::endl);
                                 }
+                            }
+                            else
+                            {
+                                curv_found_in_input = true;
+                                curv[d] = c;
                             }
                         }
                     }
