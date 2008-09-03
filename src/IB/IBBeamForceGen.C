@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <01.Sep.2008 14:13:02 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <03.Sep.2008 17:39:06 griffith@box230.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -141,7 +141,7 @@ IBBeamForceGen::initializeLevelData(
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_num];
     std::vector<int>& petsc_prev_node_idxs = d_petsc_prev_node_idxs[level_num];
     std::vector<double>& bend_rigidities = d_bend_rigidities[level_num];
-    std::vector<double>& mesh_dependent_curvatures = d_mesh_dependent_curvatures[level_num];
+    std::vector<std::vector<double> >& mesh_dependent_curvatures = d_mesh_dependent_curvatures[level_num];
 
     if (D_next_mat)
     {
@@ -191,7 +191,7 @@ IBBeamForceGen::initializeLevelData(
 #endif
                         const std::vector<std::pair<int,int> >& nghbrs = force_spec->getNeighborNodeIndices();
                         const std::vector<double>& bend = force_spec->getBendingRigidities();
-                        const std::vector<double>& curv = force_spec->getMeshDependentCurvatures();
+                        const std::vector<std::vector<double> >& curv = force_spec->getMeshDependentCurvatures();
 #ifdef DEBUG_CHECK_ASSERTIONS
                         TBOX_ASSERT(num_beams == nghbrs.size());
                         TBOX_ASSERT(num_beams == bend.size());
@@ -374,7 +374,7 @@ IBBeamForceGen::computeLagrangianForce(
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
     std::vector<int>& petsc_prev_node_idxs = d_petsc_prev_node_idxs[level_number];
     std::vector<double>& bend_rigidities = d_bend_rigidities[level_number];
-    std::vector<double>& mesh_dependent_curvatures = d_mesh_dependent_curvatures[level_number];
+    std::vector<std::vector<double> >& mesh_dependent_curvatures = d_mesh_dependent_curvatures[level_number];
 
     const int local_sz = petsc_mastr_node_idxs.size();
     std::vector<double> F_mastr_node_arr(NDIM*local_sz,0.0);
@@ -389,12 +389,12 @@ IBBeamForceGen::computeLagrangianForce(
         const double* const D_next = &D_next_arr[k*NDIM];
         const double* const D_prev = &D_prev_arr[k*NDIM];
         const double& bend = bend_rigidities[k];
-        const double& curv = mesh_dependent_curvatures[k];
+        const std::vector<double>& curv = mesh_dependent_curvatures[k];
 
         for (int d = 0; d < NDIM; ++d)
         {
-            F_mastr_node[d] = bend*(+2.0*(D_next[d]+D_prev[d])-curv);   // XXXX: Is this formula correct?
-            F_nghbr_node[d] = bend*(-1.0*(D_next[d]+D_prev[d])-curv);
+            F_mastr_node[d] = bend*(+2.0*(D_next[d]+D_prev[d]-curv[d]));
+            F_nghbr_node[d] = bend*(-1.0*(D_next[d]+D_prev[d]-curv[d]));
         }
     }
 
@@ -575,11 +575,11 @@ IBBeamForceGen::computeLagrangianForceJacobian(
         const int& petsc_mastr_idx = petsc_mastr_node_idxs[k];
         const int& petsc_next_idx = petsc_next_node_idxs[k];
         const int& petsc_prev_idx = petsc_prev_node_idxs[k];
-        const double& bnd = bend_rigidities[k];
+        const double& bend = bend_rigidities[k];
 
         for (int alpha = 0; alpha < NDIM; ++alpha)
         {
-            dF_dX[alpha+alpha*NDIM] = -1.0*bnd;
+            dF_dX[alpha+alpha*NDIM] = -1.0*bend;
         }
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_prev_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_next_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
@@ -588,7 +588,7 @@ IBBeamForceGen::computeLagrangianForceJacobian(
 
         for (int alpha = 0; alpha < NDIM; ++alpha)
         {
-            dF_dX[alpha+alpha*NDIM] = +2.0*bnd;
+            dF_dX[alpha+alpha*NDIM] = +2.0*bend;
         }
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_prev_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
@@ -597,7 +597,7 @@ IBBeamForceGen::computeLagrangianForceJacobian(
 
         for (int alpha = 0; alpha < NDIM; ++alpha)
         {
-            dF_dX[alpha+alpha*NDIM] = -4.0*bnd;
+            dF_dX[alpha+alpha*NDIM] = -4.0*bend;
         }
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
     }

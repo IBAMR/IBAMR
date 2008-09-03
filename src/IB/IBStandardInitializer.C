@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <01.Sep.2008 14:11:35 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <03.Sep.2008 17:39:46 griffith@box230.cims.nyu.edu>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -883,7 +883,8 @@ IBStandardInitializer::readBeamFiles()
                 for (int k = 0; k < num_beams; ++k)
                 {
                     int prev_idx, curr_idx, next_idx;
-                    double bend, curv;
+                    double bend;
+                    std::vector<double> curv(NDIM,0.0);
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << beam_filename << std::endl);
@@ -922,9 +923,20 @@ IBStandardInitializer::readBeamFiles()
                                        << "  vertex index " << next_idx << " is out of range" << std::endl);
                         }
 
-                        if (!(line_stream >> curv))
+                        for (int d = 0; d < NDIM; ++d)
                         {
-                            curv = 0.0;  // mesh-dependent curvature information is optional
+                            if (!(line_stream >> curv[d]))
+                            {
+                                if (d == 0)
+                                {
+                                    break;  // curvature information is optional
+                                }
+                                else
+                                {
+                                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << std::endl
+                                               << "  incomplete beam curvature specification" << std::endl);
+                                }
+                            }
                         }
                     }
 
@@ -1717,13 +1729,14 @@ IBStandardInitializer::initializeSpecs(
     }
 
     std::vector<std::pair<int,int> > beam_neighbor_idxs;
-    std::vector<double> beam_bend_rigidity, beam_mesh_dependent_curvature;
-    for (std::multimap<int,std::pair<Neighbors,std::pair<double,double> > >::const_iterator it = d_beam_specs[level_number][j].lower_bound(mastr_idx);
+    std::vector<double> beam_bend_rigidity;
+    std::vector<std::vector<double> > beam_mesh_dependent_curvature;
+    for (std::multimap<int,std::pair<Neighbors,std::pair<double,std::vector<double > > > >::const_iterator it = d_beam_specs[level_number][j].lower_bound(mastr_idx);
          it != d_beam_specs[level_number][j].upper_bound(mastr_idx); ++it)
     {
-        const std::pair<int,int>& neighbor_idxs = (*it).second.first;
-        const double& bend_rigidity             = (*it).second.second.first;
-        const double& mesh_dependent_curvature  = (*it).second.second.second;
+        const std::pair<int,int>& neighbor_idxs             = (*it).second.first;
+        const double& bend_rigidity                         = (*it).second.second.first;
+        const std::vector<double>& mesh_dependent_curvature = (*it).second.second.second;
         if (!SAMRAI::tbox::MathUtilities<double>::equalEps(bend_rigidity,0.0))
         {
             beam_neighbor_idxs.push_back(neighbor_idxs);

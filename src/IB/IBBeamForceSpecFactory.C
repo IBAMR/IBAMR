@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpecFactory.C
-// Last modified: <01.Sep.2008 13:46:48 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <03.Sep.2008 17:28:51 griffith@box230.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceSpecFactory.h"
@@ -77,8 +77,11 @@ IBBeamForceSpecFactory::unpackStream(
     }
     std::vector<double> bend_rigidities(num_beams);
     stream.unpack(&bend_rigidities[0],num_beams);
-    std::vector<double> mesh_dependent_curvatures(num_beams);
-    stream.unpack(&mesh_dependent_curvatures[0],num_beams);
+    std::vector<std::vector<double> > mesh_dependent_curvatures(num_beams,std::vector<double>(NDIM,0.0));
+    for (int k = 0; k < num_beams; ++k)
+    {
+        stream.unpack(&mesh_dependent_curvatures[k][0],NDIM);
+    }
     return new IBBeamForceSpec(master_idx,neighbor_idxs,bend_rigidities,mesh_dependent_curvatures);
 }// unpackStream
 

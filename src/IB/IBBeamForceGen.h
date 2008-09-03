@@ -2,7 +2,7 @@
 #define included_IBBeamForceGen
 
 // Filename: IBBeamForceGen.h
-// Last modified: <01.Sep.2008 13:50:19 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <03.Sep.2008 17:37:56 griffith@box230.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -148,7 +148,8 @@ private:
     //\{
     std::vector<Mat> d_D_next_mats, d_D_prev_mats;
     std::vector<std::vector<int> > d_petsc_mastr_node_idxs, d_petsc_next_node_idxs, d_petsc_prev_node_idxs;
-    std::vector<std::vector<double> > d_bend_rigidities, d_mesh_dependent_curvatures;
+    std::vector<std::vector<double> > d_bend_rigidities;
+    std::vector<std::vector<std::vector<double> > > d_mesh_dependent_curvatures;
     std::vector<bool> d_is_initialized;
     //\}
 };
