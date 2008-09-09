@@ -21,12 +21,13 @@ if ($#ARGV != 0) {
 # boolean controling whether to check to see if the initial
 # displacement equals the resting length.
 $check_for_consistent_rest_lengths = 1;  # 1 = enabled; 0 = disabled
-$eps = 1.0e-8;
+$mach_eps = 2.22044604925031e-16;
+$tol = sqrt($mach_eps);
 
 print "\n";
 if ($check_for_consistent_rest_lengths) {
     print "checks for consistent spring rest lengths are ENABLED!\n";
-    print "warning messages WILL be printed if the initial displacements and resting lengths differ by more than a relative error tolerance of $eps.\n";
+    print "warning messages WILL be printed if the initial displacements and resting lengths differ by more than a relative error tolerance of $tol.\n";
 } else {
     print "checks for consistent spring rest lengths are DISABLED!\n";
     print "warning messages WILL NOT be printed if the initial displacements and resting lengths differ.\n";
@@ -67,11 +68,12 @@ while (<VERTEX_IN>) {
     $num_vertices += 1;
     $line_number += 1;
 }
-print "read $num_vertices vertices from vertex file: $input_filename.vertex\n\n";
+print "read $num_vertices vertices from vertex file: $input_filename.vertex\n";
 if ($num_vertices != $num_vertices_expected) {
     print "WARNING: expected to read: $num_vertices_expected from vertex file $input_filename.vertex\n";
-    print "         actually read:    $num_vertices\n\n";
+    print "         actually read:    $num_vertices\n";
 }
+print "\n";
 close(VERTEX_IN);
 
 # the first line in the spring input file has the format:
@@ -131,7 +133,8 @@ while (<SPRING_IN>) {
 	$dx[1] = $y[$idx0] - $y[$idx1];
 	$dx[2] = $z[$idx0] - $z[$idx1];
 	$rst_actual = sqrt($dx[0]*$dx[0]+$dx[1]*$dx[1]+$dx[2]*$dx[2]);
-	if (abs($rst_actual - $rst)/max($rst_actual,$rst,1.0) > $eps) {
+	if (abs($rst_actual - $rst)/max($rst_actual,$rst,$mach_eps) > $tol &&
+	    abs($rst_actual - $rst) > $mach_eps) {
 	    print "WARNING: rest length on line $line_number in spring file $input_filename.spring is different from initial displacement in vertex file $input_filename.vertex\n";
 	    print "         rest length in spring file $input_filename.spring: $rst\n";
 	    print "         initial displacement in vertex file $input_filename.vertex: $rst_actual\n";
@@ -147,4 +150,5 @@ if ($num_springs != $num_springs_expected) {
     print "WARNING: expected to read: $num_springs_expected springs from spring file $input_filename.spring\n";
     print "         actually read:    $num_springs springs\n";
 }
+print "\n";
 close(SPRING_IN);
