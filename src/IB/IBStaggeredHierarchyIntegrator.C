@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <21.Aug.2008 20:49:52 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <11.Sep.2008 19:31:52 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -228,7 +228,7 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
     // Determine the ghost cell width required for cell-centered spreading and
     // interpolating.
     const int stencil_size = IBTK::LEInteractor::getStencilSize(d_delta_fcn);
-    d_ghosts = int(floor(0.5*double(stencil_size)))+1;
+    d_ghosts = 8; // XXXX int(floor(0.5*double(stencil_size)))+1;
 
     // Get the Lagrangian Data Manager.
     d_lag_data_manager = IBTK::LDataManager::getManager(
@@ -847,6 +847,33 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+
+    // Reset the various Lagrangian objects.  XXXX
+    d_X_data     .resize(finest_ln+1);
+    d_X_mid_data .resize(finest_ln+1);
+    d_X_new_data .resize(finest_ln+1);
+    d_X_half_data.resize(finest_ln+1);
+    d_U_half_data.resize(finest_ln+1);
+    d_F_half_data.resize(finest_ln+1);
+    d_J_mat.resize(finest_ln+1,static_cast<Mat>(NULL));
+    d_strct_mat.resize(finest_ln+1,static_cast<Mat>(NULL));
+    d_strct_pc_mat.resize(finest_ln+1,static_cast<Mat>(NULL));
+    d_strct_ksp.resize(finest_ln+1,static_cast<KSP>(NULL));
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(ln == finest_ln);
+#endif
+            d_X_data     [ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
+            d_X_mid_data [ln] = d_lag_data_manager->createLNodeLevelData("X_mid" ,ln,NDIM);
+            d_X_new_data [ln] = d_lag_data_manager->createLNodeLevelData("X_new" ,ln,NDIM);
+            d_X_half_data[ln] = d_lag_data_manager->createLNodeLevelData("X_half",ln,NDIM);
+            d_U_half_data[ln] = d_lag_data_manager->createLNodeLevelData("U_half",ln,NDIM);
+            d_F_half_data[ln] = d_lag_data_manager->createLNodeLevelData("F_half",ln,NDIM);
+        }
+    }
 
     // Setup the boundary conditions specifications.
     for (int d = 0; d < NDIM; ++d)
@@ -1467,6 +1494,33 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement.\n";
     d_lag_data_manager->endDataRedistribution();
 
+    // Reset the various Lagrangian objects.  XXXX
+    d_X_data     .resize(finest_ln+1);
+    d_X_mid_data .resize(finest_ln+1);
+    d_X_new_data .resize(finest_ln+1);
+    d_X_half_data.resize(finest_ln+1);
+    d_U_half_data.resize(finest_ln+1);
+    d_F_half_data.resize(finest_ln+1);
+    d_J_mat.resize(finest_ln+1,static_cast<Mat>(NULL));
+    d_strct_mat.resize(finest_ln+1,static_cast<Mat>(NULL));
+    d_strct_pc_mat.resize(finest_ln+1,static_cast<Mat>(NULL));
+    d_strct_ksp.resize(finest_ln+1,static_cast<KSP>(NULL));
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(ln == finest_ln);
+#endif
+            d_X_data     [ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
+            d_X_mid_data [ln] = d_lag_data_manager->createLNodeLevelData("X_mid" ,ln,NDIM);
+            d_X_new_data [ln] = d_lag_data_manager->createLNodeLevelData("X_new" ,ln,NDIM);
+            d_X_half_data[ln] = d_lag_data_manager->createLNodeLevelData("X_half",ln,NDIM);
+            d_U_half_data[ln] = d_lag_data_manager->createLNodeLevelData("U_half",ln,NDIM);
+            d_F_half_data[ln] = d_lag_data_manager->createLNodeLevelData("F_half",ln,NDIM);
+        }
+    }
+
     // Update the workload post-regridding.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
     d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
@@ -2059,33 +2113,6 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
         }
     }
 
-    // Reset the various Lagrangian objects.
-    d_X_data     .resize(finest_hier_level+1);
-    d_X_mid_data .resize(finest_hier_level+1);
-    d_X_new_data .resize(finest_hier_level+1);
-    d_X_half_data.resize(finest_hier_level+1);
-    d_U_half_data.resize(finest_hier_level+1);
-    d_F_half_data.resize(finest_hier_level+1);
-    d_J_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
-    d_strct_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
-    d_strct_pc_mat.resize(finest_hier_level+1,static_cast<Mat>(NULL));
-    d_strct_ksp.resize(finest_hier_level+1,static_cast<KSP>(NULL));
-    for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
-    {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
-        {
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(ln == finest_hier_level);
-#endif
-            d_X_data     [ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
-            d_X_mid_data [ln] = d_lag_data_manager->createLNodeLevelData("X_mid" ,ln,NDIM);
-            d_X_new_data [ln] = d_lag_data_manager->createLNodeLevelData("X_new" ,ln,NDIM);
-            d_X_half_data[ln] = d_lag_data_manager->createLNodeLevelData("X_half",ln,NDIM);
-            d_U_half_data[ln] = d_lag_data_manager->createLNodeLevelData("U_half",ln,NDIM);
-            d_F_half_data[ln] = d_lag_data_manager->createLNodeLevelData("F_half",ln,NDIM);
-        }
-    }
-
     // Indicate that solvers need to be re-initialized.
     d_helmholtz_solver_needs_init = true;
     d_projection_pc_needs_init = true;
@@ -2521,6 +2548,7 @@ IBStaggeredHierarchyIntegrator::FormFunction(
         }
     }
     spread(d_f_scratch_idx, d_F_half_data, true, d_X_mid_data, false);
+
     d_hier_sc_data_ops->axpy(fluid_f_vec->getComponentDescriptorIndex(0), -1.0, d_f_scratch_idx, fluid_f_vec->getComponentDescriptorIndex(0));
     d_u_bc_helper->zeroValuesAtDirichletBoundaries(fluid_f_vec->getComponentDescriptorIndex(0));
 
@@ -3030,12 +3058,12 @@ IBStaggeredHierarchyIntegrator::spread(
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
                 const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+                const SAMRAI::hier::Box<NDIM>& box = idx_data->getGhostBox();
                 IBTK::LEInteractor::spread(
                     f_data, F_data[ln], X_data[ln], idx_data,
-                    patch, SAMRAI::hier::Box<NDIM>::grow(patch_box,d_ghosts), periodic_shift,
+                    patch, box, periodic_shift,
                     d_delta_fcn);
             }
         }
@@ -3105,12 +3133,12 @@ IBStaggeredHierarchyIntegrator::interp(
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_data = patch->getPatchData(u_data_idx);
                 const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+                const SAMRAI::hier::Box<NDIM>& box = idx_data->getBox();
                 IBTK::LEInteractor::interpolate(
                     U_data[ln], X_data[ln], idx_data, u_data,
-                    patch, patch_box, periodic_shift,
+                    patch, box, periodic_shift,
                     d_delta_fcn);
             }
         }
