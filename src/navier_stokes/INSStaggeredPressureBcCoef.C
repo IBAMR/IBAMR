@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPressureBcCoef.C
-// Last modified: <09.Sep.2008 16:41:14 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Sep.2008 17:06:07 griffith@box230.cims.nyu.edu>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPressureBcCoef.h"
@@ -200,19 +200,16 @@ INSStaggeredPressureBcCoef::setBcCoefs(
             // divergence free condition to the boundary.
             SAMRAI::hier::Index<NDIM> i_intr0 = i;
             SAMRAI::hier::Index<NDIM> i_intr1 = i;
-            SAMRAI::hier::Index<NDIM> i_intr2 = i;
 
             if (is_lower)
             {
                 i_intr0(bdry_normal_axis) += 0;
                 i_intr1(bdry_normal_axis) += 1;
-                i_intr2(bdry_normal_axis) += 2;
             }
             else
             {
                 i_intr0(bdry_normal_axis) -= 1;
                 i_intr1(bdry_normal_axis) -= 2;
-                i_intr2(bdry_normal_axis) -= 3;
             }
 
             for (int d = 0; d < NDIM; ++d)
@@ -224,9 +221,6 @@ INSStaggeredPressureBcCoef::setBcCoefs(
 
                     i_intr1(d) = std::max(i_intr1(d),ghost_box.lower()(d));
                     i_intr1(d) = std::min(i_intr1(d),ghost_box.upper()(d));
-
-                    i_intr2(d) = std::max(i_intr2(d),ghost_box.lower()(d));
-                    i_intr2(d) = std::min(i_intr2(d),ghost_box.upper()(d));
                 }
             }
 
@@ -238,15 +232,13 @@ INSStaggeredPressureBcCoef::setBcCoefs(
                 {
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
-                    const SAMRAI::pdat::SideIndex<NDIM> i_s_intr2_upper(i_intr2, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
-                    const double u_tan_current_upper = 3.0*(*u_current_data)(i_s_intr0_upper)-3.0*(*u_current_data)(i_s_intr1_upper)+1.0*(*u_current_data)(i_s_intr2_upper);
-                    const double u_tan_new_upper     = 3.0*(*u_new_data    )(i_s_intr0_upper)-3.0*(*u_new_data    )(i_s_intr1_upper)+1.0*(*u_new_data    )(i_s_intr2_upper);
+                    const double u_tan_current_upper = 1.5*(*u_current_data)(i_s_intr0_upper)-0.5*(*u_current_data)(i_s_intr1_upper);
+                    const double u_tan_new_upper     = 1.5*(*u_new_data    )(i_s_intr0_upper)-0.5*(*u_new_data    )(i_s_intr1_upper);
 
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-                    const SAMRAI::pdat::SideIndex<NDIM> i_s_intr2_lower(i_intr2, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-                    const double u_tan_current_lower = 3.0*(*u_current_data)(i_s_intr0_lower)-3.0*(*u_current_data)(i_s_intr1_lower)+1.0*(*u_current_data)(i_s_intr2_lower);
-                    const double u_tan_new_lower     = 3.0*(*u_new_data    )(i_s_intr0_lower)-3.0*(*u_new_data    )(i_s_intr1_lower)+1.0*(*u_new_data    )(i_s_intr2_lower);
+                    const double u_tan_current_lower = 1.5*(*u_current_data)(i_s_intr0_lower)-0.5*(*u_current_data)(i_s_intr1_lower);
+                    const double u_tan_new_lower     = 1.5*(*u_new_data    )(i_s_intr0_lower)-0.5*(*u_new_data    )(i_s_intr1_lower);
 
                     du_norm_current_dn += (is_lower ? +1.0 : -1.0)*(u_tan_current_upper-u_tan_current_lower)/dx[axis];
                     du_norm_new_dn     += (is_lower ? +1.0 : -1.0)*(u_tan_new_upper    -u_tan_new_lower    )/dx[axis];
