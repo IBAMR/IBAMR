@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionBcCoef.C
-// Last modified: <23.Jul.2008 17:43:47 griffith@box230.cims.nyu.edu>
+// Last modified: <09.Sep.2008 11:08:44 griffith@box230.cims.nyu.edu>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionBcCoef.h"
@@ -125,6 +125,9 @@ INSStaggeredProjectionBcCoef::setBcCoefs(
 
         const bool velocity_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(beta ,1.0);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
+#endif
         if (velocity_bc)
         {
             // Set the boundary condition coefficients to correspond to

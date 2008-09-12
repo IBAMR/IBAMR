@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPressureBcCoef.C
-// Last modified: <30.Jul.2008 19:09:23 griffith@box230.cims.nyu.edu>
+// Last modified: <09.Sep.2008 16:41:14 griffith@box230.cims.nyu.edu>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPressureBcCoef.h"
@@ -170,6 +170,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(
     TBOX_ASSERT(!u_new_data.isNull());
     TBOX_ASSERT(u_new_data->getGhostCellWidth().max() == u_new_data->getGhostCellWidth().min());
 #endif
+    const SAMRAI::hier::Box<NDIM> ghost_box = u_current_data->getGhostBox() * u_new_data->getGhostBox();
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs.getMu();
@@ -182,6 +183,9 @@ INSStaggeredPressureBcCoef::setBcCoefs(
 
         const bool velocity_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(beta ,1.0);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
+#endif
         if (velocity_bc)
         {
             // Set the boundary condition coefficients to correspond to
@@ -209,6 +213,21 @@ INSStaggeredPressureBcCoef::setBcCoefs(
                 i_intr0(bdry_normal_axis) -= 1;
                 i_intr1(bdry_normal_axis) -= 2;
                 i_intr2(bdry_normal_axis) -= 3;
+            }
+
+            for (int d = 0; d < NDIM; ++d)
+            {
+                if (d != bdry_normal_axis)
+                {
+                    i_intr0(d) = std::max(i_intr0(d),ghost_box.lower()(d));
+                    i_intr0(d) = std::min(i_intr0(d),ghost_box.upper()(d));
+
+                    i_intr1(d) = std::max(i_intr1(d),ghost_box.lower()(d));
+                    i_intr1(d) = std::min(i_intr1(d),ghost_box.upper()(d));
+
+                    i_intr2(d) = std::max(i_intr2(d),ghost_box.lower()(d));
+                    i_intr2(d) = std::min(i_intr2(d),ghost_box.upper()(d));
+                }
             }
 
             double du_norm_current_dn = 0.0;

@@ -1,5 +1,5 @@
 // Filename: INSStaggeredVelocityBcCoef.C
-// Last modified: <30.Jul.2008 19:09:11 griffith@box230.cims.nyu.edu>
+// Last modified: <09.Sep.2008 11:51:58 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredVelocityBcCoef.h"
@@ -164,6 +164,9 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
 
         const bool velocity_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(beta ,1.0);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
+#endif
         if (velocity_bc)
         {
             // intentionally blank
@@ -217,12 +220,11 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
             {
                 // Compute the tangential derivative of the normal component of
                 // the velocity at the boundary.
-                SAMRAI::hier::Index<NDIM> i_lower = i;
+                SAMRAI::hier::Index<NDIM> i_lower(i), i_upper(i);
                 i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx),i(d_comp_idx)-1);
+                i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx),i_lower(d_comp_idx)+1);
+                i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx),i_upper(d_comp_idx)-1);
                 const SAMRAI::pdat::SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-
-                SAMRAI::hier::Index<NDIM> i_upper = i;
-                i_upper(d_comp_idx) = i_lower(d_comp_idx)+1;
                 const SAMRAI::pdat::SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
 
                 const double du_norm_dt = ((*u_data)(i_s_upper)-(*u_data)(i_s_lower))/dx[d_comp_idx];
