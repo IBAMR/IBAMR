@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <24.Jul.2008 18:34:43 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Sep.2008 12:42:00 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -19,6 +19,7 @@
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/SCLaplaceOperator.h>
+#include <ibtk/SCPoissonHypreLevelSolver.h>
 #include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
@@ -920,9 +921,11 @@ private:
     SAMRAI::tbox::Pointer<INSStaggeredPPMConvectiveOperator> d_convective_op;
 
     bool d_helmholtz_solver_needs_init;
-    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>  d_helmholtz_op;
-    SAMRAI::solv::PoissonSpecifications*            d_helmholtz_spec;
-    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> d_helmholtz_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_helmholtz_hypre_pc_db;
+    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>         d_helmholtz_op;
+    SAMRAI::solv::PoissonSpecifications*                   d_helmholtz_spec;
+    SAMRAI::tbox::Pointer<IBTK::SCPoissonHypreLevelSolver> d_helmholtz_hypre_pc;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>        d_helmholtz_solver;
 
     bool d_projection_pc_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> d_projection_pc;

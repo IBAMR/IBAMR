@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <31.Jul.2008 23:17:36 griffith@box230.cims.nyu.edu>
+// Last modified: <19.Sep.2008 14:38:01 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -631,11 +631,16 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_U_star_bc_coefs, true);
     d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
+    d_helmholtz_hypre_pc = new IBTK::SCPoissonHypreLevelSolver(
+        d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
+    d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
+
     d_helmholtz_solver_needs_init = true;
     d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
-        d_object_name+"::PETSc Krylov solver", "helmholtz_");
+        d_object_name+"::Helmholtz Krylov Solver", "helmholtz_");
     d_helmholtz_solver->setInitialGuessNonzero(false);
     d_helmholtz_solver->setOperator(d_helmholtz_op);
+    d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
 
     // Setup the projection preconditioner.
     d_projection_pc_needs_init = true;
@@ -1031,6 +1036,11 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_helmholtz_op->setHomogeneousBc(true);
     d_helmholtz_op->setTime(new_time);
     d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
+
+    d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
+    d_helmholtz_hypre_pc->setPhysicalBcCoefs(d_U_star_bc_coefs);
+    d_helmholtz_hypre_pc->setHomogeneousBc(true);
+    d_helmholtz_hypre_pc->setTime(new_time);
 
     d_helmholtz_solver->setInitialGuessNonzero(false);
     d_helmholtz_solver->setOperator(d_helmholtz_op);
@@ -2177,6 +2187,8 @@ INSStaggeredHierarchyIntegrator::getFromInput(
         "dt_max_time_max", d_dt_max_time_max);
     d_dt_max_time_min = db->getDoubleWithDefault(
         "dt_max_time_min", d_dt_max_time_min);
+
+    d_helmholtz_hypre_pc_db = db->getDatabase("helmholtz_hypre_solver");
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
 

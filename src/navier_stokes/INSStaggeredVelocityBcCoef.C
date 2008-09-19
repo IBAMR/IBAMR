@@ -1,5 +1,5 @@
 // Filename: INSStaggeredVelocityBcCoef.C
-// Last modified: <12.Sep.2008 17:06:10 griffith@box230.cims.nyu.edu>
+// Last modified: <16.Sep.2008 20:18:07 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredVelocityBcCoef.h"
@@ -229,15 +229,13 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
                 // the velocity at the boundary.
                 SAMRAI::hier::Index<NDIM> i_lower(i), i_upper(i);
                 i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx),i(d_comp_idx)-1);
-                i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx),i_lower(d_comp_idx)+1);
-                i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx),i_upper(d_comp_idx)-1);
+                i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx),i(d_comp_idx)  );
                 const SAMRAI::pdat::SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
                 const SAMRAI::pdat::SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-
-                const double du_norm_dt = ((*u_data)(i_s_upper)-(*u_data)(i_s_lower))/dx[d_comp_idx];
+                const double du_norm_dtan = (is_lower ? -1.0 : +1.0)*((*u_data)(i_s_upper)-(*u_data)(i_s_lower))/dx[d_comp_idx];
 
                 // Correct the boundary condition value.
-                gamma = gamma/mu + (is_lower ? +1.0 : -1.0)*du_norm_dt;
+                gamma = gamma/mu - du_norm_dtan;
             }
         }
         else
