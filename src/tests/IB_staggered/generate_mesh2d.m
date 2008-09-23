@@ -7,14 +7,14 @@ dx = 1/NFINEST;
 ds = 0.5*dx;
 
 width = 4.0/64.0;
-alpha = 0.1;
-beta  = 0.1;
+alpha = 0.2;
+beta  = 0.25;
 
-X_1 = 0.5
-X_2 = beta+0.5*width+0.5*dx
+X_1 = 0.5;
+X_2 = 0.5;
 
-num_nodes = ceil(2*pi*alpha/ds);
-num_layers = ceil(width/ds);
+num_nodes = 2*ceil(ceil(2*pi*alpha/ds)/2);
+num_layers = 2*ceil(ceil(width/ds)/2);
 tapered_stiffness = false;
 stiffness = 1.0/num_layers;
 

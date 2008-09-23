@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <18.Sep.2008 12:42:00 griffith@box230.cims.nyu.edu>
+// Last modified: <22.Sep.2008 18:48:30 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -10,6 +10,7 @@
 // IBAMR INCLUDES
 #include <ibamr/HierarchyProjector.h>
 #include <ibamr/INSCoefs.h>
+#include <ibamr/INSStaggeredBlockFactorizationPreconditioner.h>
 #include <ibamr/INSStaggeredPPMConvectiveOperator.h>
 #include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
@@ -77,7 +78,6 @@ public:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
         bool register_for_restart=true);
 
     /*!
@@ -783,6 +783,7 @@ private:
      * needed to enforce the incompressibility constraint.
      */
     SAMRAI::tbox::Pointer<HierarchyProjector> d_hier_projector;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hier_projector_db;
 
     /*
      * Integrator data read from input or set at initialization.
@@ -927,8 +928,18 @@ private:
     SAMRAI::tbox::Pointer<IBTK::SCPoissonHypreLevelSolver> d_helmholtz_hypre_pc;
     SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>        d_helmholtz_solver;
 
+    bool d_poisson_solver_needs_init;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_poisson_hypre_pc_db;
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>         d_poisson_op;
+    SAMRAI::solv::PoissonSpecifications*                   d_poisson_spec;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver> d_poisson_hypre_pc;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>        d_poisson_solver;
+
     bool d_projection_pc_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> d_projection_pc;
+
+    bool d_block_pc_needs_init;
+    SAMRAI::tbox::Pointer<INSStaggeredBlockFactorizationPreconditioner> d_block_pc;
 
     bool d_stokes_solver_needs_init;
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;

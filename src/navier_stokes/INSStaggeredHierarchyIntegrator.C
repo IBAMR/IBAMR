@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <19.Sep.2008 14:38:01 griffith@box230.cims.nyu.edu>
+// Last modified: <22.Sep.2008 19:32:29 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -116,21 +116,17 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     const std::string& object_name,
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-    SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
     bool register_for_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(!input_db.isNull());
     TBOX_ASSERT(!hierarchy.isNull());
-    TBOX_ASSERT(!hier_projector.isNull());
 #endif
     d_object_name = object_name;
     d_registered_for_restart = register_for_restart;
 
     d_hierarchy = hierarchy;
-
-    d_hier_projector = hier_projector;
 
     if (d_registered_for_restart)
     {
@@ -272,7 +268,8 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
         delete (*it).second;
     }
 
-    delete d_helmholtz_spec;
+    if (d_helmholtz_spec != NULL) delete d_helmholtz_spec;
+    if (d_poisson_spec != NULL) delete d_poisson_spec;
     delete d_default_U_bc_coef;
     if (!d_U_bc_coefs.empty())
     {
@@ -341,8 +338,6 @@ INSStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
     }
     d_P_bc_coef = new INSStaggeredPressureBcCoef(*d_problem_coefs,U_bc_coefs);
     d_Phi_bc_coef = new INSStaggeredProjectionBcCoef(U_bc_coefs);
-    d_hier_projector->setVelocityPhysicalBcCoefs(d_U_star_bc_coefs);
-    d_hier_projector->setPressurePhysicalBcCoef(d_Phi_bc_coef);
     return;
 }// registerVelocityPhysicalBcCoefs
 
@@ -601,7 +596,10 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the Hierarchy math operations object.
     d_hier_math_ops = new IBTK::HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy);
     d_is_managing_hier_math_ops = true;
-    d_hier_projector->setHierarchyMathOps(d_hier_math_ops);
+    if (!d_hier_projector.isNull())
+    {
+        d_hier_projector->setHierarchyMathOps(d_hier_math_ops);
+    }
 
     // Set the current integration time.
     if (!SAMRAI::tbox::RestartManager::getManager()->isFromRestart())
@@ -625,37 +623,118 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         *d_problem_coefs,
         d_conservation_form);
 
-    // Setup the Helmholtz solver.
-    d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
-    d_helmholtz_op = new IBTK::SCLaplaceOperator(
-        d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_U_star_bc_coefs, true);
-    d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
-
-    d_helmholtz_hypre_pc = new IBTK::SCPoissonHypreLevelSolver(
-        d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
-    d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
-
-    d_helmholtz_solver_needs_init = true;
-    d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
-        d_object_name+"::Helmholtz Krylov Solver", "helmholtz_");
-    d_helmholtz_solver->setInitialGuessNonzero(false);
-    d_helmholtz_solver->setOperator(d_helmholtz_op);
-    d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
-
-    // Setup the projection preconditioner.
-    d_projection_pc_needs_init = true;
-    d_projection_pc = new INSStaggeredProjectionPreconditioner(
-        *d_problem_coefs,
-        d_normalize_pressure,
-        d_helmholtz_solver, d_hier_projector,
-        d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
-
     // Setup the linear solver.
     d_stokes_solver_needs_init = true;
     d_stokes_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::ins_solver", "ins_");
     d_stokes_solver->setInitialGuessNonzero(true);
     d_stokes_solver->setOperator(d_stokes_op);
-    d_stokes_solver->setPreconditioner(d_projection_pc);
+
+    // Determine the preconditioner type to use.
+    size_t len = 255;
+    char ins_pc_type_str[len];
+    PetscTruth flg;
+    int ierr = PetscOptionsGetString("ins_", "-precond_type", ins_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
+    std::string ins_pc_type;
+    if (flg)
+    {
+        ins_pc_type = std::string(ins_pc_type_str);
+    }
+    else
+    {
+        ins_pc_type = "projection";
+    }
+
+    if (!(ins_pc_type == "none" || ins_pc_type == "projection" || ins_pc_type == "block_factorization"))
+    {
+        TBOX_ERROR("invalid stokes preconditioner type: " << ins_pc_type << "\n" <<
+                   "valid stokes preconditioners: projection, block_factorization, none" << std::endl);  // XXXX
+    }
+
+    // Setup the preconditioner.
+    const bool needs_helmholtz_solver = ins_pc_type == "projection" || ins_pc_type == "block_factorization";
+    const bool needs_poisson_solver = ins_pc_type == "block_factorization";
+    const bool needs_hier_projector = ins_pc_type == "projection";
+
+    if (needs_helmholtz_solver)
+    {
+        d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
+        d_helmholtz_op = new IBTK::SCLaplaceOperator(
+            d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_U_star_bc_coefs, true);
+        d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
+
+        d_helmholtz_hypre_pc = new IBTK::SCPoissonHypreLevelSolver(
+            d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
+        d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
+
+        d_helmholtz_solver_needs_init = true;
+        d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
+            d_object_name+"::Helmholtz Krylov Solver", "helmholtz_");
+        d_helmholtz_solver->setInitialGuessNonzero(false);
+        d_helmholtz_solver->setOperator(d_helmholtz_op);
+        d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
+    }
+    else
+    {
+        d_helmholtz_spec = NULL;
+        d_helmholtz_op = NULL;
+        d_helmholtz_hypre_pc = NULL;
+        d_helmholtz_solver = NULL;
+    }
+
+    if (needs_poisson_solver)
+    {
+        d_poisson_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::poisson_spec");
+        d_poisson_spec->setCZero();
+        d_poisson_spec->setDConstant(-1.0);
+        d_poisson_op = new IBTK::CCLaplaceOperator(
+            d_object_name+"::Poisson Operator", *d_poisson_spec, d_U_star_bc_coefs, true);
+        d_poisson_op->setHierarchyMathOps(d_hier_math_ops);
+
+        d_poisson_hypre_pc = new IBTK::CCPoissonHypreLevelSolver(
+            d_object_name+"::Poisson Preconditioner", d_poisson_hypre_pc_db);
+        d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
+
+        d_poisson_solver_needs_init = true;
+        d_poisson_solver = new IBTK::PETScKrylovLinearSolver(
+            d_object_name+"::Poisson Krylov Solver", "poisson_");
+        d_poisson_solver->setInitialGuessNonzero(false);
+        d_poisson_solver->setOperator(d_poisson_op);
+        d_poisson_solver->setPreconditioner(d_poisson_hypre_pc);
+    }
+    else
+    {
+        d_poisson_spec = NULL;
+        d_poisson_op = NULL;
+        d_poisson_hypre_pc = NULL;
+        d_poisson_solver = NULL;
+    }
+
+    if (needs_hier_projector)
+    {
+        d_hier_projector = new HierarchyProjector(
+            d_object_name+"::Hierarchy Projector", d_hier_projector_db, d_hierarchy);
+    }
+
+    if (ins_pc_type == "projection")
+    {
+        d_projection_pc_needs_init = true;
+        d_projection_pc = new INSStaggeredProjectionPreconditioner(
+            *d_problem_coefs,
+            d_normalize_pressure,
+            d_helmholtz_solver, d_hier_projector,
+            d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
+        d_stokes_solver->setPreconditioner(d_projection_pc);
+    }
+    else if (ins_pc_type == "block_factorization")
+    {
+        d_block_pc_needs_init = true;
+        d_block_pc = new INSStaggeredBlockFactorizationPreconditioner(
+            *d_problem_coefs,
+            d_Phi_bc_coef, d_normalize_pressure,
+            d_helmholtz_solver, d_poisson_solver,
+            d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
+        d_stokes_solver->setPreconditioner(d_block_pc);
+    }
 
     // Indicate that the integrator has been initialized.
     d_is_initialized = true;
@@ -1028,36 +1107,79 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     }
     d_convective_op_needs_init = false;
 
-    d_helmholtz_spec->setCConstant((d_rho/dt)+0.5*d_lambda);
-    d_helmholtz_spec->setDConstant(          -0.5*d_mu    );
-
-    d_helmholtz_op->setPoissonSpecifications(*d_helmholtz_spec);
-    d_helmholtz_op->setPhysicalBcCoefs(d_U_star_bc_coefs);
-    d_helmholtz_op->setHomogeneousBc(true);
-    d_helmholtz_op->setTime(new_time);
-    d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
-
-    d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
-    d_helmholtz_hypre_pc->setPhysicalBcCoefs(d_U_star_bc_coefs);
-    d_helmholtz_hypre_pc->setHomogeneousBc(true);
-    d_helmholtz_hypre_pc->setTime(new_time);
-
-    d_helmholtz_solver->setInitialGuessNonzero(false);
-    d_helmholtz_solver->setOperator(d_helmholtz_op);
-    if (d_helmholtz_solver_needs_init || !SAMRAI::tbox::MathUtilities<double>::equalEps(dt,d_old_dt))
+    if (!d_helmholtz_solver.isNull())
     {
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << ": Initializing Helmholtz solver; dt = " << dt << "\n";
-        d_helmholtz_solver->initializeSolverState(*U_scratch_vec,*U_rhs_vec);
-    }
-    d_helmholtz_solver_needs_init = false;
+        d_helmholtz_spec->setCConstant((d_rho/dt)+0.5*d_lambda);
+        d_helmholtz_spec->setDConstant(          -0.5*d_mu    );
 
-    d_projection_pc->setTimeInterval(current_time,new_time);
-    if (d_projection_pc_needs_init && !d_stokes_solver_needs_init)
-    {
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << ": Initializing projection preconditioner; dt = " << dt << "\n";
-        d_projection_pc->initializeSolverState(*sol_vec,*rhs_vec);
+        d_helmholtz_op->setPoissonSpecifications(*d_helmholtz_spec);
+        d_helmholtz_op->setPhysicalBcCoefs(d_U_star_bc_coefs);
+        d_helmholtz_op->setHomogeneousBc(true);
+        d_helmholtz_op->setTime(new_time);
+        d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
+
+        d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
+        d_helmholtz_hypre_pc->setPhysicalBcCoefs(d_U_star_bc_coefs);
+        d_helmholtz_hypre_pc->setHomogeneousBc(true);
+        d_helmholtz_hypre_pc->setTime(new_time);
+
+        d_helmholtz_solver->setInitialGuessNonzero(false);
+        d_helmholtz_solver->setOperator(d_helmholtz_op);
+        if (d_helmholtz_solver_needs_init || !SAMRAI::tbox::MathUtilities<double>::equalEps(dt,d_old_dt))
+        {
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << ": Initializing Helmholtz solver; dt = " << dt << "\n";
+            d_helmholtz_solver->initializeSolverState(*U_scratch_vec,*U_rhs_vec);
+        }
+        d_helmholtz_solver_needs_init = false;
     }
-    d_projection_pc_needs_init = false;
+
+    if (!d_poisson_solver.isNull())
+    {
+        d_poisson_spec->setCZero();
+        d_poisson_spec->setDConstant(-1.0);
+
+        d_poisson_op->setPoissonSpecifications(*d_poisson_spec);
+        d_poisson_op->setPhysicalBcCoef(d_Phi_bc_coef);
+        d_poisson_op->setHomogeneousBc(true);
+        d_poisson_op->setTime(current_time+0.5*dt);
+        d_poisson_op->setHierarchyMathOps(d_hier_math_ops);
+
+        d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
+        d_poisson_hypre_pc->setPhysicalBcCoef(d_Phi_bc_coef);
+        d_poisson_hypre_pc->setHomogeneousBc(true);
+        d_poisson_hypre_pc->setTime(current_time+0.5*dt);
+
+        d_poisson_solver->setInitialGuessNonzero(false);
+        d_poisson_solver->setOperator(d_poisson_op);
+        if (d_poisson_solver_needs_init)
+        {
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << ": Initializing Poisson solver; dt = " << dt << "\n";
+            d_poisson_solver->initializeSolverState(*P_scratch_vec,*P_rhs_vec);
+        }
+        d_poisson_solver_needs_init = false;
+    }
+
+    if (!d_projection_pc.isNull())
+    {
+        d_projection_pc->setTimeInterval(current_time,new_time);
+        if (d_projection_pc_needs_init && !d_stokes_solver_needs_init)
+        {
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << ": Initializing projection preconditioner; dt = " << dt << "\n";
+            d_projection_pc->initializeSolverState(*sol_vec,*rhs_vec);
+        }
+        d_projection_pc_needs_init = false;
+    }
+
+    if (!d_block_pc.isNull())
+    {
+        d_block_pc->setTimeInterval(current_time,new_time);
+        if (d_block_pc_needs_init && !d_stokes_solver_needs_init)
+        {
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << ": Initializing block factorization preconditioner; dt = " << dt << "\n";
+            d_block_pc->initializeSolverState(*sol_vec,*rhs_vec);
+        }
+        d_block_pc_needs_init = false;
+    }
 
     d_stokes_solver->setOperator(d_stokes_op);
     if (d_stokes_solver_needs_init)
@@ -1593,7 +1715,12 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
     // Reset the HierarchyProjector object.
-    d_hier_projector->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+    if (!d_hier_projector.isNull())
+    {
+        d_hier_projector->setVelocityPhysicalBcCoefs(d_U_star_bc_coefs);
+        d_hier_projector->setPressurePhysicalBcCoef(d_Phi_bc_coef);
+        d_hier_projector->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+    }
 
     // Reset the Hierarchy data operations for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
@@ -1677,7 +1804,9 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     // Indicate that solvers need to be re-initialized.
     d_convective_op_needs_init = true;
     d_helmholtz_solver_needs_init = true;
+    d_poisson_solver_needs_init = true;
     d_projection_pc_needs_init = true;
+    d_block_pc_needs_init = true;
     d_stokes_solver_needs_init = true;
 
     t_reset_hierarchy_configuration->stop();
@@ -2188,7 +2317,9 @@ INSStaggeredHierarchyIntegrator::getFromInput(
     d_dt_max_time_min = db->getDoubleWithDefault(
         "dt_max_time_min", d_dt_max_time_min);
 
-    d_helmholtz_hypre_pc_db = db->getDatabase("helmholtz_hypre_solver");
+    d_hier_projector_db = db->getDatabase("HierarchyProjector");
+    d_helmholtz_hypre_pc_db = db->getDatabase("HelmholtzHypreSolver");
+    d_poisson_hypre_pc_db = db->getDatabase("PoissonHypreSolver");
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
 

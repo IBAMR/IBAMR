@@ -1,18 +1,33 @@
 // physical parameters
-MU = 1.0e-3
+MU = 1.0e-2
 RHO = 1.0
 
 // grid spacing parameters
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 32                                    // coarsest grid spacing
+N = 256                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 // exact solution function expressions
-U = "1.0 - 2.0*(cos(2.0*PI*(X_0-t))*sin(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
-V = "1.0 + 2.0*(sin(2.0*PI*(X_0-t))*cos(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
-P = "-(cos(4.0*PI*(X_0-t)) + cos(4.0*PI*(X_1-t)))*exp(-16.0*PI*PI*nu*t)"
+U = "1 - 2*(cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
+V = "1 + 2*(sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
+P = "-(cos(4*PI*(X_0-t)) + cos(4*PI*(X_1-t)))*exp(-16*PI*PI*nu*t)"
+
+// normal tractions
+// T_n_X_0_lower =  P - 2*nu*diff(U,X_0)
+// T_n_X_1_lower =  P - 2*nu*diff(V,X_1)
+// T_n_X_0_upper = -P + 2*nu*diff(U,X_0)
+// T_n_X_1_upper = -P + 2*nu*diff(V,X_1)
+T_n_X_0_lower = "-exp(-16*PI^2*nu*t)*cos(4*PI*(X_0-t))-exp(-16*PI^2*nu*t)*cos(4*PI*(-X_1+t))+8*nu*sin(2*PI*(X_0-t))*sin(2*PI*(-X_1+t))*PI*exp(-8*PI^2*nu*t)"
+T_n_X_1_lower = "-exp(-16*PI^2*nu*t)*cos(4*PI*(X_0-t))-exp(-16*PI^2*nu*t)*cos(4*PI*(-X_1+t))-8*nu*sin(2*PI*(X_0-t))*sin(2*PI*(-X_1+t))*PI*exp(-8*PI^2*nu*t)"
+T_n_X_0_upper = "exp(-16*PI^2*nu*t)*cos(4*PI*(X_0-t))+exp(-16*PI^2*nu*t)*cos(4*PI*(-X_1+t))-8*nu*sin(2*PI*(X_0-t))*sin(2*PI*(-X_1+t))*PI*exp(-8*PI^2*nu*t)"
+T_n_X_1_upper = "exp(-16*PI^2*nu*t)*cos(4*PI*(X_0-t))+exp(-16*PI^2*nu*t)*cos(4*PI*(-X_1+t))+8*nu*sin(2*PI*(X_0-t))*sin(2*PI*(-X_1+t))*PI*exp(-8*PI^2*nu*t)"
+
+// tangential tractions
+// T_t_X_0_lower = T_t_X_1_lower = -(nu*diff(U,X_1) + nu*diff(V,X_0))
+// T_t_X_0_upper = T_t_X_1_upper = +(nu*diff(U,X_1) + nu*diff(V,X_0))
+T_t = "0.0"
 
 VelocityInitialConditions {
    constant_names = "nu"
@@ -71,7 +86,7 @@ INSStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 1.0      // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
-   max_integrator_steps  = 10000000 // max number of simulation timesteps
+   max_integrator_steps  = 10 // 10000000 // max number of simulation timesteps
    regrid_interval       = 10000000 // disable regridding
 
    enable_logging = TRUE
@@ -94,15 +109,34 @@ INSStaggeredHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   second_order_pressure_update = TRUE
-   normalize_pressure = FALSE
+   normalize_pressure = TRUE
 
-   num_cycles = 1
-   num_init_cycles = 1
+   HierarchyProjector {
+   }
+
+   HelmholtzHypreSolver {
+      solver_type = "Split"
+      split_solver_type = "Jacobi"
+      relative_residual_tol = 1.0e-12
+      max_iterations = 1
+      enable_logging = FALSE
+   }
+
+   PoissonHypreSolver {
+      solver_type = "PFMG"
+      rap_type = 1
+      relax_type = 3
+      skip_relax = 1
+      num_pre_relax_steps   = 0
+      num_post_relax_steps  = 3
+      max_iterations        = 1
+      relative_residual_tol = 1.0e-12
+      enable_logging = FALSE
+   }
 }
 
 HierarchyProjector {
-   enable_logging = TRUE
+   enable_logging = FALSE
 
    max_iterations = 25
    abs_residual_tol = 0.0
@@ -129,9 +163,10 @@ HierarchyProjector {
          solver_type = "PFMG"
          rap_type = 1
          relax_type = 3
+         skip_relax = 1
          num_pre_relax_steps   = 0
          num_post_relax_steps  = 3
-         max_iterations        = 2
+         max_iterations        = 1
          relative_residual_tol = 1.0e-12
          enable_logging = FALSE
       }
@@ -168,7 +203,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         =  0, 0          // lower end of computational domain.
    x_up         =  1, 1          // upper end of computational domain.
-   periodic_dimension = 0, 0
+   periodic_dimension = 1, 1 // 0, 0
 }
 
 GriddingAlgorithm {

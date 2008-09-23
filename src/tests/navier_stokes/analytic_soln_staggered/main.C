@@ -273,17 +273,11 @@ main(
                 "PatchHierarchy",
                 grid_geometry);
 
-        tbox::Pointer<HierarchyProjector> hier_projector =
-            new HierarchyProjector(
-                "HierarchyProjector",
-                input_db->getDatabase("HierarchyProjector"),
-                patch_hierarchy);
-
         tbox::Pointer<INSStaggeredHierarchyIntegrator> time_integrator =
             new INSStaggeredHierarchyIntegrator(
                 "INSStaggeredHierarchyIntegrator",
                 input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
-                patch_hierarchy, hier_projector);
+                patch_hierarchy);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(

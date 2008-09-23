@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <11.Sep.2008 19:31:52 griffith@box230.cims.nyu.edu>
+// Last modified: <16.Sep.2008 19:21:07 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -229,6 +229,21 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
     // interpolating.
     const int stencil_size = IBTK::LEInteractor::getStencilSize(d_delta_fcn);
     d_ghosts = 8; // XXXX int(floor(0.5*double(stencil_size)))+1;
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
+    SAMRAI::tbox::pout << "please fix me!!!!\n";
 
     // Get the Lagrangian Data Manager.
     d_lag_data_manager = IBTK::LDataManager::getManager(
