@@ -2,13 +2,12 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <22.Sep.2008 18:48:30 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Sep.2008 18:39:01 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/HierarchyProjector.h>
 #include <ibamr/INSCoefs.h>
 #include <ibamr/INSStaggeredBlockFactorizationPreconditioner.h>
 #include <ibamr/INSStaggeredPPMConvectiveOperator.h>
@@ -190,8 +189,7 @@ public:
     ///      getMaxIntegratorSteps(),
     ///      stepsRemaining(),
     ///      getPatchHierarchy(),
-    ///      getGriddingAlgorithm(),
-    ///      getHierarchyProjector()
+    ///      getGriddingAlgorithm()
     ///
     ///  allow the INSStaggeredHierarchyIntegrator to be used as a hierarchy
     ///  integrator.
@@ -307,13 +305,6 @@ public:
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
     getGriddingAlgorithm() const;
-
-    /*!
-     * Return a pointer to the HierarchyProjector being used to inforce
-     * incompressibility.
-     */
-    SAMRAI::tbox::Pointer<HierarchyProjector>
-    getHierarchyProjector() const;
 
     ///
     ///  The following routines:
@@ -708,6 +699,15 @@ private:
         const INSStaggeredHierarchyIntegrator& that);
 
     /*!
+     * (Re-)initialize the operators and solvers used by the hierarchy
+     * integrator.
+     */
+    void
+    initializeOperatorsAndSolvers(
+        const double current_time,
+        const double new_time);
+
+    /*!
      * Determine the largest stable timestep on an individual patch level.
      */
     double
@@ -777,13 +777,6 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
     double d_U_scale, d_P_scale, d_F_scale;
-
-    /*
-     * The HierarchyProjector maintains the linear solvers and related data
-     * needed to enforce the incompressibility constraint.
-     */
-    SAMRAI::tbox::Pointer<HierarchyProjector> d_hier_projector;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hier_projector_db;
 
     /*
      * Integrator data read from input or set at initialization.
@@ -864,7 +857,7 @@ private:
      * Integrator data that evolves during time integration and maintains the
      * state of the timestep sequence over the levels in the AMR hierarchy.
      */
-    double d_old_dt;
+    double d_old_dt, d_op_and_solver_init_dt;
     double d_integrator_time;
     int    d_integrator_step;
 

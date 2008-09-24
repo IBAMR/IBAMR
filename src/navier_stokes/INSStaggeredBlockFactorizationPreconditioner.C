@@ -1,5 +1,5 @@
 // Filename: INSStaggeredBlockFactorizationPreconditioner.C
-// Last modified: <22.Sep.2008 20:24:53 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Sep.2008 18:04:25 griffith@box230.cims.nyu.edu>
 // Created on 22 Sep 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredBlockFactorizationPreconditioner.h"
@@ -165,30 +165,30 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_out_cc_var = P_out_var;
 
     // Setup the component solver vectors.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_scratch;
-    U_scratch = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_scratch_vec;
+    U_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         "INSStaggeredBlockFactorizationPreconditioner::U_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    U_scratch->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
+    U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_scratch;
-    P_scratch = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_scratch_vec;
+    P_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         "INSStaggeredBlockFactorizationPreconditioner::P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    P_scratch->addComponent(d_P_var, d_P_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+    P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_out;
-    U_out = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_out_vec;
+    U_out_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         "INSStaggeredBlockFactorizationPreconditioner::U_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    U_out->addComponent(U_out_sc_var, U_out_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
+    U_out_vec->addComponent(U_out_sc_var, U_out_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_in;
-    P_in = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_in_vec;
+    P_in_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         "INSStaggeredBlockFactorizationPreconditioner::P_in", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    P_in->addComponent(P_in_cc_var, P_in_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+    P_in_vec->addComponent(P_in_cc_var, P_in_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_out;
-    P_out = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_out_vec;
+    P_out_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         "INSStaggeredBlockFactorizationPreconditioner::P_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    P_out->addComponent(P_out_cc_var, P_out_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+    P_out_vec->addComponent(P_out_cc_var, P_out_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
     // Setup the interpolation transaction information.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -198,14 +198,13 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     // Solve the pressure sub-problem.
     //
     // P_out := -((rho/dt)*I-0.5*mu*L) * (-L)^{-1} * P_in
-    P_scratch->copyVector(P_out);
-    d_pressure_poisson_solver->solveSystem(*P_scratch,*P_in);
+    d_pressure_poisson_solver->solveSystem(*P_scratch_vec,*P_in_vec);
     d_hier_math_ops->laplace(
-        P_out_idx, P_out_cc_var,
-        d_pressure_helmholtz_spec,
-        d_P_scratch_idx, d_P_var,
-        d_P_bdry_fill_op, d_current_time+0.5*d_dt,
-        0.0, -1, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >(NULL));
+        P_out_idx, P_out_cc_var,   // dst
+        d_pressure_helmholtz_spec, // Poisson spec
+        d_P_scratch_idx, d_P_var,  // src
+        d_P_bdry_fill_op,          // src_bdry_fill
+        d_current_time+0.5*d_dt);  // src_bdry_fill_time
     if (d_normalize_pressure)
     {
         const double P_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(P_out_idx, d_wgt_cc_idx);
@@ -216,20 +215,21 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     d_P_bdry_fill_op->resetTransactionComponent(P_out_transaction_comp);
     static const bool cf_bdry_synch = true;
     d_hier_math_ops->grad(
-        d_U_scratch_idx, d_U_var,
-        cf_bdry_synch,
-        -1.0,
-        P_out_idx, P_out_cc_var,
-        d_P_bdry_fill_op, d_current_time+0.5*d_dt,
-        1.0,
-        U_in_idx, U_in_sc_var);
+        d_U_scratch_idx, d_U_var, // dst
+        cf_bdry_synch,            // dst_cf_bdry_synch
+        -1.0,                     // alpha
+        P_out_idx, P_out_cc_var,  // src1
+        d_P_bdry_fill_op,         // src1_bdry_fill
+        d_current_time+0.5*d_dt,  // src1_bdry_fill_time
+        1.0,                      // beta
+        U_in_idx, U_in_sc_var);   // src2
     d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
 
     // Solve the velocity sub-problem.
     //
     // U_out := (rho/dt)*I-0.5*mu*L)^{-1} * [U_in + Grad * ((rho/dt)*I-0.5*mu*L) * (-L)^{-1} * P_in]
     //        = (rho/dt)*I-0.5*mu*L)^{-1} * [U_in - Grad * P_out]
-    d_velocity_helmholtz_solver->solveSystem(*U_out,*U_scratch);
+    d_velocity_helmholtz_solver->solveSystem(*U_out_vec,*U_scratch_vec);
 
     // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
@@ -261,7 +261,7 @@ INSStaggeredBlockFactorizationPreconditioner::initializeSolverState(
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef);
     d_P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, x.getPatchHierarchy());
+    d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
 
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

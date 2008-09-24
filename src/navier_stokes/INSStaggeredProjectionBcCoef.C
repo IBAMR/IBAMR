@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionBcCoef.C
-// Last modified: <09.Sep.2008 11:08:44 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Sep.2008 19:53:38 griffith@box230.cims.nyu.edu>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionBcCoef.h"
@@ -98,7 +98,6 @@ INSStaggeredProjectionBcCoef::setBcCoefs(
     }
     TBOX_ASSERT(!acoef_data.isNull());
     TBOX_ASSERT(!bcoef_data.isNull());
-    TBOX_ASSERT(!gcoef_data.isNull());
 #endif
     const int location_index   = bdry_box.getLocationIndex();
     const int bdry_normal_axis = location_index/2;
@@ -107,7 +106,7 @@ INSStaggeredProjectionBcCoef::setBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
-    TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
+    if (!gcoef_data.isNull()) TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
 
     // Set the unmodified velocity bc coefs.
@@ -116,12 +115,16 @@ INSStaggeredProjectionBcCoef::setBcCoefs(
 
     // Modify the velocity boundary conditions to correspond to pressure
     // boundary conditions.
+    const bool set_acoef_vals = !acoef_data.isNull();
+    const bool set_bcoef_vals = !bcoef_data.isNull();
+    const bool set_gcoef_vals = !gcoef_data.isNull();
     for (SAMRAI::hier::Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const SAMRAI::hier::Index<NDIM>& i = it();
-        double& alpha = (*acoef_data)(i,0);
-        double& beta  = (*bcoef_data)(i,0);
-        double& gamma = (*gcoef_data)(i,0);
+        double dummy_val;
+        double& alpha = set_acoef_vals ? (*acoef_data)(i,0) : dummy_val;
+        double& beta  = set_bcoef_vals ? (*bcoef_data)(i,0) : dummy_val;
+        double& gamma = set_gcoef_vals ? (*gcoef_data)(i,0) : dummy_val;
 
         const bool velocity_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(beta ,1.0);

@@ -2,13 +2,12 @@
 #define included_INSStaggeredProjectionPreconditioner
 
 // Filename: INSStaggeredProjectionPreconditioner.h
-// Last modified: <24.Jul.2008 15:50:04 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Sep.2008 16:59:45 griffith@box230.cims.nyu.edu>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/HierarchyProjector.h>
 #include <ibamr/INSCoefs.h>
 
 // IBTK INCLUDES
@@ -39,9 +38,10 @@ public:
      */
     INSStaggeredProjectionPreconditioner(
         const INSCoefs& problem_coefs,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* Phi_bc_coef,
         const bool normalize_pressure,
-        SAMRAI::tbox::Pointer<IBTK::LinearSolver> helmholtz_solver,
-        SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
+        SAMRAI::tbox::Pointer<IBTK::LinearSolver> velocity_helmholtz_solver,
+        SAMRAI::tbox::Pointer<IBTK::LinearSolver> pressure_poisson_solver,
         SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops,
         SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
@@ -259,11 +259,9 @@ private:
     // Normalize the pressure when necessary.
     const bool d_normalize_pressure;
 
-    // Helmholtz solver functionality.
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver> d_helmholtz_solver;
-
-    // Projection functionality.
-    SAMRAI::tbox::Pointer<HierarchyProjector> d_hier_projector;
+    // Linear solver functionality.
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver> d_velocity_helmholtz_solver;
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver> d_pressure_poisson_solver;
 
     // Math objects.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
@@ -275,17 +273,16 @@ private:
     double d_volume;
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var, d_Grad_Phi_var;
-    int d_U_scratch_idx, d_Grad_Phi_scratch_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var, d_Div_U_var;
-    int d_Phi_scratch_idx, d_Div_U_scratch_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var, d_F_var;
+    int d_Phi_scratch_idx, d_F_scratch_idx;
 };
 }// namespace IBAMR
 
