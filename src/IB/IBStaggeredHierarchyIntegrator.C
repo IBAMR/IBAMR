@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <16.Sep.2008 19:21:07 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Sep.2008 14:06:02 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -737,11 +737,15 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Setup the projection preconditioner.
     d_projection_pc_needs_init = true;
+#if 0
     d_projection_pc = new INSStaggeredProjectionPreconditioner(
         *d_problem_coefs,
         d_normalize_pressure,
         d_helmholtz_solver, d_hier_projector,
         d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
+#else
+    TBOX_ASSERT(false);  // XXXX
+#endif
 
     // Indicate that the integrator has been initialized.
     d_is_initialized = true;
