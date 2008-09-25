@@ -415,10 +415,14 @@ EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/AdvectHypPatchOps.h include/ibamr/get_version.h \
 	include/ibamr/GodunovAdvector.h \
 	include/ibamr/HierarchyProjector.h \
+	include/ibamr/IBAnchorPointSpecFactory.h \
+	include/ibamr/IBAnchorPointSpec.h \
+	include/ibamr/IBAnchorPointSpec.I \
 	include/ibamr/IBBeamForceGen.h \
 	include/ibamr/IBBeamForceSpecFactory.h \
 	include/ibamr/IBBeamForceSpec.h \
 	include/ibamr/IBBeamForceSpec.I \
+	include/ibamr/IBDataPostProcessor.h \
 	include/ibamr/IBEulerianForceSetter.h \
 	include/ibamr/IBEulerianSourceSetter.h \
 	include/ibamr/IBHDF5Initializer.h \
@@ -430,20 +434,35 @@ EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/IBLagrangianForceStrategy.h \
 	include/ibamr/IBLagrangianForceStrategySet.h \
 	include/ibamr/IBLagrangianSourceStrategy.h \
+	include/ibamr/IBMovingTargetPointForceGen.h \
+	include/ibamr/IBMovingTargetPointForceSpecFactory.h \
+	include/ibamr/IBMovingTargetPointForceSpec.h \
+	include/ibamr/IBMovingTargetPointForceSpec.I \
 	include/ibamr/IBSpringForceGen.h \
 	include/ibamr/IBSpringForceSpecFactory.h \
 	include/ibamr/IBSpringForceSpec.h \
 	include/ibamr/IBSpringForceSpec.I \
+	include/ibamr/IBStaggeredHierarchyIntegrator.h \
 	include/ibamr/IBStandardForceGen.h \
 	include/ibamr/IBStandardInitializer.h \
 	include/ibamr/IBTargetPointForceGen.h \
 	include/ibamr/IBTargetPointForceSpecFactory.h \
 	include/ibamr/IBTargetPointForceSpec.h \
 	include/ibamr/IBTargetPointForceSpec.I \
+	include/ibamr/INSCoefs.h \
 	include/ibamr/INSHierarchyIntegrator.h \
 	include/ibamr/INSIntermediateVelocityBcCoef.h \
 	include/ibamr/INSProjectionBcCoef.h \
-	include/ibamr/NormalVelocityBcCoefAdapter.h \
+	include/ibamr/INSStaggeredBlockFactorizationPreconditioner.h \
+	include/ibamr/INSStaggeredHierarchyIntegrator.h \
+	include/ibamr/INSStaggeredIntermediateVelocityBcCoef.h \
+	include/ibamr/INSStaggeredPhysicalBoundaryHelper.h \
+	include/ibamr/INSStaggeredPPMConvectiveOperator.h \
+	include/ibamr/INSStaggeredPressureBcCoef.h \
+	include/ibamr/INSStaggeredProjectionBcCoef.h \
+	include/ibamr/INSStaggeredProjectionPreconditioner.h \
+	include/ibamr/INSStaggeredStokesOperator.h \
+	include/ibamr/INSStaggeredVelocityBcCoef.h \
 	include/ibamr/TGACoefs.h sample/IB/input2d sample/IB/input3d \
 	sample/IB/main.C sample/IB/Makefile \
 	sample/IB/shell2d_64.spring sample/IB/shell2d_64.vertex \

@@ -17,6 +17,7 @@ IBAnchorPointSpecFactory.C \
 IBBeamForceGen.C \
 IBBeamForceSpec.C \
 IBBeamForceSpecFactory.C \
+IBDataPostProcessor.C \
 IBEulerianForceSetter.C \
 IBEulerianSourceSetter.C \
 IBHDF5Initializer.C \
@@ -48,6 +49,7 @@ IBBeamForceGen.h \
 IBBeamForceSpec.h \
 IBBeamForceSpec.I \
 IBBeamForceSpecFactory.h \
+IBDataPostProcessor.h \
 IBEulerianForceSetter.h \
 IBEulerianSourceSetter.h \
 IBHDF5Initializer.h \

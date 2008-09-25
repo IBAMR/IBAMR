@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <23.Sep.2008 19:36:51 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Sep.2008 14:36:49 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -146,7 +146,9 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     if (!d_is_initialized) initializeSolverState(x,b);
 
     // Problem coefficients.
-    const double rho = d_problem_coefs.getRho();
+    const double rho    = d_problem_coefs.getRho();
+//  const double mu     = d_problem_coefs.getMu();
+//  const double lambda = d_problem_coefs.getLambda();
 
     // Get the vector components.
     const int U_in_idx = b.getComponentDescriptorIndex(0);

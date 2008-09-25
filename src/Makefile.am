@@ -23,6 +23,7 @@ IB/libIBAMR_IB2d_a-IBAnchorPointSpecFactory.o \
 IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
 IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
 IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
+IB/libIBAMR_IB2d_a-IBDataPostProcessor.o \
 IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
 IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
 IB/libIBAMR_IB2d_a-IBHDF5Initializer.o \
@@ -82,6 +83,7 @@ IB/libIBAMR_IB3d_a-IBAnchorPointSpecFactory.o \
 IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
 IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
 IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
+IB/libIBAMR_IB3d_a-IBDataPostProcessor.o \
 IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
 IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
 IB/libIBAMR_IB3d_a-IBHDF5Initializer.o \

@@ -555,8 +555,9 @@ main(
             tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X",ln);
             tbox::Pointer<LNodeLevelData> F_data = lag_manager->createLNodeLevelData("F",ln,NDIM);
             force_generator->computeLagrangianForce(
-                F_data, X_data,
+                F_data, X_data, tbox::Pointer<LNodeLevelData>(NULL),
                 patch_hierarchy, ln, loop_time, lag_manager);
+            TBOX_WARNING("need to provide velocity data!\n");
 
             double F_D = 0.0;
             double F_L = 0.0;

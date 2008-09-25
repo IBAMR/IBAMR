@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <18.Aug.2008 14:14:43 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <24.Sep.2008 17:33:58 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -11,6 +11,7 @@
 #include <petsc.h>
 
 // IBAMR INCLUDES
+#include <ibamr/IBDataPostProcessor.h>
 #include <ibamr/IBEulerianForceSetter.h>
 #include <ibamr/IBEulerianSourceSetter.h>
 #include <ibamr/IBInstrumentPanel.h>
@@ -77,6 +78,7 @@ public:
         SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
         SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> force_strategy,
         SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_strategy=NULL,
+        SAMRAI::tbox::Pointer<IBDataPostProcessor> post_processor=NULL,
         bool register_for_restart=true);
 
     /*!
@@ -191,6 +193,7 @@ public:
     ///      initializeHierarchyIntegrator(),
     ///      initializeHierarchy(),
     ///      advanceHierarchy(),
+    ///      postProcessData(),
     ///      atRegridPoint(),
     ///      getIntegratorTime(),
     ///      getStartTime(),
@@ -249,6 +252,12 @@ public:
     virtual double
     advanceHierarchy(
         const double dt);
+
+    /*!
+     * Execute any user-defined post-processing functions.
+     */
+    void
+    postProcessData();
 
     /*!
      * Return true if the current step count indicates that regridding should
@@ -656,6 +665,15 @@ private:
         const bool initial_time);
 
     /*!
+     * Initialize the IBPostProcessor object for the current configuration of
+     * the curvilinear mesh.
+     */
+    void
+    resetPostProcessor(
+        const double init_data_time,
+        const bool initial_time);
+
+    /*!
      * Compute the flow rates and pressures in the internal flow meters and
      * pressure gauges.
      */
@@ -876,6 +894,12 @@ private:
     std::vector<std::vector<std::vector<double> > > d_X_src;
     std::vector<std::vector<double > > d_r_src, d_P_src, d_Q_src;
     std::vector<int> d_n_src;
+
+    /*
+     * Post-processors.
+     */
+    SAMRAI::tbox::Pointer<IBDataPostProcessor> d_post_processor;
+    bool d_post_processor_needs_init;
 
     /*
      * Parameters for the penalty IB method for boundaries with additional

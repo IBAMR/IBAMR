@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <18.Aug.2008 14:57:36 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <24.Sep.2008 17:35:30 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -131,6 +131,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
     SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> force_strategy,
     SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_strategy,
+    SAMRAI::tbox::Pointer<IBDataPostProcessor> post_processor,
     bool register_for_restart)
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
@@ -162,6 +163,8 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_P_src(),
       d_Q_src(),
       d_n_src(),
+      d_post_processor(post_processor),
+      d_post_processor_needs_init(true),
       d_using_pIB_method(false),
       d_gravitational_acceleration(NDIM,0.0),
       d_start_time(0.0),
@@ -655,6 +658,7 @@ IBHierarchyIntegrator::registerLoadBalancer(
 ///      initializeHierarchyIntegrator(),
 ///      initializeHierarchy(),
 ///      advanceHierarchy(),
+///      postProcessData(),
 ///      atRegridPoint(),
 ///      getIntegratorTime(),
 ///      getStartTime(),
@@ -947,6 +951,7 @@ IBHierarchyIntegrator::initializeHierarchy()
     // Indicate that the force and source strategies need to be re-initialized.
     d_force_strategy_needs_init  = true;
     d_source_strategy_needs_init = true;
+    d_post_processor_needs_init  = true;
 
     t_initialize_hierarchy->stop();
     return dt_next;
@@ -990,7 +995,7 @@ IBHierarchyIntegrator::advanceHierarchy(
         d_source_strategy->setTimeInterval(current_time, new_time);
     }
 
-    // (Re)initialize the force and source strategies.
+    // (Re)initialize the force and source strategies and the post-processor.
     if (d_force_strategy_needs_init)
     {
         resetLagrangianForceStrategy(current_time, initial_time);
@@ -1000,6 +1005,11 @@ IBHierarchyIntegrator::advanceHierarchy(
     {
         resetLagrangianSourceStrategy(current_time, initial_time);
         d_source_strategy_needs_init = false;
+    }
+    if (d_post_processor_needs_init && !d_post_processor.isNull())
+    {
+        resetPostProcessor(current_time, initial_time);
+        d_post_processor_needs_init = false;
     }
 
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data(finest_ln+1);
@@ -1904,6 +1914,98 @@ IBHierarchyIntegrator::advanceHierarchy(
     return dt_next;
 }// advanceHierarchy
 
+void
+IBHierarchyIntegrator::postProcessData()
+{
+    if (d_post_processor.isNull()) return;
+
+    const double current_time = d_integrator_time;
+    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(current_time,d_start_time);
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+
+    // Initialize X_data, F_data, and U_data on each level of the patch
+    // hierarchy.
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_data(finest_ln+1);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            X_data[ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
+            U_data[ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::VEL_DATA_NAME,ln);
+            F_data[ln] = d_lag_data_manager->createLNodeLevelData("F",ln,NDIM);
+        }
+    }
+
+    // Interpolate u(n) from the Cartesian grid onto the Lagrangian mesh.
+    //
+    // NOTE: Since we are maintaining the Lagrangian velocity data, this step is
+    // skipped for each timestep following the initial one execpt immediately
+    // following a regridding operation.
+    if (initial_time || d_reinterpolate_after_regrid)
+    {
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+            if (d_lag_data_manager->levelContainsLagrangianData(ln))
+            {
+                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > v_data = patch->getPatchData(d_V_idx);
+                    const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(
+                        d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+                    IBTK::LEInteractor::interpolate(
+                        U_data[ln], X_data[ln], idx_data, v_data,
+                        patch, patch_box, periodic_shift,
+                        d_delta_fcn);
+                }
+            }
+        }
+    }
+
+    resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
+
+    // Compute F(n) = F(X(n),n), the Lagrangian force corresponding to
+    // configuration X(n) at time t_{n}.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            Vec F_vec = F_data[ln]->getGlobalVec();
+            int ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
+            d_force_strategy->computeLagrangianForce(
+                F_data[ln], X_data[ln], U_data[ln],
+                d_hierarchy, ln, current_time, d_lag_data_manager);
+        }
+    }
+
+    computeConstraintForces(X_data, F_data, coarsest_ln, finest_ln, current_time, initial_time);
+
+    resetAnchorPointValues(F_data, coarsest_ln, finest_ln);
+
+    // Perform the user-defined post-processing.
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    const int U_current_idx = var_db->mapVariableAndContextToIndex(
+        d_ins_hier_integrator->getVelocityVar(),
+        d_ins_hier_integrator->getCurrentContext());
+    const int P_current_idx = var_db->mapVariableAndContextToIndex(
+        d_ins_hier_integrator->getPressureVar(),
+        d_ins_hier_integrator->getCurrentContext());
+    const int F_current_idx = var_db->mapVariableAndContextToIndex(
+        d_ins_hier_integrator->getForceVar(),
+        d_ins_hier_integrator->getCurrentContext());
+    d_post_processor->postProcessData(
+        U_current_idx, P_current_idx, F_current_idx,
+        F_data, X_data, U_data,
+        d_hierarchy, coarsest_ln, finest_ln, current_time, d_lag_data_manager);
+}// postProcessData
+
 bool
 IBHierarchyIntegrator::atRegridPoint() const
 {
@@ -2033,9 +2135,11 @@ IBHierarchyIntegrator::regridHierarchy()
                    << "  number of markers after  regrid = " << num_marks_after_regrid << "\n");
     }
 
-    // Indicate that the force and source strategies need to be re-initialized.
+    // Indicate that the force and source strategies and post-processor need to
+    // be re-initialized.
     d_force_strategy_needs_init  = true;
     d_source_strategy_needs_init = true;
+    d_post_processor_needs_init  = true;
 
     // Lookup the re-distributed Lagrangian position data.
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data(d_hierarchy->getFinestLevelNumber()+1);
@@ -2805,6 +2909,8 @@ IBHierarchyIntegrator::printClassData(
         }
         os << "d_n_src_" << ln << " = " << d_n_src[ln] << "\n";
     }
+    os << "d_post_processor = " << d_post_processor.getPointer() << "\n"
+       << "d_post_processor_needs_init = " << d_post_processor_needs_init << "\n";
     os << "d_using_pIB_method = " << d_using_pIB_method << "\n"
        << "d_gravitational_acceleration = [ ";
     std::copy(d_gravitational_acceleration.begin(), d_gravitational_acceleration.end(), std::ostream_iterator<double>(os," , "));
@@ -2867,6 +2973,24 @@ IBHierarchyIntegrator::resetLagrangianSourceStrategy(
 
     return;
 }// resetLagrangianSourceStrategy
+
+void
+IBHierarchyIntegrator::resetPostProcessor(
+    const double init_data_time,
+    const bool initial_time)
+{
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            d_post_processor->initializeLevelData(
+                d_hierarchy, ln, init_data_time, initial_time,
+                d_lag_data_manager);
+        }
+    }
+
+    return;
+}// resetPostProcessor
 
 void
 IBHierarchyIntegrator::updateIBInstrumentationData(

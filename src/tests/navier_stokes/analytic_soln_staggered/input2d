@@ -25,8 +25,8 @@ T_n_X_0_upper = "exp(-16*PI^2*nu*t)*cos(4*PI*(X_0-t))+exp(-16*PI^2*nu*t)*cos(4*P
 T_n_X_1_upper = "exp(-16*PI^2*nu*t)*cos(4*PI*(X_0-t))+exp(-16*PI^2*nu*t)*cos(4*PI*(-X_1+t))+8*nu*sin(2*PI*(X_0-t))*sin(2*PI*(-X_1+t))*PI*exp(-8*PI^2*nu*t)"
 
 // tangential tractions
-// T_t_X_0_lower = T_t_X_1_lower = -(nu*diff(U,X_1) + nu*diff(V,X_0))
-// T_t_X_0_upper = T_t_X_1_upper = +(nu*diff(U,X_1) + nu*diff(V,X_0))
+// T_t_X_0_lower = T_t_X_1_lower = -(nu*diff(U,X_1) + nu*diff(V,X_0)) = 0.0
+// T_t_X_0_upper = T_t_X_1_upper = +(nu*diff(U,X_1) + nu*diff(V,X_0)) = 0.0
 T_t = "0.0"
 
 VelocityInitialConditions {
@@ -50,10 +50,10 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = U
-   gcoef_function_1 = U
-   gcoef_function_2 = U
-   gcoef_function_3 = U
+   gcoef_function_0 = U // T_n_X_0_lower
+   gcoef_function_1 = U // T_n_X_0_upper
+   gcoef_function_2 = U // T_t
+   gcoef_function_3 = U // T_t
 }
 
 VelocityBcCoefs_1 {
@@ -70,10 +70,10 @@ VelocityBcCoefs_1 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = V
-   gcoef_function_1 = V
-   gcoef_function_2 = V
-   gcoef_function_3 = V
+   gcoef_function_0 = V // T_t
+   gcoef_function_1 = V // T_t
+   gcoef_function_2 = V // T_n_X_1_lower
+   gcoef_function_3 = V // T_n_X_1_upper
 }
 
 PressureInitialConditions {
@@ -109,74 +109,28 @@ INSStaggeredHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   normalize_pressure = TRUE
-
-   HierarchyProjector {
-   }
+   normalize_pressure = FALSE
 
    HelmholtzHypreSolver {
-      solver_type = "Split"
-      split_solver_type = "Jacobi"
-      relative_residual_tol = 1.0e-12
-      max_iterations = 1
-      enable_logging = FALSE
+      solver_type           = "FlexGMRES"
+      precond_type          = "Split"
+      split_solver_type     = "Jacobi"
+      relative_residual_tol = 1.0e-8
+      max_iterations        = 100
+      enable_logging        = TRUE
    }
 
    PoissonHypreSolver {
-      solver_type = "PFMG"
-      rap_type = 1
-      relax_type = 3
-      skip_relax = 1
+      solver_type           = "FlexGMRES"
+      precond_type          = "PFMG"
+      rap_type              = 1
+      relax_type            = 3
+      skip_relax            = 1
       num_pre_relax_steps   = 0
       num_post_relax_steps  = 3
-      max_iterations        = 1
-      relative_residual_tol = 1.0e-12
-      enable_logging = FALSE
-   }
-}
-
-HierarchyProjector {
-   enable_logging = FALSE
-
-   max_iterations = 25
-   abs_residual_tol = 0.0
-   rel_residual_tol = 1.0e-15
-   initial_guess_nonzero = FALSE
-
-   FACOp {
-      fac_max_cycles = 1
-      fac_uses_presmoothing = TRUE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = FALSE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 2
-
-      coarse_solver_choice = "hypre"
-      coarse_solver_tolerance = 1.0e-6
-      coarse_solver_max_iterations = 1
-      prolongation_method = "LINEAR_REFINE"
-      cf_discretization   = "Ewing"
-
-      hypre_solver {
-         solver_type = "PFMG"
-         rap_type = 1
-         relax_type = 3
-         skip_relax = 1
-         num_pre_relax_steps   = 0
-         num_post_relax_steps  = 3
-         max_iterations        = 1
-         relative_residual_tol = 1.0e-12
-         enable_logging = FALSE
-      }
-   }
-
-   FACPreconditioner {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 3
+      relative_residual_tol = 1.0e-8
+      max_iterations        = 100
+      enable_logging        = TRUE
    }
 }
 
@@ -203,7 +157,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         =  0, 0          // lower end of computational domain.
    x_up         =  1, 1          // upper end of computational domain.
-   periodic_dimension = 1, 1 // 0, 0
+   periodic_dimension = 0, 0
 }
 
 GriddingAlgorithm {
