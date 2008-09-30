@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <24.Sep.2008 14:36:49 griffith@box230.cims.nyu.edu>
+// Last modified: <25.Sep.2008 14:34:50 griffith@box230.cims.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -15,6 +15,8 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+#include "ibtk/KrylovLinearSolver.h" // XXXX
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -192,6 +194,10 @@ INSStaggeredProjectionPreconditioner::solveSystem(
 
     // Solve for u^{*}.
     d_velocity_helmholtz_solver->solveSystem(*U_out_vec,*U_in_vec);
+    static int helmholtz_its = 0;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> helmholtz_krylov_solver = d_velocity_helmholtz_solver;
+    helmholtz_its += helmholtz_krylov_solver->getPreconditioner()->getNumIterations();
+    SAMRAI::tbox::pout << "total helmholtz its = " << helmholtz_its << "\n";
 
     // Compute F = -(rho/dt)*(P_in + div u^{*}).
     const bool u_star_cf_bdry_synch = true;
@@ -207,6 +213,10 @@ INSStaggeredProjectionPreconditioner::solveSystem(
 
     // Solve -div grad Phi = F = -(rho/dt)*(P_in + div u^{*}).
     d_pressure_poisson_solver->solveSystem(*Phi_scratch_vec,*F_scratch_vec);
+    static int poisson_its = 0;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> poisson_krylov_solver = d_pressure_poisson_solver;
+    poisson_its += poisson_krylov_solver->getPreconditioner()->getNumIterations();
+    SAMRAI::tbox::pout << "total poisson its = " << poisson_its << "\n";
 
     // Use Phi to project u^{*}.
     const bool u_new_cf_bdry_synch = true;

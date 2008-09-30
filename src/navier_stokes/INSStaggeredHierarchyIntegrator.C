@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <23.Sep.2008 19:49:38 griffith@box230.cims.nyu.edu>
+// Last modified: <25.Sep.2008 14:34:36 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1179,6 +1179,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_U_bc_helper->zeroValuesAtDirichletBoundaries(sol_vec->getComponentDescriptorIndex(0));
         d_U_bc_helper->zeroValuesAtDirichletBoundaries(rhs_vec->getComponentDescriptorIndex(0));
         d_stokes_solver->solveSystem(*sol_vec,*rhs_vec);
+        static int stokes_its = 0;
+        stokes_its += d_stokes_solver->getNumIterations();
+        SAMRAI::tbox::pout << "total stokes its = " << stokes_its << "\n";
 
         // Reset physical boundary conditions.
         TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
