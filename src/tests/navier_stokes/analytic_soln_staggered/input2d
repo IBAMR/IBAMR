@@ -86,7 +86,7 @@ INSStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 1.0      // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
-   max_integrator_steps  = 10 // 10000000 // max number of simulation timesteps
+   max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 10000000 // disable regridding
 
    enable_logging = TRUE
@@ -109,28 +109,28 @@ INSStaggeredHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   normalize_pressure = FALSE
+   normalize_pressure = TRUE
 
    HelmholtzHypreSolver {
-      solver_type           = "FlexGMRES"
+      solver_type           = "PCG"
       precond_type          = "Split"
       split_solver_type     = "Jacobi"
-      relative_residual_tol = 1.0e-8
+      relative_residual_tol = 1.0e-1
       max_iterations        = 100
-      enable_logging        = TRUE
+      enable_logging        = FALSE
    }
 
    PoissonHypreSolver {
-      solver_type           = "FlexGMRES"
+      solver_type           = "PCG"
       precond_type          = "PFMG"
-      rap_type              = 1
-      relax_type            = 3
+      rap_type              = 0
+      relax_type            = 2
       skip_relax            = 1
-      num_pre_relax_steps   = 0
-      num_post_relax_steps  = 3
-      relative_residual_tol = 1.0e-8
+      num_pre_relax_steps   = 2
+      num_post_relax_steps  = 2
+      relative_residual_tol = 1.0e-1
       max_iterations        = 100
-      enable_logging        = TRUE
+      enable_logging        = FALSE
    }
 }
 
