@@ -111,7 +111,7 @@ cos_delta(
     const double x,
     const double eps)
 {
-    if (fabs(x) > eps)
+    if (std::abs(x) > eps)
     {
         return 0.0;
     }
