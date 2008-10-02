@@ -708,7 +708,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
             d_helmholtz_solver->setInitialGuessNonzero(false);
             d_helmholtz_solver->setOperator(d_helmholtz_op);
             d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
-
         }
         else
         {
@@ -2160,7 +2159,7 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_helmholtz_solver->setOperator(d_helmholtz_op);
         if (d_helmholtz_solver_needs_init || !SAMRAI::tbox::MathUtilities<double>::equalEps(dt,d_op_and_solver_init_dt))
         {
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): Initializing Helmholtz solver\n";
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): Initializing Helmholtz solver" << std::endl;
             d_helmholtz_solver->initializeSolverState(*U_scratch_vec,*U_rhs_vec);
         }
         d_helmholtz_solver_needs_init = false;
@@ -2186,7 +2185,7 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_poisson_solver->setOperator(d_poisson_op);
         if (d_poisson_solver_needs_init)
         {
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): Initializing Poisson solver\n";
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): Initializing Poisson solver" << std::endl;
             d_poisson_solver->initializeSolverState(*P_scratch_vec,*P_rhs_vec);
         }
         d_poisson_solver_needs_init = false;
@@ -2197,7 +2196,7 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_projection_pc->setTimeInterval(current_time,new_time);
         if (d_projection_pc_needs_init && !d_stokes_solver_needs_init)
         {
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): Initializing projection preconditioner\n";
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): Initializing projection preconditioner" << std::endl;
             d_projection_pc->initializeSolverState(*sol_vec,*rhs_vec);
         }
         d_projection_pc_needs_init = false;
@@ -2208,7 +2207,7 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_block_pc->setTimeInterval(current_time,new_time);
         if (d_block_pc_needs_init && !d_stokes_solver_needs_init)
         {
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): Initializing block-factorization preconditioner\n";
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): Initializing block-factorization preconditioner" << std::endl;
             d_block_pc->initializeSolverState(*sol_vec,*rhs_vec);
         }
         d_block_pc_needs_init = false;
@@ -2220,7 +2219,7 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_stokes_solver->setOperator(d_stokes_op);
         if (d_stokes_solver_needs_init)
         {
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): Initializing incompressible Stokes solver\n";
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): Initializing incompressible Stokes solver" << std::endl;
             d_stokes_solver->initializeSolverState(*sol_vec,*rhs_vec);
         }
         d_stokes_solver_needs_init = false;
