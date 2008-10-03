@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPressureBcCoef.C
-// Last modified: <12.Sep.2008 17:06:07 griffith@box230.cims.nyu.edu>
+// Last modified: <03.Oct.2008 17:14:00 griffith@box230.cims.nyu.edu>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPressureBcCoef.h"
@@ -232,13 +232,13 @@ INSStaggeredPressureBcCoef::setBcCoefs(
                 {
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
-                    const double u_tan_current_upper = 1.5*(*u_current_data)(i_s_intr0_upper)-0.5*(*u_current_data)(i_s_intr1_upper);
-                    const double u_tan_new_upper     = 1.5*(*u_new_data    )(i_s_intr0_upper)-0.5*(*u_new_data    )(i_s_intr1_upper);
+                    const double u_tan_current_upper = (*u_current_data)(i_s_intr0_upper); // XXXX1.5*(*u_current_data)(i_s_intr0_upper)-0.5*(*u_current_data)(i_s_intr1_upper);
+                    const double u_tan_new_upper     = (*u_new_data    )(i_s_intr0_upper); // XXXX1.5*(*u_new_data    )(i_s_intr0_upper)-0.5*(*u_new_data    )(i_s_intr1_upper);
 
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
                     const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-                    const double u_tan_current_lower = 1.5*(*u_current_data)(i_s_intr0_lower)-0.5*(*u_current_data)(i_s_intr1_lower);
-                    const double u_tan_new_lower     = 1.5*(*u_new_data    )(i_s_intr0_lower)-0.5*(*u_new_data    )(i_s_intr1_lower);
+                    const double u_tan_current_lower = (*u_current_data)(i_s_intr0_lower); // XXXX1.5*(*u_current_data)(i_s_intr0_lower)-0.5*(*u_current_data)(i_s_intr1_lower);
+                    const double u_tan_new_lower     = (*u_new_data    )(i_s_intr0_lower); // XXXX1.5*(*u_new_data    )(i_s_intr0_lower)-0.5*(*u_new_data    )(i_s_intr1_lower);
 
                     du_norm_current_dn += (is_lower ? +1.0 : -1.0)*(u_tan_current_upper-u_tan_current_lower)/dx[axis];
                     du_norm_new_dn     += (is_lower ? +1.0 : -1.0)*(u_tan_new_upper    -u_tan_new_lower    )/dx[axis];

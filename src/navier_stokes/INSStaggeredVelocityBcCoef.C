@@ -1,5 +1,5 @@
 // Filename: INSStaggeredVelocityBcCoef.C
-// Last modified: <16.Sep.2008 20:18:07 griffith@box230.cims.nyu.edu>
+// Last modified: <03.Oct.2008 17:14:36 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredVelocityBcCoef.h"
@@ -212,11 +212,11 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
                     {
                         const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
                         const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
-                        const double u_tan_upper = 1.5*(*u_data)(i_s_intr0_upper)-0.5*(*u_data)(i_s_intr1_upper);
+                        const double u_tan_upper = (*u_data)(i_s_intr0_upper); // XXXX1.5*(*u_data)(i_s_intr0_upper)-0.5*(*u_data)(i_s_intr1_upper);
 
                         const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
                         const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-                        const double u_tan_lower = 1.5*(*u_data)(i_s_intr0_lower)-0.5*(*u_data)(i_s_intr1_lower);
+                        const double u_tan_lower = (*u_data)(i_s_intr0_lower); // XXXX1.5*(*u_data)(i_s_intr0_lower)-0.5*(*u_data)(i_s_intr1_lower);
 
                         du_norm_dn += (is_lower ? +1.0 : -1.0)*(u_tan_upper-u_tan_lower)/dx[axis];
                     }
