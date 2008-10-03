@@ -1,5 +1,5 @@
 // Filename: INSStaggeredVelocityBcCoef.C
-// Last modified: <03.Oct.2008 17:36:43 griffith@box230.cims.nyu.edu>
+// Last modified: <03.Oct.2008 17:39:55 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredVelocityBcCoef.h"
@@ -255,9 +255,9 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
         }
         if (i_intr == SAMRAI::hier::Index<NDIM>(0))
         {
-            alpha = 0.0;
-            beta = 1.0;
-            gamma = 0.0;
+            (*acoef_data)(i,0) = 0.0;
+            (*bcoef_data)(i,0) = 1.0;
+            (*gcoef_data)(i,0) = 0.0;
         }
         // XXXX
     }
