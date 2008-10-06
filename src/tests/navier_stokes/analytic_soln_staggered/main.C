@@ -567,7 +567,7 @@ main(
                     patch_hierarchy, iteration_num+1, loop_time);
             }
         }
-
+#endif
         /*
          * Cleanup boundary condition specification objects (when necessary).
          */
@@ -580,7 +580,7 @@ main(
             }
             if (P_bc_coef != NULL) delete P_bc_coef;
         }
-#endif
+
     }// cleanup all smart Pointers prior to shutdown
 
     tbox::SAMRAIManager::shutdown();

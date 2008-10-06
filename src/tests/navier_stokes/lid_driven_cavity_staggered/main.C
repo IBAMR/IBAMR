@@ -300,17 +300,11 @@ main(
                 "PatchHierarchy",
                 grid_geometry);
 
-        tbox::Pointer<HierarchyProjector> hier_projector =
-            new HierarchyProjector(
-                "HierarchyProjector",
-                input_db->getDatabase("HierarchyProjector"),
-                patch_hierarchy);
-
         tbox::Pointer<INSStaggeredHierarchyIntegrator> time_integrator =
             new INSStaggeredHierarchyIntegrator(
                 "INSStaggeredHierarchyIntegrator",
                 input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
-                patch_hierarchy, hier_projector);
+                patch_hierarchy);
         time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
@@ -458,6 +452,62 @@ main(
                     patch_hierarchy, iteration_num, loop_time);
             }
         }
+
+#if (NDIM == 2)
+        /*
+         * Determine the accuracy of the computed solution.
+         */
+        hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+        const tbox::Pointer<pdat::SideVariable<NDIM,double> > u_var = time_integrator->getVelocityVar();
+        const tbox::Pointer<hier::VariableContext> u_ctx = time_integrator->getCurrentContext();
+        const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
+
+        const int coarsest_ln = 0;
+        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            const hier::Box<NDIM>& domain_box = level->getPhysicalDomain()[0];
+
+            TBOX_ASSERT((domain_box.upper()(0) - domain_box.lower()(0) + 1)%2 == 0);
+            const int i_center0 = (domain_box.upper()(0) - domain_box.lower()(0) + 1)/2 + domain_box.lower()(0);
+            const hier::Box<NDIM> center_box0(hier::Index<NDIM>(i_center0,domain_box.lower()(1)),hier::Index<NDIM>(i_center0,domain_box.upper()(1)));
+
+            TBOX_ASSERT((domain_box.upper()(1) - domain_box.lower()(1) + 1)%2 == 0);
+            const int i_center1 = (domain_box.upper()(1) - domain_box.lower()(1) + 1)/2 + domain_box.lower()(1);
+            const hier::Box<NDIM> center_box1(hier::Index<NDIM>(domain_box.lower()(0),i_center1),hier::Index<NDIM>(domain_box.upper()(0),i_center1));
+
+            tbox::plog << "u on level " << ln << "\n";
+            for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
+                const hier::Box<NDIM>& patch_box = patch->getBox();
+                tbox::Pointer<pdat::SideData<NDIM,double> > u_data = patch->getPatchData(u_idx);
+                for (hier::Box<NDIM>::Iterator it(patch_box*center_box0); it; it++)
+                {
+                    const hier::Index<NDIM>& i = it();
+                    const pdat::SideIndex<NDIM> s_i(i,0,0);
+                    tbox::plog << i(1) << "\t" << (*u_data)(s_i) << "\n";
+                }
+            }
+            tbox::plog << "\n";
+
+            tbox::plog << "v on level " << ln << "\n";
+            for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
+                const hier::Box<NDIM>& patch_box = patch->getBox();
+                tbox::Pointer<pdat::SideData<NDIM,double> > u_data = patch->getPatchData(u_idx);
+                for (hier::Box<NDIM>::Iterator it(patch_box*center_box1); it; it++)
+                {
+                    const hier::Index<NDIM>& i = it();
+                    const pdat::SideIndex<NDIM> s_i(i,1,0);
+                    tbox::plog << i(0) << "\t" << (*u_data)(s_i) << "\n";
+                }
+            }
+            tbox::plog << "\n";
+        }
+#endif
 
     }// cleanup all smart Pointers prior to shutdown
 
