@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPressureBcCoef.C
-// Last modified: <03.Oct.2008 17:49:53 griffith@box230.cims.nyu.edu>
+// Last modified: <06.Oct.2008 16:56:46 griffith@box230.cims.nyu.edu>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPressureBcCoef.h"
@@ -224,8 +224,8 @@ INSStaggeredPressureBcCoef::setBcCoefs(
                 }
             }
 
-            double du_norm_current_dn = 0.0;
-            double du_norm_new_dn     = 0.0;
+            double du_norm_current_dx_norm = 0.0;
+            double du_norm_new_dx_norm     = 0.0;
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 if (axis != bdry_normal_axis)
@@ -240,8 +240,8 @@ INSStaggeredPressureBcCoef::setBcCoefs(
                     const double u_tan_current_lower = 1.5*(*u_current_data)(i_s_intr0_lower)-0.5*(*u_current_data)(i_s_intr1_lower);
                     const double u_tan_new_lower     = 1.5*(*u_new_data    )(i_s_intr0_lower)-0.5*(*u_new_data    )(i_s_intr1_lower);
 
-                    du_norm_current_dn += (is_lower ? +1.0 : -1.0)*(u_tan_current_upper-u_tan_current_lower)/dx[axis];
-                    du_norm_new_dn     += (is_lower ? +1.0 : -1.0)*(u_tan_new_upper    -u_tan_new_lower    )/dx[axis];
+                    du_norm_current_dx_norm -= (u_tan_current_upper-u_tan_current_lower)/dx[axis];
+                    du_norm_new_dx_norm     -= (u_tan_new_upper    -u_tan_new_lower    )/dx[axis];
                 }
             }
 
@@ -250,8 +250,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(
             // pressure.
             alpha = 1.0;
             beta  = 0.0;
-// XXXX     gamma = (is_lower ? -1.0 : +1.0)*(mu*du_norm_new_dn + (d_homogeneous_bc ? 0.0 : mu*du_norm_current_dn - gamma));
-            gamma = (is_lower ? -1.0 : +1.0)*((d_homogeneous_bc ? 0.0 : - gamma));
+            gamma = (d_homogeneous_bc ? 0.0 : -gamma + mu*du_norm_current_dx_norm) + mu*du_norm_new_dx_norm;
         }
         else
         {
