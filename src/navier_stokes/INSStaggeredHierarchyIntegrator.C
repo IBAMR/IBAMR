@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <25.Sep.2008 14:34:36 griffith@box230.cims.nyu.edu>
+// Last modified: <06.Oct.2008 17:47:18 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -2233,6 +2233,9 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         }
         d_convective_op_needs_init = false;
     }
+
+    U_rhs_vec->freeVectorComponents();
+    P_rhs_vec->freeVectorComponents();
 
     // Keep track of the timestep size to avoid unnecessary re-initialization.
     d_op_and_solver_init_dt = dt;
