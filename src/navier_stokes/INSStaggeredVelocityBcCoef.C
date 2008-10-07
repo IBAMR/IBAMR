@@ -1,5 +1,5 @@
 // Filename: INSStaggeredVelocityBcCoef.C
-// Last modified: <06.Oct.2008 17:51:26 griffith@box230.cims.nyu.edu>
+// Last modified: <06.Oct.2008 21:13:18 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredVelocityBcCoef.h"
@@ -232,10 +232,10 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
                 i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx),i(d_comp_idx)  );
                 const SAMRAI::pdat::SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
                 const SAMRAI::pdat::SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-                const double du_norm_dtan = (is_lower ? -1.0 : +1.0)*((*u_data)(i_s_upper)-(*u_data)(i_s_lower))/dx[d_comp_idx];
+                const double du_norm_dx_tan = ((*u_data)(i_s_upper)-(*u_data)(i_s_lower))/dx[d_comp_idx];
 
                 // Correct the boundary condition value.
-                gamma = gamma/mu - du_norm_dtan;
+                gamma = (is_lower ? -1.0 : +1.0)*(gamma/mu - du_norm_dx_tan);
             }
         }
         else
