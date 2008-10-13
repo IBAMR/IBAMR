@@ -1,12 +1,12 @@
 // physical parameters
-MU = 1.0
+MU = 1.0e-3
 RHO = 1.0
 
 // grid spacing parameters
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N =  32                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 // exact solution function expressions
@@ -15,6 +15,13 @@ V = "2*PI*X_1*X_1*(X_1-1)*sin(2*PI*(X_0-sin(2*PI*t*t)))"
 P = "-2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*sin(2*PI*X_1)+4*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*X_1-2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI+2*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*sin(2*PI*X_1)-2*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*X_1+nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI"
 F_U = "24*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*cos(2*PI*t*t)*t*X_1*X_1-16*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*cos(2*PI*t*t)*t*X_1-6*cos(2*PI*(X_0-sin(2*PI*t*t)))*X_1^4*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI+8*cos(2*PI*(X_0-sin(2*PI*t*t)))*X_1^3*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI-4*cos(2*PI*(X_0-sin(2*PI*t*t)))*X_1*X_1*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI-4*cos(2*PI*t*t)*t*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*sin(2*PI*X_1)+8*cos(2*PI*t*t)*t*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1-4*cos(2*PI*t*t)*t*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI-4*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*sin(2*PI*X_1)+4*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1-2*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI+12*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1*X_1-8*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*PI*PI*X_1-6*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))"
 F_V = "-2*PI*(8*PI*PI*cos(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*t*t)*t*X_1^3-8*PI*PI*cos(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*t*t)*t*X_1*X_1-6*PI*X_1^5+10*PI*X_1^4-4*PI*X_1^3+2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*X_1)-2*cos(2*PI*t*t)*t*sin(2*PI*(X_0-sin(2*PI*t*t)))-2*nu*cos(2*PI*(X_0-sin(2*PI*t*t)))*cos(2*PI*X_1)+nu*cos(2*PI*(X_0-sin(2*PI*t*t)))-4*nu*PI*PI*sin(2*PI*(X_0-sin(2*PI*t*t)))*X_1^3+4*nu*PI*PI*sin(2*PI*(X_0-sin(2*PI*t*t)))*X_1*X_1+6*nu*sin(2*PI*(X_0-sin(2*PI*t*t)))*X_1-2*nu*sin(2*PI*(X_0-sin(2*PI*t*t))))"
+
+// normal tractions
+T_n_X_0 = "2*cos(2*PI*t^2)*t*sin(2*PI*(X_0-sin(2*PI*t^2)))*sin(2*PI*X_1)-4*cos(2*PI*t^2)*t*sin(2*PI*(X_0-sin(2*PI*t^2)))*PI*X_1+2*cos(2*PI*t^2)*t*sin(2*PI*(X_0-sin(2*PI*t^2)))*PI-2*nu*cos(2*PI*(X_0-sin(2*PI*t^2)))*sin(2*PI*X_1)+2*nu*cos(2*PI*(X_0-sin(2*PI*t^2)))*PI*X_1-nu*cos(2*PI*(X_0-sin(2*PI*t^2)))*PI-12*nu*X_1^2*sin(2*PI*(X_0-sin(2*PI*t^2)))*PI+8*nu*X_1*sin(2*PI*(X_0-sin(2*PI*t^2)))*PI"
+T_n_X_1 = "2*cos(2*PI*t^2)*t*sin(2*PI*(X_0-sin(2*PI*t^2)))*sin(2*PI*X_1)-4*cos(2*PI*t^2)*t*sin(2*PI*(X_0-sin(2*PI*t^2)))*PI*X_1+2*cos(2*PI*t^2)*t*sin(2*PI*(X_0-sin(2*PI*t^2)))*PI-2*nu*cos(2*PI*(X_0-sin(2*PI*t^2)))*sin(2*PI*X_1)+2*nu*cos(2*PI*(X_0-sin(2*PI*t^2)))*PI*X_1-nu*cos(2*PI*(X_0-sin(2*PI*t^2)))*PI+12*nu*X_1^2*sin(2*PI*(X_0-sin(2*PI*t^2)))*PI-8*nu*X_1*sin(2*PI*(X_0-sin(2*PI*t^2)))*PI"
+
+// tangential tractions
+T_t = "2*nu*(3*X_1-1+2*PI^2*X_1^3-2*PI^2*X_1^2)*cos(2*PI*(X_0-sin(2*PI*t^2)))"
 
 VelocityInitialConditions {
    constant_names = "nu"
@@ -27,40 +34,40 @@ VelocityBcCoefs_0 {
    constant_names = "nu"
    nu = MU/RHO
 
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_0 = "1.0" // U
+   acoef_function_1 = "1.0" // U
+   acoef_function_2 = "1.0" // U
+   acoef_function_3 = "1.0" // U
 
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_0 = "0.0" // U
+   bcoef_function_1 = "0.0" // U
+   bcoef_function_2 = "0.0" // U
+   bcoef_function_3 = "0.0" // U
 
-   gcoef_function_0 = U
-   gcoef_function_1 = U
-   gcoef_function_2 = U
-   gcoef_function_3 = U
+   gcoef_function_0 = U // T_n_X_0
+   gcoef_function_1 = U // T_n_X_0
+   gcoef_function_2 = U // T_t
+   gcoef_function_3 = U // T_t
 }
 
 VelocityBcCoefs_1 {
    constant_names = "nu"
    nu = MU/RHO
 
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_0 = "1.0" // V
+   acoef_function_1 = "1.0" // V
+   acoef_function_2 = "1.0" // V
+   acoef_function_3 = "1.0" // V
 
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_0 = "0.0" // V
+   bcoef_function_1 = "0.0" // V
+   bcoef_function_2 = "0.0" // V
+   bcoef_function_3 = "0.0" // V
 
-   gcoef_function_0 = V
-   gcoef_function_1 = V
-   gcoef_function_2 = V
-   gcoef_function_3 = V
+   gcoef_function_0 = V // T_t
+   gcoef_function_1 = V // T_t
+   gcoef_function_2 = V // T_n_X_1
+   gcoef_function_3 = V // T_n_X_1
 }
 
 PressureInitialConditions {
@@ -103,12 +110,12 @@ INSStaggeredHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   normalize_pressure = TRUE
+   normalize_pressure = FALSE
 
    HelmholtzHypreSolver {
       solver_type           = "PCG"
       precond_type          = "Split"
-      split_solver_type     = "Jacobi"
+      split_solver_type     = "SMG"
       relative_residual_tol = 1.0e-2
       max_iterations        = 100
       enable_logging        = FALSE
@@ -135,7 +142,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/4   // zero to turn off
+   viz_dump_interval     = NFINEST/8   // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 

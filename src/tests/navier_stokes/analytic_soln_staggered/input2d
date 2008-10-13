@@ -19,8 +19,6 @@ T_n_X_0 = "(cos(4*PI*(X_0-t))+cos(4*PI*(X_1-t)))*exp(-16*PI^2*nu*t)+8*nu*sin(2*P
 T_n_X_1 = "(cos(4*PI*(X_0-t))+cos(4*PI*(X_1-t)))*exp(-16*PI^2*nu*t)-8*nu*sin(2*PI*(X_0-t))*PI*sin(2*PI*(X_1-t))*exp(-8*PI^2*nu*t)"
 
 // tangential tractions
-// T_t_X_0 = -(nu*diff(U,X_1) + nu*diff(V,X_0)) = 0.0
-// T_t_X_1 = +(nu*diff(U,X_1) + nu*diff(V,X_0)) = 0.0
 T_t = "0.0"
 
 VelocityInitialConditions {
