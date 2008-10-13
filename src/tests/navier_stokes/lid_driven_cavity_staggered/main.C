@@ -345,7 +345,7 @@ main(
          */
         hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
         tbox::Pointer<hier::VariableContext> main_context = var_db->getContext("main::CONTEXT");
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > psi_var = new pdat::CellVariable<NDIM,double>("psi");
+        tbox::Pointer<pdat::NodeVariable<NDIM,double> > psi_var = new pdat::NodeVariable<NDIM,double>("psi");
         const int psi_idx = var_db->registerVariableAndContext(psi_var, main_context, 0);
         if (uses_visit)
         {
@@ -368,7 +368,7 @@ main(
             for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-                tbox::Pointer<pdat::CellData<NDIM,double> > psi_data = patch->getPatchData(psi_idx);
+                tbox::Pointer<pdat::NodeData<NDIM,double> > psi_data = patch->getPatchData(psi_idx);
                 psi_data->fillAll(0.0);
             }
         }
@@ -471,53 +471,36 @@ main(
                     hier::Box<NDIM> lower_box = patch_box;
                     lower_box.upper()(1) = lower_box.lower()(1);
                     hier::Box<NDIM> upper_box = patch_box;
-                    upper_box.lower()(1) = upper_box.lower()(1)+1;
+                    upper_box.upper()(1) = upper_box.upper()(1)-1;
 
                     const tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
                     const double* const dx = pgeom->getDx();
-                    tbox::Pointer<pdat::CellData<NDIM,double> > psi_data = patch->getPatchData(psi_idx);
+                    tbox::Pointer<pdat::NodeData<NDIM,double> > psi_data = patch->getPatchData(psi_idx);
                     tbox::Pointer<pdat::SideData<NDIM,double> > u_data = patch->getPatchData(u_idx);
+
+                    psi_data->fillAll(numeric_limits<double>::quiet_NaN());
+                    (*psi_data)(pdat::NodeIndex<NDIM>(hier::Index<NDIM>(0),0)) = 0.0;
+
                     for (hier::Box<NDIM>::Iterator it(lower_box); it; it++)
                     {
                         const hier::Index<NDIM>& i = it();
-                        if (i(0) == lower_box.lower()(0))
-                        {
-                            (*psi_data)(i) = 0.0;
-                        }
-                        else
-                        {
-                            const pdat::SideIndex<NDIM> s_i_uu(i,1,1);
-                            const pdat::SideIndex<NDIM> s_i_ul(i,1,0);
-                            pdat::SideIndex<NDIM> s_i_lu(s_i_uu);
-                            pdat::SideIndex<NDIM> s_i_ll(s_i_ul);
-                            s_i_lu(0) -= 1;
-                            s_i_ll(0) -= 1;
-
-                            const double dpsi_dx = -0.25*((*u_data)(s_i_uu)+(*u_data)(s_i_ul)+(*u_data)(s_i_lu)+(*u_data)(s_i_ll));
-
-                            hier::Index<NDIM> i_l(i);
-                            i_l(0) -= 1;
-
-                            (*psi_data)(i) = (*psi_data)(i_l) + dpsi_dx*dx[0];
-                        }
+                        const pdat::NodeIndex<NDIM> n_i_l(i,0);
+                        pdat::NodeIndex<NDIM> n_i_u(n_i_l);
+                        n_i_u(0) += 1;
+                        const pdat::SideIndex<NDIM> s_i(i,1,0);
+                        const double dpsi_dx = -(*u_data)(s_i);
+                        (*psi_data)(n_i_u) = (*psi_data)(n_i_l) + dpsi_dx*dx[0];
                     }
 
-                    for (hier::Box<NDIM>::Iterator it(upper_box); it; it++)
+                    for (hier::Box<NDIM>::Iterator it(pdat::NodeGeometry<NDIM>::toNodeBox(upper_box)); it; it++)
                     {
                         const hier::Index<NDIM>& i = it();
-
-                        const pdat::SideIndex<NDIM> s_i_uu(i,0,1);
-                        const pdat::SideIndex<NDIM> s_i_ul(i,0,0);
-                        pdat::SideIndex<NDIM> s_i_lu(s_i_uu);
-                        pdat::SideIndex<NDIM> s_i_ll(s_i_ul);
-                        s_i_lu(1) -= 1;
-                        s_i_ll(1) -= 1;
-
-                        const double dpsi_dy = +0.25*((*u_data)(s_i_uu)+(*u_data)(s_i_ul)+(*u_data)(s_i_lu)+(*u_data)(s_i_ll));
-
-                        hier::Index<NDIM> i_l(i);
-                        i_l(1) -= 1;
-                        (*psi_data)(i) = (*psi_data)(i_l) + dpsi_dy*dx[1];
+                        const pdat::NodeIndex<NDIM> n_i_l(i,0);
+                        pdat::NodeIndex<NDIM> n_i_u(n_i_l);
+                        n_i_u(1) += 1;
+                        const pdat::SideIndex<NDIM> s_i(i,0,0);
+                        const double dpsi_dy = +(*u_data)(s_i);
+                        (*psi_data)(n_i_u) = (*psi_data)(n_i_l) + dpsi_dy*dx[1];
                     }
                 }
 
