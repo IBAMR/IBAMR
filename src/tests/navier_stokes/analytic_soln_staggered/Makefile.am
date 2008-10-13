@@ -16,6 +16,7 @@ endif
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
+	  cp -f $(srcdir)/input2d.forced_flow $(PWD) ; \
 	fi ;
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
