@@ -1,5 +1,5 @@
 // physical parameters
-MU = 1.0e-2
+MU = 1.0e-4
 RHO = 1.0
 
 // grid spacing parameters
@@ -15,18 +15,12 @@ V = "1 + 2*(sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
 P = "-(cos(4*PI*(X_0-t)) + cos(4*PI*(X_1-t)))*exp(-16*PI*PI*nu*t)"
 
 // normal tractions
-// T_n_X_0_lower =  P - 2*nu*diff(U,X_0)
-// T_n_X_1_lower =  P - 2*nu*diff(V,X_1)
-// T_n_X_0_upper = -P + 2*nu*diff(U,X_0)
-// T_n_X_1_upper = -P + 2*nu*diff(V,X_1)
-T_n_X_0_lower = "-exp(-16*PI^2*nu*t)*cos(4*PI*(X_0-t))-exp(-16*PI^2*nu*t)*cos(4*PI*(-X_1+t))+8*nu*sin(2*PI*(X_0-t))*sin(2*PI*(-X_1+t))*PI*exp(-8*PI^2*nu*t)"
-T_n_X_1_lower = "-exp(-16*PI^2*nu*t)*cos(4*PI*(X_0-t))-exp(-16*PI^2*nu*t)*cos(4*PI*(-X_1+t))-8*nu*sin(2*PI*(X_0-t))*sin(2*PI*(-X_1+t))*PI*exp(-8*PI^2*nu*t)"
-T_n_X_0_upper = "exp(-16*PI^2*nu*t)*cos(4*PI*(X_0-t))+exp(-16*PI^2*nu*t)*cos(4*PI*(-X_1+t))-8*nu*sin(2*PI*(X_0-t))*sin(2*PI*(-X_1+t))*PI*exp(-8*PI^2*nu*t)"
-T_n_X_1_upper = "exp(-16*PI^2*nu*t)*cos(4*PI*(X_0-t))+exp(-16*PI^2*nu*t)*cos(4*PI*(-X_1+t))+8*nu*sin(2*PI*(X_0-t))*sin(2*PI*(-X_1+t))*PI*exp(-8*PI^2*nu*t)"
+T_n_X_0 = "(cos(4*PI*(X_0-t))+cos(4*PI*(X_1-t)))*exp(-16*PI^2*nu*t)+8*nu*sin(2*PI*(X_0-t))*PI*sin(2*PI*(X_1-t))*exp(-8*PI^2*nu*t)"
+T_n_X_1 = "(cos(4*PI*(X_0-t))+cos(4*PI*(X_1-t)))*exp(-16*PI^2*nu*t)-8*nu*sin(2*PI*(X_0-t))*PI*sin(2*PI*(X_1-t))*exp(-8*PI^2*nu*t)"
 
 // tangential tractions
-// T_t_X_0_lower = T_t_X_1_lower = -(nu*diff(U,X_1) + nu*diff(V,X_0)) = 0.0
-// T_t_X_0_upper = T_t_X_1_upper = +(nu*diff(U,X_1) + nu*diff(V,X_0)) = 0.0
+// T_t_X_0 = -(nu*diff(U,X_1) + nu*diff(V,X_0)) = 0.0
+// T_t_X_1 = +(nu*diff(U,X_1) + nu*diff(V,X_0)) = 0.0
 T_t = "0.0"
 
 VelocityInitialConditions {
@@ -40,40 +34,40 @@ VelocityBcCoefs_0 {
    constant_names = "nu"
    nu = MU/RHO
 
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
 
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = U // T_n_X_0_lower
-   gcoef_function_1 = U // T_n_X_0_upper
-   gcoef_function_2 = U // T_t
-   gcoef_function_3 = U // T_t
+   gcoef_function_0 = T_n_X_0 // U
+   gcoef_function_1 = T_n_X_0 // U
+   gcoef_function_2 = T_t
+   gcoef_function_3 = T_t
 }
 
 VelocityBcCoefs_1 {
    constant_names = "nu"
    nu = MU/RHO
 
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
 
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = V // T_t
-   gcoef_function_1 = V // T_t
-   gcoef_function_2 = V // T_n_X_1_lower
-   gcoef_function_3 = V // T_n_X_1_upper
+   gcoef_function_0 = T_t // V
+   gcoef_function_1 = T_t // V
+   gcoef_function_2 = T_n_X_1 // V
+   gcoef_function_3 = T_n_X_1 // V
 }
 
 PressureInitialConditions {
@@ -84,15 +78,15 @@ PressureInitialConditions {
 
 INSStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 1.0      // final simulation time
+   end_time              = 0.5      // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 10000000 // disable regridding
 
    enable_logging = TRUE
 
-   cfl = 1.0
-   dt_max = cfl/(3*NFINEST)
+   cfl = 0.95
+   dt_max = 1.0/(4*NFINEST)
 
    tag_buffer = 1
 
@@ -109,13 +103,13 @@ INSStaggeredHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   normalize_pressure = TRUE
+   normalize_pressure = FALSE
 
    HelmholtzHypreSolver {
       solver_type           = "PCG"
       precond_type          = "Split"
       split_solver_type     = "Jacobi"
-      relative_residual_tol = 1.0e-1
+      relative_residual_tol = 1.0e-2
       max_iterations        = 100
       enable_logging        = FALSE
    }
@@ -126,9 +120,9 @@ INSStaggeredHierarchyIntegrator {
       rap_type              = 0
       relax_type            = 2
       skip_relax            = 1
-      num_pre_relax_steps   = 2
-      num_post_relax_steps  = 2
-      relative_residual_tol = 1.0e-1
+      num_pre_relax_steps   = 1
+      num_post_relax_steps  = 1
+      relative_residual_tol = 1.0e-2
       max_iterations        = 100
       enable_logging        = FALSE
    }
@@ -157,7 +151,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         =  0, 0          // lower end of computational domain.
    x_up         =  1, 1          // upper end of computational domain.
-   periodic_dimension = 0, 0
+   periodic_dimension = 1, 0
 }
 
 GriddingAlgorithm {
@@ -171,7 +165,7 @@ GriddingAlgorithm {
    }
 
    largest_patch_size {
-      level_0 =512,512 // largest patch allowed in hierarchy
+      level_0 =  N,  N // largest patch allowed in hierarchy
                        // all finer levels will use same values as level_0...
    }
 

@@ -341,11 +341,37 @@ main(
         }
 
         /*
+         * Setup a variable for computing and storing the streamfunction.
+         */
+        hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+        tbox::Pointer<hier::VariableContext> main_context = var_db->getContext("main::CONTEXT");
+        tbox::Pointer<pdat::CellVariable<NDIM,double> > psi_var = new pdat::CellVariable<NDIM,double>("psi");
+        const int psi_idx = var_db->registerVariableAndContext(psi_var, main_context, 0);
+        if (uses_visit)
+        {
+            visit_data_writer->registerPlotQuantity(psi_var->getName(), "SCALAR", psi_idx, 0, 1.0);
+        }
+
+        /*
          * Initialize hierarchy configuration and data on all patches.  Then,
          * close restart file and write initial state for visualization.
          */
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            if (!level->checkAllocated(psi_idx))
+            {
+                level->allocatePatchData(psi_idx, time_integrator->getIntegratorTime());
+            }
+            for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
+                tbox::Pointer<pdat::CellData<NDIM,double> > psi_data = patch->getPatchData(psi_idx);
+                psi_data->fillAll(0.0);
+            }
+        }
         tbox::RestartManager::getManager()->closeRestartFile();
 
         /*
@@ -422,6 +448,79 @@ main(
 
             if (viz_dump_data && iteration_num%viz_dump_interval == 0)
             {
+                /*
+                 * Compute the stream-function.
+                 */
+                const tbox::Pointer<pdat::SideVariable<NDIM,double> > u_var = time_integrator->getVelocityVar();
+                const tbox::Pointer<hier::VariableContext> u_ctx = time_integrator->getCurrentContext();
+                const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
+
+                TBOX_ASSERT(patch_hierarchy->getFinestLevelNumber() == 0);
+                tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(0);
+                TBOX_ASSERT(level->getNumberOfPatches() == 1);
+                if (!level->checkAllocated(psi_idx))
+                {
+                    level->allocatePatchData(psi_idx, loop_time);
+                }
+
+                for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
+
+                    const hier::Box<NDIM>& patch_box = patch->getBox();
+                    hier::Box<NDIM> lower_box = patch_box;
+                    lower_box.upper()(1) = lower_box.lower()(1);
+                    hier::Box<NDIM> upper_box = patch_box;
+                    upper_box.lower()(1) = upper_box.lower()(1)+1;
+
+                    const tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                    const double* const dx = pgeom->getDx();
+                    tbox::Pointer<pdat::CellData<NDIM,double> > psi_data = patch->getPatchData(psi_idx);
+                    tbox::Pointer<pdat::SideData<NDIM,double> > u_data = patch->getPatchData(u_idx);
+                    for (hier::Box<NDIM>::Iterator it(lower_box); it; it++)
+                    {
+                        const hier::Index<NDIM>& i = it();
+                        if (i(0) == lower_box.lower()(0))
+                        {
+                            (*psi_data)(i) = 0.0;
+                        }
+                        else
+                        {
+                            const pdat::SideIndex<NDIM> s_i_uu(i,1,1);
+                            const pdat::SideIndex<NDIM> s_i_ul(i,1,0);
+                            pdat::SideIndex<NDIM> s_i_lu(s_i_uu);
+                            pdat::SideIndex<NDIM> s_i_ll(s_i_ul);
+                            s_i_lu(0) -= 1;
+                            s_i_ll(0) -= 1;
+
+                            const double dpsi_dx = -0.25*((*u_data)(s_i_uu)+(*u_data)(s_i_ul)+(*u_data)(s_i_lu)+(*u_data)(s_i_ll));
+
+                            hier::Index<NDIM> i_l(i);
+                            i_l(0) -= 1;
+
+                            (*psi_data)(i) = (*psi_data)(i_l) + dpsi_dx*dx[0];
+                        }
+                    }
+
+                    for (hier::Box<NDIM>::Iterator it(upper_box); it; it++)
+                    {
+                        const hier::Index<NDIM>& i = it();
+
+                        const pdat::SideIndex<NDIM> s_i_uu(i,0,1);
+                        const pdat::SideIndex<NDIM> s_i_ul(i,0,0);
+                        pdat::SideIndex<NDIM> s_i_lu(s_i_uu);
+                        pdat::SideIndex<NDIM> s_i_ll(s_i_ul);
+                        s_i_lu(1) -= 1;
+                        s_i_ll(1) -= 1;
+
+                        const double dpsi_dy = +0.25*((*u_data)(s_i_uu)+(*u_data)(s_i_ul)+(*u_data)(s_i_lu)+(*u_data)(s_i_ll));
+
+                        hier::Index<NDIM> i_l(i);
+                        i_l(1) -= 1;
+                        (*psi_data)(i) = (*psi_data)(i_l) + dpsi_dy*dx[1];
+                    }
+                }
+
                 if (uses_visit)
                 {
                     tbox::pout << "\nWriting visualization files...\n\n";
@@ -457,10 +556,13 @@ main(
         /*
          * Determine the accuracy of the computed solution.
          */
-        hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
         const tbox::Pointer<pdat::SideVariable<NDIM,double> > u_var = time_integrator->getVelocityVar();
         const tbox::Pointer<hier::VariableContext> u_ctx = time_integrator->getCurrentContext();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
+
+        const tbox::Pointer<pdat::CellVariable<NDIM,double> > p_var = time_integrator->getPressureVar();
+        const tbox::Pointer<hier::VariableContext> p_ctx = time_integrator->getCurrentContext();
+        const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
 
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -477,32 +579,84 @@ main(
             const int i_center1 = (domain_box.upper()(1) - domain_box.lower()(1) + 1)/2 + domain_box.lower()(1);
             const hier::Box<NDIM> center_box1(hier::Index<NDIM>(domain_box.lower()(0),i_center1),hier::Index<NDIM>(domain_box.upper()(0),i_center1));
 
-            tbox::plog << "u on level " << ln << "\n";
+            tbox::plog << "u(y=0.5) on level " << ln << "\n";
             for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
                 const hier::Box<NDIM>& patch_box = patch->getBox();
+                const tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const double* const dx = pgeom->getDx();
                 tbox::Pointer<pdat::SideData<NDIM,double> > u_data = patch->getPatchData(u_idx);
                 for (hier::Box<NDIM>::Iterator it(patch_box*center_box0); it; it++)
                 {
                     const hier::Index<NDIM>& i = it();
                     const pdat::SideIndex<NDIM> s_i(i,0,0);
-                    tbox::plog << i(1) << "\t" << (*u_data)(s_i) << "\n";
+                    tbox::plog << (double(i(1))+0.5)*dx[1] << "\t" << (*u_data)(s_i) << "\n";
                 }
             }
             tbox::plog << "\n";
 
-            tbox::plog << "v on level " << ln << "\n";
+            tbox::plog << "p(y=0.5) on level " << ln << "\n";
             for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
                 const hier::Box<NDIM>& patch_box = patch->getBox();
+                const tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const double* const dx = pgeom->getDx();
+                tbox::Pointer<pdat::CellData<NDIM,double> > p_data = patch->getPatchData(p_idx);
+                for (hier::Box<NDIM>::Iterator it(patch_box*center_box0); it; it++)
+                {
+                    const hier::Index<NDIM>& i = it();
+                    hier::Index<NDIM> i_ll(i);
+                    hier::Index<NDIM> i_l(i);
+                    hier::Index<NDIM> i_u(i);
+                    hier::Index<NDIM> i_uu(i);
+                    i_ll(0) -= 2;
+                    i_l (0) -= 1;
+                    i_u (0) += 0;
+                    i_uu(0) += 1;
+                    tbox::plog << (double(i(1))+0.5)*dx[1] << "\t" << 9.0*((*p_data)(i_l) + (*p_data)(i_u))/16.0 - ((*p_data)(i_ll) + (*p_data)(i_uu))/16.0 << "\n";
+                }
+            }
+            tbox::plog << "\n";
+
+            tbox::plog << "v(x=0.5) on level " << ln << "\n";
+            for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
+                const hier::Box<NDIM>& patch_box = patch->getBox();
+                const tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const double* const dx = pgeom->getDx();
                 tbox::Pointer<pdat::SideData<NDIM,double> > u_data = patch->getPatchData(u_idx);
                 for (hier::Box<NDIM>::Iterator it(patch_box*center_box1); it; it++)
                 {
                     const hier::Index<NDIM>& i = it();
                     const pdat::SideIndex<NDIM> s_i(i,1,0);
-                    tbox::plog << i(0) << "\t" << (*u_data)(s_i) << "\n";
+                    tbox::plog << (double(i(0))+0.5)*dx[0] << "\t" << (*u_data)(s_i) << "\n";
+                }
+            }
+            tbox::plog << "\n";
+
+            tbox::plog << "p(x=0.5) on level " << ln << "\n";
+            for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
+                const hier::Box<NDIM>& patch_box = patch->getBox();
+                const tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const double* const dx = pgeom->getDx();
+                tbox::Pointer<pdat::CellData<NDIM,double> > p_data = patch->getPatchData(p_idx);
+                for (hier::Box<NDIM>::Iterator it(patch_box*center_box1); it; it++)
+                {
+                    const hier::Index<NDIM>& i = it();
+                    hier::Index<NDIM> i_ll(i);
+                    hier::Index<NDIM> i_l(i);
+                    hier::Index<NDIM> i_u(i);
+                    hier::Index<NDIM> i_uu(i);
+                    i_ll(1) -= 2;
+                    i_l (1) -= 1;
+                    i_u (1) += 0;
+                    i_uu(1) += 1;
+                    tbox::plog << (double(i(1))+0.5)*dx[1] << "\t" << 9.0*((*p_data)(i_l) + (*p_data)(i_u))/16.0 - ((*p_data)(i_ll) + (*p_data)(i_uu))/16.0 << "\n";
                 }
             }
             tbox::plog << "\n";
