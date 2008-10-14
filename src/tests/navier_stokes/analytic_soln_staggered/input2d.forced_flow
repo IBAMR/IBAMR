@@ -110,7 +110,7 @@ INSStaggeredHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   normalize_pressure = FALSE
+   normalize_pressure = TRUE
 
    HelmholtzHypreSolver {
       solver_type           = "PCG"

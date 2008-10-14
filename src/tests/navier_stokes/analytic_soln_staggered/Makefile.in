@@ -692,7 +692,7 @@ uninstall-am:
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/input2d.velocity_bcs.forced_flow $(PWD) ; \
+	  cp -f $(srcdir)/input2d.forced_flow $(PWD) ; \
 	fi ;
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
