@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <06.Oct.2008 17:47:18 griffith@box230.cims.nyu.edu>
+// Last modified: <15.Oct.2008 13:42:35 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -142,6 +142,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_end_time = std::numeric_limits<double>::max();
     d_grow_dt = 2.0;
     d_max_integrator_steps = std::numeric_limits<int>::max();
+
+    d_num_cycles = 3;
 
     d_using_vorticity_tagging = false;
     d_Omega_max = 0.0;
@@ -1161,8 +1163,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_rhs_idx);
 
     // Solve for u(n+1) and p(n+1/2) using (truncated) fixed point iteration.
-    static const int num_cycles = 3;
-    for (int cycle = 0; cycle < num_cycles; ++cycle)
+    for (int cycle = 0; cycle < d_num_cycles; ++cycle)
     {
         // Compute U_half := 0.5*(u(n)+u(n+1)).
         d_hier_sc_data_ops->linearSum(U_half_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
@@ -2308,6 +2309,9 @@ INSStaggeredHierarchyIntegrator::getFromInput(
 
     d_max_integrator_steps = db->getIntegerWithDefault(
         "max_integrator_steps", d_max_integrator_steps);
+
+    d_num_cycles = db->getIntegerWithDefault(
+        "num_cycles", d_num_cycles);
 
     d_regrid_interval = db->getIntegerWithDefault(
         "regrid_interval", d_regrid_interval);

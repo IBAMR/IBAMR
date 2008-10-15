@@ -639,7 +639,7 @@ main(
                     i_l (1) -= 1;
                     i_u (1) += 0;
                     i_uu(1) += 1;
-                    tbox::plog << (double(i(1))+0.5)*dx[1] << "\t" << 9.0*((*p_data)(i_l) + (*p_data)(i_u))/16.0 - ((*p_data)(i_ll) + (*p_data)(i_uu))/16.0 << "\n";
+                    tbox::plog << (double(i(0))+0.5)*dx[0] << "\t" << 9.0*((*p_data)(i_l) + (*p_data)(i_u))/16.0 - ((*p_data)(i_ll) + (*p_data)(i_uu))/16.0 << "\n";
                 }
             }
             tbox::plog << "\n";

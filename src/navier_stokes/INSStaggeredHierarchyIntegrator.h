@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <23.Sep.2008 18:39:01 griffith@box230.cims.nyu.edu>
+// Last modified: <15.Oct.2008 13:42:06 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -785,6 +785,11 @@ private:
     double d_end_time;
     double d_grow_dt;
     int d_max_integrator_steps;
+
+    /*
+     * The number of cycles of fixed-point iteration to use per timestep.
+     */
+    int d_num_cycles;
 
     /*
      * The regrid interval indicates the number of integration steps taken
