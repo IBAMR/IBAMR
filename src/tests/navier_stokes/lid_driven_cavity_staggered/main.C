@@ -344,6 +344,7 @@ main(
          * Setup a variable for computing and storing the streamfunction.
          */
         hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+#if 0
         tbox::Pointer<hier::VariableContext> main_context = var_db->getContext("main::CONTEXT");
         tbox::Pointer<pdat::NodeVariable<NDIM,double> > psi_var = new pdat::NodeVariable<NDIM,double>("psi");
         const int psi_idx = var_db->registerVariableAndContext(psi_var, main_context, 0);
@@ -351,13 +352,14 @@ main(
         {
             visit_data_writer->registerPlotQuantity(psi_var->getName(), "SCALAR", psi_idx, 0, 1.0);
         }
-
+#endif
         /*
          * Initialize hierarchy configuration and data on all patches.  Then,
          * close restart file and write initial state for visualization.
          */
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
+#if 0
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -372,6 +374,7 @@ main(
                 psi_data->fillAll(0.0);
             }
         }
+#endif
         tbox::RestartManager::getManager()->closeRestartFile();
 
         /*
@@ -448,6 +451,7 @@ main(
 
             if (viz_dump_data && iteration_num%viz_dump_interval == 0)
             {
+#if 0
                 /*
                  * Compute the stream-function.
                  */
@@ -503,7 +507,7 @@ main(
                         (*psi_data)(n_i_u) = (*psi_data)(n_i_l) + dpsi_dy*dx[1];
                     }
                 }
-
+#endif
                 if (uses_visit)
                 {
                     tbox::pout << "\nWriting visualization files...\n\n";

@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <15.Oct.2008 13:42:06 griffith@box230.cims.nyu.edu>
+// Last modified: <29.Oct.2008 15:28:17 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -897,7 +897,7 @@ private:
      *       nu_water  = 0.01 cm^2 s^-1
      */
     double d_rho, d_mu, d_lambda;
-    SAMRAI::tbox::Pointer<INSCoefs> d_problem_coefs;
+    INSCoefs* d_problem_coefs;
 
     /*
      * Hierarchy operations objects.
@@ -927,11 +927,13 @@ private:
     SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>        d_helmholtz_solver;
 
     bool d_poisson_solver_needs_init;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_poisson_hypre_pc_db;
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>         d_poisson_op;
-    SAMRAI::solv::PoissonSpecifications*                   d_poisson_spec;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver> d_poisson_hypre_pc;
-    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>        d_poisson_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>                 d_poisson_hypre_pc_db, d_poisson_fac_pc_db;
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>                d_poisson_op;
+    SAMRAI::solv::PoissonSpecifications*                          d_poisson_spec;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver>        d_poisson_hypre_pc;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>             d_poisson_fac_op;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_poisson_fac_pc;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>               d_poisson_solver;
 
     bool d_projection_pc_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> d_projection_pc;
@@ -982,9 +984,12 @@ private:
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_fast;
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_slow;
 
+    std::map<int,int> d_regrid_current_idx_map, d_regrid_scratch_idx_map;
+
     SAMRAI::hier::ComponentSelector d_current_data;
     SAMRAI::hier::ComponentSelector d_new_data;
     SAMRAI::hier::ComponentSelector d_scratch_data;
+    SAMRAI::hier::ComponentSelector d_regrid_data;
 
     /*!
      * Variable contexts.

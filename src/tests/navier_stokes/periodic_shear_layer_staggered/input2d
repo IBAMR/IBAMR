@@ -3,10 +3,10 @@ MU = 0.0001
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
-REF_RATIO  = 4   // refinement ratio between levels
+MAX_LEVELS = 4   // maximum number of levels in locally refined grid
+REF_RATIO  = 2   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 UInit {
@@ -19,15 +19,15 @@ INSStaggeredHierarchyIntegrator {
    end_time              = 5.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
+   regrid_interval       = 2
 
    enable_logging = TRUE
 
-   cfl = 0.9
+   cfl = 0.95
 
-   tag_buffer = 1
+   tag_buffer = 2
 
    conservation_form = FALSE
-
    using_vorticity_tagging = TRUE
    vorticity_rel_thresh = 0.25
 
@@ -40,21 +40,36 @@ INSStaggeredHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   second_order_pressure_update = TRUE
    normalize_pressure = TRUE
 
-   num_cycles = 1
-   num_init_cycles = 1
-}
+   HelmholtzHypreSolver {
+      solver_type           = "PCG"
+      precond_type          = "Split"
+      split_solver_type     = "Jacobi"
+      relative_residual_tol = 1.0e-2
+      max_iterations        = 100
+      enable_logging        = FALSE
+   }
 
-HierarchyProjector {
-   enable_logging = TRUE
+   PoissonHypreSolver {
+      solver_type           = "PCG"
+      precond_type          = "PFMG"
+      rap_type              = 0
+      relax_type            = 2
+      skip_relax            = 1
+      num_pre_relax_steps   = 1
+      num_post_relax_steps  = 1
+      relative_residual_tol = 1.0e-2
+      max_iterations        = 100
+      enable_logging        = FALSE
+   }
 
-   max_iterations = 25
-   abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-12
+   PoissonFACSolver {
+      max_cycles = 1
+      residual_tol = 1.0e-12
+      num_pre_sweeps  = 0  // this should always be 0
+      num_post_sweeps = 3
 
-   FACOp {
       fac_max_cycles = 1
       fac_uses_presmoothing = FALSE
       fac_initial_guess_nonzero = FALSE
@@ -65,28 +80,22 @@ HierarchyProjector {
       ssor_iterations = 1
 
       coarse_solver_choice = "hypre"
-      coarse_solver_tolerance = 1.0e-6
+      coarse_solver_tolerance = 1.0e-12
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
       cf_discretization   = "LINEAR_REFINE"
 
       hypre_solver {
-         solver_type = "PFMG"
-         rap_type = 1
-         relax_type = 3
-         num_pre_relax_steps   = 2
-         num_post_relax_steps  = 2
-         max_iterations        = 1
+         solver_type           = "PFMG"
+         rap_type              = 0
+         relax_type            = 2
+         skip_relax            = 1
+         num_pre_relax_steps   = 0
+         num_post_relax_steps  = 3
          relative_residual_tol = 1.0e-12
-         enable_logging = FALSE
+         max_iterations        = 1
+         enable_logging        = FALSE
       }
-   }
-
-   FACPreconditioner {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 2
    }
 }
 
@@ -97,7 +106,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/8   // zero to turn off
+   viz_dump_interval     = 1 // NFINEST/8   // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 
@@ -142,7 +151,11 @@ GriddingAlgorithm {
 }
 
 StandardTagAndInitialize {
-   tagging_method = "GRADIENT_DETECTOR"
+   tagging_method = "GRADIENT_DETECTOR" // , "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0,0),(0,N - 1)] , [(N - 1,0),(N - 1,N - 1)]
+      level_1 = [(0,0),(1,2*N - 1)] , [(2*N - 2,0),(2*N - 1,2*N - 1)]
+   }
 }
 
 LoadBalancer {

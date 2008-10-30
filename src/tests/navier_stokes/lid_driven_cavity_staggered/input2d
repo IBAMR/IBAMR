@@ -4,10 +4,10 @@ MU = 1/Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
-REF_RATIO  = 4   // refinement ratio between levels
+MAX_LEVELS = 4   // maximum number of levels in locally refined grid
+REF_RATIO  = 2   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 INSStaggeredHierarchyIntegrator {
@@ -15,7 +15,7 @@ INSStaggeredHierarchyIntegrator {
    end_time              = 500.0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
-   regrid_interval       = 10000000 // disable regridding
+   regrid_interval       = 1
 
    enable_logging = TRUE
 
@@ -27,7 +27,7 @@ INSStaggeredHierarchyIntegrator {
 
    conservation_form = FALSE
    using_vorticity_tagging = TRUE
-   vorticity_rel_thresh = 0.25
+   vorticity_rel_thresh = 0.25*0.0625 , 0.25*0.125 , 0.25*0.25
 
    output_U = TRUE
    output_P = TRUE
@@ -61,6 +61,40 @@ INSStaggeredHierarchyIntegrator {
       max_iterations        = 100
       enable_logging        = FALSE
    }
+
+   PoissonFACSolver {
+      max_cycles = 1
+      residual_tol = 1.0e-12
+      num_pre_sweeps  = 0  // this should always be 0
+      num_post_sweeps = 3
+
+      fac_max_cycles = 1
+      fac_uses_presmoothing = FALSE
+      fac_initial_guess_nonzero = FALSE
+
+      skip_restrict_sol = TRUE
+      skip_restrict_residual = FALSE
+
+      ssor_iterations = 1
+
+      coarse_solver_choice = "hypre"
+      coarse_solver_tolerance = 1.0e-12
+      coarse_solver_max_iterations = 1
+      prolongation_method = "LINEAR_REFINE"
+      cf_discretization   = "LINEAR_REFINE"
+
+      hypre_solver {
+         solver_type           = "PFMG"
+         rap_type              = 0
+         relax_type            = 2
+         skip_relax            = 1
+         num_pre_relax_steps   = 0
+         num_post_relax_steps  = 3
+         relative_residual_tol = 1.0e-12
+         max_iterations        = 1
+         enable_logging        = FALSE
+      }
+   }
 }
 
 Main {
@@ -70,7 +104,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/2   // zero to turn off
+   viz_dump_interval     = NFINEST     // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 

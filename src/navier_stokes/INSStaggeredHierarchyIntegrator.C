@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <15.Oct.2008 13:42:35 griffith@box230.cims.nyu.edu>
+// Last modified: <29.Oct.2008 17:23:48 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -24,6 +24,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/CartSideDoubleCubicCoarsenOperator.h>
+#include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 
@@ -204,15 +205,12 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_problem_coefs = new INSCoefs(d_rho, d_mu, d_lambda);
 
     // Obtain the Hierarchy data operations objects.
-    SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =
-        SAMRAI::math::HierarchyDataOpsManager<NDIM>::getManager();
+    SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager = SAMRAI::math::HierarchyDataOpsManager<NDIM>::getManager();
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cc_var =
-        new SAMRAI::pdat::CellVariable<NDIM,double>("cc_var");
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > sc_var =
-        new SAMRAI::pdat::SideVariable<NDIM,double>("sc_var");
-
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cc_var = new SAMRAI::pdat::CellVariable<NDIM,double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy);
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > sc_var = new SAMRAI::pdat::SideVariable<NDIM,double>("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy);
 
     // Setup Timers.
@@ -284,6 +282,7 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
         delete d_P_bc_coef;
         delete d_Phi_bc_coef;
     }
+    delete d_problem_coefs;
     return;
 }// ~INSStaggeredHierarchyIntegrator
 
@@ -700,16 +699,17 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_U_star_bc_coefs, true);
             d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
-            d_helmholtz_hypre_pc = new IBTK::SCPoissonHypreLevelSolver(
-                d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
-            d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
-
             d_helmholtz_solver_needs_init = true;
             d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
                 d_object_name+"::Helmholtz Krylov Solver", helmholtz_prefix);
             d_helmholtz_solver->setInitialGuessNonzero(false);
             d_helmholtz_solver->setOperator(d_helmholtz_op);
+#if 0  // XXXX
+            d_helmholtz_hypre_pc = new IBTK::SCPoissonHypreLevelSolver(
+                d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
+            d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
             d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
+#endif // XXXX
         }
         else
         {
@@ -741,22 +741,35 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 d_object_name+"::Poisson Operator", *d_poisson_spec, d_U_star_bc_coefs, true);
             d_poisson_op->setHierarchyMathOps(d_hier_math_ops);
 
-            d_poisson_hypre_pc = new IBTK::CCPoissonHypreLevelSolver(
-                d_object_name+"::Poisson Preconditioner", d_poisson_hypre_pc_db);
-            d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
-
             d_poisson_solver_needs_init = true;
             d_poisson_solver = new IBTK::PETScKrylovLinearSolver(
                 d_object_name+"::Poisson Krylov Solver", poisson_prefix);
             d_poisson_solver->setInitialGuessNonzero(false);
             d_poisson_solver->setOperator(d_poisson_op);
+#if 0  // XXXX
+            d_poisson_hypre_pc = new IBTK::CCPoissonHypreLevelSolver(
+                d_object_name+"::Poisson Preconditioner", d_poisson_hypre_pc_db);
+            d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
             d_poisson_solver->setPreconditioner(d_poisson_hypre_pc);
+#else
+            d_poisson_fac_op = new IBTK::CCPoissonFACOperator(
+                d_object_name+"::Poisson FAC Operator", d_poisson_fac_pc_db);
+            d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
+
+            d_poisson_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(
+                d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
+            d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
+
+            d_poisson_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_poisson_fac_pc, d_poisson_fac_pc_db));
+#endif // XXXX
         }
         else
         {
             d_poisson_spec = NULL;
             d_poisson_op = NULL;
             d_poisson_hypre_pc = NULL;
+            d_poisson_fac_op = NULL;
+            d_poisson_fac_pc = NULL;
             d_poisson_solver = NULL;
         }
 
@@ -1016,11 +1029,60 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
     t_regrid_hierarchy->start();
 
     const int coarsest_ln = 0;
+
+    // Swap current data with regrid data.
+    const int finest_before_regrid_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_before_regrid_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (std::map<int,int>::const_iterator cit = d_regrid_current_idx_map.begin();
+             cit != d_regrid_current_idx_map.end(); ++cit)
+        {
+            const int current_idx = (*cit).first;
+            const int regrid_current_idx = (*cit).second;
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(current_idx != regrid_current_idx);
+#endif
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > current_data = patch->getPatchData(current_idx);
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > regrid_current_data = patch->getPatchData(regrid_current_idx);
+                patch->setPatchData(current_idx, regrid_current_data);
+                patch->setPatchData(regrid_current_idx, current_data);
+            }
+        }
+    }
+
+    // Regrid the hierarchy.
     d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    // Swap current data with regrid data.
+    const int finest_after_regrid_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_after_regrid_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (std::map<int,int>::const_iterator cit = d_regrid_current_idx_map.begin();
+             cit != d_regrid_current_idx_map.end(); ++cit)
+        {
+            const int current_idx = (*cit).first;
+            const int regrid_current_idx = (*cit).second;
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(current_idx != regrid_current_idx);
+#endif
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > current_data = patch->getPatchData(current_idx);
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > regrid_current_data = patch->getPatchData(regrid_current_idx);
+                patch->setPatchData(current_idx, regrid_current_data);
+                patch->setPatchData(regrid_current_idx, current_data);
+            }
+        }
+    }
 
     // Synchronize the state data on the patch hierarchy.
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    for (int ln = finest_after_regrid_ln; ln > coarsest_ln; --ln)
     {
         d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
     }
@@ -1430,17 +1492,18 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
     if (allocate_data)
     {
         level->allocatePatchData(d_current_data, init_data_time);
+        level->allocatePatchData(d_regrid_data, init_data_time);
     }
     else
     {
         level->setTime(init_data_time, d_current_data);
+        level->setTime(init_data_time, d_regrid_data);
     }
 
     // Fill data from coarser levels in AMR hierarchy.
-    if (level_number > 0 || !old_level.isNull())
+    if (!initial_time && (level_number > 0 || !old_level.isNull()))
     {
         level->allocatePatchData(d_scratch_data, init_data_time);
-
         IBTK::CartExtrapPhysBdryOp fill_after_regrid_bc_op(d_fill_after_regrid_bc_idxs, BDRY_EXTRAP_TYPE);
         d_fill_after_regrid->createSchedule(level,
                                             old_level,
@@ -1688,6 +1751,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     d_U_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
 
+    // XXXX
     InterpolationTransactionComponent U_extrap_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
     d_U_bdry_extrap_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_U_bdry_extrap_fill_op->initializeOperatorState(U_extrap_component, d_hierarchy);
@@ -2001,9 +2065,8 @@ INSStaggeredHierarchyIntegrator::registerVariable(
 
     d_state_variables.push_back(variable);
 
-    // Setup the current context.
-    current_idx = var_db->registerVariableAndContext(
-        variable, getCurrentContext(), no_ghosts);
+     // Setup the current context.
+    current_idx = var_db->registerVariableAndContext(variable, getCurrentContext(), no_ghosts);
     d_current_data.setFlag(current_idx);
 
     if (d_registered_for_restart)
@@ -2012,8 +2075,7 @@ INSStaggeredHierarchyIntegrator::registerVariable(
     }
 
     // Setup the new context.
-    new_idx = var_db->registerVariableAndContext(
-        variable, getNewContext(), no_ghosts);
+    new_idx = var_db->registerVariableAndContext(variable, getNewContext(), no_ghosts);
     d_new_data.setFlag(new_idx);
 
     if (d_registered_for_restart)
@@ -2022,27 +2084,59 @@ INSStaggeredHierarchyIntegrator::registerVariable(
     }
 
     // Setup the scratch context.
-    scratch_idx = var_db->registerVariableAndContext(
-        variable, getScratchContext(), scratch_ghosts);
+    scratch_idx = var_db->registerVariableAndContext(variable, getScratchContext(), scratch_ghosts);
     d_scratch_data.setFlag(scratch_idx);
+
+    // Setup the regrid data.
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > regrid_variable;
+    int regrid_current_idx = -1;
+    int regrid_scratch_idx = -1;
+    if (!variable->dataLivesOnPatchBorder() || !variable->fineBoundaryRepresentsVariable())
+    {
+        regrid_variable = variable;
+        regrid_current_idx = current_idx;
+        regrid_scratch_idx = scratch_idx;
+    }
+    else
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > sc_var = variable;
+        if (!sc_var.isNull())
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataFactory<NDIM,double> > sc_pd_factory = sc_var->getPatchDataFactory();
+            static const bool fine_bdry_represents_var = false;
+            regrid_variable = new SAMRAI::pdat::SideVariable<NDIM,double>(sc_var->getName() + "::REGRID", sc_pd_factory->getDefaultDepth(), fine_bdry_represents_var);
+        }
+        else
+        {
+            TBOX_ERROR("!!!"); // XXXX
+        }
+
+        regrid_current_idx = var_db->registerVariableAndContext(
+            regrid_variable, getCurrentContext(), no_ghosts);
+        d_regrid_data.setFlag(regrid_current_idx);
+        d_regrid_current_idx_map[current_idx] = regrid_current_idx;
+
+        regrid_scratch_idx = var_db->registerVariableAndContext(
+            regrid_variable, getScratchContext(), scratch_ghosts);
+        d_regrid_data.setFlag(regrid_scratch_idx);
+        d_regrid_scratch_idx_map[scratch_idx] = regrid_scratch_idx;
+   }
 
     // Setup the communication algorithms.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator =
-        grid_geom->lookupRefineOperator(variable, refine_name);
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator =
-        grid_geom->lookupCoarsenOperator(variable, coarsen_name);
-
     // Setup the refine algorithm used to fill data in new or modified patch
     // levels following a regrid operation.
-    if (!refine_operator.isNull())
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > regrid_refine_operator =
+        grid_geom->lookupRefineOperator(regrid_variable, refine_name);
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > regrid_coarsen_operator =
+        grid_geom->lookupCoarsenOperator(regrid_variable, coarsen_name);
+    if (!regrid_refine_operator.isNull())
     {
-        d_fill_after_regrid->
-            registerRefine(current_idx, // destination
-                           current_idx, // source
-                           scratch_idx, // temporary work space
-                           refine_operator);
+        d_fill_after_regrid->registerRefine(regrid_current_idx, // destination
+                                            regrid_current_idx, // source
+                                            regrid_scratch_idx, // temporary work space
+                                            regrid_refine_operator);
 
         // Keep track of the cell-centered scratch data indices, for use in the
         // refinement schedule used to fill data in new or modified patch levels
@@ -2050,23 +2144,25 @@ INSStaggeredHierarchyIntegrator::registerVariable(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cc_var = variable;
         if (!cc_var.isNull())
         {
-            d_fill_after_regrid_bc_idxs.setFlag(scratch_idx);
+            d_fill_after_regrid_bc_idxs.setFlag(regrid_scratch_idx);
         }
     }
 
     // Setup the SYNCH_CURRENT_STATE_DATA and SYNCH_NEW_STATE_DATA algorithms,
     // used to synchronize the data on the hierarchy.
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_operator =
+        grid_geom->lookupRefineOperator(variable, refine_name);
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator =
+        grid_geom->lookupCoarsenOperator(variable, coarsen_name);
     if (!coarsen_operator.isNull())
     {
-        d_calgs["SYNCH_CURRENT_STATE_DATA"]->
-            registerCoarsen(current_idx, // destination
-                            current_idx, // source
-                            coarsen_operator);
+        d_calgs["SYNCH_CURRENT_STATE_DATA"]->registerCoarsen(current_idx, // destination
+                                                             current_idx, // source
+                                                             coarsen_operator);
 
-        d_calgs["SYNCH_NEW_STATE_DATA"]->
-            registerCoarsen(new_idx, // destination
-                            new_idx, // source
-                            coarsen_operator);
+        d_calgs["SYNCH_NEW_STATE_DATA"]->registerCoarsen(new_idx, // destination
+                                                         new_idx, // source
+                                                         coarsen_operator);
     }
     return;
 }// registerVariable
@@ -2150,12 +2246,12 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_helmholtz_op->setHomogeneousBc(true);
         d_helmholtz_op->setTime(new_time);
         d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
-
+#if 0  // XXXX
         d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
         d_helmholtz_hypre_pc->setPhysicalBcCoefs(d_U_star_bc_coefs);
         d_helmholtz_hypre_pc->setHomogeneousBc(true);
         d_helmholtz_hypre_pc->setTime(new_time);
-
+#endif // XXXX
         d_helmholtz_solver->setInitialGuessNonzero(false);
         d_helmholtz_solver->setOperator(d_helmholtz_op);
         if (d_helmholtz_solver_needs_init || !SAMRAI::tbox::MathUtilities<double>::equalEps(dt,d_op_and_solver_init_dt))
@@ -2176,12 +2272,17 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_poisson_op->setHomogeneousBc(true);
         d_poisson_op->setTime(current_time+0.5*dt);
         d_poisson_op->setHierarchyMathOps(d_hier_math_ops);
-
+#if 0  // XXXX
         d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
         d_poisson_hypre_pc->setPhysicalBcCoef(d_Phi_bc_coef);
         d_poisson_hypre_pc->setHomogeneousBc(true);
         d_poisson_hypre_pc->setTime(current_time+0.5*dt);
-
+#else
+        d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
+        d_poisson_fac_op->setPhysicalBcCoef(d_Phi_bc_coef);
+        d_poisson_fac_op->setHomogeneousBc(true);
+        d_poisson_fac_op->setTime(current_time+0.5*dt);
+#endif // XXXX
         d_poisson_solver->setInitialGuessNonzero(false);
         d_poisson_solver->setOperator(d_poisson_op);
         if (d_poisson_solver_needs_init)
@@ -2382,11 +2483,11 @@ INSStaggeredHierarchyIntegrator::getFromInput(
         }
     }
 
-    d_output_U      = db->getBoolWithDefault("output_U"     , d_output_U     );
-    d_output_P      = db->getBoolWithDefault("output_P"     , d_output_P     );
-    d_output_F      = db->getBoolWithDefault("output_F"     , d_output_F     );
-    d_output_Omega  = db->getBoolWithDefault("output_Omega" , d_output_Omega );
-    d_output_Div_U  = db->getBoolWithDefault("output_Div_U" , d_output_Div_U );
+    d_output_U     = db->getBoolWithDefault("output_U"    , d_output_U     );
+    d_output_P     = db->getBoolWithDefault("output_P"    , d_output_P     );
+    d_output_F     = db->getBoolWithDefault("output_F"    , d_output_F     );
+    d_output_Omega = db->getBoolWithDefault("output_Omega", d_output_Omega );
+    d_output_Div_U = db->getBoolWithDefault("output_Div_U", d_output_Div_U );
 
     d_U_scale = db->getDoubleWithDefault("U_scale", d_U_scale);
     d_P_scale = db->getDoubleWithDefault("P_scale", d_P_scale);
@@ -2402,6 +2503,7 @@ INSStaggeredHierarchyIntegrator::getFromInput(
 
     d_helmholtz_hypre_pc_db = db->getDatabase("HelmholtzHypreSolver");
     d_poisson_hypre_pc_db   = db->getDatabase("PoissonHypreSolver");
+    d_poisson_fac_pc_db     = db->getDatabase("PoissonFACSolver");
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
 
