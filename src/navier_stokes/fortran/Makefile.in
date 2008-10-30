@@ -57,6 +57,7 @@ libIBAMR_navier_stokes_fortran2d_a_LIBADD =
 am_libIBAMR_navier_stokes_fortran2d_a_OBJECTS =  \
 	navier_stokes_bdryop2d.$(OBJEXT) \
 	navier_stokes_divsource2d.$(OBJEXT) \
+	navier_stokes_staggered_derivatives2d.$(OBJEXT) \
 	navier_stokes_staggered_helpers2d.$(OBJEXT) \
 	navier_stokes_stabledt2d.$(OBJEXT)
 libIBAMR_navier_stokes_fortran2d_a_OBJECTS =  \
@@ -66,6 +67,7 @@ libIBAMR_navier_stokes_fortran3d_a_LIBADD =
 am_libIBAMR_navier_stokes_fortran3d_a_OBJECTS =  \
 	navier_stokes_bdryop3d.$(OBJEXT) \
 	navier_stokes_divsource3d.$(OBJEXT) \
+	navier_stokes_staggered_derivatives3d.$(OBJEXT) \
 	navier_stokes_staggered_helpers3d.$(OBJEXT) \
 	navier_stokes_stabledt3d.$(OBJEXT)
 libIBAMR_navier_stokes_fortran3d_a_OBJECTS =  \
@@ -410,16 +412,18 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXTRA_DIST = \
-  navier_stokes_bdryop2d.f.m4             navier_stokes_bdryop3d.f.m4            \
-  navier_stokes_divsource2d.f.m4          navier_stokes_divsource3d.f.m4         \
-  navier_stokes_staggered_helpers2d.f.m4  navier_stokes_staggered_helpers3d.f.m4 \
-  navier_stokes_stabledt2d.f.m4           navier_stokes_stabledt3d.f.m4
+  navier_stokes_bdryop2d.f.m4                 navier_stokes_bdryop3d.f.m4                \
+  navier_stokes_divsource2d.f.m4              navier_stokes_divsource3d.f.m4             \
+  navier_stokes_staggered_derivatives2d.f.m4  navier_stokes_staggered_derivatives3d.f.m4 \
+  navier_stokes_staggered_helpers2d.f.m4      navier_stokes_staggered_helpers3d.f.m4     \
+  navier_stokes_stabledt2d.f.m4               navier_stokes_stabledt3d.f.m4
 
 BUILT_SOURCES = \
-  navier_stokes_bdryop2d.f                navier_stokes_bdryop3d.f               \
-  navier_stokes_divsource2d.f             navier_stokes_divsource3d.f            \
-  navier_stokes_staggered_helpers2d.f     navier_stokes_staggered_helpers3d.f    \
-  navier_stokes_stabledt2d.f              navier_stokes_stabledt3d.f
+  navier_stokes_bdryop2d.f                    navier_stokes_bdryop3d.f                   \
+  navier_stokes_divsource2d.f                 navier_stokes_divsource3d.f                \
+  navier_stokes_staggered_derivatives2d.f     navier_stokes_staggered_derivatives3d.f    \
+  navier_stokes_staggered_helpers2d.f         navier_stokes_staggered_helpers3d.f        \
+  navier_stokes_stabledt2d.f                  navier_stokes_stabledt3d.f
 
 CLEANFILES = ${BUILT_SOURCES}
 noinst_LIBRARIES = $(am__append_1) $(am__append_2)
@@ -427,6 +431,7 @@ libIBAMR_navier_stokes_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
 libIBAMR_navier_stokes_fortran2d_a_SOURCES = \
   navier_stokes_bdryop2d.f \
   navier_stokes_divsource2d.f \
+  navier_stokes_staggered_derivatives2d.f \
   navier_stokes_staggered_helpers2d.f \
   navier_stokes_stabledt2d.f
 
@@ -434,6 +439,7 @@ libIBAMR_navier_stokes_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
 libIBAMR_navier_stokes_fortran3d_a_SOURCES = \
   navier_stokes_bdryop3d.f \
   navier_stokes_divsource3d.f \
+  navier_stokes_staggered_derivatives3d.f \
   navier_stokes_staggered_helpers3d.f \
   navier_stokes_stabledt3d.f
 

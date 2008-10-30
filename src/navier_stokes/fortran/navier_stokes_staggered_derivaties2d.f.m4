@@ -29,16 +29,6 @@ c
       INTEGER n_U_gc0,n_U_gc1
       INTEGER n_N_gc0,n_N_gc1
 
-      INTEGER side0_ifirst0,side0_ilast0
-      INTEGER side0_ifirst1,side0_ilast1
-
-      INTEGER n_V0_gc0,n_V0_gc1
-
-      INTEGER side1_ifirst0,side1_ilast0
-      INTEGER side1_ifirst1,side1_ilast1
-
-      INTEGER n_V1_gc0,n_V1_gc1
-
       REAL dx(0:NDIM-1)
 
       REAL U0(
