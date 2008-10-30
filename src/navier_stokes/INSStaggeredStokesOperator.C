@@ -19,6 +19,9 @@
 // IBAMR INCLUDES
 #include <INSStaggeredPressureBcCoef.h>
 
+// C++ STDLIB INCLUDES
+#include <limits>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR

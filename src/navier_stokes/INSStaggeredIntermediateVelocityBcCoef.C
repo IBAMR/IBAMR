@@ -19,6 +19,9 @@
 // SAMRAI INCLUDES
 #include <tbox/Utilities.h>
 
+// C++ STDLIB INCLUDES
+#include <limits>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR

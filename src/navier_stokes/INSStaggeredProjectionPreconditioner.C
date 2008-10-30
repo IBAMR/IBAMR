@@ -18,6 +18,9 @@
 
 #include "ibtk/KrylovLinearSolver.h" // XXXX
 
+// C++ STDLIB INCLUDES
+#include <limits>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR

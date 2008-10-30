@@ -16,6 +16,9 @@
 #define included_SAMRAI_config
 #endif
 
+// C++ STDLIB INCLUDES
+#include <limits>
+
 #include "ibtk/KrylovLinearSolver.h" // XXXX
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

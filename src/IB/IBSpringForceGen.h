@@ -14,6 +14,7 @@
 #include <petscmat.h>
 
 // C++ STDLIB INCLUDES
+#include <limits>
 #include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
