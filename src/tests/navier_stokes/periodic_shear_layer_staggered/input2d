@@ -6,7 +6,7 @@ RHO = 1.0
 MAX_LEVELS = 4   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 UInit {
@@ -19,17 +19,17 @@ INSStaggeredHierarchyIntegrator {
    end_time              = 5.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = 2
+   regrid_interval       = 1
 
    enable_logging = TRUE
 
    cfl = 0.95
 
-   tag_buffer = 2
+   tag_buffer = 1
 
    conservation_form = FALSE
    using_vorticity_tagging = TRUE
-   vorticity_rel_thresh = 0.25
+   vorticity_rel_thresh = 0.125
 
    output_U = TRUE
    output_P = TRUE
@@ -106,7 +106,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 1 // NFINEST/8   // zero to turn off
+   viz_dump_interval     = NFINEST/8   // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 

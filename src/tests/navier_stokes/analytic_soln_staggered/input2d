@@ -1,12 +1,12 @@
 // physical parameters
-MU = 1.0e-3
+MU = 1.0e-4
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 2   // maximum number of levels in locally refined grid
+MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 512                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 // exact solution function expressions
@@ -32,40 +32,40 @@ VelocityBcCoefs_0 {
    constant_names = "nu"
    nu = MU/RHO
 
-   acoef_function_0 = "1.0" // U_acoef_0
-   acoef_function_1 = "1.0" // U_acoef_1
-   acoef_function_2 = "1.0" // U_acoef_2
-   acoef_function_3 = "1.0" // U_acoef_3
+   acoef_function_0 = "0.0" // U_acoef_0
+   acoef_function_1 = "0.0" // U_acoef_1
+   acoef_function_2 = "0.0" // U_acoef_2
+   acoef_function_3 = "0.0" // U_acoef_3
 
-   bcoef_function_0 = "0.0" // U_bcoef_0
-   bcoef_function_1 = "0.0" // U_bcoef_1
-   bcoef_function_2 = "0.0" // U_bcoef_2
-   bcoef_function_3 = "0.0" // U_bcoef_3
+   bcoef_function_0 = "1.0" // U_bcoef_0
+   bcoef_function_1 = "1.0" // U_bcoef_1
+   bcoef_function_2 = "1.0" // U_bcoef_2
+   bcoef_function_3 = "1.0" // U_bcoef_3
 
-   gcoef_function_0 = U // U_gcoef_0
-   gcoef_function_1 = U // U_gcoef_1
-   gcoef_function_2 = U // U_gcoef_2
-   gcoef_function_3 = U // U_gcoef_3
+   gcoef_function_0 = T_n_X_0 // U_gcoef_0
+   gcoef_function_1 = T_n_X_0 // U_gcoef_1
+   gcoef_function_2 = T_t // U_gcoef_2
+   gcoef_function_3 = T_t // U_gcoef_3
 }
 
 VelocityBcCoefs_1 {
    constant_names = "nu"
    nu = MU/RHO
 
-   acoef_function_0 = "1.0" // V_acoef_0
-   acoef_function_1 = "1.0" // V_acoef_1
-   acoef_function_2 = "1.0" // V_acoef_2
-   acoef_function_3 = "1.0" // V_acoef_3
+   acoef_function_0 = "0.0" // V_acoef_0
+   acoef_function_1 = "0.0" // V_acoef_1
+   acoef_function_2 = "0.0" // V_acoef_2
+   acoef_function_3 = "0.0" // V_acoef_3
 
-   bcoef_function_0 = "0.0" // V_bcoef_0
-   bcoef_function_1 = "0.0" // V_bcoef_1
-   bcoef_function_2 = "0.0" // V_bcoef_2
-   bcoef_function_3 = "0.0" // V_bcoef_3
+   bcoef_function_0 = "1.0" // V_bcoef_0
+   bcoef_function_1 = "1.0" // V_bcoef_1
+   bcoef_function_2 = "1.0" // V_bcoef_2
+   bcoef_function_3 = "1.0" // V_bcoef_3
 
-   gcoef_function_0 = V // V_gcoef_0
-   gcoef_function_1 = V // V_gcoef_1
-   gcoef_function_2 = V // V_gcoef_2
-   gcoef_function_3 = V // V_gcoef_3
+   gcoef_function_0 = T_t // V_gcoef_0
+   gcoef_function_1 = T_t // V_gcoef_1
+   gcoef_function_2 = T_n_X_1 // V_gcoef_2
+   gcoef_function_3 = T_n_X_1 // V_gcoef_3
 }
 
 PressureInitialConditions {
@@ -101,7 +101,7 @@ INSStaggeredHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   normalize_pressure = TRUE
+   normalize_pressure = FALSE
 
    HelmholtzHypreSolver {
       solver_type           = "PCG"
@@ -167,7 +167,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 1 // NFINEST/8   // zero to turn off
+   viz_dump_interval     = NFINEST/8   // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 
@@ -183,7 +183,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         =  0, 0          // lower end of computational domain.
    x_up         =  1, 1          // upper end of computational domain.
-   periodic_dimension = 0, 0
+   periodic_dimension = 1, 0
 }
 
 GriddingAlgorithm {
