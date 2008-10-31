@@ -17,6 +17,7 @@ INSHierarchyIntegrator.C \
 INSIntermediateVelocityBcCoef.C \
 INSProjectionBcCoef.C \
 INSStaggeredBlockFactorizationPreconditioner.C \
+INSStaggeredCenteredConvectiveOperator.C \
 INSStaggeredHierarchyIntegrator.C \
 INSStaggeredIntermediateVelocityBcCoef.C \
 INSStaggeredPPMConvectiveOperator.C \
@@ -33,6 +34,7 @@ INSHierarchyIntegrator.h \
 INSIntermediateVelocityBcCoef.h \
 INSProjectionBcCoef.h \
 INSStaggeredBlockFactorizationPreconditioner.h \
+INSStaggeredCenteredConvectiveOperator.h \
 INSStaggeredHierarchyIntegrator.h \
 INSStaggeredIntermediateVelocityBcCoef.h \
 INSStaggeredPPMConvectiveOperator.h \

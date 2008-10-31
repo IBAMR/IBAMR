@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <29.Oct.2008 15:28:17 griffith@box230.cims.nyu.edu>
+// Last modified: <31.Oct.2008 17:40:02 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -944,6 +944,8 @@ private:
     bool d_stokes_solver_needs_init;
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;
 
+    bool d_regrid_projection;
+
     /*
      * Communications algorithms, patch strategies, and schedules.
      */
@@ -1009,6 +1011,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -1026,6 +1029,14 @@ private:
     int d_Omega_Norm_current_idx, d_Omega_Norm_new_idx, d_Omega_Norm_scratch_idx;
 #endif
     int      d_Div_U_current_idx,      d_Div_U_new_idx,      d_Div_U_scratch_idx;
+
+    /*
+     * Patch data descriptor indices for all "scratch" variables managed by the
+     * integrator.
+     *
+     * Scratch variables have only one context: scratch.
+     */
+    int d_Phi_scratch_idx;
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
