@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <24.Sep.2008 17:35:30 griffith@box230.cims.nyu.edu>
+// Last modified: <03.Nov.2008 11:24:47 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2101,8 +2101,26 @@ IBHierarchyIntegrator::regridHierarchy()
     // Update the marker data.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): resetting markers particles.\n";
     const int num_marks = countMarkers(0,d_hierarchy->getFinestLevelNumber());
-    resetMarkersOnPatchHierarchy();
+
     collectMarkersOnPatchHierarchy();
+    const int num_marks_after_collection = countMarkers(0,0);
+    if (num_marks != num_marks_after_collection)
+    {
+        TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
+                   << "  number of marker particles changed during collection to coarsest level\n"
+                   << "  number of markers before collection to coarsest level = " << num_marks << "\n"
+                   << "  number of markers after  collection to coarsest level = " << num_marks_after_collection << "\n");
+    }
+
+    resetMarkersOnPatchHierarchy();
+    const int num_marks_after_reset = countMarkers(0,0);
+    if (num_marks != num_marks_after_reset)
+    {
+        TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
+                   << "  number of marker particles changed during reset\n"
+                   << "  number of markers before reset = " << num_marks << "\n"
+                   << "  number of markers after  reset = " << num_marks_after_reset << "\n");
+    }
 
     // Update the workload pre-regridding.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
@@ -3054,17 +3072,21 @@ IBHierarchyIntegrator::resetMarkersOnPatchHierarchy()
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Reset the assignment of markers to Cartesian grid cells on each level of
-    // the patch hierarchy.
+    // the patch hierarchy, but do not move markers between levels.
+    //
+    // NOTE: It is important to do this only *after* collecting markers on the
+    // patch hierarchy, as markers which have left a fine level through the
+    // coarse-fine interface are discarded by this procedure.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > mark_level_fill_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     mark_level_fill_alg->registerRefine(d_mark_current_idx, // destination
                                         d_mark_current_idx, // source
                                         d_mark_scratch_idx, // temporary work space
-                                        new IBTK::LagMarkerRefineOperator());
+                                        NULL);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
-        mark_level_fill_alg->createSchedule(level, ln-1, d_hierarchy, NULL)->fillData(d_integrator_time);
+        mark_level_fill_alg->createSchedule(level,NULL)->fillData(d_integrator_time);
         level->deallocatePatchData(d_mark_scratch_idx);
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -3194,6 +3216,14 @@ IBHierarchyIntegrator::collectMarkersOnPatchHierarchy()
 
         // Deallocate scratch data.
         coarser_level->deallocatePatchData(d_mark_scratch_idx);
+
+        // Clear fine data.
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = coarser_level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_current_data = patch->getPatchData(d_mark_current_idx);
+            mark_current_data->removeAllItems();
+        }
     }
     return;
 }// collectMarkersOnPatchHierarchy
