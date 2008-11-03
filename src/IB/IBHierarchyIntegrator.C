@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <03.Nov.2008 11:24:47 griffith@box230.cims.nyu.edu>
+// Last modified: <03.Nov.2008 11:32:12 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2143,6 +2143,9 @@ IBHierarchyIntegrator::regridHierarchy()
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
     d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
 
+    // Prune duplicate markers following regridding.
+    pruneDuplicateMarkers(0,d_hierarchy->getFinestLevelNumber());
+
     // Ensure that we haven't misplaced any of the markers.
     const int num_marks_after_regrid = countMarkers(0,d_hierarchy->getFinestLevelNumber());
     if (num_marks != num_marks_after_regrid)
@@ -3216,14 +3219,6 @@ IBHierarchyIntegrator::collectMarkersOnPatchHierarchy()
 
         // Deallocate scratch data.
         coarser_level->deallocatePatchData(d_mark_scratch_idx);
-
-        // Clear fine data.
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = coarser_level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_current_data = patch->getPatchData(d_mark_current_idx);
-            mark_current_data->removeAllItems();
-        }
     }
     return;
 }// collectMarkersOnPatchHierarchy
