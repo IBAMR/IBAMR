@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <03.Nov.2008 11:32:12 griffith@box230.cims.nyu.edu>
+// Last modified: <04.Nov.2008 17:25:58 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2100,10 +2100,10 @@ IBHierarchyIntegrator::regridHierarchy()
 
     // Update the marker data.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): resetting markers particles.\n";
-    const int num_marks = countMarkers(0,d_hierarchy->getFinestLevelNumber());
+    const int num_marks = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
 
     collectMarkersOnPatchHierarchy();
-    const int num_marks_after_collection = countMarkers(0,0);
+    const int num_marks_after_collection = countMarkers(0,0,false);
     if (num_marks != num_marks_after_collection)
     {
         TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
@@ -2113,7 +2113,7 @@ IBHierarchyIntegrator::regridHierarchy()
     }
 
     resetMarkersOnPatchHierarchy();
-    const int num_marks_after_reset = countMarkers(0,0);
+    const int num_marks_after_reset = countMarkers(0,0,false);
     if (num_marks != num_marks_after_reset)
     {
         TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
@@ -2147,7 +2147,7 @@ IBHierarchyIntegrator::regridHierarchy()
     pruneDuplicateMarkers(0,d_hierarchy->getFinestLevelNumber());
 
     // Ensure that we haven't misplaced any of the markers.
-    const int num_marks_after_regrid = countMarkers(0,d_hierarchy->getFinestLevelNumber());
+    const int num_marks_after_regrid = countMarkers(0,d_hierarchy->getFinestLevelNumber(),true);
     if (num_marks != num_marks_after_regrid)
     {
         TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
@@ -2586,17 +2586,15 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
 
     // Prune duplicate markers following regridding.
     pruneDuplicateMarkers(0,finest_hier_level);
-    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
-    if (initial_time)
+    static const int num_marks = d_mark_init_posns.size()/NDIM;
+    const int num_marks_actual = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
+    if (num_marks_actual != num_marks)
     {
-        const unsigned int num_marks = countMarkers(0,d_hierarchy->getFinestLevelNumber());
-        if (num_marks != d_mark_init_posns.size()/NDIM)
-        {
-            TBOX_ERROR(d_object_name << "::resetHierarchyConfiguration()\n"
-                       << "  number of marker particles at initial time is incorrect\n"
-                       << "  expected number of markers = " << d_mark_init_posns.size()/NDIM << "\n"
-                       << "  actual   number of markers = " << num_marks << "\n");
-        }
+        TBOX_ERROR(d_object_name << "::resetHierarchyConfiguration()\n"
+                   << "  number of marker particles is incorrect\n"
+                   << "  expected number of markers = " << num_marks << "\n"
+                   << "  actual   number of markers = " << num_marks_actual << "\n"
+                   << "  finest_hier_level = " << finest_hier_level << "\n");
     }
 
     // (Re)build generic refine communication schedules.  These are created for
@@ -3259,7 +3257,8 @@ IBHierarchyIntegrator::pruneDuplicateMarkers(
 int
 IBHierarchyIntegrator::countMarkers(
     const int coarsest_ln,
-    const int finest_ln)
+    const int finest_ln,
+    const bool log_results)
 {
     std::vector<int> num_marks(finest_ln+1,0);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -3282,9 +3281,12 @@ IBHierarchyIntegrator::countMarkers(
         }
     }
     SAMRAI::tbox::SAMRAI_MPI::sumReduction(&num_marks[0],finest_ln+1);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    if (log_results)
     {
-        SAMRAI::tbox::plog << "number of markers on level " << ln << ": " << num_marks[ln] << "\n";
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::plog << "number of markers on level " << ln << ": " << num_marks[ln] << "\n";
+        }
     }
     return std::accumulate(num_marks.begin(), num_marks.end(), 0);
 }// countMarkers

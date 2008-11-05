@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <24.Sep.2008 17:33:58 griffith@box230.cims.nyu.edu>
+// Last modified: <03.Nov.2008 14:12:21 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -711,7 +711,8 @@ private:
     int
     countMarkers(
         const int coarsest_ln,
-        const int finest_ln);
+        const int finest_ln,
+        const bool log_results);
 
     /*!
      * Set the elements of the Lagrangian vector to zero at anchored nodes of
