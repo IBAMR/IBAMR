@@ -454,6 +454,7 @@ EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/INSIntermediateVelocityBcCoef.h \
 	include/ibamr/INSProjectionBcCoef.h \
 	include/ibamr/INSStaggeredBlockFactorizationPreconditioner.h \
+	include/ibamr/INSStaggeredCenteredConvectiveOperator.h \
 	include/ibamr/INSStaggeredHierarchyIntegrator.h \
 	include/ibamr/INSStaggeredIntermediateVelocityBcCoef.h \
 	include/ibamr/INSStaggeredPhysicalBoundaryHelper.h \

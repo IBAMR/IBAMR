@@ -1,11 +1,11 @@
 // physical parameters
-Re = 25000.0
+Re = 1000.0
 MU = 1/Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3   // maximum number of levels in locally refined grid
-REF_RATIO  = 4   // refinement ratio between levels
+MAX_LEVELS = 4   // maximum number of levels in locally refined grid
+REF_RATIO  = 2   // refinement ratio between levels
 
 N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
@@ -15,7 +15,7 @@ INSStaggeredHierarchyIntegrator {
    end_time              = 500.0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
-   regrid_interval       = 1
+   regrid_interval       = REF_RATIO
 
    enable_logging = TRUE
 
@@ -27,7 +27,7 @@ INSStaggeredHierarchyIntegrator {
 
    conservation_form = FALSE
    using_vorticity_tagging = TRUE
-   vorticity_rel_thresh = 0.25*0.125 , 0.25*0.25
+   vorticity_rel_thresh = 0.125*0.0625 , 0.125*0.125 , 0.125*0.25
 
    output_U = TRUE
    output_P = TRUE

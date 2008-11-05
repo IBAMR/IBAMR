@@ -51,6 +51,7 @@ EXTRA_DIST += include/ibamr/INSHierarchyIntegrator.h
 EXTRA_DIST += include/ibamr/INSIntermediateVelocityBcCoef.h
 EXTRA_DIST += include/ibamr/INSProjectionBcCoef.h
 EXTRA_DIST += include/ibamr/INSStaggeredBlockFactorizationPreconditioner.h
+EXTRA_DIST += include/ibamr/INSStaggeredCenteredConvectiveOperator.h
 EXTRA_DIST += include/ibamr/INSStaggeredHierarchyIntegrator.h
 EXTRA_DIST += include/ibamr/INSStaggeredIntermediateVelocityBcCoef.h
 EXTRA_DIST += include/ibamr/INSStaggeredPhysicalBoundaryHelper.h

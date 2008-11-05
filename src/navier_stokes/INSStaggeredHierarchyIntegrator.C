@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <31.Oct.2008 18:35:04 griffith@box230.cims.nyu.edu>
+// Last modified: <05.Nov.2008 17:43:52 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -489,6 +489,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Create the default communication algorithms.
     d_fill_after_regrid = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    d_fill_cf_interface_after_regrid = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
 
     d_calgs["SYNCH_CURRENT_STATE_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
     d_calgs["SYNCH_NEW_STATE_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
@@ -1036,7 +1037,7 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
 
     const int coarsest_ln = 0;
 
-    // Swap current data with regrid data.
+    // Copy current data onto regrid data.
     const int finest_ln_before_regrid = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln_before_regrid; ++ln)
     {
@@ -1054,8 +1055,7 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > current_data = patch->getPatchData(current_idx);
                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > regrid_current_data = patch->getPatchData(regrid_current_idx);
-                patch->setPatchData(current_idx, regrid_current_data);
-                patch->setPatchData(regrid_current_idx, current_data);
+                regrid_current_data->copy(*current_data);
             }
         }
     }
@@ -1651,6 +1651,11 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                                             level_number-1,
                                             hierarchy,
                                             &fill_after_regrid_bc_op)->fillData(init_data_time);
+#if 0
+        d_fill_cf_interface_after_regrid->createSchedule(level,
+                                                         old_level,
+                                                         NULL)->fillData(init_data_time);
+#endif
         level->deallocatePatchData(d_scratch_data);
     }
 
@@ -2199,6 +2204,9 @@ INSStaggeredHierarchyIntegrator::registerVariable(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!variable.isNull());
 #endif
+    const bool data_lives_on_patch_border = variable->dataLivesOnPatchBorder();
+    const bool fine_boundary_represents_var = variable->fineBoundaryRepresentsVariable();
+
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
 
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
@@ -2232,10 +2240,10 @@ INSStaggeredHierarchyIntegrator::registerVariable(
     d_scratch_data.setFlag(scratch_idx);
 
     // Setup the regrid data.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > regrid_variable;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > regrid_variable = NULL;
     int regrid_current_idx = -1;
     int regrid_scratch_idx = -1;
-    if (!variable->dataLivesOnPatchBorder() || !variable->fineBoundaryRepresentsVariable())
+    if (!data_lives_on_patch_border || !fine_boundary_represents_var)
     {
         regrid_variable = variable;
         regrid_current_idx = current_idx;
@@ -2252,7 +2260,8 @@ INSStaggeredHierarchyIntegrator::registerVariable(
         }
         else
         {
-            TBOX_ERROR("!!!"); // XXXX
+            TBOX_ERROR(d_object_name << "::registerVariable():\n"
+                       << "  unsupported variable type." << std::endl);
         }
 
         regrid_current_idx = var_db->registerVariableAndContext(
@@ -2277,18 +2286,18 @@ INSStaggeredHierarchyIntegrator::registerVariable(
         grid_geom->lookupCoarsenOperator(regrid_variable, coarsen_name);
     if (!regrid_refine_operator.isNull())
     {
+        d_fill_after_regrid_bc_idxs.setFlag(regrid_scratch_idx);
         d_fill_after_regrid->registerRefine(regrid_current_idx, // destination
                                             regrid_current_idx, // source
                                             regrid_scratch_idx, // temporary work space
                                             regrid_refine_operator);
 
-        // Keep track of the cell-centered scratch data indices, for use in the
-        // refinement schedule used to fill data in new or modified patch levels
-        // following a regrid operation.
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cc_var = variable;
-        if (!cc_var.isNull())
+        if (data_lives_on_patch_border && fine_boundary_represents_var)
         {
-            d_fill_after_regrid_bc_idxs.setFlag(regrid_scratch_idx);
+            d_fill_cf_interface_after_regrid->registerRefine(regrid_current_idx, // destination
+                                                             current_idx,        // source
+                                                             scratch_idx,        // temporary work space
+                                                             NULL);
         }
     }
 
