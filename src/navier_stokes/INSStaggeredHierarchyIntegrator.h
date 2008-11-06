@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <05.Nov.2008 15:45:54 griffith@box230.cims.nyu.edu>
+// Last modified: <05.Nov.2008 23:52:36 griffith@boyce-griffiths-powerbook-g4-15.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -945,6 +945,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;
 
     bool d_regrid_projection;
+    double d_regrid_projection_abs_tolerance, d_regrid_projection_rel_tolerance;
 
     /*
      * Communications algorithms, patch strategies, and schedules.
@@ -957,7 +958,7 @@ private:
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;
 
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid, d_fill_cf_interface_after_regrid;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
 
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_U_bdry_extrap_fill_op, d_no_fill_op;
