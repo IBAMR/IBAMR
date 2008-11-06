@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <05.Nov.2008 23:53:32 griffith@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <06.Nov.2008 11:08:21 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1112,6 +1112,7 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
     for (int ln = coarsest_ln; ln <= finest_ln_before_regrid; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_regrid_data, d_integrator_time);
         for (std::map<int,int>::const_iterator cit = d_regrid_current_idx_map.begin();
              cit != d_regrid_current_idx_map.end(); ++cit)
         {
@@ -1156,12 +1157,7 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
                 patch->setPatchData(regrid_current_idx, current_data);
             }
         }
-    }
-
-    // Synchronize the state data on the patch hierarchy.
-    for (int ln = finest_ln_after_regrid; ln > coarsest_ln; --ln)
-    {
-        d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
+        level->deallocatePatchData(d_regrid_data);
     }
 
     // Project the interpolated velocity if needed.
@@ -1303,6 +1299,12 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
         d_regrid_projection = false;
     }
 
+    // Synchronize the state data on the patch hierarchy.
+    for (int ln = finest_ln_after_regrid; ln > coarsest_ln; --ln)
+    {
+        d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
+    }
+
     t_regrid_hierarchy->stop();
     return;
 }// regridHierarchy
@@ -1379,7 +1381,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         U_rhs_idx, U_rhs_var,
         rhs_spec,
         d_U_scratch_idx, d_U_var,
-        d_U_bdry_extrap_fill_op /* d_U_bdry_bc_fill_op */, current_time); // XXXX
+        d_U_bdry_bc_fill_op, current_time);
 
     if (!d_F_set.isNull())
     {
@@ -1708,17 +1710,16 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
     if (allocate_data)
     {
         level->allocatePatchData(d_current_data, init_data_time);
-        level->allocatePatchData(d_regrid_data, init_data_time);
     }
     else
     {
         level->setTime(init_data_time, d_current_data);
-        level->setTime(init_data_time, d_regrid_data);
     }
 
     // Fill data from coarser levels in AMR hierarchy.
     if (!initial_time && (level_number > 0 || !old_level.isNull()))
     {
+        level->allocatePatchData(d_regrid_data, init_data_time);
         level->allocatePatchData(d_scratch_data, init_data_time);
         IBTK::CartExtrapPhysBdryOp fill_after_regrid_bc_op(d_fill_after_regrid_bc_idxs, BDRY_EXTRAP_TYPE);
         d_fill_after_regrid->createSchedule(level,
@@ -1966,11 +1967,6 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
     d_U_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
-
-    // XXXX
-    InterpolationTransactionComponent U_extrap_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-    d_U_bdry_extrap_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-    d_U_bdry_extrap_fill_op->initializeOperatorState(U_extrap_component, d_hierarchy);
 
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
