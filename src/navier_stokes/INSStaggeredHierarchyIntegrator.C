@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <07.Nov.2008 10:27:32 griffith@dyn-160-39-49-216.dyn.columbia.edu>
+// Last modified: <07.Nov.2008 15:44:42 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -44,6 +44,7 @@
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define NAVIER_STOKES_SC_REGRID_COPY_F77 F77_FUNC_(navier_stokes_sc_regrid_copy2d,NAVIER_STOKES_SC_REGRID_COPY2D)
+#define NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_F77 F77_FUNC_(navier_stokes_sc_regrid_apply_correction2d,NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION2D)
 #define NAVIER_STOKES_SC_STABLEDT_F77 F77_FUNC_(navier_stokes_sc_stabledt2d, NAVIER_STOKES_SC_STABLEDT2D)
 #endif
 
@@ -60,12 +61,12 @@ extern "C"
 #if (NDIM == 3)
         double* u_dst2,
 #endif
-        const int& u_gcw,
-        double* u_src0, double* u_src1,
+        const int& u_dst_gcw,
+        const double* u_src0, const double* u_src1,
 #if (NDIM == 3)
-        double* u_src2,
+        const double* u_src2,
 #endif
-        const int& u_old_gcw,
+        const int& u_src_gcw,
         const int* indicator,
         const int& indicator_gcw,
         const int& ilower0, const int& iupper0,
@@ -74,6 +75,24 @@ extern "C"
         ,const int& ilower2,const int& iupper2
 #endif
                                      );
+#if (NDIM == 2)
+    void
+    NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_F77(
+        double* u0, double* u1,
+#if (NDIM == 3)
+        double* u2,
+#endif
+        const int& u_gcw,
+        const int* indicator,
+        const int& indicator_gcw,
+        const int& ilower0, const int& iupper0,
+        const int& ilower1, const int& iupper1,
+#if (NDIM == 3)
+        const int& ilower2, const int& iupper2,
+#endif
+        const int* ratio
+                                                 );
+#endif
 
     void
     NAVIER_STOKES_SC_STABLEDT_F77(
@@ -202,6 +221,11 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_is_initialized = false;
 
     d_do_log = false;
+
+    d_regrid_max_div_growth_factor = 1.1;
+    d_Div_U_norm_1  = 0.0;  // XXXX These values need to be added to the restart database!
+    d_Div_U_norm_2  = 0.0;
+    d_Div_U_norm_oo = 0.0;
 
     // Setup default boundary condition objects that specify homogeneous
     // Dirichlet boundary conditions for the velocity.
@@ -669,19 +693,12 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_conservation_form);
 
     // Setup the linear solver.
-    std::string stokes_prefix = "stokes_";
-    ierr = PetscOptionsHasName(stokes_prefix.c_str(), "-ksp_type", &flg);  IBTK_CHKERRQ(ierr);
-    if (!flg)
-    {
-        std::string iname = std::string("-") + stokes_prefix + std::string("ksp_type");
-        std::string value = "fgmres";
-        ierr = PetscOptionsSetValue(iname.c_str(), value.c_str());  IBTK_CHKERRQ(ierr);
-    }
-
+    const std::string stokes_prefix = "stokes_";
     d_stokes_solver_needs_init = true;
     d_stokes_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::stokes_solver", stokes_prefix);
     d_stokes_solver->setInitialGuessNonzero(true);
     d_stokes_solver->setOperator(d_stokes_op);
+    d_stokes_solver->setKSPType("fgmres");
 
     // Setup the preconditioner and preconditioner sub-solvers.
     std::vector<std::string> pc_shell_types(3);
@@ -733,29 +750,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     const bool needs_helmholtz_solver = stokes_pc_type == "shell" && (stokes_pc_shell_type == "projection" || stokes_pc_shell_type == "block_factorization");
     if (needs_helmholtz_solver)
     {
-        // Set some default options.
-        std::string helmholtz_prefix = "helmholtz_";
-        ierr = PetscOptionsHasName(helmholtz_prefix.c_str(), "-ksp_type", &flg);  IBTK_CHKERRQ(ierr);
-        if (!flg)
-        {
-            std::string iname = std::string("-") + helmholtz_prefix + std::string("ksp_type");
-            std::string value = (d_gridding_alg->getMaxLevels() == 1 ? "preonly" : "gmres");
-            ierr = PetscOptionsSetValue(iname.c_str(), value.c_str());  IBTK_CHKERRQ(ierr);
-        }
-        ierr = PetscOptionsHasName(helmholtz_prefix.c_str(), "-ksp_atol", &flg);  IBTK_CHKERRQ(ierr);
-        if (!flg)
-        {
-            std::string iname = std::string("-") + helmholtz_prefix + std::string("ksp_atol");
-            std::string value = "1.0e-30";
-            ierr = PetscOptionsSetValue(iname.c_str(), value.c_str());  IBTK_CHKERRQ(ierr);
-        }
-        ierr = PetscOptionsHasName(helmholtz_prefix.c_str(), "-ksp_rtol", &flg);  IBTK_CHKERRQ(ierr);
-        if (!flg)
-        {
-            std::string iname = std::string("-") + helmholtz_prefix + std::string("ksp_rtol");
-            std::string value = "1.0e-2";
-            ierr = PetscOptionsSetValue(iname.c_str(), value.c_str());  IBTK_CHKERRQ(ierr);
-        }
+        const std::string helmholtz_prefix = "helmholtz_";
 
         // Setup the various solver components.
         d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
@@ -787,6 +782,12 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
             // intentionally blank --- but at some point we will need a
             // side-centered FAC solver.
         }
+
+        // Set some default options.
+        d_helmholtz_solver->setKSPType(d_gridding_alg->getMaxLevels() == 1 ? "preonly" : "gmres");
+        d_helmholtz_solver->setAbsoluteTolerance(1.0e-30);
+        d_helmholtz_solver->setRelativeTolerance(1.0e-02);
+        d_helmholtz_solver->setMaxIterations(25);
     }
     else
     {
@@ -800,35 +801,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     const bool needs_poisson_solver = stokes_pc_type == "shell" && (stokes_pc_shell_type == "projection" || stokes_pc_shell_type == "block_factorization");
     if (needs_poisson_solver)
     {
-        // Set some default options.
-        std::string poisson_prefix = "poisson_";
-        ierr = PetscOptionsHasName(poisson_prefix.c_str(), "-ksp_type", &flg);  IBTK_CHKERRQ(ierr);
-        if (!flg)
-        {
-            std::string iname = std::string("-") + poisson_prefix + std::string("ksp_type");
-            std::string value = (d_gridding_alg->getMaxLevels() == 1 ? "preonly" : "gmres");
-            ierr = PetscOptionsSetValue(iname.c_str(), value.c_str());  IBTK_CHKERRQ(ierr);
-        }
-        ierr = PetscOptionsHasName(poisson_prefix.c_str(), "-ksp_atol", &flg);  IBTK_CHKERRQ(ierr);
-        if (!flg)
-        {
-            std::string iname = std::string("-") + poisson_prefix + std::string("ksp_atol");
-            std::string value = "1.0e-30";
-            ierr = PetscOptionsSetValue(iname.c_str(), value.c_str());  IBTK_CHKERRQ(ierr);
-        }
-        ierr = PetscOptionsHasName(poisson_prefix.c_str(), "-ksp_rtol", &flg);  IBTK_CHKERRQ(ierr);
-        if (!flg)
-        {
-            std::string iname = std::string("-") + poisson_prefix + std::string("ksp_rtol");
-            std::string value = "1.0e-2";
-            ierr = PetscOptionsSetValue(iname.c_str(), value.c_str());  IBTK_CHKERRQ(ierr);
-        }
-
-        if (d_normalize_pressure)
-        {
-            std::string iname = std::string("-") + poisson_prefix + std::string("ksp_constant_null_space");
-            ierr = PetscOptionsSetValue(iname.c_str(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
-        }
+        const std::string poisson_prefix = "poisson_";
 
         // Setup the various solver components.
         d_poisson_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::poisson_spec");
@@ -872,6 +845,18 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
             d_poisson_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_poisson_fac_pc, d_poisson_fac_pc_db));
         }
+
+        // Set some default options.
+        d_poisson_solver->setKSPType(d_gridding_alg->getMaxLevels() == 1 ? "preonly" : "gmres");
+        d_poisson_solver->setAbsoluteTolerance(1.0e-30);
+        d_poisson_solver->setRelativeTolerance(1.0e-02);
+        d_poisson_solver->setMaxIterations(25);
+        const bool constant_null_space = d_normalize_pressure;
+        if (constant_null_space)
+        {
+            std::string iname = std::string("-") + poisson_prefix + std::string("ksp_constant_null_space");
+            ierr = PetscOptionsSetValue(iname.c_str(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
+        }
     }
     else
     {
@@ -912,46 +897,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     const bool needs_regrid_projection_solver = (d_gridding_alg->getMaxLevels() > 1);
     if (needs_regrid_projection_solver)
     {
-        // Set some default options.
-        std::string regrid_projection_prefix = "regrid_projection_";
-        ierr = PetscOptionsHasName(regrid_projection_prefix.c_str(), "-ksp_type", &flg);  IBTK_CHKERRQ(ierr);
-        if (!flg)
-        {
-            std::string iname = std::string("-") + regrid_projection_prefix + std::string("ksp_type");
-            std::string value = "gmres";
-            ierr = PetscOptionsSetValue(iname.c_str(), value.c_str());  IBTK_CHKERRQ(ierr);
-        }
-        ierr = PetscOptionsHasName(regrid_projection_prefix.c_str(), "-ksp_atol", &flg);  IBTK_CHKERRQ(ierr);
-        if (!flg)
-        {
-            std::string iname = std::string("-") + regrid_projection_prefix + std::string("ksp_atol");
-            std::string value = "1.0e-12";
-            ierr = PetscOptionsSetValue(iname.c_str(), value.c_str());  IBTK_CHKERRQ(ierr);
-        }
-        ierr = PetscOptionsHasName(regrid_projection_prefix.c_str(), "-ksp_rtol", &flg);  IBTK_CHKERRQ(ierr);
-        if (!flg)
-        {
-            std::string iname = std::string("-") + regrid_projection_prefix + std::string("ksp_rtol");
-            std::string value = "1.0e-6";
-            ierr = PetscOptionsSetValue(iname.c_str(), value.c_str());  IBTK_CHKERRQ(ierr);
-        }
-
-        // Lookup the absolute residual convergence threshold.
-        ierr = PetscOptionsGetReal(regrid_projection_prefix.c_str(), "-ksp_atol", &d_regrid_projection_abs_tol, &flg);  IBTK_CHKERRQ(ierr);
-        if (!flg)
-        {
-            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                       "  this statement should not be reached" << std::endl);
-        }
-
-        // NOTE: We always use homogeneous Neumann boundary conditions for the
-        // regrid projection Poisson solver.
-        static const bool constant_null_space = true;
-        if (constant_null_space)
-        {
-            std::string iname = std::string("-") + regrid_projection_prefix + std::string("ksp_constant_null_space");
-            ierr = PetscOptionsSetValue(iname.c_str(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
-        }
+        const std::string regrid_projection_prefix = "regrid_projection_";
 
         // Setup the various solver components.
         for (int d = 0; d < NDIM; ++d)
@@ -986,6 +932,21 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_regrid_projection_fac_op->setPreconditioner(d_regrid_projection_fac_pc);
 
         d_regrid_projection_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_regrid_projection_fac_pc, d_regrid_projection_fac_pc_db));
+
+        // Set some default options.
+        d_regrid_projection_solver->setKSPType("gmres");
+        d_regrid_projection_solver->setAbsoluteTolerance(1.0e-12);
+        d_regrid_projection_solver->setRelativeTolerance(1.0e-08);
+        d_regrid_projection_solver->setMaxIterations(25);
+
+        // NOTE: We always use homogeneous Neumann boundary conditions for the
+        // regrid projection Poisson solver.
+        static const bool constant_null_space = true;
+        if (constant_null_space)
+        {
+            std::string iname = std::string("-") + regrid_projection_prefix + std::string("ksp_constant_null_space");
+            ierr = PetscOptionsSetValue(iname.c_str(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
+        }
     }
     else
     {
@@ -1297,29 +1258,41 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
             level->allocatePatchData(scratch_idxs, d_integrator_time);
         }
 
-        // Compute -(div U).
+        // Compute div U.
         const bool U_current_cf_bdry_synch = true;
         d_hier_math_ops->div(
             d_Div_U_scratch_idx, d_Div_U_var, // dst
-            -1.0,                             // alpha
+            +1.0,                             // alpha
             d_U_current_idx, d_U_var,         // src
             d_no_fill_op,                     // src_bdry_fill
             d_integrator_time,                // src_bdry_fill_time
             U_current_cf_bdry_synch);         // src_cf_bdry_synch
 
-        // Setup the solver vectors.
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double> sol_vec(
-            d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln_after_regrid);
-        sol_vec.addComponent(d_Phi_var, d_Phi_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
-
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double> rhs_vec(
-            d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln_after_regrid);
-        rhs_vec.addComponent(d_Div_U_var, d_Div_U_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
-
-        // No solve is necessary if the norm of the rhs vector is less than the
-        // absolute tolerance of the linear solver.
-        if (!(rhs_vec.L2Norm() <= d_regrid_projection_abs_tol))
+        // Compute the norms of the divergence.  If they are unchanged from
+        // before regridding, we do not need to project the interpolated
+        // velocity field.
+        const double Div_U_norm_1  = d_hier_cc_data_ops->L1Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
+        const double Div_U_norm_2  = d_hier_cc_data_ops->L2Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
+        const double Div_U_norm_oo = d_hier_cc_data_ops->maxNorm(d_Div_U_scratch_idx, d_wgt_cc_idx);
+        if (Div_U_norm_1  > d_regrid_max_div_growth_factor*d_Div_U_norm_1 ||
+            Div_U_norm_2  > d_regrid_max_div_growth_factor*d_Div_U_norm_2 ||
+            Div_U_norm_oo > d_regrid_max_div_growth_factor*d_Div_U_norm_oo)
         {
+            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy():\n"
+                                             << "  performing regrid projection\n";
+
+            // Setup the solver vectors.
+            d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0, false);
+            d_hier_cc_data_ops->scale(d_Div_U_scratch_idx, -1.0, d_Div_U_scratch_idx);
+
+            SAMRAI::solv::SAMRAIVectorReal<NDIM,double> sol_vec(
+                d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln_after_regrid);
+            sol_vec.addComponent(d_Phi_var, d_Phi_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+
+            SAMRAI::solv::SAMRAIVectorReal<NDIM,double> rhs_vec(
+                d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln_after_regrid);
+            rhs_vec.addComponent(d_Div_U_var, d_Div_U_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+
             // Setup the Poisson solver.
             d_regrid_projection_spec->setCZero();
             d_regrid_projection_spec->setDConstant(-1.0);
@@ -1402,16 +1375,10 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
             d_no_fill_op,                     // src_bdry_fill
             d_integrator_time,                // src_bdry_fill_time
             U_current_cf_bdry_synch);         // src_cf_bdry_synch
-        SAMRAI::tbox::plog << d_object_name << "::regridHierarchy():\n";
-        if (d_do_log) SAMRAI::tbox::plog << "  ||Div U||_1  = "
-                                         << d_hier_cc_data_ops->L1Norm(d_Div_U_current_idx, d_wgt_cc_idx)
-                                         << "\n";
-        if (d_do_log) SAMRAI::tbox::plog << "  ||Div U||_2  = "
-                                         << d_hier_cc_data_ops->L2Norm(d_Div_U_current_idx, d_wgt_cc_idx)
-                                         << "\n";
-        if (d_do_log) SAMRAI::tbox::plog << "  ||Div U||_oo = "
-                                         << d_hier_cc_data_ops->maxNorm(d_Div_U_current_idx, d_wgt_cc_idx)
-                                         << "\n";
+        SAMRAI::tbox::plog << d_object_name << "::regridHierarchy():\n"
+                           << "  ||Div U||_1  = " << d_hier_cc_data_ops->L1Norm( d_Div_U_current_idx, d_wgt_cc_idx) << "\n"
+                           << "  ||Div U||_2  = " << d_hier_cc_data_ops->L2Norm( d_Div_U_current_idx, d_wgt_cc_idx) << "\n"
+                           << "  ||Div U||_oo = " << d_hier_cc_data_ops->maxNorm(d_Div_U_current_idx, d_wgt_cc_idx) << "\n";
     }
 
     t_regrid_hierarchy->stop();
@@ -1627,18 +1594,16 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_Div_U_new_idx, d_Div_U_var,
         1.0, d_U_scratch_idx, d_U_var,
         d_no_fill_op, new_time, false);
+    d_Div_U_norm_1  = d_hier_cc_data_ops->L1Norm( d_Div_U_new_idx, d_wgt_cc_idx);
+    d_Div_U_norm_2  = d_hier_cc_data_ops->L2Norm( d_Div_U_new_idx, d_wgt_cc_idx);
+    d_Div_U_norm_oo = d_hier_cc_data_ops->maxNorm(d_Div_U_new_idx, d_wgt_cc_idx);
+
     if (d_do_log)
     {
-        SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy():\n";
-        if (d_do_log) SAMRAI::tbox::plog << "  ||Div U||_1  = "
-                                         << d_hier_cc_data_ops->L1Norm(d_Div_U_new_idx, d_wgt_cc_idx)
-                                         << "\n";
-        if (d_do_log) SAMRAI::tbox::plog << "  ||Div U||_2  = "
-                                         << d_hier_cc_data_ops->L2Norm(d_Div_U_new_idx, d_wgt_cc_idx)
-                                         << "\n";
-        if (d_do_log) SAMRAI::tbox::plog << "  ||Div U||_oo = "
-                                         << d_hier_cc_data_ops->maxNorm(d_Div_U_new_idx, d_wgt_cc_idx)
-                                         << "\n";
+        SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy():\n"
+                           << "  ||Div U||_1  = " << d_Div_U_norm_1  << "\n"
+                           << "  ||Div U||_2  = " << d_Div_U_norm_2  << "\n"
+                           << "  ||Div U||_oo = " << d_Div_U_norm_oo << "\n";
     }
 
     // Deallocate scratch data.
@@ -1879,6 +1844,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                                                            old_level,
                                                            &fill_U_cf_interface_after_regrid_bc_op)->fillData(init_data_time);
 
+        const SAMRAI::hier::IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1914,6 +1880,27 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                 ,patch_box.lower()(2),patch_box.upper()(2)
 #endif
                                              );
+
+            if (ratio == SAMRAI::hier::IntVector<NDIM>(2))
+            {
+#if (NDIM == 2)
+                NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_F77(
+                    U_dst_data->getPointer(0),
+                    U_dst_data->getPointer(1),
+#if (NDIM == 3)
+                    U_dst_data->getPointer(2),
+#endif
+                    U_dst_ghosts,
+                    indicator_data->getPointer(0),
+                    indicator_ghosts,
+                    patch_box.lower()(0), patch_box.upper()(0),
+                    patch_box.lower()(1), patch_box.upper()(1),
+#if (NDIM == 3)
+                    patch_box.lower()(2), patch_box.upper()(2),
+#endif
+                    ratio                                    );
+#endif
+            }
         }
         old_level->deallocatePatchData(d_indicator_scratch_idx);
 
@@ -2919,6 +2906,8 @@ INSStaggeredHierarchyIntegrator::getFromInput(
     d_poisson_hypre_pc_db         = db->isDatabase("PoissonHypreSolver"  ) ? db->getDatabase("PoissonHypreSolver"  ) : SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL);
     d_poisson_fac_pc_db           = db->isDatabase("PoissonFACSolver"    ) ? db->getDatabase("PoissonFACSolver"    ) : SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL);
     d_regrid_projection_fac_pc_db = db->isDatabase("PoissonFACSolver"    ) ? db->getDatabase("PoissonFACSolver"    ) : SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL);
+
+    d_regrid_max_div_growth_factor = db->getDoubleWithDefault("regrid_max_div_growth_factor", d_regrid_max_div_growth_factor);
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
 

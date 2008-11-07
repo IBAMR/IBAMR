@@ -65,6 +65,88 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Apply the divergence- and gradient-preserving correction to values
+c     refined from the next coarser level of the patch hierarchy.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine navier_stokes_sc_regrid_apply_correction2d(
+     &     u0,u1,u_gcw,
+     &     indicator,indicator_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ratio)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER u_gcw,indicator_gcw
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ratio(0:NDIM-1)
+
+      INTEGER indicator(CELL2d(ilower,iupper,indicator_gcw))
+c
+c     Input/Output.
+c
+      REAL u0(SIDE2d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE2d1(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER d,i0,i1,i,j
+      REAL u(-1:1,-1:1),u_xx
+      REAL v(-1:1,-1:1),v_yy
+c
+c     Copy values from the src data to the dst wherever the data is from
+c     the old patch level.
+c
+      do d = 0,NDIM-1
+         if ( .not.(ratio(d).eq.2) ) then
+            print *,'error: invalid refinement ratio'
+            call abort
+         endif
+      enddo
+
+      do i1 = ilower1,iupper1,ratio(1)
+         do i0 = ilower0,iupper0,ratio(0)
+            if ( .not.(indicator(i0,i1).eq.1) ) then
+               u(-1,-1) = u0(i0  ,i1  )
+               u( 1,-1) = u0(i0+2,i1  )
+               u(-1, 1) = u0(i0  ,i1+1)
+               u( 1, 1) = u0(i0+2,i1+1)
+
+               v(-1,-1) = u1(i0  ,i1  )
+               v( 1,-1) = u1(i0+1,i1  )
+               v(-1, 1) = u1(i0  ,i1+2)
+               v( 1, 1) = u1(i0+1,i1+2)
+
+               u_xx = 0.25d0*(v(-1,-1)-v(-1, 1)-v( 1,-1)+v(1,1))
+               v_yy = 0.25d0*(u(-1,-1)-u( 1,-1)-u(-1, 1)+u(1,1))
+
+               do j = -1,1,2
+                  u(0,j) = 0.5d0*(u(1,j)+u(-1,j))+u_xx
+               enddo
+
+               u0(i0+1,i1  ) = u(0,-1)
+               u0(i0+1,i1+1) = u(0, 1)
+
+               do i = -1,1,2
+                  v(i,0) = 0.5d0*(v(i,1)+v(i,-1))+v_yy
+               enddo
+
+               u1(i0  ,i1+1) = v(-1,0)
+               u1(i0+1,i1+1) = v( 1,0)
+            endif
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Interpolate the components of a staggered velocity field onto the
 c     faces of the zones centered about the x-component of the velocity.
 c

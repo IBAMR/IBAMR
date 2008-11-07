@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <07.Nov.2008 10:05:30 griffith@dyn-160-39-49-216.dyn.columbia.edu>
+// Last modified: <07.Nov.2008 15:04:32 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -924,7 +924,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>         d_helmholtz_op;
     SAMRAI::solv::PoissonSpecifications*                   d_helmholtz_spec;
     SAMRAI::tbox::Pointer<IBTK::SCPoissonHypreLevelSolver> d_helmholtz_hypre_pc;
-    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>        d_helmholtz_solver;
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>        d_helmholtz_solver;
 
     bool d_poisson_solver_needs_init;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>                 d_poisson_hypre_pc_db, d_poisson_fac_pc_db;
@@ -933,7 +933,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver>        d_poisson_hypre_pc;
     SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>             d_poisson_fac_op;
     SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_poisson_fac_pc;
-    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>               d_poisson_solver;
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>          d_poisson_solver;
 
     bool d_projection_pc_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> d_projection_pc;
@@ -945,14 +945,14 @@ private:
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;
 
     bool d_needs_regrid_projection;
-    double d_regrid_projection_abs_tol;
+    double d_regrid_max_div_growth_factor, d_Div_U_norm_1, d_Div_U_norm_2, d_Div_U_norm_oo;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>                 d_regrid_projection_fac_pc_db;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>                 d_regrid_projection_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>                d_regrid_projection_op;
     SAMRAI::solv::PoissonSpecifications*                          d_regrid_projection_spec;
     SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>             d_regrid_projection_fac_op;
     SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_regrid_projection_fac_pc;
-    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>               d_regrid_projection_solver;
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>          d_regrid_projection_solver;
 
     /*
      * Communications algorithms, patch strategies, and schedules.
