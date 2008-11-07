@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <04.Nov.2008 17:25:58 griffith@box230.cims.nyu.edu>
+// Last modified: <06.Nov.2008 15:56:16 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -25,8 +25,8 @@
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/LNodeIndexData2.h>
-#include <ibtk/LagMarkerCoarsenOperator.h>
-#include <ibtk/LagMarkerRefineOperator.h>
+#include <ibtk/LagMarkerCoarsen.h>
+#include <ibtk/LagMarkerRefine.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -2402,7 +2402,7 @@ IBHierarchyIntegrator::initializeLevelData(
         refine_mark_alg->registerRefine(d_mark_current_idx, // destination
                                         d_mark_current_idx, // source
                                         d_mark_scratch_idx, // temporary work space
-                                        new IBTK::LagMarkerRefineOperator());
+                                        new IBTK::LagMarkerRefine());
 
         level->allocatePatchData(d_mark_scratch_idx, init_data_time);
 
@@ -3172,7 +3172,7 @@ IBHierarchyIntegrator::collectMarkersOnPatchHierarchy()
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > mark_coarsen_alg = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
     mark_coarsen_alg->registerCoarsen(d_mark_scratch_idx, // destination
                                       d_mark_current_idx, // source
-                                      new IBTK::LagMarkerCoarsenOperator());
+                                      new IBTK::LagMarkerCoarsen());
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);

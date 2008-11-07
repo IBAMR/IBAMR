@@ -5,6 +5,66 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Copy values from the interior of the old patch level to the new
+c     patch level.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine navier_stokes_sc_regrid_copy2d(
+     &     u_dst0,u_dst1,u_dst_gcw,
+     &     u_src0,u_src1,u_src_gcw,
+     &     indicator,indicator_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER u_dst_gcw,u_src_gcw,indicator_gcw
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      REAL u_src0(SIDE2d0(ilower,iupper,u_src_gcw))
+      REAL u_src1(SIDE2d1(ilower,iupper,u_src_gcw))
+
+      INTEGER indicator(CELL2d(ilower,iupper,indicator_gcw))
+c
+c     Input/Output.
+c
+      REAL u_dst0(SIDE2d0(ilower,iupper,u_dst_gcw))
+      REAL u_dst1(SIDE2d1(ilower,iupper,u_dst_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+c
+c     Copy values from the src data to the dst wherever the data is from
+c     the old patch level.
+c
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0+1
+            if ( (indicator(i0-1,i1).eq.1) .or.
+     &           (indicator(i0  ,i1).eq.1) ) then
+               u_dst0(i0,i1) = u_src0(i0,i1)
+            endif
+         enddo
+      enddo
+
+      do i1 = ilower1,iupper1+1
+         do i0 = ilower0,iupper0
+            if ( (indicator(i0,i1-1).eq.1) .or.
+     &           (indicator(i0,i1  ).eq.1) ) then
+               u_dst1(i0,i1) = u_src1(i0,i1)
+            endif
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Interpolate the components of a staggered velocity field onto the
 c     faces of the zones centered about the x-component of the velocity.
 c

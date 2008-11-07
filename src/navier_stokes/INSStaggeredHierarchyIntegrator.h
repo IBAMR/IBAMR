@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <06.Nov.2008 11:01:25 griffith@box230.cims.nyu.edu>
+// Last modified: <06.Nov.2008 17:47:54 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -958,7 +958,7 @@ private:
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;
 
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid, d_fill_U_cf_interface_after_regrid;
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
 
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_no_fill_op;
@@ -1013,6 +1013,7 @@ private:
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int   > > d_indicator_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -1037,7 +1038,7 @@ private:
      *
      * Scratch variables have only one context: scratch.
      */
-    int d_Phi_scratch_idx;
+    int d_Phi_scratch_idx, d_indicator_scratch_idx;
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
