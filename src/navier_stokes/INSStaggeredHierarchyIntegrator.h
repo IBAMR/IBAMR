@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <06.Nov.2008 17:47:54 griffith@box230.cims.nyu.edu>
+// Last modified: <07.Nov.2008 10:05:30 griffith@dyn-160-39-49-216.dyn.columbia.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -944,8 +944,15 @@ private:
     bool d_stokes_solver_needs_init;
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;
 
-    bool d_regrid_projection;
-    double d_regrid_projection_abs_tolerance, d_regrid_projection_rel_tolerance;
+    bool d_needs_regrid_projection;
+    double d_regrid_projection_abs_tol;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>                 d_regrid_projection_fac_pc_db;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>                 d_regrid_projection_bc_coef;
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>                d_regrid_projection_op;
+    SAMRAI::solv::PoissonSpecifications*                          d_regrid_projection_spec;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>             d_regrid_projection_fac_op;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_regrid_projection_fac_pc;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>               d_regrid_projection_solver;
 
     /*
      * Communications algorithms, patch strategies, and schedules.
