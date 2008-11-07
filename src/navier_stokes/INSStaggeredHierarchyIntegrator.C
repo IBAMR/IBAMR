@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <06.Nov.2008 18:36:52 griffith@box230.cims.nyu.edu>
+// Last modified: <06.Nov.2008 19:19:44 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1551,7 +1551,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 #if (NDIM == 3)
     d_Omega_max = d_hier_cc_data_ops->max(d_Omega_Norm_new_idx);
 #endif
-#if 0
+
     // Compute Div U.
     d_hier_math_ops->div(
         d_Div_U_new_idx, d_Div_U_var,
@@ -1570,9 +1570,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
                                          << d_hier_cc_data_ops->maxNorm(d_Div_U_new_idx, d_wgt_cc_idx)
                                          << "\n";
     }
-#else
-    d_hier_cc_data_ops->copyData(d_Div_U_new_idx, d_Div_U_current_idx);
-#endif
 
     // Deallocate scratch data.
     U_rhs_vec->freeVectorComponents();
