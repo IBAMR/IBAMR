@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <07.Nov.2008 15:44:42 griffith@box230.cims.nyu.edu>
+// Last modified: <09.Nov.2008 22:35:24 griffith@boyce-griffiths-powerbook-g4-15.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -23,6 +23,7 @@
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
 
 // IBTK INCLUDES
+#include <ibtk/CartSideDoubleDivPreservingRefine.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -86,11 +87,10 @@ extern "C"
         const int* indicator,
         const int& indicator_gcw,
         const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+        const int& ilower1, const int& iupper1
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+        ,const int& ilower2,const int& iupper2
 #endif
-        const int* ratio
                                                  );
 #endif
 
@@ -541,6 +541,11 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_calgs["SYNCH_CURRENT_STATE_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
     d_calgs["SYNCH_NEW_STATE_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
 
+    // Register non-standard operators.
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom =
+        d_hierarchy->getGridGeometry();
+    grid_geom->addSpatialRefineOperator(new IBTK::CartSideDoubleDivPreservingRefine());
+
     // Register state variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
 
@@ -551,7 +556,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     registerVariable(d_U_current_idx, d_U_new_idx, d_U_scratch_idx,
                      d_U_var, side_ghosts,
                      "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE");
+                     "DIV_PRESERVING_REFINE");
 
     registerVariable(d_U_cc_current_idx, d_U_cc_new_idx, d_U_cc_scratch_idx,
                      d_U_cc_var, cell_ghosts,
@@ -1279,7 +1284,10 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
             Div_U_norm_oo > d_regrid_max_div_growth_factor*d_Div_U_norm_oo)
         {
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy():\n"
-                                             << "  performing regrid projection\n";
+                                             << "  before regrid projection:\n"
+                                             << "    ||Div U||_1  = " << Div_U_norm_1  << "\n"
+                                             << "    ||Div U||_2  = " << Div_U_norm_2  << "\n"
+                                             << "    ||Div U||_oo = " << Div_U_norm_oo << "\n";
 
             // Setup the solver vectors.
             d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0, false);
@@ -1345,6 +1353,28 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
                 d_no_fill_op,                 // src_bdry_fill
                 d_integrator_time);           // src_bdry_fill_time
             d_hier_sc_data_ops->axpy(d_U_current_idx, -1.0, d_U_scratch_idx, d_U_current_idx);
+
+            if (d_do_log)
+            {
+                // Compute div U.
+                const bool U_current_cf_bdry_synch = true;
+                d_hier_math_ops->div(
+                    d_Div_U_scratch_idx, d_Div_U_var, // dst
+                    +1.0,                             // alpha
+                    d_U_current_idx, d_U_var,         // src
+                    d_no_fill_op,                     // src_bdry_fill
+                    d_integrator_time,                // src_bdry_fill_time
+                    U_current_cf_bdry_synch);         // src_cf_bdry_synch
+
+                const double Div_U_norm_1  = d_hier_cc_data_ops->L1Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
+                const double Div_U_norm_2  = d_hier_cc_data_ops->L2Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
+                const double Div_U_norm_oo = d_hier_cc_data_ops->maxNorm(d_Div_U_scratch_idx, d_wgt_cc_idx);
+                SAMRAI::tbox::plog << d_object_name << "::regridHierarchy():\n"
+                                   << "  after regrid projection:\n"
+                                   << "    ||Div U||_1  = " << Div_U_norm_1  << "\n"
+                                   << "    ||Div U||_2  = " << Div_U_norm_2  << "\n"
+                                   << "    ||Div U||_oo = " << Div_U_norm_oo << "\n";
+            }
         }
 
         // Deallocate scratch data.
@@ -1362,23 +1392,6 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
     for (int ln = finest_ln_after_regrid; ln > coarsest_ln; --ln)
     {
         d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
-    }
-
-    // Compute div U.
-    if (d_do_log)
-    {
-        const bool U_current_cf_bdry_synch = false;
-        d_hier_math_ops->div(
-            d_Div_U_current_idx, d_Div_U_var, // dst
-            +1.0,                             // alpha
-            d_U_current_idx, d_U_var,         // src
-            d_no_fill_op,                     // src_bdry_fill
-            d_integrator_time,                // src_bdry_fill_time
-            U_current_cf_bdry_synch);         // src_cf_bdry_synch
-        SAMRAI::tbox::plog << d_object_name << "::regridHierarchy():\n"
-                           << "  ||Div U||_1  = " << d_hier_cc_data_ops->L1Norm( d_Div_U_current_idx, d_wgt_cc_idx) << "\n"
-                           << "  ||Div U||_2  = " << d_hier_cc_data_ops->L2Norm( d_Div_U_current_idx, d_wgt_cc_idx) << "\n"
-                           << "  ||Div U||_oo = " << d_hier_cc_data_ops->maxNorm(d_Div_U_current_idx, d_wgt_cc_idx) << "\n";
     }
 
     t_regrid_hierarchy->stop();
@@ -1826,37 +1839,29 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(old_level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = old_level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_scratch_data =
-                patch->getPatchData(d_indicator_scratch_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_scratch_data = patch->getPatchData(d_indicator_scratch_idx);
             indicator_scratch_data->fillAll(1);
         }
 
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_scratch_data =
-                patch->getPatchData(d_indicator_scratch_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_scratch_data = patch->getPatchData(d_indicator_scratch_idx);
             indicator_scratch_data->fillAll(0);
         }
 
         IBTK::CartSideRobinPhysBdryOp fill_U_cf_interface_after_regrid_bc_op(d_U_scratch_idx, d_U_bc_coefs, false);
-        d_fill_U_cf_interface_after_regrid->createSchedule(level,
-                                                           old_level,
-                                                           &fill_U_cf_interface_after_regrid_bc_op)->fillData(init_data_time);
-
-        const SAMRAI::hier::IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
+        d_fill_U_cf_interface_after_regrid->createSchedule(level, old_level, &fill_U_cf_interface_after_regrid_bc_op)->fillData(init_data_time);
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_dst_data =
-                patch->getPatchData(d_regrid_current_idx_map[d_U_current_idx]);
+
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_dst_data = patch->getPatchData(d_regrid_current_idx_map[d_U_current_idx]);
             const int U_dst_ghosts = U_dst_data->getGhostCellWidth().max();
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_src_data =
-                patch->getPatchData(d_U_current_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_src_data = patch->getPatchData(d_U_current_idx);
             const int U_src_ghosts = U_src_data->getGhostCellWidth().max();
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_data =
-                patch->getPatchData(d_indicator_scratch_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_data = patch->getPatchData(d_indicator_scratch_idx);
             const int indicator_ghosts = indicator_data->getGhostCellWidth().max();
 
             NAVIER_STOKES_SC_REGRID_COPY_F77(
@@ -1880,27 +1885,23 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                 ,patch_box.lower()(2),patch_box.upper()(2)
 #endif
                                              );
-
-            if (ratio == SAMRAI::hier::IntVector<NDIM>(2))
-            {
 #if (NDIM == 2)
-                NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_F77(
-                    U_dst_data->getPointer(0),
-                    U_dst_data->getPointer(1),
+            NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_F77(
+                U_dst_data->getPointer(0),
+                U_dst_data->getPointer(1),
 #if (NDIM == 3)
-                    U_dst_data->getPointer(2),
+                U_dst_data->getPointer(2),
 #endif
-                    U_dst_ghosts,
-                    indicator_data->getPointer(0),
-                    indicator_ghosts,
-                    patch_box.lower()(0), patch_box.upper()(0),
-                    patch_box.lower()(1), patch_box.upper()(1),
+                U_dst_ghosts,
+                indicator_data->getPointer(0),
+                indicator_ghosts,
+                patch_box.lower()(0), patch_box.upper()(0),
+                patch_box.lower()(1), patch_box.upper()(1)
 #if (NDIM == 3)
-                    patch_box.lower()(2), patch_box.upper()(2),
+                ,patch_box.lower()(2),patch_box.upper()(2)
 #endif
-                    ratio                                    );
+                                                         );
 #endif
-            }
         }
         old_level->deallocatePatchData(d_indicator_scratch_idx);
 

@@ -74,8 +74,7 @@ c
      &     u0,u1,u_gcw,
      &     indicator,indicator_gcw,
      &     ilower0,iupper0,
-     &     ilower1,iupper1,
-     &     ratio)
+     &     ilower1,iupper1)
 c
       implicit none
 c
@@ -84,7 +83,6 @@ c
       INTEGER u_gcw,indicator_gcw
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER ratio(0:NDIM-1)
 
       INTEGER indicator(CELL2d(ilower,iupper,indicator_gcw))
 c
@@ -99,18 +97,10 @@ c
       REAL u(-1:1,-1:1),u_xx
       REAL v(-1:1,-1:1),v_yy
 c
-c     Copy values from the src data to the dst wherever the data is from
-c     the old patch level.
+c     Apply the divergence- and curl-preserving corrections.
 c
-      do d = 0,NDIM-1
-         if ( .not.(ratio(d).eq.2) ) then
-            print *,'error: invalid refinement ratio'
-            call abort
-         endif
-      enddo
-
-      do i1 = ilower1,iupper1,ratio(1)
-         do i0 = ilower0,iupper0,ratio(0)
+      do i1 = ilower1,iupper1,2
+         do i0 = ilower0,iupper0,2
             if ( .not.(indicator(i0,i1).eq.1) ) then
                u(-1,-1) = u0(i0  ,i1  )
                u( 1,-1) = u0(i0+2,i1  )
