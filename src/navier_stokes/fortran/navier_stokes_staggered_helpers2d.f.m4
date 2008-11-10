@@ -93,7 +93,7 @@ c
 c
 c     Local variables.
 c
-      INTEGER d,i0,i1,i,j
+      INTEGER i0,i1,i,j
       REAL u(-1:1,-1:1),u_xx
       REAL v(-1:1,-1:1),v_yy
 c
