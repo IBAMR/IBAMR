@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <10.Nov.2008 13:26:27 griffith@box230.cims.nyu.edu>
+// Last modified: <10.Nov.2008 13:50:47 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1831,9 +1831,11 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
 
         IBTK::CartExtrapPhysBdryOp fill_after_regrid_extrap_bc_op(d_fill_after_regrid_bc_idxs, BDRY_EXTRAP_TYPE);
         IBTK::CartSideRobinPhysBdryOp fill_after_regrid_phys_bdry_bc_op(d_regrid_scratch_idx_map[d_U_scratch_idx], d_U_bc_coefs, false);
-        std::vector<SAMRAI::xfer::RefinePatchStrategy<NDIM>*> refine_patch_strategies(2);
+        IBTK::CartSideDoubleDivPreservingRefine fill_after_regrid_div_preserving_op(d_regrid_scratch_idx_map[d_U_scratch_idx]);
+        std::vector<SAMRAI::xfer::RefinePatchStrategy<NDIM>*> refine_patch_strategies(3);
         refine_patch_strategies[0] = &fill_after_regrid_extrap_bc_op;
         refine_patch_strategies[1] = &fill_after_regrid_phys_bdry_bc_op;
+        refine_patch_strategies[2] = &fill_after_regrid_div_preserving_op;
         IBTK::RefinePatchStrategySet fill_after_regrid_bc_op(refine_patch_strategies.begin(), refine_patch_strategies.end(), false);
         d_fill_after_regrid->createSchedule(level,
                                             old_level,
@@ -2509,7 +2511,7 @@ INSStaggeredHierarchyIntegrator::registerVariable(
         if (!sc_var.isNull())
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataFactory<NDIM,double> > sc_pd_factory = sc_var->getPatchDataFactory();
-            static const bool fine_bdry_represents_var = false;
+            static const bool fine_bdry_represents_var = true; // XXXX false;
             regrid_variable = new SAMRAI::pdat::SideVariable<NDIM,double>(sc_var->getName() + "::REGRID", sc_pd_factory->getDefaultDepth(), fine_bdry_represents_var);
         }
         else
