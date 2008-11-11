@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <11.Nov.2008 13:19:05 griffith@box230.cims.nyu.edu>
+// Last modified: <11.Nov.2008 15:37:22 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -3092,20 +3092,9 @@ IBHierarchyIntegrator::collectMarkersOnPatchHierarchy()
                 {
                     mark_current_data->appendItem(i,IBTK::LagMarker());
                 }
-
-                const IBTK::LagMarker& src_mark = it();
-                const std::vector<double>& src_X = src_mark.getPositions();
-                const std::vector<double>& src_U = src_mark.getVelocities();
-                const std::vector<int>& src_idx = src_mark.getIndices();
-
                 IBTK::LagMarker& dst_mark = *(mark_current_data->getItem(i));
-                std::vector<double>& dst_X = dst_mark.getPositions();
-                std::vector<double>& dst_U = dst_mark.getVelocities();
-                std::vector<int>& dst_idx = dst_mark.getIndices();
-
-                dst_X.insert(dst_X.end(),src_X.begin(),src_X.end());
-                dst_U.insert(dst_U.end(),src_U.begin(),src_U.end());
-                dst_idx.insert(dst_idx.end(),src_idx.begin(),src_idx.end());
+                const IBTK::LagMarker& src_mark = it();
+                dst_mark.addMarker(src_mark);
             }
         }
 
