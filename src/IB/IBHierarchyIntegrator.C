@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <11.Nov.2008 12:06:32 griffith@box230.cims.nyu.edu>
+// Last modified: <11.Nov.2008 12:31:04 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -934,6 +934,20 @@ IBHierarchyIntegrator::initializeHierarchy()
     // Update the workload.
     d_lag_data_manager->updateWorkloadData(
         coarsest_ln, finest_ln);
+
+    // Prune duplicate markers.
+    pruneDuplicateMarkers(0,d_hierarchy->getFinestLevelNumber());
+
+    // Ensure that we haven't misplaced any of the markers.
+    const int num_marks = d_mark_init_posns.size()/NDIM;
+    const int num_marks_after_init = countMarkers(0,d_hierarchy->getFinestLevelNumber(),true);
+    if (num_marks != num_marks_after_init)
+    {
+        TBOX_ERROR(d_object_name << "::initializeHierarchy()\n"
+                   << "  number of marker particles is incorrect\n"
+                   << "  expected number of markers = " << num_marks << "\n"
+                   << "  actual   number of markers = " << num_marks_after_init << "\n");
+    }
 
     // Initialize the instrumentation data.
     d_instrument_panel->initializeHierarchyIndependentData(
@@ -2375,70 +2389,28 @@ IBHierarchyIntegrator::initializeLevelData(
         level->setTime(init_data_time, d_mark_current_idx);
     }
 
-    // Copy marker data on the from the old level.
-    if (!old_level.isNull())
+    // On the coarsest level of the patch hierarchy, copy marker data from the
+    // old coarse level.  Otherwise, refine marker data from the coarsest level
+    // of the patch hierarchy.
+    if (!old_level.isNull() && level_number == 0)
     {
         level->allocatePatchData(d_mark_scratch_idx, init_data_time);
-
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > copy_mark_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-        copy_mark_alg->registerRefine(d_mark_current_idx, // destination
-                                      d_mark_current_idx, // source
-                                      d_mark_scratch_idx, // temporary work space
-                                      NULL);
+        copy_mark_alg->registerRefine(d_mark_current_idx, d_mark_current_idx, d_mark_scratch_idx, NULL);
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = level;
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > src_level = old_level;
         SAMRAI::xfer::RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
         copy_mark_alg->createSchedule(dst_level, src_level, refine_mark_op)->fillData(init_data_time);
-
         level->deallocatePatchData(d_mark_scratch_idx);
     }
-
-    // Refine marker data from coarser levels in the patch hierarchy and merge
-    // with data copied from the old level.
-    if (level_number > 0)
+    else if (level_number > 0)
     {
         level->allocatePatchData(d_mark_scratch_idx, init_data_time);
-
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > refine_mark_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-        refine_mark_alg->registerRefine(d_mark_scratch_idx, // destination
-                                        d_mark_current_idx, // source
-                                        d_mark_scratch_idx, // temporary work space
-                                        new IBTK::LagMarkerRefine());
-
+        refine_mark_alg->registerRefine(d_mark_current_idx, d_mark_current_idx, d_mark_scratch_idx, new IBTK::LagMarkerRefine());
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = level;
         SAMRAI::xfer::RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
-        refine_mark_alg->createSchedule(dst_level, level_number-1, hierarchy, refine_mark_op)->fillData(d_integrator_time);
-
-        // Merge the copied and refined data.
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_current_data = patch->getPatchData(d_mark_current_idx);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
-            for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>::Iterator it(*mark_scratch_data); it; it++)
-            {
-                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
-                if (!mark_current_data->isElement(i))
-                {
-                    mark_current_data->appendItem(i,IBTK::LagMarker());
-                }
-
-                const IBTK::LagMarker& src_mark = it();
-                const std::vector<double>& src_X = src_mark.getPositions();
-                const std::vector<double>& src_U = src_mark.getVelocities();
-                const std::vector<int>& src_idx = src_mark.getIndices();
-
-                IBTK::LagMarker& dst_mark = *(mark_current_data->getItem(i));
-                std::vector<double>& dst_X = dst_mark.getPositions();
-                std::vector<double>& dst_U = dst_mark.getVelocities();
-                std::vector<int>& dst_idx = dst_mark.getIndices();
-
-                dst_X.insert(dst_X.end(),src_X.begin(),src_X.end());
-                dst_U.insert(dst_U.end(),src_U.begin(),src_U.end());
-                dst_idx.insert(dst_idx.end(),src_idx.begin(),src_idx.end());
-            }
-        }
-
+        refine_mark_alg->createSchedule(dst_level, 0, hierarchy, refine_mark_op)->fillData(init_data_time);
         level->deallocatePatchData(d_mark_scratch_idx);
     }
 
@@ -2610,19 +2582,6 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
          it!= d_calgs.end(); ++it)
     {
         d_cscheds[(*it).first].resize(finest_hier_level+1);
-    }
-
-    // Prune duplicate markers following regridding.
-    pruneDuplicateMarkers(0,finest_hier_level);
-    static const int num_marks = d_mark_init_posns.size()/NDIM;
-    const int num_marks_actual = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
-    if (num_marks_actual != num_marks)
-    {
-        TBOX_ERROR(d_object_name << "::resetHierarchyConfiguration()\n"
-                   << "  number of marker particles is incorrect\n"
-                   << "  expected number of markers = " << num_marks << "\n"
-                   << "  actual   number of markers = " << num_marks_actual << "\n"
-                   << "  finest_hier_level = " << finest_hier_level << "\n");
     }
 
     // (Re)build generic refine communication schedules.  These are created for
