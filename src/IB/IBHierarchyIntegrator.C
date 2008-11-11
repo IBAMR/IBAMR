@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <11.Nov.2008 10:54:31 griffith@box230.cims.nyu.edu>
+// Last modified: <11.Nov.2008 11:46:32 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2108,12 +2108,14 @@ IBHierarchyIntegrator::regridHierarchy()
 
     collectMarkersOnPatchHierarchy();
     const int num_marks_after_collection = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
-    if (num_marks != num_marks_after_collection)
+    const int num_marks_after_collection_level_0 = countMarkers(0,0,false);
+    if (num_marks != num_marks_after_collection || num_marks != num_marks_after_collection_level_0)
     {
         TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
                    << "  number of marker particles changed during collection to coarsest level\n"
-                   << "  number of markers before collection to coarsest level = " << num_marks << "\n"
-                   << "  number of markers after  collection to coarsest level = " << num_marks_after_collection << "\n");
+                   << "  number of markers in hierarchy before collection to coarsest level = " << num_marks << "\n"
+                   << "  number of markers in hierarchy after  collection to coarsest level = " << num_marks_after_collection << "\n"
+                   << "  number of markers on level 0   after  collection to coarsest level = " << num_marks_after_collection_level_0 << "\n");
     }
 
     // Update the workload pre-regridding.
@@ -2406,9 +2408,8 @@ IBHierarchyIntegrator::initializeLevelData(
         level->allocatePatchData(d_mark_scratch_idx, init_data_time);
 
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = level;
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > src_level = NULL;
         SAMRAI::xfer::RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
-        refine_mark_alg->createSchedule(dst_level, src_level, level_number-1, hierarchy, refine_mark_op)->fillData(d_integrator_time);
+        refine_mark_alg->createSchedule(dst_level, level_number-1, hierarchy, refine_mark_op)->fillData(d_integrator_time);
 
         level->deallocatePatchData(d_mark_scratch_idx);
     }
@@ -3224,13 +3225,12 @@ IBHierarchyIntegrator::pruneDuplicateMarkers(
     const int finest_ln)
 {
     const int finest_hier_level_number = d_hierarchy->getFinestLevelNumber();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    for (int ln = coarsest_ln; ln <= std::min(finest_ln,finest_hier_level_number-1); ++ln)
     {
-        const bool at_finest_hier_level = ln == finest_hier_level_number;
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > finer_level = (at_finest_hier_level ? SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL) : d_hierarchy->getPatchLevel(ln+1));
-        SAMRAI::hier::BoxArray<NDIM> refined_region_boxes = (at_finest_hier_level ? SAMRAI::hier::BoxArray<NDIM>() : finer_level->getBoxes());
-        const SAMRAI::hier::IntVector<NDIM>& ratio = (at_finest_hier_level ? SAMRAI::hier::IntVector<NDIM>(1) : finer_level->getRatioToCoarserLevel());
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > finer_level = d_hierarchy->getPatchLevel(ln+1);
+        SAMRAI::hier::BoxArray<NDIM> refined_region_boxes = finer_level->getBoxes();
+        const SAMRAI::hier::IntVector<NDIM>& ratio = finer_level->getRatioToCoarserLevel();
         refined_region_boxes.coarsen(ratio);
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
