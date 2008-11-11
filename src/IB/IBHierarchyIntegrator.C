@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <11.Nov.2008 11:46:32 griffith@box230.cims.nyu.edu>
+// Last modified: <11.Nov.2008 12:06:32 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2375,21 +2375,16 @@ IBHierarchyIntegrator::initializeLevelData(
         level->setTime(init_data_time, d_mark_current_idx);
     }
 
-    // Copy data on the coarsest level of the patch hierarchy; otherwise, fill
-    // data from coarser levels available.
-    if (!old_level.isNull() && level_number == 0)
+    // Copy marker data on the from the old level.
+    if (!old_level.isNull())
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(old_level->getLevelNumber() == level_number);
-#endif
+        level->allocatePatchData(d_mark_scratch_idx, init_data_time);
+
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > copy_mark_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
         copy_mark_alg->registerRefine(d_mark_current_idx, // destination
                                       d_mark_current_idx, // source
                                       d_mark_scratch_idx, // temporary work space
                                       NULL);
-
-        level->allocatePatchData(d_mark_scratch_idx, init_data_time);
-
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = level;
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > src_level = old_level;
         SAMRAI::xfer::RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
@@ -2397,19 +2392,52 @@ IBHierarchyIntegrator::initializeLevelData(
 
         level->deallocatePatchData(d_mark_scratch_idx);
     }
-    else if (level_number > 0)
+
+    // Refine marker data from coarser levels in the patch hierarchy and merge
+    // with data copied from the old level.
+    if (level_number > 0)
     {
+        level->allocatePatchData(d_mark_scratch_idx, init_data_time);
+
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > refine_mark_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-        refine_mark_alg->registerRefine(d_mark_current_idx, // destination
+        refine_mark_alg->registerRefine(d_mark_scratch_idx, // destination
                                         d_mark_current_idx, // source
                                         d_mark_scratch_idx, // temporary work space
                                         new IBTK::LagMarkerRefine());
 
-        level->allocatePatchData(d_mark_scratch_idx, init_data_time);
-
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = level;
         SAMRAI::xfer::RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
         refine_mark_alg->createSchedule(dst_level, level_number-1, hierarchy, refine_mark_op)->fillData(d_integrator_time);
+
+        // Merge the copied and refined data.
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_current_data = patch->getPatchData(d_mark_current_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
+            for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>::Iterator it(*mark_scratch_data); it; it++)
+            {
+                const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                if (!mark_current_data->isElement(i))
+                {
+                    mark_current_data->appendItem(i,IBTK::LagMarker());
+                }
+
+                const IBTK::LagMarker& src_mark = it();
+                const std::vector<double>& src_X = src_mark.getPositions();
+                const std::vector<double>& src_U = src_mark.getVelocities();
+                const std::vector<int>& src_idx = src_mark.getIndices();
+
+                IBTK::LagMarker& dst_mark = *(mark_current_data->getItem(i));
+                std::vector<double>& dst_X = dst_mark.getPositions();
+                std::vector<double>& dst_U = dst_mark.getVelocities();
+                std::vector<int>& dst_idx = dst_mark.getIndices();
+
+                dst_X.insert(dst_X.end(),src_X.begin(),src_X.end());
+                dst_U.insert(dst_U.end(),src_U.begin(),src_U.end());
+                dst_idx.insert(dst_idx.end(),src_idx.begin(),src_idx.end());
+            }
+        }
 
         level->deallocatePatchData(d_mark_scratch_idx);
     }
