@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <11.Nov.2008 12:31:04 griffith@box230.cims.nyu.edu>
+// Last modified: <11.Nov.2008 13:19:05 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -935,7 +935,7 @@ IBHierarchyIntegrator::initializeHierarchy()
     d_lag_data_manager->updateWorkloadData(
         coarsest_ln, finest_ln);
 
-    // Prune duplicate markers.
+    // Prune duplicate markers following initialization.
     pruneDuplicateMarkers(0,d_hierarchy->getFinestLevelNumber());
 
     // Ensure that we haven't misplaced any of the markers.
@@ -2394,24 +2394,27 @@ IBHierarchyIntegrator::initializeLevelData(
     // of the patch hierarchy.
     if (!old_level.isNull() && level_number == 0)
     {
-        level->allocatePatchData(d_mark_scratch_idx, init_data_time);
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > copy_mark_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
         copy_mark_alg->registerRefine(d_mark_current_idx, d_mark_current_idx, d_mark_scratch_idx, NULL);
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = level;
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > src_level = old_level;
         SAMRAI::xfer::RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
+        level->allocatePatchData(d_mark_scratch_idx, init_data_time);
         copy_mark_alg->createSchedule(dst_level, src_level, refine_mark_op)->fillData(init_data_time);
         level->deallocatePatchData(d_mark_scratch_idx);
     }
     else if (level_number > 0)
     {
-        level->allocatePatchData(d_mark_scratch_idx, init_data_time);
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > refine_mark_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
         refine_mark_alg->registerRefine(d_mark_current_idx, d_mark_current_idx, d_mark_scratch_idx, new IBTK::LagMarkerRefine());
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = level;
         SAMRAI::xfer::RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
-        refine_mark_alg->createSchedule(dst_level, 0, hierarchy, refine_mark_op)->fillData(init_data_time);
-        level->deallocatePatchData(d_mark_scratch_idx);
+        for (int ln = 1; ln <= level_number; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > dst_level = hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(d_mark_scratch_idx, init_data_time);
+            refine_mark_alg->createSchedule(dst_level, NULL, ln-1, hierarchy, refine_mark_op)->fillData(init_data_time);
+            level->deallocatePatchData(d_mark_scratch_idx);
+        }
     }
 
     // Setup the pIB data at the inital time only.
