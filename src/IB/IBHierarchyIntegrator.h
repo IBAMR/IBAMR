@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <03.Nov.2008 14:12:21 griffith@box230.cims.nyu.edu>
+// Last modified: <11.Nov.2008 10:47:14 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -683,15 +683,8 @@ private:
         const double data_time);
 
     /*!
-     * Reset all marker data onto all levels of the patch hierarchy to prepare
-     * for regridding the patch hierarchy.
-     */
-    void
-    resetMarkersOnPatchHierarchy();
-
-    /*!
-     * Collect all marker data onto all levels of the patch hierarchy to prepare
-     * for regridding the patch hierarchy.
+     * Collect all marker data onto the coarsest level of the patch hierarchy to
+     * prepare for regridding the patch hierarchy.
      */
     void
     collectMarkersOnPatchHierarchy();

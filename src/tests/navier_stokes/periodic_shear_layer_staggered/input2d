@@ -19,7 +19,7 @@ INSStaggeredHierarchyIntegrator {
    end_time              = 5.0e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = REF_RATIO
+   regrid_interval       = 4
 
    enable_logging = TRUE
 
@@ -106,7 +106,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/8   // zero to turn off
+   viz_dump_interval     = 1 // NFINEST/8   // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 
@@ -141,12 +141,12 @@ GriddingAlgorithm {
    }
 
    smallest_patch_size {
-      level_0 =  4,  4 // smallest patch allowed in hierarchy
+      level_0 = 12, 12 // smallest patch allowed in hierarchy
                        // all finer levels will use same values as level_0...
    }
 
-   efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
+   efficiency_tolerance   = 0.80e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.80e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
 
