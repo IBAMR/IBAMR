@@ -99,13 +99,9 @@ c
 c
 c     Apply the divergence- and curl-preserving corrections.
 c
-      do i1 = ilower1,iupper1,2
-         do i0 = ilower0,iupper0,2
-            if ( (indicator(i0,i1).ne.1).and.(
-     &           (indicator(i0-1,i1).eq.1).or.
-     &           (indicator(i0+2,i1).eq.1).or.
-     &           (indicator(i0,i1-1).eq.1).or.
-     &           (indicator(i0,i1+2).eq.1)) ) then
+      do i1 = ilower1-u_gcw,iupper1+u_gcw,2
+         do i0 = ilower0-u_gcw,iupper0+u_gcw,2
+            if ( indicator(i0,i1).eq.0 ) then
                u(-1,-1) = u0(i0  ,i1  )
                u( 1,-1) = u0(i0+2,i1  )
                u(-1, 1) = u0(i0  ,i1+1)

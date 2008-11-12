@@ -4,10 +4,10 @@ MU = 1/Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3   // maximum number of levels in locally refined grid
-REF_RATIO  = 4   // refinement ratio between levels
+MAX_LEVELS = 4   // maximum number of levels in locally refined grid
+REF_RATIO  = 2   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 INSStaggeredHierarchyIntegrator {
@@ -27,7 +27,7 @@ INSStaggeredHierarchyIntegrator {
 
    conservation_form = FALSE
    using_vorticity_tagging = TRUE
-   vorticity_rel_thresh = 0.0625*0.0625 , 0.0625*0.125
+   vorticity_rel_thresh = 0.0625*0.0625 , 0.0625*0.125 , 0.0625*0.25
 
    output_U = TRUE
    output_P = TRUE
