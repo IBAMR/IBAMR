@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <11.Nov.2008 23:07:46 griffith@boyce-griffiths-powerbook-g4-15.local>
+// Last modified: <12.Nov.2008 20:57:27 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -153,6 +153,8 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 // Version of INSStaggeredHierarchyIntegrator restart file data.
 static const int INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 }
+
+#define OUTPUT_REGRID_DIV_U 0
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -596,16 +598,15 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Setup regridding refine algorithm for resetting velocity values along the
     // coarse-fine interface.
-    d_fill_U_cf_interface_after_regrid = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    d_fill_U_cf_interface_after_regrid->registerRefine(d_U_current_idx, // destination
-                                                       d_U_current_idx, // source
-                                                       d_U_scratch_idx, // temporary work space
-                                                       NULL);
-
-    d_fill_U_cf_interface_after_regrid->registerRefine(d_indicator_scratch_idx, // destination
-                                                       d_indicator_scratch_idx, // source
-                                                       d_indicator_scratch_idx, // temporary work space
-                                                       NULL);
+    d_fill_cf_interface_after_regrid = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    d_fill_cf_interface_after_regrid->registerRefine(d_U_current_idx, // destination
+                                                     d_U_current_idx, // source
+                                                     d_U_scratch_idx, // temporary work space
+                                                     NULL);
+    d_fill_cf_interface_after_regrid->registerRefine(d_indicator_scratch_idx, // destination
+                                                     d_indicator_scratch_idx, // source
+                                                     d_indicator_scratch_idx, // temporary work space
+                                                     NULL);
 
     // Register variables for plotting.
     if (!d_visit_writer.isNull())
@@ -1244,7 +1245,8 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
         level->deallocatePatchData(d_regrid_data);
     }
 
-    const bool U_current_cf_bdry_synch = true;
+#if OUTPUT_REGRID_DIV_U
+   const bool U_current_cf_bdry_synch = true;
     d_hier_math_ops->div(
         d_Div_U_current_idx, d_Div_U_var, // dst
         +1.0,                             // alpha
@@ -1252,6 +1254,7 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
         d_no_fill_op,                     // src_bdry_fill
         d_integrator_time,                // src_bdry_fill_time
         U_current_cf_bdry_synch);         // src_cf_bdry_synch
+#endif
 
     // Project the interpolated velocity if needed.
     if (d_needs_regrid_projection)
@@ -1622,7 +1625,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
                            << "  ||Div U||_2  = " << d_Div_U_norm_2  << "\n"
                            << "  ||Div U||_oo = " << d_Div_U_norm_oo << "\n";
     }
-    d_hier_cc_data_ops->copyData(d_Div_U_new_idx,d_Div_U_current_idx);  // XXXX
+#if OUTPUT_REGRID_DIV_U
+    d_hier_cc_data_ops->copyData(d_Div_U_new_idx,d_Div_U_current_idx);
+#endif
 
     // Deallocate scratch data.
     U_rhs_vec->freeVectorComponents();
@@ -1841,27 +1846,29 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                                             level_number-1,
                                             hierarchy,
                                             &fill_after_regrid_patch_strategy_set)->fillData(init_data_time);
-#if 0
-        if (!old_level.isNull())
+
+        if (!old_level.isNull() && level_number == hierarchy->getFinestLevelNumber())
         {
             old_level->allocatePatchData(d_indicator_scratch_idx, init_data_time);
+
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(old_level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = old_level->getPatch(p());
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_scratch_data = patch->getPatchData(d_indicator_scratch_idx);
-                indicator_scratch_data->fillAll(1);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_data = patch->getPatchData(d_indicator_scratch_idx);
+                indicator_data->fillAll(1);
             }
 
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_scratch_data = patch->getPatchData(d_indicator_scratch_idx);
-                indicator_scratch_data->fillAll(0);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_data = patch->getPatchData(d_indicator_scratch_idx);
+                indicator_data->fillAll(0);
             }
 
-            IBTK::CartSideRobinPhysBdryOp fill_U_cf_interface_after_regrid_bc_op(d_U_scratch_idx, d_U_bc_coefs, false);
-            d_fill_U_cf_interface_after_regrid->createSchedule(level, old_level, &fill_U_cf_interface_after_regrid_bc_op)->fillData(init_data_time);
-            const SAMRAI::hier::IntVector<NDIM>& ratio = level->getRatio();
+            IBTK::CartSideRobinPhysBdryOp fill_cf_interface_after_regrid_bc_op(d_U_scratch_idx, d_U_bc_coefs, false);
+            d_fill_cf_interface_after_regrid->createSchedule(level, old_level, &fill_cf_interface_after_regrid_bc_op)->fillData(init_data_time);
+
+            const SAMRAI::hier::IntVector<NDIM>& ratio_to_coarser_level = level->getRatioToCoarserLevel();
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1898,7 +1905,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
 #endif
                                                  );
 
-                if (ratio == SAMRAI::hier::IntVector<NDIM>(2))
+                if (ratio_to_coarser_level == SAMRAI::hier::IntVector<NDIM>(2))
                 {
 #if (NDIM == 2)
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1925,7 +1932,6 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
             }
             old_level->deallocatePatchData(d_indicator_scratch_idx);
         }
-#endif
         level->deallocatePatchData(d_scratch_data);
     }
 

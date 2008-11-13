@@ -96,12 +96,13 @@ c
       INTEGER i0,i1,i,j
       REAL u(-1:1,-1:1),u_xx
       REAL v(-1:1,-1:1),v_yy
+      REAL div_u
 c
 c     Apply the divergence- and curl-preserving corrections.
 c
-      do i1 = ilower1-u_gcw,iupper1+u_gcw,2
-         do i0 = ilower0-u_gcw,iupper0+u_gcw,2
-            if ( indicator(i0,i1).eq.0 ) then
+      do i1 = ilower1,iupper1,2
+         do i0 = ilower0,iupper0,2
+            if ( indicator(i0,i1).ne.1 ) then
                u(-1,-1) = u0(i0  ,i1  )
                u( 1,-1) = u0(i0+2,i1  )
                u(-1, 1) = u0(i0  ,i1+1)
