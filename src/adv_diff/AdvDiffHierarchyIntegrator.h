@@ -2,12 +2,12 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <09.May.2008 21:20:44 griffith@box230.cims.nyu.edu>
+// Last modified: <13.Nov.2008 17:31:33 griffith@box230.cims.nyu.edu>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
+// PETSc INCLUDES
 #include <petsc.h>
 
 // IBAMR INCLUDES

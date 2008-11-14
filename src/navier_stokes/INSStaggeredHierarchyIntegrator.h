@@ -2,10 +2,13 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <12.Nov.2008 16:28:03 griffith@box230.cims.nyu.edu>
+// Last modified: <13.Nov.2008 17:32:24 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+// PETSc INCLUDES
+#include <petsc.h>
 
 // IBAMR INCLUDES
 #include <ibamr/INSCoefs.h>
@@ -16,10 +19,12 @@
 #include <ibamr/INSStaggeredStokesOperator.h>
 
 // IBTK INCLUDES
+#include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/CCPoissonFACOperator.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/SCLaplaceOperator.h>
-#include <ibtk/SCPoissonHypreLevelSolver.h>
+#include <ibtk/SCPoissonFACOperator.h>
 #include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
@@ -920,11 +925,13 @@ private:
     SAMRAI::tbox::Pointer<INSStaggeredPPMConvectiveOperator> d_convective_op;
 
     bool d_helmholtz_solver_needs_init;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_helmholtz_hypre_pc_db;
-    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>         d_helmholtz_op;
-    SAMRAI::solv::PoissonSpecifications*                   d_helmholtz_spec;
-    SAMRAI::tbox::Pointer<IBTK::SCPoissonHypreLevelSolver> d_helmholtz_hypre_pc;
-    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>        d_helmholtz_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>                 d_helmholtz_hypre_pc_db, d_helmholtz_fac_pc_db;
+    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>                d_helmholtz_op;
+    SAMRAI::solv::PoissonSpecifications*                          d_helmholtz_spec;
+    SAMRAI::tbox::Pointer<IBTK::SCPoissonHypreLevelSolver>        d_helmholtz_hypre_pc;
+    SAMRAI::tbox::Pointer<IBTK::SCPoissonFACOperator>             d_helmholtz_fac_op;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_helmholtz_fac_pc;
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>          d_helmholtz_solver;
 
     bool d_poisson_solver_needs_init;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>                 d_poisson_hypre_pc_db, d_poisson_fac_pc_db;

@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <12.Nov.2008 20:57:27 griffith@box230.cims.nyu.edu>
+// Last modified: <13.Nov.2008 16:15:05 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -755,13 +755,11 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
         // Setup the various solver components.
         d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
-        d_helmholtz_op = new IBTK::SCLaplaceOperator(
-            d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_U_star_bc_coefs, true);
+        d_helmholtz_op = new IBTK::SCLaplaceOperator(d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_U_star_bc_coefs, true);
         d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
         d_helmholtz_solver_needs_init = true;
-        d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(
-            d_object_name+"::Helmholtz Krylov Solver", helmholtz_prefix);
+        d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::Helmholtz Krylov Solver", helmholtz_prefix);
         d_helmholtz_solver->setInitialGuessNonzero(false);
         d_helmholtz_solver->setOperator(d_helmholtz_op);
 
@@ -780,8 +778,18 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         }
         else
         {
-            // intentionally blank --- but at some point we will need a
-            // side-centered FAC solver.
+            if (d_helmholtz_fac_pc_db.isNull())
+            {
+                TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
+                             "  helmholtz fac pc solver database is null." << std::endl);
+            }
+            d_helmholtz_fac_op = new IBTK::SCPoissonFACOperator(d_object_name+"::Helmholtz FAC Operator", d_helmholtz_fac_pc_db);
+            d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
+
+            d_helmholtz_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
+            d_helmholtz_fac_op->setPreconditioner(d_helmholtz_fac_pc);
+
+            d_helmholtz_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_helmholtz_fac_pc_db));
         }
 
         // Set some default options.
@@ -795,6 +803,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz_spec = NULL;
         d_helmholtz_op = NULL;
         d_helmholtz_hypre_pc = NULL;
+        d_helmholtz_fac_op = NULL;
+        d_helmholtz_fac_pc = NULL;
         d_helmholtz_solver = NULL;
     }
 
@@ -806,13 +816,11 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
         // Setup the various solver components.
         d_poisson_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::poisson_spec");
-        d_poisson_op = new IBTK::CCLaplaceOperator(
-            d_object_name+"::Poisson Operator", *d_poisson_spec, d_U_star_bc_coefs, true);
+        d_poisson_op = new IBTK::CCLaplaceOperator(d_object_name+"::Poisson Operator", *d_poisson_spec, d_U_star_bc_coefs, true);
         d_poisson_op->setHierarchyMathOps(d_hier_math_ops);
 
         d_poisson_solver_needs_init = true;
-        d_poisson_solver = new IBTK::PETScKrylovLinearSolver(
-            d_object_name+"::Poisson Krylov Solver", poisson_prefix);
+        d_poisson_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::Poisson Krylov Solver", poisson_prefix);
         d_poisson_solver->setInitialGuessNonzero(false);
         d_poisson_solver->setOperator(d_poisson_op);
 
@@ -823,8 +831,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
                              "  poisson hypre pc solver database is null." << std::endl);
             }
-            d_poisson_hypre_pc = new IBTK::CCPoissonHypreLevelSolver(
-                d_object_name+"::Poisson Preconditioner", d_poisson_hypre_pc_db);
+            d_poisson_hypre_pc = new IBTK::CCPoissonHypreLevelSolver(d_object_name+"::Poisson Preconditioner", d_poisson_hypre_pc_db);
             d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
 
             d_poisson_solver->setPreconditioner(d_poisson_hypre_pc);
@@ -836,12 +843,10 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
                              "  poisson fac pc solver database is null." << std::endl);
             }
-            d_poisson_fac_op = new IBTK::CCPoissonFACOperator(
-                d_object_name+"::Poisson FAC Operator", d_poisson_fac_pc_db);
+            d_poisson_fac_op = new IBTK::CCPoissonFACOperator(d_object_name+"::Poisson FAC Operator", d_poisson_fac_pc_db);
             d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
 
-            d_poisson_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(
-                d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
+            d_poisson_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
             d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
 
             d_poisson_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_poisson_fac_pc, d_poisson_fac_pc_db));
@@ -875,21 +880,13 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         if (stokes_pc_shell_type == "projection")
         {
             d_projection_pc_needs_init = true;
-            d_projection_pc = new INSStaggeredProjectionPreconditioner(
-                *d_problem_coefs,
-                d_Phi_bc_coef, d_normalize_pressure,
-                d_helmholtz_solver, d_poisson_solver,
-                d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
+            d_projection_pc = new INSStaggeredProjectionPreconditioner(*d_problem_coefs, d_Phi_bc_coef, d_normalize_pressure, d_helmholtz_solver, d_poisson_solver, d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
             d_stokes_solver->setPreconditioner(d_projection_pc);
         }
         else if (stokes_pc_shell_type == "block_factorization")
         {
             d_block_pc_needs_init = true;
-            d_block_pc = new INSStaggeredBlockFactorizationPreconditioner(
-                *d_problem_coefs,
-                d_Phi_bc_coef, d_normalize_pressure,
-                d_helmholtz_solver, d_poisson_solver,
-                d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
+            d_block_pc = new INSStaggeredBlockFactorizationPreconditioner(*d_problem_coefs, d_Phi_bc_coef, d_normalize_pressure, d_helmholtz_solver, d_poisson_solver, d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
             d_stokes_solver->setPreconditioner(d_block_pc);
         }
     }
@@ -908,12 +905,10 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         }
 
         d_regrid_projection_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::regrid_projection_spec");
-        d_regrid_projection_op = new IBTK::CCLaplaceOperator(
-            d_object_name+"::Regrid Projection Poisson Operator", *d_regrid_projection_spec, &d_regrid_projection_bc_coef, true);
+        d_regrid_projection_op = new IBTK::CCLaplaceOperator(d_object_name+"::Regrid Projection Poisson Operator", *d_regrid_projection_spec, &d_regrid_projection_bc_coef, true);
         d_regrid_projection_op->setHierarchyMathOps(d_hier_math_ops);
 
-        d_regrid_projection_solver = new IBTK::PETScKrylovLinearSolver(
-            d_object_name+"::Regrid Projection Poisson Krylov Solver", regrid_projection_prefix);
+        d_regrid_projection_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::Regrid Projection Poisson Krylov Solver", regrid_projection_prefix);
         d_regrid_projection_solver->setInitialGuessNonzero(false);
         d_regrid_projection_solver->setOperator(d_regrid_projection_op);
 
@@ -924,12 +919,10 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
             TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
                          "  regrid projection poisson fac pc solver database is null." << std::endl);
         }
-        d_regrid_projection_fac_op = new IBTK::CCPoissonFACOperator(
-            d_object_name+"::Regrid Projection Poisson FAC Operator", d_regrid_projection_fac_pc_db);
+        d_regrid_projection_fac_op = new IBTK::CCPoissonFACOperator(d_object_name+"::Regrid Projection Poisson FAC Operator", d_regrid_projection_fac_pc_db);
         d_regrid_projection_fac_op->setPoissonSpecifications(*d_regrid_projection_spec);
 
-        d_regrid_projection_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(
-            d_object_name+"::Regrid Projection Poisson Preconditioner", *d_regrid_projection_fac_op, d_regrid_projection_fac_pc_db);
+        d_regrid_projection_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(d_object_name+"::Regrid Projection Poisson Preconditioner", *d_regrid_projection_fac_op, d_regrid_projection_fac_pc_db);
         d_regrid_projection_fac_op->setPreconditioner(d_regrid_projection_fac_pc);
 
         d_regrid_projection_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_regrid_projection_fac_pc, d_regrid_projection_fac_pc_db));
@@ -2670,10 +2663,12 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
             d_helmholtz_hypre_pc->setHomogeneousBc(true);
             d_helmholtz_hypre_pc->setTime(new_time);
         }
-        else
+        else if (!d_helmholtz_fac_op.isNull())
         {
-            // intentionally blank --- but at some point we will need a
-            // side-centered FAC solver.
+            d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
+            d_helmholtz_fac_op->setPhysicalBcCoefs(d_U_star_bc_coefs);
+            d_helmholtz_fac_op->setHomogeneousBc(true);
+            d_helmholtz_fac_op->setTime(new_time);
         }
 
         d_helmholtz_solver->setInitialGuessNonzero(false);
@@ -2931,6 +2926,7 @@ INSStaggeredHierarchyIntegrator::getFromInput(
         "dt_max_time_min", d_dt_max_time_min);
 
     d_helmholtz_hypre_pc_db       = db->isDatabase("HelmholtzHypreSolver") ? db->getDatabase("HelmholtzHypreSolver") : SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL);
+    d_helmholtz_fac_pc_db         = db->isDatabase("HelmholtzFACSolver"  ) ? db->getDatabase("HelmholtzFACSolver"  ) : SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL);
     d_poisson_hypre_pc_db         = db->isDatabase("PoissonHypreSolver"  ) ? db->getDatabase("PoissonHypreSolver"  ) : SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL);
     d_poisson_fac_pc_db           = db->isDatabase("PoissonFACSolver"    ) ? db->getDatabase("PoissonFACSolver"    ) : SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL);
     d_regrid_projection_fac_pc_db = db->isDatabase("PoissonFACSolver"    ) ? db->getDatabase("PoissonFACSolver"    ) : SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL);

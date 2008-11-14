@@ -2,12 +2,12 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <11.Nov.2008 10:47:14 griffith@box230.cims.nyu.edu>
+// Last modified: <13.Nov.2008 17:31:47 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
+// PETSc INCLUDES
 #include <petsc.h>
 
 // IBAMR INCLUDES

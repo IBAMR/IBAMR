@@ -2,12 +2,12 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <21.Aug.2008 17:51:10 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <13.Nov.2008 17:31:51 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
+// PETSc INCLUDES
 #include <petscsnes.h>
 
 // IBAMR INCLUDES

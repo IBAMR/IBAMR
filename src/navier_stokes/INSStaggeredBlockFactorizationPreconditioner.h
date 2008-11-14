@@ -2,13 +2,12 @@
 #define included_INSStaggeredBlockFactorizationPreconditioner
 
 // Filename: INSStaggeredBlockFactorizationPreconditioner.h
-// Last modified: <22.Sep.2008 18:52:36 griffith@box230.cims.nyu.edu>
+// Last modified: <13.Nov.2008 15:09:02 griffith@box230.cims.nyu.edu>
 // Created on 22 Sep 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/HierarchyProjector.h>
 #include <ibamr/INSCoefs.h>
 
 // IBTK INCLUDES

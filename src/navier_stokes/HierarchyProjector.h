@@ -2,12 +2,12 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <18.Jul.2008 12:56:07 griffith@box230.cims.nyu.edu>
+// Last modified: <13.Nov.2008 17:32:17 griffith@box230.cims.nyu.edu>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
+// PETSc INCLUDES
 #include <petsc.h>
 
 // IBAMR INCLUDES
