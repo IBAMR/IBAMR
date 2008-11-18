@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <18.Nov.2008 13:45:20 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Nov.2008 14:31:48 griffith@box230.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -1495,6 +1495,7 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
         // Open the datasets.
         const std::string node_idx_dset_name  = target_point_group_name + "/node_idx" ;
         const std::string stiffness_dset_name = target_point_group_name + "/stiffness";
+        const std::string damping_dset_name   = target_point_group_name + "/damping";
 
         hid_t node_idx_dset = H5Dopen(file_id, node_idx_dset_name.c_str());
         if (node_idx_dset < 0)
@@ -1504,6 +1505,12 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
 
         hid_t stiffness_dset = H5Dopen(file_id, stiffness_dset_name.c_str());
         if (stiffness_dset < 0)
+        {
+            TBOX_ERROR(d_object_name << ":\n  Cannot find required target point dataset in input file " << filename << "\n");
+        }
+
+        hid_t damping_dset = H5Dopen(file_id, damping_dset_name.c_str());
+        if (damping_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required target point dataset in input file " << filename << "\n");
         }
@@ -1538,7 +1545,20 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
         }
         const int stiffness_size = dims[0];
 
-        if (node_idx_size != stiffness_size)
+        H5LTget_dataset_ndims(file_id, damping_dset_name.c_str(), &rank);
+        if (rank != 1)
+        {
+            TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset rank in input file " << filename << "\n");
+        }
+        H5LTget_dataset_info(file_id, damping_dset_name.c_str(), dims, &class_id, &type_size);
+        if (dims[0] <= 0)
+        {
+            TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset dimension in input file " << filename << "\n");
+        }
+        const int damping_size = dims[0];
+
+        if ((node_idx_size != stiffness_size) ||
+            (node_idx_size != damping_size  ) )
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset dimension in input file " << filename << "\n");
         }
@@ -1557,7 +1577,7 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
 
         // Read in the target point data one block at a time.
         std::vector<int> node_idx_buf(BUFFER_SIZE);
-        std::vector<double> stiffness_buf(BUFFER_SIZE);
+        std::vector<double> stiffness_buf(BUFFER_SIZE), damping_buf(BUFFER_SIZE);
         const int num_blocks = num_target_point/BUFFER_SIZE + (num_target_point%BUFFER_SIZE == 0 ? 0 : 1);
         for (int block = 0; block < num_blocks; ++block)
         {
@@ -1582,13 +1602,14 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
             // Read data from hyperslab in the file into the hyperslab in memory.
             H5Dread(node_idx_dset , H5T_NATIVE_INT   , memspace, filespace, H5P_DEFAULT, &node_idx_buf [0]);
             H5Dread(stiffness_dset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &stiffness_buf[0]);
+            H5Dread(damping_dset  , H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &damping_buf  [0]);
 
             // Setup data for all local target_points in the hyperslab.
             for (int k = 0; k < num_target_point_block; ++k)
             {
                 const int& node_idx = node_idx_buf[k];
                 const double& stiffness = stiffness_buf[k];
-                const double& damping = 0.0;  // XXXX
+                const double& damping = damping_buf[k];
                 if (local_vertex_idx_set.find(node_idx) != local_vertex_idx_set.end())
                 {
                     ++num_local_target_point;
@@ -1617,6 +1638,7 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
         H5Sclose(memspace);
         H5Dclose(node_idx_dset);
         H5Dclose(stiffness_dset);
+        H5Dclose(damping_dset);
     }
     else
     {

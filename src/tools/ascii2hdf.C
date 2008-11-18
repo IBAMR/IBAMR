@@ -1,5 +1,5 @@
 // Filename: ascii2hdf.C
-// Last modified: <18.Nov.2008 13:28:06 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Nov.2008 14:34:51 griffith@box230.cims.nyu.edu>
 // Created on 30 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -801,10 +801,13 @@ initializeTargetPointData(
     const string target_point_stiffness_dset_name = "/" + base_filename + "/target_point/stiffness";
     hid_t stiffness_dataset = H5Dcreate(file_id, target_point_stiffness_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
 
+    const string target_point_damping_dset_name = "/" + base_filename + "/target_point/damping";
+    hid_t damping_dataset = H5Dcreate(file_id, target_point_damping_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
+
     // Each successive line indicates the vertex number and penalty spring
     // constant associated with any target points.
     vector<int> node_idx_buf(BUFFER_SIZE);
-    vector<double> stiffness_buf(BUFFER_SIZE);
+    vector<double> stiffness_buf(BUFFER_SIZE), damping_buf(BUFFER_SIZE);
     const int num_blocks = num_target_point/BUFFER_SIZE + (num_target_point%BUFFER_SIZE == 0 ? 0 : 1);
     for (int k = 0, block = 0; k < num_target_point; ++k)
     {
@@ -815,7 +818,7 @@ initializeTargetPointData(
         }
 
         int node_idx;
-        double stiffness;
+        double stiffness, damping;
         if (!getline(file_stream, line_string))
         {
             cerr << "error: premature end to input file encountered before line " << k+2 << " of file " << target_point_filename << "\n";
@@ -849,9 +852,21 @@ initializeTargetPointData(
                 abort();
             }
 
+            if (!(line_stream >> damping))
+            {
+                damping = 0.0;
+            }
+            else if (damping < 0.0)
+            {
+                cerr << "error: invalid entry in input file encountered on line " << k+2 << " of file " << target_point_filename << "\n"
+                     << "       target point damping coefficient is negative\n";
+                abort();
+            }
+
             // Store the values in the buffers.
             node_idx_buf [k%BUFFER_SIZE] = node_idx;
             stiffness_buf[k%BUFFER_SIZE] = stiffness;
+            damping_buf  [k%BUFFER_SIZE] = damping;
 
             // Write out data as the buffer fills up.
             if ((k+1)%BUFFER_SIZE == 0 || k+1 == num_target_point)
@@ -882,6 +897,7 @@ initializeTargetPointData(
                 // in memory.
                 H5Dwrite(node_idx_dataset , H5T_NATIVE_INT   , memspace, filespace, H5P_DEFAULT, &node_idx_buf [0]);
                 H5Dwrite(stiffness_dataset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &stiffness_buf[0]);
+                H5Dwrite(damping_dataset  , H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &damping_buf  [0]);
 
                 // Increment the block counter.
                 ++block;
@@ -898,6 +914,7 @@ initializeTargetPointData(
     H5Pclose(plist);
     H5Dclose(node_idx_dataset);
     H5Dclose(stiffness_dataset);
+    H5Dclose(damping_dataset);
     H5Sclose(filespace);
     H5Sclose(memspace);
     H5Gclose(target_point_group_id);
