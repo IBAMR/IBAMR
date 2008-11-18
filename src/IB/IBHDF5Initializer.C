@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <18.Nov.2008 14:31:48 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Nov.2008 15:28:16 griffith@box230.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -1443,7 +1443,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                     rest_curvatures.push_back(rest_curvature                     );
 
                     SAMRAI::tbox::Pointer<IBBeamForceSpec> new_beam_data = new IBBeamForceSpec(
-                        node1_idx, neighbor_idxs, bend_rigidities, rest_curvatures);
+                        node2_idx, neighbor_idxs, bend_rigidities, rest_curvatures);
 
                     (*it).second = new_beam_data;
                 }
