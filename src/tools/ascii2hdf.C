@@ -1,5 +1,5 @@
 // Filename: ascii2hdf.C
-// Last modified: <03.Oct.2007 01:29:05 griffith@box221.cims.nyu.edu>
+// Last modified: <18.Nov.2008 13:28:06 griffith@box230.cims.nyu.edu>
 // Created on 30 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -557,10 +557,20 @@ initializeBeamData(
     const string beam_bend_rigidity_dset_name = "/" + base_filename + "/beam/bend_rigidity";
     hid_t bend_rigidity_dataset = H5Dcreate(file_id, beam_bend_rigidity_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
 
+    hid_t rest_curvature_dataset[NDIM];
+    for (int d = 0; d < NDIM; ++d)
+    {
+        ostringstream os;
+        os << "_" << d;
+        const string beam_rest_curvature_dset_name = "/" + base_filename + "/beam/rest_curvature" + os.str();
+        rest_curvature_dataset[d] = H5Dcreate(file_id, beam_rest_curvature_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
+    }
+
     // Each successive line provides the connectivity and material parameter
     // information for each beam in the structure.
     vector<int> node1_idx_buf(BUFFER_SIZE), node2_idx_buf(BUFFER_SIZE), node3_idx_buf(BUFFER_SIZE);
     vector<double> bend_rigidity_buf(BUFFER_SIZE);
+    vector<vector<double> > rest_curvature_buf(NDIM,vector<double>(BUFFER_SIZE));
     const int num_blocks = num_beam/BUFFER_SIZE + (num_beam%BUFFER_SIZE == 0 ? 0 : 1);
     for (int k = 0, block = 0; k < num_beam; ++k)
     {
@@ -572,6 +582,7 @@ initializeBeamData(
 
         int node1_idx, node2_idx, node3_idx;
         double bend_rigidity;
+        double rest_curvature[NDIM];
         if (!getline(file_stream, line_string))
         {
             cerr << "error: premature end to input file encountered before line " << k+2 << " of file " << beam_filename << "\n";
@@ -629,11 +640,32 @@ initializeBeamData(
                 abort();
             }
 
+            for (int d = 0; d < NDIM; ++d)
+            {
+                if (!(line_stream >> rest_curvature[d]) && d > 0)
+                {
+                    cerr << "error: invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << "\n";
+                    abort();
+                }
+                else
+                {
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        rest_curvature[d] = 0.0;
+                    }
+                    break;
+                }
+            }
+
             // Store the values in the buffers.
             node1_idx_buf    [k%BUFFER_SIZE] = node1_idx;
             node2_idx_buf    [k%BUFFER_SIZE] = node2_idx;
             node3_idx_buf    [k%BUFFER_SIZE] = node3_idx;
             bend_rigidity_buf[k%BUFFER_SIZE] = bend_rigidity;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                rest_curvature_buf[d][k%BUFFER_SIZE] = rest_curvature[d];
+            }
 
             // Write out data as the buffer fills up.
             if ((k+1)%BUFFER_SIZE == 0 || k+1 == num_beam)
@@ -666,6 +698,10 @@ initializeBeamData(
                 H5Dwrite(node2_idx_dataset    , H5T_NATIVE_INT   , memspace, filespace, H5P_DEFAULT, &node2_idx_buf    [0]);
                 H5Dwrite(node3_idx_dataset    , H5T_NATIVE_INT   , memspace, filespace, H5P_DEFAULT, &node3_idx_buf    [0]);
                 H5Dwrite(bend_rigidity_dataset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &bend_rigidity_buf[0]);
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    H5Dwrite(rest_curvature_dataset[d], H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &rest_curvature_buf[d][0]);
+                }
 
                 // Increment the block counter.
                 ++block;
@@ -684,6 +720,10 @@ initializeBeamData(
     H5Dclose(node2_idx_dataset);
     H5Dclose(node3_idx_dataset);
     H5Dclose(bend_rigidity_dataset);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        H5Dclose(rest_curvature_dataset[d]);
+    }
     H5Sclose(filespace);
     H5Sclose(memspace);
     H5Gclose(beam_group_id);

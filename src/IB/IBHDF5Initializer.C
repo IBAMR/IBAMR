@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <30.Jul.2008 17:33:33 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Nov.2008 13:45:20 griffith@box230.cims.nyu.edu>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -1108,8 +1108,8 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
         hid_t memspace = H5Screate_simple(rankm, dimsm, NULL);
 
         // Read in the spring data one block at a time.
-        std::vector<int> node1_idx_buf(NDIM*BUFFER_SIZE), node2_idx_buf(NDIM*BUFFER_SIZE), force_fcn_idx_buf(NDIM*BUFFER_SIZE);
-        std::vector<double> stiffness_buf(NDIM*BUFFER_SIZE), rest_length_buf(NDIM*BUFFER_SIZE);
+        std::vector<int> node1_idx_buf(BUFFER_SIZE), node2_idx_buf(BUFFER_SIZE), force_fcn_idx_buf(BUFFER_SIZE);
+        std::vector<double> stiffness_buf(BUFFER_SIZE), rest_length_buf(BUFFER_SIZE);
         const int num_blocks = num_spring/BUFFER_SIZE + (num_spring%BUFFER_SIZE == 0 ? 0 : 1);
         for (int block = 0; block < num_blocks; ++block)
         {
@@ -1229,6 +1229,13 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         const std::string node2_idx_dset_name     = beam_group_name + "/node2_idx"    ;
         const std::string node3_idx_dset_name     = beam_group_name + "/node3_idx"    ;
         const std::string bend_rigidity_dset_name = beam_group_name + "/bend_rigidity";
+        std::string rest_curvature_dset_name[NDIM];
+        for (int d = 0; d < NDIM; ++d)
+        {
+            std::ostringstream os;
+            os << "_" << d;
+            rest_curvature_dset_name[d] = beam_group_name + "/rest_curvature" + os.str();
+        }
 
         hid_t node1_idx_dset = H5Dopen(file_id, node1_idx_dset_name.c_str());
         if (node1_idx_dset < 0)
@@ -1252,6 +1259,16 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         if (bend_rigidity_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << "\n");
+        }
+
+        hid_t rest_curvature_dset[NDIM];
+        for (int d = 0; d < NDIM; ++d)
+        {
+            rest_curvature_dset[d] = H5Dopen(file_id, rest_curvature_dset_name[d].c_str());
+            if (rest_curvature_dset < 0)
+            {
+                TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << "\n");
+            }
         }
 
         // Read in the dimensions of the datasets.
@@ -1308,11 +1325,34 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         }
         const int bend_rigidity_size = dims[0];
 
+        int rest_curvature_size[NDIM];
+        for (int d = 0; d < NDIM; ++d)
+        {
+            H5LTget_dataset_ndims(file_id, rest_curvature_dset_name[d].c_str(), &rank);
+            if (rank != 1)
+            {
+                TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset rank in input file " << filename << "\n");
+            }
+            H5LTget_dataset_info(file_id, rest_curvature_dset_name[d].c_str(), dims, &class_id, &type_size);
+            if (dims[0] <= 0)
+            {
+                TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
+            }
+            rest_curvature_size[d] = dims[0];
+        }
+
         if ((node1_idx_size != node2_idx_size    ) ||
             (node1_idx_size != node3_idx_size    ) ||
             (node1_idx_size != bend_rigidity_size))
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
+        }
+        for (int d = 0; d < NDIM; ++d)
+        {
+            if (node1_idx_size != rest_curvature_size[d])
+            {
+                TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
+            }
         }
 
         num_beam = node1_idx_size;
@@ -1328,8 +1368,9 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         hid_t memspace = H5Screate_simple(rankm, dimsm, NULL);
 
         // Read in the beam data one block at a time.
-        std::vector<int> node1_idx_buf(NDIM*BUFFER_SIZE), node2_idx_buf(NDIM*BUFFER_SIZE), node3_idx_buf(NDIM*BUFFER_SIZE);
-        std::vector<double> bend_rigidity_buf(NDIM*BUFFER_SIZE);
+        std::vector<int> node1_idx_buf(BUFFER_SIZE), node2_idx_buf(BUFFER_SIZE), node3_idx_buf(BUFFER_SIZE);
+        std::vector<double> bend_rigidity_buf(BUFFER_SIZE);
+        std::vector<std::vector<double> > rest_curvature_buf(NDIM,std::vector<double>(BUFFER_SIZE));
         const int num_blocks = num_beam/BUFFER_SIZE + (num_beam%BUFFER_SIZE == 0 ? 0 : 1);
         for (int block = 0; block < num_blocks; ++block)
         {
@@ -1356,6 +1397,10 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
             H5Dread(node2_idx_dset    , H5T_NATIVE_INT   , memspace, filespace, H5P_DEFAULT, &node2_idx_buf    [0]);
             H5Dread(node3_idx_dset    , H5T_NATIVE_INT   , memspace, filespace, H5P_DEFAULT, &node3_idx_buf    [0]);
             H5Dread(bend_rigidity_dset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &bend_rigidity_buf[0]);
+            for (int d = 0; d < NDIM; ++d)
+            {
+                H5Dread(rest_curvature_dset[d], H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &rest_curvature_buf[d][0]);
+            }
 
             // Setup data for all local beams in the hyperslab.
             //
@@ -1370,6 +1415,11 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                 const int& node2_idx = node2_idx_buf[k];
                 const int& node3_idx = node3_idx_buf[k];
                 const double& bend_rigidity = bend_rigidity_buf[k];
+                std::vector<double> rest_curvature(NDIM);
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    rest_curvature[d] = rest_curvature_buf[d][k];
+                }
                 if (local_vertex_idx_set.find(node2_idx) != local_vertex_idx_set.end())
                 {
                     ++num_local_beam;
@@ -1384,14 +1434,16 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                     TBOX_ASSERT(old_beam_data->getMasterNodeIndex() == -1 ||
                                 old_beam_data->getMasterNodeIndex() == node2_idx);
 
-                    std::vector<std::pair<int,int> >& neighbor_idxs   = old_beam_data->getNeighborNodeIndices();
-                    std::vector<double>&              bend_rigidities = old_beam_data->getBendingRigidities();
+                    std::vector<std::pair<int,int> >&  neighbor_idxs   = old_beam_data->getNeighborNodeIndices();
+                    std::vector<double>&               bend_rigidities = old_beam_data->getBendingRigidities();
+                    std::vector<std::vector<double> >& rest_curvatures = old_beam_data->getMeshDependentCurvatures();
 
                     neighbor_idxs  .push_back(std::make_pair(node1_idx,node3_idx));
                     bend_rigidities.push_back(bend_rigidity                      );
+                    rest_curvatures.push_back(rest_curvature                     );
 
                     SAMRAI::tbox::Pointer<IBBeamForceSpec> new_beam_data = new IBBeamForceSpec(
-                        node1_idx, neighbor_idxs, bend_rigidities);
+                        node1_idx, neighbor_idxs, bend_rigidities, rest_curvatures);
 
                     (*it).second = new_beam_data;
                 }
@@ -1405,6 +1457,10 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         H5Dclose(node2_idx_dset);
         H5Dclose(node3_idx_dset);
         H5Dclose(bend_rigidity_dset);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            H5Dclose(rest_curvature_dset[d]);
+        }
     }
     else
     {
@@ -1500,8 +1556,8 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
         hid_t memspace = H5Screate_simple(rankm, dimsm, NULL);
 
         // Read in the target point data one block at a time.
-        std::vector<int> node_idx_buf(NDIM*BUFFER_SIZE);
-        std::vector<double> stiffness_buf(NDIM*BUFFER_SIZE);
+        std::vector<int> node_idx_buf(BUFFER_SIZE);
+        std::vector<double> stiffness_buf(BUFFER_SIZE);
         const int num_blocks = num_target_point/BUFFER_SIZE + (num_target_point%BUFFER_SIZE == 0 ? 0 : 1);
         for (int block = 0; block < num_blocks; ++block)
         {
@@ -1701,7 +1757,7 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
         hid_t memspace = H5Screate_simple(rankm, dimsm, NULL);
 
         // Read in the instrumentation data one block at a time.
-        std::vector<int> node_idx_buf(NDIM*BUFFER_SIZE), meter_idx_buf(NDIM*BUFFER_SIZE), meter_node_idx_buf(NDIM*BUFFER_SIZE);
+        std::vector<int> node_idx_buf(BUFFER_SIZE), meter_idx_buf(BUFFER_SIZE), meter_node_idx_buf(BUFFER_SIZE);
         const int num_blocks = num_inst_point/BUFFER_SIZE + (num_inst_point%BUFFER_SIZE == 0 ? 0 : 1);
         for (int block = 0; block < num_blocks; ++block)
         {

@@ -53,7 +53,7 @@ INSStaggeredHierarchyIntegrator {
       max_cycles = 1
       residual_tol = 1.0e-12
       num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 0
+      num_post_sweeps = 2
 
       fac_max_cycles = 1
       fac_uses_presmoothing = FALSE
@@ -64,19 +64,11 @@ INSStaggeredHierarchyIntegrator {
 
       ssor_iterations = 1
 
-      coarse_solver_choice = "hypre"
-      coarse_solver_tolerance = 1.0e-2
-      coarse_solver_max_iterations = 100
+      coarse_solver_choice = "block_jacobi"
+      coarse_solver_tolerance = 1.0e-30
+      coarse_solver_max_iterations = 2
       prolongation_method = "CONSTANT_REFINE"
       cf_discretization   = "CONSTANT_REFINE"
-
-      hypre_solver {
-         solver_type           = "Split"
-         split_solver_type     = "Jacobi"
-         relative_residual_tol = 1.0e-2
-         max_iterations        = 100
-         enable_logging        = FALSE
-      }
    }
 
    PoissonHypreSolver {
