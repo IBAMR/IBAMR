@@ -1,5 +1,5 @@
 // Filename: ascii2hdf.C
-// Last modified: <18.Nov.2008 14:34:51 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Nov.2008 18:58:01 griffith@box230.cims.nyu.edu>
 // Created on 30 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -642,18 +642,21 @@ initializeBeamData(
 
             for (int d = 0; d < NDIM; ++d)
             {
-                if (!(line_stream >> rest_curvature[d]) && d > 0)
+                if (!(line_stream >> rest_curvature[d]))
                 {
-                    cerr << "error: invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << "\n";
-                    abort();
-                }
-                else
-                {
-                    for (int d = 0; d < NDIM; ++d)
+                    if (d > 0)
                     {
-                        rest_curvature[d] = 0.0;
+                        cerr << "error: invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << "\n";
+                        abort();
                     }
-                    break;
+                    else
+                    {
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            rest_curvature[d] = 0.0;
+                        }
+                        break;
+                    }
                 }
             }
 

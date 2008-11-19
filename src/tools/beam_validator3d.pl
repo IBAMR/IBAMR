@@ -23,12 +23,13 @@ if ($#ARGV != 0) {
 # displacement equals the resting length.
 $check_for_consistent_curvatures = 1;  # 1 = enabled; 0 = disabled
 $mach_eps = 2.22044604925031e-16;
-$tol = sqrt($mach_eps);
+$rel_tol = sqrt($mach_eps);
+$abs_tol = 20*$mach_eps;
 
 print "\n";
 if ($check_for_consistent_curvatures) {
     print "checks for consistent beam curvatures are ENABLED!\n";
-    print "warning messages WILL be printed if the initial curvatures and specified curvatures differ by more than a relative error tolerance of $tol.\n";
+    print "warning messages WILL be printed if the initial curvatures and specified curvatures differ by more than a relative error tolerance of $rel_tol or an absolute error tolerance of $abs_tol.\n";
 } else {
     print "checks for consistent beam rest lengths are DISABLED!\n";
     print "warning messages WILL NOT be printed if the initial curvatures and specified curvatures differ.\n";
@@ -142,25 +143,31 @@ while (<BEAM_IN>) {
 	$Ly_actual = $y[$idx0] - 2.0*$y[$idx1] + $y[$idx2];
 	$Lz_actual = $z[$idx0] - 2.0*$z[$idx1] + $z[$idx2];
 
-	if (abs($Lx_actual - $Lx)/max(abs($Lx_actual),abs($Lx),$mach_eps) > $tol &&
-	    abs($Lx_actual - $Lx) > $mach_eps) {
+	$diff = $Lx_actual - $Lx;
+	if (abs($diff)/max(abs($Lx_actual),abs($Lx),$mach_eps) > $rel_tol && abs($diff) > $abs_tol) {
 	    print "WARNING: x curvature on line $line_number in beam file $input_filename.beam is different from x curvature in vertex file $input_filename.vertex\n";
 	    print "         x curvature in beam file $input_filename.beam: $Lx\n";
 	    print "         initial x curvature in vertex file $input_filename.vertex: $Lx_actual\n";
+	    print "         difference: $diff\n";
+	    print "\n";
 	}
 
-	if (abs($Ly_actual - $Ly)/max(abs($Ly_actual),abs($Ly),$mach_eps) > $tol &&
-	    abs($Ly_actual - $Ly) > $mach_eps) {
+	$diff = $Ly_actual - $Ly;
+	if (abs($diff)/max(abs($Ly_actual),abs($Ly),$mach_eps) > $rel_tol && abs($diff) > $abs_tol) {
 	    print "WARNING: y curvature on line $line_number in beam file $input_filename.beam is different from y curvature in vertex file $input_filename.vertex\n";
 	    print "         y curvature in beam file $input_filename.beam: $Ly\n";
 	    print "         initial y curvature in vertex file $input_filename.vertex: $Ly_actual\n";
+	    print "         difference: $diff\n";
+	    print "\n";
 	}
 
-	if (abs($Lz_actual - $Lz)/max(abs($Lz_actual),abs($Lz),$mach_eps) > $tol &&
-	    abs($Lz_actual - $Lz) > $mach_eps) {
+	$diff = $Lz_actual - $Lz;
+	if (abs($diff)/max(abs($Lz_actual),abs($Lz),$mach_eps) > $rel_tol && abs($diff) > $abs_tol) {
 	    print "WARNING: z curvature on line $line_number in beam file $input_filename.beam is different from z curvature in vertex file $input_filename.vertex\n";
 	    print "         z curvature in beam file $input_filename.beam: $Lz\n";
 	    print "         initial z curvature in vertex file $input_filename.vertex: $Lz_actual\n";
+	    print "         difference: $diff\n";
+	    print "\n";
 	}
     }
 

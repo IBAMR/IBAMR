@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <03.Sep.2008 17:39:06 griffith@box230.cims.nyu.edu>
+// Last modified: <18.Nov.2008 17:18:24 griffith@box230.cims.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -195,6 +195,7 @@ IBBeamForceGen::initializeLevelData(
 #ifdef DEBUG_CHECK_ASSERTIONS
                         TBOX_ASSERT(num_beams == nghbrs.size());
                         TBOX_ASSERT(num_beams == bend.size());
+                        TBOX_ASSERT(num_beams == curv.size());
 #endif
                         for (unsigned k = 0; k < num_beams; ++k)
                         {
