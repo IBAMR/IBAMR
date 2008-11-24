@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <13.Nov.2008 17:31:51 griffith@box230.cims.nyu.edu>
+// Last modified: <20.Nov.2008 16:37:56 griffith@box230.cims.nyu.edu>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -861,6 +861,7 @@ private:
      */
     void
     getFromRestart();
+
     /*
      * The object name is used as a handle to databases stored in restart files
      * and for error reporting purposes.  The boolean is used to control restart

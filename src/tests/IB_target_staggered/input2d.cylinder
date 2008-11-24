@@ -3,15 +3,15 @@ PI = 3.14159265358979e+0
 
 // physical parameters
 R = 0.5             // the cylinder radius
-Re = 100.0          // the desired Reynolds number (Re)
+Re = 200.0          // the desired Reynolds number (Re)
 MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
+MAX_LEVELS = 4   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 32                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 16.0                                  // width of computational domain
 
@@ -54,64 +54,43 @@ VelocityBcCoefs_1 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "cos(pi*X_1/16.0)*exp(-2.0*t)"
+   gcoef_function_0 = "0.0" // "cos(pi*X_1/16.0)*exp(-2.0*t)"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
 }
 
-PressureInitialConditions {
-   function = "0.0"
-}
-
 IBStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 2.0 // 300.0e0  // final simulation time
+   end_time              = 300.0e0  // final simulation time
    grow_dt               = 1.25e0   // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
-   regrid_interval       = 1
+   regrid_interval       = 16
+   dt_max = 0.125*dx
 
-   use_exact_jacobian = FALSE
-
-   delta_fcn = "IB_6"
+   num_cycles = 3
+   delta_fcn = "IB_4"
 
    mu  = MU
    rho = RHO
-
-   normalize_pressure = FALSE
-   conservation_form = FALSE
-
-   tag_buffer = 3
-   using_vorticity_tagging = TRUE
-   vorticity_rel_thresh = 0.25
-
-   cfl = 0.9
-   dt_max = 0.125*dx
-   dt_max_time_max = 1.0
-
-   output_u = TRUE
-   output_p = TRUE
-   output_f = TRUE
-   output_omega = TRUE
-   output_div_u = TRUE
 
    enable_logging = TRUE
 }
 
 C_IB_4 = 3.0/8.0                         // corresponds to IB_4 delta function
 C_IB_6 = 67.0/128.0                      // corresponds to IB_6 delta function
-C = C_IB_6
+C = C_IB_4
 
 M_s = RHO/((C/dx)^2)                     // effective particle mass
-tau_s = 0.0625*dx                        // decay half-life  for critically damped Kelvin-Voigt element
+tau_s = 0.5*dx                           // decay half-life  for critically damped Kelvin-Voigt element
 K_s = M_s*(log(0.5)/tau_s)^2             // spring  constant for critically damped Kelvin-Voigt element
 E_s = 2.0*sqrt(K_s*M_s)                  // damping constant for critically damped Kelvin-Voigt element
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
 
-   base_filenames_0 = "cylinder2d_128"   // corresponds to NFINEST = 128
-   cylinder2d_128 {
+   base_filenames_3 = "cylinder2d_256"
+   cylinder2d_256 {
       uniform_target_stiffness = K_s
       uniform_target_damping = E_s
    }
@@ -121,47 +100,103 @@ IBStandardForceGen {
    // intentionally blank
 }
 
-HierarchyProjector {
-   enable_logging = FALSE
+INSStaggeredHierarchyIntegrator {
+   enable_logging = TRUE
 
-   max_iterations = 25
-   abs_residual_tol = 0.0
-   rel_residual_tol = 1.0e-15
-   initial_guess_nonzero = FALSE
+   tag_buffer = 2
+   using_vorticity_tagging = TRUE
+   vorticity_abs_thresh = 0.0625 , 0.125 , 0.25 , 0.5
 
-   FACOp {
-      fac_max_cycles = 1
-      fac_uses_presmoothing = TRUE
-      fac_initial_guess_nonzero = FALSE
+   cfl = 0.2475
+   dt_max = 0.125*dx
 
-      skip_restrict_sol = FALSE
-      skip_restrict_residual = FALSE
+   output_U = TRUE
+   output_P = TRUE
+   output_F = FALSE
+   output_Omega = TRUE
+   output_Div_U = TRUE
 
-      ssor_iterations = 2
+   mu  = MU
+   rho = RHO
 
-      coarse_solver_choice = "hypre"
-      coarse_solver_tolerance = 1.0e-6
-      coarse_solver_max_iterations = 1
-      prolongation_method = "LINEAR_REFINE"
-      cf_discretization   = "Ewing"
+   normalize_pressure = FALSE
 
-      hypre_solver {
-         solver_type = "PFMG"
-         rap_type = 1
-         relax_type = 3
-         num_pre_relax_steps   = 0
-         num_post_relax_steps  = 3
-         max_iterations        = 1
-         relative_residual_tol = 1.0e-12
-         enable_logging = FALSE
-      }
+   HelmholtzHypreSolver {
+      solver_type           = "PCG"
+      precond_type          = "Split"
+      split_solver_type     = "Jacobi"
+      relative_residual_tol = 1.0e-2
+      max_iterations        = 100
+      enable_logging        = FALSE
    }
 
-   FACPreconditioner {
+   HelmholtzFACSolver {
       max_cycles = 1
       residual_tol = 1.0e-12
-      num_pre_sweeps  = 3  // this should always be 0
+      num_pre_sweeps  = 0  // this should always be 0
+      num_post_sweeps = 2
+
+      fac_max_cycles = 1
+      fac_uses_presmoothing = FALSE
+      fac_initial_guess_nonzero = FALSE
+
+      skip_restrict_sol = TRUE
+      skip_restrict_residual = FALSE
+
+      ssor_iterations = 1
+
+      coarse_solver_choice = "block_jacobi"
+      coarse_solver_tolerance = 1.0e-30
+      coarse_solver_max_iterations = 2
+      prolongation_method = "CONSTANT_REFINE"
+      cf_discretization   = "CONSTANT_REFINE"
+   }
+
+   PoissonHypreSolver {
+      solver_type           = "PCG"
+      precond_type          = "PFMG"
+      rap_type              = 0
+      relax_type            = 2
+      skip_relax            = 1
+      num_pre_relax_steps   = 1
+      num_post_relax_steps  = 1
+      relative_residual_tol = 1.0e-2
+      max_iterations        = 100
+      enable_logging        = FALSE
+   }
+
+   PoissonFACSolver {
+      max_cycles = 1
+      residual_tol = 1.0e-12
+      num_pre_sweeps  = 0  // this should always be 0
       num_post_sweeps = 3
+
+      fac_max_cycles = 1
+      fac_uses_presmoothing = FALSE
+      fac_initial_guess_nonzero = FALSE
+
+      skip_restrict_sol = TRUE
+      skip_restrict_residual = FALSE
+
+      ssor_iterations = 1
+
+      coarse_solver_choice = "hypre"
+      coarse_solver_tolerance = 1.0e-12
+      coarse_solver_max_iterations = 1
+      prolongation_method = "LINEAR_REFINE"
+      cf_discretization   = "LINEAR_REFINE"
+
+      hypre_solver {
+         solver_type           = "PFMG"
+         rap_type              = 0
+         relax_type            = 2
+         skip_relax            = 1
+         num_pre_relax_steps   = 0
+         num_post_relax_steps  = 3
+         relative_residual_tol = 1.0e-12
+         max_iterations        = 1
+         enable_logging        = FALSE
+      }
    }
 }
 
@@ -172,7 +207,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 1           // zero to turn off
+   viz_dump_interval     = NFINEST/2   // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 

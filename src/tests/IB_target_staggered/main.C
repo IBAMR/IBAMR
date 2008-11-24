@@ -308,13 +308,13 @@ main(
                 "PatchHierarchy",
                 grid_geometry);
 
-        tbox::Pointer<HierarchyProjector> hier_projector =
-            new HierarchyProjector(
-                "HierarchyProjector",
-                input_db->getDatabase("HierarchyProjector"),
+        tbox::Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator =
+            new INSStaggeredHierarchyIntegrator(
+                "INSStaggeredHierarchyIntegrator",
+                input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
                 patch_hierarchy);
 
-        tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
+       tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
         tbox::Pointer<IBBeamForceGen> beam_force_generator = new IBBeamForceGen();
         tbox::Pointer<IBTargetPointForceGen> target_point_force_generator = new IBTargetPointForceGen();
         tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen(
@@ -324,7 +324,7 @@ main(
             new IBStaggeredHierarchyIntegrator(
                 "IBStaggeredHierarchyIntegrator",
                 input_db->getDatabase("IBStaggeredHierarchyIntegrator"),
-                patch_hierarchy, hier_projector, force_generator);
+                patch_hierarchy, navier_stokes_integrator, force_generator);
 
         tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(
@@ -357,11 +357,7 @@ main(
          */
         tbox::Pointer<SetDataStrategy> u_init = new muParserDataSetter(
             "u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
-        tbox::Pointer<SetDataStrategy> p_init = new muParserDataSetter(
-            "p_init", input_db->getDatabase("PressureInitialConditions"), grid_geometry);
-
         time_integrator->registerVelocityInitialConditions(u_init);
-        time_integrator->registerPressureInitialConditions(p_init);
 
         /*
          * Create boundary condition specification objects (when necessary).

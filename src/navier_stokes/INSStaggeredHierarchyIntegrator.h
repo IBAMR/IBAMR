@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <13.Nov.2008 17:32:24 griffith@box230.cims.nyu.edu>
+// Last modified: <20.Nov.2008 15:45:39 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -315,7 +315,9 @@ public:
     ///  The following routines:
     ///
     ///      regridHierarchy(),
+    ///      integrateHierarchy_initialize(),
     ///      integrateHierarchy(),
+    ///      integrateHierarchy_finalize(),
     ///      synchronizeHierarchy(),
     ///      synchronizeNewLevels(),
     ///      resetTimeDependentHierData(),
@@ -332,18 +334,34 @@ public:
     regridHierarchy();
 
     /*!
+     * Prepare to advance the data from current_time to new_time.
+     *
+     * Note that data IS NOT synchronized by this routine.
+     */
+    virtual void
+    integrateHierarchy_initialize(
+        const double current_time,
+        const double new_time);
+
+    /*!
      * Advance the data from current_time to new_time but do not synchronize the
      * data on the hierarchy.  This function assumes that all data on each level
      * in the hierarchy has been set and that only the data need for
      * initialization exists on each level (as opposed to both current and new
-     * data, for example).  Upon return from this function, the simulation data
-     * on each hierarchy levels is advanced through the specified time
-     * increment.
+     * data, for example).
+     */
+    virtual void
+    integrateHierarchy(
+        const double current_time,
+        const double new_time);
+
+    /*!
+     * Clean up data following call to integrateHierarchy().
      *
      * Note that data IS NOT synchronized by this routine.
      */
-    virtual double
-    integrateHierarchy(
+    virtual void
+    integrateHierarchy_finalize(
         const double current_time,
         const double new_time);
 
@@ -704,6 +722,12 @@ private:
         const INSStaggeredHierarchyIntegrator& that);
 
     /*!
+     * Project the velocity field following a regridding operation.
+     */
+    void
+    regridProjection();
+
+    /*!
      * (Re-)initialize the operators and solvers used by the hierarchy
      * integrator.
      */
@@ -919,6 +943,16 @@ private:
      /*
      * Hierarchy operators and solvers.
      */
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_scratch_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_rhs_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_half_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_N_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_P_scratch_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_P_rhs_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_rhs_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_nul_vec;
+
     SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
 
     bool d_convective_op_needs_init;
@@ -952,7 +986,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;
 
     bool d_needs_regrid_projection;
-    double d_regrid_max_div_growth_factor, d_Div_U_norm_1, d_Div_U_norm_2, d_Div_U_norm_oo;
+    double d_regrid_max_div_growth_factor;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>                 d_regrid_projection_fac_pc_db;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>                 d_regrid_projection_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>                d_regrid_projection_op;

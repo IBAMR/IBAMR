@@ -2,7 +2,7 @@
 #define included_IBEulerianForceSetter
 
 // Filename: IBEulerianForceSetter.h
-// Last modified: <17.Apr.2007 18:29:16 griffith@box221.cims.nyu.edu>
+// Last modified: <20.Nov.2008 19:39:15 griffith@box230.cims.nyu.edu>
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -50,6 +50,14 @@ public:
     setTimeInterval(
         const double current_time,
         const double new_time);
+
+    /*!
+     * \brief Register an optional additional body force specification which
+     * will be added to the IB force.
+     */
+    void
+    registerBodyForceSpecification(
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set);
 
     /*!
      * \name Methods to set the data.
@@ -116,6 +124,11 @@ private:
      * data.
      */
     const int d_F_current_idx, d_F_new_idx, d_F_half_idx;
+
+    /*!
+     * Optional body force generator.
+     */
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_body_force_set;
 };
 }// namespace IBAMR
 

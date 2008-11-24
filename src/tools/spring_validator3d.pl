@@ -22,12 +22,13 @@ if ($#ARGV != 0) {
 # displacement equals the resting length.
 $check_for_consistent_rest_lengths = 1;  # 1 = enabled; 0 = disabled
 $mach_eps = 2.22044604925031e-16;
-$tol = sqrt($mach_eps);
+$rel_tol = sqrt($mach_eps);
+$abs_tol = 20*$mach_eps;
 
 print "\n";
 if ($check_for_consistent_rest_lengths) {
     print "checks for consistent spring rest lengths are ENABLED!\n";
-    print "warning messages WILL be printed if the initial displacements and resting lengths differ by more than a relative error tolerance of $tol.\n";
+    print "warning messages WILL be printed if the initial displacements and resting lengths differ by more than a relative error tolerance of $rel_tol or an absolute error tolerance of $abs_tol.\n";
 } else {
     print "checks for consistent spring rest lengths are DISABLED!\n";
     print "warning messages WILL NOT be printed if the initial displacements and resting lengths differ.\n";
@@ -133,8 +134,8 @@ while (<SPRING_IN>) {
 	$dx[1] = $y[$idx0] - $y[$idx1];
 	$dx[2] = $z[$idx0] - $z[$idx1];
 	$rst_actual = sqrt($dx[0]*$dx[0]+$dx[1]*$dx[1]+$dx[2]*$dx[2]);
-	if (abs($rst_actual - $rst)/max($rst_actual,$rst,$mach_eps) > $tol &&
-	    abs($rst_actual - $rst) > $mach_eps) {
+	$diff = $rst_actual - $rst;
+	if (abs($diff)/max($rst_actual,$rst,$mach_eps) > $rel_tol && abs($diff) > $abs_tol) {
 	    print "WARNING: rest length on line $line_number in spring file $input_filename.spring is different from initial displacement in vertex file $input_filename.vertex\n";
 	    print "         rest length in spring file $input_filename.spring: $rst\n";
 	    print "         initial displacement in vertex file $input_filename.vertex: $rst_actual\n";

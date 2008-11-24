@@ -1,5 +1,5 @@
 // Filename: IBEulerianForceSetter.C
-// Last modified: <12.Feb.2008 21:13:43 griffith@box221.cims.nyu.edu>
+// Last modified: <20.Nov.2008 20:02:53 griffith@box230.cims.nyu.edu>
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBEulerianForceSetter.h"
@@ -18,7 +18,9 @@
 
 // SAMRAI INCLUDES
 #include <CellData.h>
-#include <PatchCellDataOpsReal.h>
+#include <PatchCellDataBasicOps.h>
+#include <PatchSideDataBasicOps.h>
+#include <SideData.h>
 #include <tbox/MathUtilities.h>
 
 // C++ STDLIB INCLUDES
@@ -42,7 +44,8 @@ IBEulerianForceSetter::IBEulerianForceSetter(
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_F_current_idx(F_current_idx),
       d_F_new_idx(F_new_idx),
-      d_F_half_idx(F_half_idx)
+      d_F_half_idx(F_half_idx),
+      d_body_force_set(NULL)
 {
     // intentionally blank
     return;
@@ -71,6 +74,14 @@ IBEulerianForceSetter::isTimeDependent() const
 }// isTimeDependent
 
 void
+IBEulerianForceSetter::registerBodyForceSpecification(
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set)
+{
+    d_body_force_set = F_set;
+    return;
+}// registerBodyForceSpecification
+
+void
 IBEulerianForceSetter::setDataOnPatch(
     const int data_idx,
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -78,51 +89,65 @@ IBEulerianForceSetter::setDataOnPatch(
     const double data_time,
     const bool initial_time)
 {
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_data = patch.getPatchData(data_idx);
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > f_data = patch.getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_data.isNull());
 #endif
-    if (initial_time)
-    {
-        f_data->fillAll(0.0);
-    }
-    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, d_current_time))
-    {
-        if (d_F_current_idx != -1)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_current_data = patch.getPatchData(d_F_current_idx);
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_cc_data = f_data;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_sc_data = f_data;
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!f_current_data.isNull());
+    TBOX_ASSERT(!f_cc_data.isNull() || !f_sc_data.isNull());
 #endif
-            f_data->copy(*f_current_data);
-        }
+    if (!d_body_force_set.isNull())
+    {
+        d_body_force_set->setDataOnPatch(data_idx, var, patch, data_time, initial_time);
+    }
+    else
+    {
+        if (!f_cc_data.isNull()) f_cc_data->fillAll(0.0);
+        if (!f_sc_data.isNull()) f_sc_data->fillAll(0.0);
+    }
+
+    if (initial_time) return;
+
+    int ib_data_idx = -1;
+    if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, d_current_time))
+    {
+        ib_data_idx = d_F_current_idx;
     }
     else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, d_new_time))
     {
-        if (d_F_new_idx != -1)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_new_data = patch.getPatchData(d_F_new_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!f_new_data.isNull());
-#endif
-            f_data->copy(*f_new_data);
-        }
+        ib_data_idx = d_F_new_idx;
     }
     else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, 0.5*(d_current_time+d_new_time)))
     {
-        if (d_F_half_idx != -1)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_half_data = patch.getPatchData(d_F_half_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!f_half_data.isNull());
-#endif
-            f_data->copy(*f_half_data);
-        }
+        ib_data_idx = d_F_half_idx;
     }
     else
     {
         TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
                    << "  data time " << data_time << " is not the current, new, or half time." << std::endl);
+    }
+
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > f_ib_data = patch.getPatchData(ib_data_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!f_ib_data.isNull());
+#endif
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_ib_cc_data = f_ib_data;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_ib_sc_data = f_ib_data;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!f_ib_cc_data.isNull() || !f_ib_sc_data.isNull());
+    TBOX_ASSERT((!f_ib_cc_data.isNull() && !f_cc_data.isNull()) || (!f_ib_sc_data.isNull() && !f_sc_data.isNull()));
+#endif
+    if (!f_cc_data.isNull())
+    {
+        SAMRAI::math::PatchCellDataBasicOps<NDIM,double> patch_ops;
+        patch_ops.add(f_cc_data, f_cc_data, f_ib_cc_data, patch.getBox());
+    }
+    if (!f_sc_data.isNull())
+    {
+        SAMRAI::math::PatchSideDataBasicOps<NDIM,double> patch_ops;
+        patch_ops.add(f_sc_data, f_sc_data, f_ib_sc_data, patch.getBox());
     }
     return;
 }// setDataOnPatch

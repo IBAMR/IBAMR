@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <13.Nov.2008 16:15:05 griffith@box230.cims.nyu.edu>
+// Last modified: <21.Nov.2008 13:52:10 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -125,7 +125,9 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_advance_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_get_stable_timestep;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_regrid_hierarchy;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_integrate_hierarchy_initialize;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_integrate_hierarchy;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_integrate_hierarchy_finalize;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_hierarchy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_synchronize_new_levels;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_time_dependent_data;
@@ -225,9 +227,6 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_do_log = false;
 
     d_regrid_max_div_growth_factor = 1.1;
-    d_Div_U_norm_1  = 0.0;  // XXXX These values need to be added to the restart database!
-    d_Div_U_norm_2  = 0.0;
-    d_Div_U_norm_oo = 0.0;
 
     // Setup default boundary condition objects that specify homogeneous
     // Dirichlet boundary conditions for the velocity.
@@ -277,8 +276,12 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
             getTimer("IBAMR::INSStaggeredHierarchyIntegrator::getStableTimestep()");
         t_regrid_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::INSStaggeredHierarchyIntegrator::regridHierarchy()");
+        t_integrate_hierarchy_initialize = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize()");
         t_integrate_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy()");
+        t_integrate_hierarchy_finalize = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize()");
         t_synchronize_hierarchy = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::INSStaggeredHierarchyIntegrator::synchronizeHierarchy()");
         t_synchronize_new_levels = SAMRAI::tbox::TimerManager::getManager()->
@@ -1055,7 +1058,12 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(
 
     // Integrate all time dependent data.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): integrating time dependent data\n";
-    integrateHierarchy(current_time, new_time);
+    integrateHierarchy_initialize(current_time, new_time);
+    for (int cycle = 0; cycle < d_num_cycles; ++cycle)
+    {
+        integrateHierarchy(current_time, new_time);
+    }
+    integrateHierarchy_finalize(current_time, new_time);
 
     // Synchronize all data.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): synchronizing data\n";
@@ -1186,6 +1194,12 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
 
     const int coarsest_ln = 0;
 
+    // Determine the divergence of the velocity field before regridding.
+    d_hier_math_ops->div(d_Div_U_current_idx, d_Div_U_var, 1.0, d_U_current_idx, d_U_var, d_no_fill_op, d_integrator_time, false);
+    const double Div_U_norm_1_pre  = d_hier_cc_data_ops->L1Norm( d_Div_U_current_idx, d_wgt_cc_idx);
+    const double Div_U_norm_2_pre  = d_hier_cc_data_ops->L2Norm( d_Div_U_current_idx, d_wgt_cc_idx);
+    const double Div_U_norm_oo_pre = d_hier_cc_data_ops->maxNorm(d_Div_U_current_idx, d_wgt_cc_idx);
+
     // Copy current data to regrid data.
     const int finest_ln_before_regrid = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln_before_regrid; ++ln)
@@ -1238,155 +1252,20 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
         level->deallocatePatchData(d_regrid_data);
     }
 
-#if OUTPUT_REGRID_DIV_U
-   const bool U_current_cf_bdry_synch = true;
-    d_hier_math_ops->div(
-        d_Div_U_current_idx, d_Div_U_var, // dst
-        +1.0,                             // alpha
-        d_U_current_idx, d_U_var,         // src
-        d_no_fill_op,                     // src_bdry_fill
-        d_integrator_time,                // src_bdry_fill_time
-        U_current_cf_bdry_synch);         // src_cf_bdry_synch
-#endif
+    // Determine the divergence of the velocity field before regridding.
+    d_hier_math_ops->div(d_Div_U_current_idx, d_Div_U_var, 1.0, d_U_current_idx, d_U_var, d_no_fill_op, d_integrator_time, true);
+    const double Div_U_norm_1_post  = d_hier_cc_data_ops->L1Norm( d_Div_U_current_idx, d_wgt_cc_idx);
+    const double Div_U_norm_2_post  = d_hier_cc_data_ops->L2Norm( d_Div_U_current_idx, d_wgt_cc_idx);
+    const double Div_U_norm_oo_post = d_hier_cc_data_ops->maxNorm(d_Div_U_current_idx, d_wgt_cc_idx);
 
     // Project the interpolated velocity if needed.
-    if (d_needs_regrid_projection)
+    if (d_needs_regrid_projection && (Div_U_norm_1_post  > d_regrid_max_div_growth_factor*Div_U_norm_1_pre ||
+                                      Div_U_norm_2_post  > d_regrid_max_div_growth_factor*Div_U_norm_2_pre ||
+                                      Div_U_norm_oo_post > d_regrid_max_div_growth_factor*Div_U_norm_oo_pre))
     {
-        // Allocate temporary data.
-        SAMRAI::hier::ComponentSelector scratch_idxs;
-        scratch_idxs.setFlag(d_U_scratch_idx);
-        scratch_idxs.setFlag(d_Phi_scratch_idx);
-        scratch_idxs.setFlag(d_Div_U_scratch_idx);
-        for (int ln = coarsest_ln; ln <= finest_ln_after_regrid; ++ln)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            level->allocatePatchData(scratch_idxs, d_integrator_time);
-        }
-
-        // Compute div U.
-        const bool U_current_cf_bdry_synch = true;
-        d_hier_math_ops->div(
-            d_Div_U_scratch_idx, d_Div_U_var, // dst
-            +1.0,                             // alpha
-            d_U_current_idx, d_U_var,         // src
-            d_no_fill_op,                     // src_bdry_fill
-            d_integrator_time,                // src_bdry_fill_time
-            U_current_cf_bdry_synch);         // src_cf_bdry_synch
-
-        // Compute the norms of the divergence.  If they are unchanged from
-        // before regridding, we do not need to project the interpolated
-        // velocity field.
-        const double Div_U_norm_1  = d_hier_cc_data_ops->L1Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
-        const double Div_U_norm_2  = d_hier_cc_data_ops->L2Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
-        const double Div_U_norm_oo = d_hier_cc_data_ops->maxNorm(d_Div_U_scratch_idx, d_wgt_cc_idx);
-        if (Div_U_norm_1  > d_regrid_max_div_growth_factor*d_Div_U_norm_1 ||
-            Div_U_norm_2  > d_regrid_max_div_growth_factor*d_Div_U_norm_2 ||
-            Div_U_norm_oo > d_regrid_max_div_growth_factor*d_Div_U_norm_oo)
-        {
-            if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy():\n"
-                                             << "  before regrid projection:\n"
-                                             << "    ||Div U||_1  = " << Div_U_norm_1  << "\n"
-                                             << "    ||Div U||_2  = " << Div_U_norm_2  << "\n"
-                                             << "    ||Div U||_oo = " << Div_U_norm_oo << "\n";
-
-            // Setup the solver vectors.
-            d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0, false);
-            d_hier_cc_data_ops->scale(d_Div_U_scratch_idx, -1.0, d_Div_U_scratch_idx);
-
-            SAMRAI::solv::SAMRAIVectorReal<NDIM,double> sol_vec(
-                d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln_after_regrid);
-            sol_vec.addComponent(d_Phi_var, d_Phi_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
-
-            SAMRAI::solv::SAMRAIVectorReal<NDIM,double> rhs_vec(
-                d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln_after_regrid);
-            rhs_vec.addComponent(d_Div_U_var, d_Div_U_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
-
-            // Setup the Poisson solver.
-            d_regrid_projection_spec->setCZero();
-            d_regrid_projection_spec->setDConstant(-1.0);
-
-            d_regrid_projection_op->setPoissonSpecifications(*d_regrid_projection_spec);
-            d_regrid_projection_op->setPhysicalBcCoef(&d_regrid_projection_bc_coef);
-            d_regrid_projection_op->setHomogeneousBc(true);
-            d_regrid_projection_op->setTime(d_integrator_time);
-            d_regrid_projection_op->setHierarchyMathOps(d_hier_math_ops);
-
-            d_regrid_projection_fac_op->setPoissonSpecifications(*d_regrid_projection_spec);
-            d_regrid_projection_fac_op->setPhysicalBcCoef(&d_regrid_projection_bc_coef);
-            d_regrid_projection_fac_op->setHomogeneousBc(true);
-            d_regrid_projection_fac_op->setTime(d_integrator_time);
-
-            d_regrid_projection_solver->setInitialGuessNonzero(false);
-            d_regrid_projection_solver->setOperator(d_regrid_projection_op);
-
-            // Solve the projection Poisson problem.
-            d_regrid_projection_solver->initializeSolverState(sol_vec,rhs_vec);
-            d_regrid_projection_solver->solveSystem(sol_vec,rhs_vec);
-            d_regrid_projection_solver->deallocateSolverState();
-
-            // NOTE: We always use homogeneous Neumann boundary conditions for
-            // the regrid projection Poisson solver.
-            static const bool constant_null_space = true;
-            if (constant_null_space)
-            {
-                const double Phi_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(d_Phi_scratch_idx, d_wgt_cc_idx);
-                d_hier_cc_data_ops->addScalar(d_Phi_scratch_idx, d_Phi_scratch_idx, -Phi_mean);
-            }
-
-            // Setup the interpolation transaction information.
-            typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-            InterpolationTransactionComponent Phi_bc_component(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, &d_regrid_projection_bc_coef);
-            SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-            Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
-
-            // Fill the physical boundary conditions for Phi.
-            Phi_bdry_bc_fill_op->setHomogeneousBc(true);
-            Phi_bdry_bc_fill_op->fillData(d_integrator_time);
-
-            // Set U := U - grad Phi.
-            const bool U_scratch_cf_bdry_synch = true;
-            d_hier_math_ops->grad(
-                d_U_scratch_idx, d_U_var,     // dst
-                U_scratch_cf_bdry_synch,      // dst_cf_bdry_synch
-                1.0,                          // alpha
-                d_Phi_scratch_idx, d_Phi_var, // src
-                d_no_fill_op,                 // src_bdry_fill
-                d_integrator_time);           // src_bdry_fill_time
-            d_hier_sc_data_ops->axpy(d_U_current_idx, -1.0, d_U_scratch_idx, d_U_current_idx);
-
-            if (d_do_log)
-            {
-                // Compute div U.
-                const bool U_current_cf_bdry_synch = true;
-                d_hier_math_ops->div(
-                    d_Div_U_scratch_idx, d_Div_U_var, // dst
-                    +1.0,                             // alpha
-                    d_U_current_idx, d_U_var,         // src
-                    d_no_fill_op,                     // src_bdry_fill
-                    d_integrator_time,                // src_bdry_fill_time
-                    U_current_cf_bdry_synch);         // src_cf_bdry_synch
-
-                const double Div_U_norm_1  = d_hier_cc_data_ops->L1Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
-                const double Div_U_norm_2  = d_hier_cc_data_ops->L2Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
-                const double Div_U_norm_oo = d_hier_cc_data_ops->maxNorm(d_Div_U_scratch_idx, d_wgt_cc_idx);
-                SAMRAI::tbox::plog << d_object_name << "::regridHierarchy():\n"
-                                   << "  after regrid projection:\n"
-                                   << "    ||Div U||_1  = " << Div_U_norm_1  << "\n"
-                                   << "    ||Div U||_2  = " << Div_U_norm_2  << "\n"
-                                   << "    ||Div U||_oo = " << Div_U_norm_oo << "\n";
-            }
-        }
-
-        // Deallocate scratch data.
-        for (int ln = coarsest_ln; ln <= finest_ln_after_regrid; ++ln)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            level->deallocatePatchData(scratch_idxs);
-        }
-
-        // Indicate that we do not need to re-project the velocity.
-        d_needs_regrid_projection = false;
+        regridProjection();
     }
+    d_needs_regrid_projection = false;
 
     // Synchronize the state data on the patch hierarchy.
     for (int ln = finest_ln_after_regrid; ln > coarsest_ln; --ln)
@@ -1398,17 +1277,17 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
     return;
 }// regridHierarchy
 
-double
-INSStaggeredHierarchyIntegrator::integrateHierarchy(
+void
+INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     const double current_time,
     const double new_time)
 {
-    t_integrate_hierarchy->start();
+    t_integrate_hierarchy_initialize->start();
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
-    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): current_time = " << current_time << ", new_time = " << new_time << ", dt = " << dt << "\n";
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy_initialize(): current_time = " << current_time << ", new_time = " << new_time << ", dt = " << dt << "\n";
 
     // Synchronize current state data.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
@@ -1425,41 +1304,35 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     }
 
     // Setup the solver vectors.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-        d_object_name+"::U_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
-    U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
+    d_U_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(d_object_name+"::U_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
+    d_U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_rhs_vec = U_scratch_vec->cloneVector(d_object_name+"::U_rhs_vec");
-    U_rhs_vec->allocateVectorData(current_time);
-    const int U_rhs_idx = U_rhs_vec->getComponentDescriptorIndex(0);
-    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_rhs_var = U_rhs_vec->getComponentVariable(0);
+    d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name+"::U_rhs_vec");
+    d_U_rhs_vec->allocateVectorData(current_time);
+    const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->setToScalar(U_rhs_idx,0.0);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_half_vec = U_scratch_vec->cloneVector(d_object_name+"::U_half_vec");
-    U_half_vec->allocateVectorData(current_time);
-    const int U_half_idx = U_half_vec->getComponentDescriptorIndex(0);
-    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_half_var = U_half_vec->getComponentVariable(0);
+    d_U_half_vec = d_U_scratch_vec->cloneVector(d_object_name+"::U_half_vec");
+    d_U_half_vec->allocateVectorData(current_time);
+    const int U_half_idx = d_U_half_vec->getComponentDescriptorIndex(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_half_var = d_U_half_vec->getComponentVariable(0);
     d_hier_sc_data_ops->setToScalar(U_half_idx,0.0);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > N_vec = U_scratch_vec->cloneVector(d_object_name+"::N_vec");
-    N_vec->allocateVectorData(current_time);
-    const int N_idx = N_vec->getComponentDescriptorIndex(0);
-    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > N_var = N_vec->getComponentVariable(0);
+    d_N_vec = d_U_scratch_vec->cloneVector(d_object_name+"::N_vec");
+    d_N_vec->allocateVectorData(current_time);
+    const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > N_var = d_N_vec->getComponentVariable(0);
     d_hier_sc_data_ops->setToScalar(N_idx,0.0);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-        d_object_name+"::P_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
-    P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+    d_P_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(d_object_name+"::P_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
+    d_P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_rhs_vec = P_scratch_vec->cloneVector(d_object_name+"::P_rhs_vec");
-    P_rhs_vec->allocateVectorData(current_time);
-    const int P_rhs_idx = P_rhs_vec->getComponentDescriptorIndex(0);
-    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_rhs_var = P_rhs_vec->getComponentVariable(0);
+    d_P_rhs_vec = d_P_scratch_vec->cloneVector(d_object_name+"::P_rhs_vec");
+    d_P_rhs_vec->allocateVectorData(current_time);
+    const int P_rhs_idx = d_P_rhs_vec->getComponentDescriptorIndex(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_rhs_var = d_P_rhs_vec->getComponentVariable(0);
     d_hier_cc_data_ops->setToScalar(P_rhs_idx,0.0);
-
-    // Hierarchy ghost cell transaction components.
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
 
     // Initialize the right-hand side terms.
     SAMRAI::solv::PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec");
@@ -1472,101 +1345,120 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_U_scratch_idx, d_U_var,
         d_U_bdry_bc_fill_op, current_time);
 
-    if (!d_F_set.isNull())
-    {
-        d_F_set->setDataOnPatchHierarchy(
-            d_F_new_idx, d_F_var, d_hierarchy, current_time+0.5*dt);
-        d_hier_sc_data_ops->add(U_rhs_idx, d_F_new_idx, U_rhs_idx);
-    }
-    else
-    {
-        d_hier_sc_data_ops->setToScalar(d_F_new_idx, 0.0);
-    }
-
     // Reset the solution, rhs, and nullspace vectors.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-        d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-    sol_vec->addComponent(d_U_var,d_U_scratch_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
-    sol_vec->addComponent(d_P_var,d_P_scratch_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
+    d_sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    d_sol_vec->addComponent(d_U_var,d_U_scratch_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
+    d_sol_vec->addComponent(d_P_var,d_P_scratch_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > rhs_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
-        d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
-    rhs_vec->addComponent(d_U_var,U_rhs_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
-    rhs_vec->addComponent(d_P_var,P_rhs_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
-
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > nul_vec = sol_vec->cloneVector(d_object_name+"::nul_vec");
-    nul_vec->allocateVectorData(current_time);
-    d_hier_sc_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(0), 0.0);
-    d_hier_cc_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(1), 1.0);
+    d_rhs_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
+    d_rhs_vec->addComponent(d_U_var,U_rhs_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
+    d_rhs_vec->addComponent(d_P_var,P_rhs_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
 
     // Setup the operators and solvers.
     initializeOperatorsAndSolvers(current_time, new_time);
 
     // Setup the nullspace object.
-    PetscErrorCode ierr;
-    MatNullSpace petsc_nullsp;
-    Vec petsc_nullsp_vec = IBTK::PETScSAMRAIVectorReal<double>::createPETScVector(nul_vec, PETSC_COMM_WORLD);
-    Vec vecs[] = {petsc_nullsp_vec};
-    static const PetscTruth has_cnst = PETSC_FALSE;
-    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, has_cnst, 1, vecs, &petsc_nullsp); IBTK_CHKERRQ(ierr);
     if (d_normalize_pressure)
     {
+        d_nul_vec = d_sol_vec->cloneVector(d_object_name+"::nul_vec");
+        d_nul_vec->allocateVectorData(current_time);
+        d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
+        d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
+
+        PetscErrorCode ierr;
+        MatNullSpace petsc_nullsp;
+        Vec petsc_nullsp_vec = IBTK::PETScSAMRAIVectorReal<double>::createPETScVector(d_nul_vec, PETSC_COMM_WORLD);
+        Vec vecs[] = {petsc_nullsp_vec};
+        static const PetscTruth has_cnst = PETSC_FALSE;
+        ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, has_cnst, 1, vecs, &petsc_nullsp); IBTK_CHKERRQ(ierr);
         KSP petsc_ksp = d_stokes_solver->getPETScKSP();
         ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
     }
 
     // Set the initial guess.
-    d_hier_sc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(0), d_U_current_idx);
-    d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(1), d_P_current_idx);
-    d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
-    d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
+    d_hier_sc_data_ops->copyData(d_sol_vec->getComponentDescriptorIndex(0), d_U_current_idx);
+    d_hier_cc_data_ops->copyData(d_sol_vec->getComponentDescriptorIndex(1), d_P_current_idx);
+    d_hier_sc_data_ops->copyData(d_U_new_idx, d_sol_vec->getComponentDescriptorIndex(0));
+    d_hier_cc_data_ops->copyData(d_P_new_idx, d_sol_vec->getComponentDescriptorIndex(1));
 
     // Setup inhomogeneous boundary conditions.
     d_U_bc_helper->cacheBcCoefData(d_U_var, d_U_bc_coefs, new_time, SAMRAI::hier::IntVector<NDIM>(SIDEG), d_hierarchy);
 
     d_stokes_op->setHomogeneousBc(false);
-    d_stokes_op->modifyRhsForInhomogeneousBc(*rhs_vec);
+    d_stokes_op->modifyRhsForInhomogeneousBc(*d_rhs_vec);
     d_stokes_op->setHomogeneousBc(true);
 
-    TBOX_ASSERT(rhs_vec->getComponentDescriptorIndex(0) == U_rhs_idx);
+    TBOX_ASSERT(d_rhs_vec->getComponentDescriptorIndex(0) == U_rhs_idx);
     d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_rhs_idx);
 
-    // Solve for u(n+1) and p(n+1/2) using (truncated) fixed point iteration.
-    for (int cycle = 0; cycle < d_num_cycles; ++cycle)
+    t_integrate_hierarchy_initialize->start();
+    return;
+}// integrateHierarchy_initialize
+
+void
+INSStaggeredHierarchyIntegrator::integrateHierarchy(
+    const double current_time,
+    const double new_time)
+{
+    t_integrate_hierarchy->start();
+
+    const double dt = new_time-current_time;
+
+    // Perform a single step of fixed point iteration.
+
+    // Compute U_half := 0.5*(u(n)+u(n+1)).
+    const int U_half_idx = d_U_half_vec->getComponentDescriptorIndex(0);
+    d_hier_sc_data_ops->linearSum(U_half_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
+
+    // Compute (u_half*grad)u_half.
+    const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
+    d_convective_op->applyConvectiveOperator(U_half_idx, N_idx);
+    d_U_bc_helper->zeroValuesAtDirichletBoundaries(N_idx);
+
+    // Setup the righ-hand side vector.
+    d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
+    if (!d_F_set.isNull())
     {
-        // Compute U_half := 0.5*(u(n)+u(n+1)).
-        d_hier_sc_data_ops->linearSum(U_half_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
-
-        // Compute (u_half*grad)u_half.
-        d_convective_op->applyConvectiveOperator(U_half_idx, N_idx);
-        d_U_bc_helper->zeroValuesAtDirichletBoundaries(N_idx);
-
-        // Setup the righ-hand side vector.
-        d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
-
-        // Solve for u(n+1), p(n+1/2).
-        d_U_bc_helper->zeroValuesAtDirichletBoundaries(sol_vec->getComponentDescriptorIndex(0));
-        d_U_bc_helper->zeroValuesAtDirichletBoundaries(rhs_vec->getComponentDescriptorIndex(0));
-        d_stokes_solver->solveSystem(*sol_vec,*rhs_vec);
-        static int stokes_its = 0;
-        stokes_its += d_stokes_solver->getNumIterations();
-        SAMRAI::tbox::pout << "total stokes its = " << stokes_its << "\n";
-
-        // Reset physical boundary conditions.
-        TBOX_ASSERT(sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
-        d_U_bdry_bc_fill_op->fillData(new_time);
-
-        // Pull out solution components.
-        d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
-        d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
-
-        // Reset the right-hand side vector.
-        d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0), +d_rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+        d_F_set->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, current_time+0.5*dt);
+        d_hier_sc_data_ops->add(d_rhs_vec->getComponentDescriptorIndex(0), d_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
-    // Deallocate the nullspace object.
-    ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(petsc_nullsp_vec); IBTK_CHKERRQ(ierr);
+    // Solve for u(n+1), p(n+1/2).
+    d_U_bc_helper->zeroValuesAtDirichletBoundaries(d_sol_vec->getComponentDescriptorIndex(0));
+    d_U_bc_helper->zeroValuesAtDirichletBoundaries(d_rhs_vec->getComponentDescriptorIndex(0));
+    d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
+    static int stokes_its = 0;
+    stokes_its += d_stokes_solver->getNumIterations();
+    SAMRAI::tbox::pout << "total stokes its = " << stokes_its << "\n";
+
+    // Reset physical boundary conditions.
+    TBOX_ASSERT(d_sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
+    d_U_bdry_bc_fill_op->fillData(new_time);
+
+    // Pull out solution components.
+    d_hier_sc_data_ops->copyData(d_U_new_idx, d_sol_vec->getComponentDescriptorIndex(0));
+    d_hier_cc_data_ops->copyData(d_P_new_idx, d_sol_vec->getComponentDescriptorIndex(1));
+
+    // Reset the right-hand side vector.
+    d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), +d_rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
+    if (!d_F_set.isNull())
+    {
+        d_hier_sc_data_ops->subtract(d_rhs_vec->getComponentDescriptorIndex(0), d_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
+    }
+
+    t_integrate_hierarchy->start();
+    return;
+}// integrateHierarchy
+
+void
+INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
+    const double current_time,
+    const double new_time)
+{
+    t_integrate_hierarchy_finalize->start();
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Synchronize new state data.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
@@ -1603,35 +1495,49 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 #endif
 
     // Compute Div U.
+#if OUTPUT_REGRID_DIV_U
+    d_hier_cc_data_ops->copyData(d_Div_U_new_idx,d_Div_U_current_idx);
+#else
     d_hier_math_ops->div(
         d_Div_U_new_idx, d_Div_U_var,
         1.0, d_U_scratch_idx, d_U_var,
         d_no_fill_op, new_time, false);
-    d_Div_U_norm_1  = d_hier_cc_data_ops->L1Norm( d_Div_U_new_idx, d_wgt_cc_idx);
-    d_Div_U_norm_2  = d_hier_cc_data_ops->L2Norm( d_Div_U_new_idx, d_wgt_cc_idx);
-    d_Div_U_norm_oo = d_hier_cc_data_ops->maxNorm(d_Div_U_new_idx, d_wgt_cc_idx);
-
-    if (d_do_log)
-    {
-        SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy():\n"
-                           << "  ||Div U||_1  = " << d_Div_U_norm_1  << "\n"
-                           << "  ||Div U||_2  = " << d_Div_U_norm_2  << "\n"
-                           << "  ||Div U||_oo = " << d_Div_U_norm_oo << "\n";
-    }
-#if OUTPUT_REGRID_DIV_U
-    d_hier_cc_data_ops->copyData(d_Div_U_new_idx,d_Div_U_current_idx);
 #endif
 
-    // Deallocate scratch data.
-    U_rhs_vec->freeVectorComponents();
-    U_half_vec->freeVectorComponents();
-    N_vec->freeVectorComponents();
-    P_rhs_vec->freeVectorComponents();
-    nul_vec->freeVectorComponents();
+    // Deallocate the nullspace object.
+    if (d_normalize_pressure)
+    {
+        PetscErrorCode ierr;
+        MatNullSpace petsc_nullsp;
+        KSP petsc_ksp = d_stokes_solver->getPETScKSP();
+        ierr = KSPGetNullSpace(petsc_ksp, &petsc_nullsp); IBTK_CHKERRQ(ierr);
+        ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
+    }
 
-    t_integrate_hierarchy->stop();
-    return getStableTimestep(getNewContext());
-}// integrateHierarchy
+    // Deallocate scratch data.
+    d_U_rhs_vec->freeVectorComponents();
+    d_U_half_vec->freeVectorComponents();
+    d_N_vec->freeVectorComponents();
+    d_P_rhs_vec->freeVectorComponents();
+    if (d_normalize_pressure)
+    {
+        d_nul_vec->freeVectorComponents();
+    }
+
+    // Deallocate solver vectors.
+    d_U_scratch_vec.setNull();
+    d_U_rhs_vec.setNull();
+    d_U_half_vec.setNull();
+    d_N_vec.setNull();
+    d_P_scratch_vec.setNull();
+    d_P_rhs_vec.setNull();
+    d_sol_vec.setNull();
+    d_rhs_vec.setNull();
+    d_nul_vec.setNull();
+
+    t_integrate_hierarchy_finalize->stop();
+    return;
+}// integrateHierarchy_finalize
 
 void
 INSStaggeredHierarchyIntegrator::synchronizeHierarchy()
@@ -2601,6 +2507,137 @@ INSStaggeredHierarchyIntegrator::registerVariable(
 }// registerVariable
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+INSStaggeredHierarchyIntegrator::regridProjection()
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    // Allocate temporary data.
+    SAMRAI::hier::ComponentSelector scratch_idxs;
+    scratch_idxs.setFlag(d_U_scratch_idx);
+    scratch_idxs.setFlag(d_Phi_scratch_idx);
+    scratch_idxs.setFlag(d_Div_U_scratch_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(scratch_idxs, d_integrator_time);
+    }
+
+    // Compute div U before applying the projection operator.
+    if (d_do_log)
+    {
+        const bool U_current_cf_bdry_synch = true;
+        d_hier_math_ops->div(
+            d_Div_U_scratch_idx, d_Div_U_var, // dst
+            +1.0,                             // alpha
+            d_U_current_idx, d_U_var,         // src
+            d_no_fill_op,                     // src_bdry_fill
+            d_integrator_time,                // src_bdry_fill_time
+            U_current_cf_bdry_synch);         // src_cf_bdry_synch
+        const double Div_U_norm_1  = d_hier_cc_data_ops->L1Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
+        const double Div_U_norm_2  = d_hier_cc_data_ops->L2Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
+        const double Div_U_norm_oo = d_hier_cc_data_ops->maxNorm(d_Div_U_scratch_idx, d_wgt_cc_idx);
+        SAMRAI::tbox::plog << d_object_name << "::regridProjection():\n"
+                           << "  performing regrid projection\n"
+                           << "  before projection:\n"
+                           << "    ||Div U||_1  = " << Div_U_norm_1  << "\n"
+                           << "    ||Div U||_2  = " << Div_U_norm_2  << "\n"
+                           << "    ||Div U||_oo = " << Div_U_norm_oo << "\n";
+    }
+
+    // Setup the solver vectors.
+    d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0, false);
+    d_hier_cc_data_ops->scale(d_Div_U_scratch_idx, -1.0, d_Div_U_scratch_idx);
+
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double> sol_vec(d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    sol_vec.addComponent(d_Phi_var, d_Phi_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double> rhs_vec(d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
+    rhs_vec.addComponent(d_Div_U_var, d_Div_U_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+
+    // Setup the Poisson solver.
+    d_regrid_projection_spec->setCZero();
+    d_regrid_projection_spec->setDConstant(-1.0);
+
+    d_regrid_projection_op->setPoissonSpecifications(*d_regrid_projection_spec);
+    d_regrid_projection_op->setPhysicalBcCoef(&d_regrid_projection_bc_coef);
+    d_regrid_projection_op->setHomogeneousBc(true);
+    d_regrid_projection_op->setTime(d_integrator_time);
+    d_regrid_projection_op->setHierarchyMathOps(d_hier_math_ops);
+
+    d_regrid_projection_fac_op->setPoissonSpecifications(*d_regrid_projection_spec);
+    d_regrid_projection_fac_op->setPhysicalBcCoef(&d_regrid_projection_bc_coef);
+    d_regrid_projection_fac_op->setHomogeneousBc(true);
+    d_regrid_projection_fac_op->setTime(d_integrator_time);
+
+    d_regrid_projection_solver->setInitialGuessNonzero(false);
+    d_regrid_projection_solver->setOperator(d_regrid_projection_op);
+
+    // Solve the projection Poisson problem.
+    d_regrid_projection_solver->initializeSolverState(sol_vec,rhs_vec);
+    d_regrid_projection_solver->solveSystem(sol_vec,rhs_vec);
+    d_regrid_projection_solver->deallocateSolverState();
+
+    // NOTE: We always use homogeneous Neumann boundary conditions for the
+    // regrid projection Poisson solver.
+    static const bool constant_null_space = true;
+    if (constant_null_space)
+    {
+        const double Phi_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(d_Phi_scratch_idx, d_wgt_cc_idx);
+        d_hier_cc_data_ops->addScalar(d_Phi_scratch_idx, d_Phi_scratch_idx, -Phi_mean);
+    }
+
+    // Setup the interpolation transaction information.
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    InterpolationTransactionComponent Phi_bc_component(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, &d_regrid_projection_bc_coef);
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
+
+    // Fill the physical boundary conditions for Phi.
+    Phi_bdry_bc_fill_op->setHomogeneousBc(true);
+    Phi_bdry_bc_fill_op->fillData(d_integrator_time);
+
+    // Set U := U - grad Phi.
+    const bool U_scratch_cf_bdry_synch = true;
+    d_hier_math_ops->grad(
+        d_U_scratch_idx, d_U_var,     // dst
+        U_scratch_cf_bdry_synch,      // dst_cf_bdry_synch
+        1.0,                          // alpha
+        d_Phi_scratch_idx, d_Phi_var, // src
+        d_no_fill_op,                 // src_bdry_fill
+        d_integrator_time);           // src_bdry_fill_time
+    d_hier_sc_data_ops->axpy(d_U_current_idx, -1.0, d_U_scratch_idx, d_U_current_idx);
+
+    // Compute div U after applying the projection operator
+    if (d_do_log)
+    {
+        const bool U_current_cf_bdry_synch = true;
+        d_hier_math_ops->div(
+            d_Div_U_scratch_idx, d_Div_U_var, // dst
+            +1.0,                             // alpha
+            d_U_current_idx, d_U_var,         // src
+            d_no_fill_op,                     // src_bdry_fill
+            d_integrator_time,                // src_bdry_fill_time
+            U_current_cf_bdry_synch);         // src_cf_bdry_synch
+        const double Div_U_norm_1  = d_hier_cc_data_ops->L1Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
+        const double Div_U_norm_2  = d_hier_cc_data_ops->L2Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
+        const double Div_U_norm_oo = d_hier_cc_data_ops->maxNorm(d_Div_U_scratch_idx, d_wgt_cc_idx);
+        SAMRAI::tbox::plog << "  after projection:\n"
+                           << "    ||Div U||_1  = " << Div_U_norm_1  << "\n"
+                           << "    ||Div U||_2  = " << Div_U_norm_2  << "\n"
+                           << "    ||Div U||_oo = " << Div_U_norm_oo << "\n";
+    }
+
+    // Deallocate scratch data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(scratch_idxs);
+    }
+    return;
+}// regridProjection
 
 void
 INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
