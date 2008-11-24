@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <21.Nov.2008 13:52:10 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Nov.2008 12:33:10 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1343,7 +1343,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
         U_rhs_idx, U_rhs_var,
         rhs_spec,
         d_U_scratch_idx, d_U_var,
-        d_U_bdry_bc_fill_op, current_time);
+        d_U_bdry_extrap_fill_op /* XXXX d_U_bdry_bc_fill_op XXXX */, current_time);
 
     // Reset the solution, rhs, and nullspace vectors.
     d_sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
@@ -2071,6 +2071,10 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
     d_U_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
+
+    InterpolationTransactionComponent U_extrap_component(d_U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
+    d_U_bdry_extrap_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    d_U_bdry_extrap_fill_op->initializeOperatorState(U_extrap_component, d_hierarchy);
 
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
