@@ -2,7 +2,7 @@
 #define included_INSStaggeredPhysicalBoundaryHelper
 
 // Filename: INSStaggeredPhysicalBoundaryHelper.h
-// Last modified: <22.Jul.2008 14:59:22 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Nov.2008 16:15:05 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -98,7 +98,7 @@ private:
      * Cached hierarchy-related information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,int> > > > > d_dirichlet_bdry;
+    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool> > > > > d_dirichlet_bdry;
 };
 }// namespace IBAMR
 

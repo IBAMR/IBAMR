@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionBcCoef.C
-// Last modified: <23.Sep.2008 19:53:38 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Nov.2008 15:39:20 griffith@box230.cims.nyu.edu>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionBcCoef.h"
@@ -110,8 +110,7 @@ INSStaggeredProjectionBcCoef::setBcCoefs(
 #endif
 
     // Set the unmodified velocity bc coefs.
-    d_u_bc_coefs[bdry_normal_axis]->setBcCoefs(
-        acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+    d_u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
     // Modify the velocity boundary conditions to correspond to pressure
     // boundary conditions.
@@ -168,8 +167,7 @@ INSStaggeredProjectionBcCoef::numberOfExtensionsFillable() const
     SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (int d = 0; d < NDIM; ++d)
     {
-        ret_val = SAMRAI::hier::IntVector<NDIM>::min(
-            ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = SAMRAI::hier::IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 }// numberOfExtensionsFillable

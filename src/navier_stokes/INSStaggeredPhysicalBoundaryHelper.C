@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPhysicalBoundaryHelper.C
-// Last modified: <22.Jul.2008 19:10:26 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Nov.2008 16:38:45 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPhysicalBoundaryHelper.h"
@@ -72,17 +72,18 @@ INSStaggeredPhysicalBoundaryHelper::zeroValuesAtDirichletBoundaries(
             const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 
             // Compute the locations of the Dirichlet boundary.
-            const std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,int> > >& dirichlet_bdry = (*d_dirichlet_bdry[ln].find(patch_num)).second;
+            const std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool> > >& dirichlet_bdry = (*d_dirichlet_bdry[ln].find(patch_num)).second;
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
                 const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
                 const int location_index   = bdry_box.getLocationIndex();
                 const int bdry_normal_axis = location_index / 2;
                 const SAMRAI::hier::Box<NDIM>& bc_coef_box = dirichlet_bdry[n]->getBox();
+                SAMRAI::pdat::ArrayData<NDIM,bool>& bdry_data = *dirichlet_bdry[n];
                 for (SAMRAI::hier::Box<NDIM>::Iterator it(bc_coef_box); it; it++)
                 {
                     const SAMRAI::hier::Index<NDIM>& i = it();
-                    if ((*dirichlet_bdry[n])(i,0) == 1)
+                    if (bdry_data(i,0))
                     {
                         const SAMRAI::pdat::SideIndex<NDIM> i_s(i, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
                         (*patch_data)(i_s) = 0.0;
@@ -124,8 +125,8 @@ INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
             const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 
             // Compute the locations of the Dirichlet boundary.
-            std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,int> > >& dirichlet_bdry = d_dirichlet_bdry[ln][patch_num];
-            dirichlet_bdry.resize(n_physical_codim1_boxes,SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,int> >(NULL));
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool> > >& dirichlet_bdry = d_dirichlet_bdry[ln][patch_num];
+            dirichlet_bdry.resize(n_physical_codim1_boxes,SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool> >(NULL));
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
                 const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
@@ -140,7 +141,8 @@ INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > gcoef_data = NULL;
                 u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, u_var, *patch, trimmed_bdry_box, fill_time);
 
-                dirichlet_bdry[n] = new SAMRAI::pdat::ArrayData<NDIM,int>(bc_coef_box, 1);
+                dirichlet_bdry[n] = new SAMRAI::pdat::ArrayData<NDIM,bool>(bc_coef_box, 1);
+                SAMRAI::pdat::ArrayData<NDIM,bool>& bdry_data = *dirichlet_bdry[n];
                 for (SAMRAI::hier::Box<NDIM>::Iterator it(bc_coef_box); it; it++)
                 {
                     const SAMRAI::hier::Index<NDIM>& i = it();
@@ -150,7 +152,7 @@ INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
                     TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(alpha+beta,1.0));
                     TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(alpha,1.0) || SAMRAI::tbox::MathUtilities<double>::equalEps(beta,1.0));
 #endif
-                    (*dirichlet_bdry[n])(i,0) = SAMRAI::tbox::MathUtilities<double>::equalEps(alpha,1.0) || !SAMRAI::tbox::MathUtilities<double>::equalEps(beta,1.0);
+                    bdry_data(i,0) = SAMRAI::tbox::MathUtilities<double>::equalEps(alpha,1.0) || !SAMRAI::tbox::MathUtilities<double>::equalEps(beta,1.0);
                 }
             }
         }

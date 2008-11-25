@@ -1,5 +1,5 @@
 // Filename: INSStaggeredVelocityBcCoef.C
-// Last modified: <06.Oct.2008 21:13:18 griffith@box230.cims.nyu.edu>
+// Last modified: <24.Nov.2008 15:39:38 griffith@box230.cims.nyu.edu>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredVelocityBcCoef.h"
@@ -117,8 +117,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     }
 #endif
     // Set the unmodified velocity bc coefs.
-    d_u_bc_coefs[d_comp_idx]->setBcCoefs(
-        acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+    d_u_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
     // We do not make any further modifications to the values of acoef_data and
     // bcoef_data beyond this point.
@@ -259,8 +258,7 @@ INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
     SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (int d = 0; d < NDIM; ++d)
     {
-        ret_val = SAMRAI::hier::IntVector<NDIM>::min(
-            ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = SAMRAI::hier::IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 }// numberOfExtensionsFillable
