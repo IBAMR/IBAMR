@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <26.Nov.2008 14:51:23 griffith@box230.cims.nyu.edu>
+// Last modified: <26.Nov.2008 16:20:30 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -901,7 +901,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                     X_mark_new[k] = X_mark[k] + dt*U_mark_half[k];
                 }
 
-                // Prevent markers from leaving the computational domain.
+                // Prevent markers from leaving the computational domain through
+                // physical boundaries (but *not* through periodic boundaries).
                 static const double edge_tol = 1.0e-6;
                 const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
                 if (periodic_shift.min() == 0)
@@ -970,7 +971,6 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -978,6 +978,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
             mark_data->copy(*mark_scratch_data);
         }
+        level->deallocatePatchData(d_mark_scratch_idx);
     }
 
     // Deallocate scratch data.
