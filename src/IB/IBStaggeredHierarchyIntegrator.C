@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <24.Nov.2008 10:46:55 griffith@box230.cims.nyu.edu>
+// Last modified: <26.Nov.2008 14:51:23 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -725,7 +725,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     interp(U_data, d_V_idx, false, X_data, false, coarsest_ln, finest_ln);
     resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
 
-    // Initialize X_new to equal X.
+    // Initialize X(n+1) to equal X(n).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -736,7 +736,21 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // Initialize U_half to equal U.
+    // Initialize X_mark(n+1) to equal X_mark(n).
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_data = patch->getPatchData(d_mark_current_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
+            mark_scratch_data->copy(*mark_data);
+        }
+    }
+
+    // Initialize U(n+1/2) to equal U(n).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -802,6 +816,128 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                 ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_vec);  IBTK_CHKERRQ(ierr);
             }
         }
+
+        // Set X_mark(n+1) = X_mark(n) + dt*U(n+1/2).
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > v_data = patch->getPatchData(d_V_idx);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_data = patch->getPatchData(d_mark_current_idx);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
+
+                // Collect into a single vector the current positions of all
+                // markers in the patch.
+                std::vector<double> X_mark;
+#ifdef DEBUG_CHECK_ASSERTIONS
+                std::vector<int> idx_mark;
+#endif
+                for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>::Iterator it(*mark_data); it; it++)
+                {
+                    const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                    if (patch_box.contains(i))
+                    {
+                        const IBTK::LagMarker& mark = it();
+                        const std::vector<double>& X = mark.getPositions();
+                        X_mark.insert(X_mark.end(), X.begin(), X.end());
+#ifdef DEBUG_CHECK_ASSERTIONS
+                        const std::vector<int>& idx = mark.getIndices();
+                        idx_mark.insert(idx_mark.end(), idx.begin(), idx.end());
+#endif
+                    }
+                }
+
+                // Collect into a single vector the predicted new positions of
+                // all markers in the patch.
+                std::vector<double> X_mark_new;
+#ifdef DEBUG_CHECK_ASSERTIONS
+                std::vector<int> idx_mark_new;
+#endif
+                for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>::Iterator it(*mark_scratch_data); it; it++)
+                {
+                    const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                    if (patch_box.contains(i))
+                    {
+                        const IBTK::LagMarker& mark_new = it();
+                        const std::vector<double>& X_new = mark_new.getPositions();
+                        X_mark_new.insert(X_mark_new.end(), X_new.begin(), X_new.end());
+#ifdef DEBUG_CHECK_ASSERTIONS
+                        const std::vector<int>& idx_new = mark_new.getIndices();
+                        idx_mark_new.insert(idx_mark_new.end(), idx_new.begin(), idx_new.end());
+#endif
+                    }
+                }
+
+                // Compute X_mark(n+1/2) = 0.5*(X_mark(n+1) + X_mark(n)).
+                //
+                // NOTE: It is important here that mark_scratch_data is
+                // initialized as a copy of mark_data.  Otherwise, the ordering
+                // of the current and new markers are not guaranteed to be the
+                // same.
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(X_mark.size() == X_mark_new.size());
+                TBOX_ASSERT(idx_mark.size() == idx_mark_new.size());
+                for (unsigned k = 0; k < idx_mark.size(); ++k)
+                {
+                    TBOX_ASSERT(idx_mark[k] == idx_mark_new[k]);
+                }
+#endif
+                std::vector<double> X_mark_half(X_mark.size());
+                for (unsigned k = 0; k < X_mark.size(); ++k)
+                {
+                    X_mark_half[k] = 0.5*(X_mark_new[k]+X_mark[k]);
+                }
+
+                // Compute U_mark(n+1/2) = u(X_mark(n+1/2),n+1/2).
+                std::vector<double> U_mark_half(X_mark.size());
+                IBTK::LEInteractor::interpolate(U_mark_half, NDIM, X_mark_half, NDIM, v_data, patch, patch_box, d_delta_fcn);
+
+                // Compute X_mark(n+1) = X_mark(n) + dt*U_mark(n+1/2).
+                for (unsigned k = 0; k < X_mark.size(); ++k)
+                {
+                    X_mark_new[k] = X_mark[k] + dt*U_mark_half[k];
+                }
+
+                // Prevent markers from leaving the computational domain.
+                static const double edge_tol = 1.0e-6;
+                const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+                if (periodic_shift.min() == 0)
+                {
+                    const double* const xLower = grid_geom->getXLower();
+                    const double* const xUpper = grid_geom->getXUpper();
+                    for (unsigned k = 0; k < X_mark_new.size()/NDIM; ++k)
+                    {
+                        double* const X = &X_mark_new[NDIM*k];
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            if (periodic_shift[d] == 0)
+                            {
+                                X[d] = std::max(X[d],xLower[d]+edge_tol);
+                                X[d] = std::min(X[d],xUpper[d]-edge_tol);
+                            }
+                        }
+                    }
+                }
+
+                // Store the updated marker positions.
+                int marker_offset = 0;
+                for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker>::Iterator it(*mark_scratch_data); it; it++)
+                {
+                    const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                    if (patch_box.contains(i))
+                    {
+                        IBTK::LagMarker& mark = it();
+                        const int nmarks = mark.getNumberOfMarkers();
+                        std::vector<double> X(X_mark_new.begin()+NDIM*marker_offset,X_mark_new.begin()+NDIM*(marker_offset+nmarks));
+                        mark.setPositions(X);
+                        marker_offset += nmarks;
+                    }
+                }
+            }
+        }
     }
     d_ins_hier_integrator->integrateHierarchy_finalize(current_time, new_time);
 
@@ -827,6 +963,20 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             Vec X_vec = X_data[ln]->getGlobalVec();
             Vec X_new_vec = X_new_data[ln]->getGlobalVec();
             int ierr = VecCopy(X_new_vec, X_vec);  IBTK_CHKERRQ(ierr);
+        }
+    }
+
+    // Reset X_mark to equal X_mark_new.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_data = patch->getPatchData(d_mark_current_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
+            mark_data->copy(*mark_scratch_data);
         }
     }
 
@@ -1321,7 +1471,7 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
             const double* const patchDx = patch_geom->getDx();
 
             SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker> > mark_data = patch->getPatchData(d_mark_current_idx);
-            for (size_t k = 0; k < d_mark_init_posns.size()/NDIM; ++k)
+            for (unsigned k = 0; k < d_mark_init_posns.size()/NDIM; ++k)
             {
                 const double* const X = &d_mark_init_posns[NDIM*k];
                 static const std::vector<double> U(NDIM,0.0);
@@ -1336,8 +1486,7 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
                     ;
                 if (patch_owns_node_at_loc)
                 {
-                    const SAMRAI::hier::Index<NDIM> i = IBTK::IndexUtilities::getCellIndex(
-                        X, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
+                    const SAMRAI::hier::Index<NDIM> i = IBTK::IndexUtilities::getCellIndex(X, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
                     if (!mark_data->isElement(i))
                     {
                         mark_data->appendItem(i, IBTK::LagMarker());
