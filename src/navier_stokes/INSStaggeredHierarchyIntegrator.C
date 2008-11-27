@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <24.Nov.2008 20:08:56 griffith@box230.cims.nyu.edu>
+// Last modified: <26.Nov.2008 19:28:09 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -262,6 +262,12 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > sc_var = new SAMRAI::pdat::SideVariable<NDIM,double>("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy);
 
+    // Initialize all variable contexts.
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    d_current_context = var_db->getContext(d_object_name+"::CURRENT");
+    d_new_context     = var_db->getContext(d_object_name+"::NEW"    );
+    d_scratch_context = var_db->getContext(d_object_name+"::SCRATCH");
+
     // Setup Timers.
     static bool timers_need_init = true;
     if (timers_need_init)
@@ -516,12 +522,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
             }
         }
     }
-
-    // Initialize all variable contexts.
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    d_current_context = var_db->getContext(d_object_name+"::CURRENT");
-    d_new_context     = var_db->getContext(d_object_name+"::NEW"    );
-    d_scratch_context = var_db->getContext(d_object_name+"::SCRATCH");
 
     // Initialize all variables.
     d_U_var          = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::U"          );

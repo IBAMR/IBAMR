@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <26.Nov.2008 16:28:04 griffith@box230.cims.nyu.edu>
+// Last modified: <26.Nov.2008 19:36:24 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -299,6 +299,11 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > sc_var = new SAMRAI::pdat::SideVariable<NDIM,double>("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy);
 
+    // Initialize all variable contexts.
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    d_current = var_db->getContext(d_object_name+"::CURRENT");
+    d_scratch = var_db->getContext(d_object_name+"::SCRATCH");
+
     // Setup Timers.
     static bool timers_need_init = true;
     if (timers_need_init)
@@ -488,11 +493,10 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_gridding_alg = gridding_alg;
 
     // Initialize all variables.
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    d_current = var_db->getContext(d_object_name+"::CURRENT");
-    d_scratch = var_db->getContext(d_object_name+"::SCRATCH");
     const SAMRAI::hier::IntVector<NDIM> ghosts = d_ghosts;
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
+
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
 
     d_V_var = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::V");
     d_V_idx = var_db->registerVariableAndContext(d_V_var, d_scratch, ghosts);
@@ -501,8 +505,8 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, no_ghosts);
 
     d_mark_var = new SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker>(d_object_name+"::mark");
-    d_mark_current_idx = var_db->registerVariableAndContext(d_mark_var, d_current, ghosts);
-    d_mark_scratch_idx = var_db->registerVariableAndContext(d_mark_var, d_scratch, ghosts);
+    d_mark_current_idx = var_db->registerVariableAndContext(d_mark_var, getCurrentContext(), ghosts);
+    d_mark_scratch_idx = var_db->registerVariableAndContext(d_mark_var, getScratchContext(), ghosts);
     if (d_registered_for_restart)
     {
         var_db->registerPatchDataForRestart(d_mark_current_idx);

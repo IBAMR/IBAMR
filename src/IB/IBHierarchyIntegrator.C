@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <24.Nov.2008 10:46:42 griffith@box230.cims.nyu.edu>
+// Last modified: <26.Nov.2008 19:36:21 griffith@box230.cims.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -439,6 +439,11 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cc_var = new SAMRAI::pdat::CellVariable<NDIM,double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy);
 
+    // Initialize all variable contexts.
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    d_current = var_db->getContext(d_object_name+"::CURRENT");
+    d_scratch = var_db->getContext(d_object_name+"::SCRATCH");
+
     // Setup Timers.
     static bool timers_need_init = true;
     if (timers_need_init)
@@ -686,11 +691,10 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     d_gridding_alg = gridding_alg;
 
     // Initialize all variables.
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    d_current = var_db->getContext(d_object_name+"::CURRENT");
-    d_scratch = var_db->getContext(d_object_name+"::SCRATCH");
     const SAMRAI::hier::IntVector<NDIM> ghosts = d_ghosts;
     const SAMRAI::hier::IntVector<NDIM> no_ghosts = 0;
+
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
 
     d_V_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::V",NDIM);
     d_V_idx = var_db->registerVariableAndContext(d_V_var, d_current, ghosts);
