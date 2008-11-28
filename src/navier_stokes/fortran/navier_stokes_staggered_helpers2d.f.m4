@@ -96,7 +96,6 @@ c
       INTEGER i0,i1,i,j
       REAL u(-1:1,-1:1),u_xx
       REAL v(-1:1,-1:1),v_yy
-      REAL div_u
 c
 c     Apply the divergence- and curl-preserving corrections.
 c

@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <24.Nov.2008 20:08:37 griffith@box230.cims.nyu.edu>
+// Last modified: <28.Nov.2008 15:06:43 griffith@dyn-160-39-49-211.dyn.columbia.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -722,6 +722,20 @@ private:
         const INSStaggeredHierarchyIntegrator& that);
 
     /*!
+     * Modified KSP convergence test which indicates the linear solver is
+     * converged only if the standard KSP convergence test indicates that the
+     * solver is converged *and* if the divergence of the velocity field is
+     * sufficiently small.
+     */
+    static PetscErrorCode
+    KSPDivUConvergenceTest(
+        KSP ksp,
+        PetscInt n,
+        PetscReal rnorm,
+        KSPConvergedReason* reason,
+        void* convergence_test_ctx);
+
+    /*!
      * Project the velocity field following a regridding operation.
      */
     void
@@ -984,6 +998,7 @@ private:
 
     bool d_stokes_solver_needs_init;
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;
+    double d_div_u_abstol;
 
     bool d_needs_regrid_projection;
     double d_regrid_max_div_growth_factor;

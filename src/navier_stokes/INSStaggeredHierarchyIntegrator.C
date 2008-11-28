@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <26.Nov.2008 19:28:09 griffith@box230.cims.nyu.edu>
+// Last modified: <28.Nov.2008 15:50:40 griffith@dyn-160-39-49-211.dyn.columbia.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -119,6 +119,18 @@ namespace IBAMR
 
 namespace
 {
+int
+register_stokes_solver_options(
+    const std::string& stokes_prefix,
+    double& div_u_abstol)
+{
+    PetscErrorCode ierr;
+    ierr = PetscOptionsBegin(PETSC_COMM_WORLD, stokes_prefix.c_str(), "additional options for incompressible Stokes solver", "");  CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-div_u_atol", "absolute solver congergence tolerance for the value of ||div u||_oo", "", 1.0e-5, &div_u_abstol, PETSC_NULL);  CHKERRQ(ierr);
+    ierr = PetscOptionsEnd();  CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+}// register_stokes_solver_options
+
 // Timers.
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_integrator;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy;
@@ -703,6 +715,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_stokes_solver->setInitialGuessNonzero(true);
     d_stokes_solver->setOperator(d_stokes_op);
     d_stokes_solver->setKSPType("fgmres");
+    ierr = register_stokes_solver_options(stokes_prefix, d_div_u_abstol);  IBTK_CHKERRQ(ierr);
 
     // Setup the preconditioner and preconditioner sub-solvers.
     std::vector<std::string> pc_shell_types(3);
@@ -1357,6 +1370,11 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     // Setup the operators and solvers.
     initializeOperatorsAndSolvers(current_time, new_time);
 
+    // Setup the convergence test.
+    PetscErrorCode ierr;
+    KSP petsc_ksp = d_stokes_solver->getPETScKSP();
+    ierr = KSPSetConvergenceTest(petsc_ksp, INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
+
     // Setup the nullspace object.
     if (d_normalize_pressure)
     {
@@ -1365,7 +1383,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
         d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
         d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
 
-        PetscErrorCode ierr;
         MatNullSpace petsc_nullsp;
         Vec petsc_nullsp_vec = IBTK::PETScSAMRAIVectorReal<double>::createPETScVector(d_nul_vec, PETSC_COMM_WORLD);
         Vec vecs[] = {petsc_nullsp_vec};
@@ -2512,6 +2529,71 @@ INSStaggeredHierarchyIntegrator::registerVariable(
 }// registerVariable
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+PetscErrorCode
+INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
+    KSP ksp,
+    PetscInt n,
+    PetscReal rnorm,
+    KSPConvergedReason* reason,
+    void* convergence_test_ctx)
+{
+    PetscErrorCode ierr;
+    ierr = KSPDefaultConverged(ksp, n, rnorm, reason, PETSC_NULL);  IBTK_CHKERRQ(ierr);
+
+    // Whenever the default convergence test is satisfied, compute the discrete
+    // divergence of the solution vector and ensure that it satisfies the
+    // relevant convergence tolerance.
+    //
+    // NOTE: Here, we assume that the flow is incompressible with no internal
+    // fluid sources or sinks (i.e., div u = 0 holds throughout the
+    // computational domain).  This convergence test will require some minor
+    // modifications to support internal fluid sources and sinks.
+    if (reason > 0)
+    {
+        INSStaggeredHierarchyIntegrator* hier_integrator = static_cast<INSStaggeredHierarchyIntegrator*>(convergence_test_ctx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(hier_integrator != NULL);
+#endif
+        SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops = hier_integrator->d_hier_cc_data_ops;
+        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops = hier_integrator->d_hier_math_ops;
+        const int wgt_cc_idx = hier_integrator->d_wgt_cc_idx;
+
+        const int Div_U_idx = hier_integrator->d_Div_U_scratch_idx;
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Div_U_cc_var = hier_integrator->d_Div_U_var;
+        const SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>& no_fill_op = hier_integrator->d_no_fill_op;
+        const double& integrator_time = hier_integrator->d_integrator_time;
+
+        Vec petsc_sol_vec;
+        ierr = KSPBuildSolution(ksp, PETSC_NULL, &petsc_sol_vec);  IBTK_CHKERRQ(ierr);
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_sol_vec);
+        const int U_idx = sol_vec->getComponentDescriptorIndex(0);
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_var = sol_vec->getComponentVariable(0);
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_sc_var = U_var;
+
+        static const bool U_cf_bdry_synch = true;
+        hier_math_ops->div(
+            Div_U_idx, Div_U_cc_var, // dst
+            +1.0,                    // alpha
+            U_idx, U_sc_var,         // src
+            no_fill_op,              // src_bdry_fill
+            integrator_time,         // src_bdry_fill_time
+            U_cf_bdry_synch);        // src_cf_bdry_synch
+        const double Div_U_oo = hier_cc_data_ops->maxNorm(Div_U_idx, wgt_cc_idx);
+
+        const double& div_u_abstol = hier_integrator->d_div_u_abstol;
+        if (Div_U_oo > div_u_abstol)
+        {
+            PetscInfo3(ksp,"Linear solver has converged according to KSPDefaultConverged, but solution does not yet satisfy the absolute convergence tolerance on div U. Divergence max-norm %G is greater than the absolute tolerance %G at iteration %D\n", Div_U_oo, div_u_abstol, n);
+            reason = 0;
+        }
+        else
+        {
+            PetscInfo3(ksp,"Linear solver has converged according to KSPDefaultConverged, and solution satisfies the absolute convergence tolerance on div U. Divergence max-norm %G is less than or equal to the absolute tolerance %G at iteration %D\n", Div_U_oo, div_u_abstol, n);
+        }
+    }
+    PetscFunctionReturn(0);
+}// KSPDivUConvergenceTest
 
 void
 INSStaggeredHierarchyIntegrator::regridProjection()
