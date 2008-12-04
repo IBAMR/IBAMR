@@ -2549,7 +2549,7 @@ INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
     // fluid sources or sinks (i.e., div u = 0 holds throughout the
     // computational domain).  This convergence test will require some minor
     // modifications to support internal fluid sources and sinks.
-    if (reason > 0)
+    if (int(*reason) > 0)
     {
         INSStaggeredHierarchyIntegrator* hier_integrator = static_cast<INSStaggeredHierarchyIntegrator*>(convergence_test_ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2585,7 +2585,7 @@ INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
         if (Div_U_oo > div_u_abstol)
         {
             PetscInfo3(ksp,"Linear solver has converged according to KSPDefaultConverged, but solution does not yet satisfy the absolute convergence tolerance on div U. Divergence max-norm %G is greater than the absolute tolerance %G at iteration %D\n", Div_U_oo, div_u_abstol, n);
-            reason = 0;
+            *reason = KSP_CONVERGED_ITERATING;
         }
         else
         {
