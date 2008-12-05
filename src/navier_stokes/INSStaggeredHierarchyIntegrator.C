@@ -778,7 +778,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::Helmholtz Krylov Solver", helmholtz_prefix);
         d_helmholtz_solver->setInitialGuessNonzero(false);
         d_helmholtz_solver->setOperator(d_helmholtz_op);
-
+#if 0
         if (d_gridding_alg->getMaxLevels() == 1)
         {
             if (d_helmholtz_hypre_pc_db.isNull())
@@ -786,8 +786,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
                              "  helmholtz hypre pc solver database is null." << std::endl);
             }
-            d_helmholtz_hypre_pc = new IBTK::SCPoissonHypreLevelSolver(
-                d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
+            d_helmholtz_hypre_pc = new IBTK::SCPoissonHypreLevelSolver(d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
             d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
 
             d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
@@ -807,7 +806,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
             d_helmholtz_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_helmholtz_fac_pc_db));
         }
-
+#endif
         // Set some default options.
         d_helmholtz_solver->setKSPType(d_gridding_alg->getMaxLevels() == 1 ? "preonly" : "gmres");
         d_helmholtz_solver->setAbsoluteTolerance(1.0e-30);
@@ -1318,7 +1317,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
 
     // Setup the solver vectors.
     d_U_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(d_object_name+"::U_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
-    d_U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
+    d_U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, -1 /* d_wgt_sc_idx */, d_hier_sc_data_ops);
 
     d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name+"::U_rhs_vec");
     d_U_rhs_vec->allocateVectorData(current_time);
@@ -1339,7 +1338,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     d_hier_sc_data_ops->setToScalar(N_idx,0.0);
 
     d_P_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(d_object_name+"::P_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
-    d_P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+    d_P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, -1 /* d_wgt_cc_idx */, d_hier_cc_data_ops);
 
     d_P_rhs_vec = d_P_scratch_vec->cloneVector(d_object_name+"::P_rhs_vec");
     d_P_rhs_vec->allocateVectorData(current_time);
@@ -1360,12 +1359,12 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
 
     // Reset the solution, rhs, and nullspace vectors.
     d_sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-    d_sol_vec->addComponent(d_U_var,d_U_scratch_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
-    d_sol_vec->addComponent(d_P_var,d_P_scratch_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
+    d_sol_vec->addComponent(d_U_var,d_U_scratch_idx,-1 /* d_wgt_sc_idx */,d_hier_sc_data_ops);
+    d_sol_vec->addComponent(d_P_var,d_P_scratch_idx,-1 /* d_wgt_cc_idx */,d_hier_cc_data_ops);
 
     d_rhs_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
-    d_rhs_vec->addComponent(d_U_var,U_rhs_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
-    d_rhs_vec->addComponent(d_P_var,P_rhs_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
+    d_rhs_vec->addComponent(d_U_var,U_rhs_idx,-1 /* d_wgt_sc_idx */,d_hier_sc_data_ops);
+    d_rhs_vec->addComponent(d_P_var,P_rhs_idx,-1 /* d_wgt_cc_idx */,d_hier_cc_data_ops);
 
     // Setup the operators and solvers.
     initializeOperatorsAndSolvers(current_time, new_time);
@@ -2639,10 +2638,10 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     d_hier_cc_data_ops->scale(d_Div_U_scratch_idx, -1.0, d_Div_U_scratch_idx);
 
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double> sol_vec(d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-    sol_vec.addComponent(d_Phi_var, d_Phi_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+    sol_vec.addComponent(d_Phi_var, d_Phi_scratch_idx, -1 /* d_wgt_cc_idx */, d_hier_cc_data_ops);
 
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double> rhs_vec(d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
-    rhs_vec.addComponent(d_Div_U_var, d_Div_U_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+    rhs_vec.addComponent(d_Div_U_var, d_Div_U_scratch_idx, -1 /* d_wgt_cc_idx */, d_hier_cc_data_ops);
 
     // Setup the Poisson solver.
     d_regrid_projection_spec->setCZero();
@@ -2737,27 +2736,27 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         d_object_name+"::U_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
-    U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
+    U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, -1 /* d_wgt_sc_idx */, d_hier_sc_data_ops);
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_rhs_vec = U_scratch_vec->cloneVector(d_object_name+"::U_rhs_vec");
     const int U_rhs_idx = U_rhs_vec->getComponentDescriptorIndex(0);
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_scratch_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         d_object_name+"::P_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
-    P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+    P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, -1 /* d_wgt_cc_idx */, d_hier_cc_data_ops);
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_rhs_vec = P_scratch_vec->cloneVector(d_object_name+"::P_rhs_vec");
     const int P_rhs_idx = P_rhs_vec->getComponentDescriptorIndex(0);
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-    sol_vec->addComponent(d_U_var,d_U_scratch_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
-    sol_vec->addComponent(d_P_var,d_P_scratch_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
+    sol_vec->addComponent(d_U_var,d_U_scratch_idx,-1 /* d_wgt_sc_idx */,d_hier_sc_data_ops);
+    sol_vec->addComponent(d_P_var,d_P_scratch_idx,-1 /* d_wgt_cc_idx */,d_hier_cc_data_ops);
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > rhs_vec = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
         d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
-    rhs_vec->addComponent(d_U_var,U_rhs_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
-    rhs_vec->addComponent(d_P_var,P_rhs_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
+    rhs_vec->addComponent(d_U_var,U_rhs_idx,-1 /* d_wgt_sc_idx */,d_hier_sc_data_ops);
+    rhs_vec->addComponent(d_P_var,P_rhs_idx,-1 /* d_wgt_cc_idx */,d_hier_cc_data_ops);
 
     for (int d = 0; d < NDIM; ++d)
     {
