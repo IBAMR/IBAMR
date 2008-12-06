@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <05.Dec.2008 13:40:57 griffith@box230.cims.nyu.edu>
+// Last modified: <06.Dec.2008 13:22:21 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1387,6 +1387,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
         const std::string helmholtz_prefix = "helmholtz_";
 
         // Setup the various solver components.
+        delete d_helmholtz_spec;
         d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
         d_helmholtz_op = new IBTK::SCLaplaceOperator(d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_U_star_bc_coefs, true);
         d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
@@ -1395,7 +1396,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
         d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::Helmholtz Krylov Solver", helmholtz_prefix);
         d_helmholtz_solver->setInitialGuessNonzero(false);
         d_helmholtz_solver->setOperator(d_helmholtz_op);
-
+#if 0
         if (d_gridding_alg->getMaxLevels() == 1)
         {
             if (d_helmholtz_hypre_pc_db.isNull())
@@ -1424,7 +1425,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
 
             d_helmholtz_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_helmholtz_fac_pc_db));
         }
-
+#endif
         // Set some default options.
         d_helmholtz_solver->setKSPType(d_gridding_alg->getMaxLevels() == 1 ? "preonly" : "gmres");
         d_helmholtz_solver->setAbsoluteTolerance(1.0e-30);
@@ -1448,6 +1449,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
         const std::string poisson_prefix = "poisson_";
 
         // Setup the various solver components.
+        delete d_poisson_spec;
         d_poisson_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::poisson_spec");
         d_poisson_op = new IBTK::CCLaplaceOperator(d_object_name+"::Poisson Operator", *d_poisson_spec, d_U_star_bc_coefs, true);
         d_poisson_op->setHierarchyMathOps(d_hier_math_ops);
