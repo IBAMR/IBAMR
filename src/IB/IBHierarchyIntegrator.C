@@ -2012,8 +2012,6 @@ IBHierarchyIntegrator::regridHierarchy()
 {
     t_regrid_hierarchy->start();
 
-    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
-
     // Update the marker data.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): resetting markers particles.\n";
     const int num_marks = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
