@@ -335,89 +335,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
         }
     }
 
-    // Read in the constraint force info.
-    d_using_constraint_forces.resize(128,false);  // XXXX
-    d_constraint_lag_coarse_idxs.resize(128);
-    d_constraint_lag_fine_idxs.resize(128);
-    d_constraint_petsc_coarse_idxs.resize(128);
-    d_constraint_petsc_fine_idxs.resize(128);
-    if (!d_constraint_forces_file_name.empty())
-    {
-        SAMRAI::tbox::pout << "add restart capability so this doesn't have to be re-read each time!\n";
-
-        const int mpi_rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
-        const int mpi_size = SAMRAI::tbox::SAMRAI_MPI::getNodes();
-
-        for (int rank = 0; rank < mpi_size; ++rank)
-        {
-            if (rank == mpi_rank)
-            {
-                std::string line_string;
-                std::ifstream file_stream(d_constraint_forces_file_name.c_str(), std::ios::in);
-
-                // The first entry in the file is the number of force specs.
-                int num_specs;
-                if (!std::getline(file_stream, line_string))
-                {
-                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << d_constraint_forces_file_name << "\n");
-                }
-                else
-                {
-                    line_string = discard_comments(line_string);
-                    std::istringstream line_stream(line_string);
-                    if (!(line_stream >> num_specs))
-                    {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << d_constraint_forces_file_name << "\n");
-                    }
-                }
-
-                // Each successive line provides a force specification for a
-                // constraint force.
-                for (int k = 0; k < num_specs; ++k)
-                {
-                    if (!std::getline(file_stream, line_string))
-                    {
-                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << d_constraint_forces_file_name << "\n");
-                    }
-                    else
-                    {
-                        line_string = discard_comments(line_string);
-                        std::istringstream line_stream(line_string);
-                        int coarse_ln;
-                        if (!(line_stream >> coarse_ln))
-                        {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_constraint_forces_file_name << "\n");
-                        }
-                        int fine_ln;
-                        if (!(line_stream >> fine_ln))
-                        {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_constraint_forces_file_name << "\n");
-                        }
-                        int coarse_idx;
-                        if (!(line_stream >> coarse_idx))
-                        {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_constraint_forces_file_name << "\n");
-                        }
-                        int fine_idx;
-                        if (!(line_stream >> fine_idx))
-                        {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_constraint_forces_file_name << "\n");
-                        }
-
-                        if (fine_ln != coarse_ln+1)
-                        {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_constraint_forces_file_name << "\n");
-                        }
-
-                        d_using_constraint_forces   [coarse_ln] = true;
-                        d_constraint_lag_coarse_idxs[coarse_ln].push_back(coarse_idx);
-                        d_constraint_lag_fine_idxs  [coarse_ln].push_back(  fine_idx);
-                    }
-                }
-            }
-        }
-    }
-
     // Determine the ghost cell width required for cell-centered spreading and
     // interpolating.
     const int stencil_size = IBTK::LEInteractor::getStencilSize(d_delta_fcn);
@@ -494,23 +411,6 @@ IBHierarchyIntegrator::~IBHierarchyIntegrator()
          it != d_cstrategies.end(); ++it)
     {
         delete (*it).second;
-    }
-
-    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        int ierr;
-        if (d_constraint_force_src_is[ln] != static_cast<IS>(NULL))
-        {
-            ierr = ISDestroy(d_constraint_force_src_is[ln]); IBTK_CHKERRQ(ierr);
-        }
-        if (d_constraint_force_dst_is[ln] != static_cast<IS>(NULL))
-        {
-            ierr = ISDestroy(d_constraint_force_dst_is[ln]); IBTK_CHKERRQ(ierr);
-        }
-        if (d_constraint_force_vec_scatter[ln] != static_cast<VecScatter>(NULL))
-        {
-            ierr = VecScatterDestroy(d_constraint_force_vec_scatter[ln]); IBTK_CHKERRQ(ierr);
-        }
     }
     return;
 }// ~IBHierarchyIntegrator
@@ -1289,8 +1189,6 @@ IBHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    computeConstraintForces(X_data, F_data, coarsest_ln, finest_ln, current_time, initial_time);
-
     resetAnchorPointValues(F_data, coarsest_ln, finest_ln);
 
     // 3. Spread F(n) from the Lagrangian mesh onto the Cartesian grid.
@@ -1462,8 +1360,6 @@ IBHierarchyIntegrator::advanceHierarchy(
             }
         }
     }
-
-    computeConstraintForces(X_new_data, F_new_data, coarsest_ln, finest_ln, new_time, false);
 
     resetAnchorPointValues(F_new_data, coarsest_ln, finest_ln);
 
@@ -2007,8 +1903,6 @@ IBHierarchyIntegrator::postProcessData()
         }
     }
 
-    computeConstraintForces(X_data, F_data, coarsest_ln, finest_ln, current_time, initial_time);
-
     resetAnchorPointValues(F_data, coarsest_ln, finest_ln);
 
     // Perform the user-defined post-processing.
@@ -2240,12 +2134,6 @@ IBHierarchyIntegrator::regridHierarchy()
             }
         }
     }
-
-    // Update any constraint force information.
-    d_constraint_force_src_is.resize(d_hierarchy->getFinestLevelNumber()+1,static_cast<IS>(NULL));
-    d_constraint_force_dst_is.resize(d_hierarchy->getFinestLevelNumber()+1,static_cast<IS>(NULL));
-    d_constraint_force_vec_scatter.resize(d_hierarchy->getFinestLevelNumber()+1,static_cast<VecScatter>(NULL));
-    computeConstraintForceDataStructures(X_data,0,d_hierarchy->getFinestLevelNumber(), d_integrator_time, initial_time);
 
     t_regrid_hierarchy->stop();
     return;
@@ -3304,201 +3192,6 @@ IBHierarchyIntegrator::resetAnchorPointValues(
 }// resetAnchorPointValues
 
 void
-IBHierarchyIntegrator::computeConstraintForceDataStructures(
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-    const int coarsest_ln,
-    const int finest_ln,
-    const double data_time,
-    const bool initial_time)
-{
-    (void) data_time;
-
-    int ierr;
-
-    // Compute the PETSc VecScatters required to compute the constraint penalty
-    // forces.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (d_using_constraint_forces[ln])
-        {
-            if (d_constraint_force_src_is[ln] != static_cast<IS>(NULL))
-            {
-                ierr = ISDestroy(d_constraint_force_src_is[ln]); IBTK_CHKERRQ(ierr);
-            }
-            if (d_constraint_force_dst_is[ln] != static_cast<IS>(NULL))
-            {
-                ierr = ISDestroy(d_constraint_force_dst_is[ln]); IBTK_CHKERRQ(ierr);
-            }
-            if (d_constraint_force_vec_scatter[ln] != static_cast<VecScatter>(NULL))
-            {
-                ierr = VecScatterDestroy(d_constraint_force_vec_scatter[ln]); IBTK_CHKERRQ(ierr);
-            }
-
-            d_constraint_petsc_coarse_idxs[ln] = d_constraint_lag_coarse_idxs[ln];
-            d_constraint_petsc_fine_idxs  [ln] = d_constraint_lag_fine_idxs  [ln];
-
-            d_lag_data_manager->mapLagrangianToPETSc(d_constraint_petsc_coarse_idxs[ln], ln  );
-            d_lag_data_manager->mapLagrangianToPETSc(d_constraint_petsc_fine_idxs  [ln], ln+1);
-
-            Vec X_coarse_vec = X_data[ln]->getGlobalVec();
-            Vec X_fine_vec = X_data[ln+1]->getGlobalVec();
-
-            int coarse_idx_lo, coarse_idx_hi;
-            ierr = VecGetOwnershipRange(X_coarse_vec, &coarse_idx_lo, &coarse_idx_hi); IBTK_CHKERRQ(ierr);
-            coarse_idx_lo /= NDIM;
-            coarse_idx_hi /= NDIM;
-
-            std::vector<int> src_idxs, dst_idxs;
-            for (int k = 0; k < int(d_constraint_petsc_coarse_idxs[ln].size()); ++k)
-            {
-                const int& coarse_idx = d_constraint_petsc_coarse_idxs[ln][k];
-                const int&   fine_idx = d_constraint_petsc_fine_idxs  [ln][k];
-                if (coarse_idx >= coarse_idx_lo && coarse_idx < coarse_idx_hi)
-                {
-                    src_idxs.push_back(NDIM*  fine_idx);
-                    dst_idxs.push_back(NDIM*coarse_idx);
-                }
-            }
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(int(d_constraint_petsc_coarse_idxs[ln].size()) == SAMRAI::tbox::SAMRAI_MPI::sumReduction(int(dst_idxs.size())));
-            TBOX_ASSERT(int(d_constraint_petsc_fine_idxs  [ln].size()) == SAMRAI::tbox::SAMRAI_MPI::sumReduction(int(src_idxs.size())));
-#endif
-            ierr = ISCreateBlock(PETSC_COMM_WORLD, NDIM, src_idxs.size(), &src_idxs[0], &d_constraint_force_src_is[ln]); IBTK_CHKERRQ(ierr);
-            ierr = ISCreateBlock(PETSC_COMM_WORLD, NDIM, dst_idxs.size(), &dst_idxs[0], &d_constraint_force_dst_is[ln]); IBTK_CHKERRQ(ierr);
-            ierr = VecScatterCreate(X_fine_vec  , d_constraint_force_src_is[ln],
-                                    X_coarse_vec, d_constraint_force_dst_is[ln],
-                                    &d_constraint_force_vec_scatter[ln]); IBTK_CHKERRQ(ierr);
-        }
-    }
-
-    // Ensure the initial constrained positions agree, assuming that the fine
-    // grid positions are the "true" positions.
-    if (initial_time && d_reset_constrained_initial_posns)
-    {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (d_using_constraint_forces[ln])
-            {
-                Vec X_coarse_vec = X_data[ln]->getGlobalVec();
-                Vec X_fine_vec = X_data[ln+1]->getGlobalVec();
-
-                ierr = VecScatterBegin(d_constraint_force_vec_scatter[ln],
-                                       X_fine_vec, X_coarse_vec,
-                                       INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
-                ierr = VecScatterEnd(d_constraint_force_vec_scatter[ln],
-                                     X_fine_vec, X_coarse_vec,
-                                     INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
-            }
-        }
-    }
-    return;
-}// computeConstraintForceDataStructures
-
-void
-IBHierarchyIntegrator::computeConstraintForces(
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data,
-    const int coarsest_ln,
-    const int finest_ln,
-    const double data_time,
-    const bool initial_time)
-{
-    (void) data_time;
-    (void) initial_time;
-
-    int ierr;
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (d_using_constraint_forces[ln])
-        {
-            Vec X_coarse_vec = X_data[ln]->getGlobalVec();
-            Vec F_coarse_vec = F_data[ln]->getGlobalVec();
-            Vec X_fine_vec = X_data[ln+1]->getGlobalVec();
-            Vec F_fine_vec = F_data[ln+1]->getGlobalVec();
-
-            int coarse_idx_lo, coarse_idx_hi;
-            ierr = VecGetOwnershipRange(X_coarse_vec, &coarse_idx_lo, &coarse_idx_hi); IBTK_CHKERRQ(ierr);
-            coarse_idx_lo /= NDIM;
-            coarse_idx_hi /= NDIM;
-
-            Vec X_coarsened_fine_vec;
-            ierr = VecDuplicate(X_coarse_vec, &X_coarsened_fine_vec);  IBTK_CHKERRQ(ierr);
-            ierr = VecSet(X_coarsened_fine_vec, 0.0);  IBTK_CHKERRQ(ierr);
-
-            ierr = VecScatterBegin(d_constraint_force_vec_scatter[ln],
-                                   X_fine_vec, X_coarsened_fine_vec,
-                                   INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
-            ierr = VecScatterEnd(d_constraint_force_vec_scatter[ln],
-                                 X_fine_vec, X_coarsened_fine_vec,
-                                 INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
-
-            Vec F_coarse_constraint_vec;
-            ierr = VecDuplicate(F_coarse_vec, &F_coarse_constraint_vec);  IBTK_CHKERRQ(ierr);
-            ierr = VecSet(F_coarse_constraint_vec, 0.0);  IBTK_CHKERRQ(ierr);
-
-            double* X_coarse_arr;
-            ierr = VecGetArray(X_coarse_vec, &X_coarse_arr);  IBTK_CHKERRQ(ierr);
-            double* X_coarsened_fine_arr;
-            ierr = VecGetArray(X_coarsened_fine_vec, &X_coarsened_fine_arr);  IBTK_CHKERRQ(ierr);
-            double* F_coarse_constraint_arr;
-            ierr = VecGetArray(F_coarse_constraint_vec, &F_coarse_constraint_arr);  IBTK_CHKERRQ(ierr);
-
-            double r_max = 0.0;
-            for (int k = 0; k < int(d_constraint_petsc_coarse_idxs[ln].size()); ++k)
-            {
-                const int& coarse_idx = d_constraint_petsc_coarse_idxs[ln][k];
-                if (coarse_idx >= coarse_idx_lo && coarse_idx < coarse_idx_hi)
-                {
-                    const int local_idx = coarse_idx-coarse_idx_lo;
-                    const double* const X_coarse         = &X_coarse_arr        [NDIM*local_idx];
-                    const double* const X_coarsened_fine = &X_coarsened_fine_arr[NDIM*local_idx];
-                    double* const F_coarse_constraint = &F_coarse_constraint_arr[NDIM*local_idx];
-                    double D[NDIM];
-                    double r_sq = 0.0;
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        D[d] = X_coarsened_fine[d] - X_coarse[d];
-                        r_sq += D[d]*D[d];
-                        F_coarse_constraint[d] = d_constraint_kappa*D[d];
-                    }
-                    r_max = std::max(r_max,sqrt(r_sq));
-                }
-            }
-            r_max = SAMRAI::tbox::SAMRAI_MPI::maxReduction(r_max);
-
-            if (d_do_log)
-            {
-                SAMRAI::tbox::plog << d_object_name << "::computeConstraintForces():\n";
-                SAMRAI::tbox::plog << "  maximum displacement between constrained points on levels " << ln << " and " << ln+1 << " = " << r_max << "\n";
-            }
-
-            ierr = VecRestoreArray(X_coarse_vec, &X_coarse_arr);  IBTK_CHKERRQ(ierr);
-            ierr = VecRestoreArray(X_coarsened_fine_vec, &X_coarsened_fine_arr);  IBTK_CHKERRQ(ierr);
-            ierr = VecRestoreArray(F_coarse_constraint_vec, &F_coarse_constraint_arr);  IBTK_CHKERRQ(ierr);
-
-            Vec F_fine_constraint_vec;
-            ierr = VecDuplicate(F_fine_vec, &F_fine_constraint_vec);  IBTK_CHKERRQ(ierr);
-            ierr = VecSet(F_fine_constraint_vec, 0.0);  IBTK_CHKERRQ(ierr);
-
-            ierr = VecScatterBegin(d_constraint_force_vec_scatter[ln],
-                                   F_coarse_constraint_vec, F_fine_constraint_vec,
-                                   INSERT_VALUES, SCATTER_REVERSE);  IBTK_CHKERRQ(ierr);
-            ierr = VecScatterEnd(d_constraint_force_vec_scatter[ln],
-                                 F_coarse_constraint_vec, F_fine_constraint_vec,
-                                 INSERT_VALUES, SCATTER_REVERSE);  IBTK_CHKERRQ(ierr);
-
-            ierr = VecAXPY(F_coarse_vec, +1.0, F_coarse_constraint_vec);  IBTK_CHKERRQ(ierr);
-            ierr = VecAXPY(F_fine_vec, -1.0, F_fine_constraint_vec);  IBTK_CHKERRQ(ierr);
-
-            ierr = VecDestroy(X_coarsened_fine_vec);  IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(F_coarse_constraint_vec);  IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(F_fine_constraint_vec);  IBTK_CHKERRQ(ierr);
-        }
-    }
-    return;
-}// computeConstraintForces
-
-void
 IBHierarchyIntegrator::computeSourceStrengths(
     const int coarsest_level,
     const int finest_level,
@@ -3913,13 +3606,6 @@ IBHierarchyIntegrator::getFromInput(
         }
 
         d_mark_input_file_name = db->getStringWithDefault("marker_input_file_name", d_mark_input_file_name);
-    }
-
-    d_constraint_forces_file_name = db->getStringWithDefault("constraint_forces_file_name", d_constraint_forces_file_name);
-    if (!d_constraint_forces_file_name.empty())
-    {
-        d_constraint_kappa = db->getDouble("constraint_kappa");  // XXXX
-        d_reset_constrained_initial_posns = db->getBool("reset_constrained_initial_posns");  // XXXX
     }
     return;
 }// getFromInput

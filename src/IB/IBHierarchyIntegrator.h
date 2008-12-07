@@ -718,30 +718,6 @@ private:
         const int finest_ln);
 
     /*!
-     * Update constraint force data structures over the specified levels in the
-     * patch hierarchy.
-     */
-    void
-    computeConstraintForceDataStructures(
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-        const int coarsest_ln,
-        const int finest_ln,
-        const double data_time,
-        const bool initial_time);
-
-    /*!
-     * Add constraint forces to the specified levels of the patch hierarchy.
-     */
-    void
-    computeConstraintForces(
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data,
-        const int coarsest_ln,
-        const int finest_ln,
-        const double data_time,
-        const bool initial_time);
-
-    /*!
      * Set the values of the distributed internal sources/sinks on the Cartesian
      * grid hierarchy.
      *
@@ -1000,18 +976,6 @@ private:
      * within 2.0*sqrt(epsilon_mach) of the physical boundary.
      */
     std::vector<std::set<int > > d_anchor_point_local_idxs;
-
-    /*
-     * Constraint force data.
-     */
-    std::string d_constraint_forces_file_name;
-    double d_constraint_kappa;
-    bool d_reset_constrained_initial_posns;
-    std::vector<bool> d_using_constraint_forces;
-    std::vector<std::vector<int> > d_constraint_lag_coarse_idxs, d_constraint_lag_fine_idxs;
-    std::vector<std::vector<int> > d_constraint_petsc_coarse_idxs, d_constraint_petsc_fine_idxs;
-    std::vector<IS> d_constraint_force_src_is, d_constraint_force_dst_is;
-    std::vector<VecScatter> d_constraint_force_vec_scatter;
 };
 }// namespace IBAMR
 
