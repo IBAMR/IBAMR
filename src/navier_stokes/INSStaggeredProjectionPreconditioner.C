@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <12.Dec.2008 14:37:08 griffith@box230.cims.nyu.edu>
+// Last modified: <22.Jan.2009 17:47:13 beg208@cardiac.es.its.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -147,6 +147,8 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b)
 {
+    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem() start\n";
+
     // Initialize the solver (if necessary).
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeSolverState(x,b);
@@ -200,14 +202,16 @@ INSStaggeredProjectionPreconditioner::solveSystem(
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
     TBOX_ASSERT(hierarchy == b.getPatchHierarchy());
-    IBTK::DebuggingUtilities::saveSideData(U_in_idx, hierarchy, "U_in_input", dirname);
-    IBTK::DebuggingUtilities::saveCellData(P_in_idx, hierarchy, "P_in_input", dirname);
-    IBTK::DebuggingUtilities::saveSideData(U_out_idx, hierarchy, "U_out_input", dirname);
-    IBTK::DebuggingUtilities::saveCellData(P_out_idx, hierarchy, "P_out_input", dirname);
+//  IBTK::DebuggingUtilities::saveSideData(U_in_idx, hierarchy, "U_in_input", dirname);
+//  IBTK::DebuggingUtilities::saveCellData(P_in_idx, hierarchy, "P_in_input", dirname);
+//  IBTK::DebuggingUtilities::saveSideData(U_out_idx, hierarchy, "U_out_input", dirname);
+//  IBTK::DebuggingUtilities::saveCellData(P_out_idx, hierarchy, "P_out_input", dirname);
 
     // Solve for u^{*}.
+    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem() helmholtz solver start\n";
     d_velocity_helmholtz_solver->solveSystem(*U_out_vec,*U_in_vec);
-    IBTK::DebuggingUtilities::saveSideData(U_out_idx, hierarchy, "U_star", dirname);
+    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem() helmholtz solver end\n";
+//  IBTK::DebuggingUtilities::saveSideData(U_out_idx, hierarchy, "U_star", dirname);
 
     // Compute F = -(rho/dt)*(P_in + div u^{*}).
     const bool u_star_cf_bdry_synch = true;
@@ -222,8 +226,10 @@ INSStaggeredProjectionPreconditioner::solveSystem(
         P_in_idx, P_in_cc_var);   // src2
 
     // Solve -div grad Phi = F = -(rho/dt)*(P_in + div u^{*}).
+    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem() poisson solver start\n";
     d_pressure_poisson_solver->solveSystem(*Phi_scratch_vec,*F_scratch_vec);
-    IBTK::DebuggingUtilities::saveCellData(d_Phi_scratch_idx, hierarchy, "Phi", dirname);
+    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem() poisson solver end\n";
+//  IBTK::DebuggingUtilities::saveCellData(d_Phi_scratch_idx, hierarchy, "Phi", dirname);
 
     // Use Phi to project u^{*}.
     const bool u_new_cf_bdry_synch = true;
@@ -250,13 +256,15 @@ INSStaggeredProjectionPreconditioner::solveSystem(
         d_hier_cc_data_ops->addScalar(P_out_idx, P_out_idx, -P_mean);
     }
 
-    IBTK::DebuggingUtilities::saveSideData(U_in_idx, hierarchy, "U_in_output", dirname);
-    IBTK::DebuggingUtilities::saveCellData(P_in_idx, hierarchy, "P_in_output", dirname);
-    IBTK::DebuggingUtilities::saveSideData(U_out_idx, hierarchy, "U_out_output", dirname);
-    IBTK::DebuggingUtilities::saveCellData(P_out_idx, hierarchy, "P_out_output", dirname);
+//  IBTK::DebuggingUtilities::saveSideData(U_in_idx, hierarchy, "U_in_output", dirname);
+//  IBTK::DebuggingUtilities::saveCellData(P_in_idx, hierarchy, "P_in_output", dirname);
+//  IBTK::DebuggingUtilities::saveSideData(U_out_idx, hierarchy, "U_out_output", dirname);
+//  IBTK::DebuggingUtilities::saveCellData(P_out_idx, hierarchy, "P_out_output", dirname);
 
     // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
+
+    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem() end\n";
     return true;
 }// solveSystem
 

@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <18.Nov.2008 17:18:24 griffith@box230.cims.nyu.edu>
+// Last modified: <23.Jan.2009 17:42:59 beg208@cardiac.es.its.nyu.edu>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -22,6 +22,7 @@
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LNodeIndexData2.h>
+#include <ibtk/PETScVecOps.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -406,12 +407,19 @@ IBBeamForceGen::computeLagrangianForce(
     ierr = VecDestroy(D_prev_vec);                    IBTK_CHKERRQ(ierr);
 
     Vec F_vec = F_data->getGlobalVec();
+#if 0
     ierr = VecSetValuesBlocked(F_vec, petsc_mastr_node_idxs.size(), &petsc_mastr_node_idxs[0], &F_mastr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = VecSetValuesBlocked(F_vec, petsc_next_node_idxs.size(), &petsc_next_node_idxs[0], &F_nghbr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = VecSetValuesBlocked(F_vec, petsc_prev_node_idxs.size(), &petsc_prev_node_idxs[0], &F_nghbr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
-
+#else
+    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec, petsc_mastr_node_idxs.size(), &petsc_mastr_node_idxs[0], &F_mastr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec, petsc_next_node_idxs.size(), &petsc_next_node_idxs[0], &F_nghbr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec, petsc_prev_node_idxs.size(), &petsc_prev_node_idxs[0], &F_nghbr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = IBTK::PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
+    ierr = IBTK::PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
+#endif
     t_compute_lagrangian_force->stop();
     return;
 }// computeLagrangianForce

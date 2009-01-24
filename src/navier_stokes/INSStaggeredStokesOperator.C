@@ -143,11 +143,11 @@ INSStaggeredStokesOperator::apply(
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeOperatorState(x,y);
 
-    static int counter = -1;
-    SAMRAI::tbox::pout << "INSStaggeredStokesOperator::apply(): counter = " << ++counter << "\n";
-    std::ostringstream os;
-    os << "stokes_operator/" << counter;
-    const std::string dirname = os.str();
+//  static int counter = -1;
+//  SAMRAI::tbox::pout << "INSStaggeredStokesOperator::apply(): counter = " << ++counter << "\n";
+//  std::ostringstream os;
+//  os << "stokes_operator/" << counter;
+//  const std::string dirname = os.str();
 
     // Get the vector components.
     const int U_in_idx       =            x.getComponentDescriptorIndex(0);

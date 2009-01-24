@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <26.Nov.2008 19:36:24 griffith@box230.cims.nyu.edu>
+// Last modified: <22.Jan.2009 18:06:13 beg208@cardiac.es.its.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"

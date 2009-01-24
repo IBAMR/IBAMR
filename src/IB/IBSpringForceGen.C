@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <20.Aug.2008 20:21:31 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <23.Jan.2009 17:43:31 beg208@cardiac.es.its.nyu.edu>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -22,6 +22,7 @@
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LNodeIndexData2.h>
+#include <ibtk/PETScVecOps.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -381,11 +382,17 @@ IBSpringForceGen::computeLagrangianForce(
     ierr = VecDestroy(D_vec);               IBTK_CHKERRQ(ierr);
 
     Vec F_vec = F_data->getGlobalVec();
+#if 0
     ierr = VecSetValuesBlocked(F_vec, petsc_mastr_node_idxs.size(), &petsc_mastr_node_idxs[0], &F_mastr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = VecSetValuesBlocked(F_vec, petsc_slave_node_idxs.size(), &petsc_slave_node_idxs[0], &F_slave_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
-
+#else
+    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec, petsc_mastr_node_idxs.size(), &petsc_mastr_node_idxs[0], &F_mastr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec, petsc_slave_node_idxs.size(), &petsc_slave_node_idxs[0], &F_slave_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = IBTK::PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
+    ierr = IBTK::PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
+#endif
     t_compute_lagrangian_force->stop();
     return;
 }// computeLagrangianForce

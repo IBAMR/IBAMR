@@ -50,9 +50,6 @@
 /* Define if you have the HYPRE_MatrixMatrix library. */
 #undef HAVE_LIBHYPRE_MATRIXMATRIX
 
-/* Define if you have the HYPRE_multivector library. */
-#undef HAVE_LIBHYPRE_MULTIVECTOR
-
 /* Define if you have the HYPRE_ParaSails library. */
 #undef HAVE_LIBHYPRE_PARASAILS
 
