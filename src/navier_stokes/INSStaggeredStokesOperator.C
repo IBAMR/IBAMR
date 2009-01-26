@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <12.Dec.2008 15:11:12 griffith@box230.cims.nyu.edu>
+// Last modified: <26.Jan.2009 13:24:35 beg208@cardiac.es.its.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -18,9 +18,6 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSStaggeredPressureBcCoef.h>
-
-// IBTK INCLUDES
-#include <ibtk/DebuggingUtilities.h>
 
 // C++ STDLIB INCLUDES
 #include <limits>
@@ -143,12 +140,6 @@ INSStaggeredStokesOperator::apply(
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeOperatorState(x,y);
 
-//  static int counter = -1;
-//  SAMRAI::tbox::pout << "INSStaggeredStokesOperator::apply(): counter = " << ++counter << "\n";
-//  std::ostringstream os;
-//  os << "stokes_operator/" << counter;
-//  const std::string dirname = os.str();
-
     // Get the vector components.
     const int U_in_idx       =            x.getComponentDescriptorIndex(0);
     const int P_in_idx       =            x.getComponentDescriptorIndex(1);
@@ -168,13 +159,6 @@ INSStaggeredStokesOperator::apply(
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_scratch_sc_var = U_scratch_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_scratch_cc_var = P_scratch_var;
-
-//  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
-//  TBOX_ASSERT(hierarchy == y.getPatchHierarchy());
-//  IBTK::DebuggingUtilities::saveSideData(U_in_idx, hierarchy, "U_in_input", dirname);
-//  IBTK::DebuggingUtilities::saveCellData(P_in_idx, hierarchy, "P_in_input", dirname);
-//  IBTK::DebuggingUtilities::saveSideData(U_out_idx, hierarchy, "U_out_input", dirname);
-//  IBTK::DebuggingUtilities::saveCellData(P_out_idx, hierarchy, "P_out_input", dirname);
 
     d_x_scratch->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&x,false));
 
@@ -211,11 +195,6 @@ INSStaggeredStokesOperator::apply(
         d_no_fill_op, d_new_time,
         1.0,
         U_out_idx, U_out_sc_var);
-
-//  IBTK::DebuggingUtilities::saveSideData(U_in_idx, hierarchy, "U_in_output", dirname);
-//  IBTK::DebuggingUtilities::saveCellData(P_in_idx, hierarchy, "P_in_output", dirname);
-//  IBTK::DebuggingUtilities::saveSideData(U_out_idx, hierarchy, "U_out_output", dirname);
-//  IBTK::DebuggingUtilities::saveCellData(P_out_idx, hierarchy, "P_out_output", dirname);
 
     // Deallocate the operator (if necessary).
     if (deallocate_at_completion) deallocateOperatorState();

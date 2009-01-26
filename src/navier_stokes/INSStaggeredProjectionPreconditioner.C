@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <22.Jan.2009 17:47:13 beg208@cardiac.es.its.nyu.edu>
+// Last modified: <26.Jan.2009 13:24:05 beg208@cardiac.es.its.nyu.edu>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -15,9 +15,6 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
-
-// IBTK INCLUDES
-#include "ibtk/DebuggingUtilities.h"
 
 // C++ STDLIB INCLUDES
 #include <limits>
@@ -153,12 +150,6 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeSolverState(x,b);
 
-    static int counter = -1;
-    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem(): counter = " << ++counter << "\n";
-    std::ostringstream os;
-    os << "projection_preconditioner/" << counter;
-    const std::string dirname = os.str();
-
     // Problem coefficients.
     const double rho    = d_problem_coefs.getRho();
 //  const double mu     = d_problem_coefs.getMu();
@@ -202,16 +193,9 @@ INSStaggeredProjectionPreconditioner::solveSystem(
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
     TBOX_ASSERT(hierarchy == b.getPatchHierarchy());
-//  IBTK::DebuggingUtilities::saveSideData(U_in_idx, hierarchy, "U_in_input", dirname);
-//  IBTK::DebuggingUtilities::saveCellData(P_in_idx, hierarchy, "P_in_input", dirname);
-//  IBTK::DebuggingUtilities::saveSideData(U_out_idx, hierarchy, "U_out_input", dirname);
-//  IBTK::DebuggingUtilities::saveCellData(P_out_idx, hierarchy, "P_out_input", dirname);
 
     // Solve for u^{*}.
-    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem() helmholtz solver start\n";
     d_velocity_helmholtz_solver->solveSystem(*U_out_vec,*U_in_vec);
-    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem() helmholtz solver end\n";
-//  IBTK::DebuggingUtilities::saveSideData(U_out_idx, hierarchy, "U_star", dirname);
 
     // Compute F = -(rho/dt)*(P_in + div u^{*}).
     const bool u_star_cf_bdry_synch = true;
@@ -226,10 +210,7 @@ INSStaggeredProjectionPreconditioner::solveSystem(
         P_in_idx, P_in_cc_var);   // src2
 
     // Solve -div grad Phi = F = -(rho/dt)*(P_in + div u^{*}).
-    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem() poisson solver start\n";
     d_pressure_poisson_solver->solveSystem(*Phi_scratch_vec,*F_scratch_vec);
-    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem() poisson solver end\n";
-//  IBTK::DebuggingUtilities::saveCellData(d_Phi_scratch_idx, hierarchy, "Phi", dirname);
 
     // Use Phi to project u^{*}.
     const bool u_new_cf_bdry_synch = true;
@@ -255,11 +236,6 @@ INSStaggeredProjectionPreconditioner::solveSystem(
         const double P_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(P_out_idx, d_wgt_cc_idx);
         d_hier_cc_data_ops->addScalar(P_out_idx, P_out_idx, -P_mean);
     }
-
-//  IBTK::DebuggingUtilities::saveSideData(U_in_idx, hierarchy, "U_in_output", dirname);
-//  IBTK::DebuggingUtilities::saveCellData(P_in_idx, hierarchy, "P_in_output", dirname);
-//  IBTK::DebuggingUtilities::saveSideData(U_out_idx, hierarchy, "U_out_output", dirname);
-//  IBTK::DebuggingUtilities::saveCellData(P_out_idx, hierarchy, "P_out_output", dirname);
 
     // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
