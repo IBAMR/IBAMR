@@ -116,17 +116,11 @@
 /* Define if you have the SAMRAI2d_hier library. */
 #undef HAVE_LIBSAMRAI2D_HIER
 
-/* Define if you have the SAMRAI2d_math_special library. */
-#undef HAVE_LIBSAMRAI2D_MATH_SPECIAL
-
 /* Define if you have the SAMRAI2d_math_std library. */
 #undef HAVE_LIBSAMRAI2D_MATH_STD
 
 /* Define if you have the SAMRAI2d_mesh library. */
 #undef HAVE_LIBSAMRAI2D_MESH
-
-/* Define if you have the SAMRAI2d_pdat_special library. */
-#undef HAVE_LIBSAMRAI2D_PDAT_SPECIAL
 
 /* Define if you have the SAMRAI2d_pdat_std library. */
 #undef HAVE_LIBSAMRAI2D_PDAT_STD
@@ -149,17 +143,11 @@
 /* Define if you have the SAMRAI3d_hier library. */
 #undef HAVE_LIBSAMRAI3D_HIER
 
-/* Define if you have the SAMRAI3d_math_special library. */
-#undef HAVE_LIBSAMRAI3D_MATH_SPECIAL
-
 /* Define if you have the SAMRAI3d_math_std library. */
 #undef HAVE_LIBSAMRAI3D_MATH_STD
 
 /* Define if you have the SAMRAI3d_mesh library. */
 #undef HAVE_LIBSAMRAI3D_MESH
-
-/* Define if you have the SAMRAI3d_pdat_special library. */
-#undef HAVE_LIBSAMRAI3D_PDAT_SPECIAL
 
 /* Define if you have the SAMRAI3d_pdat_std library. */
 #undef HAVE_LIBSAMRAI3D_PDAT_STD

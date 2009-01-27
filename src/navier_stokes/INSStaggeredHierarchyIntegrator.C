@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <08.Dec.2008 22:11:19 griffith@box230.cims.nyu.edu>
+// Last modified: <27.Jan.2009 13:04:44 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1372,7 +1372,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     // Setup the convergence test.
     PetscErrorCode ierr;
     KSP petsc_ksp = d_stokes_solver->getPETScKSP();
-    ierr = KSPSetConvergenceTest(petsc_ksp, INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
+    ierr = KSPSetConvergenceTest(petsc_ksp, INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest, static_cast<void*>(this), PETSC_NULL);  IBTK_CHKERRQ(ierr);
 
     // Setup the nullspace object.
     if (d_normalize_pressure)
