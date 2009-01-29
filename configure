@@ -10564,23 +10564,71 @@ fi
 
 
 
-                  acl_libdirstem=lib
-  searchpath=`(LC_ALL=C $CC -print-search-dirs) 2>/dev/null | sed -n -e 's,^libraries: ,,p' | sed -e 's,^=,,'`
-  if test -n "$searchpath"; then
-    acl_save_IFS="${IFS= 	}"; IFS=":"
-    for searchdir in $searchpath; do
-      if test -d "$searchdir"; then
-        case "$searchdir" in
-          */lib64/ | */lib64 ) acl_libdirstem=lib64 ;;
-          *) searchdir=`cd "$searchdir" && pwd`
-             case "$searchdir" in
-               */lib64 ) acl_libdirstem=lib64 ;;
-             esac ;;
+
+  acl_libdirstem=lib
+  acl_libdirstem2=
+  case "$host_os" in
+    solaris*)
+                                    { $as_echo "$as_me:$LINENO: checking for 64-bit host" >&5
+$as_echo_n "checking for 64-bit host... " >&6; }
+if test "${gl_cv_solaris_64bit+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#ifdef _LP64
+sixtyfour bits
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "sixtyfour bits" >/dev/null 2>&1; then
+  gl_cv_solaris_64bit=yes
+else
+  gl_cv_solaris_64bit=no
+fi
+rm -f conftest*
+
+
+fi
+{ $as_echo "$as_me:$LINENO: result: $gl_cv_solaris_64bit" >&5
+$as_echo "$gl_cv_solaris_64bit" >&6; }
+      if test $gl_cv_solaris_64bit = yes; then
+        acl_libdirstem=lib/64
+        case "$host_cpu" in
+          sparc*)        acl_libdirstem2=lib/sparcv9 ;;
+          i*86 | x86_64) acl_libdirstem2=lib/amd64 ;;
         esac
       fi
-    done
-    IFS="$acl_save_IFS"
-  fi
+      ;;
+    *)
+      searchpath=`(LC_ALL=C $CC -print-search-dirs) 2>/dev/null | sed -n -e 's,^libraries: ,,p' | sed -e 's,^=,,'`
+      if test -n "$searchpath"; then
+        acl_save_IFS="${IFS= 	}"; IFS=":"
+        for searchdir in $searchpath; do
+          if test -d "$searchdir"; then
+            case "$searchdir" in
+              */lib64/ | */lib64 ) acl_libdirstem=lib64 ;;
+              *) searchdir=`cd "$searchdir" && pwd`
+                 case "$searchdir" in
+                   */lib64 ) acl_libdirstem=lib64 ;;
+                 esac ;;
+            esac
+          fi
+        done
+        IFS="$acl_save_IFS"
+      fi
+      ;;
+  esac
+  test -n "$acl_libdirstem2" || acl_libdirstem2="$acl_libdirstem"
+
+
+
 
 
 
@@ -10751,7 +10799,9 @@ fi
           if test "X$found_dir" != "X"; then
                         LTLIBHDF5="${LTLIBHDF5}${LTLIBHDF5:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHDF5="${LIBHDF5}${LIBHDF5:+ }$found_so"
               else
                                                                                 haveit=
@@ -10818,7 +10868,16 @@ fi
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHDF5_PREFIX="$basedir"
+                if test "$name" = 'hdf5'; then
+                  LIBHDF5_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'hdf5'; then
+                  LIBHDF5_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -10867,9 +10926,11 @@ fi
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -10996,6 +11057,11 @@ fi
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHDF5; do
@@ -11115,6 +11181,9 @@ $as_echo "$LIBHDF5" >&6; }
 
 
 LIBS="$LIBHDF5 $LIBS"
+
+
+
 
 
 
@@ -11285,7 +11354,9 @@ LIBS="$LIBHDF5 $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHDF5_HL="${LTLIBHDF5_HL}${LTLIBHDF5_HL:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHDF5_HL="${LIBHDF5_HL}${LIBHDF5_HL:+ }$found_so"
               else
                                                                                 haveit=
@@ -11352,7 +11423,16 @@ LIBS="$LIBHDF5 $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHDF5_HL_PREFIX="$basedir"
+                if test "$name" = 'hdf5_hl'; then
+                  LIBHDF5_HL_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'hdf5_hl'; then
+                  LIBHDF5_HL_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -11401,9 +11481,11 @@ LIBS="$LIBHDF5 $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -11528,6 +11610,11 @@ LIBS="$LIBHDF5 $LIBS"
       LTLIBHDF5_HL="${LTLIBHDF5_HL}${LTLIBHDF5_HL:+ }-R$found_dir"
     done
   fi
+
+
+
+
+
 
 
         ac_save_CPPFLAGS="$CPPFLAGS"
@@ -11828,6 +11915,9 @@ fi
 
 
 
+
+
+
     use_additional=yes
 
   acl_save_prefix="$prefix"
@@ -11987,7 +12077,9 @@ fi
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_UTILITIES="${LTLIBHYPRE_UTILITIES}${LTLIBHYPRE_UTILITIES:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_UTILITIES="${LIBHYPRE_UTILITIES}${LIBHYPRE_UTILITIES:+ }$found_so"
               else
                                                                                 haveit=
@@ -12054,7 +12146,16 @@ fi
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_UTILITIES_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_utilities'; then
+                  LIBHYPRE_UTILITIES_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_utilities'; then
+                  LIBHYPRE_UTILITIES_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -12103,9 +12204,11 @@ fi
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -12232,6 +12335,11 @@ fi
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_UTILITIES; do
@@ -12351,6 +12459,9 @@ $as_echo "$LIBHYPRE_UTILITIES" >&6; }
 
 
 LIBS="$LIBHYPRE_UTILITIES $LIBS"
+
+
+
 
 
 
@@ -12521,7 +12632,9 @@ LIBS="$LIBHYPRE_UTILITIES $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_KRYLOV="${LTLIBHYPRE_KRYLOV}${LTLIBHYPRE_KRYLOV:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_KRYLOV="${LIBHYPRE_KRYLOV}${LIBHYPRE_KRYLOV:+ }$found_so"
               else
                                                                                 haveit=
@@ -12588,7 +12701,16 @@ LIBS="$LIBHYPRE_UTILITIES $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_KRYLOV_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_krylov'; then
+                  LIBHYPRE_KRYLOV_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_krylov'; then
+                  LIBHYPRE_KRYLOV_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -12637,9 +12759,11 @@ LIBS="$LIBHYPRE_UTILITIES $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -12766,6 +12890,11 @@ LIBS="$LIBHYPRE_UTILITIES $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_KRYLOV; do
@@ -12885,6 +13014,9 @@ $as_echo "$LIBHYPRE_KRYLOV" >&6; }
 
 
 LIBS="$LIBHYPRE_KRYLOV $LIBS"
+
+
+
 
 
 
@@ -13055,7 +13187,9 @@ LIBS="$LIBHYPRE_KRYLOV $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_SEQ_MV="${LTLIBHYPRE_SEQ_MV}${LTLIBHYPRE_SEQ_MV:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_SEQ_MV="${LIBHYPRE_SEQ_MV}${LIBHYPRE_SEQ_MV:+ }$found_so"
               else
                                                                                 haveit=
@@ -13122,7 +13256,16 @@ LIBS="$LIBHYPRE_KRYLOV $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_SEQ_MV_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_seq_mv'; then
+                  LIBHYPRE_SEQ_MV_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_seq_mv'; then
+                  LIBHYPRE_SEQ_MV_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -13171,9 +13314,11 @@ LIBS="$LIBHYPRE_KRYLOV $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -13300,6 +13445,11 @@ LIBS="$LIBHYPRE_KRYLOV $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_SEQ_MV; do
@@ -13419,6 +13569,9 @@ $as_echo "$LIBHYPRE_SEQ_MV" >&6; }
 
 
 LIBS="$LIBHYPRE_SEQ_MV $LIBS"
+
+
+
 
 
 
@@ -13589,7 +13742,9 @@ LIBS="$LIBHYPRE_SEQ_MV $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_PARCSR_MV="${LTLIBHYPRE_PARCSR_MV}${LTLIBHYPRE_PARCSR_MV:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_PARCSR_MV="${LIBHYPRE_PARCSR_MV}${LIBHYPRE_PARCSR_MV:+ }$found_so"
               else
                                                                                 haveit=
@@ -13656,7 +13811,16 @@ LIBS="$LIBHYPRE_SEQ_MV $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_PARCSR_MV_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_parcsr_mv'; then
+                  LIBHYPRE_PARCSR_MV_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_parcsr_mv'; then
+                  LIBHYPRE_PARCSR_MV_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -13705,9 +13869,11 @@ LIBS="$LIBHYPRE_SEQ_MV $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -13834,6 +14000,11 @@ LIBS="$LIBHYPRE_SEQ_MV $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_PARCSR_MV; do
@@ -13953,6 +14124,9 @@ $as_echo "$LIBHYPRE_PARCSR_MV" >&6; }
 
 
 LIBS="$LIBHYPRE_PARCSR_MV $LIBS"
+
+
+
 
 
 
@@ -14123,7 +14297,9 @@ LIBS="$LIBHYPRE_PARCSR_MV $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_PARCSR_BLOCK_MV="${LTLIBHYPRE_PARCSR_BLOCK_MV}${LTLIBHYPRE_PARCSR_BLOCK_MV:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_PARCSR_BLOCK_MV="${LIBHYPRE_PARCSR_BLOCK_MV}${LIBHYPRE_PARCSR_BLOCK_MV:+ }$found_so"
               else
                                                                                 haveit=
@@ -14190,7 +14366,16 @@ LIBS="$LIBHYPRE_PARCSR_MV $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_PARCSR_BLOCK_MV_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_parcsr_block_mv'; then
+                  LIBHYPRE_PARCSR_BLOCK_MV_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_parcsr_block_mv'; then
+                  LIBHYPRE_PARCSR_BLOCK_MV_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -14239,9 +14424,11 @@ LIBS="$LIBHYPRE_PARCSR_MV $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -14368,6 +14555,11 @@ LIBS="$LIBHYPRE_PARCSR_MV $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_PARCSR_BLOCK_MV; do
@@ -14487,6 +14679,9 @@ $as_echo "$LIBHYPRE_PARCSR_BLOCK_MV" >&6; }
 
 
 LIBS="$LIBHYPRE_PARCSR_BLOCK_MV $LIBS"
+
+
+
 
 
 
@@ -14657,7 +14852,9 @@ LIBS="$LIBHYPRE_PARCSR_BLOCK_MV $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_IJ_MV="${LTLIBHYPRE_IJ_MV}${LTLIBHYPRE_IJ_MV:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_IJ_MV="${LIBHYPRE_IJ_MV}${LIBHYPRE_IJ_MV:+ }$found_so"
               else
                                                                                 haveit=
@@ -14724,7 +14921,16 @@ LIBS="$LIBHYPRE_PARCSR_BLOCK_MV $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_IJ_MV_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_IJ_mv'; then
+                  LIBHYPRE_IJ_MV_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_IJ_mv'; then
+                  LIBHYPRE_IJ_MV_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -14773,9 +14979,11 @@ LIBS="$LIBHYPRE_PARCSR_BLOCK_MV $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -14902,6 +15110,11 @@ LIBS="$LIBHYPRE_PARCSR_BLOCK_MV $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_IJ_MV; do
@@ -15021,6 +15234,9 @@ $as_echo "$LIBHYPRE_IJ_MV" >&6; }
 
 
 LIBS="$LIBHYPRE_IJ_MV $LIBS"
+
+
+
 
 
 
@@ -15191,7 +15407,9 @@ LIBS="$LIBHYPRE_IJ_MV $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_DISTRIBUTEDMATRIX="${LTLIBHYPRE_DISTRIBUTEDMATRIX}${LTLIBHYPRE_DISTRIBUTEDMATRIX:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_DISTRIBUTEDMATRIX="${LIBHYPRE_DISTRIBUTEDMATRIX}${LIBHYPRE_DISTRIBUTEDMATRIX:+ }$found_so"
               else
                                                                                 haveit=
@@ -15258,7 +15476,16 @@ LIBS="$LIBHYPRE_IJ_MV $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_DISTRIBUTEDMATRIX_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_DistributedMatrix'; then
+                  LIBHYPRE_DISTRIBUTEDMATRIX_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_DistributedMatrix'; then
+                  LIBHYPRE_DISTRIBUTEDMATRIX_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -15307,9 +15534,11 @@ LIBS="$LIBHYPRE_IJ_MV $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -15436,6 +15665,11 @@ LIBS="$LIBHYPRE_IJ_MV $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_DISTRIBUTEDMATRIX; do
@@ -15555,6 +15789,9 @@ $as_echo "$LIBHYPRE_DISTRIBUTEDMATRIX" >&6; }
 
 
 LIBS="$LIBHYPRE_DISTRIBUTEDMATRIX $LIBS"
+
+
+
 
 
 
@@ -15725,7 +15962,9 @@ LIBS="$LIBHYPRE_DISTRIBUTEDMATRIX $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_MATRIXMATRIX="${LTLIBHYPRE_MATRIXMATRIX}${LTLIBHYPRE_MATRIXMATRIX:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_MATRIXMATRIX="${LIBHYPRE_MATRIXMATRIX}${LIBHYPRE_MATRIXMATRIX:+ }$found_so"
               else
                                                                                 haveit=
@@ -15792,7 +16031,16 @@ LIBS="$LIBHYPRE_DISTRIBUTEDMATRIX $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_MATRIXMATRIX_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_MatrixMatrix'; then
+                  LIBHYPRE_MATRIXMATRIX_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_MatrixMatrix'; then
+                  LIBHYPRE_MATRIXMATRIX_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -15841,9 +16089,11 @@ LIBS="$LIBHYPRE_DISTRIBUTEDMATRIX $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -15970,6 +16220,11 @@ LIBS="$LIBHYPRE_DISTRIBUTEDMATRIX $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_MATRIXMATRIX; do
@@ -16089,6 +16344,9 @@ $as_echo "$LIBHYPRE_MATRIXMATRIX" >&6; }
 
 
 LIBS="$LIBHYPRE_MATRIXMATRIX $LIBS"
+
+
+
 
 
 
@@ -16259,7 +16517,9 @@ LIBS="$LIBHYPRE_MATRIXMATRIX $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_EUCLID="${LTLIBHYPRE_EUCLID}${LTLIBHYPRE_EUCLID:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_EUCLID="${LIBHYPRE_EUCLID}${LIBHYPRE_EUCLID:+ }$found_so"
               else
                                                                                 haveit=
@@ -16326,7 +16586,16 @@ LIBS="$LIBHYPRE_MATRIXMATRIX $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_EUCLID_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_Euclid'; then
+                  LIBHYPRE_EUCLID_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_Euclid'; then
+                  LIBHYPRE_EUCLID_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -16375,9 +16644,11 @@ LIBS="$LIBHYPRE_MATRIXMATRIX $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -16504,6 +16775,11 @@ LIBS="$LIBHYPRE_MATRIXMATRIX $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_EUCLID; do
@@ -16623,6 +16899,9 @@ $as_echo "$LIBHYPRE_EUCLID" >&6; }
 
 
 LIBS="$LIBHYPRE_EUCLID $LIBS"
+
+
+
 
 
 
@@ -16793,7 +17072,9 @@ LIBS="$LIBHYPRE_EUCLID $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_PARASAILS="${LTLIBHYPRE_PARASAILS}${LTLIBHYPRE_PARASAILS:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_PARASAILS="${LIBHYPRE_PARASAILS}${LIBHYPRE_PARASAILS:+ }$found_so"
               else
                                                                                 haveit=
@@ -16860,7 +17141,16 @@ LIBS="$LIBHYPRE_EUCLID $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_PARASAILS_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_ParaSails'; then
+                  LIBHYPRE_PARASAILS_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_ParaSails'; then
+                  LIBHYPRE_PARASAILS_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -16909,9 +17199,11 @@ LIBS="$LIBHYPRE_EUCLID $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -17038,6 +17330,11 @@ LIBS="$LIBHYPRE_EUCLID $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_PARASAILS; do
@@ -17157,6 +17454,9 @@ $as_echo "$LIBHYPRE_PARASAILS" >&6; }
 
 
 LIBS="$LIBHYPRE_PARASAILS $LIBS"
+
+
+
 
 
 
@@ -17327,7 +17627,9 @@ LIBS="$LIBHYPRE_PARASAILS $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER="${LTLIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER}${LTLIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER="${LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER}${LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER:+ }$found_so"
               else
                                                                                 haveit=
@@ -17394,7 +17696,16 @@ LIBS="$LIBHYPRE_PARASAILS $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_DistributedMatrixPilutSolver'; then
+                  LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_DistributedMatrixPilutSolver'; then
+                  LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -17443,9 +17754,11 @@ LIBS="$LIBHYPRE_PARASAILS $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -17572,6 +17885,11 @@ LIBS="$LIBHYPRE_PARASAILS $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER; do
@@ -17691,6 +18009,9 @@ $as_echo "$LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER" >&6; }
 
 
 LIBS="$LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER $LIBS"
+
+
+
 
 
 
@@ -17861,7 +18182,9 @@ LIBS="$LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_PARCSR_LS="${LTLIBHYPRE_PARCSR_LS}${LTLIBHYPRE_PARCSR_LS:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_PARCSR_LS="${LIBHYPRE_PARCSR_LS}${LIBHYPRE_PARCSR_LS:+ }$found_so"
               else
                                                                                 haveit=
@@ -17928,7 +18251,16 @@ LIBS="$LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_PARCSR_LS_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_parcsr_ls'; then
+                  LIBHYPRE_PARCSR_LS_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_parcsr_ls'; then
+                  LIBHYPRE_PARCSR_LS_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -17977,9 +18309,11 @@ LIBS="$LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -18106,6 +18440,11 @@ LIBS="$LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_PARCSR_LS; do
@@ -18225,6 +18564,9 @@ $as_echo "$LIBHYPRE_PARCSR_LS" >&6; }
 
 
 LIBS="$LIBHYPRE_PARCSR_LS $LIBS"
+
+
+
 
 
 
@@ -18395,7 +18737,9 @@ LIBS="$LIBHYPRE_PARCSR_LS $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_STRUCT_MV="${LTLIBHYPRE_STRUCT_MV}${LTLIBHYPRE_STRUCT_MV:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_STRUCT_MV="${LIBHYPRE_STRUCT_MV}${LIBHYPRE_STRUCT_MV:+ }$found_so"
               else
                                                                                 haveit=
@@ -18462,7 +18806,16 @@ LIBS="$LIBHYPRE_PARCSR_LS $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_STRUCT_MV_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_struct_mv'; then
+                  LIBHYPRE_STRUCT_MV_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_struct_mv'; then
+                  LIBHYPRE_STRUCT_MV_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -18511,9 +18864,11 @@ LIBS="$LIBHYPRE_PARCSR_LS $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -18640,6 +18995,11 @@ LIBS="$LIBHYPRE_PARCSR_LS $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_STRUCT_MV; do
@@ -18759,6 +19119,9 @@ $as_echo "$LIBHYPRE_STRUCT_MV" >&6; }
 
 
 LIBS="$LIBHYPRE_STRUCT_MV $LIBS"
+
+
+
 
 
 
@@ -18929,7 +19292,9 @@ LIBS="$LIBHYPRE_STRUCT_MV $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_STRUCT_LS="${LTLIBHYPRE_STRUCT_LS}${LTLIBHYPRE_STRUCT_LS:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_STRUCT_LS="${LIBHYPRE_STRUCT_LS}${LIBHYPRE_STRUCT_LS:+ }$found_so"
               else
                                                                                 haveit=
@@ -18996,7 +19361,16 @@ LIBS="$LIBHYPRE_STRUCT_MV $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_STRUCT_LS_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_struct_ls'; then
+                  LIBHYPRE_STRUCT_LS_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_struct_ls'; then
+                  LIBHYPRE_STRUCT_LS_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -19045,9 +19419,11 @@ LIBS="$LIBHYPRE_STRUCT_MV $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -19174,6 +19550,11 @@ LIBS="$LIBHYPRE_STRUCT_MV $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_STRUCT_LS; do
@@ -19293,6 +19674,9 @@ $as_echo "$LIBHYPRE_STRUCT_LS" >&6; }
 
 
 LIBS="$LIBHYPRE_STRUCT_LS $LIBS"
+
+
+
 
 
 
@@ -19463,7 +19847,9 @@ LIBS="$LIBHYPRE_STRUCT_LS $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_SSTRUCT_MV="${LTLIBHYPRE_SSTRUCT_MV}${LTLIBHYPRE_SSTRUCT_MV:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_SSTRUCT_MV="${LIBHYPRE_SSTRUCT_MV}${LIBHYPRE_SSTRUCT_MV:+ }$found_so"
               else
                                                                                 haveit=
@@ -19530,7 +19916,16 @@ LIBS="$LIBHYPRE_STRUCT_LS $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_SSTRUCT_MV_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_sstruct_mv'; then
+                  LIBHYPRE_SSTRUCT_MV_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_sstruct_mv'; then
+                  LIBHYPRE_SSTRUCT_MV_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -19579,9 +19974,11 @@ LIBS="$LIBHYPRE_STRUCT_LS $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -19708,6 +20105,11 @@ LIBS="$LIBHYPRE_STRUCT_LS $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCHYPRE_SSTRUCT_MV; do
@@ -19827,6 +20229,9 @@ $as_echo "$LIBHYPRE_SSTRUCT_MV" >&6; }
 
 
 LIBS="$LIBHYPRE_SSTRUCT_MV $LIBS"
+
+
+
 
 
 
@@ -19997,7 +20402,9 @@ LIBS="$LIBHYPRE_SSTRUCT_MV $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBHYPRE_SSTRUCT_LS="${LTLIBHYPRE_SSTRUCT_LS}${LTLIBHYPRE_SSTRUCT_LS:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBHYPRE_SSTRUCT_LS="${LIBHYPRE_SSTRUCT_LS}${LIBHYPRE_SSTRUCT_LS:+ }$found_so"
               else
                                                                                 haveit=
@@ -20064,7 +20471,16 @@ LIBS="$LIBHYPRE_SSTRUCT_MV $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBHYPRE_SSTRUCT_LS_PREFIX="$basedir"
+                if test "$name" = 'HYPRE_sstruct_ls'; then
+                  LIBHYPRE_SSTRUCT_LS_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'HYPRE_sstruct_ls'; then
+                  LIBHYPRE_SSTRUCT_LS_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -20113,9 +20529,11 @@ LIBS="$LIBHYPRE_SSTRUCT_MV $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -20240,6 +20658,11 @@ LIBS="$LIBHYPRE_SSTRUCT_MV $LIBS"
       LTLIBHYPRE_SSTRUCT_LS="${LTLIBHYPRE_SSTRUCT_LS}${LTLIBHYPRE_SSTRUCT_LS:+ }-R$found_dir"
     done
   fi
+
+
+
+
+
 
 
         ac_save_CPPFLAGS="$CPPFLAGS"
@@ -20558,6 +20981,9 @@ fi
 
 
 
+
+
+
     use_additional=yes
 
   acl_save_prefix="$prefix"
@@ -20717,7 +21143,9 @@ fi
           if test "X$found_dir" != "X"; then
                         LTLIBPETSC="${LTLIBPETSC}${LTLIBPETSC:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBPETSC="${LIBPETSC}${LIBPETSC:+ }$found_so"
               else
                                                                                 haveit=
@@ -20784,7 +21212,16 @@ fi
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBPETSC_PREFIX="$basedir"
+                if test "$name" = 'petsc'; then
+                  LIBPETSC_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'petsc'; then
+                  LIBPETSC_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -20833,9 +21270,11 @@ fi
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -20962,6 +21401,11 @@ fi
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCPETSC; do
@@ -21081,6 +21525,9 @@ $as_echo "$LIBPETSC" >&6; }
 
 
 LIBS="$LIBPETSC $LIBS"
+
+
+
 
 
 
@@ -21251,7 +21698,9 @@ LIBS="$LIBPETSC $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBPETSCVEC="${LTLIBPETSCVEC}${LTLIBPETSCVEC:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBPETSCVEC="${LIBPETSCVEC}${LIBPETSCVEC:+ }$found_so"
               else
                                                                                 haveit=
@@ -21318,7 +21767,16 @@ LIBS="$LIBPETSC $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBPETSCVEC_PREFIX="$basedir"
+                if test "$name" = 'petscvec'; then
+                  LIBPETSCVEC_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'petscvec'; then
+                  LIBPETSCVEC_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -21367,9 +21825,11 @@ LIBS="$LIBPETSC $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -21496,6 +21956,11 @@ LIBS="$LIBPETSC $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCPETSCVEC; do
@@ -21615,6 +22080,9 @@ $as_echo "$LIBPETSCVEC" >&6; }
 
 
 LIBS="$LIBPETSCVEC $LIBS"
+
+
+
 
 
 
@@ -21785,7 +22253,9 @@ LIBS="$LIBPETSCVEC $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBPETSCMAT="${LTLIBPETSCMAT}${LTLIBPETSCMAT:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBPETSCMAT="${LIBPETSCMAT}${LIBPETSCMAT:+ }$found_so"
               else
                                                                                 haveit=
@@ -21852,7 +22322,16 @@ LIBS="$LIBPETSCVEC $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBPETSCMAT_PREFIX="$basedir"
+                if test "$name" = 'petscmat'; then
+                  LIBPETSCMAT_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'petscmat'; then
+                  LIBPETSCMAT_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -21901,9 +22380,11 @@ LIBS="$LIBPETSCVEC $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -22030,6 +22511,11 @@ LIBS="$LIBPETSCVEC $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCPETSCMAT; do
@@ -22149,6 +22635,9 @@ $as_echo "$LIBPETSCMAT" >&6; }
 
 
 LIBS="$LIBPETSCMAT $LIBS"
+
+
+
 
 
 
@@ -22319,7 +22808,9 @@ LIBS="$LIBPETSCMAT $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBPETSCDM="${LTLIBPETSCDM}${LTLIBPETSCDM:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBPETSCDM="${LIBPETSCDM}${LIBPETSCDM:+ }$found_so"
               else
                                                                                 haveit=
@@ -22386,7 +22877,16 @@ LIBS="$LIBPETSCMAT $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBPETSCDM_PREFIX="$basedir"
+                if test "$name" = 'petscdm'; then
+                  LIBPETSCDM_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'petscdm'; then
+                  LIBPETSCDM_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -22435,9 +22935,11 @@ LIBS="$LIBPETSCMAT $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -22564,6 +23066,11 @@ LIBS="$LIBPETSCMAT $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCPETSCDM; do
@@ -22683,6 +23190,9 @@ $as_echo "$LIBPETSCDM" >&6; }
 
 
 LIBS="$LIBPETSCDM $LIBS"
+
+
+
 
 
 
@@ -22853,7 +23363,9 @@ LIBS="$LIBPETSCDM $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBPETSCKSP="${LTLIBPETSCKSP}${LTLIBPETSCKSP:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBPETSCKSP="${LIBPETSCKSP}${LIBPETSCKSP:+ }$found_so"
               else
                                                                                 haveit=
@@ -22920,7 +23432,16 @@ LIBS="$LIBPETSCDM $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBPETSCKSP_PREFIX="$basedir"
+                if test "$name" = 'petscksp'; then
+                  LIBPETSCKSP_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'petscksp'; then
+                  LIBPETSCKSP_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -22969,9 +23490,11 @@ LIBS="$LIBPETSCDM $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -23098,6 +23621,11 @@ LIBS="$LIBPETSCDM $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCPETSCKSP; do
@@ -23217,6 +23745,9 @@ $as_echo "$LIBPETSCKSP" >&6; }
 
 
 LIBS="$LIBPETSCKSP $LIBS"
+
+
+
 
 
 
@@ -23387,7 +23918,9 @@ LIBS="$LIBPETSCKSP $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBPETSCSNES="${LTLIBPETSCSNES}${LTLIBPETSCSNES:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBPETSCSNES="${LIBPETSCSNES}${LIBPETSCSNES:+ }$found_so"
               else
                                                                                 haveit=
@@ -23454,7 +23987,16 @@ LIBS="$LIBPETSCKSP $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBPETSCSNES_PREFIX="$basedir"
+                if test "$name" = 'petscsnes'; then
+                  LIBPETSCSNES_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'petscsnes'; then
+                  LIBPETSCSNES_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -23503,9 +24045,11 @@ LIBS="$LIBPETSCKSP $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -23632,6 +24176,11 @@ LIBS="$LIBPETSCKSP $LIBS"
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCPETSCSNES; do
@@ -23751,6 +24300,9 @@ $as_echo "$LIBPETSCSNES" >&6; }
 
 
 LIBS="$LIBPETSCSNES $LIBS"
+
+
+
 
 
 
@@ -23921,7 +24473,9 @@ LIBS="$LIBPETSCSNES $LIBS"
           if test "X$found_dir" != "X"; then
                         LTLIBPETSCTS="${LTLIBPETSCTS}${LTLIBPETSCTS:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBPETSCTS="${LIBPETSCTS}${LIBPETSCTS:+ }$found_so"
               else
                                                                                 haveit=
@@ -23988,7 +24542,16 @@ LIBS="$LIBPETSCSNES $LIBS"
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBPETSCTS_PREFIX="$basedir"
+                if test "$name" = 'petscts'; then
+                  LIBPETSCTS_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'petscts'; then
+                  LIBPETSCTS_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -24037,9 +24600,11 @@ LIBS="$LIBPETSCSNES $LIBS"
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -24164,6 +24729,11 @@ LIBS="$LIBPETSCSNES $LIBS"
       LTLIBPETSCTS="${LTLIBPETSCTS}${LTLIBPETSCTS:+ }-R$found_dir"
     done
   fi
+
+
+
+
+
 
 
         ac_save_CPPFLAGS="$CPPFLAGS"
@@ -24469,6 +25039,9 @@ fi
 
 
 
+
+
+
     use_additional=yes
 
   acl_save_prefix="$prefix"
@@ -24628,7 +25201,9 @@ fi
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI="${LTLIBSAMRAI}${LTLIBSAMRAI:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI="${LIBSAMRAI}${LIBSAMRAI:+ }$found_so"
               else
                                                                                 haveit=
@@ -24695,7 +25270,16 @@ fi
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI'; then
+                  LIBSAMRAI_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI'; then
+                  LIBSAMRAI_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -24744,9 +25328,11 @@ fi
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -24871,6 +25457,11 @@ fi
       LTLIBSAMRAI="${LTLIBSAMRAI}${LTLIBSAMRAI:+ }-R$found_dir"
     done
   fi
+
+
+
+
+
 
 
         ac_save_CPPFLAGS="$CPPFLAGS"
@@ -25010,6 +25601,9 @@ fi
 
 
 if test "$SAMRAI2D" == "yes"; then
+
+
+
 
 
 
@@ -25179,7 +25773,9 @@ if test "$SAMRAI2D" == "yes"; then
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI2D_HIER="${LTLIBSAMRAI2D_HIER}${LTLIBSAMRAI2D_HIER:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI2D_HIER="${LIBSAMRAI2D_HIER}${LIBSAMRAI2D_HIER:+ }$found_so"
               else
                                                                                 haveit=
@@ -25246,7 +25842,16 @@ if test "$SAMRAI2D" == "yes"; then
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI2D_HIER_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI2d_hier'; then
+                  LIBSAMRAI2D_HIER_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI2d_hier'; then
+                  LIBSAMRAI2D_HIER_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -25295,9 +25900,11 @@ if test "$SAMRAI2D" == "yes"; then
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -25424,6 +26031,11 @@ if test "$SAMRAI2D" == "yes"; then
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI2D_HIER; do
@@ -25543,6 +26155,9 @@ $as_echo "$LIBSAMRAI2D_HIER" >&6; }
 
 
   LIBS="$LIBSAMRAI2D_HIER $LIBS"
+
+
+
 
 
 
@@ -25713,7 +26328,9 @@ $as_echo "$LIBSAMRAI2D_HIER" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI2D_XFER="${LTLIBSAMRAI2D_XFER}${LTLIBSAMRAI2D_XFER:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI2D_XFER="${LIBSAMRAI2D_XFER}${LIBSAMRAI2D_XFER:+ }$found_so"
               else
                                                                                 haveit=
@@ -25780,7 +26397,16 @@ $as_echo "$LIBSAMRAI2D_HIER" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI2D_XFER_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI2d_xfer'; then
+                  LIBSAMRAI2D_XFER_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI2d_xfer'; then
+                  LIBSAMRAI2D_XFER_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -25829,9 +26455,11 @@ $as_echo "$LIBSAMRAI2D_HIER" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -25958,6 +26586,11 @@ $as_echo "$LIBSAMRAI2D_HIER" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI2D_XFER; do
@@ -26077,6 +26710,9 @@ $as_echo "$LIBSAMRAI2D_XFER" >&6; }
 
 
   LIBS="$LIBSAMRAI2D_XFER $LIBS"
+
+
+
 
 
 
@@ -26247,7 +26883,9 @@ $as_echo "$LIBSAMRAI2D_XFER" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI2D_PDAT_STD="${LTLIBSAMRAI2D_PDAT_STD}${LTLIBSAMRAI2D_PDAT_STD:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI2D_PDAT_STD="${LIBSAMRAI2D_PDAT_STD}${LIBSAMRAI2D_PDAT_STD:+ }$found_so"
               else
                                                                                 haveit=
@@ -26314,7 +26952,16 @@ $as_echo "$LIBSAMRAI2D_XFER" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI2D_PDAT_STD_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI2d_pdat_std'; then
+                  LIBSAMRAI2D_PDAT_STD_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI2d_pdat_std'; then
+                  LIBSAMRAI2D_PDAT_STD_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -26363,9 +27010,11 @@ $as_echo "$LIBSAMRAI2D_XFER" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -26492,6 +27141,11 @@ $as_echo "$LIBSAMRAI2D_XFER" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI2D_PDAT_STD; do
@@ -26611,6 +27265,9 @@ $as_echo "$LIBSAMRAI2D_PDAT_STD" >&6; }
 
 
   LIBS="$LIBSAMRAI2D_PDAT_STD $LIBS"
+
+
+
 
 
 
@@ -26781,7 +27438,9 @@ $as_echo "$LIBSAMRAI2D_PDAT_STD" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI2D_MATH_STD="${LTLIBSAMRAI2D_MATH_STD}${LTLIBSAMRAI2D_MATH_STD:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI2D_MATH_STD="${LIBSAMRAI2D_MATH_STD}${LIBSAMRAI2D_MATH_STD:+ }$found_so"
               else
                                                                                 haveit=
@@ -26848,7 +27507,16 @@ $as_echo "$LIBSAMRAI2D_PDAT_STD" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI2D_MATH_STD_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI2d_math_std'; then
+                  LIBSAMRAI2D_MATH_STD_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI2d_math_std'; then
+                  LIBSAMRAI2D_MATH_STD_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -26897,9 +27565,11 @@ $as_echo "$LIBSAMRAI2D_PDAT_STD" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -27026,6 +27696,11 @@ $as_echo "$LIBSAMRAI2D_PDAT_STD" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI2D_MATH_STD; do
@@ -27145,6 +27820,9 @@ $as_echo "$LIBSAMRAI2D_MATH_STD" >&6; }
 
 
   LIBS="$LIBSAMRAI2D_MATH_STD $LIBS"
+
+
+
 
 
 
@@ -27315,7 +27993,9 @@ $as_echo "$LIBSAMRAI2D_MATH_STD" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI2D_MESH="${LTLIBSAMRAI2D_MESH}${LTLIBSAMRAI2D_MESH:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI2D_MESH="${LIBSAMRAI2D_MESH}${LIBSAMRAI2D_MESH:+ }$found_so"
               else
                                                                                 haveit=
@@ -27382,7 +28062,16 @@ $as_echo "$LIBSAMRAI2D_MATH_STD" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI2D_MESH_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI2d_mesh'; then
+                  LIBSAMRAI2D_MESH_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI2d_mesh'; then
+                  LIBSAMRAI2D_MESH_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -27431,9 +28120,11 @@ $as_echo "$LIBSAMRAI2D_MATH_STD" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -27560,6 +28251,11 @@ $as_echo "$LIBSAMRAI2D_MATH_STD" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI2D_MESH; do
@@ -27679,6 +28375,9 @@ $as_echo "$LIBSAMRAI2D_MESH" >&6; }
 
 
   LIBS="$LIBSAMRAI2D_MESH $LIBS"
+
+
+
 
 
 
@@ -27849,7 +28548,9 @@ $as_echo "$LIBSAMRAI2D_MESH" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI2D_GEOM="${LTLIBSAMRAI2D_GEOM}${LTLIBSAMRAI2D_GEOM:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI2D_GEOM="${LIBSAMRAI2D_GEOM}${LIBSAMRAI2D_GEOM:+ }$found_so"
               else
                                                                                 haveit=
@@ -27916,7 +28617,16 @@ $as_echo "$LIBSAMRAI2D_MESH" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI2D_GEOM_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI2d_geom'; then
+                  LIBSAMRAI2D_GEOM_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI2d_geom'; then
+                  LIBSAMRAI2D_GEOM_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -27965,9 +28675,11 @@ $as_echo "$LIBSAMRAI2D_MESH" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -28094,6 +28806,11 @@ $as_echo "$LIBSAMRAI2D_MESH" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI2D_GEOM; do
@@ -28213,6 +28930,9 @@ $as_echo "$LIBSAMRAI2D_GEOM" >&6; }
 
 
   LIBS="$LIBSAMRAI2D_GEOM $LIBS"
+
+
+
 
 
 
@@ -28383,7 +29103,9 @@ $as_echo "$LIBSAMRAI2D_GEOM" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI2D_SOLV="${LTLIBSAMRAI2D_SOLV}${LTLIBSAMRAI2D_SOLV:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI2D_SOLV="${LIBSAMRAI2D_SOLV}${LIBSAMRAI2D_SOLV:+ }$found_so"
               else
                                                                                 haveit=
@@ -28450,7 +29172,16 @@ $as_echo "$LIBSAMRAI2D_GEOM" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI2D_SOLV_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI2d_solv'; then
+                  LIBSAMRAI2D_SOLV_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI2d_solv'; then
+                  LIBSAMRAI2D_SOLV_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -28499,9 +29230,11 @@ $as_echo "$LIBSAMRAI2D_GEOM" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -28628,6 +29361,11 @@ $as_echo "$LIBSAMRAI2D_GEOM" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI2D_SOLV; do
@@ -28747,6 +29485,9 @@ $as_echo "$LIBSAMRAI2D_SOLV" >&6; }
 
 
   LIBS="$LIBSAMRAI2D_SOLV $LIBS"
+
+
+
 
 
 
@@ -28917,7 +29658,9 @@ $as_echo "$LIBSAMRAI2D_SOLV" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI2D_ALGS="${LTLIBSAMRAI2D_ALGS}${LTLIBSAMRAI2D_ALGS:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI2D_ALGS="${LIBSAMRAI2D_ALGS}${LIBSAMRAI2D_ALGS:+ }$found_so"
               else
                                                                                 haveit=
@@ -28984,7 +29727,16 @@ $as_echo "$LIBSAMRAI2D_SOLV" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI2D_ALGS_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI2d_algs'; then
+                  LIBSAMRAI2D_ALGS_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI2d_algs'; then
+                  LIBSAMRAI2D_ALGS_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -29033,9 +29785,11 @@ $as_echo "$LIBSAMRAI2D_SOLV" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -29162,6 +29916,11 @@ $as_echo "$LIBSAMRAI2D_SOLV" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI2D_ALGS; do
@@ -29281,6 +30040,9 @@ $as_echo "$LIBSAMRAI2D_ALGS" >&6; }
 
 
   LIBS="$LIBSAMRAI2D_ALGS $LIBS"
+
+
+
 
 
 
@@ -29451,7 +30213,9 @@ $as_echo "$LIBSAMRAI2D_ALGS" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI2D_APPU="${LTLIBSAMRAI2D_APPU}${LTLIBSAMRAI2D_APPU:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI2D_APPU="${LIBSAMRAI2D_APPU}${LIBSAMRAI2D_APPU:+ }$found_so"
               else
                                                                                 haveit=
@@ -29518,7 +30282,16 @@ $as_echo "$LIBSAMRAI2D_ALGS" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI2D_APPU_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI2d_appu'; then
+                  LIBSAMRAI2D_APPU_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI2d_appu'; then
+                  LIBSAMRAI2D_APPU_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -29567,9 +30340,11 @@ $as_echo "$LIBSAMRAI2D_ALGS" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -29694,6 +30469,11 @@ $as_echo "$LIBSAMRAI2D_ALGS" >&6; }
       LTLIBSAMRAI2D_APPU="${LTLIBSAMRAI2D_APPU}${LTLIBSAMRAI2D_APPU:+ }-R$found_dir"
     done
   fi
+
+
+
+
+
 
 
         ac_save_CPPFLAGS="$CPPFLAGS"
@@ -29837,6 +30617,9 @@ fi
 
 
 if test "$SAMRAI3D" == "yes"; then
+
+
+
 
 
 
@@ -30006,7 +30789,9 @@ if test "$SAMRAI3D" == "yes"; then
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI3D_HIER="${LTLIBSAMRAI3D_HIER}${LTLIBSAMRAI3D_HIER:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI3D_HIER="${LIBSAMRAI3D_HIER}${LIBSAMRAI3D_HIER:+ }$found_so"
               else
                                                                                 haveit=
@@ -30073,7 +30858,16 @@ if test "$SAMRAI3D" == "yes"; then
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI3D_HIER_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI3d_hier'; then
+                  LIBSAMRAI3D_HIER_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI3d_hier'; then
+                  LIBSAMRAI3D_HIER_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -30122,9 +30916,11 @@ if test "$SAMRAI3D" == "yes"; then
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -30251,6 +31047,11 @@ if test "$SAMRAI3D" == "yes"; then
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI3D_HIER; do
@@ -30370,6 +31171,9 @@ $as_echo "$LIBSAMRAI3D_HIER" >&6; }
 
 
   LIBS="$LIBSAMRAI3D_HIER $LIBS"
+
+
+
 
 
 
@@ -30540,7 +31344,9 @@ $as_echo "$LIBSAMRAI3D_HIER" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI3D_XFER="${LTLIBSAMRAI3D_XFER}${LTLIBSAMRAI3D_XFER:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI3D_XFER="${LIBSAMRAI3D_XFER}${LIBSAMRAI3D_XFER:+ }$found_so"
               else
                                                                                 haveit=
@@ -30607,7 +31413,16 @@ $as_echo "$LIBSAMRAI3D_HIER" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI3D_XFER_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI3d_xfer'; then
+                  LIBSAMRAI3D_XFER_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI3d_xfer'; then
+                  LIBSAMRAI3D_XFER_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -30656,9 +31471,11 @@ $as_echo "$LIBSAMRAI3D_HIER" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -30785,6 +31602,11 @@ $as_echo "$LIBSAMRAI3D_HIER" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI3D_XFER; do
@@ -30904,6 +31726,9 @@ $as_echo "$LIBSAMRAI3D_XFER" >&6; }
 
 
   LIBS="$LIBSAMRAI3D_XFER $LIBS"
+
+
+
 
 
 
@@ -31074,7 +31899,9 @@ $as_echo "$LIBSAMRAI3D_XFER" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI3D_PDAT_STD="${LTLIBSAMRAI3D_PDAT_STD}${LTLIBSAMRAI3D_PDAT_STD:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI3D_PDAT_STD="${LIBSAMRAI3D_PDAT_STD}${LIBSAMRAI3D_PDAT_STD:+ }$found_so"
               else
                                                                                 haveit=
@@ -31141,7 +31968,16 @@ $as_echo "$LIBSAMRAI3D_XFER" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI3D_PDAT_STD_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI3d_pdat_std'; then
+                  LIBSAMRAI3D_PDAT_STD_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI3d_pdat_std'; then
+                  LIBSAMRAI3D_PDAT_STD_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -31190,9 +32026,11 @@ $as_echo "$LIBSAMRAI3D_XFER" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -31319,6 +32157,11 @@ $as_echo "$LIBSAMRAI3D_XFER" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI3D_PDAT_STD; do
@@ -31438,6 +32281,9 @@ $as_echo "$LIBSAMRAI3D_PDAT_STD" >&6; }
 
 
   LIBS="$LIBSAMRAI3D_PDAT_STD $LIBS"
+
+
+
 
 
 
@@ -31608,7 +32454,9 @@ $as_echo "$LIBSAMRAI3D_PDAT_STD" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI3D_MATH_STD="${LTLIBSAMRAI3D_MATH_STD}${LTLIBSAMRAI3D_MATH_STD:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI3D_MATH_STD="${LIBSAMRAI3D_MATH_STD}${LIBSAMRAI3D_MATH_STD:+ }$found_so"
               else
                                                                                 haveit=
@@ -31675,7 +32523,16 @@ $as_echo "$LIBSAMRAI3D_PDAT_STD" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI3D_MATH_STD_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI3d_math_std'; then
+                  LIBSAMRAI3D_MATH_STD_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI3d_math_std'; then
+                  LIBSAMRAI3D_MATH_STD_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -31724,9 +32581,11 @@ $as_echo "$LIBSAMRAI3D_PDAT_STD" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -31853,6 +32712,11 @@ $as_echo "$LIBSAMRAI3D_PDAT_STD" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI3D_MATH_STD; do
@@ -31972,6 +32836,9 @@ $as_echo "$LIBSAMRAI3D_MATH_STD" >&6; }
 
 
   LIBS="$LIBSAMRAI3D_MATH_STD $LIBS"
+
+
+
 
 
 
@@ -32142,7 +33009,9 @@ $as_echo "$LIBSAMRAI3D_MATH_STD" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI3D_MESH="${LTLIBSAMRAI3D_MESH}${LTLIBSAMRAI3D_MESH:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI3D_MESH="${LIBSAMRAI3D_MESH}${LIBSAMRAI3D_MESH:+ }$found_so"
               else
                                                                                 haveit=
@@ -32209,7 +33078,16 @@ $as_echo "$LIBSAMRAI3D_MATH_STD" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI3D_MESH_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI3d_mesh'; then
+                  LIBSAMRAI3D_MESH_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI3d_mesh'; then
+                  LIBSAMRAI3D_MESH_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -32258,9 +33136,11 @@ $as_echo "$LIBSAMRAI3D_MATH_STD" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -32387,6 +33267,11 @@ $as_echo "$LIBSAMRAI3D_MATH_STD" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI3D_MESH; do
@@ -32506,6 +33391,9 @@ $as_echo "$LIBSAMRAI3D_MESH" >&6; }
 
 
   LIBS="$LIBSAMRAI3D_MESH $LIBS"
+
+
+
 
 
 
@@ -32676,7 +33564,9 @@ $as_echo "$LIBSAMRAI3D_MESH" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI3D_GEOM="${LTLIBSAMRAI3D_GEOM}${LTLIBSAMRAI3D_GEOM:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI3D_GEOM="${LIBSAMRAI3D_GEOM}${LIBSAMRAI3D_GEOM:+ }$found_so"
               else
                                                                                 haveit=
@@ -32743,7 +33633,16 @@ $as_echo "$LIBSAMRAI3D_MESH" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI3D_GEOM_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI3d_geom'; then
+                  LIBSAMRAI3D_GEOM_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI3d_geom'; then
+                  LIBSAMRAI3D_GEOM_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -32792,9 +33691,11 @@ $as_echo "$LIBSAMRAI3D_MESH" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -32921,6 +33822,11 @@ $as_echo "$LIBSAMRAI3D_MESH" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI3D_GEOM; do
@@ -33040,6 +33946,9 @@ $as_echo "$LIBSAMRAI3D_GEOM" >&6; }
 
 
   LIBS="$LIBSAMRAI3D_GEOM $LIBS"
+
+
+
 
 
 
@@ -33210,7 +34119,9 @@ $as_echo "$LIBSAMRAI3D_GEOM" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI3D_SOLV="${LTLIBSAMRAI3D_SOLV}${LTLIBSAMRAI3D_SOLV:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI3D_SOLV="${LIBSAMRAI3D_SOLV}${LIBSAMRAI3D_SOLV:+ }$found_so"
               else
                                                                                 haveit=
@@ -33277,7 +34188,16 @@ $as_echo "$LIBSAMRAI3D_GEOM" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI3D_SOLV_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI3d_solv'; then
+                  LIBSAMRAI3D_SOLV_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI3d_solv'; then
+                  LIBSAMRAI3D_SOLV_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -33326,9 +34246,11 @@ $as_echo "$LIBSAMRAI3D_GEOM" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -33455,6 +34377,11 @@ $as_echo "$LIBSAMRAI3D_GEOM" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI3D_SOLV; do
@@ -33574,6 +34501,9 @@ $as_echo "$LIBSAMRAI3D_SOLV" >&6; }
 
 
   LIBS="$LIBSAMRAI3D_SOLV $LIBS"
+
+
+
 
 
 
@@ -33744,7 +34674,9 @@ $as_echo "$LIBSAMRAI3D_SOLV" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI3D_ALGS="${LTLIBSAMRAI3D_ALGS}${LTLIBSAMRAI3D_ALGS:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI3D_ALGS="${LIBSAMRAI3D_ALGS}${LIBSAMRAI3D_ALGS:+ }$found_so"
               else
                                                                                 haveit=
@@ -33811,7 +34743,16 @@ $as_echo "$LIBSAMRAI3D_SOLV" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI3D_ALGS_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI3d_algs'; then
+                  LIBSAMRAI3D_ALGS_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI3d_algs'; then
+                  LIBSAMRAI3D_ALGS_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -33860,9 +34801,11 @@ $as_echo "$LIBSAMRAI3D_SOLV" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -33989,6 +34932,11 @@ $as_echo "$LIBSAMRAI3D_SOLV" >&6; }
   fi
 
 
+
+
+
+
+
         ac_save_CPPFLAGS="$CPPFLAGS"
 
   for element in $INCSAMRAI3D_ALGS; do
@@ -34108,6 +35056,9 @@ $as_echo "$LIBSAMRAI3D_ALGS" >&6; }
 
 
   LIBS="$LIBSAMRAI3D_ALGS $LIBS"
+
+
+
 
 
 
@@ -34278,7 +35229,9 @@ $as_echo "$LIBSAMRAI3D_ALGS" >&6; }
           if test "X$found_dir" != "X"; then
                         LTLIBSAMRAI3D_APPU="${LTLIBSAMRAI3D_APPU}${LTLIBSAMRAI3D_APPU:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSAMRAI3D_APPU="${LIBSAMRAI3D_APPU}${LIBSAMRAI3D_APPU:+ }$found_so"
               else
                                                                                 haveit=
@@ -34345,7 +35298,16 @@ $as_echo "$LIBSAMRAI3D_ALGS" >&6; }
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSAMRAI3D_APPU_PREFIX="$basedir"
+                if test "$name" = 'SAMRAI3d_appu'; then
+                  LIBSAMRAI3D_APPU_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'SAMRAI3d_appu'; then
+                  LIBSAMRAI3D_APPU_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -34394,9 +35356,11 @@ $as_echo "$LIBSAMRAI3D_ALGS" >&6; }
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -34521,6 +35485,11 @@ $as_echo "$LIBSAMRAI3D_ALGS" >&6; }
       LTLIBSAMRAI3D_APPU="${LTLIBSAMRAI3D_APPU}${LTLIBSAMRAI3D_APPU:+ }-R$found_dir"
     done
   fi
+
+
+
+
+
 
 
         ac_save_CPPFLAGS="$CPPFLAGS"
@@ -34844,6 +35813,9 @@ fi
 
 
 
+
+
+
     use_additional=yes
 
   acl_save_prefix="$prefix"
@@ -35003,7 +35975,9 @@ fi
           if test "X$found_dir" != "X"; then
                         LTLIBBLITZ="${LTLIBBLITZ}${LTLIBBLITZ:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBBLITZ="${LIBBLITZ}${LIBBLITZ:+ }$found_so"
               else
                                                                                 haveit=
@@ -35070,7 +36044,16 @@ fi
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBBLITZ_PREFIX="$basedir"
+                if test "$name" = 'blitz'; then
+                  LIBBLITZ_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'blitz'; then
+                  LIBBLITZ_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -35119,9 +36102,11 @@ fi
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -35246,6 +36231,11 @@ fi
       LTLIBBLITZ="${LTLIBBLITZ}${LTLIBBLITZ:+ }-R$found_dir"
     done
   fi
+
+
+
+
+
 
 
         ac_save_CPPFLAGS="$CPPFLAGS"
@@ -35569,6 +36559,9 @@ fi
 
 
 
+
+
+
     use_additional=yes
 
   acl_save_prefix="$prefix"
@@ -35728,7 +36721,9 @@ fi
           if test "X$found_dir" != "X"; then
                         LTLIBSILO="${LTLIBSILO}${LTLIBSILO:+ }-L$found_dir -l$name"
             if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
+                                                        if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
                                 LIBSILO="${LIBSILO}${LIBSILO:+ }$found_so"
               else
                                                                                 haveit=
@@ -35795,7 +36790,16 @@ fi
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIBSILO_PREFIX="$basedir"
+                if test "$name" = 'silo'; then
+                  LIBSILO_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = 'silo'; then
+                  LIBSILO_PREFIX="$basedir"
+                fi
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -35844,9 +36848,11 @@ fi
                 case "$dep" in
                   -L*)
                     additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -35971,6 +36977,11 @@ fi
       LTLIBSILO="${LTLIBSILO}${LTLIBSILO:+ }-R$found_dir"
     done
   fi
+
+
+
+
+
 
 
         ac_save_CPPFLAGS="$CPPFLAGS"
