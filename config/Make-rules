@@ -3,7 +3,8 @@ MAINTAINERCLEANFILES = Makefile.in
 PETSC_DIR = @PETSC_DIR@
 PETSC_ARCH = @PETSC_ARCH@
 
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_srcdir}/third_party/qd-2.3.7/include -I${top_builddir}/third_party/qd-2.3.7/include
+AM_FFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 
 pkg_includedir = $(includedir)/@PACKAGE@
 

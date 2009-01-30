@@ -30,21 +30,21 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_F77 F77_FUNC_(navier_stokes_homogeneous_projection_bc_coefs2d,NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS2D)
-#define NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS_F77 F77_FUNC_(navier_stokes_fc_inhomogeneous_projection_bc_coefs2d,NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS2D)
-#define NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS_F77 F77_FUNC_(navier_stokes_sc_inhomogeneous_projection_bc_coefs2d,NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS2D)
+#define NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_FC FC_FUNC_(navier_stokes_homogeneous_projection_bc_coefs2d,NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS2D)
+#define NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS_FC FC_FUNC_(navier_stokes_fc_inhomogeneous_projection_bc_coefs2d,NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS2D)
+#define NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS_FC FC_FUNC_(navier_stokes_sc_inhomogeneous_projection_bc_coefs2d,NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS2D)
 #endif
 #if (NDIM == 3)
-#define NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_F77 F77_FUNC_(navier_stokes_homogeneous_projection_bc_coefs3d,NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS3D)
-#define NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS_F77 F77_FUNC_(navier_stokes_fc_inhomogeneous_projection_bc_coefs3d,NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS3D)
-#define NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS_F77 F77_FUNC_(navier_stokes_sc_inhomogeneous_projection_bc_coefs3d,NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS3D)
+#define NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_FC FC_FUNC_(navier_stokes_homogeneous_projection_bc_coefs3d,NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS3D)
+#define NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS_FC FC_FUNC_(navier_stokes_fc_inhomogeneous_projection_bc_coefs3d,NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS3D)
+#define NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS_FC FC_FUNC_(navier_stokes_sc_inhomogeneous_projection_bc_coefs3d,NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS3D)
 #endif
 
 // Function interfaces
 extern "C"
 {
     void
-    NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_F77(
+    NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_FC(
         double* acoef, double* bcoef,
         const int& blower0, const int& bupper0,
         const int& blower1, const int& bupper1
@@ -54,7 +54,7 @@ extern "C"
                                                       );
 
     void
-    NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS_F77(
+    NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS_FC(
         const double* u0, const double* u1,
 #if (NDIM == 3)
         const double* u2,
@@ -79,7 +79,7 @@ extern "C"
                                                            );
 
     void
-    NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS_F77(
+    NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS_FC(
         const double* u0, const double* u1,
 #if (NDIM == 3)
         const double* u2,
@@ -255,7 +255,7 @@ INSProjectionBcCoef::setBcCoefs(
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
 #endif
-    NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_F77(
+    NAVIER_STOKES_HOMOGENEOUS_PROJECTION_BC_COEFS_FC(
         acoef_data->getPointer(), bcoef_data->getPointer(),
         bc_coef_box.lower(0), bc_coef_box.upper(0),
         bc_coef_box.lower(1), bc_coef_box.upper(1)
@@ -302,7 +302,7 @@ INSProjectionBcCoef::setBcCoefs(
         const int u_ghosts = (u_fc_data->getGhostCellWidth()).max();
         const int P_ghosts = (P_data->getGhostCellWidth()).max();
         const int using_pressure_increment = (d_projection_type == "pressure_increment" ? 1 : 0);
-        NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS_F77(
+        NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS_FC(
             u_fc_data->getPointer(0), u_fc_data->getPointer(1),
 #if (NDIM == 3)
             u_fc_data->getPointer(2),
@@ -328,7 +328,7 @@ INSProjectionBcCoef::setBcCoefs(
         const int u_ghosts = (u_sc_data->getGhostCellWidth()).max();
         const int P_ghosts = (P_data->getGhostCellWidth()).max();
         const int using_pressure_increment = (d_projection_type == "pressure_increment" ? 1 : 0);
-        NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS_F77(
+        NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS_FC(
             u_sc_data->getPointer(0), u_sc_data->getPointer(1),
 #if (NDIM == 3)
             u_sc_data->getPointer(2),

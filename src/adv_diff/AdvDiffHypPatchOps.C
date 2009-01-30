@@ -34,24 +34,24 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 1)
-#define ADV_DIFF_CONSDIFF_F77 F77_FUNC_(adv_diff_consdiff1d, ADV_DIFF_CONSDIFF1D)
-#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77 F77_FUNC_(adv_diff_consdiffwithdivsource1d, ADV_DIFF_CONSDIFFWITHDIVSOURCE1D)
+#define ADV_DIFF_CONSDIFF_FC FC_FUNC_(adv_diff_consdiff1d, ADV_DIFF_CONSDIFF1D)
+#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC FC_FUNC_(adv_diff_consdiffwithdivsource1d, ADV_DIFF_CONSDIFFWITHDIVSOURCE1D)
 #endif
 
 #if (NDIM == 2)
-#define ADV_DIFF_CONSDIFF_F77 F77_FUNC_(adv_diff_consdiff2d, ADV_DIFF_CONSDIFF2D)
-#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77 F77_FUNC_(adv_diff_consdiffwithdivsource2d, ADV_DIFF_CONSDIFFWITHDIVSOURCE2D)
+#define ADV_DIFF_CONSDIFF_FC FC_FUNC_(adv_diff_consdiff2d, ADV_DIFF_CONSDIFF2D)
+#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC FC_FUNC_(adv_diff_consdiffwithdivsource2d, ADV_DIFF_CONSDIFFWITHDIVSOURCE2D)
 #endif
 
 #if (NDIM == 3)
-#define ADV_DIFF_CONSDIFF_F77 F77_FUNC_(adv_diff_consdiff3d, ADV_DIFF_CONSDIFF3D)
-#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77 F77_FUNC_(adv_diff_consdiffwithdivsource3d, ADV_DIFF_CONSDIFFWITHDIVSOURCE3D)
+#define ADV_DIFF_CONSDIFF_FC FC_FUNC_(adv_diff_consdiff3d, ADV_DIFF_CONSDIFF3D)
+#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC FC_FUNC_(adv_diff_consdiffwithdivsource3d, ADV_DIFF_CONSDIFFWITHDIVSOURCE3D)
 #endif
 
 extern "C"
 {
     void
-    ADV_DIFF_CONSDIFF_F77(
+    ADV_DIFF_CONSDIFF_FC(
         const double*, const double&,
 #if (NDIM == 1)
         const int& , const int& ,
@@ -74,7 +74,7 @@ extern "C"
         double*);
 
     void
-    ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77(
+    ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
         const double*, const double&,
 #if (NDIM == 1)
         const int& , const int& ,
@@ -237,7 +237,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                 if (d_u_is_div_free)
                 {
 #if (NDIM == 1)
-                    ADV_DIFF_CONSDIFF_F77(
+                    ADV_DIFF_CONSDIFF_FC(
                         dx,dt,
                         ilower(0),iupper(0),
                         flux_integral_data_ghost_cells(0),
@@ -246,7 +246,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                         Q_data->getPointer(depth));
 #endif
 #if (NDIM == 2)
-                    ADV_DIFF_CONSDIFF_F77(
+                    ADV_DIFF_CONSDIFF_FC(
                         dx,dt,
                         ilower(0),iupper(0),ilower(1),iupper(1),
                         flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
@@ -256,7 +256,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                         Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                    ADV_DIFF_CONSDIFF_F77(
+                    ADV_DIFF_CONSDIFF_FC(
                         dx,dt,
                         ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
                         flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
@@ -270,7 +270,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                 else
                 {
 #if (NDIM == 1)
-                    ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77(
+                    ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
                         dx,dt,
                         ilower(0),iupper(0),
                         flux_integral_data_ghost_cells(0),
@@ -283,7 +283,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                         Q_data->getPointer(depth));
 #endif
 #if (NDIM == 2)
-                    ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77(
+                    ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
                         dx,dt,
                         ilower(0),iupper(0),ilower(1),iupper(1),
                         flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
@@ -299,7 +299,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                         Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                    ADV_DIFF_CONSDIFFWITHDIVSOURCE_F77(
+                    ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
                         dx,dt,
                         ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
                         flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),

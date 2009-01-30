@@ -29,19 +29,19 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define NAVIER_STOKES_OPEN_BC_COEFS_F77 F77_FUNC_(navier_stokes_open_bc_coefs2d,NAVIER_STOKES_OPEN_BC_COEFS2D)
-#define NAVIER_STOKES_TANGENTIAL_BC_COEFS_F77 F77_FUNC_(navier_stokes_tangential_bc_coefs2d,NAVIER_STOKES_TANGENTIAL_BC_COEFS2D)
+#define NAVIER_STOKES_OPEN_BC_COEFS_FC FC_FUNC_(navier_stokes_open_bc_coefs2d,NAVIER_STOKES_OPEN_BC_COEFS2D)
+#define NAVIER_STOKES_TANGENTIAL_BC_COEFS_FC FC_FUNC_(navier_stokes_tangential_bc_coefs2d,NAVIER_STOKES_TANGENTIAL_BC_COEFS2D)
 #endif
 #if (NDIM == 3)
-#define NAVIER_STOKES_OPEN_BC_COEFS_F77 F77_FUNC_(navier_stokes_open_bc_coefs3d,NAVIER_STOKES_OPEN_BC_COEFS3D)
-#define NAVIER_STOKES_TANGENTIAL_BC_COEFS_F77 F77_FUNC_(navier_stokes_tangential_bc_coefs3d,NAVIER_STOKES_TANGENTIAL_BC_COEFS3D)
+#define NAVIER_STOKES_OPEN_BC_COEFS_FC FC_FUNC_(navier_stokes_open_bc_coefs3d,NAVIER_STOKES_OPEN_BC_COEFS3D)
+#define NAVIER_STOKES_TANGENTIAL_BC_COEFS_FC FC_FUNC_(navier_stokes_tangential_bc_coefs3d,NAVIER_STOKES_TANGENTIAL_BC_COEFS3D)
 #endif
 
 // Function interfaces
 extern "C"
 {
     void
-    NAVIER_STOKES_OPEN_BC_COEFS_F77(
+    NAVIER_STOKES_OPEN_BC_COEFS_FC(
         const double* U, const int& U_gcw,
         const double* acoef, const double* bcoef, double* gcoef,
         const int& ilower0, const int& iupper0,
@@ -59,7 +59,7 @@ extern "C"
         const double* dx);
 
     void
-    NAVIER_STOKES_TANGENTIAL_BC_COEFS_F77(
+    NAVIER_STOKES_TANGENTIAL_BC_COEFS_FC(
         const double* Phi, const int& Phi_gcw,
         const double* acoef, const double* bcoef, double* gcoef,
         const int& ilower0, const int& iupper0,
@@ -236,7 +236,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
     const int U_ghosts = (U_data->getGhostCellWidth()).max();
-    NAVIER_STOKES_OPEN_BC_COEFS_F77(
+    NAVIER_STOKES_OPEN_BC_COEFS_FC(
         U_data->getPointer(), U_ghosts,
         acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
         patch_box.lower(0), patch_box.upper(0),
@@ -277,7 +277,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
 #endif
     const int Phi_ghosts = (Phi_data->getGhostCellWidth()).max();
     const double dt = d_new_time - d_current_time;
-    NAVIER_STOKES_TANGENTIAL_BC_COEFS_F77(
+    NAVIER_STOKES_TANGENTIAL_BC_COEFS_FC(
         Phi_data->getPointer(), Phi_ghosts,
         acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
         patch_box.lower(0), patch_box.upper(0),

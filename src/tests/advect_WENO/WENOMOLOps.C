@@ -33,13 +33,13 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define WENO_CONVECTIVE_FLUXES_F77 F77_FUNC_(weno_convective_fluxes2d, WENO_CONVECTIVE_FLUXES2D)
+#define WENO_CONVECTIVE_FLUXES_FC FC_FUNC_(weno_convective_fluxes2d, WENO_CONVECTIVE_FLUXES2D)
 #endif
 
 extern "C"
 {
     void
-    WENO_CONVECTIVE_FLUXES_F77(
+    WENO_CONVECTIVE_FLUXES_FC(
         double* fface0, double* fface1, const int& fface_gcw,
         double* ffwrd0, double* ffwrd1, const int& ffwrd_gcw,
         double* frevr0, double* frevr1, const int& frevr_gcw,
@@ -363,7 +363,7 @@ WENOMOLOps::singleStep(
     const hier::Index<NDIM>& patch_lower = patch_box.lower();
     const hier::Index<NDIM>& patch_upper = patch_box.upper();
 
-    WENO_CONVECTIVE_FLUXES_F77(
+    WENO_CONVECTIVE_FLUXES_FC(
         flux->getPointer(0), flux->getPointer(1), flux_gcw,
         flux_fwrd->getPointer(0), flux_fwrd->getPointer(1), flux_fwrd_gcw,
         flux_revr->getPointer(0), flux_revr->getPointer(1), flux_revr_gcw,

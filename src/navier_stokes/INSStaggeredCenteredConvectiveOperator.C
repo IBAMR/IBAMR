@@ -29,21 +29,21 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE_F77 F77_FUNC_(navier_stokes_staggered_divergence_derivative2d,NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE2D)
-#define NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE_F77 F77_FUNC_(navier_stokes_staggered_advection_derivative2d,NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE2D)
-#define NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE_F77 F77_FUNC_(navier_stokes_staggered_skew_symmetric_derivative2d,NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE2D)
+#define NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_divergence_derivative2d,NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE2D)
+#define NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_advection_derivative2d,NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE2D)
+#define NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_skew_symmetric_derivative2d,NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE2D)
 #endif
 
 #if (NDIM == 3)
-#define NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE_F77 F77_FUNC_(navier_stokes_staggered_divergence_derivative3d,NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE3D)
-#define NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE_F77 F77_FUNC_(navier_stokes_staggered_advection_derivative3d,NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE3D)
-#define NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE_F77 F77_FUNC_(navier_stokes_staggered_skew_symmetric_derivative3d,NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE3D)
+#define NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_divergence_derivative3d,NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE3D)
+#define NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_advection_derivative3d,NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE3D)
+#define NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_skew_symmetric_derivative3d,NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE3D)
 #endif
 
 extern "C"
 {
     void
-    NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE_F77(
+    NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE_FC(
         const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -62,7 +62,7 @@ extern "C"
                                                           );
 
     void
-    NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE_F77(
+    NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE_FC(
         const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -81,7 +81,7 @@ extern "C"
                                                           );
 
     void
-    NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE_F77(
+    NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE_FC(
         const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -224,7 +224,7 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
 
             if (d_differencing_form == "divergence")
             {
-                NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE_F77(
+                NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE_FC(
                     dx,
 #if (NDIM == 2)
                     patch_lower(0), patch_upper(0),
@@ -247,7 +247,7 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
             }
             else if (d_differencing_form == "advection")
             {
-                NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE_F77(
+                NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE_FC(
                     dx,
 #if (NDIM == 2)
                     patch_lower(0), patch_upper(0),
@@ -270,7 +270,7 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
             }
             else if (d_differencing_form == "skew-symmetric")
             {
-                NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE_F77(
+                NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE_FC(
                     dx,
 #if (NDIM == 2)
                     patch_lower(0), patch_upper(0),

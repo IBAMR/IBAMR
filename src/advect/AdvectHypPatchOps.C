@@ -48,27 +48,27 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 1)
-#define ADVECT_CONSDIFF_F77 F77_FUNC_(advect_consdiff1d, ADVECT_CONSDIFF1D)
-#define ADVECT_CONSDIFFWITHDIVSOURCE_F77 F77_FUNC_(advect_consdiffwithdivsource1d, ADVECT_CONSDIFFWITHDIVSOURCE1D)
-#define ADVECT_DETECTGRAD_F77 F77_FUNC_(advect_detectgrad1d, ADVECT_DETECTGRAD1D)
+#define ADVECT_CONSDIFF_FC FC_FUNC_(advect_consdiff1d, ADVECT_CONSDIFF1D)
+#define ADVECT_CONSDIFFWITHDIVSOURCE_FC FC_FUNC_(advect_consdiffwithdivsource1d, ADVECT_CONSDIFFWITHDIVSOURCE1D)
+#define ADVECT_DETECTGRAD_FC FC_FUNC_(advect_detectgrad1d, ADVECT_DETECTGRAD1D)
 #endif
 
 #if (NDIM == 2)
-#define ADVECT_CONSDIFF_F77 F77_FUNC_(advect_consdiff2d, ADVECT_CONSDIFF2D)
-#define ADVECT_CONSDIFFWITHDIVSOURCE_F77 F77_FUNC_(advect_consdiffwithdivsource2d, ADVECT_CONSDIFFWITHDIVSOURCE2D)
-#define ADVECT_DETECTGRAD_F77 F77_FUNC_(advect_detectgrad2d, ADVECT_DETECTGRAD2D)
+#define ADVECT_CONSDIFF_FC FC_FUNC_(advect_consdiff2d, ADVECT_CONSDIFF2D)
+#define ADVECT_CONSDIFFWITHDIVSOURCE_FC FC_FUNC_(advect_consdiffwithdivsource2d, ADVECT_CONSDIFFWITHDIVSOURCE2D)
+#define ADVECT_DETECTGRAD_FC FC_FUNC_(advect_detectgrad2d, ADVECT_DETECTGRAD2D)
 #endif
 
 #if (NDIM == 3)
-#define ADVECT_CONSDIFF_F77 F77_FUNC_(advect_consdiff3d, ADVECT_CONSDIFF3D)
-#define ADVECT_CONSDIFFWITHDIVSOURCE_F77 F77_FUNC_(advect_consdiffwithdivsource3d, ADVECT_CONSDIFFWITHDIVSOURCE3D)
-#define ADVECT_DETECTGRAD_F77 F77_FUNC_(advect_detectgrad3d, ADVECT_DETECTGRAD3D)
+#define ADVECT_CONSDIFF_FC FC_FUNC_(advect_consdiff3d, ADVECT_CONSDIFF3D)
+#define ADVECT_CONSDIFFWITHDIVSOURCE_FC FC_FUNC_(advect_consdiffwithdivsource3d, ADVECT_CONSDIFFWITHDIVSOURCE3D)
+#define ADVECT_DETECTGRAD_FC FC_FUNC_(advect_detectgrad3d, ADVECT_DETECTGRAD3D)
 #endif
 
 extern "C"
 {
     void
-    ADVECT_CONSDIFF_F77(
+    ADVECT_CONSDIFF_FC(
         const double* ,
 #if (NDIM == 1)
         const int& , const int& ,
@@ -92,7 +92,7 @@ extern "C"
                              );
 
     void
-    ADVECT_CONSDIFFWITHDIVSOURCE_F77(
+    ADVECT_CONSDIFFWITHDIVSOURCE_FC(
         const double* , const double& ,
 #if (NDIM == 1)
         const int& , const int& ,
@@ -127,7 +127,7 @@ extern "C"
         double*);
 
     void
-    ADVECT_DETECTGRAD_F77(
+    ADVECT_DETECTGRAD_FC(
 #if (NDIM == 1)
         const int& , const int& ,
         const int& , const int& , const int&,
@@ -1001,7 +1001,7 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
                 if (d_u_is_div_free)
                 {
 #if (NDIM == 1)
-                    ADVECT_CONSDIFF_F77(
+                    ADVECT_CONSDIFF_FC(
                         dx,
                         ilower(0),iupper(0),
                         flux_integral_data_ghost_cells(0),
@@ -1010,7 +1010,7 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
                         Q_data->getPointer(depth));
 #endif
 #if (NDIM == 2)
-                    ADVECT_CONSDIFF_F77(
+                    ADVECT_CONSDIFF_FC(
                         dx,
                         ilower(0),iupper(0),ilower(1),iupper(1),
                         flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
@@ -1020,7 +1020,7 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
                         Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                    ADVECT_CONSDIFF_F77(
+                    ADVECT_CONSDIFF_FC(
                         dx,
                         ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
                         flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
@@ -1034,7 +1034,7 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
                 else
                 {
 #if (NDIM == 1)
-                    ADVECT_CONSDIFFWITHDIVSOURCE_F77(
+                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(
                         dx,dt,
                         ilower(0),iupper(0),
                         flux_integral_data_ghost_cells(0),
@@ -1047,7 +1047,7 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
                         Q_data->getPointer(depth));
 #endif
 #if (NDIM == 2)
-                    ADVECT_CONSDIFFWITHDIVSOURCE_F77(
+                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(
                         dx,dt,
                         ilower(0),iupper(0),ilower(1),iupper(1),
                         flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
@@ -1063,7 +1063,7 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
                         Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                    ADVECT_CONSDIFFWITHDIVSOURCE_F77(
+                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(
                         dx,dt,
                         ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
                         flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
@@ -1587,7 +1587,7 @@ AdvectHypPatchOps::tagGradientDetectorCells(
 
                     for (int depth = 0; depth < var->getDepth(); ++depth)
                     {
-                        ADVECT_DETECTGRAD_F77(
+                        ADVECT_DETECTGRAD_FC(
 #if (NDIM == 1)
                             ilower(0),iupper(0),
                             vghost(0),tagghost(0),d_ghosts(0),

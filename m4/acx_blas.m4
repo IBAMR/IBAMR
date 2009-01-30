@@ -17,16 +17,16 @@
 #   	$BLAS_LIBS $LIBS $FLIBS
 #
 #   in that order. FLIBS is the output variable of the
-#   AC_F77_LIBRARY_LDFLAGS macro (called if necessary by ACX_BLAS), and is
-#   sometimes necessary in order to link with F77 libraries. Users will also
-#   need to use AC_F77_DUMMY_MAIN (see the autoconf manual), for the same
+#   AC_FC_LIBRARY_LDFLAGS macro (called if necessary by ACX_BLAS), and is
+#   sometimes necessary in order to link with FC libraries. Users will also
+#   need to use AC_FC_DUMMY_MAIN (see the autoconf manual), for the same
 #   reason.
 #
 #   Many libraries are searched for, from ATLAS to CXML to ESSL. The user
 #   may also use --with-blas=<lib> in order to use some specific BLAS
 #   library <lib>. In order to link successfully, however, be aware that you
 #   will probably need to use the same Fortran compiler (which can be set
-#   via the F77 env. var.) as was used to compile the BLAS library.
+#   via the FC env. var.) as was used to compile the BLAS library.
 #
 #   ACTION-IF-FOUND is a list of shell commands to run if a BLAS library is
 #   found, and ACTION-IF-NOT-FOUND is a list of commands to run it if it is
@@ -71,7 +71,7 @@
 
 AC_DEFUN([ACX_BLAS], [
 AC_PREREQ(2.50)
-AC_REQUIRE([AC_F77_LIBRARY_LDFLAGS])
+AC_REQUIRE([AC_FC_LIBRARY_LDFLAGS])
 acx_blas_ok=no
 
 AC_ARG_WITH(blas,
@@ -84,8 +84,8 @@ case $with_blas in
 esac
 
 # Get fortran linker names of BLAS functions to check for.
-AC_F77_FUNC(sgemm)
-AC_F77_FUNC(dgemm)
+AC_FC_FUNC(sgemm)
+AC_FC_FUNC(dgemm)
 
 acx_blas_save_LIBS="$LIBS"
 LIBS="$LIBS $FLIBS"

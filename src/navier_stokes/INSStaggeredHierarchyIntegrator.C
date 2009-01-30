@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <27.Jan.2009 13:04:44 griffith@griffith-macbook-pro.local>
+// Last modified: <29.Jan.2009 14:38:06 beg208@cardiac.es.its.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -44,20 +44,20 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define NAVIER_STOKES_SC_REGRID_COPY_F77 F77_FUNC_(navier_stokes_sc_regrid_copy2d,NAVIER_STOKES_SC_REGRID_COPY2D)
-#define NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_F77 F77_FUNC_(navier_stokes_sc_regrid_apply_correction2d,NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION2D)
-#define NAVIER_STOKES_SC_STABLEDT_F77 F77_FUNC_(navier_stokes_sc_stabledt2d, NAVIER_STOKES_SC_STABLEDT2D)
+#define NAVIER_STOKES_SC_REGRID_COPY_FC FC_FUNC_(navier_stokes_sc_regrid_copy2d,NAVIER_STOKES_SC_REGRID_COPY2D)
+#define NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_FC FC_FUNC_(navier_stokes_sc_regrid_apply_correction2d,NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION2D)
+#define NAVIER_STOKES_SC_STABLEDT_FC FC_FUNC_(navier_stokes_sc_stabledt2d, NAVIER_STOKES_SC_STABLEDT2D)
 #endif
 
 #if (NDIM == 3)
-#define NAVIER_STOKES_SC_REGRID_COPY_F77 F77_FUNC_(navier_stokes_sc_regrid_copy3d,NAVIER_STOKES_SC_REGRID_COPY3D)
-#define NAVIER_STOKES_SC_STABLEDT_F77 F77_FUNC_(navier_stokes_sc_stabledt3d, NAVIER_STOKES_SC_STABLEDT3D)
+#define NAVIER_STOKES_SC_REGRID_COPY_FC FC_FUNC_(navier_stokes_sc_regrid_copy3d,NAVIER_STOKES_SC_REGRID_COPY3D)
+#define NAVIER_STOKES_SC_STABLEDT_FC FC_FUNC_(navier_stokes_sc_stabledt3d, NAVIER_STOKES_SC_STABLEDT3D)
 #endif
 
 extern "C"
 {
     void
-    NAVIER_STOKES_SC_REGRID_COPY_F77(
+    NAVIER_STOKES_SC_REGRID_COPY_FC(
         double* u_dst0, double* u_dst1,
 #if (NDIM == 3)
         double* u_dst2,
@@ -78,7 +78,7 @@ extern "C"
                                      );
 #if (NDIM == 2)
     void
-    NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_F77(
+    NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_FC(
         double* u0, double* u1,
 #if (NDIM == 3)
         double* u2,
@@ -95,7 +95,7 @@ extern "C"
 #endif
 
     void
-    NAVIER_STOKES_SC_STABLEDT_F77(
+    NAVIER_STOKES_SC_STABLEDT_FC(
         const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -1372,6 +1372,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     // Setup the convergence test.
     PetscErrorCode ierr;
     KSP petsc_ksp = d_stokes_solver->getPETScKSP();
+    ierr = KSPDefaultConvergedCreate(&d_default_conv_ctx);  IBTK_CHKERRQ(ierr);
     ierr = KSPSetConvergenceTest(petsc_ksp, INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest, static_cast<void*>(this), PETSC_NULL);  IBTK_CHKERRQ(ierr);
 
     // Setup the nullspace object.
@@ -1530,6 +1531,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
         ierr = KSPGetNullSpace(petsc_ksp, &petsc_nullsp); IBTK_CHKERRQ(ierr);
         ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
     }
+
+    // Deallocate the convergence test context.
+    PetscErrorCode ierr = KSPDefaultConvergedDestroy(d_default_conv_ctx); IBTK_CHKERRQ(ierr);
 
     // Deallocate scratch data.
     d_U_rhs_vec->freeVectorComponents();
@@ -1799,7 +1803,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_data = patch->getPatchData(d_indicator_scratch_idx);
                 const int indicator_ghosts = indicator_data->getGhostCellWidth().max();
 
-                NAVIER_STOKES_SC_REGRID_COPY_F77(
+                NAVIER_STOKES_SC_REGRID_COPY_FC(
                     U_dst_data->getPointer(0),
                     U_dst_data->getPointer(1),
 #if (NDIM == 3)
@@ -1828,7 +1832,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                     TBOX_ASSERT(U_dst_ghosts%2 == 0);
                     TBOX_ASSERT(U_dst_ghosts <= indicator_ghosts);
 #endif
-                    NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_F77(
+                    NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_FC(
                         U_dst_data->getPointer(0),
                         U_dst_data->getPointer(1),
 #if (NDIM == 3)
@@ -2537,8 +2541,12 @@ INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
     KSPConvergedReason* reason,
     void* convergence_test_ctx)
 {
+    INSStaggeredHierarchyIntegrator* hier_integrator = static_cast<INSStaggeredHierarchyIntegrator*>(convergence_test_ctx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(hier_integrator != NULL);
+#endif
     PetscErrorCode ierr;
-    ierr = KSPDefaultConverged(ksp, n, rnorm, reason, PETSC_NULL);  IBTK_CHKERRQ(ierr);
+    ierr = KSPDefaultConverged(ksp, n, rnorm, reason, hier_integrator->d_default_conv_ctx);  IBTK_CHKERRQ(ierr);
 
     // Whenever the default convergence test is satisfied, compute the discrete
     // divergence of the solution vector and ensure that it satisfies the
@@ -2550,10 +2558,6 @@ INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
     // modifications to support internal fluid sources and sinks.
     if (int(*reason) > 0)
     {
-        INSStaggeredHierarchyIntegrator* hier_integrator = static_cast<INSStaggeredHierarchyIntegrator*>(convergence_test_ctx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(hier_integrator != NULL);
-#endif
         SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops = hier_integrator->d_hier_cc_data_ops;
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops = hier_integrator->d_hier_math_ops;
         const int wgt_cc_idx = hier_integrator->d_wgt_cc_idx;
@@ -2924,7 +2928,7 @@ INSStaggeredHierarchyIntegrator::getPatchDt(
 
     double stable_dt = std::numeric_limits<double>::max();
 #if (NDIM == 2)
-    NAVIER_STOKES_SC_STABLEDT_F77(
+    NAVIER_STOKES_SC_STABLEDT_FC(
         dx,
         ilower(0),iupper(0),ilower(1),iupper(1),
         U_ghost_cells(0),U_ghost_cells(1),
@@ -2932,7 +2936,7 @@ INSStaggeredHierarchyIntegrator::getPatchDt(
         stable_dt);
 #endif
 #if (NDIM == 3)
-    NAVIER_STOKES_SC_STABLEDT_F77(
+    NAVIER_STOKES_SC_STABLEDT_FC(
         dx,
         ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
         U_ghost_cells(0),U_ghost_cells(1),U_ghost_cells(2),

@@ -32,27 +32,27 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
-#define ADVECT_FLUX_F77 F77_FUNC_(advect_flux2d, ADVECT_FLUX2D)
-#define ADVECT_STABLEDT_F77 F77_FUNC_(advect_stabledt2d, ADVECT_STABLEDT2D)
-#define GODUNOV_INCOMPRESSIBILITY_FIX_F77 F77_FUNC_(godunov_incompressibility_fix2d, GODUNOV_INCOMPRESSIBILITY_FIX2D)
-#define GODUNOV_PREDICT_F77 F77_FUNC_(godunov_predict2d, GODUNOV_PREDICT2D)
-#define GODUNOV_PREDICT_WITH_SOURCE_F77 F77_FUNC_(godunov_predict_with_source2d, GODUNOV_PREDICT_WITH_SOURCE2D)
+#define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
+#define ADVECT_FLUX_FC FC_FUNC_(advect_flux2d, ADVECT_FLUX2D)
+#define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt2d, ADVECT_STABLEDT2D)
+#define GODUNOV_INCOMPRESSIBILITY_FIX_FC FC_FUNC_(godunov_incompressibility_fix2d, GODUNOV_INCOMPRESSIBILITY_FIX2D)
+#define GODUNOV_PREDICT_FC FC_FUNC_(godunov_predict2d, GODUNOV_PREDICT2D)
+#define GODUNOV_PREDICT_WITH_SOURCE_FC FC_FUNC_(godunov_predict_with_source2d, GODUNOV_PREDICT_WITH_SOURCE2D)
 #endif
 
 #if (NDIM == 3)
-#define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
-#define ADVECT_FLUX_F77 F77_FUNC_(advect_flux3d, ADVECT_FLUX3D)
-#define ADVECT_STABLEDT_F77 F77_FUNC_(advect_stabledt3d, ADVECT_STABLEDT3D)
-#define GODUNOV_INCOMPRESSIBILITY_FIX_F77 F77_FUNC_(godunov_incompressibility_fix3d, GODUNOV_INCOMPRESSIBILITY_FIX3D)
-#define GODUNOV_PREDICT_F77 F77_FUNC_(godunov_predict3d, GODUNOV_PREDICT3D)
-#define GODUNOV_PREDICT_WITH_SOURCE_F77 F77_FUNC_(godunov_predict_with_source3d, GODUNOV_PREDICT_WITH_SOURCE3D)
+#define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
+#define ADVECT_FLUX_FC FC_FUNC_(advect_flux3d, ADVECT_FLUX3D)
+#define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt3d, ADVECT_STABLEDT3D)
+#define GODUNOV_INCOMPRESSIBILITY_FIX_FC FC_FUNC_(godunov_incompressibility_fix3d, GODUNOV_INCOMPRESSIBILITY_FIX3D)
+#define GODUNOV_PREDICT_FC FC_FUNC_(godunov_predict3d, GODUNOV_PREDICT3D)
+#define GODUNOV_PREDICT_WITH_SOURCE_FC FC_FUNC_(godunov_predict_with_source3d, GODUNOV_PREDICT_WITH_SOURCE3D)
 #endif
 
 extern "C"
 {
     void
-    ADVECT_DERIVATIVE_F77(
+    ADVECT_DERIVATIVE_FC(
         const double*,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -75,7 +75,7 @@ extern "C"
                                );
 
     void
-    ADVECT_FLUX_F77(
+    ADVECT_FLUX_FC(
         const double& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -98,7 +98,7 @@ extern "C"
                          );
 
     void
-    ADVECT_STABLEDT_F77(
+    ADVECT_STABLEDT_FC(
         const double*,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -115,7 +115,7 @@ extern "C"
 
 #if ((NDIM == 2) || (NDIM == 3))
     void
-    GODUNOV_INCOMPRESSIBILITY_FIX_F77(
+    GODUNOV_INCOMPRESSIBILITY_FIX_FC(
         const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -135,7 +135,7 @@ extern "C"
 #endif
 
     void
-    GODUNOV_PREDICT_F77(
+    GODUNOV_PREDICT_FC(
         const double* , const double& ,
 #if (NDIM == 3)
         const unsigned int& ,
@@ -163,7 +163,7 @@ extern "C"
                              );
 
     void
-    GODUNOV_PREDICT_WITH_SOURCE_F77(
+    GODUNOV_PREDICT_WITH_SOURCE_FC(
         const double* , const double& ,
 #if (NDIM == 3)
         const unsigned int& ,
@@ -320,7 +320,7 @@ GodunovAdvector::computeStableDtOnPatch(
     double stable_dt = std::numeric_limits<double>::max();
 
 #if (NDIM == 2)
-    ADVECT_STABLEDT_F77(
+    ADVECT_STABLEDT_FC(
         dx,
         ilower(0),iupper(0),ilower(1),iupper(1),
         u_ghost_cells(0),u_ghost_cells(1),
@@ -328,7 +328,7 @@ GodunovAdvector::computeStableDtOnPatch(
         stable_dt);
 #endif
 #if (NDIM == 3)
-    ADVECT_STABLEDT_F77(
+    ADVECT_STABLEDT_FC(
         dx,
         ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
         u_ghost_cells(0),u_ghost_cells(1),u_ghost_cells(2),
@@ -372,7 +372,7 @@ GodunovAdvector::computeAdvectiveDerivative(
     for (int depth = 0; depth < q_half.getDepth() ; ++depth)
     {
 #if (NDIM == 2)
-        ADVECT_DERIVATIVE_F77(
+        ADVECT_DERIVATIVE_FC(
             dx,
             ilower(0),iupper(0),ilower(1),iupper(1),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
@@ -383,7 +383,7 @@ GodunovAdvector::computeAdvectiveDerivative(
             N.getPointer(depth));
 #endif
 #if (NDIM == 3)
-        ADVECT_DERIVATIVE_F77(
+        ADVECT_DERIVATIVE_FC(
             dx,
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
@@ -428,7 +428,7 @@ GodunovAdvector::computeFlux(
     for (int depth = 0; depth < q_half.getDepth(); ++depth)
     {
 #if (NDIM == 2)
-        ADVECT_FLUX_F77(
+        ADVECT_FLUX_FC(
             dt,
             ilower(0),iupper(0),ilower(1),iupper(1),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
@@ -439,7 +439,7 @@ GodunovAdvector::computeFlux(
             flux.getPointer(0,depth),flux.getPointer(1,depth));
 #endif
 #if (NDIM == 3)
-        ADVECT_FLUX_F77(
+        ADVECT_FLUX_FC(
             dt,
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
@@ -573,7 +573,7 @@ GodunovAdvector::enforceIncompressibility(
     for (int depth = 0; depth < NDIM; ++depth)
     {
 #if (NDIM == 2)
-        GODUNOV_INCOMPRESSIBILITY_FIX_F77(
+        GODUNOV_INCOMPRESSIBILITY_FIX_FC(
             depth,
             ilower(0),iupper(0),ilower(1),iupper(1),
             grad_phi_ghost_cells(0),grad_phi_ghost_cells(1),
@@ -582,7 +582,7 @@ GodunovAdvector::enforceIncompressibility(
             v_half.getPointer(0,depth),v_half.getPointer(1,depth));
 #endif
 #if (NDIM == 3)
-        GODUNOV_INCOMPRESSIBILITY_FIX_F77(
+        GODUNOV_INCOMPRESSIBILITY_FIX_FC(
             depth,
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             grad_phi_ghost_cells(0),grad_phi_ghost_cells(1),grad_phi_ghost_cells(2),
@@ -675,7 +675,7 @@ GodunovAdvector::predict(
     for (int depth = 0; depth < Q.getDepth(); ++depth)
     {
 #if (NDIM == 2)
-        GODUNOV_PREDICT_F77(
+        GODUNOV_PREDICT_FC(
             dx,dt,
             ilower(0),iupper(0),ilower(1),iupper(1),
             Q_ghost_cells(0),Q_ghost_cells(1),
@@ -688,7 +688,7 @@ GodunovAdvector::predict(
             q_half.getPointer(0,depth),q_half.getPointer(1,depth));
 #endif
 #if (NDIM == 3)
-        GODUNOV_PREDICT_F77(
+        GODUNOV_PREDICT_FC(
             dx,dt,
             static_cast<unsigned int>(d_using_full_ctu),
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
@@ -755,7 +755,7 @@ GodunovAdvector::predictWithSourceTerm(
     for (int depth = 0; depth < Q.getDepth(); ++depth)
     {
 #if (NDIM == 2)
-        GODUNOV_PREDICT_WITH_SOURCE_F77(
+        GODUNOV_PREDICT_WITH_SOURCE_FC(
             dx,dt,
             ilower(0),iupper(0),ilower(1),iupper(1),
             Q_ghost_cells(0),Q_ghost_cells(1),
@@ -770,7 +770,7 @@ GodunovAdvector::predictWithSourceTerm(
             q_half.getPointer(0,depth),q_half.getPointer(1,depth));
 #endif
 #if (NDIM == 3)
-        GODUNOV_PREDICT_WITH_SOURCE_F77(
+        GODUNOV_PREDICT_WITH_SOURCE_FC(
             dx,dt,
             static_cast<unsigned int>(d_using_full_ctu),
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),

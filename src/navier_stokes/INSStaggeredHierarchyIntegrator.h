@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <28.Nov.2008 15:06:43 griffith@dyn-160-39-49-211.dyn.columbia.edu>
+// Last modified: <29.Jan.2009 14:40:24 beg208@cardiac.es.its.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -954,7 +954,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_wgt_sc_var;
     double d_volume;
 
-     /*
+    /*
      * Hierarchy operators and solvers.
      */
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_scratch_vec;
@@ -999,6 +999,7 @@ private:
     bool d_stokes_solver_needs_init;
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;
     double d_div_u_abstol;
+    void* d_default_conv_ctx;
 
     bool d_needs_regrid_projection;
     double d_regrid_max_div_growth_factor;

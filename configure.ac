@@ -11,12 +11,16 @@ AC_LANG(C++)
 # Checks for programs.
 ###########################################################################
 AC_ARG_VAR(LIBS,[linker commands, e.g. -l<lib> if you require a nonstandard library <lib>])
-AC_ARG_VAR(FLIBS,[linker flags and commands, e.g. -L<lib dir> and -l<lib> for the "Fortran 77 intrinsic and run-time libraries" that are required to successfully link a Fortran 77 program or shared library])
+AC_ARG_VAR(FCLIBS,[linker flags and commands, e.g. -L<lib dir> and -l<lib> for the "Fortran intrinsic and run-time libraries" that are required to successfully link a Fortran program or shared library])
 AC_PROG_CC		# Check for a C compiler.
 AC_PROG_CXX		# Check for a C++ compiler.
-AC_PROG_F77		# Check for a Fortran compiler.
-AC_F77_LIBRARY_LDFLAGS	# Determine the linker flags for the Fortran intrinsic and runtime libraries.
-AC_F77_WRAPPERS
+AC_PROG_FC		# Check for a Fortran compiler.
+AC_FC_LIBRARY_LDFLAGS	# Determine the linker flags for the Fortran intrinsic and runtime libraries.
+AC_FC_WRAPPERS
+LIBS="$LIBS $FCLIBS"
+AC_SUBST(F77, $FC)
+AC_SUBST(FFLAGS, $FCFLAGS)
+AC_SUBST(FLIBS, $FCLIBS)
 AC_LIB_PREPARE_PREFIX
 AC_LIB_RPATH
 
@@ -166,7 +170,7 @@ echo "Configuring required package BLAS/LAPACK"
 echo "========================================"
 ACX_BLAS(,)
 ACX_LAPACK(,)
-LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
+LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
 
 # Check for hdf5 library and configure hdf5 options.
 echo

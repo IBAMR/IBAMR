@@ -856,9 +856,12 @@ build_os
 build_vendor
 build_cpu
 build
-ac_ct_F77
+FLIBS
 FFLAGS
 F77
+ac_ct_FC
+FCFLAGS
+FC
 am__fastdepCXX_FALSE
 am__fastdepCXX_TRUE
 CXXDEPMODE
@@ -881,7 +884,7 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
-FLIBS
+FCLIBS
 am__untar
 am__tar
 AMTAR
@@ -974,7 +977,7 @@ with_silo
 host_alias
 target_alias
 LIBS
-FLIBS
+FCLIBS
 CC
 CFLAGS
 LDFLAGS
@@ -982,8 +985,8 @@ CPPFLAGS
 CXX
 CXXFLAGS
 CCC
-F77
-FFLAGS
+FC
+FCFLAGS
 MPICC
 MPICXX
 CXXCPP
@@ -1673,9 +1676,9 @@ Optional Packages:
 Some influential environment variables:
   LIBS        linker commands, e.g. -l<lib> if you require a nonstandard
               library <lib>
-  FLIBS       linker flags and commands, e.g. -L<lib dir> and -l<lib> for the
-              "Fortran 77 intrinsic and run-time libraries" that are required
-              to successfully link a Fortran 77 program or shared library
+  FCLIBS      linker flags and commands, e.g. -L<lib dir> and -l<lib> for the
+              "Fortran intrinsic and run-time libraries" that are required to
+              successfully link a Fortran program or shared library
   CC          C compiler command
   CFLAGS      C compiler flags
   LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
@@ -1684,8 +1687,8 @@ Some influential environment variables:
               you have headers in a nonstandard directory <include dir>
   CXX         C++ compiler command
   CXXFLAGS    C++ compiler flags
-  F77         Fortran 77 compiler command
-  FFLAGS      Fortran 77 compiler flags
+  FC          Fortran compiler command
+  FCFLAGS     Fortran compiler flags
   MPICC       MPI C compiler command
   MPICXX      MPI C++ compiler command
   CXXCPP      C++ preprocessor
@@ -4234,22 +4237,22 @@ else
 fi
 
 		# Check for a C++ compiler.
-ac_ext=f
-ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
-ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_f77_compiler_gnu
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 if test -n "$ac_tool_prefix"; then
-  for ac_prog in g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77 xlf90 f90 pgf90 pghpf epcf90 gfortran g95 xlf95 f95 fort ifort ifc efc pgf95 lf95 ftn
+  for ac_prog in gfortran g95 xlf95 f95 fort ifort ifc efc pgf95 lf95 ftn xlf90 f90 pgf90 pghpf epcf90 g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77
   do
     # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
 set dummy $ac_tool_prefix$ac_prog; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_F77+set}" = set; then
+if test "${ac_cv_prog_FC+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
-  if test -n "$F77"; then
-  ac_cv_prog_F77="$F77" # Let the user override the test.
+  if test -n "$FC"; then
+  ac_cv_prog_FC="$FC" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
@@ -4258,7 +4261,7 @@ do
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_F77="$ac_tool_prefix$ac_prog"
+    ac_cv_prog_FC="$ac_tool_prefix$ac_prog"
     $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -4268,32 +4271,32 @@ IFS=$as_save_IFS
 
 fi
 fi
-F77=$ac_cv_prog_F77
-if test -n "$F77"; then
-  { $as_echo "$as_me:$LINENO: result: $F77" >&5
-$as_echo "$F77" >&6; }
+FC=$ac_cv_prog_FC
+if test -n "$FC"; then
+  { $as_echo "$as_me:$LINENO: result: $FC" >&5
+$as_echo "$FC" >&6; }
 else
   { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; }
 fi
 
 
-    test -n "$F77" && break
+    test -n "$FC" && break
   done
 fi
-if test -z "$F77"; then
-  ac_ct_F77=$F77
-  for ac_prog in g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77 xlf90 f90 pgf90 pghpf epcf90 gfortran g95 xlf95 f95 fort ifort ifc efc pgf95 lf95 ftn
+if test -z "$FC"; then
+  ac_ct_FC=$FC
+  for ac_prog in gfortran g95 xlf95 f95 fort ifort ifc efc pgf95 lf95 ftn xlf90 f90 pgf90 pghpf epcf90 g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_ac_ct_F77+set}" = set; then
+if test "${ac_cv_prog_ac_ct_FC+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
-  if test -n "$ac_ct_F77"; then
-  ac_cv_prog_ac_ct_F77="$ac_ct_F77" # Let the user override the test.
+  if test -n "$ac_ct_FC"; then
+  ac_cv_prog_ac_ct_FC="$ac_ct_FC" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
@@ -4302,7 +4305,7 @@ do
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_ac_ct_F77="$ac_prog"
+    ac_cv_prog_ac_ct_FC="$ac_prog"
     $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -4312,21 +4315,21 @@ IFS=$as_save_IFS
 
 fi
 fi
-ac_ct_F77=$ac_cv_prog_ac_ct_F77
-if test -n "$ac_ct_F77"; then
-  { $as_echo "$as_me:$LINENO: result: $ac_ct_F77" >&5
-$as_echo "$ac_ct_F77" >&6; }
+ac_ct_FC=$ac_cv_prog_ac_ct_FC
+if test -n "$ac_ct_FC"; then
+  { $as_echo "$as_me:$LINENO: result: $ac_ct_FC" >&5
+$as_echo "$ac_ct_FC" >&6; }
 else
   { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; }
 fi
 
 
-  test -n "$ac_ct_F77" && break
+  test -n "$ac_ct_FC" && break
 done
 
-  if test "x$ac_ct_F77" = x; then
-    F77=""
+  if test "x$ac_ct_FC" = x; then
+    FC=""
   else
     case $cross_compiling:$ac_tool_warned in
 yes:)
@@ -4334,13 +4337,13 @@ yes:)
 $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
 ac_tool_warned=yes ;;
 esac
-    F77=$ac_ct_F77
+    FC=$ac_ct_FC
   fi
 fi
 
 
 # Provide some information about the compiler.
-$as_echo "$as_me:$LINENO: checking for Fortran 77 compiler version" >&5
+$as_echo "$as_me:$LINENO: checking for Fortran compiler version" >&5
 set X $ac_compile
 ac_compiler=$2
 { (ac_try="$ac_compiler --version >&5"
@@ -4382,9 +4385,9 @@ rm -f a.out
 # input file.  (Note that this only needs to work for GNU compilers.)
 ac_save_ext=$ac_ext
 ac_ext=F
-{ $as_echo "$as_me:$LINENO: checking whether we are using the GNU Fortran 77 compiler" >&5
-$as_echo_n "checking whether we are using the GNU Fortran 77 compiler... " >&6; }
-if test "${ac_cv_f77_compiler_gnu+set}" = set; then
+{ $as_echo "$as_me:$LINENO: checking whether we are using the GNU Fortran compiler" >&5
+$as_echo_n "checking whether we are using the GNU Fortran compiler... " >&6; }
+if test "${ac_cv_fc_compiler_gnu+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -4410,7 +4413,7 @@ $as_echo "$ac_try_echo") >&5
   cat conftest.err >&5
   $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_f77_werror_flag" ||
+	 test -z "$ac_fc_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_compiler_gnu=yes
@@ -4422,21 +4425,21 @@ sed 's/^/| /' conftest.$ac_ext >&5
 fi
 
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-ac_cv_f77_compiler_gnu=$ac_compiler_gnu
+ac_cv_fc_compiler_gnu=$ac_compiler_gnu
 
 fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_f77_compiler_gnu" >&5
-$as_echo "$ac_cv_f77_compiler_gnu" >&6; }
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_fc_compiler_gnu" >&5
+$as_echo "$ac_cv_fc_compiler_gnu" >&6; }
 ac_ext=$ac_save_ext
-ac_test_FFLAGS=${FFLAGS+set}
-ac_save_FFLAGS=$FFLAGS
-FFLAGS=
-{ $as_echo "$as_me:$LINENO: checking whether $F77 accepts -g" >&5
-$as_echo_n "checking whether $F77 accepts -g... " >&6; }
-if test "${ac_cv_prog_f77_g+set}" = set; then
+ac_test_FFLAGS=${FCFLAGS+set}
+ac_save_FFLAGS=$FCFLAGS
+FCFLAGS=
+{ $as_echo "$as_me:$LINENO: checking whether $FC accepts -g" >&5
+$as_echo_n "checking whether $FC accepts -g... " >&6; }
+if test "${ac_cv_prog_fc_g+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
-  FFLAGS=-g
+  FCFLAGS=-g
 cat >conftest.$ac_ext <<_ACEOF
       program main
 
@@ -4457,43 +4460,38 @@ $as_echo "$ac_try_echo") >&5
   cat conftest.err >&5
   $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_f77_werror_flag" ||
+	 test -z "$ac_fc_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
-  ac_cv_prog_f77_g=yes
+  ac_cv_prog_fc_g=yes
 else
   $as_echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	ac_cv_prog_f77_g=no
+	ac_cv_prog_fc_g=no
 fi
 
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_prog_f77_g" >&5
-$as_echo "$ac_cv_prog_f77_g" >&6; }
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_prog_fc_g" >&5
+$as_echo "$ac_cv_prog_fc_g" >&6; }
 if test "$ac_test_FFLAGS" = set; then
-  FFLAGS=$ac_save_FFLAGS
-elif test $ac_cv_prog_f77_g = yes; then
-  if test "x$ac_cv_f77_compiler_gnu" = xyes; then
-    FFLAGS="-g -O2"
+  FCFLAGS=$ac_save_FFLAGS
+elif test $ac_cv_prog_fc_g = yes; then
+  if test "x$ac_cv_fc_compiler_gnu" = xyes; then
+    FCFLAGS="-g -O2"
   else
-    FFLAGS="-g"
+    FCFLAGS="-g"
   fi
 else
-  if test "x$ac_cv_f77_compiler_gnu" = xyes; then
-    FFLAGS="-O2"
+  if test "x$ac_cv_fc_compiler_gnu" = xyes; then
+    FCFLAGS="-O2"
   else
-    FFLAGS=
+    FCFLAGS=
   fi
 fi
 
-if test $ac_compiler_gnu = yes; then
-  G77=yes
-else
-  G77=
-fi
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -4501,13 +4499,13 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 		# Check for a Fortran compiler.
 
-ac_ext=f
-ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
-ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-{ $as_echo "$as_me:$LINENO: checking how to get verbose linking output from $F77" >&5
-$as_echo_n "checking how to get verbose linking output from $F77... " >&6; }
-if test "${ac_cv_prog_f77_v+set}" = set; then
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+{ $as_echo "$as_me:$LINENO: checking how to get verbose linking output from $FC" >&5
+$as_echo_n "checking how to get verbose linking output from $FC... " >&6; }
+if test "${ac_cv_prog_fc_v+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -4530,10 +4528,10 @@ $as_echo "$ac_try_echo") >&5
   cat conftest.err >&5
   $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_f77_werror_flag" ||
+	 test -z "$ac_fc_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
-  ac_cv_prog_f77_v=
+  ac_cv_prog_fc_v=
 # Try some options frequently used verbose output
 for ac_verb in -v -verbose --verbose -V -\#\#\#; do
   cat >conftest.$ac_ext <<_ACEOF
@@ -4546,67 +4544,67 @@ _ACEOF
 # 1 to this macro) to the Fortran compiler in order to get
 # "verbose" output that we can then parse for the Fortran linker
 # flags.
-ac_save_FFLAGS=$FFLAGS
-FFLAGS="$FFLAGS $ac_verb"
+ac_save_FFLAGS=$FCFLAGS
+FCFLAGS="$FCFLAGS $ac_verb"
 eval "set x $ac_link"
 shift
 $as_echo "$as_me:$LINENO: $*" >&5
 # gfortran 4.3 outputs lines setting COLLECT_GCC_OPTIONS, COMPILER_PATH,
 # LIBRARY_PATH; skip all such settings.
-ac_f77_v_output=`eval $ac_link 5>&1 2>&1 |
+ac_fc_v_output=`eval $ac_link 5>&1 2>&1 |
   grep -v 'Driving:' | grep -v "^[_$as_cr_Letters][_$as_cr_alnum]*="`
-$as_echo "$ac_f77_v_output" >&5
-FFLAGS=$ac_save_FFLAGS
+$as_echo "$ac_fc_v_output" >&5
+FCFLAGS=$ac_save_FFLAGS
 
 rm -rf conftest*
 
 # On HP/UX there is a line like: "LPATH is: /foo:/bar:/baz" where
 # /foo, /bar, and /baz are search directories for the Fortran linker.
 # Here, we change these into -L/foo -L/bar -L/baz (and put it first):
-ac_f77_v_output="`echo $ac_f77_v_output |
+ac_fc_v_output="`echo $ac_fc_v_output |
 	grep 'LPATH is:' |
-	sed 's|.*LPATH is\(: *[^ ]*\).*|\1|;s|: */| -L/|g'` $ac_f77_v_output"
+	sed 's|.*LPATH is\(: *[^ ]*\).*|\1|;s|: */| -L/|g'` $ac_fc_v_output"
 
 # FIXME: we keep getting bitten by quoted arguments; a more general fix
 #        that detects unbalanced quotes in FLIBS should be implemented
 #        and (ugh) tested at some point.
-case $ac_f77_v_output in
+case $ac_fc_v_output in
   # If we are using xlf then replace all the commas with spaces.
   *xlfentry*)
-    ac_f77_v_output=`echo $ac_f77_v_output | sed 's/,/ /g'` ;;
+    ac_fc_v_output=`echo $ac_fc_v_output | sed 's/,/ /g'` ;;
 
   # With Intel ifc, ignore the quoted -mGLOB_options_string stuff (quoted
   # $LIBS confuse us, and the libraries appear later in the output anyway).
   *mGLOB_options_string*)
-    ac_f77_v_output=`echo $ac_f77_v_output | sed 's/"-mGLOB[^"]*"/ /g'` ;;
+    ac_fc_v_output=`echo $ac_fc_v_output | sed 's/"-mGLOB[^"]*"/ /g'` ;;
 
   # Portland Group compiler has singly- or doubly-quoted -cmdline argument
   # Singly-quoted arguments were reported for versions 5.2-4 and 6.0-4.
   # Doubly-quoted arguments were reported for "PGF90/x86 Linux/x86 5.0-2".
   *-cmdline\ * | *-ignore\ * | *-def\ *)
-    ac_f77_v_output=`echo $ac_f77_v_output | sed "\
+    ac_fc_v_output=`echo $ac_fc_v_output | sed "\
         s/-cmdline  *'[^']*'/ /g; s/-cmdline  *\"[^\"]*\"/ /g
         s/-ignore  *'[^']*'/ /g; s/-ignore  *\"[^\"]*\"/ /g
         s/-def  *'[^']*'/ /g; s/-def  *\"[^\"]*\"/ /g"` ;;
 
   # If we are using Cray Fortran then delete quotes.
   *cft90*)
-    ac_f77_v_output=`echo $ac_f77_v_output | sed 's/"//g'` ;;
+    ac_fc_v_output=`echo $ac_fc_v_output | sed 's/"//g'` ;;
 esac
 
 
   # look for -l* and *.a constructs in the output
-  for ac_arg in $ac_f77_v_output; do
+  for ac_arg in $ac_fc_v_output; do
      case $ac_arg in
         [\\/]*.a | ?:[\\/]*.a | -[lLRu]*)
-          ac_cv_prog_f77_v=$ac_verb
+          ac_cv_prog_fc_v=$ac_verb
           break 2 ;;
      esac
   done
 done
-if test -z "$ac_cv_prog_f77_v"; then
-   { $as_echo "$as_me:$LINENO: WARNING: cannot determine how to obtain linking information from $F77" >&5
-$as_echo "$as_me: WARNING: cannot determine how to obtain linking information from $F77" >&2;}
+if test -z "$ac_cv_prog_fc_v"; then
+   { $as_echo "$as_me:$LINENO: WARNING: cannot determine how to obtain linking information from $FC" >&5
+$as_echo "$as_me: WARNING: cannot determine how to obtain linking information from $FC" >&2;}
 fi
 else
   $as_echo "$as_me: failed program was:" >&5
@@ -4619,15 +4617,15 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_prog_f77_v" >&5
-$as_echo "$ac_cv_prog_f77_v" >&6; }
-{ $as_echo "$as_me:$LINENO: checking for Fortran 77 libraries of $F77" >&5
-$as_echo_n "checking for Fortran 77 libraries of $F77... " >&6; }
-if test "${ac_cv_f77_libs+set}" = set; then
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_prog_fc_v" >&5
+$as_echo "$ac_cv_prog_fc_v" >&6; }
+{ $as_echo "$as_me:$LINENO: checking for Fortran libraries of $FC" >&5
+$as_echo_n "checking for Fortran libraries of $FC... " >&6; }
+if test "${ac_cv_fc_libs+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
-  if test "x$FLIBS" != "x"; then
-  ac_cv_f77_libs="$FLIBS" # Let the user override the test.
+  if test "x$FCLIBS" != "x"; then
+  ac_cv_fc_libs="$FCLIBS" # Let the user override the test.
 else
 
 cat >conftest.$ac_ext <<_ACEOF
@@ -4640,69 +4638,69 @@ _ACEOF
 # 1 to this macro) to the Fortran compiler in order to get
 # "verbose" output that we can then parse for the Fortran linker
 # flags.
-ac_save_FFLAGS=$FFLAGS
-FFLAGS="$FFLAGS $ac_cv_prog_f77_v"
+ac_save_FFLAGS=$FCFLAGS
+FCFLAGS="$FCFLAGS $ac_cv_prog_fc_v"
 eval "set x $ac_link"
 shift
 $as_echo "$as_me:$LINENO: $*" >&5
 # gfortran 4.3 outputs lines setting COLLECT_GCC_OPTIONS, COMPILER_PATH,
 # LIBRARY_PATH; skip all such settings.
-ac_f77_v_output=`eval $ac_link 5>&1 2>&1 |
+ac_fc_v_output=`eval $ac_link 5>&1 2>&1 |
   grep -v 'Driving:' | grep -v "^[_$as_cr_Letters][_$as_cr_alnum]*="`
-$as_echo "$ac_f77_v_output" >&5
-FFLAGS=$ac_save_FFLAGS
+$as_echo "$ac_fc_v_output" >&5
+FCFLAGS=$ac_save_FFLAGS
 
 rm -rf conftest*
 
 # On HP/UX there is a line like: "LPATH is: /foo:/bar:/baz" where
 # /foo, /bar, and /baz are search directories for the Fortran linker.
 # Here, we change these into -L/foo -L/bar -L/baz (and put it first):
-ac_f77_v_output="`echo $ac_f77_v_output |
+ac_fc_v_output="`echo $ac_fc_v_output |
 	grep 'LPATH is:' |
-	sed 's|.*LPATH is\(: *[^ ]*\).*|\1|;s|: */| -L/|g'` $ac_f77_v_output"
+	sed 's|.*LPATH is\(: *[^ ]*\).*|\1|;s|: */| -L/|g'` $ac_fc_v_output"
 
 # FIXME: we keep getting bitten by quoted arguments; a more general fix
 #        that detects unbalanced quotes in FLIBS should be implemented
 #        and (ugh) tested at some point.
-case $ac_f77_v_output in
+case $ac_fc_v_output in
   # If we are using xlf then replace all the commas with spaces.
   *xlfentry*)
-    ac_f77_v_output=`echo $ac_f77_v_output | sed 's/,/ /g'` ;;
+    ac_fc_v_output=`echo $ac_fc_v_output | sed 's/,/ /g'` ;;
 
   # With Intel ifc, ignore the quoted -mGLOB_options_string stuff (quoted
   # $LIBS confuse us, and the libraries appear later in the output anyway).
   *mGLOB_options_string*)
-    ac_f77_v_output=`echo $ac_f77_v_output | sed 's/"-mGLOB[^"]*"/ /g'` ;;
+    ac_fc_v_output=`echo $ac_fc_v_output | sed 's/"-mGLOB[^"]*"/ /g'` ;;
 
   # Portland Group compiler has singly- or doubly-quoted -cmdline argument
   # Singly-quoted arguments were reported for versions 5.2-4 and 6.0-4.
   # Doubly-quoted arguments were reported for "PGF90/x86 Linux/x86 5.0-2".
   *-cmdline\ * | *-ignore\ * | *-def\ *)
-    ac_f77_v_output=`echo $ac_f77_v_output | sed "\
+    ac_fc_v_output=`echo $ac_fc_v_output | sed "\
         s/-cmdline  *'[^']*'/ /g; s/-cmdline  *\"[^\"]*\"/ /g
         s/-ignore  *'[^']*'/ /g; s/-ignore  *\"[^\"]*\"/ /g
         s/-def  *'[^']*'/ /g; s/-def  *\"[^\"]*\"/ /g"` ;;
 
   # If we are using Cray Fortran then delete quotes.
   *cft90*)
-    ac_f77_v_output=`echo $ac_f77_v_output | sed 's/"//g'` ;;
+    ac_fc_v_output=`echo $ac_fc_v_output | sed 's/"//g'` ;;
 esac
 
 
 
-ac_cv_f77_libs=
+ac_cv_fc_libs=
 
 # Save positional arguments (if any)
 ac_save_positional="$@"
 
-set X $ac_f77_v_output
+set X $ac_fc_v_output
 while test $# != 1; do
   shift
   ac_arg=$1
   case $ac_arg in
         [\\/]*.a | ?:[\\/]*.a)
             ac_exists=false
-  for ac_i in $ac_cv_f77_libs; do
+  for ac_i in $ac_cv_fc_libs; do
     if test x"$ac_arg" = x"$ac_i"; then
       ac_exists=true
       break
@@ -4712,13 +4710,13 @@ while test $# != 1; do
   if test x"$ac_exists" = xtrue; then
   :
 else
-  ac_cv_f77_libs="$ac_cv_f77_libs $ac_arg"
+  ac_cv_fc_libs="$ac_cv_fc_libs $ac_arg"
 fi
 
           ;;
         -bI:*)
             ac_exists=false
-  for ac_i in $ac_cv_f77_libs; do
+  for ac_i in $ac_cv_fc_libs; do
     if test x"$ac_arg" = x"$ac_i"; then
       ac_exists=true
       break
@@ -4730,10 +4728,10 @@ fi
 else
   if test "$ac_compiler_gnu" = yes; then
   for ac_link_opt in $ac_arg; do
-    ac_cv_f77_libs="$ac_cv_f77_libs -Xlinker $ac_link_opt"
+    ac_cv_fc_libs="$ac_cv_fc_libs -Xlinker $ac_link_opt"
   done
 else
-  ac_cv_f77_libs="$ac_cv_f77_libs $ac_arg"
+  ac_cv_fc_libs="$ac_cv_fc_libs $ac_arg"
 fi
 fi
 
@@ -4742,7 +4740,7 @@ fi
         -lang* | -lcrt*.o | -lc | -lgcc* | -lSystem | -libmil | -LANG:=* | -LIST:* | -LNO:*)
           ;;
         -lkernel32)
-          test x"$CYGWIN" != xyes && ac_cv_f77_libs="$ac_cv_f77_libs $ac_arg"
+          test x"$CYGWIN" != xyes && ac_cv_fc_libs="$ac_cv_fc_libs $ac_arg"
           ;;
         -[LRuYz])
           # These flags, when seen by themselves, take an argument.
@@ -4760,7 +4758,7 @@ fi
         -YP,*)
           for ac_j in `$as_echo "$ac_arg" | sed -e 's/-YP,/-L/;s/:/ -L/g'`; do
               ac_exists=false
-  for ac_i in $ac_cv_f77_libs; do
+  for ac_i in $ac_cv_fc_libs; do
     if test x"$ac_j" = x"$ac_i"; then
       ac_exists=true
       break
@@ -4771,14 +4769,14 @@ fi
   :
 else
   ac_arg="$ac_arg $ac_j"
-                               ac_cv_f77_libs="$ac_cv_f77_libs $ac_j"
+                               ac_cv_fc_libs="$ac_cv_fc_libs $ac_j"
 fi
 
           done
           ;;
         -[lLR]*)
             ac_exists=false
-  for ac_i in $ac_cv_f77_libs; do
+  for ac_i in $ac_cv_fc_libs; do
     if test x"$ac_arg" = x"$ac_i"; then
       ac_exists=true
       break
@@ -4788,12 +4786,12 @@ fi
   if test x"$ac_exists" = xtrue; then
   :
 else
-  ac_cv_f77_libs="$ac_cv_f77_libs $ac_arg"
+  ac_cv_fc_libs="$ac_cv_fc_libs $ac_arg"
 fi
 
           ;;
 	-zallextract*| -zdefaultextract)
-	  ac_cv_f77_libs="$ac_cv_f77_libs $ac_arg"
+	  ac_cv_fc_libs="$ac_cv_fc_libs $ac_arg"
 	  ;;
           # Ignore everything else.
   esac
@@ -4806,24 +4804,24 @@ set X $ac_save_positional; shift
 # must begin with a "/").
 case `(uname -sr) 2>/dev/null` in
    "SunOS 5"*)
-      ac_ld_run_path=`$as_echo "$ac_f77_v_output" |
+      ac_ld_run_path=`$as_echo "$ac_fc_v_output" |
                         sed -n 's,^.*LD_RUN_PATH *= *\(/[^ ]*\).*$,-R\1,p'`
       test "x$ac_ld_run_path" != x &&
         if test "$ac_compiler_gnu" = yes; then
   for ac_link_opt in $ac_ld_run_path; do
-    ac_cv_f77_libs="$ac_cv_f77_libs -Xlinker $ac_link_opt"
+    ac_cv_fc_libs="$ac_cv_fc_libs -Xlinker $ac_link_opt"
   done
 else
-  ac_cv_f77_libs="$ac_cv_f77_libs $ac_ld_run_path"
+  ac_cv_fc_libs="$ac_cv_fc_libs $ac_ld_run_path"
 fi
       ;;
 esac
 fi # test "x$[]_AC_LANG_PREFIX[]LIBS" = "x"
 
 fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_f77_libs" >&5
-$as_echo "$ac_cv_f77_libs" >&6; }
-FLIBS="$ac_cv_f77_libs"
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_fc_libs" >&5
+$as_echo "$ac_cv_fc_libs" >&6; }
+FCLIBS="$ac_cv_fc_libs"
 
 
 ac_ext=cpp
@@ -4833,19 +4831,19 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 	# Determine the linker flags for the Fortran intrinsic and runtime libraries.
 
-ac_ext=f
-ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
-ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_f77_compiler_gnu
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
-{ $as_echo "$as_me:$LINENO: checking for dummy main to link with Fortran 77 libraries" >&5
-$as_echo_n "checking for dummy main to link with Fortran 77 libraries... " >&6; }
-if test "${ac_cv_f77_dummy_main+set}" = set; then
+{ $as_echo "$as_me:$LINENO: checking for dummy main to link with Fortran libraries" >&5
+$as_echo_n "checking for dummy main to link with Fortran libraries... " >&6; }
+if test "${ac_cv_fc_dummy_main+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
-  ac_f77_dm_save_LIBS=$LIBS
- LIBS="$LIBS $FLIBS"
- ac_fortran_dm_var=F77_DUMMY_MAIN
+  ac_fc_dm_save_LIBS=$LIBS
+ LIBS="$LIBS $FCLIBS"
+ ac_fortran_dm_var=FC_DUMMY_MAIN
  ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -4860,13 +4858,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -4918,13 +4916,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define $ac_fortran_dm_var $ac_func
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -4968,23 +4966,23 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
    done
  fi
- ac_ext=f
-ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
-ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_f77_compiler_gnu
- ac_cv_f77_dummy_main=$ac_cv_fortran_dummy_main
+ ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+ ac_cv_fc_dummy_main=$ac_cv_fortran_dummy_main
  rm -rf conftest*
- LIBS=$ac_f77_dm_save_LIBS
+ LIBS=$ac_fc_dm_save_LIBS
 
 fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_f77_dummy_main" >&5
-$as_echo "$ac_cv_f77_dummy_main" >&6; }
-F77_DUMMY_MAIN=$ac_cv_f77_dummy_main
-if test "$F77_DUMMY_MAIN" != unknown; then
-  if test $F77_DUMMY_MAIN != none; then
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_fc_dummy_main" >&5
+$as_echo "$ac_cv_fc_dummy_main" >&6; }
+FC_DUMMY_MAIN=$ac_cv_fc_dummy_main
+if test "$FC_DUMMY_MAIN" != unknown; then
+  if test $FC_DUMMY_MAIN != none; then
 
 cat >>confdefs.h <<_ACEOF
-#define F77_DUMMY_MAIN $F77_DUMMY_MAIN
+#define FC_DUMMY_MAIN $FC_DUMMY_MAIN
 _ACEOF
 
   if test "x$ac_cv_fc_dummy_main" = "x$ac_cv_f77_dummy_main"; then
@@ -5012,13 +5010,13 @@ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-ac_ext=f
-ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
-ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-{ $as_echo "$as_me:$LINENO: checking for Fortran 77 name-mangling scheme" >&5
-$as_echo_n "checking for Fortran 77 name-mangling scheme... " >&6; }
-if test "${ac_cv_f77_mangling+set}" = set; then
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+{ $as_echo "$as_me:$LINENO: checking for Fortran name-mangling scheme" >&5
+$as_echo_n "checking for Fortran name-mangling scheme... " >&6; }
+if test "${ac_cv_fc_mangling+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -5044,13 +5042,13 @@ $as_echo "$ac_try_echo") >&5
   cat conftest.err >&5
   $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_f77_werror_flag" ||
+	 test -z "$ac_fc_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   mv conftest.$ac_objext cfortran_test.$ac_objext
 
   ac_save_LIBS=$LIBS
-  LIBS="cfortran_test.$ac_objext $LIBS $FLIBS"
+  LIBS="cfortran_test.$ac_objext $LIBS $FCLIBS"
 
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -5075,13 +5073,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $ac_func ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -5125,10 +5123,10 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
     done
   done
-  ac_ext=f
-ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
-ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_f77_compiler_gnu
+  ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
   if test "$ac_success" = "yes"; then
      case $ac_foobar in
@@ -5164,13 +5162,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $ac_func ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -5213,28 +5211,28 @@ rm -rf conftest.dSYM
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
      done
-     ac_ext=f
-ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
-ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_f77_compiler_gnu
+     ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
      if test "$ac_success_extra" = "yes"; then
-	ac_cv_f77_mangling="$ac_case case"
+	ac_cv_fc_mangling="$ac_case case"
         if test -z "$ac_underscore"; then
-           ac_cv_f77_mangling="$ac_cv_f77_mangling, no underscore"
+           ac_cv_fc_mangling="$ac_cv_fc_mangling, no underscore"
 	else
-           ac_cv_f77_mangling="$ac_cv_f77_mangling, underscore"
+           ac_cv_fc_mangling="$ac_cv_fc_mangling, underscore"
         fi
         if test -z "$ac_extra"; then
-           ac_cv_f77_mangling="$ac_cv_f77_mangling, no extra underscore"
+           ac_cv_fc_mangling="$ac_cv_fc_mangling, no extra underscore"
 	else
-           ac_cv_f77_mangling="$ac_cv_f77_mangling, extra underscore"
+           ac_cv_fc_mangling="$ac_cv_fc_mangling, extra underscore"
         fi
       else
-	ac_cv_f77_mangling="unknown"
+	ac_cv_fc_mangling="unknown"
       fi
   else
-     ac_cv_f77_mangling="unknown"
+     ac_cv_fc_mangling="unknown"
   fi
 
   LIBS=$ac_save_LIBS
@@ -5256,8 +5254,8 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_f77_mangling" >&5
-$as_echo "$ac_cv_f77_mangling" >&6; }
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_fc_mangling" >&5
+$as_echo "$ac_cv_fc_mangling" >&6; }
 
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -5265,83 +5263,83 @@ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-ac_ext=f
-ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
-ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_f77_compiler_gnu
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 
-case $ac_cv_f77_mangling in
+case $ac_cv_fc_mangling in
   "lower case, no underscore, no extra underscore")
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC(name,NAME) name
+#define FC_FUNC(name,NAME) name
 _ACEOF
 
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC_(name,NAME) name
+#define FC_FUNC_(name,NAME) name
 _ACEOF
  ;;
   "lower case, no underscore, extra underscore")
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC(name,NAME) name
+#define FC_FUNC(name,NAME) name
 _ACEOF
 
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC_(name,NAME) name ## _
+#define FC_FUNC_(name,NAME) name ## _
 _ACEOF
  ;;
   "lower case, underscore, no extra underscore")
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC(name,NAME) name ## _
+#define FC_FUNC(name,NAME) name ## _
 _ACEOF
 
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC_(name,NAME) name ## _
+#define FC_FUNC_(name,NAME) name ## _
 _ACEOF
  ;;
   "lower case, underscore, extra underscore")
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC(name,NAME) name ## _
+#define FC_FUNC(name,NAME) name ## _
 _ACEOF
 
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC_(name,NAME) name ## __
+#define FC_FUNC_(name,NAME) name ## __
 _ACEOF
  ;;
   "upper case, no underscore, no extra underscore")
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC(name,NAME) NAME
+#define FC_FUNC(name,NAME) NAME
 _ACEOF
 
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC_(name,NAME) NAME
+#define FC_FUNC_(name,NAME) NAME
 _ACEOF
  ;;
   "upper case, no underscore, extra underscore")
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC(name,NAME) NAME
+#define FC_FUNC(name,NAME) NAME
 _ACEOF
 
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC_(name,NAME) NAME ## _
+#define FC_FUNC_(name,NAME) NAME ## _
 _ACEOF
  ;;
   "upper case, underscore, no extra underscore")
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC(name,NAME) NAME ## _
+#define FC_FUNC(name,NAME) NAME ## _
 _ACEOF
 
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC_(name,NAME) NAME ## _
+#define FC_FUNC_(name,NAME) NAME ## _
 _ACEOF
  ;;
   "upper case, underscore, extra underscore")
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC(name,NAME) NAME ## _
+#define FC_FUNC(name,NAME) NAME ## _
 _ACEOF
 
           cat >>confdefs.h <<\_ACEOF
-#define F77_FUNC_(name,NAME) NAME ## __
+#define FC_FUNC_(name,NAME) NAME ## __
 _ACEOF
  ;;
   *)
@@ -5355,6 +5353,13 @@ ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+LIBS="$LIBS $FCLIBS"
+F77=$FC
+
+FFLAGS=$FCFLAGS
+
+FLIBS=$FCLIBS
 
 
       if test "X$prefix" = "XNONE"; then
@@ -5737,13 +5742,13 @@ char MPI_Init ();
 choke me
 #endif
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -5816,13 +5821,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char MPI_Init ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -5895,13 +5900,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char MPI_Init ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -5963,13 +5968,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #include <mpi.h>
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -6137,13 +6142,13 @@ char MPI_Init ();
 choke me
 #endif
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -6216,13 +6221,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char MPI_Init ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -6295,13 +6300,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char MPI_Init ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -6363,13 +6368,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #include <mpi.h>
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -6821,13 +6826,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 #include <string.h>
 #include <float.h>
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -7076,13 +7081,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #include <sys/types.h>
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -7433,13 +7438,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 #include <string.h>
 #include <float.h>
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -7623,13 +7628,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 namespace Outer { namespace Inner { int i = 0; }}
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -7714,13 +7719,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 #ifdef HAVE_NAMESPACES
 using namespace std;
 #endif
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -8237,16 +8242,16 @@ case $with_blas in
 esac
 
 # Get fortran linker names of BLAS functions to check for.
-ac_ext=f
-ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
-ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-case $ac_cv_f77_mangling in
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+case $ac_cv_fc_mangling in
   upper*) ac_val="SGEMM" ;;
   lower*) ac_val="sgemm" ;;
   *)      ac_val="unknown" ;;
 esac
-case $ac_cv_f77_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
+case $ac_cv_fc_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
 
 sgemm="$ac_val"
 
@@ -8256,16 +8261,16 @@ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-ac_ext=f
-ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
-ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-case $ac_cv_f77_mangling in
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+case $ac_cv_fc_mangling in
   upper*) ac_val="DGEMM" ;;
   lower*) ac_val="dgemm" ;;
   *)      ac_val="unknown" ;;
 esac
-case $ac_cv_f77_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
+case $ac_cv_fc_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
 
 dgemm="$ac_val"
 
@@ -8299,13 +8304,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -8399,13 +8404,13 @@ char $sgemm ();
 choke me
 #endif
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -8484,13 +8489,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char ATL_xerbla ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -8559,13 +8564,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -8637,13 +8642,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char cblas_dgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -8724,13 +8729,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -8803,13 +8808,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $dgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -8882,13 +8887,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -8972,13 +8977,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -9080,13 +9085,13 @@ char $sgemm ();
 choke me
 #endif
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -9166,13 +9171,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -9252,13 +9257,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -9338,13 +9343,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char acosp ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -9413,13 +9418,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -9503,13 +9508,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -9589,13 +9594,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -9675,13 +9680,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -9754,13 +9759,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -9842,13 +9847,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $sgemm ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -9939,16 +9944,16 @@ case $with_lapack in
 esac
 
 # Get fortran linker name of LAPACK function to check for.
-ac_ext=f
-ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
-ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-case $ac_cv_f77_mangling in
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+case $ac_cv_fc_mangling in
   upper*) ac_val="CHEEV" ;;
   lower*) ac_val="cheev" ;;
   *)      ac_val="unknown" ;;
 esac
-case $ac_cv_f77_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
+case $ac_cv_fc_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
 
 cheev="$ac_val"
 
@@ -9983,13 +9988,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $cheev ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -10085,13 +10090,13 @@ char $cheev ();
 choke me
 #endif
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -10173,13 +10178,13 @@ cat >>conftest.$ac_ext <<_ACEOF
 extern "C"
 #endif
 char $cheev ();
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -10252,7 +10257,7 @@ else
 
 fi
 
-LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
+LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
 
 # Check for hdf5 library and configure hdf5 options.
 echo
@@ -11102,13 +11107,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -11657,13 +11662,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -12380,13 +12385,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -12935,13 +12940,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -13490,13 +13495,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -14045,13 +14050,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -14600,13 +14605,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -15155,13 +15160,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -15710,13 +15715,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -16265,13 +16270,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -16820,13 +16825,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -17375,13 +17380,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -17930,13 +17935,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -18485,13 +18490,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -19040,13 +19045,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -19595,13 +19600,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -20150,13 +20155,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -20705,13 +20710,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -21446,13 +21451,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -22001,13 +22006,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -22556,13 +22561,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -23111,13 +23116,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -23666,13 +23671,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -24221,13 +24226,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -24776,13 +24781,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -25504,13 +25509,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -26076,13 +26081,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -26631,13 +26636,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -27186,13 +27191,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -27741,13 +27746,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -28296,13 +28301,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -28851,13 +28856,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -29406,13 +29411,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -29961,13 +29966,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -30516,13 +30521,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -31092,13 +31097,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -31647,13 +31652,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -32202,13 +32207,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -32757,13 +32762,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -33312,13 +33317,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -33867,13 +33872,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -34422,13 +34427,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -34977,13 +34982,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -35532,13 +35537,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -36278,13 +36283,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -37024,13 +37029,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#ifdef F77_DUMMY_MAIN
-
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
      extern "C"
 #  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
 #endif
 int
 main ()
@@ -38453,16 +38458,7 @@ $as_echo "$as_me: executing $ac_file commands" >&6;}
 
 
   case $ac_file$ac_mode in
-    "depfiles":C) test x"$AMDEP_TRUE" != x"" || # Autoconf 2.62 quotes --file arguments for eval, but not when files
-# are listed without --file.  Let's play safe and only enable the eval
-# if we detect the quoting.
-case $CONFIG_FILES in
-*\'*) eval set x "$CONFIG_FILES" ;;
-*)   set x $CONFIG_FILES ;;
-esac
-shift
-for mf
-do
+    "depfiles":C) test x"$AMDEP_TRUE" != x"" || for mf in $CONFIG_FILES; do
   # Strip MF so we end up with the name of the file.
   mf=`echo "$mf" | sed -e 's/:.*$//'`
   # Check whether this is an Automake generated Makefile or not.

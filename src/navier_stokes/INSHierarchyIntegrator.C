@@ -55,20 +55,20 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define NAVIER_STOKES_ADVECTIVE_DIVSOURCE_F77 F77_FUNC_(navier_stokes_advective_divsource2d, NAVIER_STOKES_ADVECTIVE_DIVSOURCE2D)
-#define NAVIER_STOKES_CONSERVATIVE_DIVSOURCE_F77 F77_FUNC_(navier_stokes_conservative_divsource2d, NAVIER_STOKES_CONSERVATIVE_DIVSOURCE2D)
+#define NAVIER_STOKES_ADVECTIVE_DIVSOURCE_FC FC_FUNC_(navier_stokes_advective_divsource2d, NAVIER_STOKES_ADVECTIVE_DIVSOURCE2D)
+#define NAVIER_STOKES_CONSERVATIVE_DIVSOURCE_FC FC_FUNC_(navier_stokes_conservative_divsource2d, NAVIER_STOKES_CONSERVATIVE_DIVSOURCE2D)
 #endif
 
 #if (NDIM == 3)
-#define NAVIER_STOKES_ADVECTIVE_DIVSOURCE_F77 F77_FUNC_(navier_stokes_advective_divsource3d, NAVIER_STOKES_ADVECTIVE_DIVSOURCE3D)
-#define NAVIER_STOKES_CONSERVATIVE_DIVSOURCE_F77 F77_FUNC_(navier_stokes_conservative_divsource3d, NAVIER_STOKES_CONSERVATIVE_DIVSOURCE3D)
+#define NAVIER_STOKES_ADVECTIVE_DIVSOURCE_FC FC_FUNC_(navier_stokes_advective_divsource3d, NAVIER_STOKES_ADVECTIVE_DIVSOURCE3D)
+#define NAVIER_STOKES_CONSERVATIVE_DIVSOURCE_FC FC_FUNC_(navier_stokes_conservative_divsource3d, NAVIER_STOKES_CONSERVATIVE_DIVSOURCE3D)
 #endif
 
 // Function interfaces
 extern "C"
 {
     void
-    NAVIER_STOKES_ADVECTIVE_DIVSOURCE_F77(
+    NAVIER_STOKES_ADVECTIVE_DIVSOURCE_FC(
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -87,7 +87,7 @@ extern "C"
         double*);
 
     void
-    NAVIER_STOKES_CONSERVATIVE_DIVSOURCE_F77(
+    NAVIER_STOKES_CONSERVATIVE_DIVSOURCE_FC(
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -3413,7 +3413,7 @@ INSHierarchyIntegrator::computeDivSourceTerm(
 
             if (d_conservation_form)
             {
-                NAVIER_STOKES_ADVECTIVE_DIVSOURCE_F77(
+                NAVIER_STOKES_ADVECTIVE_DIVSOURCE_FC(
 #if (NDIM == 2)
                     ilower(0),iupper(0),ilower(1),iupper(1),
                     u_data_gc(0),u_data_gc(1),
@@ -3433,7 +3433,7 @@ INSHierarchyIntegrator::computeDivSourceTerm(
             }
             else
             {
-                NAVIER_STOKES_CONSERVATIVE_DIVSOURCE_F77(
+                NAVIER_STOKES_CONSERVATIVE_DIVSOURCE_FC(
 #if (NDIM == 2)
                     ilower(0),iupper(0),ilower(1),iupper(1),
                     u_data_gc(0),u_data_gc(1),

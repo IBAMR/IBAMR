@@ -60,17 +60,17 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define NAVIER_STOKES_SC_STABLEDT_F77 F77_FUNC_(navier_stokes_sc_stabledt2d, NAVIER_STOKES_SC_STABLEDT2D)
+#define NAVIER_STOKES_SC_STABLEDT_FC FC_FUNC_(navier_stokes_sc_stabledt2d, NAVIER_STOKES_SC_STABLEDT2D)
 #endif
 
 #if (NDIM == 3)
-#define NAVIER_STOKES_SC_STABLEDT_F77 F77_FUNC_(navier_stokes_sc_stabledt3d, NAVIER_STOKES_SC_STABLEDT3D)
+#define NAVIER_STOKES_SC_STABLEDT_FC FC_FUNC_(navier_stokes_sc_stabledt3d, NAVIER_STOKES_SC_STABLEDT3D)
 #endif
 
 extern "C"
 {
     void
-    NAVIER_STOKES_SC_STABLEDT_F77(
+    NAVIER_STOKES_SC_STABLEDT_FC(
         const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -3198,7 +3198,7 @@ IBStaggeredHierarchyIntegrator::getPatchDt(
 
     double stable_dt = std::numeric_limits<double>::max();
 #if (NDIM == 2)
-    NAVIER_STOKES_SC_STABLEDT_F77(
+    NAVIER_STOKES_SC_STABLEDT_FC(
         dx,
         ilower(0),iupper(0),ilower(1),iupper(1),
         u_ghost_cells(0),u_ghost_cells(1),
@@ -3206,7 +3206,7 @@ IBStaggeredHierarchyIntegrator::getPatchDt(
         stable_dt);
 #endif
 #if (NDIM == 3)
-    NAVIER_STOKES_SC_STABLEDT_F77(
+    NAVIER_STOKES_SC_STABLEDT_FC(
         dx,
         ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
         u_ghost_cells(0),u_ghost_cells(1),u_ghost_cells(2),

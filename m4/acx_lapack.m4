@@ -18,15 +18,15 @@
 #
 #   in that order. BLAS_LIBS is the output variable of the ACX_BLAS macro,
 #   called automatically. FLIBS is the output variable of the
-#   AC_F77_LIBRARY_LDFLAGS macro (called if necessary by ACX_BLAS), and is
-#   sometimes necessary in order to link with F77 libraries. Users will also
-#   need to use AC_F77_DUMMY_MAIN (see the autoconf manual), for the same
+#   AC_FC_LIBRARY_LDFLAGS macro (called if necessary by ACX_BLAS), and is
+#   sometimes necessary in order to link with FC libraries. Users will also
+#   need to use AC_FC_DUMMY_MAIN (see the autoconf manual), for the same
 #   reason.
 #
 #   The user may also use --with-lapack=<lib> in order to use some specific
 #   LAPACK library <lib>. In order to link successfully, however, be aware
 #   that you will probably need to use the same Fortran compiler (which can
-#   be set via the F77 env. var.) as was used to compile the LAPACK and BLAS
+#   be set via the FC env. var.) as was used to compile the LAPACK and BLAS
 #   libraries.
 #
 #   ACTION-IF-FOUND is a list of shell commands to run if a LAPACK library
@@ -82,7 +82,7 @@ case $with_lapack in
 esac
 
 # Get fortran linker name of LAPACK function to check for.
-AC_F77_FUNC(cheev)
+AC_FC_FUNC(cheev)
 
 # We cannot use LAPACK if BLAS is not found
 if test "x$acx_blas_ok" != xyes; then

@@ -29,25 +29,25 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
-#define CONVECT_DERIVATIVE_F77 F77_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
-#define GODUNOV_PREDICT_F77 F77_FUNC_(godunov_predict2d, GODUNOV_PREDICT2D)
-#define NAVIER_STOKES_INTERP_COMPS_F77 F77_FUNC_(navier_stokes_interp_comps2d, NAVIER_STOKES_INTERP_COMPS2D)
-#define NAVIER_STOKES_RESET_ADV_VELOCITY_F77 F77_FUNC_(navier_stokes_reset_adv_velocity2d, NAVIER_STOKES_RESET_ADV_VELOCITY2D)
+#define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
+#define CONVECT_DERIVATIVE_FC FC_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
+#define GODUNOV_PREDICT_FC FC_FUNC_(godunov_predict2d, GODUNOV_PREDICT2D)
+#define NAVIER_STOKES_INTERP_COMPS_FC FC_FUNC_(navier_stokes_interp_comps2d, NAVIER_STOKES_INTERP_COMPS2D)
+#define NAVIER_STOKES_RESET_ADV_VELOCITY_FC FC_FUNC_(navier_stokes_reset_adv_velocity2d, NAVIER_STOKES_RESET_ADV_VELOCITY2D)
 #endif
 
 #if (NDIM == 3)
-#define ADVECT_DERIVATIVE_F77 F77_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
-#define CONVECT_DERIVATIVE_F77 F77_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
-#define GODUNOV_PREDICT_F77 F77_FUNC_(godunov_predict3d, GODUNOV_PREDICT3D)
-#define NAVIER_STOKES_INTERP_COMPS_F77 F77_FUNC_(navier_stokes_interp_comps3d, NAVIER_STOKES_INTERP_COMPS3D)
-#define NAVIER_STOKES_RESET_ADV_VELOCITY_F77 F77_FUNC_(navier_stokes_reset_adv_velocity3d, NAVIER_STOKES_RESET_ADV_VELOCITY3D)
+#define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
+#define CONVECT_DERIVATIVE_FC FC_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
+#define GODUNOV_PREDICT_FC FC_FUNC_(godunov_predict3d, GODUNOV_PREDICT3D)
+#define NAVIER_STOKES_INTERP_COMPS_FC FC_FUNC_(navier_stokes_interp_comps3d, NAVIER_STOKES_INTERP_COMPS3D)
+#define NAVIER_STOKES_RESET_ADV_VELOCITY_FC FC_FUNC_(navier_stokes_reset_adv_velocity3d, NAVIER_STOKES_RESET_ADV_VELOCITY3D)
 #endif
 
 extern "C"
 {
     void
-    ADVECT_DERIVATIVE_F77(
+    ADVECT_DERIVATIVE_FC(
         const double*,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -70,7 +70,7 @@ extern "C"
                           );
 
     void
-    CONVECT_DERIVATIVE_F77(
+    CONVECT_DERIVATIVE_FC(
         const double*,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -93,7 +93,7 @@ extern "C"
                            );
 
     void
-    GODUNOV_PREDICT_F77(
+    GODUNOV_PREDICT_FC(
         const double* , const double& ,
 #if (NDIM == 3)
         const unsigned int& ,
@@ -121,7 +121,7 @@ extern "C"
                                     );
 
     void
-    NAVIER_STOKES_INTERP_COMPS_F77(
+    NAVIER_STOKES_INTERP_COMPS_FC(
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -150,7 +150,7 @@ extern "C"
                                    );
 
     void
-    NAVIER_STOKES_RESET_ADV_VELOCITY_F77(
+    NAVIER_STOKES_RESET_ADV_VELOCITY_FC(
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -307,7 +307,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                 U_half_data[axis] = new SAMRAI::pdat::FaceData<NDIM,double>(side_boxes[axis],1,ghosts);
             }
 #if (NDIM == 2)
-            NAVIER_STOKES_INTERP_COMPS_F77(
+            NAVIER_STOKES_INTERP_COMPS_FC(
                 patch_lower(0), patch_upper(0),
                 patch_lower(1), patch_upper(1),
                 U_data->getGhostCellWidth()(0),         U_data->getGhostCellWidth()(1),
@@ -322,7 +322,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                 U_adv_data[1]->getPointer(0),           U_adv_data[1]->getPointer(1));
 #endif
 #if (NDIM == 3)
-            NAVIER_STOKES_INTERP_COMPS_F77(
+            NAVIER_STOKES_INTERP_COMPS_FC(
                 patch_lower(0), patch_upper(0),
                 patch_lower(1), patch_upper(1),
                 patch_lower(2), patch_upper(2),
@@ -361,7 +361,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > U_half_scratch_data =
                     new SAMRAI::pdat::FaceData<NDIM,double>( U_half_data[axis]->getBox(), U_half_data[axis]->getDepth(), U_half_data[axis]->getGhostCellWidth());
 #if (NDIM == 2)
-                GODUNOV_PREDICT_F77(
+                GODUNOV_PREDICT_FC(
                     dx, dt,
                     side_boxes[axis].lower(0), side_boxes[axis].upper(0),
                     side_boxes[axis].lower(1), side_boxes[axis].upper(1),
@@ -376,7 +376,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
 #endif
 #if (NDIM == 3)
                 bool using_full_ctu = true;
-                GODUNOV_PREDICT_F77(
+                GODUNOV_PREDICT_FC(
                     dx, dt,
                     static_cast<unsigned int>(using_full_ctu),
                     side_boxes[axis].lower(0), side_boxes[axis].upper(0),
@@ -393,7 +393,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
 #endif
             }
 #if (NDIM == 2)
-            NAVIER_STOKES_RESET_ADV_VELOCITY_F77(
+            NAVIER_STOKES_RESET_ADV_VELOCITY_FC(
                 side_boxes[0].lower(0), side_boxes[0].upper(0),
                 side_boxes[0].lower(1), side_boxes[0].upper(1),
                 U_adv_data [0]->getGhostCellWidth()(0), U_adv_data [0]->getGhostCellWidth()(1),
@@ -408,7 +408,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                 U_half_data[1]->getPointer(0),          U_half_data[1]->getPointer(1));
 #endif
 #if (NDIM == 3)
-            NAVIER_STOKES_RESET_ADV_VELOCITY_F77(
+            NAVIER_STOKES_RESET_ADV_VELOCITY_FC(
                 side_boxes[0].lower(0), side_boxes[0].upper(0),
                 side_boxes[0].lower(1), side_boxes[0].upper(1),
                 side_boxes[0].lower(2), side_boxes[0].upper(2),
@@ -436,7 +436,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                 if (d_conservation_form)
                 {
 #if (NDIM == 2)
-                    CONVECT_DERIVATIVE_F77(
+                    CONVECT_DERIVATIVE_FC(
                         dx,
                         side_boxes[axis].lower(0), side_boxes[axis].upper(0),
                         side_boxes[axis].lower(1), side_boxes[axis].upper(1),
@@ -448,7 +448,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                         N_data->getPointer(axis));
 #endif
 #if (NDIM == 3)
-                    CONVECT_DERIVATIVE_F77(
+                    CONVECT_DERIVATIVE_FC(
                         dx,
                         side_boxes[axis].lower(0), side_boxes[axis].upper(0),
                         side_boxes[axis].lower(1), side_boxes[axis].upper(1),
@@ -464,7 +464,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                 else
                 {
 #if (NDIM == 2)
-                    ADVECT_DERIVATIVE_F77(
+                    ADVECT_DERIVATIVE_FC(
                         dx,
                         side_boxes[axis].lower(0), side_boxes[axis].upper(0),
                         side_boxes[axis].lower(1), side_boxes[axis].upper(1),
@@ -476,7 +476,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                         N_data->getPointer(axis));
 #endif
 #if (NDIM == 3)
-                    ADVECT_DERIVATIVE_F77(
+                    ADVECT_DERIVATIVE_FC(
                         dx,
                         side_boxes[axis].lower(0), side_boxes[axis].upper(0),
                         side_boxes[axis].lower(1), side_boxes[axis].upper(1),
