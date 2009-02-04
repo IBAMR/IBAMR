@@ -144,8 +144,6 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b)
 {
-    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem() start\n";
-
     // Initialize the solver (if necessary).
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeSolverState(x,b);
@@ -239,8 +237,6 @@ INSStaggeredProjectionPreconditioner::solveSystem(
 
     // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
-
-    SAMRAI::tbox::pout << "INSStaggeredProjectionPreconditioner::solveSystem() end\n";
     return true;
 }// solveSystem
 
