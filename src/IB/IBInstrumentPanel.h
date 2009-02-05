@@ -2,7 +2,7 @@
 #define included_IBInstrumentPanel
 
 // Filename: IBInstrumentPanel.h
-// Last modified: <06.Jun.2008 13:22:04 griffith@box230.cims.nyu.edu>
+// Last modified: <04.Feb.2009 20:22:09 griffith@griffith-macbook-pro.local>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -11,7 +11,6 @@
 #include <ibtk/LDataManager.h>
 
 // SAMRAI INCLUDES
-#include <CellVariable.h>
 #include <Index.h>
 #include <PatchHierarchy.h>
 #include <tbox/DescribedClass.h>
