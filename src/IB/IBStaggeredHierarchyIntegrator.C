@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <22.Jan.2009 18:06:13 beg208@cardiac.es.its.nyu.edu>
+// Last modified: <04.Feb.2009 23:04:53 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -1933,8 +1933,6 @@ IBStaggeredHierarchyIntegrator::updateIBInstrumentationData(
     const int timestep_num,
     const double data_time)
 {
-    return;  // XXXX
-
     if (!d_instrument_panel->isInstrumented()) return;
 
     const int coarsest_ln = 0;
