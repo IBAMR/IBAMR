@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <29.Jan.2009 14:38:06 beg208@cardiac.es.its.nyu.edu>
+// Last modified: <16.Apr.2009 17:42:10 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -699,7 +699,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the Stokes operator.
     d_stokes_op = new INSStaggeredStokesOperator(
         *d_problem_coefs,
-        d_U_bc_coefs, d_P_bc_coef,
+        d_U_bc_coefs, d_U_bc_helper, d_P_bc_coef,
         d_hier_math_ops);
 
     // Setup the convective operator.
@@ -1442,16 +1442,10 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     }
 
     // Solve for u(n+1), p(n+1/2).
-    d_U_bc_helper->zeroValuesAtDirichletBoundaries(d_sol_vec->getComponentDescriptorIndex(0));
-    d_U_bc_helper->zeroValuesAtDirichletBoundaries(d_rhs_vec->getComponentDescriptorIndex(0));
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
     static int stokes_its = 0;
     stokes_its += d_stokes_solver->getNumIterations();
     SAMRAI::tbox::pout << "total stokes its = " << stokes_its << "\n";
-
-    // Reset physical boundary conditions.
-    TBOX_ASSERT(d_sol_vec->getComponentDescriptorIndex(0) == d_U_scratch_idx);
-    d_U_bdry_bc_fill_op->fillData(new_time);
 
     // Pull out solution components.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_sol_vec->getComponentDescriptorIndex(0));

@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <26.Jan.2009 13:24:35 beg208@cardiac.es.its.nyu.edu>
+// Last modified: <16.Apr.2009 16:19:46 griffith@boyce-griffiths-mac-pro.local>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -35,7 +35,7 @@ namespace
 static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
+static const std::string BDRY_EXTRAP_TYPE = "NONE";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
@@ -47,6 +47,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 INSStaggeredStokesOperator::INSStaggeredStokesOperator(
     const INSCoefs& problem_coefs,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
     : d_is_initialized(false),
@@ -59,6 +60,7 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
       d_homogeneous_bc(false),
       d_correcting_rhs(false),
       d_U_bc_coefs(U_bc_coefs),
+      d_U_bc_helper(U_bc_helper),
       d_P_bc_coef(P_bc_coef),
       d_U_P_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
       d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
@@ -141,8 +143,8 @@ INSStaggeredStokesOperator::apply(
     if (!d_is_initialized) initializeOperatorState(x,y);
 
     // Get the vector components.
-    const int U_in_idx       =            x.getComponentDescriptorIndex(0);
-    const int P_in_idx       =            x.getComponentDescriptorIndex(1);
+//  const int U_in_idx       =            x.getComponentDescriptorIndex(0);
+//  const int P_in_idx       =            x.getComponentDescriptorIndex(1);
     const int U_out_idx      =            y.getComponentDescriptorIndex(0);
     const int P_out_idx      =            y.getComponentDescriptorIndex(1);
     const int U_scratch_idx  = d_x_scratch->getComponentDescriptorIndex(0);
@@ -183,6 +185,8 @@ INSStaggeredStokesOperator::apply(
         U_out_idx, U_out_sc_var,
         cf_bdry_synch,
         1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time);
+    d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
+
     cf_bdry_synch = false;
     d_hier_math_ops->div(
         P_out_idx, P_out_cc_var,
@@ -191,8 +195,7 @@ INSStaggeredStokesOperator::apply(
     d_hier_math_ops->laplace(
         U_out_idx, U_out_sc_var,
         d_helmholtz_spec,
-        U_scratch_idx, U_scratch_sc_var,
-        d_no_fill_op, d_new_time,
+        U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
         1.0,
         U_out_idx, U_out_sc_var);
 
