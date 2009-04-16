@@ -29,6 +29,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibtk/muParserRobinBcCoefs.h>
 
 using namespace IBAMR;
 using namespace IBTK;
@@ -253,37 +254,6 @@ main(
         }
 
         /*
-         * Create boundary condition specification objects.
-         */
-        solv::LocationIndexRobinBcCoefs<NDIM> u0_bc_coef(
-            "u0_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        for (int i = 0; i < 2*NDIM; ++i)
-        {
-            u0_bc_coef.setBoundaryValue(i,(i == 3) ? 1.0 : 0.0);
-        }
-
-        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
-            "u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        for (int i = 0; i < 2*NDIM; ++i)
-        {
-            u1_bc_coef.setBoundaryValue(i, 0.0);
-        }
-#if (NDIM > 2)
-        solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef(
-            "u2_bc_coef", tbox::Pointer<tbox::Database>(NULL));
-        for (int i = 0; i < 2*NDIM; ++i)
-        {
-            u2_bc_coef.setBoundaryValue(i,0.0);
-        }
-#endif
-
-        vector<solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
-        U_bc_coefs[0] = &u0_bc_coef;
-        U_bc_coefs[1] = &u1_bc_coef;
-#if (NDIM > 2)
-        U_bc_coefs[2] = &u2_bc_coef;
-#endif
-        /*
          * Create major algorithm and data objects which comprise the
          * application.  Each object will be initialized either from input data
          * or restart files, or a combination of both.  Refer to each class
@@ -305,7 +275,6 @@ main(
                 "INSStaggeredHierarchyIntegrator",
                 input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
                 patch_hierarchy);
-        time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -328,6 +297,35 @@ main(
                 error_detector, box_generator, load_balancer);
 
         /*
+         * Create boundary condition specification objects.
+         */
+        muParserRobinBcCoefs u0_bc_coef(
+            "u0_bc_coef", input_db->getDatabase("VelocityBcCoefs_0"), grid_geometry);
+
+        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
+            "u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        for (int i = 0; i < 2*NDIM; ++i)
+        {
+            u1_bc_coef.setBoundaryValue(i, 0.0);
+        }
+#if (NDIM > 2)
+        solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef(
+            "u2_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        for (int i = 0; i < 2*NDIM; ++i)
+        {
+            u2_bc_coef.setBoundaryValue(i,0.0);
+        }
+#endif
+
+        vector<solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
+        U_bc_coefs[0] = &u0_bc_coef;
+        U_bc_coefs[1] = &u1_bc_coef;
+#if (NDIM > 2)
+        U_bc_coefs[2] = &u2_bc_coef;
+#endif
+        time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
+
+        /*
          * Set up visualization plot file writer.
          */
         tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
@@ -344,7 +342,7 @@ main(
          * Setup a variable for computing and storing the streamfunction.
          */
         hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-#if 0
+#if 1
         tbox::Pointer<hier::VariableContext> main_context = var_db->getContext("main::CONTEXT");
         tbox::Pointer<pdat::NodeVariable<NDIM,double> > psi_var = new pdat::NodeVariable<NDIM,double>("psi");
         const int psi_idx = var_db->registerVariableAndContext(psi_var, main_context, 0);
@@ -359,7 +357,7 @@ main(
          */
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
-#if 0
+#if 1
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -451,7 +449,7 @@ main(
 
             if (viz_dump_data && iteration_num%viz_dump_interval == 0)
             {
-#if 0
+#if 1
                 /*
                  * Compute the stream-function.
                  */

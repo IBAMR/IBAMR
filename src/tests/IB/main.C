@@ -38,7 +38,9 @@
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSHierarchyIntegrator.h>
+#include <ibtk/LEInteractor.h>
 #include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/PETScVecOps.h>
 
 using namespace IBAMR;
 using namespace IBTK;
@@ -392,6 +394,14 @@ main(
                 "GriddingAlgorithm",
                 input_db->getDatabase("GriddingAlgorithm"),
                 error_detector, box_generator, load_balancer);
+
+        /*
+         * Setup parallel summation options.
+         */
+        LEInteractor::setFromDatabase(input_db->getDatabase("LEInteractor"));
+        LEInteractor::printClassData(tbox::pout);
+        PETScVecOps::setFromDatabase(input_db->getDatabase("PETScVecOps"));
+        PETScVecOps::printClassData(tbox::pout);
 
         /*
          * Set up visualization plot file writer.
