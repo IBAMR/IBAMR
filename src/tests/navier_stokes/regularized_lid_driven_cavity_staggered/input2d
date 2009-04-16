@@ -1,5 +1,5 @@
 // physical parameters
-Re = 1000.0
+Re = 100.0
 MU = 1/Re
 RHO = 1.0
 
@@ -7,7 +7,7 @@ RHO = 1.0
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 VelocityBcCoefs_0 {
