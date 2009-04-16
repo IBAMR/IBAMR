@@ -2,6 +2,9 @@
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
+// C++ standard library includes
+#include <limits>
+
 // Headers for basic PETSc functions
 #include <petsc.h>
 
@@ -299,24 +302,20 @@ main(
         /*
          * Create boundary condition specification objects.
          */
-        muParserRobinBcCoefs u0_bc_coef(
-            "u0_bc_coef", input_db->getDatabase("VelocityBcCoefs_0"), grid_geometry);
+        muParserRobinBcCoefs u0_bc_coef("u0_bc_coef", input_db->getDatabase("VelocityBcCoefs_0"), grid_geometry);
 
-        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
-            "u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef("u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
         for (int i = 0; i < 2*NDIM; ++i)
         {
             u1_bc_coef.setBoundaryValue(i, 0.0);
         }
 #if (NDIM > 2)
-        solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef(
-            "u2_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef("u2_bc_coef", tbox::Pointer<tbox::Database>(NULL));
         for (int i = 0; i < 2*NDIM; ++i)
         {
             u2_bc_coef.setBoundaryValue(i,0.0);
         }
 #endif
-
         vector<solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
         U_bc_coefs[0] = &u0_bc_coef;
         U_bc_coefs[1] = &u1_bc_coef;
@@ -547,9 +546,9 @@ main(
         const tbox::Pointer<hier::VariableContext> u_ctx = time_integrator->getCurrentContext();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
 
-        const tbox::Pointer<pdat::CellVariable<NDIM,double> > p_var = time_integrator->getPressureVar();                                                                                                                  
-        const tbox::Pointer<hier::VariableContext> p_ctx = time_integrator->getCurrentContext();                                                                                                                          
-        const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);                                                                                                                                             
+        const tbox::Pointer<pdat::CellVariable<NDIM,double> > p_var = time_integrator->getPressureVar();
+        const tbox::Pointer<hier::VariableContext> p_ctx = time_integrator->getCurrentContext();
+        const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
 
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
