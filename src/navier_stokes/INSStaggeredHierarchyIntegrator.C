@@ -1443,9 +1443,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
-    static int stokes_its = 0;
-    stokes_its += d_stokes_solver->getNumIterations();
-    SAMRAI::tbox::pout << "total stokes its = " << stokes_its << "\n";
 
     // Pull out solution components.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_sol_vec->getComponentDescriptorIndex(0));

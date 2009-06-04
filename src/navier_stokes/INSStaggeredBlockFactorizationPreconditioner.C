@@ -19,8 +19,6 @@
 // C++ STDLIB INCLUDES
 #include <limits>
 
-#include "ibtk/KrylovLinearSolver.h" // XXXX
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -204,10 +202,6 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     //
     // P_out := -((rho/dt)*I-0.5*mu*L) * (-L)^{-1} * P_in
     d_pressure_poisson_solver->solveSystem(*P_scratch_vec,*P_in_vec);
-    static int poisson_its = 0;
-    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> poisson_krylov_solver = d_pressure_poisson_solver;
-    poisson_its += poisson_krylov_solver->getPreconditioner()->getNumIterations();
-    SAMRAI::tbox::pout << "total poisson its = " << poisson_its << "\n";
     d_hier_math_ops->laplace(
         P_out_idx, P_out_cc_var,   // dst
         d_pressure_helmholtz_spec, // Poisson spec
@@ -239,10 +233,6 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     // U_out := (rho/dt)*I-0.5*mu*L)^{-1} * [U_in + Grad * ((rho/dt)*I-0.5*mu*L) * (-L)^{-1} * P_in]
     //        = (rho/dt)*I-0.5*mu*L)^{-1} * [U_in - Grad * P_out]
     d_velocity_helmholtz_solver->solveSystem(*U_out_vec,*U_scratch_vec);
-    static int helmholtz_its = 0;
-    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> helmholtz_krylov_solver = d_velocity_helmholtz_solver;
-    helmholtz_its += helmholtz_krylov_solver->getPreconditioner()->getNumIterations();
-    SAMRAI::tbox::pout << "total helmholtz its = " << helmholtz_its << "\n";
 
     // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
