@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <16.Apr.2009 16:19:46 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <04.Jun.2009 14:13:05 griffith@boyce-griffiths-mac-pro.local>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -35,7 +35,7 @@ namespace
 static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "NONE";
+static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.

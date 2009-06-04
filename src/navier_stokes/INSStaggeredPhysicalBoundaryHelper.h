@@ -2,7 +2,7 @@
 #define included_INSStaggeredPhysicalBoundaryHelper
 
 // Filename: INSStaggeredPhysicalBoundaryHelper.h
-// Last modified: <24.Nov.2008 16:15:05 griffith@box230.cims.nyu.edu>
+// Last modified: <04.Jun.2009 15:53:45 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -42,13 +42,28 @@ public:
 
     /*!
      * \brief Set values located on the physical boundary to zero on the
-     * specified range of levels in the patch hierarchy.
+     * specified range of levels in the patch hierarchy using the cached
+     * boundary data.
      *
      * \note By default, boundary conditions are cached over the complete range
      * of levels of the patch hierarchy.
      */
     void
     zeroValuesAtDirichletBoundaries(
+        const int patch_data_idx,
+        const int coarsest_level_number=-1,
+        const int finest_ln=-1) const;
+
+    /*!
+     * \brief Reset boundary values located on the physical boundary to zero on
+     * the specified range of levels in the patch hierarchy using the cached
+     * boundary data.
+     *
+     * \note By default, boundary conditions are cached over the complete range
+     * of levels of the patch hierarchy.
+     */
+    void
+    resetValuesAtDirichletBoundaries(
         const int patch_data_idx,
         const int coarsest_level_number=-1,
         const int finest_ln=-1) const;
@@ -98,7 +113,8 @@ private:
      * Cached hierarchy-related information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool> > > > > d_dirichlet_bdry;
+    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool> > > > > d_dirichlet_bdry_locs;
+    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > > > > d_dirichlet_bdry_vals;
 };
 }// namespace IBAMR
 

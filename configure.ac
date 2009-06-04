@@ -440,7 +440,7 @@ fi
 
 AC_ARG_WITH([blitz],
   AS_HELP_STRING(--with-blitz=PATH,location of optional Blitz++ installation @<:@default=/usr/local/sfw/blitz/current@:>@),
-  [if test "$BLITZ_ENABLED" = no ; then
+  [if test "$BLITZ_ENABLED" == "no" ; then
      AC_MSG_WARN([--with-blitz is specified, but support for Blitz++ is DISABLED])
      BLITZ_DIR=NONE
    else
@@ -484,7 +484,7 @@ fi
 
 AC_ARG_WITH([silo],
   AS_HELP_STRING(--with-silo=PATH,location of optional Silo installation @<:@default=/usr/local/sfw/silo/current@:>@),
-  [if test "$SILO_ENABLED" = no ; then
+  [if test "$SILO_ENABLED" == "no" ; then
      AC_MSG_WARN([--with-silo is specified, but support for Silo is DISABLED])
      SILO_DIR=NONE
    else
@@ -510,7 +510,11 @@ if test "$SILO_ENABLED" == "yes"; then
 
   AC_CHECK_HEADER([silo.h],,AC_MSG_WARN([could not find header file silo.h]))
   AC_LIB_HAVE_LINKFLAGS([silo])
-  LIBS="$LIBSILO $LIBS"
+  if test "$HAVE_LIBSILO" == "no" ; then
+    AC_MSG_WARN([could not find libsilo; checking for libsiloh5])
+    AC_LIB_HAVE_LINKFLAGS([siloh5])
+    LIBS="$LIBSILOH5 $LIBS"
+  fi
 else
   echo
   echo "================================="

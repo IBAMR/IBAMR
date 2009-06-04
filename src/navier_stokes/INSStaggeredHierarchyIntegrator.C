@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <16.Apr.2009 17:42:10 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <04.Jun.2009 16:16:48 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1433,7 +1433,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_convective_op->applyConvectiveOperator(U_half_idx, N_idx);
     d_U_bc_helper->zeroValuesAtDirichletBoundaries(N_idx);
 
-    // Setup the righ-hand side vector.
+    // Setup the right-hand side vector.
     d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
     if (!d_F_set.isNull())
     {
@@ -1443,6 +1443,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
+
+    // Enforce Dirichlet boundary conditions.
+    d_U_bc_helper->resetValuesAtDirichletBoundaries(d_sol_vec->getComponentDescriptorIndex(0));
 
     // Pull out solution components.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_sol_vec->getComponentDescriptorIndex(0));
@@ -2450,13 +2453,11 @@ INSStaggeredHierarchyIntegrator::registerVariable(
                        << "  unsupported variable type." << std::endl);
         }
 
-        regrid_current_idx = var_db->registerVariableAndContext(
-            regrid_variable, getCurrentContext(), no_ghosts);
+        regrid_current_idx = var_db->registerVariableAndContext(regrid_variable, getCurrentContext(), no_ghosts);
         d_regrid_data.setFlag(regrid_current_idx);
         d_regrid_current_idx_map[current_idx] = regrid_current_idx;
 
-        regrid_scratch_idx = var_db->registerVariableAndContext(
-            regrid_variable, getScratchContext(), scratch_ghosts);
+        regrid_scratch_idx = var_db->registerVariableAndContext(regrid_variable, getScratchContext(), scratch_ghosts);
         d_regrid_data.setFlag(regrid_scratch_idx);
         d_regrid_scratch_idx_map[scratch_idx] = regrid_scratch_idx;
    }
@@ -2547,7 +2548,8 @@ INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
     // fluid sources or sinks (i.e., div u = 0 holds throughout the
     // computational domain).  This convergence test will require some minor
     // modifications to support internal fluid sources and sinks.
-    if (int(*reason) > 0)
+    const double& div_u_abstol = hier_integrator->d_div_u_abstol;
+    if (int(*reason) > 0 && div_u_abstol > 0.0)
     {
         SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops = hier_integrator->d_hier_cc_data_ops;
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops = hier_integrator->d_hier_math_ops;
@@ -2565,6 +2567,8 @@ INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_var = sol_vec->getComponentVariable(0);
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_sc_var = U_var;
 
+        // XXXX: Doesn't satisfy Dirichlet conditions --- divergence will be WRONG!!!
+
         static const bool U_cf_bdry_synch = true;
         hier_math_ops->div(
             Div_U_idx, Div_U_cc_var, // dst
@@ -2574,8 +2578,6 @@ INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
             integrator_time,         // src_bdry_fill_time
             U_cf_bdry_synch);        // src_cf_bdry_synch
         const double Div_U_oo = hier_cc_data_ops->maxNorm(Div_U_idx, wgt_cc_idx);
-
-        const double& div_u_abstol = hier_integrator->d_div_u_abstol;
         if (Div_U_oo > div_u_abstol)
         {
             PetscInfo3(ksp,"Linear solver has converged according to KSPDefaultConverged, but solution does not yet satisfy the absolute convergence tolerance on div U. Divergence max-norm %G is greater than the absolute tolerance %G at iteration %D\n", Div_U_oo, div_u_abstol, n);
