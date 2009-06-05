@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <04.Jun.2009 15:20:08 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <04.Jun.2009 20:57:49 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -797,7 +797,6 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 
         // Spread F(n+1/2) to f(n+1/2).
         spread(d_F_idx, F_half_data, true, X_half_data, true, coarsest_ln, finest_ln);
-        d_hier_sc_data_ops->setToScalar(d_F_idx,0.0); // XXXX
 
         // Solve the incompressible Navier-Stokes equations.
         d_ins_hier_integrator->integrateHierarchy(current_time, new_time);

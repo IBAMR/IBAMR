@@ -37,6 +37,8 @@
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/LEInteractor.h>
+#include <ibtk/PETScVecOps.h>
 #include <ibtk/muParserDataSetter.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -384,6 +386,14 @@ main(
             }
             time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
         }
+
+        /*
+         * Setup parallel summation options.
+         */
+        LEInteractor::setFromDatabase(input_db->getDatabase("LEInteractor"));
+        LEInteractor::printClassData(tbox::pout);
+        PETScVecOps::setFromDatabase(input_db->getDatabase("PETScVecOps"));
+        PETScVecOps::printClassData(tbox::pout);
 
         /*
          * Set up visualization plot file writer.

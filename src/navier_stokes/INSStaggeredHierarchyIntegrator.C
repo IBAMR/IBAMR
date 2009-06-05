@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <04.Jun.2009 16:16:48 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <04.Jun.2009 22:26:22 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -630,7 +630,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         {
             d_visit_writer->registerPlotQuantity(
                 d_U_var->getName(), "VECTOR", d_U_cc_current_idx, 0, d_U_scale);
-
             for (int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
@@ -650,7 +649,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         {
             d_visit_writer->registerPlotQuantity(
                 d_F_var->getName(), "VECTOR", d_F_cc_current_idx, 0, d_F_scale);
-
             for (int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
@@ -1456,6 +1454,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     if (!d_F_set.isNull())
     {
         d_hier_sc_data_ops->subtract(d_rhs_vec->getComponentDescriptorIndex(0), d_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
+        d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
     }
 
     t_integrate_hierarchy->start();
@@ -2432,7 +2431,8 @@ INSStaggeredHierarchyIntegrator::registerVariable(
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > regrid_variable = NULL;
     int regrid_current_idx = -1;
     int regrid_scratch_idx = -1;
-    if (!data_lives_on_patch_border || !fine_boundary_represents_var)
+    const SAMRAI::hier::IntVector<NDIM> regrid_scratch_ghosts = 2;
+    if ((!data_lives_on_patch_border || !fine_boundary_represents_var) && scratch_ghosts >= regrid_scratch_ghosts)
     {
         regrid_variable = variable;
         regrid_current_idx = current_idx;
@@ -2440,8 +2440,27 @@ INSStaggeredHierarchyIntegrator::registerVariable(
     }
     else
     {
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cc_var = variable;
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > fc_var = variable;
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > nc_var = variable;
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > sc_var = variable;
-        if (!sc_var.isNull())
+        if (!cc_var.isNull())
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > cc_pd_factory = cc_var->getPatchDataFactory();
+            regrid_variable = new SAMRAI::pdat::CellVariable<NDIM,double>(cc_var->getName() + "::REGRID", cc_pd_factory->getDefaultDepth());
+        }
+        else if (!fc_var.isNull())
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataFactory<NDIM,double> > sc_pd_factory = sc_var->getPatchDataFactory();
+            static const bool fine_bdry_represents_var = false;
+            regrid_variable = new SAMRAI::pdat::FaceVariable<NDIM,double>(sc_var->getName() + "::REGRID", sc_pd_factory->getDefaultDepth(), fine_bdry_represents_var);
+        }
+        else if (!nc_var.isNull())
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeDataFactory<NDIM,double> > nc_pd_factory = nc_var->getPatchDataFactory();
+            regrid_variable = new SAMRAI::pdat::NodeVariable<NDIM,double>(nc_var->getName() + "::REGRID", nc_pd_factory->getDefaultDepth());
+        }
+        else if (!sc_var.isNull())
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataFactory<NDIM,double> > sc_pd_factory = sc_var->getPatchDataFactory();
             static const bool fine_bdry_represents_var = false;
@@ -2457,7 +2476,7 @@ INSStaggeredHierarchyIntegrator::registerVariable(
         d_regrid_data.setFlag(regrid_current_idx);
         d_regrid_current_idx_map[current_idx] = regrid_current_idx;
 
-        regrid_scratch_idx = var_db->registerVariableAndContext(regrid_variable, getScratchContext(), scratch_ghosts);
+        regrid_scratch_idx = var_db->registerVariableAndContext(regrid_variable, getScratchContext(), regrid_scratch_ghosts);
         d_regrid_data.setFlag(regrid_scratch_idx);
         d_regrid_scratch_idx_map[scratch_idx] = regrid_scratch_idx;
    }
@@ -2563,11 +2582,15 @@ INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
         Vec petsc_sol_vec;
         ierr = KSPBuildSolution(ksp, PETSC_NULL, &petsc_sol_vec);  IBTK_CHKERRQ(ierr);
         SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_sol_vec);
-        const int U_idx = sol_vec->getComponentDescriptorIndex(0);
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_var = sol_vec->getComponentVariable(0);
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec_clone = sol_vec->cloneVector("");
+        sol_vec_clone->allocateVectorData(integrator_time);
+        sol_vec_clone->copyVector(sol_vec);
+
+        const int U_idx = sol_vec_clone->getComponentDescriptorIndex(0);
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_var = sol_vec_clone->getComponentVariable(0);
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_sc_var = U_var;
 
-        // XXXX: Doesn't satisfy Dirichlet conditions --- divergence will be WRONG!!!
+        hier_integrator->d_U_bc_helper->resetValuesAtDirichletBoundaries(U_idx);
 
         static const bool U_cf_bdry_synch = true;
         hier_math_ops->div(
@@ -2577,6 +2600,10 @@ INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
             no_fill_op,              // src_bdry_fill
             integrator_time,         // src_bdry_fill_time
             U_cf_bdry_synch);        // src_cf_bdry_synch
+
+        sol_vec_clone->freeVectorComponents();
+        sol_vec_clone->deallocateVectorData();
+
         const double Div_U_oo = hier_cc_data_ops->maxNorm(Div_U_idx, wgt_cc_idx);
         if (Div_U_oo > div_u_abstol)
         {

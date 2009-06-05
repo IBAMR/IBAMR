@@ -8,10 +8,10 @@ MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
+MAX_LEVELS = 4   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 32                                    // coarsest grid spacing
+N = 32                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 16.0                                  // width of computational domain
 
@@ -37,7 +37,7 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "1.0" // "(tanh((t-t_half)/tau)+tanh(t_half/tau))/(1+tanh(t_half/tau))"
+   gcoef_function_0 = "(tanh((t-t_half)/tau)+tanh(t_half/tau))/(1+tanh(t_half/tau))"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -77,6 +77,17 @@ IBStaggeredHierarchyIntegrator {
    enable_logging = TRUE
 }
 
+LEInteractor {
+   debug_sort_mode = "NO_SORT"
+   precision_mode  = "EXTENDED_PRECISION"
+}
+
+PETScVecOps {
+   sort_mode      = "SORT_DECREASING_MAGNITUDE"
+   precision_mode = "DOUBLE_DOUBLE_PRECISION"
+   summation_mode = "COMPENSATED_SUMMATION"
+}
+
 C_IB_4 = 3.0/8.0                         // corresponds to IB_4 delta function
 C_IB_6 = 67.0/128.0                      // corresponds to IB_6 delta function
 C = C_IB_4
@@ -89,7 +100,7 @@ E_s = 2.0*sqrt(K_s*M_s)                  // damping constant for critically damp
 IBStandardInitializer {
    max_levels = MAX_LEVELS
 
-   base_filenames_0 = "cylinder2d_256"
+   base_filenames_3 = "cylinder2d_256"
    cylinder2d_256 {
       uniform_target_stiffness = K_s
       uniform_target_damping = E_s
@@ -191,8 +202,8 @@ INSStaggeredHierarchyIntegrator {
          rap_type              = 0
          relax_type            = 2
          skip_relax            = 1
-         num_pre_relax_steps   = 1
-         num_post_relax_steps  = 1
+         num_pre_relax_steps   = 3
+         num_post_relax_steps  = 3
          relative_residual_tol = 1.0e-12
          max_iterations        = 1
          enable_logging        = FALSE
@@ -207,7 +218,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 1 // NFINEST/2   // zero to turn off
+   viz_dump_interval     = NFINEST/2   // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 

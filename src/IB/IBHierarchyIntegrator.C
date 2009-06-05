@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <26.Nov.2008 19:36:21 griffith@box230.cims.nyu.edu>
+// Last modified: <01.Jun.2009 18:48:49 griffith@128-122-81-214.DYNAPOOL.NYU.EDU>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -3341,7 +3341,9 @@ IBHierarchyIntegrator::computeSourceStrengths(
 #endif
     }
 
-    if (!SAMRAI::tbox::MathUtilities<double>::equalEps(q_total, Q_sum))
+    if (!SAMRAI::tbox::MathUtilities<double>::equalEps(q_total, Q_sum) &&
+        !(std::abs(q_total) <= std::numeric_limits<double>::epsilon() &&
+          std::abs(Q_sum) <= std::numeric_limits<double>::epsilon()))
     {
         TBOX_ERROR(d_object_name << ":  "
                    << "Lagrangian and Eulerian source/sink strengths are inconsistent.");
