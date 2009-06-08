@@ -510,11 +510,7 @@ if test "$SILO_ENABLED" == "yes"; then
 
   AC_CHECK_HEADER([silo.h],,AC_MSG_WARN([could not find header file silo.h]))
   AC_LIB_HAVE_LINKFLAGS([silo])
-  if test "$HAVE_LIBSILO" == "no" ; then
-    AC_MSG_WARN([could not find libsilo; checking for libsiloh5])
-    AC_LIB_HAVE_LINKFLAGS([siloh5])
-    LIBS="$LIBSILOH5 $LIBS"
-  fi
+  LIBS="$LIBSILO $LIBS"
 else
   echo
   echo "================================="

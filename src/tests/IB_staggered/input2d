@@ -65,6 +65,17 @@ IBStaggeredHierarchyIntegrator {
    enable_logging = TRUE
 }
 
+LEInteractor {
+   debug_sort_mode = "NO_SORT"
+   precision_mode  = "EXTENDED_PRECISION"
+}
+
+PETScVecOps {
+   sort_mode      = "SORT_DECREASING_MAGNITUDE"
+   precision_mode = "DOUBLE_DOUBLE_PRECISION"
+   summation_mode = "COMPENSATED_SUMMATION"
+}
+
 IBStandardInitializer {
    max_levels = MAX_LEVELS
    base_filenames_3 = "curve2d_256"

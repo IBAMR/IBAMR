@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <04.Jun.2009 22:26:22 griffith@griffith-macbook-pro.local>
+// Last modified: <07.Jun.2009 18:26:23 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -354,6 +354,7 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
         delete d_Phi_bc_coef;
     }
     delete d_problem_coefs;
+    if (d_regrid_projection_spec != NULL) delete d_regrid_projection_spec;
     return;
 }// ~INSStaggeredHierarchyIntegrator
 
@@ -713,6 +714,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_stokes_solver->setInitialGuessNonzero(true);
     d_stokes_solver->setOperator(d_stokes_op);
     d_stokes_solver->setKSPType("fgmres");
+    d_div_u_abstol = 0.0;  // turn of div u tolerance
     ierr = register_stokes_solver_options(stokes_prefix, d_div_u_abstol);  IBTK_CHKERRQ(ierr);
 
     // Setup the preconditioner and preconditioner sub-solvers.
@@ -2636,16 +2638,16 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     }
 
     // Compute div U before applying the projection operator.
+    const bool U_current_cf_bdry_synch = true;
+    d_hier_math_ops->div(
+        d_Div_U_scratch_idx, d_Div_U_var, // dst
+        +1.0,                             // alpha
+        d_U_current_idx, d_U_var,         // src
+        d_no_fill_op,                     // src_bdry_fill
+        d_integrator_time,                // src_bdry_fill_time
+        U_current_cf_bdry_synch);         // src_cf_bdry_synch
     if (d_do_log)
     {
-        const bool U_current_cf_bdry_synch = true;
-        d_hier_math_ops->div(
-            d_Div_U_scratch_idx, d_Div_U_var, // dst
-            +1.0,                             // alpha
-            d_U_current_idx, d_U_var,         // src
-            d_no_fill_op,                     // src_bdry_fill
-            d_integrator_time,                // src_bdry_fill_time
-            U_current_cf_bdry_synch);         // src_cf_bdry_synch
         const double Div_U_norm_1  = d_hier_cc_data_ops->L1Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
         const double Div_U_norm_2  = d_hier_cc_data_ops->L2Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
         const double Div_U_norm_oo = d_hier_cc_data_ops->maxNorm(d_Div_U_scratch_idx, d_wgt_cc_idx);

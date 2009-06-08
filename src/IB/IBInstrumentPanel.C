@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <04.Jun.2009 10:01:53 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <05.Jun.2009 11:57:17 griffith@griffith-macbook-pro.local>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -40,7 +40,7 @@
 #include <blitz/tinyvec-et.h>
 
 // SILO INCLUDES
-#if HAVE_LIBSILO || HAVE_LIBSILOH5
+#if HAVE_LIBSILO
 extern "C"
 {
 #include <silo.h>
@@ -174,7 +174,7 @@ compute_flow_correction(
     return U_dot_dA;
 }// compute_flow_correction
 
-#if HAVE_LIBSILO || HAVE_LIBSILOH5
+#if HAVE_LIBSILO
 /*!
  * \brief Build a local mesh database entry corresponding to a meter web.
  */
@@ -407,7 +407,7 @@ IBInstrumentPanel::IBInstrumentPanel(
       d_flow_units(""),
       d_pres_units("")
 {
-#if HAVE_LIBSILO || HAVE_LIBSILOH5
+#if HAVE_LIBSILO
     // intentionally blank
 #else
     TBOX_WARNING("IBInstrumentPanel::IBInstrumentPanel(): SILO is not installed; cannot write data." << std::endl);
@@ -1130,7 +1130,7 @@ IBInstrumentPanel::writePlotData(
     if (d_num_meters == 0) return;
 
     t_write_plot_data->start();
-#if HAVE_LIBSILO || HAVE_LIBSILOH5
+#if HAVE_LIBSILO
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(timestep_num >= 0);
     TBOX_ASSERT(!d_plot_directory_name.empty());
@@ -1272,7 +1272,7 @@ IBInstrumentPanel::writePlotData(
     SAMRAI::tbox::SAMRAI_MPI::barrier();
 #else
     TBOX_WARNING("IBInstrumentPanel::writePlotData(): SILO is not installed; cannot write data." << std::endl);
-#endif //if HAVE_LIBSILO || HAVE_LIBSILOH5
+#endif //if HAVE_LIBSILO
     t_write_plot_data->stop();
     return;
 }// writePlotData

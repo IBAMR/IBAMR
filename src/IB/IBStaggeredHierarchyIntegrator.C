@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <04.Jun.2009 20:57:49 griffith@griffith-macbook-pro.local>
+// Last modified: <07.Jun.2009 18:24:55 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -283,7 +283,7 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
         }
     }
 
-    // Determine the ghost cell width required for cell-centered spreading and
+    // Determine the ghost cell width required for side-centered spreading and
     // interpolating.
     const int stencil_size = IBTK::LEInteractor::getStencilSize(d_delta_fcn);
     d_ghosts = int(floor(0.5*double(stencil_size)))+1;
@@ -765,7 +765,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // Perform one or more cycles to solve the coupled fluid-structure system.
+    // Perform one or more cycles to compute the updated configuration of the
+    // coupled fluid-structure system.
     d_ins_hier_integrator->integrateHierarchy_initialize(current_time, new_time);
     for (int cycle = 0; cycle < d_num_cycles; ++cycle)
     {
