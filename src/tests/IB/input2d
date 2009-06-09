@@ -29,6 +29,17 @@ IBHierarchyIntegrator {
    delta_fcn = "IB_6"
 }
 
+LEInteractor {
+   debug_sort_mode = "NO_SORT"
+   precision_mode  = "STANDARD_PRECISION"
+}
+
+PETScVecOps {
+   sort_mode      = "SORT_DECREASING_MAGNITUDE"
+   precision_mode = "DOUBLE_DOUBLE_PRECISION"
+   summation_mode = "COMPENSATED_SUMMATION"
+}
+
 IBStandardInitializer {
    max_levels = MAX_LEVELS
 
