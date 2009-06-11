@@ -149,8 +149,9 @@ IBTargetPointForceGen::computeLagrangianForce(
                         TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
                         const double& kappa_target = force_spec->getStiffness();
-                        const double& eta_target = force_spec->getDamping();
-                        if (!SAMRAI::tbox::MathUtilities<double>::equalEps(kappa_target,0.0))
+                        const double&   eta_target = force_spec->getDamping();
+                        if (!SAMRAI::tbox::MathUtilities<double>::equalEps(kappa_target,0.0) ||
+                            !SAMRAI::tbox::MathUtilities<double>::equalEps(  eta_target,0.0))
                         {
                             const int& petsc_idx = node_idx->getLocalPETScIndex();
                             const double* const X = &X_arr[NDIM*petsc_idx];
