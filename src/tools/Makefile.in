@@ -36,7 +36,8 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
 bin_PROGRAMS = ascii2hdf2d$(EXEEXT) ascii2hdf3d$(EXEEXT) \
 	m3D_hdf5_fiber_converter$(EXEEXT) \
-	m3D_hdf5_marker_converter$(EXEEXT) marker_flooder3d$(EXEEXT)
+	m3D_hdf5_marker_converter$(EXEEXT) \
+	m3D_hdf5_strain_analyzer$(EXEEXT) marker_flooder3d$(EXEEXT)
 subdir = src/tools
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -79,6 +80,14 @@ m3D_hdf5_marker_converter_LDADD = $(LDADD)
 m3D_hdf5_marker_converter_LINK = $(CXXLD) \
 	$(m3D_hdf5_marker_converter_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_m3D_hdf5_strain_analyzer_OBJECTS =  \
+	m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.$(OBJEXT)
+m3D_hdf5_strain_analyzer_OBJECTS =  \
+	$(am_m3D_hdf5_strain_analyzer_OBJECTS)
+m3D_hdf5_strain_analyzer_LDADD = $(LDADD)
+m3D_hdf5_strain_analyzer_LINK = $(CXXLD) \
+	$(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_marker_flooder3d_OBJECTS =  \
 	marker_flooder3d-marker_flooder.$(OBJEXT)
 marker_flooder3d_OBJECTS = $(am_marker_flooder3d_OBJECTS)
@@ -96,10 +105,12 @@ CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 SOURCES = $(ascii2hdf2d_SOURCES) $(ascii2hdf3d_SOURCES) \
 	$(m3D_hdf5_fiber_converter_SOURCES) \
 	$(m3D_hdf5_marker_converter_SOURCES) \
+	$(m3D_hdf5_strain_analyzer_SOURCES) \
 	$(marker_flooder3d_SOURCES)
 DIST_SOURCES = $(ascii2hdf2d_SOURCES) $(ascii2hdf3d_SOURCES) \
 	$(m3D_hdf5_fiber_converter_SOURCES) \
 	$(m3D_hdf5_marker_converter_SOURCES) \
+	$(m3D_hdf5_strain_analyzer_SOURCES) \
 	$(marker_flooder3d_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
@@ -436,6 +447,8 @@ m3D_hdf5_fiber_converter_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 m3D_hdf5_fiber_converter_SOURCES = m3D_hdf5_fiber_converter.C
 m3D_hdf5_marker_converter_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 m3D_hdf5_marker_converter_SOURCES = m3D_hdf5_marker_converter.C
+m3D_hdf5_strain_analyzer_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+m3D_hdf5_strain_analyzer_SOURCES = m3D_hdf5_strain_analyzer.C
 marker_flooder3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 marker_flooder3d_SOURCES = marker_flooder.C
 all: all-recursive
@@ -506,6 +519,9 @@ m3D_hdf5_fiber_converter$(EXEEXT): $(m3D_hdf5_fiber_converter_OBJECTS) $(m3D_hdf
 m3D_hdf5_marker_converter$(EXEEXT): $(m3D_hdf5_marker_converter_OBJECTS) $(m3D_hdf5_marker_converter_DEPENDENCIES) 
 	@rm -f m3D_hdf5_marker_converter$(EXEEXT)
 	$(m3D_hdf5_marker_converter_LINK) $(m3D_hdf5_marker_converter_OBJECTS) $(m3D_hdf5_marker_converter_LDADD) $(LIBS)
+m3D_hdf5_strain_analyzer$(EXEEXT): $(m3D_hdf5_strain_analyzer_OBJECTS) $(m3D_hdf5_strain_analyzer_DEPENDENCIES) 
+	@rm -f m3D_hdf5_strain_analyzer$(EXEEXT)
+	$(m3D_hdf5_strain_analyzer_LINK) $(m3D_hdf5_strain_analyzer_OBJECTS) $(m3D_hdf5_strain_analyzer_LDADD) $(LIBS)
 marker_flooder3d$(EXEEXT): $(marker_flooder3d_OBJECTS) $(marker_flooder3d_DEPENDENCIES) 
 	@rm -f marker_flooder3d$(EXEEXT)
 	$(marker_flooder3d_LINK) $(marker_flooder3d_OBJECTS) $(marker_flooder3d_LDADD) $(LIBS)
@@ -520,6 +536,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ascii2hdf3d-ascii2hdf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marker_flooder3d-marker_flooder.Po@am__quote@
 
 .C.o:
@@ -591,6 +608,20 @@ m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj: m3D_hdf5_marker_convert
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='m3D_hdf5_marker_converter.C' object='m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_marker_converter_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj `if test -f 'm3D_hdf5_marker_converter.C'; then $(CYGPATH_W) 'm3D_hdf5_marker_converter.C'; else $(CYGPATH_W) '$(srcdir)/m3D_hdf5_marker_converter.C'; fi`
+
+m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o: m3D_hdf5_strain_analyzer.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o -MD -MP -MF $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Tpo -c -o m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o `test -f 'm3D_hdf5_strain_analyzer.C' || echo '$(srcdir)/'`m3D_hdf5_strain_analyzer.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Tpo $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='m3D_hdf5_strain_analyzer.C' object='m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o `test -f 'm3D_hdf5_strain_analyzer.C' || echo '$(srcdir)/'`m3D_hdf5_strain_analyzer.C
+
+m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj: m3D_hdf5_strain_analyzer.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj -MD -MP -MF $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Tpo -c -o m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj `if test -f 'm3D_hdf5_strain_analyzer.C'; then $(CYGPATH_W) 'm3D_hdf5_strain_analyzer.C'; else $(CYGPATH_W) '$(srcdir)/m3D_hdf5_strain_analyzer.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Tpo $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='m3D_hdf5_strain_analyzer.C' object='m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj `if test -f 'm3D_hdf5_strain_analyzer.C'; then $(CYGPATH_W) 'm3D_hdf5_strain_analyzer.C'; else $(CYGPATH_W) '$(srcdir)/m3D_hdf5_strain_analyzer.C'; fi`
 
 marker_flooder3d-marker_flooder.o: marker_flooder.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_flooder3d_CXXFLAGS) $(CXXFLAGS) -MT marker_flooder3d-marker_flooder.o -MD -MP -MF $(DEPDIR)/marker_flooder3d-marker_flooder.Tpo -c -o marker_flooder3d-marker_flooder.o `test -f 'marker_flooder.C' || echo '$(srcdir)/'`marker_flooder.C

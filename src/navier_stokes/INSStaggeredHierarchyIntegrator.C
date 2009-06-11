@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <07.Jun.2009 18:26:23 griffith@griffith-macbook-pro.local>
+// Last modified: <11.Jun.2009 15:59:44 griffith@box230.cims.nyu.edu>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1406,9 +1406,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     d_stokes_op->modifyRhsForInhomogeneousBc(*d_rhs_vec);
     d_stokes_op->setHomogeneousBc(true);
 
-    TBOX_ASSERT(d_rhs_vec->getComponentDescriptorIndex(0) == U_rhs_idx);
-    d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_rhs_idx);
-
     t_integrate_hierarchy_initialize->start();
     return;
 }// integrateHierarchy_initialize
@@ -1431,7 +1428,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Compute (u_half*grad)u_half.
     const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
     d_convective_op->applyConvectiveOperator(U_half_idx, N_idx);
-    d_U_bc_helper->zeroValuesAtDirichletBoundaries(N_idx);
 
     // Setup the right-hand side vector.
     d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
@@ -1440,6 +1436,10 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_F_set->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, current_time+0.5*dt);
         d_hier_sc_data_ops->add(d_rhs_vec->getComponentDescriptorIndex(0), d_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
+
+    // Ensure there is no forcing at Dirichlet boundaries (the Dirichlet
+    // boundary condition takes precedence).
+    d_U_bc_helper->zeroValuesAtDirichletBoundaries(d_rhs_vec->getComponentDescriptorIndex(0));
 
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
