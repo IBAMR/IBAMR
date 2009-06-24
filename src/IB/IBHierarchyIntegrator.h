@@ -512,7 +512,7 @@ public:
     /*!
      * Return a pointer to the LagMarker index data state variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker> >
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > >
     getLagMarkerVar() const;
 
     ///
@@ -965,7 +965,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_V_var, d_W_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker> > d_mark_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
     int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_mark_current_idx, d_mark_scratch_idx, d_Q_idx, d_Q_scratch_idx;
 
