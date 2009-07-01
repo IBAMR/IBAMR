@@ -150,6 +150,28 @@ INSStaggeredHierarchyIntegrator {
       enable_logging        = FALSE
    }
 
+   HelmholtzFACSolver {
+      max_cycles = 1
+      residual_tol = 1.0e-12
+      num_pre_sweeps  = 0  // this should always be 0
+      num_post_sweeps = 2
+
+      fac_max_cycles = 1
+      fac_uses_presmoothing = FALSE
+      fac_initial_guess_nonzero = FALSE
+
+      skip_restrict_sol = TRUE
+      skip_restrict_residual = FALSE
+
+      ssor_iterations = 1
+
+      coarse_solver_choice = "block_jacobi"
+      coarse_solver_tolerance = 1.0e-30
+      coarse_solver_max_iterations = 2
+      prolongation_method = "CONSTANT_REFINE"
+      cf_discretization   = "CONSTANT_REFINE"
+   }
+
    PoissonHypreSolver {
       solver_type           = "PCG"
       precond_type          = "PFMG"
