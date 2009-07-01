@@ -3,7 +3,7 @@ MU = 1.0e-2
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
+MAX_LEVELS = 2   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
 N = 32                                    // coarsest grid spacing
@@ -21,87 +21,87 @@ VelocityInitialConditions {
    A = 1.0
    B = 1.0
    C = 1.0
-   function_0 = "0.0"
-   function_1 = "0.0"
-   function_2 = "0.0"
+   function_0 = U
+   function_1 = V
+   function_2 = W
 }
 
 VelocityBcCoefs_0 {
    constant_names = "nu"
    nu = MU/RHO
 
-   acoef_function_0 = "0.0"
-   acoef_function_1 = "0.0"
-   acoef_function_2 = "0.0"
-   acoef_function_3 = "0.0"
-   acoef_function_4 = "0.0"
-   acoef_function_5 = "0.0"
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
 
-   bcoef_function_0 = "1.0"
-   bcoef_function_1 = "1.0"
-   bcoef_function_2 = "1.0"
-   bcoef_function_3 = "1.0"
-   bcoef_function_4 = "1.0"
-   bcoef_function_5 = "1.0"
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
 
-   gcoef_function_0 = "1.0"
-   gcoef_function_1 = "-1.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
+   gcoef_function_0 = U
+   gcoef_function_1 = U
+   gcoef_function_2 = U
+   gcoef_function_3 = U
+   gcoef_function_4 = U
+   gcoef_function_5 = U
 }
 
 VelocityBcCoefs_1 {
    constant_names = "nu"
    nu = MU/RHO
 
-   acoef_function_0 = "0.0"
-   acoef_function_1 = "0.0"
-   acoef_function_2 = "0.0"
-   acoef_function_3 = "0.0"
-   acoef_function_4 = "0.0"
-   acoef_function_5 = "0.0"
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
 
-   bcoef_function_0 = "1.0"
-   bcoef_function_1 = "1.0"
-   bcoef_function_2 = "1.0"
-   bcoef_function_3 = "1.0"
-   bcoef_function_4 = "1.0"
-   bcoef_function_5 = "1.0"
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
 
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
+   gcoef_function_0 = V
+   gcoef_function_1 = V
+   gcoef_function_2 = V
+   gcoef_function_3 = V
+   gcoef_function_4 = V
+   gcoef_function_5 = V
 }
 
 VelocityBcCoefs_2 {
    constant_names = "nu"
    nu = MU/RHO
 
-   acoef_function_0 = "0.0"
-   acoef_function_1 = "0.0"
-   acoef_function_2 = "0.0"
-   acoef_function_3 = "0.0"
-   acoef_function_4 = "0.0"
-   acoef_function_5 = "0.0"
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
 
-   bcoef_function_0 = "1.0"
-   bcoef_function_1 = "1.0"
-   bcoef_function_2 = "1.0"
-   bcoef_function_3 = "1.0"
-   bcoef_function_4 = "1.0"
-   bcoef_function_5 = "1.0"
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
 
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
+   gcoef_function_0 = W
+   gcoef_function_1 = W
+   gcoef_function_2 = W
+   gcoef_function_3 = W
+   gcoef_function_4 = W
+   gcoef_function_5 = W
 }
 
 PressureInitialConditions {
@@ -115,21 +115,20 @@ PressureInitialConditions {
 
 INSStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 1.0e0    // final simulation time
+   end_time              = 0.5e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
    regrid_interval       = 10000    // disable regridding
 
    enable_logging = TRUE
 
-   cfl = 1.0
+   cfl = 0.95
    dt_max = 1.0/(3.0*NFINEST)
 
    tag_buffer = 1
 
    conservation_form = FALSE
-   using_vorticity_tagging = TRUE
-   vorticity_rel_thresh = 0.25
+   using_vorticity_tagging = FALSE
 
    output_U = TRUE
    output_P = TRUE
@@ -140,22 +139,36 @@ INSStaggeredHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   second_order_pressure_update = TRUE
-   normalize_pressure = FALSE
+   normalize_pressure = TRUE
 
-   num_cycles = 1
-   num_init_cycles = 5
-}
+   HelmholtzHypreSolver {
+      solver_type           = "PCG"
+      precond_type          = "Split"
+      split_solver_type     = "Jacobi"
+      relative_residual_tol = 1.0e-2
+      max_iterations        = 100
+      enable_logging        = FALSE
+   }
 
-HierarchyProjector {
-   enable_logging = TRUE
+   PoissonHypreSolver {
+      solver_type           = "PCG"
+      precond_type          = "PFMG"
+      rap_type              = 0
+      relax_type            = 2
+      skip_relax            = 1
+      num_pre_relax_steps   = 1
+      num_post_relax_steps  = 1
+      relative_residual_tol = 1.0e-2
+      max_iterations        = 100
+      enable_logging        = FALSE
+   }
 
-   max_iterations = 25
-   abs_residual_tol = 0.0
-   rel_residual_tol = 1.0e-15
-   initial_guess_nonzero = FALSE
+   PoissonFACSolver {
+      max_cycles = 1
+      residual_tol = 1.0e-12
+      num_pre_sweeps  = 0  // this should always be 0
+      num_post_sweeps = 3
 
-   FACOp {
       fac_max_cycles = 1
       fac_uses_presmoothing = FALSE
       fac_initial_guess_nonzero = FALSE
@@ -166,28 +179,22 @@ HierarchyProjector {
       ssor_iterations = 1
 
       coarse_solver_choice = "hypre"
-      coarse_solver_tolerance = 1.0e-6
+      coarse_solver_tolerance = 1.0e-12
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization   = "Ewing"
+      cf_discretization   = "LINEAR_REFINE"
 
       hypre_solver {
-         solver_type = "PFMG"
-         rap_type = 1
-         relax_type = 3
+         solver_type           = "PFMG"
+         rap_type              = 0
+         relax_type            = 2
+         skip_relax            = 1
          num_pre_relax_steps   = 0
          num_post_relax_steps  = 3
-         max_iterations        = 1
          relative_residual_tol = 1.0e-12
-         enable_logging = FALSE
+         max_iterations        = 1
+         enable_logging        = FALSE
       }
-   }
-
-   FACPreconditioner {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 3
    }
 }
 
@@ -214,12 +221,10 @@ CartesianGeometry {
    domain_boxes = [ (0,0,0) , (N - 1,N - 1,N - 1) ]
    x_lo         =  0, 0, 0    // lower end of computational domain.
    x_up         =  1, 1, 1    // upper end of computational domain.
-   periodic_dimension = 0, 0, 0
+   periodic_dimension = 1, 1, 1
 }
 
 GriddingAlgorithm {
-   allow_patches_smaller_than_ghostwidth = TRUE
-
    max_levels = MAX_LEVELS                     // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO,REF_RATIO  // vector ratio to next coarser level
