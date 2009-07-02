@@ -1,20 +1,13 @@
-// advective term options
-CTU_ONLY = -1
-SECOND_ORDER = 0
-FOURTH_ORDER = 1
-MC_LIMITED = 2
-MUSCL_LIMITED = 3
-
 // physical parameters
 MU = 0.005
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 2   // maximum number of levels in locally refined grid
+MAX_LEVELS = 6   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 32                                    // coarsest grid spacing
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
+N = 64                                       // coarsest grid spacing
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N/16  // finest   grid spacing
 
 IBHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
@@ -26,7 +19,7 @@ IBHierarchyIntegrator {
 
    regrid_interval = 8
    dt_max = 8.0e-2/NFINEST
-   delta_fcn = "IB_6"
+   delta_fcn = "IB_4"
 }
 
 LEInteractor {
@@ -42,16 +35,7 @@ PETScVecOps {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-
-// base_filenames_1 = "curve2d_64"   // corresponds to NFINEST=64
-// base_filenames_1 = "curve2d_128"  // corresponds to NFINEST=128
-// base_filenames_1 = "curve2d_256"  // corresponds to NFINEST=256
-// base_filenames_1 = "curve2d_512"  // corresponds to NFINEST=512
-
-   base_filenames_1 = "shell2d_64"   // corresponds to NFINEST=64
-// base_filenames_1 = "shell2d_128"  // corresponds to NFINEST=128
-// base_filenames_1 = "shell2d_256"  // corresponds to NFINEST=256
-// base_filenames_1 = "shell2d_512"  // corresponds to NFINEST=512
+   base_filenames_5 = "curve2d_128"
 }
 
 LocationIndexRobinBcCoefs_u0 {
@@ -71,7 +55,7 @@ LocationIndexRobinBcCoefs_u1 {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 1
+   tag_buffer = 4
 
    conservation_form = FALSE
 
@@ -79,7 +63,7 @@ INSHierarchyIntegrator {
    vorticity_rel_thresh = 0.25
 
    output_P = TRUE
-   output_F = TRUE
+   output_F = FALSE
    output_Q = FALSE
 
    output_Omega = TRUE
@@ -200,19 +184,21 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         =  0, 0          // lower end of computational domain.
-   x_up         =  1, 1          // upper end of computational domain.
+   x_lo         = -8, -8          // lower end of computational domain.
+   x_up         =  8,  8          // upper end of computational domain.
    periodic_dimension = 1, 1
 }
 
 GriddingAlgorithm {
-   allow_patches_smaller_than_ghostwidth = TRUE
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
 
    max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
       level_2 = REF_RATIO,REF_RATIO
       level_3 = REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {
@@ -221,7 +207,7 @@ GriddingAlgorithm {
    }
 
    smallest_patch_size {
-      level_0 =  4,  4 // smallest patch allowed in hierarchy
+      level_0 =  8,  8 // smallest patch allowed in hierarchy
                        // all finer levels will use same values as level_0...
    }
 
