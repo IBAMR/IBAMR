@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <29.Jan.2009 14:40:24 beg208@cardiac.es.its.nyu.edu>
+// Last modified: <07.Jul.2009 13:17:53 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -135,6 +135,32 @@ public:
     void
     registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
+
+    ///
+    ///  The following routines:
+    ///
+    ///      registerRegridHierarchyCallback(),
+    ///      registerApplyGradientDetectorCallback()
+    ///
+    ///  allow for the registration of callback functions that are executed by
+    ///  the hierarchy integrator.
+    ///
+
+    /*!
+     * \brief Callback registration function.
+     */
+    void
+    registerRegridHierarchyCallback(
+        void (*callback)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const double regrid_data_time, const bool initial_time, void* ctx),
+        void* ctx);
+
+    /*!
+     * \brief Callback registration function.
+     */
+    void
+    registerApplyGradientDetectorCallback(
+        void (*callback)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const int level_number, const double error_data_time, const int tag_index, const bool initial_time, const bool uses_richardson_extrapolation_too, void* ctx),
+        void* ctx);
 
     ///
     ///  The following routines:
@@ -1111,6 +1137,15 @@ private:
      * Such variables have only one context.
      */
     int d_wgt_cc_idx, d_wgt_sc_idx;
+
+    /*!
+     * \brief Callback function pointers and callback contexts.
+     */
+    std::vector<void (*)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const double regrid_data_time, const bool initial_time, void* ctx)> d_regrid_hierarchy_callbacks;
+    std::vector<void*> d_regrid_hierarchy_callback_ctxs;
+
+    std::vector<void (*)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const int level_number, const double error_data_time, const int tag_index, const bool initial_time, const bool uses_richardson_extrapolation_too, void* ctx)> d_apply_gradient_detector_callbacks;
+    std::vector<void*> d_apply_gradient_detector_callback_ctxs;
 };
 }// namespace IBAMR
 

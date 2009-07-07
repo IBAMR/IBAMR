@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <11.Jun.2009 15:59:44 griffith@box230.cims.nyu.edu>
+// Last modified: <07.Jul.2009 14:12:41 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -51,6 +51,7 @@
 
 #if (NDIM == 3)
 #define NAVIER_STOKES_SC_REGRID_COPY_FC FC_FUNC_(navier_stokes_sc_regrid_copy3d,NAVIER_STOKES_SC_REGRID_COPY3D)
+#define NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_FC FC_FUNC_(navier_stokes_sc_regrid_apply_correction3d,NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION3D)
 #define NAVIER_STOKES_SC_STABLEDT_FC FC_FUNC_(navier_stokes_sc_stabledt3d, NAVIER_STOKES_SC_STABLEDT3D)
 #endif
 
@@ -76,7 +77,7 @@ extern "C"
         ,const int& ilower2,const int& iupper2
 #endif
                                      );
-#if (NDIM == 2)
+
     void
     NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_FC(
         double* u0, double* u1,
@@ -87,12 +88,11 @@ extern "C"
         const int* indicator,
         const int& indicator_gcw,
         const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
+        const int& ilower1, const int& iupper1,
 #if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
+        const int& ilower2, const int& iupper2,
 #endif
-                                                 );
-#endif
+        const double* dx_fine);
 
     void
     NAVIER_STOKES_SC_STABLEDT_FC(
@@ -441,6 +441,26 @@ INSStaggeredHierarchyIntegrator::registerVisItDataWriter(
     d_visit_writer = visit_writer;
     return;
 }// registerVisItDataWriter
+
+void
+INSStaggeredHierarchyIntegrator::registerRegridHierarchyCallback(
+    void (*callback)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const double regrid_data_time, const bool initial_time, void* ctx),
+    void* ctx)
+{
+    d_regrid_hierarchy_callbacks.push_back(callback);
+    d_regrid_hierarchy_callback_ctxs.push_back(ctx);
+    return;
+}// registerRegridHierarchyCallback
+
+void
+INSStaggeredHierarchyIntegrator::registerApplyGradientDetectorCallback(
+    void (*callback)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const int level_number, const double error_data_time, const int tag_index, const bool initial_time, const bool uses_richardson_extrapolation_too, void* ctx),
+    void* ctx)
+{
+    d_apply_gradient_detector_callbacks.push_back(callback);
+    d_apply_gradient_detector_callback_ctxs.push_back(ctx);
+    return;
+}// registerApplyGradientDetectorCallback
 
 ///
 ///  The following routines:
@@ -1204,6 +1224,8 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
 {
     t_regrid_hierarchy->start();
 
+    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
+
     const int coarsest_ln = 0;
 
     // Determine the divergence of the velocity field before regridding.
@@ -1236,8 +1258,12 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
         }
     }
 
-    // Regrid the hierarchy.
+    // Regrid the hierarchy and execute any regrid hierarchy callback functions.
     d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+    for (size_t i = 0; i < d_regrid_hierarchy_callbacks.size(); ++i)
+    {
+        (*d_regrid_hierarchy_callbacks[i])(d_hierarchy, d_integrator_time, initial_time, d_regrid_hierarchy_callback_ctxs[i]);
+    }
 
     // Swap current data with regrid data.
     const int finest_ln_after_regrid = d_hierarchy->getFinestLevelNumber();
@@ -1788,6 +1814,8 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                const double* const dx = patch_geom->getDx();
 
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_dst_data = patch->getPatchData(d_regrid_current_idx_map[d_U_current_idx]);
                 const int U_dst_ghosts = U_dst_data->getGhostCellWidth().max();
@@ -1822,7 +1850,6 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
 
                 if (ratio_to_coarser_level == SAMRAI::hier::IntVector<NDIM>(2))
                 {
-#if (NDIM == 2)
 #ifdef DEBUG_CHECK_ASSERTIONS
                     TBOX_ASSERT(U_dst_ghosts%2 == 0);
                     TBOX_ASSERT(U_dst_ghosts <= indicator_ghosts);
@@ -1837,12 +1864,11 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                         indicator_data->getPointer(0),
                         indicator_ghosts,
                         patch_box.lower()(0), patch_box.upper()(0),
-                        patch_box.lower()(1), patch_box.upper()(1)
+                        patch_box.lower()(1), patch_box.upper()(1),
 #if (NDIM == 3)
-                        ,patch_box.lower()(2),patch_box.upper()(2)
+                        patch_box.lower()(2), patch_box.upper()(2),
 #endif
-                                                                 );
-#endif
+                        dx                                      );
                 }
             }
             old_level->deallocatePatchData(d_indicator_scratch_idx);
@@ -2234,6 +2260,15 @@ INSStaggeredHierarchyIntegrator::applyGradientDetector(
                 }
             }
         }
+    }
+
+    // Allow callback functions to tag cells for refinement.
+    for (size_t i = 0; i < d_apply_gradient_detector_callbacks.size(); ++i)
+    {
+        (*d_apply_gradient_detector_callbacks[i])(
+            hierarchy, level_number, error_data_time,
+            tag_index, initial_time,
+            uses_richardson_extrapolation_too, d_apply_gradient_detector_callback_ctxs[i]);
     }
 
     t_apply_gradient_detector->stop();
@@ -2662,6 +2697,8 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     // Setup the solver vectors.
     d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0, false);
     d_hier_cc_data_ops->scale(d_Div_U_scratch_idx, -1.0, d_Div_U_scratch_idx);
+    const double Div_U_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(d_Div_U_scratch_idx, d_wgt_cc_idx);
+    d_hier_cc_data_ops->addScalar(d_Div_U_scratch_idx, d_Div_U_scratch_idx, -Div_U_mean);
 
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double> sol_vec(d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     sol_vec.addComponent(d_Phi_var, d_Phi_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);

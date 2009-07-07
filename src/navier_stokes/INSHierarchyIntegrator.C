@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <03.Jun.2008 17:12:08 griffith@box230.cims.nyu.edu>
+// Last modified: <07.Jul.2009 13:16:47 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1431,9 +1431,7 @@ INSHierarchyIntegrator::regridHierarchy()
     const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
 
     const int coarsest_ln = 0;
-    d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln,
-                                         d_integrator_time, d_tag_buffer);
-
+    d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
     for (size_t i = 0; i < d_regrid_hierarchy_callbacks.size(); ++i)
     {
         (*d_regrid_hierarchy_callbacks[i])(d_hierarchy, d_integrator_time, initial_time, d_regrid_hierarchy_callback_ctxs[i]);

@@ -74,7 +74,8 @@ c
      &     u0,u1,u_gcw,
      &     indicator,indicator_gcw,
      &     ilower0,iupper0,
-     &     ilower1,iupper1)
+     &     ilower1,iupper1,
+     &     dx_fine)
 c
       implicit none
 c
@@ -85,6 +86,8 @@ c
       INTEGER ilower1,iupper1
 
       INTEGER indicator(CELL2d(ilower,iupper,indicator_gcw))
+
+      REAL dx_fine(0:NDIM-1)
 c
 c     Input/Output.
 c

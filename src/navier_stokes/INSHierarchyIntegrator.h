@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <12.Jun.2008 18:09:46 griffith@box230.cims.nyu.edu>
+// Last modified: <07.Jul.2009 13:14:39 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -179,12 +179,12 @@ public:
     ///      registerRegridHierarchyCallback(),
     ///      registerApplyGradientDetectorCallback()
     ///
-    ///  allow for the registration of simple callback functions that are
-    ///  executed by the hierarchy integrator.
+    ///  allow for the registration of callback functions that are executed by
+    ///  the hierarchy integrator.
     ///
 
     /*!
-     * \brief Experimental callback registration function.
+     * \brief Callback registration function.
      */
     void
     registerRegridHierarchyCallback(
@@ -192,7 +192,7 @@ public:
         void* ctx);
 
     /*!
-     * \brief Experimental callback registration function.
+     * \brief Callback registration function.
      */
     void
     registerApplyGradientDetectorCallback(
