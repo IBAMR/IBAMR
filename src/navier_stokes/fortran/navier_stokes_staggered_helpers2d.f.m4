@@ -99,9 +99,13 @@ c
       INTEGER i0,i1,i,j
       REAL u(-1:1,-1:1),u_xx
       REAL v(-1:1,-1:1),v_yy
+      REAL dx,dy,dz
 c
 c     Apply the divergence- and curl-preserving corrections.
 c
+      dx = dx_fine(0)
+      dy = dx_fine(1)
+
       do i1 = ilower1,iupper1,2
          do i0 = ilower0,iupper0,2
             if ( indicator(i0,i1).ne.1 ) then

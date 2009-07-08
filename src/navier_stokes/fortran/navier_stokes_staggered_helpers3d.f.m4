@@ -118,7 +118,7 @@ c
 c
 c     Local variables.
 c
-      INTEGER d,i0,i1,i2,i,j,k
+      INTEGER i0,i1,i2,i,j,k
       REAL u(-2:2,-1:1,-1:1),u_xx,u_xyz
       REAL v(-1:1,-2:2,-1:1),v_yy,v_xyz
       REAL w(-1:1,-1:1,-2:2),w_zz,w_xyz
