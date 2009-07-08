@@ -22,6 +22,7 @@ IBEulerianForceSetter.C \
 IBEulerianSourceSetter.C \
 IBHDF5Initializer.C \
 IBHierarchyIntegrator.C \
+IBImplicitHierarchyIntegrator.C \
 IBInstrumentPanel.C \
 IBInstrumentationSpec.C \
 IBInstrumentationSpecFactory.C \
@@ -54,6 +55,7 @@ IBEulerianForceSetter.h \
 IBEulerianSourceSetter.h \
 IBHDF5Initializer.h \
 IBHierarchyIntegrator.h \
+IBImplicitHierarchyIntegrator.h \
 IBInstrumentPanel.h \
 IBInstrumentationSpec.h \
 IBInstrumentationSpec.I \
