@@ -1,16 +1,17 @@
-#ifndef included_INSStaggeredHierarchyIntegrator
-#define included_INSStaggeredHierarchyIntegrator
+#ifndef included_IBImplicitHierarchyIntegrator
+#define included_IBImplicitHierarchyIntegrator
 
-// Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <07.Jul.2009 22:13:31 griffith@griffith-macbook-pro.local>
-// Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
+// Filename: IBImplicitHierarchyIntegrator.h
+// Last modified: <08.Jul.2009 16:21:31 griffith@griffith-macbook-pro.local>
+// Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSc INCLUDES
-#include <petsc.h>
+#include <petscsnes.h>
 
 // IBAMR INCLUDES
+#include <ibamr/IBLagrangianForceStrategy.h>
 #include <ibamr/INSCoefs.h>
 #include <ibamr/INSStaggeredBlockFactorizationPreconditioner.h>
 #include <ibamr/INSStaggeredPPMConvectiveOperator.h>
@@ -21,7 +22,12 @@
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonFACOperator.h>
-#include <ibtk/HierarchyMathOps.h>
+#include <ibtk/LDataManager.h>
+#include <ibtk/LNodeInitStrategy.h>
+#if (NDIM == 3)
+#include <ibtk/LagM3DDataWriter.h>
+#endif
+#include <ibtk/LagSiloDataWriter.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SCPoissonFACOperator.h>
@@ -35,7 +41,6 @@
 #include <GriddingAlgorithm.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <HierarchySideDataOpsReal.h>
-#include <LocationIndexRobinBcCoefs.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <RefineAlgorithm.h>
@@ -60,36 +65,36 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredHierarchyIntegrator manages the spatial
- * discretization and time integration of the incompressible Navier-Stokes
- * equations.
+ * \brief Class IBImplicitHierarchyIntegrator is an implementation of a
+ * formally second-order accurate, implicit version of the immersed boundary
+ * method.
  */
-class INSStaggeredHierarchyIntegrator
+class IBImplicitHierarchyIntegrator
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
       public SAMRAI::tbox::Serializable
 {
 public:
     /*!
-     * The constructor for INSStaggeredHierarchyIntegrator sets some default
-     * values, reads in configuration information from input and restart
-     * databases, and registers the integrator object with the restart manager
-     * when requested.
+     * Constructor.
      *
-     * When assertion checking is active, passing in any null pointer or an
-     * empty string will result in an unrecoverable exception.
+     * When assertion checking is active, passing any null pointer or an empty
+     * string as an argument will result in an assertion failure.
      */
-    INSStaggeredHierarchyIntegrator(
+    IBImplicitHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> force_strategy,
         bool register_for_restart=true);
 
     /*!
-     * The destructor for INSStaggeredHierarchyIntegrator unregisters the
-     * integrator object with the restart manager when so registered.
+     * Virtual destructor.
+     *
+     * The destructor for IBImplicitHierarchyIntegrator unregisters the integrator
+     * object with the restart manager when so registered.
      */
     virtual
-    ~INSStaggeredHierarchyIntegrator();
+    ~IBImplicitHierarchyIntegrator();
 
     /*!
      * Return the name of the hierarchy integrator object.
@@ -102,14 +107,14 @@ public:
      */
     void
     registerVelocityInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_init);
 
     /*!
      * Supply physical boundary conditions for the (side centered) velocity.
      */
     void
     registerVelocityPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
 
     /*!
      * Supply initial conditions for the (cell centered) pressure.
@@ -119,22 +124,67 @@ public:
      */
     void
     registerPressureInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> p_init);
 
     /*!
-     * Supply an optional (side centered) forcing term.
+     * Supply an optional side centered body forcing term.
+     *
+     * \note This forcing term will be added to the Eulerian force density.
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> f_set);
 
     /*!
-     * Register a VisIt data writer so this object will write plot files that
-     * may be postprocessed with the VisIt visualization tool.
+     * Register a concrete strategy object with the integrator that specifies
+     * the initial configuration of the curvilinear mesh nodes.
+     */
+    void
+    registerLNodeInitStrategy(
+        SAMRAI::tbox::Pointer<IBTK::LNodeInitStrategy> lag_init);
+
+    /*!
+     * Free the concrete initialization strategy object.
+     *
+     * \note Be sure to call this method only once the initialization object is
+     * no longer needed.
+     */
+    void
+    freeLNodeInitStrategy();
+
+    /*!
+     * Register a VisIt data writer so this class will write plot files that may
+     * be postprocessed with the VisIt visualization tool.
      */
     void
     registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
+
+    /*!
+     * Register a Lagrangian Silo data writer so this class will write plot
+     * files that may be postprocessed with the VisIt visualization tool.
+     */
+    void
+    registerLagSiloDataWriter(
+        SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> silo_writer);
+
+#if (NDIM == 3)
+    /*!
+     * Register a Lagrangian myocardial3D data writer so this class will write
+     * plot files that may be postprocessed with the myocardial3D visualization
+     * program.
+     */
+    void
+    registerLagM3DDataWriter(
+        SAMRAI::tbox::Pointer<IBTK::LagM3DDataWriter> m3D_writer);
+#endif
+
+    /*!
+     * Register a load balancer for non-uniform load balancing.
+     */
+    void
+    registerLoadBalancer(
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
 
     ///
     ///  The following routines:
@@ -211,7 +261,6 @@ public:
     ///      initializeHierarchyIntegrator(),
     ///      initializeHierarchy(),
     ///      advanceHierarchy(),
-    ///      getStableTimestep(),
     ///      atRegridPoint(),
     ///      getIntegratorTime(),
     ///      getStartTime(),
@@ -220,10 +269,11 @@ public:
     ///      getMaxIntegratorSteps(),
     ///      stepsRemaining(),
     ///      getPatchHierarchy(),
-    ///      getGriddingAlgorithm()
+    ///      getGriddingAlgorithm(),
+    ///      getLDataManager(),
+    ///      getIBInstrumentPanel()
     ///
-    ///  allow the INSStaggeredHierarchyIntegrator to be used as a hierarchy
-    ///  integrator.
+    ///  allow the IBImplicitHierarchyIntegrator to be used as a hierarchy integrator.
     ///
 
     /*!
@@ -237,6 +287,16 @@ public:
     virtual void
     initializeHierarchyIntegrator(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+
+    /*!
+     * Returns the maximum stable timestep according to the hyperbolic CFL
+     * condition and a growth condition.  The growth condition is imposed to
+     * prevent excessive changes in the maximum stable timestep as the
+     * computation progresses.
+     */
+    virtual double
+    getStableTimestep(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
 
     /*!
      * Set AMR patch hierarchy configuration and data at start of simulation.
@@ -269,16 +329,6 @@ public:
     virtual double
     advanceHierarchy(
         const double dt);
-
-    /*!
-     * Returns the maximum stable timestep according to the hyperbolic CFL
-     * condition and a growth condition.  The growth condition is imposed to
-     * prevent excessive changes in the maximum stable timestep as the
-     * computation progresses.
-     */
-    virtual double
-    getStableTimestep(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
 
     /*!
      * Return true if the current step count indicates that regridding should
@@ -337,20 +387,23 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
     getGriddingAlgorithm() const;
 
+    /*!
+     * Return a pointer to the Lagrangian data manager object.
+     */
+    IBTK::LDataManager*
+    getLDataManager() const;
+
     ///
     ///  The following routines:
     ///
     ///      regridHierarchy(),
-    ///      integrateHierarchy_initialize(),
-    ///      integrateHierarchy(),
-    ///      integrateHierarchy_finalize(),
     ///      synchronizeHierarchy(),
     ///      synchronizeNewLevels(),
     ///      resetTimeDependentHierData(),
     ///      resetHierDataToPreadvanceState()
     ///
-    ///  allow the INSStaggeredHierarchyIntegrator to provide data management
-    ///  for a time integrator which making use of this class.
+    ///  allow the IBImplicitHierarchyIntegrator to provide data management for a time
+    ///  integrator which making use of this class.
     ///
 
     /*!
@@ -358,38 +411,6 @@ public:
      */
     virtual void
     regridHierarchy();
-
-    /*!
-     * Prepare to advance the data from current_time to new_time.
-     *
-     * Note that data IS NOT synchronized by this routine.
-     */
-    virtual void
-    integrateHierarchy_initialize(
-        const double current_time,
-        const double new_time);
-
-    /*!
-     * Advance the data from current_time to new_time but do not synchronize the
-     * data on the hierarchy.  This function assumes that all data on each level
-     * in the hierarchy has been set and that only the data need for
-     * initialization exists on each level (as opposed to both current and new
-     * data, for example).
-     */
-    virtual void
-    integrateHierarchy(
-        const double current_time,
-        const double new_time);
-
-    /*!
-     * Clean up data following call to integrateHierarchy().
-     *
-     * Note that data IS NOT synchronized by this routine.
-     */
-    virtual void
-    integrateHierarchy_finalize(
-        const double current_time,
-        const double new_time);
 
     /*!
      * Synchronize the hierarchy.
@@ -447,7 +468,7 @@ public:
     ///      applyGradientDetector()
     ///
     ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::mesh::StandardTagAndInitStrategy abstract base class.
+    ///  SAMRAI::mesh::StandardTagAndInitStrategy<NDIM> abstract base class.
     ///
 
     /*!
@@ -486,12 +507,12 @@ public:
      */
     virtual void
     initializeLevelData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy,
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > base_old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
         const bool allocate_data=true);
 
     /*!
@@ -722,7 +743,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredHierarchyIntegrator();
+    IBImplicitHierarchyIntegrator();
 
     /*!
      * \brief Copy constructor.
@@ -731,8 +752,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredHierarchyIntegrator(
-        const INSStaggeredHierarchyIntegrator& from);
+    IBImplicitHierarchyIntegrator(
+        const IBImplicitHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -743,23 +764,104 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredHierarchyIntegrator&
+    IBImplicitHierarchyIntegrator&
     operator=(
-        const INSStaggeredHierarchyIntegrator& that);
+        const IBImplicitHierarchyIntegrator& that);
 
-    /*!
-     * Modified KSP convergence test which indicates the linear solver is
-     * converged only if the standard KSP convergence test indicates that the
-     * solver is converged *and* if the divergence of the velocity field is
-     * sufficiently small.
-     */
     static PetscErrorCode
-    KSPDivUConvergenceTest(
-        KSP ksp,
-        PetscInt n,
-        PetscReal rnorm,
-        KSPConvergedReason* reason,
-        void* convergence_test_ctx);
+    FormFunction_SAMRAI(
+        SNES snes,
+        Vec x,
+        Vec f,
+        void* p_ctx);
+
+    void
+    FormFunction(
+        Vec x,
+        Vec f);
+
+    static PetscErrorCode
+    FormJacobian_SAMRAI(
+        SNES snes,
+        Vec x,
+        Mat* A,
+        Mat* B,
+        MatStructure* mat_structure,
+        void* p_ctx);
+
+    void
+    FormJacobian(
+        Vec x);
+
+    static PetscErrorCode
+    MatVecMult_SAMRAI(
+        Mat A,
+        Vec x,
+        Vec y);
+
+    void
+    MatVecMult(
+        Vec x,
+        Vec y);
+
+    static PetscErrorCode
+    MatGetVecs_SAMRAI(
+        Mat A,
+        Vec* right,
+        Vec* left);
+
+    static PetscErrorCode
+    PCApplyFluid_SAMRAI(
+        void* p_ctx,
+        Vec x,
+        Vec y);
+
+    void
+    PCApplyFluid(
+        Vec x,
+        Vec y);
+
+    static PetscErrorCode
+    PCApplyStrct_SAMRAI(
+        void* p_ctx,
+        Vec x,
+        Vec y);
+
+    void
+    PCApplyStrct(
+        Vec x,
+        Vec y);
+
+    static PetscErrorCode
+    MatVecMult_structure_SAMRAI(
+        Mat A,
+        Vec x,
+        Vec y);
+
+    void
+    MatVecMult_structure(
+        Vec x,
+        Vec y);
+
+    void
+    spread(
+        const int f_data_idx,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data,
+        const bool F_data_ghost_node_update,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
+        const bool X_data_ghost_node_update,
+        const int coarsest_ln=-1,
+        const int finest_ln=-1);
+
+    void
+    interp(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_data,
+        const int u_data_idx,
+        const bool u_data_ghost_cell_update,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
+        const bool X_data_ghost_node_update,
+        const int coarsest_ln=-1,
+        const int finest_ln=-1);
 
     /*!
      * Project the velocity field following a regridding operation.
@@ -791,6 +893,25 @@ private:
     getPatchDt(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx) const;
+
+    /*!
+     * Initialize the IBLagrangianForceStrategy object for the current
+     * configuration of the curvilinear mesh.
+     */
+    void
+    resetLagrangianForceStrategy(
+        const double init_data_time,
+        const bool initial_time);
+
+    /*!
+     * Set the elements of the Lagrangian vector to zero at anchored nodes of
+     * the curvilinear mesh.
+     */
+    void
+    resetAnchorPointValues(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > V_data,
+        const int coarsest_ln,
+        const int finest_ln);
 
     /*!
      * Read input values, indicated above, from given database.  The boolean
@@ -839,13 +960,28 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
 
     /*
-     * We cache a pointer to the VisIt data writer to register plot variables.
+     * We cache a pointer to the visualization data writers to register plot
+     * variables.
      *
      * Double precision values are (optional) factors used to rescale the
      * velocity, pressure, and force for plotting.
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
-    double d_U_scale, d_P_scale, d_F_scale;
+    SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> d_silo_writer;
+#if (NDIM == 3)
+    SAMRAI::tbox::Pointer<IBTK::LagM3DDataWriter> d_m3D_writer;
+#endif
+    double d_u_scale, d_p_scale, d_f_scale;
+
+    /*
+     * We cache a pointer to the load balancer.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
+
+    /*
+     * Whether to use the exact Jacobian or the matrix-free Jacobian.
+     */
+    bool d_use_exact_jacobian;
 
     /*
      * Integrator data read from input or set at initialization.
@@ -888,8 +1024,8 @@ private:
      * vorticity.
      */
     bool d_using_vorticity_tagging;
-    SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
-    double d_Omega_max;
+    SAMRAI::tbox::Array<double> d_omega_rel_thresh, d_omega_abs_thresh;
+    double d_omega_max;
 
     /*
      * This boolean value determines whether the pressure is normalized to have
@@ -901,31 +1037,31 @@ private:
      * This boolean value indicates whether to output the velocity for
      * visualization.
      */
-    bool d_output_U;
+    bool d_output_u;
 
     /*
      * This boolean value indicates whether to output the pressure for
      * visualization.
      */
-    bool d_output_P;
+    bool d_output_p;
 
     /*
      * This boolean value indicates whether to output the force for
      * visualization.
      */
-    bool d_output_F;
+    bool d_output_f;
 
     /*
      * This boolean value indicates whether to store the cell centered vorticity
      * (curl U) for visualization.
      */
-    bool d_output_Omega;
+    bool d_output_omega;
 
     /*
      * These boolean values indicate whether to store the cell centered
      * divergences of U, u, and u_adv for visualization.
      */
-    bool d_output_Div_U;
+    bool d_output_div_u;
 
     /*
      * Integrator data that evolves during time integration and maintains the
@@ -966,7 +1102,7 @@ private:
      *       nu_water  = 0.01 cm^2 s^-1
      */
     double d_rho, d_mu, d_lambda;
-    INSCoefs* d_problem_coefs;
+    SAMRAI::tbox::Pointer<INSCoefs> d_problem_coefs;
 
     /*
      * Hierarchy operations objects.
@@ -993,6 +1129,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_rhs_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_nul_vec;
 
+    bool d_stokes_op_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
 
     bool d_convective_op_needs_init;
@@ -1022,10 +1159,7 @@ private:
     bool d_block_pc_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredBlockFactorizationPreconditioner> d_block_pc;
 
-    bool d_stokes_solver_needs_init;
-    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;
-    double d_div_u_abstol;
-    void* d_default_conv_ctx;
+    double d_div_u_abstol;  // XXXX this value is not used currently
 
     bool d_needs_regrid_projection;
     double d_regrid_max_div_growth_factor;
@@ -1036,6 +1170,8 @@ private:
     SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>             d_regrid_projection_fac_op;
     SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_regrid_projection_fac_pc;
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>          d_regrid_projection_solver;
+
+    double d_current_time, d_new_time, d_dt;
 
     /*
      * Communications algorithms, patch strategies, and schedules.
@@ -1051,21 +1187,21 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid, d_fill_cf_interface_after_regrid;
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
 
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_u_bdry_bc_fill_op, d_u_bdry_extrap_fill_op, d_no_fill_op;
 
     /*
      * Objects to set initial conditions (note that the initial value of the
      * pressure is only used for visualization), boundary conditions, and body
      * forcing.
      */
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_U_init, d_P_init;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_star_bc_coefs;
-    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_init, d_p_init;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_u_bc_coef;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_star_bc_coefs;
+    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_u_bc_helper;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_p_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_phi_bc_coef;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_f_set;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
@@ -1092,17 +1228,18 @@ private:
     /*!
      * State and scratch variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_u_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_p_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_f_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_f_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_omega_var;
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_omega_norm_var;
 #endif
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_div_u_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_interp_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_phi_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int   > > d_indicator_var;
 
     /*
@@ -1111,24 +1248,27 @@ private:
      *
      * State variables have three contexts: current, scratch, and new.
      */
-    int          d_U_current_idx,          d_U_new_idx,          d_U_scratch_idx;
-    int       d_U_cc_current_idx,       d_U_cc_new_idx,       d_U_cc_scratch_idx;
-    int          d_P_current_idx,          d_P_new_idx,          d_P_scratch_idx;
-    int          d_F_current_idx,          d_F_new_idx,          d_F_scratch_idx;
-    int       d_F_cc_current_idx,       d_F_cc_new_idx,       d_F_cc_scratch_idx;
-    int      d_Omega_current_idx,      d_Omega_new_idx,      d_Omega_scratch_idx;
+    int          d_u_current_idx,          d_u_new_idx,          d_u_scratch_idx;
+    int       d_u_cc_current_idx,       d_u_cc_new_idx,       d_u_cc_scratch_idx;
+    int          d_p_current_idx,          d_p_new_idx,          d_p_scratch_idx;
+    int          d_f_current_idx,          d_f_new_idx,          d_f_scratch_idx;
+    int       d_f_cc_current_idx,       d_f_cc_new_idx,       d_f_cc_scratch_idx;
+    int      d_omega_current_idx,      d_omega_new_idx,      d_omega_scratch_idx;
 #if (NDIM == 3)
-    int d_Omega_Norm_current_idx, d_Omega_Norm_new_idx, d_Omega_Norm_scratch_idx;
+    int d_omega_norm_current_idx, d_omega_norm_new_idx, d_omega_norm_scratch_idx;
 #endif
-    int      d_Div_U_current_idx,      d_Div_U_new_idx,      d_Div_U_scratch_idx;
+    int      d_div_u_current_idx,      d_div_u_new_idx,      d_div_u_scratch_idx;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the
      * integrator.
      *
-     * Scratch variables have only one context: scratch.
+     * Scratch variables have only one context.
      */
-    int d_Phi_idx, d_indicator_idx;
+    int d_u_interp_idx, d_phi_idx, d_indicator_idx;
+    int d_u_rhs_idx, d_u_nul_idx, d_u_half_idx, d_n_idx;
+    int d_p_rhs_idx, d_p_nul_idx;
+    int d_gadvect_u_scratch_idx;
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
@@ -1137,6 +1277,58 @@ private:
      * Such variables have only one context.
      */
     int d_wgt_cc_idx, d_wgt_sc_idx;
+
+    /*
+     * The name of the discrete delta function to employ for interpolation and
+     * spreading.
+     */
+    std::string d_delta_fcn;
+    SAMRAI::hier::IntVector<NDIM> d_ghosts;
+
+    /*
+     * The LDataManager is used to coordinate the distribution of Lagrangian
+     * data on the patch hierarchy.
+     */
+    IBTK::LDataManager* d_lag_data_manager;
+
+    /*
+     * The specification and initialization information for the Lagrangian data
+     * used by the integrator.
+     */
+    SAMRAI::tbox::Pointer<IBTK::LNodeInitStrategy> d_lag_init;
+
+    /*
+     * The force generators.
+     */
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_body_force_set;
+    SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_force_strategy;
+    bool d_force_strategy_needs_init;
+
+    /*
+     * Lagrangian data.
+     */
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_mid_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_U_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_F_half_data;
+    std::vector<Mat> d_J_mat, d_strct_mat, d_strct_pc_mat;
+    std::vector<KSP> d_strct_ksp;
+
+    /*
+     * Solvers.
+     */
+    SNES d_petsc_snes;
+    Vec d_petsc_x_vec, d_petsc_f_vec;
+
+    /*
+     * List of local indicies of local anchor points.
+     *
+     * NOTE: IB points are automatically considered to be anchored if they are
+     * within 2.0*sqrt(epsilon_mach) of the physical boundary.
+     */
+    std::vector<std::set<int > > d_anchor_point_local_idxs;
 
     /*!
      * \brief Callback function pointers and callback contexts.
@@ -1151,8 +1343,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredHierarchyIntegrator.I>
+//#include <ibamr/IBImplicitHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredHierarchyIntegrator
+#endif //#ifndef included_IBImplicitHierarchyIntegrator

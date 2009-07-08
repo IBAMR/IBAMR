@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <23.Jan.2009 17:43:31 beg208@cardiac.es.its.nyu.edu>
+// Last modified: <08.Jul.2009 18:08:21 griffith@griffith-macbook-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -64,15 +64,13 @@ IBSpringForceGen::IBSpringForceGen(
       d_stiffnesses(),
       d_rest_lengths(),
       d_is_initialized(),
-      d_force_fcn_map(),
-      d_force_jacobian_fcn_map()
+      d_force_fcn_map()
 {
     // Initialize object with data read from the input database.
     getFromInput(input_db);
 
     // Setup the default force generation functions.
     registerSpringForceFunction(0, &IBAMR::default_linear_spring_force);
-    registerSpringForceJacobianFunction(0, &IBAMR::default_linear_spring_force_jacobian);
 
     // Setup Timers.
     static bool timers_need_init = true;
@@ -112,15 +110,6 @@ IBSpringForceGen::registerSpringForceFunction(
     d_force_fcn_map[force_fcn_index] = force_fcn;
     return;
 }// registerSpringForceFunction
-
-void
-IBSpringForceGen::registerSpringForceJacobianFunction(
-    const int force_fcn_index,
-    void (*force_jacobian_fcn)(double dF_dX[NDIM*NDIM], const double D[NDIM], const double& stf, const double& rst, const int& lag_mastr_idx, const int& lag_slave_idx))
-{
-    d_force_jacobian_fcn_map[force_fcn_index] = force_jacobian_fcn;
-    return;
-}// registerSpringForceJacobianFunction
 
 void
 IBSpringForceGen::initializeLevelData(
@@ -546,7 +535,22 @@ IBSpringForceGen::computeLagrangianForceJacobian(
         const int& lag_mastr_idx = lag_mastr_node_idxs[k];
         const int& lag_slave_idx = lag_slave_node_idxs[k];
         const int& force_fcn_id = force_fcn_idxs[k];
-        d_force_jacobian_fcn_map[force_fcn_id](&dF_dX[0],D,stf,rst,lag_mastr_idx,lag_slave_idx);
+
+        static const double eps = std::pow(std::numeric_limits<double>::epsilon(),1.0/3.0);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            std::vector<double> D_eps(D,D+NDIM);
+            D_eps[d] += 1.0*eps;
+            std::vector<double> F1(NDIM,0.0);
+            d_force_fcn_map[force_fcn_id](&F1[0],&D_eps[0],stf,rst,lag_mastr_idx,lag_slave_idx);
+            D_eps[d] -= 2.0*eps;
+            std::vector<double> F0(NDIM,0.0);
+            d_force_fcn_map[force_fcn_id](&F0[0],&D_eps[0],stf,rst,lag_mastr_idx,lag_slave_idx);
+            for (int dd = 0; dd < NDIM; ++dd)
+            {
+                dF_dX[d+dd*NDIM] = (F1[dd]-F0[dd])/(2.0*eps);
+            }
+        }
 
         // Scale the Jacobian entries appropriately.
         std::transform(dF_dX.begin(), dF_dX.end(), dF_dX.begin(), std::bind2nd(std::multiplies<double>(),X_coef));
