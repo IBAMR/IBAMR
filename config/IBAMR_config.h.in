@@ -161,9 +161,6 @@
 /* Define if you have the silo library. */
 #undef HAVE_LIBSILO
 
-/* Define if you have the siloh5 library. */
-#undef HAVE_LIBSILOH5
-
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
