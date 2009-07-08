@@ -301,7 +301,7 @@ IBTargetPointForceGen::computeLagrangianForceJacobian(
                         const int& mastr_idx = node_idx->getLagrangianIndex();
                         TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
-                        const int& local_petsc_idx = node_idx->getLocalPETScIndex()+global_node_offset;
+                        const int& local_petsc_idx = node_idx->getLocalPETScIndex();
                         const int global_petsc_idx = local_petsc_idx+global_node_offset;
                         global_petsc_idxs.push_back(global_petsc_idx);
 
