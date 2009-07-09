@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <15.Aug.2008 15:25:01 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <09.Jul.2009 00:09:50 griffith@griffith-macbook-pro.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
@@ -30,6 +30,9 @@
 #include <tbox/MathUtilities.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
+
+// BLITZ++ INCLUDES
+#include <blitz/array.h>
 
 // C++ STDLIB INCLUDES
 #include <numeric>
@@ -317,7 +320,7 @@ IBTargetPointForceGen::computeLagrangianForceJacobian(
     }
 
     // Compute the elements of the Jacobian matrix.
-    std::vector<double> dF_dX(NDIM*NDIM,0.0);
+    blitz::Array<double,2> dF_dX(NDIM,NDIM);  dF_dX = 0.0;
     const int num_local_idxs = global_petsc_idxs.size();
     for (int k = 0; k < num_local_idxs; ++k)
     {
@@ -326,9 +329,9 @@ IBTargetPointForceGen::computeLagrangianForceJacobian(
         const double& damping_coefficient = damping_coefficients[k];
         for (int alpha = 0; alpha < NDIM; ++alpha)
         {
-            dF_dX[alpha+alpha*NDIM] = -X_coef*spring_stiffness-U_coef*damping_coefficient;
+            dF_dX(alpha,alpha) = -X_coef*spring_stiffness-U_coef*damping_coefficient;
         }
-        ierr = MatSetValuesBlocked(J_mat,1,&global_petsc_idx,1,&global_petsc_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&global_petsc_idx,1,&global_petsc_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
     }
 
     // Assemble the matrix.

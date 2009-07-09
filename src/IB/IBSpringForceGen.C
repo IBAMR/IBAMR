@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <08.Jul.2009 18:08:21 griffith@griffith-macbook-pro.local>
+// Last modified: <09.Jul.2009 00:04:48 griffith@griffith-macbook-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -30,6 +30,10 @@
 #include <PatchLevel.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
+
+// BLITZ++ INCLUDES
+#include <blitz/array.h>
+#include <blitz/tinyvec.h>
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
@@ -260,12 +264,12 @@ IBSpringForceGen::initializeLevelData(
                             PETSC_DEFAULT, &o_nnz[0],
                             &D_mat);  IBTK_CHKERRQ(ierr);
 
-    std::vector<double> mastr_vals(NDIM*NDIM,0.0);
-    std::vector<double> slave_vals(NDIM*NDIM,0.0);
+    blitz::Array<double,2> mastr_vals(NDIM,NDIM);  mastr_vals = 0.0;
+    blitz::Array<double,2> slave_vals(NDIM,NDIM);  slave_vals = 0.0;
     for (int d = 0; d < NDIM; ++d)
     {
-        mastr_vals[d+d*NDIM] = -1.0;
-        slave_vals[d+d*NDIM] = +1.0;
+        mastr_vals(d,d) = -1.0;
+        slave_vals(d,d) = +1.0;
     }
 
     int i_offset;
@@ -278,12 +282,8 @@ IBSpringForceGen::initializeLevelData(
         int i = i_offset + k;
         int j_mastr = petsc_mastr_node_idxs[k];
         int j_slave = petsc_slave_node_idxs[k];
-
-        ierr = MatSetValuesBlocked(D_mat,1,&i,1,&j_mastr,&(mastr_vals[0]),
-                                   INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-
-        ierr = MatSetValuesBlocked(D_mat,1,&i,1,&j_slave,&(slave_vals[0]),
-                                   INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(D_mat,1,&i,1,&j_mastr,mastr_vals.data(),INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(D_mat,1,&i,1,&j_slave,slave_vals.data(),INSERT_VALUES);  IBTK_CHKERRQ(ierr);
     }
 
     // Assemble the matrices.
@@ -528,7 +528,7 @@ IBSpringForceGen::computeLagrangianForceJacobian(
     {
         // Compute the Jacobian of the force applied by the spring to the
         // "master" node with respect to the position of the "slave" node.
-        std::vector<double> dF_dX(NDIM*NDIM,0.0);
+        blitz::Array<double,2> dF_dX(NDIM,NDIM);
         const double* const D = &D_arr[k*NDIM];
         const double& stf = stiffnesses[k];
         const double& rst = rest_lengths[k];
@@ -537,23 +537,23 @@ IBSpringForceGen::computeLagrangianForceJacobian(
         const int& force_fcn_id = force_fcn_idxs[k];
 
         static const double eps = std::pow(std::numeric_limits<double>::epsilon(),1.0/3.0);
-        for (int d = 0; d < NDIM; ++d)
+        for (int j = 0; j < NDIM; ++j)
         {
-            std::vector<double> D_eps(D,D+NDIM);
-            D_eps[d] += 1.0*eps;
-            std::vector<double> F1(NDIM,0.0);
+            blitz::TinyVector<double,NDIM> D_eps(D);
+            D_eps[j] += 1.0*eps;
+            blitz::TinyVector<double,NDIM> F1;
             d_force_fcn_map[force_fcn_id](&F1[0],&D_eps[0],stf,rst,lag_mastr_idx,lag_slave_idx);
-            D_eps[d] -= 2.0*eps;
-            std::vector<double> F0(NDIM,0.0);
+            D_eps[j] -= 2.0*eps;
+            blitz::TinyVector<double,NDIM> F0;
             d_force_fcn_map[force_fcn_id](&F0[0],&D_eps[0],stf,rst,lag_mastr_idx,lag_slave_idx);
-            for (int dd = 0; dd < NDIM; ++dd)
+            for (int i = 0; i < NDIM; ++i)
             {
-                dF_dX[d+dd*NDIM] = (F1[dd]-F0[dd])/(2.0*eps);
+                dF_dX(i,j) = (F1[i]-F0[i])/(2.0*eps);
             }
         }
 
         // Scale the Jacobian entries appropriately.
-        std::transform(dF_dX.begin(), dF_dX.end(), dF_dX.begin(), std::bind2nd(std::multiplies<double>(),X_coef));
+        dF_dX *= X_coef;
 
         // Get the PETSc indices corresponding to the "master" and "slave"
         // nodes.
@@ -561,17 +561,17 @@ IBSpringForceGen::computeLagrangianForceJacobian(
         const int& petsc_slave_idx = petsc_slave_node_idxs[k];
 
         // Accumulate the off-diagonal parts of the matrix.
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_slave_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_slave_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_slave_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_slave_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
         // Negate dF_dX to obtain the Jacobian of the force applied by the
         // spring to the "master" node with respect to the position of the
         // "master" node.
-        std::transform(dF_dX.begin(), dF_dX.end(), dF_dX.begin(), std::bind2nd(std::multiplies<double>(),-1.0));
+        dF_dX *= -1.0;
 
         // Accumulate the diagonal parts of the matrix.
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_slave_idx,1,&petsc_slave_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_slave_idx,1,&petsc_slave_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
     }
 
     ierr = VecRestoreArray(D_vec, &D_arr);  IBTK_CHKERRQ(ierr);

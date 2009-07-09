@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <23.Jan.2009 17:42:59 beg208@cardiac.es.its.nyu.edu>
+// Last modified: <09.Jul.2009 00:10:57 griffith@griffith-macbook-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -30,6 +30,9 @@
 #include <PatchLevel.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
+
+// BLITZ++ INCLUDES
+#include <blitz/array.h>
 
 // C++ STDLIB INCLUDES
 #include <numeric>
@@ -271,12 +274,12 @@ IBBeamForceGen::initializeLevelData(
                             PETSC_DEFAULT, &prev_o_nz[0],
                             &D_prev_mat);  IBTK_CHKERRQ(ierr);
 
-    std::vector<double> mastr_vals(NDIM*NDIM,0.0);
-    std::vector<double> slave_vals(NDIM*NDIM,0.0);
+    blitz::Array<double,2> mastr_vals(NDIM,NDIM);  mastr_vals = 0.0;
+    blitz::Array<double,2> slave_vals(NDIM,NDIM);  slave_vals = 0.0;
     for (int d = 0; d < NDIM; ++d)
     {
-        mastr_vals[d+d*NDIM] = -1.0;
-        slave_vals[d+d*NDIM] = +1.0;
+        mastr_vals(d,d) = -1.0;
+        slave_vals(d,d) = +1.0;
     }
 
     int i_offset;
@@ -290,12 +293,8 @@ IBBeamForceGen::initializeLevelData(
         int i = i_offset + k;
         int j_mastr = petsc_mastr_node_idxs[k];
         int j_slave = petsc_next_node_idxs[k];
-
-        ierr = MatSetValuesBlocked(D_next_mat,1,&i,1,&j_mastr,&(mastr_vals[0]),
-                                   INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-
-        ierr = MatSetValuesBlocked(D_next_mat,1,&i,1,&j_slave,&(slave_vals[0]),
-                                   INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(D_next_mat,1,&i,1,&j_mastr,mastr_vals.data(),INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(D_next_mat,1,&i,1,&j_slave,slave_vals.data(),INSERT_VALUES);  IBTK_CHKERRQ(ierr);
     }
 
     ierr = MatGetOwnershipRange(D_prev_mat, &i_offset, PETSC_NULL);
@@ -307,12 +306,8 @@ IBBeamForceGen::initializeLevelData(
         int i = i_offset + k;
         int j_mastr = petsc_mastr_node_idxs[k];
         int j_slave = petsc_prev_node_idxs[k];
-
-        ierr = MatSetValuesBlocked(D_prev_mat,1,&i,1,&j_mastr,&(mastr_vals[0]),
-                                   INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-
-        ierr = MatSetValuesBlocked(D_prev_mat,1,&i,1,&j_slave,&(slave_vals[0]),
-                                   INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(D_prev_mat,1,&i,1,&j_mastr,mastr_vals.data(),INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(D_prev_mat,1,&i,1,&j_slave,slave_vals.data(),INSERT_VALUES);  IBTK_CHKERRQ(ierr);
     }
 
     // Assemble the matrix.
@@ -578,7 +573,7 @@ IBBeamForceGen::computeLagrangianForceJacobian(
 
     // Compute the matrix elements and add them to the Jacobian matrix.
     std::vector<double>& bend_rigidities = d_bend_rigidities[level_number];
-    std::vector<double> dF_dX(NDIM*NDIM,0.0);
+    blitz::Array<double,2> dF_dX(NDIM,NDIM);  dF_dX = 0.0;
     for (int k = 0; k < local_sz; ++k)
     {
         const int& petsc_mastr_idx = petsc_mastr_node_idxs[k];
@@ -588,27 +583,27 @@ IBBeamForceGen::computeLagrangianForceJacobian(
 
         for (int alpha = 0; alpha < NDIM; ++alpha)
         {
-            dF_dX[alpha+alpha*NDIM] = -1.0*bend;
+            dF_dX(alpha,alpha) = -1.0*bend;
         }
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_prev_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_next_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_prev_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_next_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_prev_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_next_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_prev_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_next_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
         for (int alpha = 0; alpha < NDIM; ++alpha)
         {
-            dF_dX[alpha+alpha*NDIM] = +2.0*bend;
+            dF_dX(alpha,alpha) = +2.0*bend;
         }
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_prev_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_next_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_prev_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_next_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
         for (int alpha = 0; alpha < NDIM; ++alpha)
         {
-            dF_dX[alpha+alpha*NDIM] = -4.0*bend;
+            dF_dX(alpha,alpha) = -4.0*bend;
         }
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,&dF_dX[0],ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
     }
 
     // Assemble the matrix.
