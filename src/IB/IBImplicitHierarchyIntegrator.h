@@ -2,7 +2,7 @@
 #define included_IBImplicitHierarchyIntegrator
 
 // Filename: IBImplicitHierarchyIntegrator.h
-// Last modified: <09.Jul.2009 10:10:20 griffith@griffith-macbook-pro.local>
+// Last modified: <09.Jul.2009 14:52:50 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -781,6 +781,17 @@ private:
         Vec f);
 
     static PetscErrorCode
+    FormForceFunction_SAMRAI(
+        void* p_ctx,
+        Vec x,
+        Vec f);
+
+    void
+    FormForceFunction(
+        Vec x,
+        Vec f);
+
+    static PetscErrorCode
     FormJacobian_SAMRAI(
         SNES snes,
         Vec x,
@@ -1313,7 +1324,7 @@ private:
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_U_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_F_half_data;
-    std::vector<Mat> d_J_mat, d_strct_mat, d_strct_pc_mat;
+    std::vector<Mat> d_J_mat, d_J_mffd_mat, d_strct_mat, d_strct_pc_mat;
     std::vector<KSP> d_strct_ksp;
 
     /*

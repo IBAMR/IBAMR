@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <09.Jul.2009 00:04:48 griffith@griffith-macbook-pro.local>
+// Last modified: <09.Jul.2009 14:11:32 griffith@griffith-macbook-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -536,7 +536,7 @@ IBSpringForceGen::computeLagrangianForceJacobian(
         const int& lag_slave_idx = lag_slave_node_idxs[k];
         const int& force_fcn_id = force_fcn_idxs[k];
 
-        static const double eps = std::pow(std::numeric_limits<double>::epsilon(),1.0/3.0);
+        static const double eps = sqrt(std::numeric_limits<double>::epsilon());
         for (int j = 0; j < NDIM; ++j)
         {
             blitz::TinyVector<double,NDIM> D_eps(D);

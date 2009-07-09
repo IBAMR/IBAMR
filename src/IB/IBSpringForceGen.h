@@ -2,7 +2,7 @@
 #define included_IBSpringForceGen
 
 // Filename: IBSpringForceGen.h
-// Last modified: <08.Jul.2009 18:07:30 griffith@griffith-macbook-pro.local>
+// Last modified: <09.Jul.2009 14:30:13 griffith@griffith-macbook-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
