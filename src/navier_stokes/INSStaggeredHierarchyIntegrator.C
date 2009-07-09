@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <07.Jul.2009 23:56:07 griffith@griffith-macbook-pro.local>
+// Last modified: <09.Jul.2009 11:00:37 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -2896,7 +2896,7 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
 
     if (!d_projection_pc.isNull())
     {
-        d_projection_pc->setTimeInterval(current_time,new_time);
+        d_projection_pc->setTimeInterval(current_time,new_time,dt);
         if (d_projection_pc_needs_init && !d_stokes_solver_needs_init)
         {
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): Initializing projection preconditioner" << std::endl;

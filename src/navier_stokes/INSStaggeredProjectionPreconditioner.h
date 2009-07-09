@@ -2,7 +2,7 @@
 #define included_INSStaggeredProjectionPreconditioner
 
 // Filename: INSStaggeredProjectionPreconditioner.h
-// Last modified: <23.Sep.2008 16:59:45 griffith@box230.cims.nyu.edu>
+// Last modified: <09.Jul.2009 10:55:19 griffith@griffith-macbook-pro.local>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -54,11 +54,15 @@ public:
 
     /*!
      * \brief Set the current time interval.
+     *
+     * \note The time increment dt is not required to equal
+     * new_time-current_time.
      */
     void
     setTimeInterval(
         const double current_time,
-        const double new_time);
+        const double new_time,
+        const double dt);
 
     /*!
      * \name Linear solver functionality.

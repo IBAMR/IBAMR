@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <26.Jan.2009 13:24:05 beg208@cardiac.es.its.nyu.edu>
+// Last modified: <09.Jul.2009 10:56:50 griffith@griffith-macbook-pro.local>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -126,14 +126,15 @@ INSStaggeredProjectionPreconditioner::~INSStaggeredProjectionPreconditioner()
 void
 INSStaggeredProjectionPreconditioner::setTimeInterval(
     const double current_time,
-    const double new_time)
+    const double new_time,
+    const double dt)
 {
     const double rho    = d_problem_coefs.getRho();
     const double mu     = d_problem_coefs.getMu();
     const double lambda = d_problem_coefs.getLambda();
     d_current_time = current_time;
     d_new_time = new_time;
-    d_dt = d_new_time-d_current_time;
+    d_dt = dt;
     d_pressure_helmholtz_spec.setCConstant(1.0+0.5*d_dt*lambda/rho);
     d_pressure_helmholtz_spec.setDConstant(   -0.5*d_dt*mu    /rho);
     return;
@@ -213,22 +214,22 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     // Use Phi to project u^{*}.
     const bool u_new_cf_bdry_synch = true;
     d_hier_math_ops->grad(
-        U_out_idx, U_out_sc_var,      // dst
-        u_new_cf_bdry_synch,          // dst_cf_bdry_synch
-        -d_dt/rho,                    // alpha
-        d_Phi_scratch_idx, d_Phi_var, // src1
-        d_Phi_bdry_fill_op,           // src1_bdry_fill
-        d_current_time+0.5*d_dt,      // src1_bdry_fill_time
-        1.0,                          // beta
-        U_out_idx, U_out_sc_var);     // src2
+        U_out_idx, U_out_sc_var,         // dst
+        u_new_cf_bdry_synch,             // dst_cf_bdry_synch
+        -d_dt/rho,                       // alpha
+        d_Phi_scratch_idx, d_Phi_var,    // src1
+        d_Phi_bdry_fill_op,              // src1_bdry_fill
+        0.5*(d_current_time+d_new_time), // src1_bdry_fill_time
+        1.0,                             // beta
+        U_out_idx, U_out_sc_var);        // src2
 
     // Compute P_out.
     d_hier_math_ops->laplace(
-        P_out_idx, P_out_cc_var,      // dst
-        d_pressure_helmholtz_spec,    // Poisson spec
-        d_Phi_scratch_idx, d_Phi_var, // src
-        d_no_fill_op,                 // src_bdry_fill
-        d_current_time+0.5*d_dt);     // src_bdry_fill_time
+        P_out_idx, P_out_cc_var,          // dst
+        d_pressure_helmholtz_spec,        // Poisson spec
+        d_Phi_scratch_idx, d_Phi_var,     // src
+        d_no_fill_op,                     // src_bdry_fill
+        0.5*(d_current_time+d_new_time)); // src_bdry_fill_time
     if (d_normalize_pressure)
     {
         const double P_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(P_out_idx, d_wgt_cc_idx);
