@@ -2,7 +2,7 @@
 #define included_IBImplicitHierarchyIntegrator
 
 // Filename: IBImplicitHierarchyIntegrator.h
-// Last modified: <08.Jul.2009 16:21:31 griffith@griffith-macbook-pro.local>
+// Last modified: <09.Jul.2009 10:10:20 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -811,17 +811,6 @@ private:
         Vec* left);
 
     static PetscErrorCode
-    PCApplyFluid_SAMRAI(
-        void* p_ctx,
-        Vec x,
-        Vec y);
-
-    void
-    PCApplyFluid(
-        Vec x,
-        Vec y);
-
-    static PetscErrorCode
     PCApplyStrct_SAMRAI(
         void* p_ctx,
         Vec x,
@@ -829,6 +818,17 @@ private:
 
     void
     PCApplyStrct(
+        Vec x,
+        Vec y);
+
+    static PetscErrorCode
+    PCApplyFluid_SAMRAI(
+        void* p_ctx,
+        Vec x,
+        Vec y);
+
+    void
+    PCApplyFluid(
         Vec x,
         Vec y);
 

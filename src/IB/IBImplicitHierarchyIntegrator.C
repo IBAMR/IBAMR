@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <08.Jul.2009 17:49:36 griffith@griffith-macbook-pro.local>
+// Last modified: <09.Jul.2009 11:13:11 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -1378,26 +1378,23 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
         ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp);  IBTK_CHKERRQ(ierr);
     }
 
-    PC petsc_pc;
+    PC petsc_pc, petsc_component_pc;
     ierr = KSPGetPC(petsc_ksp, &petsc_pc);  IBTK_CHKERRQ(ierr);
-    ierr = PCSetType(petsc_pc, const_cast<char*>(PCCOMPOSITE));  IBTK_CHKERRQ(ierr);
+    ierr = PCSetType(petsc_pc, PCCOMPOSITE);  IBTK_CHKERRQ(ierr);
+    ierr = PCCompositeSetType(petsc_pc, PC_COMPOSITE_MULTIPLICATIVE);  IBTK_CHKERRQ(ierr);
     int composite_pc_counter = 0;
 
-    PC petsc_fluid_pc;
-    static const int fluid_pc_number = composite_pc_counter++;
     ierr = PCCompositeAddPC(petsc_pc, const_cast<char*>(PCSHELL));  IBTK_CHKERRQ(ierr);
-    ierr = PCCompositeGetPC(petsc_pc, fluid_pc_number, &petsc_fluid_pc);  IBTK_CHKERRQ(ierr);
-    ierr = PCShellSetContext(petsc_fluid_pc, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
-    ierr = PCShellSetApply(petsc_fluid_pc, IBImplicitHierarchyIntegrator::PCApplyFluid_SAMRAI);  IBTK_CHKERRQ(ierr);
-    ierr = PCShellSetName(petsc_fluid_pc, "IBImplicitHierarchyIntegrator Fluid PC");  IBTK_CHKERRQ(ierr);
+    ierr = PCCompositeGetPC(petsc_pc, composite_pc_counter++, &petsc_component_pc);  IBTK_CHKERRQ(ierr);
+    ierr = PCShellSetContext(petsc_component_pc, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
+    ierr = PCShellSetApply(petsc_component_pc, IBImplicitHierarchyIntegrator::PCApplyStrct_SAMRAI);  IBTK_CHKERRQ(ierr);
+    ierr = PCShellSetName(petsc_component_pc, "IBImplicitHierarchyIntegrator Strct PC");  IBTK_CHKERRQ(ierr);
 
-    PC petsc_strct_pc;
-    static const int strct_pc_number = composite_pc_counter++;
     ierr = PCCompositeAddPC(petsc_pc, const_cast<char*>(PCSHELL));  IBTK_CHKERRQ(ierr);
-    ierr = PCCompositeGetPC(petsc_pc, strct_pc_number, &petsc_strct_pc);  IBTK_CHKERRQ(ierr);
-    ierr = PCShellSetContext(petsc_strct_pc, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
-    ierr = PCShellSetApply(petsc_strct_pc, IBImplicitHierarchyIntegrator::PCApplyStrct_SAMRAI);  IBTK_CHKERRQ(ierr);
-    ierr = PCShellSetName(petsc_strct_pc, "IBImplicitHierarchyIntegrator Strct PC");  IBTK_CHKERRQ(ierr);
+    ierr = PCCompositeGetPC(petsc_pc, composite_pc_counter++, &petsc_component_pc);  IBTK_CHKERRQ(ierr);
+    ierr = PCShellSetContext(petsc_component_pc, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
+    ierr = PCShellSetApply(petsc_component_pc, IBImplicitHierarchyIntegrator::PCApplyFluid_SAMRAI);  IBTK_CHKERRQ(ierr);
+    ierr = PCShellSetName(petsc_component_pc, "IBImplicitHierarchyIntegrator Fluid PC");  IBTK_CHKERRQ(ierr);
 
     ierr = SNESSetOptionsPrefix(d_petsc_snes, options_prefix.c_str());  IBTK_CHKERRQ(ierr);
     ierr = SNESSetFromOptions(d_petsc_snes);  IBTK_CHKERRQ(ierr);
@@ -1428,6 +1425,16 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
         ierr = VecAXPBY(X_mid_vec,0.5,0.5,X_new_vec);  IBTK_CHKERRQ(ierr);
         d_X_mid_data[finest_ln]->beginGhostUpdate();
         d_X_mid_data[finest_ln]->endGhostUpdate();
+
+        // Set the initial guess using forward Euler.
+        if (cycle == 0)
+        {
+            d_hier_sc_data_ops->copyData(d_u_interp_idx, d_u_current_idx);
+            interp(d_U_half_data, d_u_interp_idx, true, d_X_data, true);
+            resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
+            Vec U_half_vec = d_U_half_data[finest_ln]->getGlobalVec();
+            ierr = VecAXPY(X_new_vec,d_dt,U_half_vec);  IBTK_CHKERRQ(ierr);
+        }
 
         // Solve for u(n+1), p(n+1/2), and X(n+1).
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_sol_multivec));  IBTK_CHKERRQ(ierr);
@@ -3283,6 +3290,87 @@ IBImplicitHierarchyIntegrator::PCApplyFluid_SAMRAI(
     PetscFunctionReturn(0);
 }// PCApplyFluid_SAMRAI
 
+int
+IBImplicitHierarchyIntegrator::PCApplyStrct_SAMRAI(
+    void* p_ctx,
+    Vec x,
+    Vec y)
+{
+    PetscErrorCode ierr;
+    IBImplicitHierarchyIntegrator* hier_integrator = static_cast<IBImplicitHierarchyIntegrator*>(p_ctx);
+#if DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(hier_integrator != NULL);
+#endif
+    hier_integrator->PCApplyStrct(x,y);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+}// PCApplyStrct_SAMRAI
+
+void
+IBImplicitHierarchyIntegrator::PCApplyStrct(
+    Vec x,
+    Vec y)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+//  SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+
+    PetscErrorCode ierr;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    int N_x;
+    ierr = IBTK::VecMultiVecGetNumberOfVecs(x,&N_x);  IBTK_CHKERRQ(ierr);
+    int N_y;
+    ierr = IBTK::VecMultiVecGetNumberOfVecs(y,&N_y);  IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(N_x == 2);
+    TBOX_ASSERT(N_y == 2);
+#endif
+    Vec* petsc_x_multivecs;
+    ierr = IBTK::VecMultiVecGetVecs(x, &petsc_x_multivecs);  IBTK_CHKERRQ(ierr);
+    Vec petsc_fluid_x_vec = petsc_x_multivecs[0];
+    Vec petsc_strct_x_vec = petsc_x_multivecs[1];
+
+    Vec* petsc_y_multivecs;
+    ierr = IBTK::VecMultiVecGetVecs(y, &petsc_y_multivecs);  IBTK_CHKERRQ(ierr);
+    Vec petsc_fluid_y_vec = petsc_y_multivecs[0];
+    Vec petsc_strct_y_vec = petsc_y_multivecs[1];
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_x_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_x_vec);
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_y_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_y_vec);
+
+    // Allocate temporary data.
+    Vec petsc_strct_f_vec;
+    ierr = VecDuplicate(petsc_strct_x_vec, &petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
+
+    // Compute the right hand side term for the structure solve.
+    ierr = VecCopy(petsc_strct_x_vec, petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecScale(petsc_strct_f_vec, d_dt);
+    d_hier_sc_data_ops->copyData(d_u_interp_idx, fluid_x_vec->getComponentDescriptorIndex(0));
+    interp(d_U_half_data, d_u_interp_idx, true, d_X_mid_data, false);
+    resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
+    Vec U_half_vec = d_U_half_data[finest_ln]->getGlobalVec();
+    ierr = VecAXPY(petsc_strct_f_vec, 0.5*d_dt*d_dt/d_rho, U_half_vec);  IBTK_CHKERRQ(ierr);
+
+    // Compute the action of the structure preconditioner.
+    ierr = KSPSolve(d_strct_ksp[finest_ln], petsc_strct_f_vec, petsc_strct_y_vec);  IBTK_CHKERRQ(ierr);
+
+    // Update the fluid variables.
+    Vec F_half_vec = d_F_half_data[finest_ln]->getGlobalVec();
+    ierr = MatMult(d_J_mat[finest_ln], petsc_strct_y_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
+    spread(d_f_scratch_idx, d_F_half_data, true, d_X_mid_data, false);
+    d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_f_scratch_idx);
+    d_hier_sc_data_ops->linearSum(fluid_y_vec->getComponentDescriptorIndex(0), d_dt/d_rho, fluid_x_vec->getComponentDescriptorIndex(0), d_dt/d_rho, d_f_scratch_idx);
+    d_hier_cc_data_ops->copyData(fluid_y_vec->getComponentDescriptorIndex(1), fluid_x_vec->getComponentDescriptorIndex(1));
+
+    // Deallocate temporary data.
+    ierr = VecDestroy(petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
+
+    // Flush any cached data associated with the modified PETSc vectors.
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_y_vec));  IBTK_CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_strct_y_vec));  IBTK_CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
+    return;
+}// PCApplyStrct
+
 void
 IBImplicitHierarchyIntegrator::PCApplyFluid(
     Vec x,
@@ -3318,7 +3406,7 @@ IBImplicitHierarchyIntegrator::PCApplyFluid(
     d_projection_pc->solveSystem(*fluid_y_vec, *fluid_x_vec);
     d_u_bc_helper->zeroValuesAtDirichletBoundaries(fluid_y_vec->getComponentDescriptorIndex(0));
 
-    // Update the structure data appropriately.
+    // Update the structure variables.
     d_hier_sc_data_ops->copyData(d_u_interp_idx, fluid_y_vec->getComponentDescriptorIndex(0));
     interp(d_U_half_data, d_u_interp_idx, true, d_X_mid_data, false);
     resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
@@ -3331,77 +3419,6 @@ IBImplicitHierarchyIntegrator::PCApplyFluid(
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
     return;
 }// PCApplyFluid
-
-int
-IBImplicitHierarchyIntegrator::PCApplyStrct_SAMRAI(
-    void* p_ctx,
-    Vec x,
-    Vec y)
-{
-    PetscErrorCode ierr;
-    IBImplicitHierarchyIntegrator* hier_integrator = static_cast<IBImplicitHierarchyIntegrator*>(p_ctx);
-#if DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(hier_integrator != NULL);
-#endif
-    hier_integrator->PCApplyStrct(x,y);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
-    PetscFunctionReturn(0);
-}// PCApplyStrct_SAMRAI
-
-void
-IBImplicitHierarchyIntegrator::PCApplyStrct(
-    Vec x,
-    Vec y)
-{
-//  const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-//  SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-
-    PetscErrorCode ierr;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    int N_x;
-    ierr = IBTK::VecMultiVecGetNumberOfVecs(x,&N_x);  IBTK_CHKERRQ(ierr);
-    int N_y;
-    ierr = IBTK::VecMultiVecGetNumberOfVecs(y,&N_y);  IBTK_CHKERRQ(ierr);
-    TBOX_ASSERT(N_x == 2);
-    TBOX_ASSERT(N_y == 2);
-#endif
-    Vec* petsc_x_multivecs;
-    ierr = IBTK::VecMultiVecGetVecs(x, &petsc_x_multivecs);  IBTK_CHKERRQ(ierr);
-    Vec petsc_fluid_x_vec = petsc_x_multivecs[0];
-    Vec petsc_strct_x_vec = petsc_x_multivecs[1];
-
-    Vec* petsc_y_multivecs;
-    ierr = IBTK::VecMultiVecGetVecs(y, &petsc_y_multivecs);  IBTK_CHKERRQ(ierr);
-    Vec petsc_fluid_y_vec = petsc_y_multivecs[0];
-    Vec petsc_strct_y_vec = petsc_y_multivecs[1];
-
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_x_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_x_vec);
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_y_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_y_vec);
-
-    // Initialze the result to equal zero.
-    ierr = VecSet(y, 0.0);  IBTK_CHKERRQ(ierr);
-
-    // Allocate temporary data.
-    Vec petsc_strct_f_vec;
-    ierr = VecDuplicate(petsc_strct_x_vec, &petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
-
-    // Compute the right hand side term.
-    ierr = VecCopy(petsc_strct_x_vec, petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecScale(petsc_strct_f_vec, d_dt);
-
-    // Compute the application of the structure preconditioner.
-    ierr = KSPSolve(d_strct_ksp[finest_ln], petsc_strct_f_vec, petsc_strct_y_vec);  IBTK_CHKERRQ(ierr);
-
-    // Deallocate temporary data.
-    ierr = VecDestroy(petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
-
-    // Flush any cached data associated with the modified PETSc vectors.
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_y_vec));  IBTK_CHKERRQ(ierr);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_strct_y_vec));  IBTK_CHKERRQ(ierr);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
-    return;
-}// PCApplyStrct
 
 #undef __FUNCT__
 #define __FUNCT__ "IBImplicitHierarchyIntegrator::MatVecMult_structure_SAMRAI"
@@ -3813,7 +3830,7 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
 
     if (!d_projection_pc.isNull())
     {
-        d_projection_pc->setTimeInterval(current_time,new_time);
+        d_projection_pc->setTimeInterval(current_time,new_time,dt);
         if (d_projection_pc_needs_init)
         {
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::integrateHierarchy(): Initializing projection preconditioner" << std::endl;
