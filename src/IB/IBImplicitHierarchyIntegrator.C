@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <09.Jul.2009 15:24:32 griffith@griffith-macbook-pro.local>
+// Last modified: <09.Jul.2009 17:54:16 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -217,7 +217,7 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     d_p_scale = 1.0;
     d_f_scale = 1.0;
 
-    d_use_exact_jacobian = false;
+    d_use_mffd_force_jacobian = false;
 
     d_start_time = 0.0;
     d_end_time = std::numeric_limits<double>::max();
@@ -1354,15 +1354,8 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
     ierr = SNESSetFunction(d_petsc_snes, petsc_res_multivec, IBImplicitHierarchyIntegrator::FormFunction_SAMRAI, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
 
     Mat petsc_jac;
-    if (d_use_exact_jacobian)
-    {
-        ierr = MatCreateShell(PETSC_COMM_WORLD, local_sz, local_sz, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &petsc_jac);  IBTK_CHKERRQ(ierr);
-        ierr = MatShellSetOperation(petsc_jac, MATOP_MULT, reinterpret_cast<void(*)(void)>(IBImplicitHierarchyIntegrator::MatVecMult_SAMRAI));  IBTK_CHKERRQ(ierr);
-    }
-    else
-    {
-        ierr = MatCreateSNESMF(d_petsc_snes, &petsc_jac);  IBTK_CHKERRQ(ierr);
-    }
+    ierr = MatCreateShell(PETSC_COMM_WORLD, local_sz, local_sz, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &petsc_jac);  IBTK_CHKERRQ(ierr);
+    ierr = MatShellSetOperation(petsc_jac, MATOP_MULT, reinterpret_cast<void(*)(void)>(IBImplicitHierarchyIntegrator::MatVecMult_SAMRAI));  IBTK_CHKERRQ(ierr);
 
     PetscContainer petsc_jac_ctx;
     ierr = PetscContainerCreate(PETSC_COMM_WORLD, &petsc_jac_ctx);  IBTK_CHKERRQ(ierr);
@@ -3033,6 +3026,26 @@ IBImplicitHierarchyIntegrator::FormForceFunction_SAMRAI(
     PetscFunctionReturn(0);
 }// FormForceFunction_SAMRAI
 
+#undef __FUNCT__
+#define __FUNCT__ "IBImplicitHierarchyIntegrator::FormForceTestFunction_SAMRAI"
+PetscErrorCode
+IBImplicitHierarchyIntegrator::FormForceTestFunction_SAMRAI(
+    SNES snes,
+    Vec x,
+    Vec f,
+    void* p_ctx)
+{
+    (void) snes;
+    PetscErrorCode ierr;
+    IBImplicitHierarchyIntegrator* hier_integrator = static_cast<IBImplicitHierarchyIntegrator*>(p_ctx);
+#if DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(hier_integrator != NULL);
+#endif
+    hier_integrator->FormForceFunction(x,f);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));  IBTK_CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+}// FormForceTestFunction_SAMRAI
+
 void
 IBImplicitHierarchyIntegrator::FormForceFunction(
     Vec x,
@@ -3088,10 +3101,6 @@ IBImplicitHierarchyIntegrator::FormJacobian_SAMRAI(
     TBOX_ASSERT(hier_integrator != NULL);
 #endif
     hier_integrator->FormJacobian(x);
-    if (!hier_integrator->d_use_exact_jacobian)
-    {
-        PetscErrorCode ierr = MatMFFDComputeJacobian(snes,x,A,B,mat_structure,p_ctx);  CHKERRQ(ierr);
-    }
     PetscFunctionReturn(0);
 }// FormJacobian_SAMRAI
 
@@ -3208,7 +3217,7 @@ IBImplicitHierarchyIntegrator::FormJacobian(
 //          ierr = SNESCreate(PETSC_COMM_WORLD, &snes_test);  IBTK_CHKERRQ(ierr);
 //          Vec r_test;
 //          ierr = VecDuplicate(d_petsc_f_vec, &r_test);  IBTK_CHKERRQ(ierr);
-//          ierr = SNESSetFunction(snes_test, r_test, IBImplicitHierarchyIntegrator::FormForceFunction_SAMRAI, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
+//          ierr = SNESSetFunction(snes_test, r_test, IBImplicitHierarchyIntegrator::FormForceTestFunction_SAMRAI, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
 
 //          Mat J_test;
 //          ierr = MatDuplicate(d_J_mat[ln], MAT_DO_NOT_COPY_VALUES, &J_test);  IBTK_CHKERRQ(ierr);
@@ -3225,8 +3234,6 @@ IBImplicitHierarchyIntegrator::FormJacobian(
 //          SAMRAI::tbox::pout << "relative difference between hand-coded and FD Jacobian matrices = " << nrm/gnorm << "\n"
 //                             << "absolute difference between hand-coded and FD Jacobian matrices = " << nrm << "\n";
 
-//          ierr = MatCopy(J_test, d_J_mat[ln], DIFFERENT_NONZERO_PATTERN);  IBTK_CHKERRQ(ierr);
-
 //          ierr = VecDestroy(r_test);  IBTK_CHKERRQ(ierr);
 //          ierr = MatDestroy(J_test);  IBTK_CHKERRQ(ierr);
 //          ierr = SNESDestroy(snes_test);  IBTK_CHKERRQ(ierr);
@@ -3235,7 +3242,7 @@ IBImplicitHierarchyIntegrator::FormJacobian(
 
     // Setup a shell matrix for the approximate structure Jacobian matrix, i.e.,
     // I - (dt^2)/(2*rho) S S^{*} dF/dX(n+1), and form a preconditioner matrix
-    // obtained by replacing S S^{*} with diag(S S^{*}).
+    // obtained by replacing S S^{*} by its diagonal.
     static const double C = pow(IBTK::LEInteractor::getC(d_delta_fcn),NDIM);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -3255,6 +3262,9 @@ IBImplicitHierarchyIntegrator::FormJacobian(
             ierr = MatDuplicate(d_J_mat[ln], MAT_COPY_VALUES, &d_strct_pc_mat[ln]);  IBTK_CHKERRQ(ierr);
             ierr = MatScale(d_strct_pc_mat[ln], -0.5*d_dt*d_dt*(C/volume_element)/d_rho);  IBTK_CHKERRQ(ierr);
             ierr = MatShift(d_strct_pc_mat[ln], 1.0);  IBTK_CHKERRQ(ierr);
+
+            ierr = MatAssemblyBegin(d_strct_pc_mat[ln], MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyEnd(d_strct_pc_mat[ln], MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
 
             static const std::string options_prefix = "strct_";
             ierr = KSPCreate(PETSC_COMM_WORLD, &d_strct_ksp[ln]);  IBTK_CHKERRQ(ierr);
@@ -3324,8 +3334,14 @@ IBImplicitHierarchyIntegrator::MatVecMult(
     Vec X_new_vec  = petsc_strct_x_vec;
     Vec F_half_vec = d_F_half_data[finest_ln]->getGlobalVec();
     Vec U_half_vec = d_U_half_data[finest_ln]->getGlobalVec();
-//  ierr = MatMult(d_J_mat     [finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
-    ierr = MatMult(d_J_mffd_mat[finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
+    if (d_use_mffd_force_jacobian)
+    {
+        ierr = MatMult(d_J_mffd_mat[finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
+    }
+    else
+    {
+        ierr = MatMult(d_J_mat     [finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
+    }
     spread(d_f_scratch_idx, d_F_half_data, true, d_X_mid_data, false);
     d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_f_scratch_idx);
     d_hier_sc_data_ops->axpy(fluid_y_vec->getComponentDescriptorIndex(0), -1.0, d_f_scratch_idx, fluid_y_vec->getComponentDescriptorIndex(0));
@@ -3461,8 +3477,14 @@ IBImplicitHierarchyIntegrator::PCApplyStrct(
 
     // Update the fluid variables.
     Vec F_half_vec = d_F_half_data[finest_ln]->getGlobalVec();
-//  ierr = MatMult(d_J_mat     [finest_ln], petsc_strct_y_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
-    ierr = MatMult(d_J_mffd_mat[finest_ln], petsc_strct_y_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
+    if (d_use_mffd_force_jacobian)
+    {
+        ierr = MatMult(d_J_mffd_mat[finest_ln], petsc_strct_y_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
+    }
+    else
+    {
+        ierr = MatMult(d_J_mat     [finest_ln], petsc_strct_y_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
+    }
     spread(d_f_scratch_idx, d_F_half_data, true, d_X_mid_data, false);
     d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_f_scratch_idx);
     d_hier_sc_data_ops->linearSum(fluid_y_vec->getComponentDescriptorIndex(0), d_dt/d_rho, fluid_x_vec->getComponentDescriptorIndex(0), d_dt/d_rho, d_f_scratch_idx);
@@ -3555,8 +3577,14 @@ IBImplicitHierarchyIntegrator::MatVecMult_structure(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     PetscErrorCode ierr;
-//  ierr = MatMult(d_J_mat     [finest_ln], x, d_F_half_data[finest_ln]->getGlobalVec());  IBTK_CHKERRQ(ierr);
-    ierr = MatMult(d_J_mffd_mat[finest_ln], x, d_F_half_data[finest_ln]->getGlobalVec());  IBTK_CHKERRQ(ierr);
+    if (d_use_mffd_force_jacobian)
+    {
+        ierr = MatMult(d_J_mffd_mat[finest_ln], x, d_F_half_data[finest_ln]->getGlobalVec());  IBTK_CHKERRQ(ierr);
+    }
+    else
+    {
+        ierr = MatMult(d_J_mat     [finest_ln], x, d_F_half_data[finest_ln]->getGlobalVec());  IBTK_CHKERRQ(ierr);
+    }
     spread(d_u_interp_idx, d_F_half_data, true, d_X_mid_data, false);
     d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_u_interp_idx);
     interp(d_U_half_data, d_u_interp_idx, true, d_X_mid_data, false);
@@ -4204,7 +4232,7 @@ IBImplicitHierarchyIntegrator::getFromInput(
 
     d_regrid_max_div_growth_factor = db->getDoubleWithDefault("regrid_max_div_growth_factor", d_regrid_max_div_growth_factor);
 
-    d_use_exact_jacobian = db->getBoolWithDefault("use_exact_jacobian", d_use_exact_jacobian);
+    d_use_mffd_force_jacobian = db->getBoolWithDefault("use_mffd_force_jacobian", d_use_mffd_force_jacobian);
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
 

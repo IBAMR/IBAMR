@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <09.Jul.2009 00:10:57 griffith@griffith-macbook-pro.local>
+// Last modified: <09.Jul.2009 16:55:54 griffith@griffith-macbook-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -387,11 +387,10 @@ IBBeamForceGen::computeLagrangianForce(
         const double* const D_prev = &D_prev_arr[k*NDIM];
         const double& bend = bend_rigidities[k];
         const std::vector<double>& curv = mesh_dependent_curvatures[k];
-
         for (int d = 0; d < NDIM; ++d)
         {
-            F_mastr_node[d] = bend*(+2.0*(D_next[d]+D_prev[d]-curv[d]));
-            F_nghbr_node[d] = bend*(-1.0*(D_next[d]+D_prev[d]-curv[d]));
+            F_mastr_node[d] = +2.0*bend*(D_next[d]+D_prev[d]-curv[d]);
+            F_nghbr_node[d] = -1.0*bend*(D_next[d]+D_prev[d]-curv[d]);
         }
     }
 
@@ -583,7 +582,7 @@ IBBeamForceGen::computeLagrangianForceJacobian(
 
         for (int alpha = 0; alpha < NDIM; ++alpha)
         {
-            dF_dX(alpha,alpha) = -1.0*bend;
+            dF_dX(alpha,alpha) = -1.0*bend*X_coef;
         }
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_prev_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_next_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
@@ -592,16 +591,16 @@ IBBeamForceGen::computeLagrangianForceJacobian(
 
         for (int alpha = 0; alpha < NDIM; ++alpha)
         {
-            dF_dX(alpha,alpha) = +2.0*bend;
+            dF_dX(alpha,alpha) = +2.0*bend*X_coef;
         }
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_prev_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_next_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
-        ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
         for (int alpha = 0; alpha < NDIM; ++alpha)
         {
-            dF_dX(alpha,alpha) = -4.0*bend;
+            dF_dX(alpha,alpha) = -4.0*bend*X_coef;
         }
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
     }

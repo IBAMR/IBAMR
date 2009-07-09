@@ -2,7 +2,7 @@
 #define included_IBImplicitHierarchyIntegrator
 
 // Filename: IBImplicitHierarchyIntegrator.h
-// Last modified: <09.Jul.2009 14:52:50 griffith@griffith-macbook-pro.local>
+// Last modified: <09.Jul.2009 17:18:20 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -786,6 +786,13 @@ private:
         Vec x,
         Vec f);
 
+    static PetscErrorCode
+    FormForceTestFunction_SAMRAI(
+        SNES snes,
+        Vec x,
+        Vec f,
+        void* p_ctx);
+
     void
     FormForceFunction(
         Vec x,
@@ -990,9 +997,10 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
 
     /*
-     * Whether to use the exact Jacobian or the matrix-free Jacobian.
+     * Whether to use the exact or matrix-free Jacobian of the elastic force
+     * density function.
      */
-    bool d_use_exact_jacobian;
+    bool d_use_mffd_force_jacobian;
 
     /*
      * Integrator data read from input or set at initialization.
