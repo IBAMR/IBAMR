@@ -2,7 +2,7 @@
 #define included_IBImplicitHierarchyIntegrator
 
 // Filename: IBImplicitHierarchyIntegrator.h
-// Last modified: <09.Jul.2009 17:18:20 griffith@griffith-macbook-pro.local>
+// Last modified: <10.Jul.2009 15:22:09 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -850,17 +850,6 @@ private:
         Vec x,
         Vec y);
 
-    static PetscErrorCode
-    MatVecMult_structure_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y);
-
-    void
-    MatVecMult_structure(
-        Vec x,
-        Vec y);
-
     void
     spread(
         const int f_data_idx,
@@ -1332,7 +1321,7 @@ private:
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_U_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_F_half_data;
-    std::vector<Mat> d_J_mat, d_J_mffd_mat, d_strct_mat, d_strct_pc_mat;
+    std::vector<Mat> d_J_mat, d_J_mffd_mat, d_strct_mat;
     std::vector<KSP> d_strct_ksp;
 
     /*

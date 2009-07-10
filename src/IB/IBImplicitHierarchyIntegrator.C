@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <09.Jul.2009 23:32:38 griffith@griffith-macbook-pro.local>
+// Last modified: <10.Jul.2009 16:26:33 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -1206,7 +1206,6 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
     d_J_mat.resize(finest_ln+1,static_cast<Mat>(NULL));
     d_J_mffd_mat.resize(finest_ln+1,static_cast<Mat>(NULL));
     d_strct_mat.resize(finest_ln+1,static_cast<Mat>(NULL));
-    d_strct_pc_mat.resize(finest_ln+1,static_cast<Mat>(NULL));
     d_strct_ksp.resize(finest_ln+1,static_cast<KSP>(NULL));
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -1481,11 +1480,6 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
         {
             ierr = MatDestroy(d_strct_mat[ln]);
             d_strct_mat[ln] = static_cast<Mat>(NULL);
-        }
-        if (d_strct_pc_mat[ln] != static_cast<Mat>(NULL))
-        {
-            ierr = MatDestroy(d_strct_pc_mat[ln]);
-            d_strct_pc_mat[ln] = static_cast<Mat>(NULL);
         }
         if (d_strct_ksp[ln] != static_cast<KSP>(NULL))
         {
@@ -1811,7 +1805,6 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
     d_J_mat.resize(finest_ln_after_regrid+1,static_cast<Mat>(NULL));
     d_J_mffd_mat.resize(finest_ln_after_regrid+1,static_cast<Mat>(NULL));
     d_strct_mat.resize(finest_ln_after_regrid+1,static_cast<Mat>(NULL));
-    d_strct_pc_mat.resize(finest_ln_after_regrid+1,static_cast<Mat>(NULL));
     d_strct_ksp.resize(finest_ln_after_regrid+1,static_cast<KSP>(NULL));
     for (int ln = coarsest_ln; ln <= finest_ln_after_regrid; ++ln)
     {
@@ -3139,11 +3132,6 @@ IBImplicitHierarchyIntegrator::FormJacobian(
             ierr = MatDestroy(d_strct_mat[ln]);
             d_strct_mat[ln] = static_cast<Mat>(NULL);
         }
-        if (d_strct_pc_mat[ln] != static_cast<Mat>(NULL))
-        {
-            ierr = MatDestroy(d_strct_pc_mat[ln]);
-            d_strct_pc_mat[ln] = static_cast<Mat>(NULL);
-        }
         if (d_strct_ksp[ln] != static_cast<KSP>(NULL))
         {
             ierr = KSPDestroy(d_strct_ksp[ln]);
@@ -3213,11 +3201,6 @@ IBImplicitHierarchyIntegrator::FormJacobian(
             ierr = MatAssemblyBegin(d_J_mat[ln], MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
             ierr = MatAssemblyEnd(d_J_mat[ln], MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
 
-            // Setup a matrix-free version of the force Jacobian matrix.
-            ierr = MatCreateMFFD(PETSC_COMM_WORLD, local_sz, local_sz, global_sz, global_sz, &d_J_mffd_mat[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = MatMFFDSetFunction(d_J_mffd_mat[ln], IBImplicitHierarchyIntegrator::FormForceFunction_SAMRAI, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
-            ierr = MatMFFDSetBase(d_J_mffd_mat[ln], X_new_vec, PETSC_NULL);  IBTK_CHKERRQ(ierr);
-
 //          // Test the analytic Jacobian matrix.
 //          SNES snes_test;
 //          ierr = SNESCreate(PETSC_COMM_WORLD, &snes_test);  IBTK_CHKERRQ(ierr);
@@ -3243,38 +3226,32 @@ IBImplicitHierarchyIntegrator::FormJacobian(
 //          ierr = VecDestroy(r_test);  IBTK_CHKERRQ(ierr);
 //          ierr = MatDestroy(J_test);  IBTK_CHKERRQ(ierr);
 //          ierr = SNESDestroy(snes_test);  IBTK_CHKERRQ(ierr);
-        }
-    }
 
-    // Setup a shell matrix for the approximate structure Jacobian matrix, i.e.,
-    // I - (dt^2)/(2*rho) S S^{*} dF/dX(n+1), and form a preconditioner matrix
-    // obtained by replacing S S^{*} by its diagonal.
-    static const double C = pow(IBTK::LEInteractor::getC(d_delta_fcn),NDIM);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
-        {
-            ierr = MatCreateShell(PETSC_COMM_WORLD, local_sz, local_sz, global_sz, global_sz, static_cast<void*>(this), &d_strct_mat[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = MatShellSetOperation(d_strct_mat[ln], MATOP_MULT, reinterpret_cast<void(*)(void)>(IBImplicitHierarchyIntegrator::MatVecMult_structure_SAMRAI));  IBTK_CHKERRQ(ierr);
+            // Setup a matrix-free version of the force Jacobian matrix.
+            ierr = MatCreateMFFD(PETSC_COMM_WORLD, local_sz, local_sz, global_sz, global_sz, &d_J_mffd_mat[ln]);  IBTK_CHKERRQ(ierr);
+            ierr = MatMFFDSetFunction(d_J_mffd_mat[ln], IBImplicitHierarchyIntegrator::FormForceFunction_SAMRAI, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
+            ierr = MatMFFDSetBase(d_J_mffd_mat[ln], X_new_vec, PETSC_NULL);  IBTK_CHKERRQ(ierr);
 
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            const double* const dx_coarsest = grid_geom->getDx();
-            const SAMRAI::hier::IntVector<NDIM> ratio = level->getRatio();
-            double volume_element = 1.0;
-            for (int d = 0; d < NDIM; ++d)
-            {
-                volume_element *= dx_coarsest[d]/double(ratio[d]);
-            }
-            ierr = MatDuplicate(d_J_mat[ln], MAT_COPY_VALUES, &d_strct_pc_mat[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = MatScale(d_strct_pc_mat[ln], -0.5*d_dt*d_dt*(C/volume_element)/d_rho);  IBTK_CHKERRQ(ierr);
-            ierr = MatShift(d_strct_pc_mat[ln], 1.0);  IBTK_CHKERRQ(ierr);
+            // Setup the matrix I - (dt^2)/(2*rho) lambda dF/dX(n+1), where
+            // lambda = S S^{*} 1(s).
+            Vec F_half_vec = d_F_half_data[ln]->getGlobalVec();
+            Vec U_half_vec = d_U_half_data[ln]->getGlobalVec();
+            ierr = VecSet(F_half_vec, 1.0);  IBTK_CHKERRQ(ierr);
+            spread(d_f_scratch_idx, d_F_half_data, true, d_X_mid_data, false);
+            d_hier_sc_data_ops->copyData(d_u_interp_idx, d_f_scratch_idx);
+            interp(d_U_half_data, d_u_interp_idx, true, d_X_mid_data, false);
 
-            ierr = MatAssemblyBegin(d_strct_pc_mat[ln], MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
-            ierr = MatAssemblyEnd(d_strct_pc_mat[ln], MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+            ierr = MatDuplicate(d_J_mat[ln], MAT_COPY_VALUES, &d_strct_mat[ln]);  IBTK_CHKERRQ(ierr);
+            ierr = MatScale(d_strct_mat[ln], -0.5*d_dt/d_rho);  IBTK_CHKERRQ(ierr);
+            ierr = MatDiagonalScale(d_strct_mat[ln], U_half_vec, PETSC_NULL);  IBTK_CHKERRQ(ierr);
+            ierr = MatShift(d_strct_mat[ln], 1.0/d_dt);  IBTK_CHKERRQ(ierr);
+
+            ierr = MatAssemblyBegin(d_strct_mat[ln], MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyEnd(d_strct_mat[ln], MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
 
             static const std::string options_prefix = "strct_";
             ierr = KSPCreate(PETSC_COMM_WORLD, &d_strct_ksp[ln]);  IBTK_CHKERRQ(ierr);
-            ierr = KSPSetOperators(d_strct_ksp[ln], d_strct_mat[ln], d_strct_pc_mat[ln], SAME_PRECONDITIONER);  IBTK_CHKERRQ(ierr);
+            ierr = KSPSetOperators(d_strct_ksp[ln], d_strct_mat[ln], d_strct_mat[ln], SAME_PRECONDITIONER);  IBTK_CHKERRQ(ierr);
             ierr = KSPSetOptionsPrefix(d_strct_ksp[ln], options_prefix.c_str());  IBTK_CHKERRQ(ierr);
             ierr = KSPSetFromOptions(d_strct_ksp[ln]);  IBTK_CHKERRQ(ierr);
         }
@@ -3439,7 +3416,7 @@ IBImplicitHierarchyIntegrator::PCApplyStrct(
     Vec x,
     Vec y)
 {
-    const int coarsest_ln = 0;
+//  const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 //  SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
@@ -3471,30 +3448,18 @@ IBImplicitHierarchyIntegrator::PCApplyStrct(
 
     // Compute the right hand side term for the structure solve.
     ierr = VecCopy(petsc_strct_x_vec, petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecScale(petsc_strct_f_vec, d_dt);
-    d_hier_sc_data_ops->copyData(d_u_interp_idx, fluid_x_vec->getComponentDescriptorIndex(0));
-    interp(d_U_half_data, d_u_interp_idx, true, d_X_mid_data, false);
-    resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
-    Vec U_half_vec = d_U_half_data[finest_ln]->getGlobalVec();
-    ierr = VecAXPY(petsc_strct_f_vec, 0.5*d_dt*d_dt/d_rho, U_half_vec);  IBTK_CHKERRQ(ierr);
+//  d_hier_sc_data_ops->copyData(d_u_interp_idx, fluid_x_vec->getComponentDescriptorIndex(0));
+//  interp(d_U_half_data, d_u_interp_idx, true, d_X_mid_data, false);
+//  resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
+//  Vec U_half_vec = d_U_half_data[finest_ln]->getGlobalVec();
+//  ierr = VecAXPY(petsc_strct_f_vec, 0.5*d_dt/d_rho, U_half_vec);  IBTK_CHKERRQ(ierr);
 
     // Compute the action of the structure preconditioner.
     ierr = KSPSolve(d_strct_ksp[finest_ln], petsc_strct_f_vec, petsc_strct_y_vec);  IBTK_CHKERRQ(ierr);
 
     // Update the fluid variables.
-    Vec F_half_vec = d_F_half_data[finest_ln]->getGlobalVec();
-    if (d_use_mffd_force_jacobian)
-    {
-        ierr = MatMult(d_J_mffd_mat[finest_ln], petsc_strct_y_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
-    }
-    else
-    {
-        ierr = MatMult(d_J_mat     [finest_ln], petsc_strct_y_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
-    }
-    spread(d_f_scratch_idx, d_F_half_data, true, d_X_mid_data, false);
-    d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_f_scratch_idx);
-    d_hier_sc_data_ops->linearSum(fluid_y_vec->getComponentDescriptorIndex(0), d_dt/d_rho, fluid_x_vec->getComponentDescriptorIndex(0), d_dt/d_rho, d_f_scratch_idx);
-    d_hier_cc_data_ops->copyData(fluid_y_vec->getComponentDescriptorIndex(1), fluid_x_vec->getComponentDescriptorIndex(1));
+    d_hier_sc_data_ops->setToScalar(fluid_y_vec->getComponentDescriptorIndex(0), 0.0);
+    d_hier_cc_data_ops->setToScalar(fluid_y_vec->getComponentDescriptorIndex(1), 0.0);
 
     // Deallocate temporary data.
     ierr = VecDestroy(petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
@@ -3554,50 +3519,6 @@ IBImplicitHierarchyIntegrator::PCApplyFluid(
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
     return;
 }// PCApplyFluid
-
-#undef __FUNCT__
-#define __FUNCT__ "IBImplicitHierarchyIntegrator::MatVecMult_structure_SAMRAI"
-PetscErrorCode
-IBImplicitHierarchyIntegrator::MatVecMult_structure_SAMRAI(
-    Mat A,
-    Vec x,
-    Vec y)
-{
-    PetscErrorCode ierr;
-    void* p_ctx;
-    ierr = MatShellGetContext(A, &p_ctx);  IBTK_CHKERRQ(ierr);
-    IBImplicitHierarchyIntegrator* hier_integrator = static_cast<IBImplicitHierarchyIntegrator*>(p_ctx);
-#if DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(hier_integrator != NULL);
-#endif
-    hier_integrator->MatVecMult_structure(x,y);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
-    PetscFunctionReturn(0);
-}// MatVecMult_structure_SAMRAI
-
-void
-IBImplicitHierarchyIntegrator::MatVecMult_structure(
-    Vec x,
-    Vec y)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    PetscErrorCode ierr;
-    if (d_use_mffd_force_jacobian)
-    {
-        ierr = MatMult(d_J_mffd_mat[finest_ln], x, d_F_half_data[finest_ln]->getGlobalVec());  IBTK_CHKERRQ(ierr);
-    }
-    else
-    {
-        ierr = MatMult(d_J_mat     [finest_ln], x, d_F_half_data[finest_ln]->getGlobalVec());  IBTK_CHKERRQ(ierr);
-    }
-    spread(d_u_interp_idx, d_F_half_data, true, d_X_mid_data, false);
-    d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_u_interp_idx);
-    interp(d_U_half_data, d_u_interp_idx, true, d_X_mid_data, false);
-    resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
-    ierr = VecWAXPY(y, -0.5*d_dt*d_dt/d_rho, d_U_half_data[finest_ln]->getGlobalVec(), x);  IBTK_CHKERRQ(ierr);
-    return;
-}// MatVecMult_structure
 
 void
 IBImplicitHierarchyIntegrator::spread(
