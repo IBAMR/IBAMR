@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <09.Jul.2009 22:09:14 griffith@griffith-macbook-pro.local>
+// Last modified: <09.Jul.2009 23:32:47 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -286,7 +286,7 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
     // Determine the ghost cell width required for side-centered spreading and
     // interpolating.
     const int stencil_size = IBTK::LEInteractor::getStencilSize(d_delta_fcn);
-    d_ghosts = int(floor(0.5*double(stencil_size)));
+    d_ghosts = int(floor(0.5*double(stencil_size)))+1;
 
     // Get the Lagrangian Data Manager.
     d_lag_data_manager = IBTK::LDataManager::getManager(d_object_name+"::LDataManager", d_ghosts, d_registered_for_restart);
