@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <09.Jul.2009 17:54:16 griffith@griffith-macbook-pro.local>
+// Last modified: <09.Jul.2009 22:14:07 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -165,6 +165,8 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuration;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_spread;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_interp;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
@@ -286,7 +288,7 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     // Determine the ghost cell width required for side-centered spreading and
     // interpolating.
     const int stencil_size = IBTK::LEInteractor::getStencilSize(d_delta_fcn);
-    d_ghosts = int(floor(0.5*double(stencil_size)))+1;
+    d_ghosts = int(floor(0.5*double(stencil_size)));
 
     // Get the Lagrangian Data Manager.
     d_lag_data_manager = IBTK::LDataManager::getManager(d_object_name+"::LDataManager", d_ghosts, d_registered_for_restart);
@@ -336,6 +338,10 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
             getTimer("IBAMR::IBImplicitHierarchyIntegrator::applyGradientDetector()");
         t_put_to_database = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBImplicitHierarchyIntegrator::putToDatabase()");
+        t_spread = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBImplicitHierarchyIntegrator::spread()");
+        t_interp = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBImplicitHierarchyIntegrator::interp()");
         timers_need_init = false;
     }
     return;
@@ -3603,6 +3609,8 @@ IBImplicitHierarchyIntegrator::spread(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    t_spread->start();
+
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -3643,6 +3651,8 @@ IBImplicitHierarchyIntegrator::spread(
             }
         }
     }
+
+    t_spread->stop();
     return;
 }// spread
 
@@ -3656,6 +3666,8 @@ IBImplicitHierarchyIntegrator::interp(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    t_interp->start();
+
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -3712,6 +3724,8 @@ IBImplicitHierarchyIntegrator::interp(
             }
         }
     }
+
+    t_interp->stop();
     return;
 }// interp
 

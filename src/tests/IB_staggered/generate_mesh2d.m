@@ -63,7 +63,7 @@ for r = 0:num_layers-1
     end %if
 
     kappa = r_fac*stiffness*num_nodes;  % scale by 1/ds = num_nodes
-    rest_length = 0.0;                  % resting length of link
+    rest_length = 0.125*dx;             % resting length of link
 
     fprintf(spring_fid, '%6d %6d %1.16e %1.16e\n', current_idx, next_idx, ...
             kappa, rest_length);
@@ -71,5 +71,43 @@ for r = 0:num_layers-1
 end %for
 
 fclose(spring_fid);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Step 3: Write out the beam information (including connectivity and
+% material parameters).
+beam_fid = fopen(['curve2d_' num2str(16*NFINEST) '.beam'], 'w');
+
+% first line is the number of edges in the file
+fprintf(beam_fid, '%d\n', num_layers*num_nodes);
+
+% remaining lines are the edges in the mesh
+for r = 0:num_layers-1
+  if (tapered_stiffness)
+    theta = -0.5 + (r+0.5)/num_layers;
+    r_fac = 1.0 + cos(2.0*pi*theta);
+  else
+    r_fac = 1.0;
+  end %if
+
+  for l = 0:num_nodes-1
+    current_idx = l + r*num_nodes;
+    prev_idx = current_idx-1;
+    next_idx = current_idx+1;
+    if (l == 0)
+      prev_idx = num_nodes-1 + r*num_nodes;
+    end
+    if (l == num_nodes-1)
+      next_idx = 0 + r*num_nodes;
+    end %if
+
+    kappa = r_fac*stiffness*num_nodes*num_nodes;  % scale by 1/ds^s = num_nodes*num_nodes
+
+    fprintf(beam_fid, '%6d %6d %6d %1.16e\n', prev_idx, current_idx, ...
+            next_idx, kappa);
+  end %for
+end %for
+
+fclose(beam_fid);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
