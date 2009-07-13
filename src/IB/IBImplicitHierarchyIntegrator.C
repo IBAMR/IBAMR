@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <10.Jul.2009 17:43:26 griffith@griffith-macbook-pro.local>
+// Last modified: <13.Jul.2009 11:36:43 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -165,8 +165,17 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuration;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_form_function;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_form_force_function;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_form_jacobian;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_mat_vec_mult;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_mat_get_vecs;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_pc_apply_strct;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_pc_apply_fluid;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_spread;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_interp;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_regrid_projection;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_operators_and_solvers;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
@@ -338,10 +347,28 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
             getTimer("IBAMR::IBImplicitHierarchyIntegrator::applyGradientDetector()");
         t_put_to_database = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBImplicitHierarchyIntegrator::putToDatabase()");
+        t_form_function = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBImplicitHierarchyIntegrator::FormFunction()");
+        t_form_force_function = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBImplicitHierarchyIntegrator::FormForceFunction()");
+        t_form_jacobian = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBImplicitHierarchyIntegrator::FormJacobian()");
+        t_mat_vec_mult = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBImplicitHierarchyIntegrator::MatVecMult()");
+        t_mat_get_vecs = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBImplicitHierarchyIntegrator::MatGetVecs()");
+        t_pc_apply_strct = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBImplicitHierarchyIntegrator::PCApplyStrct()");
+        t_pc_apply_fluid = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBImplicitHierarchyIntegrator::PCApplyFluid()");
         t_spread = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBImplicitHierarchyIntegrator::spread()");
         t_interp = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBImplicitHierarchyIntegrator::interp()");
+        t_regrid_projection = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBImplicitHierarchyIntegrator::regridProjection()");
+        t_initialize_operators_and_solvers = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers()");
         timers_need_init = false;
     }
     return;
@@ -2987,6 +3014,8 @@ IBImplicitHierarchyIntegrator::FormFunction(
     Vec x,
     Vec f)
 {
+    t_form_function->start();
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -3053,6 +3082,8 @@ IBImplicitHierarchyIntegrator::FormFunction(
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_f_vec));  IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_strct_f_vec));  IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));  IBTK_CHKERRQ(ierr);
+
+    t_form_function->stop();
     return;
 }// FormFunction
 
@@ -3099,6 +3130,8 @@ IBImplicitHierarchyIntegrator::FormForceFunction(
     Vec x,
     Vec f)
 {
+    t_form_force_function->start();
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -3130,6 +3163,8 @@ IBImplicitHierarchyIntegrator::FormForceFunction(
 
     // Flush any cached data associated with the modified PETSc vectors.
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));  IBTK_CHKERRQ(ierr);
+
+    t_form_force_function->stop();
     return;
 }// FormForceFunction
 
@@ -3156,6 +3191,8 @@ void
 IBImplicitHierarchyIntegrator::FormJacobian(
     Vec x)
 {
+    t_form_jacobian->start();
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -3305,6 +3342,8 @@ IBImplicitHierarchyIntegrator::FormJacobian(
             ierr = KSPSetFromOptions(d_strct_ksp[ln]);  IBTK_CHKERRQ(ierr);
         }
     }
+
+    t_form_jacobian->stop();
     return;
 }// FormJacobian
 
@@ -3333,6 +3372,8 @@ IBImplicitHierarchyIntegrator::MatVecMult(
     Vec x,
     Vec y)
 {
+    t_mat_vec_mult->start();
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -3366,14 +3407,7 @@ IBImplicitHierarchyIntegrator::MatVecMult(
     Vec X_new_vec  = petsc_strct_x_vec;
     Vec F_half_vec = d_F_half_data[finest_ln]->getGlobalVec();
     Vec U_half_vec = d_U_half_data[finest_ln]->getGlobalVec();
-    if (d_use_mffd_force_jacobian)
-    {
-        ierr = MatMult(d_J_mffd_mat[finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
-    }
-    else
-    {
-        ierr = MatMult(d_J_mat     [finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
-    }
+    ierr = MatMult(d_use_mffd_force_jacobian ? d_J_mffd_mat[finest_ln] : d_J_mat[finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
     spread(d_f_scratch_idx, d_F_half_data, true, d_X_mid_data, false);
     d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_f_scratch_idx);
     d_hier_sc_data_ops->axpy(fluid_y_vec->getComponentDescriptorIndex(0), -1.0, d_f_scratch_idx, fluid_y_vec->getComponentDescriptorIndex(0));
@@ -3390,6 +3424,8 @@ IBImplicitHierarchyIntegrator::MatVecMult(
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_y_vec));  IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_strct_y_vec));  IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
+
+    t_mat_vec_mult->stop();
     return;
 }// MatVecMult
 
@@ -3401,6 +3437,8 @@ IBImplicitHierarchyIntegrator::MatGetVecs_SAMRAI(
     Vec* right,
     Vec* left)
 {
+    t_mat_get_vecs->start();
+
     PetscErrorCode ierr;
 
     PetscContainer petsc_jac_ctx;
@@ -3423,26 +3461,10 @@ IBImplicitHierarchyIntegrator::MatGetVecs_SAMRAI(
         ierr = VecDuplicate(hier_integrator->d_petsc_f_vec, left); IBTK_CHKERRQ(ierr);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*left)); IBTK_CHKERRQ(ierr);
     }
+
+    t_mat_get_vecs->stop();
     PetscFunctionReturn(0);
 }// MatGetVecs_SAMRAI
-
-#undef __FUNCT__
-#define __FUNCT__ "IBImplicitHierarchyIntegrator::PCApplyFluid_SAMRAI"
-PetscErrorCode
-IBImplicitHierarchyIntegrator::PCApplyFluid_SAMRAI(
-    void* p_ctx,
-    Vec x,
-    Vec y)
-{
-    PetscErrorCode ierr;
-    IBImplicitHierarchyIntegrator* hier_integrator = static_cast<IBImplicitHierarchyIntegrator*>(p_ctx);
-#if DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(hier_integrator != NULL);
-#endif
-    hier_integrator->PCApplyFluid(x,y);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
-    PetscFunctionReturn(0);
-}// PCApplyFluid_SAMRAI
 
 int
 IBImplicitHierarchyIntegrator::PCApplyStrct_SAMRAI(
@@ -3465,6 +3487,8 @@ IBImplicitHierarchyIntegrator::PCApplyStrct(
     Vec x,
     Vec y)
 {
+    t_pc_apply_strct->start();
+
 //  const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 //  SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -3491,40 +3515,47 @@ IBImplicitHierarchyIntegrator::PCApplyStrct(
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_x_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_x_vec);
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_y_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_y_vec);
 
-    // Allocate temporary data.
-    Vec petsc_strct_f_vec;
-    ierr = VecDuplicate(petsc_strct_x_vec, &petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
-
-    // Compute the right hand side term for the structure solve.
-    ierr = VecCopy(petsc_strct_x_vec, petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
-//  d_hier_sc_data_ops->copyData(d_u_interp_idx, fluid_x_vec->getComponentDescriptorIndex(0));
-//  interp(d_U_half_data, d_u_interp_idx, true, d_X_mid_data, false);
-//  resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
-//  Vec U_half_vec = d_U_half_data[finest_ln]->getGlobalVec();
-//  ierr = VecAXPY(petsc_strct_f_vec, 0.5*d_dt/d_rho, U_half_vec);  IBTK_CHKERRQ(ierr);
-
     // Compute the action of the structure preconditioner.
-    ierr = KSPSolve(d_strct_ksp[finest_ln], petsc_strct_f_vec, petsc_strct_y_vec);  IBTK_CHKERRQ(ierr);
+    ierr = KSPSolve(d_strct_ksp[finest_ln], petsc_strct_x_vec, petsc_strct_y_vec);  IBTK_CHKERRQ(ierr);
 
     // Update the fluid variables.
     d_hier_sc_data_ops->setToScalar(fluid_y_vec->getComponentDescriptorIndex(0), 0.0);
     d_hier_cc_data_ops->setToScalar(fluid_y_vec->getComponentDescriptorIndex(1), 0.0);
 
-    // Deallocate temporary data.
-    ierr = VecDestroy(petsc_strct_f_vec);  IBTK_CHKERRQ(ierr);
-
     // Flush any cached data associated with the modified PETSc vectors.
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_y_vec));  IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_strct_y_vec));  IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
+
+    t_pc_apply_strct->stop();
     return;
 }// PCApplyStrct
+
+#undef __FUNCT__
+#define __FUNCT__ "IBImplicitHierarchyIntegrator::PCApplyFluid_SAMRAI"
+PetscErrorCode
+IBImplicitHierarchyIntegrator::PCApplyFluid_SAMRAI(
+    void* p_ctx,
+    Vec x,
+    Vec y)
+{
+    PetscErrorCode ierr;
+    IBImplicitHierarchyIntegrator* hier_integrator = static_cast<IBImplicitHierarchyIntegrator*>(p_ctx);
+#if DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(hier_integrator != NULL);
+#endif
+    hier_integrator->PCApplyFluid(x,y);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+}// PCApplyFluid_SAMRAI
 
 void
 IBImplicitHierarchyIntegrator::PCApplyFluid(
     Vec x,
     Vec y)
 {
+    t_pc_apply_fluid->start();
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -3551,8 +3582,19 @@ IBImplicitHierarchyIntegrator::PCApplyFluid(
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_x_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_x_vec);
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_y_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_fluid_y_vec);
 
+    // Allocate temporary data.
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > fluid_f_vec = fluid_y_vec->cloneVector("");
+    fluid_f_vec->allocateVectorData();
+    fluid_f_vec->copyVector(fluid_x_vec);
+
     // Compute the action of the fluid preconditioner.
-    d_projection_pc->solveSystem(*fluid_y_vec, *fluid_x_vec);
+    Vec X_new_vec  = petsc_strct_x_vec;
+    Vec F_half_vec = d_F_half_data[finest_ln]->getGlobalVec();
+    ierr = MatMult(d_use_mffd_force_jacobian ? d_J_mffd_mat[finest_ln] : d_J_mat[finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
+    spread(d_f_scratch_idx, d_F_half_data, true, d_X_mid_data, false);
+    d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_f_scratch_idx);
+    d_hier_sc_data_ops->add(fluid_f_vec->getComponentDescriptorIndex(0), fluid_f_vec->getComponentDescriptorIndex(0), d_f_scratch_idx);
+    d_projection_pc->solveSystem(*fluid_y_vec, *fluid_f_vec);
     d_u_bc_helper->zeroValuesAtDirichletBoundaries(fluid_y_vec->getComponentDescriptorIndex(0));
 
     // Update the structure variables.
@@ -3562,10 +3604,16 @@ IBImplicitHierarchyIntegrator::PCApplyFluid(
     ierr = VecWAXPY(petsc_strct_y_vec, 0.5, d_U_half_data[finest_ln]->getGlobalVec(), petsc_strct_x_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecScale(petsc_strct_y_vec, d_dt);  IBTK_CHKERRQ(ierr);
 
+    // Deallocate temporary data.
+    fluid_f_vec->deallocateVectorData();
+    fluid_f_vec->freeVectorComponents();
+
     // Flush any cached data associated with the modified PETSc vectors.
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_fluid_y_vec));  IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_strct_y_vec));  IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
+
+    t_pc_apply_fluid->stop();
     return;
 }// PCApplyFluid
 
@@ -3702,6 +3750,8 @@ IBImplicitHierarchyIntegrator::interp(
 void
 IBImplicitHierarchyIntegrator::regridProjection()
 {
+    t_regrid_projection->start();
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -3829,6 +3879,8 @@ IBImplicitHierarchyIntegrator::regridProjection()
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
+
+    t_regrid_projection->stop();
     return;
 }// regridProjection
 
@@ -3837,6 +3889,8 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
     const double current_time,
     const double new_time)
 {
+    t_initialize_operators_and_solvers->start();
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
@@ -4001,6 +4055,8 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
 
     // Keep track of the timestep size to avoid unnecessary re-initialization.
     d_op_and_solver_init_dt = dt;
+
+    t_initialize_operators_and_solvers->stop();
     return;
 }// initializeOperatorsAndSolvers
 

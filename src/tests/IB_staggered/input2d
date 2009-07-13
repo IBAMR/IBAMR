@@ -6,7 +6,7 @@ RHO = 1.0
 MAX_LEVELS = 6   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 64                                       // coarsest grid spacing
+N = 128                                      // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N/16  // finest   grid spacing
 
 VelocityInitialConditions {
@@ -174,7 +174,7 @@ PETScVecOps {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_5 = "curve2d_128"
+   base_filenames_5 = "curve2d_256"
 }
 
 Main {
@@ -184,7 +184,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 4 // NFINEST/2   // zero to turn off
+   viz_dump_interval     = 1 // NFINEST/2   // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
