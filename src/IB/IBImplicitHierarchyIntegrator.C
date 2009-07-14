@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <13.Jul.2009 11:36:43 griffith@griffith-macbook-pro.local>
+// Last modified: <13.Jul.2009 21:28:53 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -660,7 +660,6 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Initialize all variables.
     d_u_var          = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::u"          );
-    d_u_old_var      = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::u_old"      );
     d_u_cc_var       = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::u_cc",  NDIM);
     d_p_var          = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::p"          );
     d_f_var          = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::f"          );
@@ -692,11 +691,6 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
 
     registerVariable(d_u_current_idx, d_u_new_idx, d_u_scratch_idx,
                      d_u_var, side_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE");
-
-    registerVariable(d_u_old_current_idx, d_u_old_new_idx, d_u_old_scratch_idx,
-                     d_u_old_var, side_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
 
@@ -762,10 +756,6 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     d_fill_cf_interface_after_regrid->registerRefine(d_u_current_idx, // destination
                                                      d_u_current_idx, // source
                                                      d_u_scratch_idx, // temporary work space
-                                                     NULL);
-    d_fill_cf_interface_after_regrid->registerRefine(d_u_old_current_idx, // destination
-                                                     d_u_old_current_idx, // source
-                                                     d_u_old_scratch_idx, // temporary work space
                                                      NULL);
     d_fill_cf_interface_after_regrid->registerRefine(d_indicator_idx, // destination
                                                      d_indicator_idx, // source
@@ -1333,7 +1323,6 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
     // Initialize u(n+1) to equal u(n).
     d_hier_sc_data_ops->copyData(d_u_new_idx, d_u_current_idx);
     d_hier_sc_data_ops->copyData(d_u_scratch_idx, d_u_current_idx);
-    d_hier_sc_data_ops->copyData(d_u_old_scratch_idx, d_u_old_current_idx);
 
     // Initialize p(n+1/2) to equal p(n-1/2).
     d_hier_cc_data_ops->copyData(d_p_new_idx, d_p_current_idx);
@@ -1355,6 +1344,8 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
         rhs_spec,
         d_u_scratch_idx, d_u_var,
         d_u_bdry_bc_fill_op, current_time);
+    d_u_bc_helper->clearBcCoefData();
+    d_u_bc_helper->cacheBcCoefData(d_u_scratch_idx, d_u_var, d_u_bc_coefs, new_time, SAMRAI::hier::IntVector<NDIM>(SIDEG), d_hierarchy);
     if (!d_body_force_set.isNull())
     {
         d_body_force_set->setDataOnPatchHierarchy(d_f_scratch_idx, d_f_var, d_hierarchy, current_time+0.5*dt);
@@ -1436,10 +1427,6 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
     ierr = SNESSetOptionsPrefix(d_petsc_snes, options_prefix.c_str());  IBTK_CHKERRQ(ierr);
     ierr = SNESSetFromOptions(d_petsc_snes);  IBTK_CHKERRQ(ierr);
 
-    // Setup inhomogeneous boundary conditions.
-    d_u_bc_helper->clearBcCoefData();
-    d_u_bc_helper->cacheBcCoefData(d_u_var, d_u_bc_coefs, new_time, SAMRAI::hier::IntVector<NDIM>(SIDEG), d_hierarchy);
-
     // Set the initial guess for X(n+1) using forward Euler.
     d_hier_sc_data_ops->copyData(d_u_interp_idx, d_u_current_idx);
     interp(d_U_half_data, d_u_interp_idx, true, d_X_data, true);
@@ -1448,48 +1435,12 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
     ierr = VecAXPY(X_new_vec,d_dt,U_half_vec);  IBTK_CHKERRQ(ierr);
 
     // Solve for u(n+1), p(n+1/2), and X(n+1).
-    if (initial_time)
-    {
-        for (int cycle = 0; cycle < 2; ++cycle)
-        {
-            // Setup the right-hand side vector.
-            d_hier_sc_data_ops->linearSum(d_u_half_idx, 0.5, d_u_current_idx, 0.5, d_u_new_idx);
-            d_convective_op->applyConvectiveOperator(d_u_half_idx, d_n_idx);
-            d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_n_idx);
-            d_hier_sc_data_ops->axpy(fluid_rhs_vec->getComponentDescriptorIndex(0), -d_rho, d_n_idx, fluid_rhs_vec->getComponentDescriptorIndex(0));
-
-            // Compute X_mid := 0.5*(X(n)+X(n+1)).
-            Vec X_vec     = d_X_data    [finest_ln]->getGlobalVec();
-            Vec X_new_vec = d_X_new_data[finest_ln]->getGlobalVec();
-            Vec X_mid_vec = d_X_mid_data[finest_ln]->getGlobalVec();
-            ierr = VecCopy(X_vec,X_mid_vec);  IBTK_CHKERRQ(ierr);
-            ierr = VecAXPBY(X_mid_vec,0.5,0.5,X_new_vec);  IBTK_CHKERRQ(ierr);
-            d_X_mid_data[finest_ln]->beginGhostUpdate();
-            d_X_mid_data[finest_ln]->endGhostUpdate();
-
-            // Solve for u(n+1), p(n+1/2), and X(n+1).
-            ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_sol_multivec));  IBTK_CHKERRQ(ierr);
-            ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_rhs_multivec));  IBTK_CHKERRQ(ierr);
-            ierr = SNESSolve(d_petsc_snes, petsc_rhs_multivec, petsc_sol_multivec);  IBTK_CHKERRQ(ierr);
-
-            // Pull out solution components.
-            d_hier_sc_data_ops->copyData(d_u_new_idx, fluid_sol_vec->getComponentDescriptorIndex(0));
-            d_hier_cc_data_ops->copyData(d_p_new_idx, fluid_sol_vec->getComponentDescriptorIndex(1));
-            ierr = VecCopy(petsc_structure_sol_vec, d_X_new_data[finest_ln]->getGlobalVec());  IBTK_CHKERRQ(ierr);
-
-            // Reset the right-hand side vector.
-            d_hier_sc_data_ops->axpy(fluid_rhs_vec->getComponentDescriptorIndex(0), +d_rho, d_n_idx, fluid_rhs_vec->getComponentDescriptorIndex(0));
-        }
-    }
-    else
+    for (int cycle = 0; cycle < d_num_cycles; ++cycle)
     {
         // Setup the right-hand side vector.
-        d_convective_op->applyConvectiveOperator(d_u_old_scratch_idx, d_n_idx);
-        d_hier_sc_data_ops->axpy(fluid_rhs_vec->getComponentDescriptorIndex(0), -(-  0.5*dt/d_old_dt)*d_rho, d_n_idx, fluid_rhs_vec->getComponentDescriptorIndex(0));
-        d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_n_idx);
-        d_convective_op->applyConvectiveOperator(d_u_scratch_idx, d_n_idx);
-        d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_n_idx);
-        d_hier_sc_data_ops->axpy(fluid_rhs_vec->getComponentDescriptorIndex(0), -(+1+0.5*dt/d_old_dt)*d_rho, d_n_idx, fluid_rhs_vec->getComponentDescriptorIndex(0));
+        d_hier_sc_data_ops->linearSum(d_u_half_idx, 0.5, d_u_current_idx, 0.5, d_u_new_idx);
+        d_convective_op->applyConvectiveOperator(d_u_half_idx, d_n_idx);
+        d_hier_sc_data_ops->axpy(fluid_rhs_vec->getComponentDescriptorIndex(0), -d_rho, d_n_idx, fluid_rhs_vec->getComponentDescriptorIndex(0));
 
         // Compute X_mid := 0.5*(X(n)+X(n+1)).
         Vec X_vec     = d_X_data    [finest_ln]->getGlobalVec();
@@ -1500,6 +1451,10 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
         d_X_mid_data[finest_ln]->beginGhostUpdate();
         d_X_mid_data[finest_ln]->endGhostUpdate();
 
+        // Enforce Dirichlet boundary conditions.
+        d_u_bc_helper->resetValuesAtDirichletBoundaries(fluid_sol_vec->getComponentDescriptorIndex(0));
+        d_u_bc_helper->zeroValuesAtDirichletBoundaries( fluid_rhs_vec->getComponentDescriptorIndex(0));
+
         // Solve for u(n+1), p(n+1/2), and X(n+1).
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_sol_multivec));  IBTK_CHKERRQ(ierr);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_rhs_multivec));  IBTK_CHKERRQ(ierr);
@@ -1509,10 +1464,10 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
         d_hier_sc_data_ops->copyData(d_u_new_idx, fluid_sol_vec->getComponentDescriptorIndex(0));
         d_hier_cc_data_ops->copyData(d_p_new_idx, fluid_sol_vec->getComponentDescriptorIndex(1));
         ierr = VecCopy(petsc_structure_sol_vec, d_X_new_data[finest_ln]->getGlobalVec());  IBTK_CHKERRQ(ierr);
-    }
 
-    // Save the current velocity data for use in the next timestep.
-    d_hier_sc_data_ops->copyData(d_u_old_new_idx, d_u_current_idx);
+        // Reset the right-hand side vector.
+        d_hier_sc_data_ops->axpy(fluid_rhs_vec->getComponentDescriptorIndex(0), +d_rho, d_n_idx, fluid_rhs_vec->getComponentDescriptorIndex(0));
+    }
 
     // Compute the updated force for visualization purposes.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -2163,13 +2118,11 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
 
         IBTK::CartExtrapPhysBdryOp fill_after_regrid_extrap_bc_op(d_fill_after_regrid_bc_idxs, BDRY_EXTRAP_TYPE);
         IBTK::CartSideRobinPhysBdryOp fill_after_regrid_phys_bdry_bc_op(d_regrid_scratch_idx_map[d_u_scratch_idx], d_u_bc_coefs, false);
-        IBTK::CartSideDoubleDivPreservingRefine fill_after_regrid_div_preserving_op1(d_regrid_scratch_idx_map[d_u_scratch_idx]);
-        IBTK::CartSideDoubleDivPreservingRefine fill_after_regrid_div_preserving_op2(d_regrid_scratch_idx_map[d_u_old_scratch_idx]);
-        std::vector<SAMRAI::xfer::RefinePatchStrategy<NDIM>*> refine_patch_strategies(4);
+        IBTK::CartSideDoubleDivPreservingRefine fill_after_regrid_div_preserving_op(d_regrid_scratch_idx_map[d_u_scratch_idx]);
+        std::vector<SAMRAI::xfer::RefinePatchStrategy<NDIM>*> refine_patch_strategies(3);
         refine_patch_strategies[0] = &fill_after_regrid_extrap_bc_op;
         refine_patch_strategies[1] = &fill_after_regrid_phys_bdry_bc_op;
-        refine_patch_strategies[2] = &fill_after_regrid_div_preserving_op1;
-        refine_patch_strategies[3] = &fill_after_regrid_div_preserving_op2;
+        refine_patch_strategies[2] = &fill_after_regrid_div_preserving_op;
         IBTK::RefinePatchStrategySet fill_after_regrid_patch_strategy_set(refine_patch_strategies.begin(), refine_patch_strategies.end(), false);
         d_fill_after_regrid->createSchedule(level,
                                             old_level,
@@ -2198,9 +2151,6 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
             IBTK::CartSideRobinPhysBdryOp fill_cf_interface_after_regrid_bc_op(d_u_scratch_idx, d_u_bc_coefs, false);
             d_fill_cf_interface_after_regrid->createSchedule(level, old_level, &fill_cf_interface_after_regrid_bc_op)->fillData(init_data_time);
 
-            std::set<int> div_free_correction_idxs;
-            div_free_correction_idxs.insert(d_u_current_idx);
-            div_free_correction_idxs.insert(d_u_old_current_idx);
             const SAMRAI::hier::IntVector<NDIM>& ratio_to_coarser_level = level->getRatioToCoarserLevel();
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -2212,61 +2162,55 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_data = patch->getPatchData(d_indicator_idx);
                 const int indicator_ghosts = indicator_data->getGhostCellWidth().max();
 
-                for (std::set<int>::const_iterator cit = div_free_correction_idxs.begin();
-                     cit != div_free_correction_idxs.end(); ++cit)
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_dst_data = patch->getPatchData(d_regrid_current_idx_map[d_u_current_idx]);
+                const int U_dst_ghosts = U_dst_data->getGhostCellWidth().max();
+
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_src_data = patch->getPatchData(d_u_current_idx);
+                const int U_src_ghosts = U_src_data->getGhostCellWidth().max();
+
+                NAVIER_STOKES_SC_REGRID_COPY_FC(
+                    U_dst_data->getPointer(0),
+                    U_dst_data->getPointer(1),
+#if (NDIM == 3)
+                    U_dst_data->getPointer(2),
+#endif
+                    U_dst_ghosts,
+                    U_src_data->getPointer(0),
+                    U_src_data->getPointer(1),
+#if (NDIM == 3)
+                    U_src_data->getPointer(2),
+#endif
+                    U_src_ghosts,
+                    indicator_data->getPointer(0),
+                    indicator_ghosts,
+                    patch_box.lower()(0), patch_box.upper()(0),
+                    patch_box.lower()(1), patch_box.upper()(1)
+#if (NDIM == 3)
+                    ,patch_box.lower()(2),patch_box.upper()(2)
+#endif
+                                                );
+
+                if (ratio_to_coarser_level == SAMRAI::hier::IntVector<NDIM>(2))
                 {
-                    const int u_idx = *cit;
-
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_dst_data = patch->getPatchData(d_regrid_current_idx_map[u_idx]);
-                    const int U_dst_ghosts = U_dst_data->getGhostCellWidth().max();
-
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_src_data = patch->getPatchData(u_idx);
-                    const int U_src_ghosts = U_src_data->getGhostCellWidth().max();
-
-                    NAVIER_STOKES_SC_REGRID_COPY_FC(
+#ifdef DEBUG_CHECK_ASSERTIONS
+                    TBOX_ASSERT(U_dst_ghosts%2 == 0);
+                    TBOX_ASSERT(U_dst_ghosts <= indicator_ghosts);
+#endif
+                    NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_FC(
                         U_dst_data->getPointer(0),
                         U_dst_data->getPointer(1),
 #if (NDIM == 3)
                         U_dst_data->getPointer(2),
 #endif
                         U_dst_ghosts,
-                        U_src_data->getPointer(0),
-                        U_src_data->getPointer(1),
-#if (NDIM == 3)
-                        U_src_data->getPointer(2),
-#endif
-                        U_src_ghosts,
                         indicator_data->getPointer(0),
                         indicator_ghosts,
                         patch_box.lower()(0), patch_box.upper()(0),
-                        patch_box.lower()(1), patch_box.upper()(1)
+                        patch_box.lower()(1), patch_box.upper()(1),
 #if (NDIM == 3)
-                        ,patch_box.lower()(2),patch_box.upper()(2)
+                        patch_box.lower()(2), patch_box.upper()(2),
 #endif
-                                                    );
-
-                    if (ratio_to_coarser_level == SAMRAI::hier::IntVector<NDIM>(2))
-                    {
-#ifdef DEBUG_CHECK_ASSERTIONS
-                        TBOX_ASSERT(U_dst_ghosts%2 == 0);
-                        TBOX_ASSERT(U_dst_ghosts <= indicator_ghosts);
-#endif
-                        NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_FC(
-                            U_dst_data->getPointer(0),
-                            U_dst_data->getPointer(1),
-#if (NDIM == 3)
-                            U_dst_data->getPointer(2),
-#endif
-                            U_dst_ghosts,
-                            indicator_data->getPointer(0),
-                            indicator_ghosts,
-                            patch_box.lower()(0), patch_box.upper()(0),
-                            patch_box.lower()(1), patch_box.upper()(1),
-#if (NDIM == 3)
-                            patch_box.lower()(2), patch_box.upper()(2),
-#endif
-                            dx                                      );
-                    }
+                        dx                                      );
                 }
             }
             old_level->deallocatePatchData(d_indicator_idx);
@@ -3067,8 +3011,8 @@ IBImplicitHierarchyIntegrator::FormFunction(
         }
     }
     spread(d_f_scratch_idx, d_F_half_data, true, d_X_mid_data, false);
-    d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_f_scratch_idx);
     d_hier_sc_data_ops->axpy(fluid_f_vec->getComponentDescriptorIndex(0), -1.0, d_f_scratch_idx, fluid_f_vec->getComponentDescriptorIndex(0));
+    d_u_bc_helper->zeroValuesAtDirichletBoundaries(fluid_f_vec->getComponentDescriptorIndex(0));
 
     d_hier_sc_data_ops->linearSum(d_u_interp_idx, 0.5, fluid_x_vec->getComponentDescriptorIndex(0), 0.5, d_u_current_idx);
     interp(d_U_half_data, d_u_interp_idx, true, d_X_mid_data, false);
@@ -3286,33 +3230,33 @@ IBImplicitHierarchyIntegrator::FormJacobian(
             ierr = MatZeroRows(d_J_mat[ln], num_zeroed_rows, &zeroed_row_idxs[0], 0.0);  IBTK_CHKERRQ(ierr);
             ierr = MatAssemblyBegin(d_J_mat[ln], MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
             ierr = MatAssemblyEnd(d_J_mat[ln], MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+#if 0
+            // Test the analytic Jacobian matrix.
+            SNES snes_test;
+            ierr = SNESCreate(PETSC_COMM_WORLD, &snes_test);  IBTK_CHKERRQ(ierr);
+            Vec r_test;
+            ierr = VecDuplicate(d_petsc_f_vec, &r_test);  IBTK_CHKERRQ(ierr);
+            ierr = SNESSetFunction(snes_test, r_test, IBImplicitHierarchyIntegrator::FormForceTestFunction_SAMRAI, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
 
-//          // Test the analytic Jacobian matrix.
-//          SNES snes_test;
-//          ierr = SNESCreate(PETSC_COMM_WORLD, &snes_test);  IBTK_CHKERRQ(ierr);
-//          Vec r_test;
-//          ierr = VecDuplicate(d_petsc_f_vec, &r_test);  IBTK_CHKERRQ(ierr);
-//          ierr = SNESSetFunction(snes_test, r_test, IBImplicitHierarchyIntegrator::FormForceTestFunction_SAMRAI, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
+            Mat J_test;
+            ierr = MatDuplicate(d_J_mat[ln], MAT_DO_NOT_COPY_VALUES, &J_test);  IBTK_CHKERRQ(ierr);
+            ierr = SNESSetJacobian(snes_test, J_test, J_test, SNESDefaultComputeJacobian, NULL);  IBTK_CHKERRQ(ierr);
+            MatStructure flg = SAME_NONZERO_PATTERN;
+            ierr = SNESComputeJacobian(snes_test,X_new_vec,&J_test,&J_test,&flg);
 
-//          Mat J_test;
-//          ierr = MatDuplicate(d_J_mat[ln], MAT_DO_NOT_COPY_VALUES, &J_test);  IBTK_CHKERRQ(ierr);
-//          ierr = SNESSetJacobian(snes_test, J_test, J_test, SNESDefaultComputeJacobian, NULL);  IBTK_CHKERRQ(ierr);
-//          MatStructure flg = SAME_NONZERO_PATTERN;
-//          ierr = SNESComputeJacobian(snes_test,X_new_vec,&J_test,&J_test,&flg);
+            ierr = MatAXPY(J_test,-1.0,d_J_mat[ln],DIFFERENT_NONZERO_PATTERN);  IBTK_CHKERRQ(ierr);
+            double nrm;
+            ierr = MatNorm(J_test,NORM_INFINITY,&nrm);  IBTK_CHKERRQ(ierr);
+            double gnorm;
+            ierr = MatNorm(d_J_mat[ln],NORM_INFINITY,&gnorm);
+            if (!gnorm) gnorm = 1.0;
+            SAMRAI::tbox::pout << "relative difference between hand-coded and FD Jacobian matrices = " << nrm/gnorm << "\n"
+                               << "absolute difference between hand-coded and FD Jacobian matrices = " << nrm << "\n";
 
-//          ierr = MatAXPY(J_test,-1.0,d_J_mat[ln],DIFFERENT_NONZERO_PATTERN);  IBTK_CHKERRQ(ierr);
-//          double nrm;
-//          ierr = MatNorm(J_test,NORM_INFINITY,&nrm);  IBTK_CHKERRQ(ierr);
-//          double gnorm;
-//          ierr = MatNorm(d_J_mat[ln],NORM_INFINITY,&gnorm);
-//          if (!gnorm) gnorm = 1.0;
-//          SAMRAI::tbox::pout << "relative difference between hand-coded and FD Jacobian matrices = " << nrm/gnorm << "\n"
-//                             << "absolute difference between hand-coded and FD Jacobian matrices = " << nrm << "\n";
-
-//          ierr = VecDestroy(r_test);  IBTK_CHKERRQ(ierr);
-//          ierr = MatDestroy(J_test);  IBTK_CHKERRQ(ierr);
-//          ierr = SNESDestroy(snes_test);  IBTK_CHKERRQ(ierr);
-
+            ierr = VecDestroy(r_test);  IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(J_test);  IBTK_CHKERRQ(ierr);
+            ierr = SNESDestroy(snes_test);  IBTK_CHKERRQ(ierr);
+#endif
             // Setup a matrix-free version of the force Jacobian matrix.
             ierr = MatCreateMFFD(PETSC_COMM_WORLD, local_sz, local_sz, global_sz, global_sz, &d_J_mffd_mat[ln]);  IBTK_CHKERRQ(ierr);
             ierr = MatMFFDSetFunction(d_J_mffd_mat[ln], IBImplicitHierarchyIntegrator::FormForceFunction_SAMRAI, static_cast<void*>(this));  IBTK_CHKERRQ(ierr);
@@ -3409,8 +3353,8 @@ IBImplicitHierarchyIntegrator::MatVecMult(
     Vec U_half_vec = d_U_half_data[finest_ln]->getGlobalVec();
     ierr = MatMult(d_use_mffd_force_jacobian ? d_J_mffd_mat[finest_ln] : d_J_mat[finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
     spread(d_f_scratch_idx, d_F_half_data, true, d_X_mid_data, false);
-    d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_f_scratch_idx);
     d_hier_sc_data_ops->axpy(fluid_y_vec->getComponentDescriptorIndex(0), -1.0, d_f_scratch_idx, fluid_y_vec->getComponentDescriptorIndex(0));
+    d_u_bc_helper->zeroValuesAtDirichletBoundaries(fluid_y_vec->getComponentDescriptorIndex(0));
 
     d_hier_sc_data_ops->scale(d_u_interp_idx, 0.5, fluid_x_vec->getComponentDescriptorIndex(0));
     interp(d_U_half_data, d_u_interp_idx, true, d_X_mid_data, false);
@@ -3592,10 +3536,9 @@ IBImplicitHierarchyIntegrator::PCApplyFluid(
     Vec F_half_vec = d_F_half_data[finest_ln]->getGlobalVec();
     ierr = MatMult(d_use_mffd_force_jacobian ? d_J_mffd_mat[finest_ln] : d_J_mat[finest_ln], X_new_vec, F_half_vec);  IBTK_CHKERRQ(ierr);
     spread(d_f_scratch_idx, d_F_half_data, true, d_X_mid_data, false);
-    d_u_bc_helper->zeroValuesAtDirichletBoundaries(d_f_scratch_idx);
     d_hier_sc_data_ops->add(fluid_f_vec->getComponentDescriptorIndex(0), fluid_f_vec->getComponentDescriptorIndex(0), d_f_scratch_idx);
+    d_u_bc_helper->zeroValuesAtDirichletBoundaries(fluid_f_vec->getComponentDescriptorIndex(0));
     d_projection_pc->solveSystem(*fluid_y_vec, *fluid_f_vec);
-    d_u_bc_helper->zeroValuesAtDirichletBoundaries(fluid_y_vec->getComponentDescriptorIndex(0));
 
     // Update the structure variables.
     d_hier_sc_data_ops->copyData(d_u_interp_idx, fluid_y_vec->getComponentDescriptorIndex(0));

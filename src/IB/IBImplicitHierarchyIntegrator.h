@@ -2,7 +2,7 @@
 #define included_IBImplicitHierarchyIntegrator
 
 // Filename: IBImplicitHierarchyIntegrator.h
-// Last modified: <10.Jul.2009 17:29:38 griffith@griffith-macbook-pro.local>
+// Last modified: <13.Jul.2009 21:28:07 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1237,7 +1237,6 @@ private:
      * State and scratch variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_old_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_u_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_p_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_f_var;
@@ -1258,7 +1257,6 @@ private:
      * State variables have three contexts: current, scratch, and new.
      */
     int          d_u_current_idx,          d_u_new_idx,          d_u_scratch_idx;
-    int      d_u_old_current_idx,      d_u_old_new_idx,      d_u_old_scratch_idx;
     int       d_u_cc_current_idx,       d_u_cc_new_idx,       d_u_cc_scratch_idx;
     int          d_p_current_idx,          d_p_new_idx,          d_p_scratch_idx;
     int          d_f_current_idx,          d_f_new_idx,          d_f_scratch_idx;
