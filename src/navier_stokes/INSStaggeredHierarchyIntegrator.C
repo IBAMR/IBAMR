@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <09.Jul.2009 11:00:37 griffith@griffith-macbook-pro.local>
+// Last modified: <13.Jul.2009 19:39:07 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1423,7 +1423,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
 
     // Setup inhomogeneous boundary conditions.
     d_U_bc_helper->clearBcCoefData();
-    d_U_bc_helper->cacheBcCoefData(d_U_var, d_U_bc_coefs, new_time, SAMRAI::hier::IntVector<NDIM>(SIDEG), d_hierarchy);
+    d_U_bc_helper->cacheBcCoefData(d_U_scratch_idx, d_U_var, d_U_bc_coefs, new_time, SAMRAI::hier::IntVector<NDIM>(SIDEG), d_hierarchy);
 
     d_stokes_op->setHomogeneousBc(false);
     d_stokes_op->modifyRhsForInhomogeneousBc(*d_rhs_vec);

@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPhysicalBoundaryHelper.C
-// Last modified: <04.Jun.2009 15:56:41 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <13.Jul.2009 19:43:28 griffith@griffith-macbook-pro.local>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPhysicalBoundaryHelper.h"
@@ -17,6 +17,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
 
 // SAMRAI INCLUDES
@@ -148,6 +149,7 @@ INSStaggeredPhysicalBoundaryHelper::resetValuesAtDirichletBoundaries(
 
 void
 INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
+    const int u_idx,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& u_var,
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const double fill_time,
@@ -157,6 +159,20 @@ INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
 #endif
+    // Indicate whether we are employing homogeneous or inhomogeneous boundary
+    // conditions for all extended Robin BC coef strategy objects employed by
+    // this object.
+    for (std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>::iterator it = u_bc_coefs.begin();
+         it != u_bc_coefs.end(); ++it)
+    {
+        IBTK::ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<IBTK::ExtendedRobinBcCoefStrategy*>(*it);
+        if (extended_bc_coef != NULL)
+        {
+            extended_bc_coef->setTargetPatchDataIndex(u_idx);
+            extended_bc_coef->setHomogeneousBc(false);
+        }
+    }
+
     if (!d_hierarchy.isNull()) clearBcCoefData();
     d_hierarchy = hierarchy;
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();

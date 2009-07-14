@@ -2,7 +2,7 @@
 #define included_INSStaggeredPhysicalBoundaryHelper
 
 // Filename: INSStaggeredPhysicalBoundaryHelper.h
-// Last modified: <04.Jun.2009 15:53:45 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <13.Jul.2009 19:38:39 griffith@griffith-macbook-pro.local>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -73,6 +73,7 @@ public:
      */
     void
     cacheBcCoefData(
+        const int u_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& u_var,
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
         const double fill_time,
