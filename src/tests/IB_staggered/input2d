@@ -3,10 +3,10 @@ MU = 0.005
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 6   // maximum number of levels in locally refined grid
+MAX_LEVELS = 3   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 128                                      // coarsest grid spacing
+N = 64                                       // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N/16  // finest   grid spacing
 
 VelocityInitialConditions {
@@ -58,16 +58,16 @@ IBStaggeredHierarchyIntegrator {
    regrid_interval       = 1
    dt_max = 8.0e-2/NFINEST
    dt_max_time_max = dt_max
-   num_cycles = 2
+   num_cycles = 3
    delta_fcn = "IB_4"
 
    use_mffd_force_jacobian = FALSE
 
-   tag_buffer = 2
-   using_vorticity_tagging = TRUE
+   tag_buffer = 2 , 1
+   using_vorticity_tagging = FALSE
    vorticity_rel_thresh = 0.25
 
-   cfl = 0.475
+   cfl = 0.975
 
    output_u = TRUE
    output_p = TRUE
@@ -78,7 +78,7 @@ IBStaggeredHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   normalize_pressure = FALSE
+   normalize_pressure = TRUE
 
    HelmholtzHypreSolver {
       solver_type           = "PCG"
@@ -174,7 +174,7 @@ PETScVecOps {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_5 = "curve2d_256"
+   base_filenames_2 = "curve2d_256"
 }
 
 Main {
@@ -198,8 +198,8 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         = -8, -8          // lower end of computational domain.
-   x_up         =  8,  8          // upper end of computational domain.
+   x_lo         = -0.5, -0.5          // lower end of computational domain.
+   x_up         =  0.5,  0.5          // upper end of computational domain.
    periodic_dimension = 1, 1
 }
 
@@ -219,22 +219,22 @@ GriddingAlgorithm {
    }
 
    smallest_patch_size {
-      level_0 = 32, 32 // smallest patch allowed in hierarchy
+      level_0 = 8, 8 // smallest patch allowed in hierarchy
                        // all finer levels will use same values as level_0...
    }
 
    proper_nesting_buffer = 1
 
-   allow_patches_smaller_than_ghostwidth = FALSE
+   allow_patches_smaller_than_ghostwidth = TRUE
    allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
-   coalesce_boxes = FALSE
+   coalesce_boxes = TRUE
    extend_tags_to_bdry = FALSE
 
    check_nonrefined_tags = 'e'
    check_overplapping_patches = 'e'
 
-   efficiency_tolerance   = 0.95e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.95e0    // chop box if sum of volumes of smaller
+   efficiency_tolerance   = 0.9e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.9e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
 

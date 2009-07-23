@@ -685,7 +685,7 @@ uninstall-am:
 check-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/curve2d_{64,128,256}.{vertex,spring,beam} $(PWD) ; \
+	  cp -f $(srcdir)/curve2d_{64,128,256}.{vertex,spring} $(PWD) ; \
 	  cp -f $(srcdir)/shell2d_{64,128,256}.{vertex,spring} $(PWD) ; \
 	  cp -f $(srcdir)/sphere3d.{vertex,spring} $(PWD) ; \
 	fi ;

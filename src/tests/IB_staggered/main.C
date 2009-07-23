@@ -69,6 +69,7 @@ main(
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
     tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    tbox::SAMRAIManager::setMaxNumberPatchDataEntries(1024);
     tbox::SAMRAIManager::startup();
 
     {// cleanup all smart Pointers prior to shutdown
@@ -323,7 +324,7 @@ main(
             new IBImplicitHierarchyIntegrator(
                 "IBStaggeredHierarchyIntegrator",
                 input_db->getDatabase("IBStaggeredHierarchyIntegrator"),
-                patch_hierarchy, force_generator);
+                patch_hierarchy, /*navier_stokes_integrator,*/ force_generator);
 
         tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(

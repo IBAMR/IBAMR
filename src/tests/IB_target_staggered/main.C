@@ -33,7 +33,7 @@
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/IBStaggeredHierarchyIntegrator.h>
+#include <ibamr/IBImplicitHierarchyIntegrator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibtk/LagSiloDataWriter.h>
@@ -71,6 +71,7 @@ main(
      */
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
     tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     tbox::SAMRAIManager::startup();
 
     {// cleanup all smart Pointers prior to shutdown
@@ -308,24 +309,24 @@ main(
             new hier::PatchHierarchy<NDIM>(
                 "PatchHierarchy",
                 grid_geometry);
-
+#if 0
         tbox::Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator =
             new INSStaggeredHierarchyIntegrator(
                 "INSStaggeredHierarchyIntegrator",
                 input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
                 patch_hierarchy);
-
-       tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
+#endif
+        tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
         tbox::Pointer<IBBeamForceGen> beam_force_generator = new IBBeamForceGen();
         tbox::Pointer<IBTargetPointForceGen> target_point_force_generator = new IBTargetPointForceGen();
         tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen(
             spring_force_generator, beam_force_generator, target_point_force_generator);
 
-        tbox::Pointer<IBStaggeredHierarchyIntegrator> time_integrator =
-            new IBStaggeredHierarchyIntegrator(
+        tbox::Pointer<IBImplicitHierarchyIntegrator> time_integrator =
+            new IBImplicitHierarchyIntegrator(
                 "IBStaggeredHierarchyIntegrator",
                 input_db->getDatabase("IBStaggeredHierarchyIntegrator"),
-                patch_hierarchy, navier_stokes_integrator, force_generator);
+                patch_hierarchy, /*navier_stokes_integrator,*/ force_generator);
 
         tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(
