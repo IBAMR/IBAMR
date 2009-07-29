@@ -546,21 +546,29 @@ AC_CONFIG_FILES([
   src/utilities/get_version.C
   src/tests/Makefile
   src/tests/IB/Makefile
-  src/tests/IB_multilevel/Makefile
-  src/tests/IB_staggered/Makefile
-  src/tests/IB_target/Makefile
-  src/tests/IB_target_staggered/Makefile
+  src/tests/IB/cell_centered/Makefile
+  src/tests/IB/cell_centered/ex0/Makefile
+  src/tests/IB/cell_centered/ex1/Makefile
+  src/tests/IB/cell_centered/ex2/Makefile
+  src/tests/IB/staggered_grid/Makefile
+  src/tests/IB/staggered_grid/explicit/Makefile
+  src/tests/IB/staggered_grid/explicit/ex0/Makefile
+  src/tests/IB/staggered_grid/explicit/ex1/Makefile
+  src/tests/IB/staggered_grid/implicit/Makefile
+  src/tests/IB/staggered_grid/implicit/ex0/Makefile
+  src/tests/IB/staggered_grid/implicit/ex1/Makefile
   src/tests/adv_diff/Makefile
   src/tests/advect/Makefile
   src/tests/navier_stokes/Makefile
-  src/tests/navier_stokes/analytic_soln/Makefile
-  src/tests/navier_stokes/analytic_soln_staggered/Makefile
-  src/tests/navier_stokes/lid_driven_cavity/Makefile
-  src/tests/navier_stokes/lid_driven_cavity_staggered/Makefile
-  src/tests/navier_stokes/periodic_shear_layer/Makefile
-  src/tests/navier_stokes/periodic_shear_layer_staggered/Makefile
-  src/tests/navier_stokes/regularized_lid_driven_cavity_staggered/Makefile
-  src/tests/pIB/Makefile
+  src/tests/navier_stokes/cell_centered/Makefile
+  src/tests/navier_stokes/cell_centered/ex0/Makefile
+  src/tests/navier_stokes/cell_centered/ex1/Makefile
+  src/tests/navier_stokes/cell_centered/ex2/Makefile
+  src/tests/navier_stokes/staggered_grid/Makefile
+  src/tests/navier_stokes/staggered_grid/ex0/Makefile
+  src/tests/navier_stokes/staggered_grid/ex1/Makefile
+  src/tests/navier_stokes/staggered_grid/ex2/Makefile
+  src/tests/navier_stokes/staggered_grid/ex3/Makefile
   src/tools/Makefile
 ])
 AC_OUTPUT

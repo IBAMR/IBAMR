@@ -372,7 +372,7 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_srcdi
 AM_FFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = IB IB_multilevel IB_staggered IB_target IB_target_staggered adv_diff advect navier_stokes pIB
+SUBDIRS = IB adv_diff advect navier_stokes
 all: all-recursive
 
 .SUFFIXES:

@@ -372,11 +372,7 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_srcdi
 AM_FFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = analytic_soln        analytic_soln_staggered        \
-          lid_driven_cavity    lid_driven_cavity_staggered    \
-          periodic_shear_layer periodic_shear_layer_staggered \
-          regularized_lid_driven_cavity_staggered
-
+SUBDIRS = cell_centered staggered_grid
 all: all-recursive
 
 .SUFFIXES:

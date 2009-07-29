@@ -309,13 +309,7 @@ main(
             new hier::PatchHierarchy<NDIM>(
                 "PatchHierarchy",
                 grid_geometry);
-#if 0
-        tbox::Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator =
-            new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator",
-                input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
-                patch_hierarchy);
-#endif
+
         tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
         tbox::Pointer<IBBeamForceGen> beam_force_generator = new IBBeamForceGen();
         tbox::Pointer<IBTargetPointForceGen> target_point_force_generator = new IBTargetPointForceGen();
@@ -324,9 +318,9 @@ main(
 
         tbox::Pointer<IBImplicitHierarchyIntegrator> time_integrator =
             new IBImplicitHierarchyIntegrator(
-                "IBStaggeredHierarchyIntegrator",
-                input_db->getDatabase("IBStaggeredHierarchyIntegrator"),
-                patch_hierarchy, /*navier_stokes_integrator,*/ force_generator);
+                "IBImplicitHierarchyIntegrator",
+                input_db->getDatabase("IBImplicitHierarchyIntegrator"),
+                patch_hierarchy, force_generator);
 
         tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(
@@ -454,35 +448,6 @@ main(
             }
         }
 
-#if 0
-        /*
-         * Open files to output the lift and drag coefficients.
-         */
-        const double radius = input_db->getDouble("R");
-        ofstream drag_stream, lift_stream;
-        if (tbox::SAMRAI_MPI::getRank() == 0)
-        {
-            drag_stream.open("C_D.curve", tbox::RestartManager::getManager()->isFromRestart() ? ios::app : ios::out);
-            lift_stream.open("C_L.curve", tbox::RestartManager::getManager()->isFromRestart() ? ios::app : ios::out);
-
-            drag_stream.setf(ios_base::scientific);
-            drag_stream.setf(ios_base::showpos);
-            drag_stream.setf(ios_base::showpoint);
-            drag_stream.width(16); drag_stream.precision(15);
-
-            lift_stream.setf(ios_base::scientific);
-            lift_stream.setf(ios_base::showpos);
-            lift_stream.setf(ios_base::showpoint);
-            lift_stream.width(16); lift_stream.precision(15);
-
-            if (!tbox::RestartManager::getManager()->isFromRestart())
-            {
-                drag_stream << 0.0 << " " << 0.0 << endl;
-                lift_stream << 0.0 << " " << 0.0 << endl;
-            }
-        }
-#endif
-
         /*
          * Time step loop.  Note that the step count and integration time are
          * maintained by the time integrator object.
@@ -512,44 +477,7 @@ main(
             tbox::pout << "Simulation time is " << loop_time                 << endl;
             tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
             tbox::pout <<                                                       endl;
-#if 0
-            /*
-             * Compute the drag and lift coefficients by integrating the
-             * components of the Lagrangian force field over the computational
-             * domain.
-             */
-            const int ln = patch_hierarchy->getFinestLevelNumber();
-            LDataManager* lag_manager = time_integrator->getLDataManager();
-            tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X",ln);
-            tbox::Pointer<LNodeLevelData> F_data = lag_manager->createLNodeLevelData("F",ln,NDIM);
-            force_generator->computeLagrangianForce(
-                F_data, X_data,
-                patch_hierarchy, ln, loop_time, lag_manager);
 
-            double F_D = 0.0;
-            double F_L = 0.0;
-            for (int i = 0; i < F_data->getLocalNodeCount(); ++i)
-            {
-                F_D -= (*F_data)(i,0);
-                F_L -= (*F_data)(i,1);
-            }
-
-            F_D = tbox::SAMRAI_MPI::sumReduction(F_D);
-            F_L = tbox::SAMRAI_MPI::sumReduction(F_L);
-
-            /*
-             * Output the normalized drag and lift coefficients.
-             *
-             * NOTE: We assume that rho = 1.0, u_oo = 1.0, so:
-             *      C_D = F_D/(rho u_oo^2 R) = F_D/R
-             *      C_L = F_L/(rho u_oo^2 R) = F_L/R
-             */
-            if (tbox::SAMRAI_MPI::getRank() == 0)
-            {
-                drag_stream << loop_time << " " << F_D/radius << endl;
-                lift_stream << loop_time << " " << F_L/radius << endl;
-            }
-#endif
             /*
              * At specified intervals, output timer data and write visualization
              * and restart and files.
@@ -605,17 +533,6 @@ main(
                     iteration_num, loop_time);
             }
         }
-
-#if 0
-        /*
-         * Close the files used to store the lift and drag coefficients.
-         */
-        if (tbox::SAMRAI_MPI::getRank() == 0)
-        {
-            drag_stream.close();
-            lift_stream.close();
-        }
-#endif
 
         /*
          * Delete the lock file.

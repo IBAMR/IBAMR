@@ -37,6 +37,7 @@
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/muParserDataSetter.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
 using namespace IBAMR;
@@ -307,13 +308,7 @@ main(
             new hier::PatchHierarchy<NDIM>(
                 "PatchHierarchy",
                 grid_geometry);
-#if 0
-       tbox::Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator =
-            new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator",
-                input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
-                patch_hierarchy);
-#endif
+
         tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
         tbox::Pointer<IBBeamForceGen> beam_force_generator = new IBBeamForceGen();
         tbox::Pointer<IBTargetPointForceGen> target_point_force_generator = new IBTargetPointForceGen();
@@ -322,9 +317,9 @@ main(
 
         tbox::Pointer<IBImplicitHierarchyIntegrator> time_integrator =
             new IBImplicitHierarchyIntegrator(
-                "IBStaggeredHierarchyIntegrator",
-                input_db->getDatabase("IBStaggeredHierarchyIntegrator"),
-                patch_hierarchy, /*navier_stokes_integrator,*/ force_generator);
+                "IBImplicitHierarchyIntegrator",
+                input_db->getDatabase("IBImplicitHierarchyIntegrator"),
+                patch_hierarchy, force_generator);
 
         tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(
@@ -351,14 +346,14 @@ main(
                 "GriddingAlgorithm",
                 input_db->getDatabase("GriddingAlgorithm"),
                 error_detector, box_generator, load_balancer);
-#if 0
+
         /*
          * Create initial condition specification objects.
          */
         tbox::Pointer<SetDataStrategy> u_init = new muParserDataSetter(
             "u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
         time_integrator->registerVelocityInitialConditions(u_init);
-#endif
+
         /*
          * Create boundary condition specification objects (when necessary).
          */
@@ -384,7 +379,7 @@ main(
             }
             time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
         }
-#if 0
+
         /*
          * Create body force function specification objects (when necessary).
          */
@@ -394,7 +389,7 @@ main(
                 "f_set", input_db->getDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceSpecification(f_set);
         }
-#endif
+
         /*
          * Set up visualization plot file writer.
          */

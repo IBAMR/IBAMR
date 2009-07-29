@@ -35,7 +35,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
 check_PROGRAMS = $(am__EXEEXT_1)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
-subdir = src/tests/navier_stokes/lid_driven_cavity_staggered
+subdir = src/tests/navier_stokes/staggered_grid/ex2
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
 	$(top_srcdir)/m4/ac_cxx_namespaces.m4 \
@@ -401,9 +401,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/tests/navier_stokes/lid_driven_cavity_staggered/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/tests/navier_stokes/staggered_grid/ex2/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  src/tests/navier_stokes/lid_driven_cavity_staggered/Makefile
+	  $(AUTOMAKE) --foreign  src/tests/navier_stokes/staggered_grid/ex2/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

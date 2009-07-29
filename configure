@@ -37126,7 +37126,7 @@ echo "================"
 
 subdirs="$subdirs ibtk"
 
-ac_config_files="$ac_config_files Makefile config/make.inc doc/Makefile doc/Doxyfile sample/IB/Makefile sample/empty_project/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/utilities/get_version.C src/tests/Makefile src/tests/IB/Makefile src/tests/IB_multilevel/Makefile src/tests/IB_staggered/Makefile src/tests/IB_target/Makefile src/tests/IB_target_staggered/Makefile src/tests/adv_diff/Makefile src/tests/advect/Makefile src/tests/navier_stokes/Makefile src/tests/navier_stokes/analytic_soln/Makefile src/tests/navier_stokes/analytic_soln_staggered/Makefile src/tests/navier_stokes/lid_driven_cavity/Makefile src/tests/navier_stokes/lid_driven_cavity_staggered/Makefile src/tests/navier_stokes/periodic_shear_layer/Makefile src/tests/navier_stokes/periodic_shear_layer_staggered/Makefile src/tests/navier_stokes/regularized_lid_driven_cavity_staggered/Makefile src/tests/pIB/Makefile src/tools/Makefile"
+ac_config_files="$ac_config_files Makefile config/make.inc doc/Makefile doc/Doxyfile sample/IB/Makefile sample/empty_project/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/utilities/get_version.C src/tests/Makefile src/tests/IB/Makefile src/tests/IB/cell_centered/Makefile src/tests/IB/cell_centered/ex0/Makefile src/tests/IB/cell_centered/ex1/Makefile src/tests/IB/cell_centered/ex2/Makefile src/tests/IB/staggered_grid/Makefile src/tests/IB/staggered_grid/explicit/Makefile src/tests/IB/staggered_grid/explicit/ex0/Makefile src/tests/IB/staggered_grid/explicit/ex1/Makefile src/tests/IB/staggered_grid/implicit/Makefile src/tests/IB/staggered_grid/implicit/ex0/Makefile src/tests/IB/staggered_grid/implicit/ex1/Makefile src/tests/adv_diff/Makefile src/tests/advect/Makefile src/tests/navier_stokes/Makefile src/tests/navier_stokes/cell_centered/Makefile src/tests/navier_stokes/cell_centered/ex0/Makefile src/tests/navier_stokes/cell_centered/ex1/Makefile src/tests/navier_stokes/cell_centered/ex2/Makefile src/tests/navier_stokes/staggered_grid/Makefile src/tests/navier_stokes/staggered_grid/ex0/Makefile src/tests/navier_stokes/staggered_grid/ex1/Makefile src/tests/navier_stokes/staggered_grid/ex2/Makefile src/tests/navier_stokes/staggered_grid/ex3/Makefile src/tools/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -37789,21 +37789,29 @@ do
     "src/utilities/get_version.C") CONFIG_FILES="$CONFIG_FILES src/utilities/get_version.C" ;;
     "src/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/Makefile" ;;
     "src/tests/IB/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB/Makefile" ;;
-    "src/tests/IB_multilevel/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB_multilevel/Makefile" ;;
-    "src/tests/IB_staggered/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB_staggered/Makefile" ;;
-    "src/tests/IB_target/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB_target/Makefile" ;;
-    "src/tests/IB_target_staggered/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB_target_staggered/Makefile" ;;
+    "src/tests/IB/cell_centered/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB/cell_centered/Makefile" ;;
+    "src/tests/IB/cell_centered/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB/cell_centered/ex0/Makefile" ;;
+    "src/tests/IB/cell_centered/ex1/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB/cell_centered/ex1/Makefile" ;;
+    "src/tests/IB/cell_centered/ex2/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB/cell_centered/ex2/Makefile" ;;
+    "src/tests/IB/staggered_grid/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB/staggered_grid/Makefile" ;;
+    "src/tests/IB/staggered_grid/explicit/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB/staggered_grid/explicit/Makefile" ;;
+    "src/tests/IB/staggered_grid/explicit/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB/staggered_grid/explicit/ex0/Makefile" ;;
+    "src/tests/IB/staggered_grid/explicit/ex1/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB/staggered_grid/explicit/ex1/Makefile" ;;
+    "src/tests/IB/staggered_grid/implicit/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB/staggered_grid/implicit/Makefile" ;;
+    "src/tests/IB/staggered_grid/implicit/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB/staggered_grid/implicit/ex0/Makefile" ;;
+    "src/tests/IB/staggered_grid/implicit/ex1/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/IB/staggered_grid/implicit/ex1/Makefile" ;;
     "src/tests/adv_diff/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/adv_diff/Makefile" ;;
     "src/tests/advect/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/advect/Makefile" ;;
     "src/tests/navier_stokes/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/Makefile" ;;
-    "src/tests/navier_stokes/analytic_soln/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/analytic_soln/Makefile" ;;
-    "src/tests/navier_stokes/analytic_soln_staggered/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/analytic_soln_staggered/Makefile" ;;
-    "src/tests/navier_stokes/lid_driven_cavity/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/lid_driven_cavity/Makefile" ;;
-    "src/tests/navier_stokes/lid_driven_cavity_staggered/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/lid_driven_cavity_staggered/Makefile" ;;
-    "src/tests/navier_stokes/periodic_shear_layer/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/periodic_shear_layer/Makefile" ;;
-    "src/tests/navier_stokes/periodic_shear_layer_staggered/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/periodic_shear_layer_staggered/Makefile" ;;
-    "src/tests/navier_stokes/regularized_lid_driven_cavity_staggered/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/regularized_lid_driven_cavity_staggered/Makefile" ;;
-    "src/tests/pIB/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/pIB/Makefile" ;;
+    "src/tests/navier_stokes/cell_centered/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/cell_centered/Makefile" ;;
+    "src/tests/navier_stokes/cell_centered/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/cell_centered/ex0/Makefile" ;;
+    "src/tests/navier_stokes/cell_centered/ex1/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/cell_centered/ex1/Makefile" ;;
+    "src/tests/navier_stokes/cell_centered/ex2/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/cell_centered/ex2/Makefile" ;;
+    "src/tests/navier_stokes/staggered_grid/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/staggered_grid/Makefile" ;;
+    "src/tests/navier_stokes/staggered_grid/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/staggered_grid/ex0/Makefile" ;;
+    "src/tests/navier_stokes/staggered_grid/ex1/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/staggered_grid/ex1/Makefile" ;;
+    "src/tests/navier_stokes/staggered_grid/ex2/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/staggered_grid/ex2/Makefile" ;;
+    "src/tests/navier_stokes/staggered_grid/ex3/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/navier_stokes/staggered_grid/ex3/Makefile" ;;
     "src/tools/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/Makefile" ;;
 
   *) { { $as_echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
