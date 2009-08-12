@@ -16,7 +16,6 @@ W = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*cos(2*PI*(X_0-t)) + C*sin(2*PI*(X_1-t)))"
 P = "-exp(-8.0*PI*PI*nu*t)*(A*C*cos(2*PI*(X_1-t))*sin(2*PI*(X_2-t)) + A*B*sin(2*PI*(X_0-t))*cos(2*PI*(X_2-t)) + B*C*cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))"
 
 VelocityInitialConditions {
-   constant_names = "nu" , "A" , "B" , "C"
    nu = MU/RHO
    A = 1.0
    B = 1.0
@@ -27,7 +26,6 @@ VelocityInitialConditions {
 }
 
 VelocityBcCoefs_0 {
-   constant_names = "nu"
    nu = MU/RHO
 
    acoef_function_0 = "1.0"
@@ -53,7 +51,6 @@ VelocityBcCoefs_0 {
 }
 
 VelocityBcCoefs_1 {
-   constant_names = "nu"
    nu = MU/RHO
 
    acoef_function_0 = "1.0"
@@ -79,7 +76,6 @@ VelocityBcCoefs_1 {
 }
 
 VelocityBcCoefs_2 {
-   constant_names = "nu"
    nu = MU/RHO
 
    acoef_function_0 = "1.0"
@@ -105,7 +101,6 @@ VelocityBcCoefs_2 {
 }
 
 PressureInitialConditions {
-   constant_names = "nu" , "A" , "B" , "C"
    nu = MU/RHO
    A = 1.0
    B = 1.0

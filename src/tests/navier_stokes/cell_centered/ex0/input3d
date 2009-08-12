@@ -1,10 +1,3 @@
-// advective term options
-CTU_ONLY = -1
-SECOND_ORDER = 0
-FOURTH_ORDER = 1
-MC_LIMITED = 2
-MUSCL_LIMITED = 3
-
 // physical parameters
 MU = 0.01
 RHO = 1.0
@@ -23,7 +16,6 @@ W = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*cos(2*PI*(X_0-t)) + C*sin(2*PI*(X_1-t)))"
 P = "-exp(-8.0*PI*PI*nu*t)*(A*C*cos(2*PI*(X_1-t))*sin(2*PI*(X_2-t)) + A*B*sin(2*PI*(X_0-t))*cos(2*PI*(X_2-t)) + B*C*cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))"
 
 VelocitySolution {
-   constant_names = "nu" , "A" , "B" , "C"
    nu = MU/RHO
    A = 1.0
    B = 1.0
@@ -34,7 +26,6 @@ VelocitySolution {
 }
 
 PressureSolution {
-   constant_names = "nu" , "A" , "B" , "C"
    nu = MU/RHO
    A = 1.0
    B = 1.0
@@ -90,7 +81,6 @@ INSHierarchyIntegrator {
 }
 
 GodunovAdvector {
-   limiter_type = FOURTH_ORDER
 }
 
 AdvDiffHierarchyIntegrator {

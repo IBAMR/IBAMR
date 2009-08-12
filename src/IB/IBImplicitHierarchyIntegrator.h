@@ -2,7 +2,7 @@
 #define included_IBImplicitHierarchyIntegrator
 
 // Filename: IBImplicitHierarchyIntegrator.h
-// Last modified: <13.Jul.2009 21:28:07 griffith@griffith-macbook-pro.local>
+// Last modified: <12.Aug.2009 12:31:02 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1167,7 +1167,7 @@ private:
     bool d_block_pc_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredBlockFactorizationPreconditioner> d_block_pc;
 
-    double d_div_u_abstol;  // XXXX this value is not used currently
+//  double d_div_u_abstol;
 
     bool d_needs_regrid_projection;
     double d_regrid_max_div_growth_factor;

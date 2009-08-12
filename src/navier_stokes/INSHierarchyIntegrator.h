@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <07.Jul.2009 13:14:39 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Aug.2009 14:22:50 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1225,11 +1225,16 @@ private:
 
     int d_helmholtz_max_iterations;
     double d_helmholtz_abs_residual_tol, d_helmholtz_rel_residual_tol;
+    bool d_helmholtz_using_FAC;
 
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>  d_helmholtz_op    ;
-    SAMRAI::solv::PoissonSpecifications*            d_helmholtz_spec  ;
-    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> d_helmholtz_solver;
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>                d_helmholtz_op    ;
+    SAMRAI::solv::PoissonSpecifications*                          d_helmholtz_spec  ;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>               d_helmholtz_solver;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>             d_helmholtz_fac_op;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_helmholtz_fac_pc;
     bool d_helmholtz_solver_needs_init;
+
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_op_db, d_fac_pc_db;
 
     /*!
      * \brief Callback function pointers and callback contexts.

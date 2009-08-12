@@ -1,10 +1,3 @@
-// advective term options
-CTU_ONLY = -1
-SECOND_ORDER = 0
-FOURTH_ORDER = 1
-MC_LIMITED = 2
-MUSCL_LIMITED = 3
-
 // physical parameters
 MU  = 1.2e-4     // corresponds to Re=2100
 RHO = 3.0e-4
@@ -133,7 +126,6 @@ INSHierarchyIntegrator {
 }
 
 GodunovAdvector {
-   limiter_type = MUSCL_LIMITED
 }
 
 AdvDiffHierarchyIntegrator {

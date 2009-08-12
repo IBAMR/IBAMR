@@ -10,8 +10,6 @@ N = 256                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 VelocityInitialConditions {
-   constant_names = "nu"
-   nu = MU/RHO
    function_0 = "0.0"
    function_1 = "0.0"
 }

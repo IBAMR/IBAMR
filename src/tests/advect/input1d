@@ -1,12 +1,4 @@
-// advective term options
-CTU_ONLY = -1
-SECOND_ORDER = 0
-FOURTH_ORDER = 1
-MC_LIMITED = 2
-MUSCL_LIMITED = 3
-
 GodunovAdvector {
-   limiter_type = MUSCL_LIMITED
 }
 
 GodunovHypPatchOps {

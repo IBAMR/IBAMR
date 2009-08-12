@@ -15,14 +15,12 @@ V = "1.0 + 2.0*(sin(2.0*PI*(X_0-t))*cos(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
 P = "-(cos(4.0*PI*(X_0-t)) + cos(4.0*PI*(X_1-t)))*exp(-16.0*PI*PI*nu*t)"
 
 VelocitySolution {
-   constant_names = "nu"
    nu = MU/RHO
    function_0 = U
    function_1 = V
 }
 
 PressureSolution {
-   constant_names = "nu"
    nu = MU/RHO
    function = P
 }
@@ -71,10 +69,45 @@ INSHierarchyIntegrator {
    helmholtz_max_iterations = 25
    helmholtz_abs_residual_tol = 1.0e-30
    helmholtz_rel_residual_tol = 1.0e-12
+   helmholtz_using_FAC = TRUE
+
+   FACOp {
+      fac_max_cycles = 1
+      fac_uses_presmoothing = FALSE
+      fac_initial_guess_nonzero = FALSE
+
+      skip_restrict_sol = TRUE
+      skip_restrict_residual = FALSE
+
+      ssor_iterations = 1
+
+      coarse_solver_choice = "hypre"
+      coarse_solver_tolerance = 1.0e-6
+      coarse_solver_max_iterations = 1
+      prolongation_method = "LINEAR_REFINE"
+      cf_discretization   = "LINEAR_REFINE"
+
+      hypre_solver {
+         solver_type = "PFMG"
+         rap_type = 1
+         relax_type = 3
+         num_pre_relax_steps   = 2
+         num_post_relax_steps  = 2
+         max_iterations        = 1
+         relative_residual_tol = 1.0e-12
+         enable_logging = FALSE
+      }
+   }
+
+   FACPreconditioner {
+      max_cycles = 1
+      residual_tol = 1.0e-12
+      num_pre_sweeps  = 0  // this should always be 0
+      num_post_sweeps = 3
+   }
 }
 
 GodunovAdvector {
-   limiter_type = FOURTH_ORDER
    using_full_ctu = TRUE
 }
 
@@ -113,11 +146,22 @@ AdvDiffHierarchyIntegrator {
 
       ssor_iterations = 1
 
-      coarse_solver_choice = "block_jacobi"
+      coarse_solver_choice = "hypre"
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
       cf_discretization   = "LINEAR_REFINE"
+
+      hypre_solver {
+         solver_type = "PFMG"
+         rap_type = 1
+         relax_type = 3
+         num_pre_relax_steps   = 2
+         num_post_relax_steps  = 2
+         max_iterations        = 1
+         relative_residual_tol = 1.0e-12
+         enable_logging = FALSE
+      }
    }
 
    FACPreconditioners {

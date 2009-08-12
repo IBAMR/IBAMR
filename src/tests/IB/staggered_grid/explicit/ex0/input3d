@@ -1,10 +1,3 @@
-// advective term options
-CTU_ONLY = -1
-SECOND_ORDER = 0
-FOURTH_ORDER = 1
-MC_LIMITED = 2
-MUSCL_LIMITED = 3
-
 // physical parameters
 MU = 0.005
 RHO = 1.0
@@ -100,7 +93,6 @@ INSHierarchyIntegrator {
 }
 
 GodunovAdvector {
-   limiter_type = FOURTH_ORDER
    using_full_ctu = TRUE
 }
 

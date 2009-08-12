@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <07.Jul.2009 13:16:47 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Aug.2009 15:03:48 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -252,6 +252,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_helmholtz_max_iterations = 25;
     d_helmholtz_abs_residual_tol = 1.0e-30;
     d_helmholtz_rel_residual_tol = 1.0e-8;
+    d_helmholtz_using_FAC = false;
 
     // Setup default boundary condition objects that specify homogeneous
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann
@@ -322,6 +323,28 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
                        << d_object_name << ": using a " << (d_using_hybrid_projection ? "HYBRID" : "STANDARD") << " approximate projection algorithm\n"
                        << d_object_name << ": using a " << (d_second_order_pressure_update ? "SECOND-ORDER" : "FIRST-ORDER") << " pressure update\n"
                        << d_object_name << ": using " << (d_conservation_form ? "CONSERVATIVE" : "NON-CONSERVATIVE") << " differencing\n";
+
+    // Get initialization data for the FAC ops and FAC preconditioners.
+    if (d_helmholtz_using_FAC)
+    {
+        if (input_db->keyExists("FACOp"))
+        {
+            d_fac_op_db = input_db->getDatabase("FACOp");
+        }
+        else if (input_db->keyExists("FACOps"))
+        {
+            d_fac_op_db = input_db->getDatabase("FACOps");
+        }
+
+        if (input_db->keyExists("FACPreconditioner"))
+        {
+            d_fac_pc_db = input_db->getDatabase("FACPreconditioner");
+        }
+        else if (input_db->keyExists("FACPreconditioners"))
+        {
+            d_fac_pc_db = input_db->getDatabase("FACPreconditioners");
+        }
+    }
 
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager =
@@ -1097,14 +1120,27 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz_spec = new SAMRAI::solv::PoissonSpecifications(d_object_name+"::helmholtz_spec");
         d_helmholtz_op = new IBTK::CCLaplaceOperator(d_object_name+"::helmholtz_op",*d_helmholtz_spec,NULL);
         d_helmholtz_op->setPhysicalBcCoefs(U_bc_coefs);
+        if (d_helmholtz_using_FAC)
+        {
+            d_helmholtz_fac_op = new IBTK::CCPoissonFACOperator(d_object_name+"::helmholtz_fac_op", d_fac_op_db);
+            d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
+            d_helmholtz_fac_op->setPhysicalBcCoefs(U_bc_coefs);
+            d_helmholtz_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(d_object_name+"::helmholtz_fac_pc",*d_helmholtz_fac_op, d_fac_pc_db);
+            d_helmholtz_fac_op->setPreconditioner(d_helmholtz_fac_pc);
+        }
+
         d_helmholtz_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::helmholtz_solver", "adv_diff_");
         d_helmholtz_solver->setMaxIterations(d_helmholtz_max_iterations);
         d_helmholtz_solver->setAbsoluteTolerance(d_helmholtz_abs_residual_tol);
         d_helmholtz_solver->setRelativeTolerance(d_helmholtz_rel_residual_tol);
         d_helmholtz_solver->setInitialGuessNonzero(false);
         d_helmholtz_solver->setOperator(d_helmholtz_op);
+        if (d_helmholtz_using_FAC)
+        {
+            d_helmholtz_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_fac_pc_db));
+        }
 
-        // Indicate the the solver needs to be initialized.
+        // Indicate that the solver needs to be initialized.
         d_helmholtz_solver_needs_init = true;
     }
 
@@ -2112,16 +2148,21 @@ INSHierarchyIntegrator::updatePressure(
 
         if (!SAMRAI::tbox::MathUtilities<double>::equalEps(dt,d_old_dt) || d_helmholtz_solver_needs_init)
         {
+            if (d_helmholtz_using_FAC)
+            {
+                d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
+                d_helmholtz_fac_op->setTime(new_time);
+            }
             d_helmholtz_solver->initializeSolverState(*vector_sol_vec,*vector_rhs_vec);
         }
 
         // Solve for delta U^{*} = U~^{*} - U^{*}.
         if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): about to solve for U~^{*} - U^{*} . . . \n";
 
-        if (d_viscous_timestepping_type == "BACKWARD_EULER" ||
-            d_viscous_timestepping_type == "CRANK_NICOLSON")
+        if (d_viscous_timestepping_type == "BACKWARD_EULER" || d_viscous_timestepping_type == "CRANK_NICOLSON")
         {
             d_helmholtz_op->setTime(new_time);
+            if (d_helmholtz_using_FAC) d_helmholtz_fac_op->setTime(new_time);
             d_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
 
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";
@@ -2136,6 +2177,7 @@ INSHierarchyIntegrator::updatePressure(
         else if (d_viscous_timestepping_type == "TGA")
         {
             d_helmholtz_op->setTime(intermediate_time);
+            if (d_helmholtz_using_FAC) d_helmholtz_fac_op->setTime(intermediate_time);
             d_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
 
             if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): linear solve #1 number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";
@@ -2148,6 +2190,7 @@ INSHierarchyIntegrator::updatePressure(
             }
 
             d_helmholtz_op->setTime(new_time);
+            if (d_helmholtz_using_FAC) d_helmholtz_fac_op->setTime(new_time);
             vector_rhs_vec->copyVector(vector_sol_vec);
             d_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
 
@@ -3571,6 +3614,7 @@ INSHierarchyIntegrator::getFromInput(
     d_helmholtz_max_iterations = db->getIntegerWithDefault("helmholtz_max_iterations", d_helmholtz_max_iterations);
     d_helmholtz_abs_residual_tol = db->getDoubleWithDefault("helmholtz_abs_residual_tol", d_helmholtz_abs_residual_tol);
     d_helmholtz_rel_residual_tol = db->getDoubleWithDefault("helmholtz_rel_residual_tol", d_helmholtz_rel_residual_tol);
+    d_helmholtz_using_FAC = db->getBoolWithDefault("helmholtz_using_FAC", d_helmholtz_using_FAC);
 
     if (!is_from_restart)
     {

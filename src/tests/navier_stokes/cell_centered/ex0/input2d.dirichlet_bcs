@@ -1,10 +1,3 @@
-// advective term options
-CTU_ONLY = -1
-SECOND_ORDER = 0
-FOURTH_ORDER = 1
-MC_LIMITED = 2
-MUSCL_LIMITED = 3
-
 // physical parameters
 MU = 0.01
 RHO = 1.0
@@ -22,20 +15,17 @@ V = "1.0 + 2.0*(sin(2.0*PI*(X_0-t))*cos(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
 P = "-(cos(4.0*PI*(X_0-t)) + cos(4.0*PI*(X_1-t)))*exp(-16.0*PI*PI*nu*t)"
 
 VelocitySolution {
-   constant_names = "nu"
    nu = MU/RHO
    function_0 = U
    function_1 = V
 }
 
 PressureSolution {
-   constant_names = "nu"
    nu = MU/RHO
    function = P
 }
 
 VelocityBcCoefs_0 {
-   constant_names = "nu"
    nu = MU/RHO
 
    acoef_function_0 = "1.0"
@@ -55,7 +45,6 @@ VelocityBcCoefs_0 {
 }
 
 VelocityBcCoefs_1 {
-   constant_names = "nu"
    nu = MU/RHO
 
    acoef_function_0 = "1.0"
@@ -119,7 +108,6 @@ INSHierarchyIntegrator {
 }
 
 GodunovAdvector {
-   limiter_type = FOURTH_ORDER
    using_full_ctu = TRUE
 }
 

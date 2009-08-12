@@ -1,13 +1,6 @@
 // constants
 PI = 3.141592653589793e+00
 
-// advective term options
-CTU_ONLY = -1
-SECOND_ORDER = 0
-FOURTH_ORDER = 1
-MC_LIMITED = 2
-MUSCL_LIMITED = 3
-
 // grid spacing parameters
 MAX_LEVELS = 2   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
@@ -16,7 +9,6 @@ N = 32                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 GodunovAdvector {
-   limiter_type = FOURTH_ORDER
    using_full_ctu = TRUE
 }
 

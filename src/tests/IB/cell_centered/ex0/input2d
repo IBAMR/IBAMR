@@ -91,7 +91,6 @@ INSHierarchyIntegrator {
 }
 
 GodunovAdvector {
-   limiter_type = FOURTH_ORDER
 }
 
 AdvDiffHierarchyIntegrator {

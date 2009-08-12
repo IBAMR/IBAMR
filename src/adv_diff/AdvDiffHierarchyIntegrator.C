@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <18.Apr.2008 13:30:21 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Aug.2009 15:05:41 griffith@boyce-griffiths-mac-pro.local>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -144,8 +144,8 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_helmholtz_solvers_need_init(),
       d_coarsest_reset_ln(-1),
       d_finest_reset_ln(-1),
-      d_fac_ops_db(NULL),
-      d_fac_pcs_db(NULL)
+      d_fac_op_db(NULL),
+      d_fac_pc_db(NULL)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
@@ -206,13 +206,22 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     // Get initialization data for the FAC ops and FAC preconditioners.
     if (d_using_FAC)
     {
-        if (input_db->keyExists("FACOps"))
+        if (input_db->keyExists("FACOp"))
         {
-            d_fac_ops_db = input_db->getDatabase("FACOps");
+            d_fac_op_db = input_db->getDatabase("FACOp");
         }
-        if (input_db->keyExists("FACPreconditioners"))
+        else if (input_db->keyExists("FACOps"))
         {
-            d_fac_pcs_db = input_db->getDatabase("FACPreconditioners");
+            d_fac_op_db = input_db->getDatabase("FACOps");
+        }
+
+        if (input_db->keyExists("FACPreconditioner"))
+        {
+            d_fac_pc_db = input_db->getDatabase("FACPreconditioner");
+        }
+        else if (input_db->keyExists("FACPreconditioners"))
+        {
+            d_fac_pc_db = input_db->getDatabase("FACPreconditioners");
         }
     }
 
@@ -704,14 +713,14 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         if (d_using_FAC)
         {
             d_helmholtz_fac_ops[l] = new IBTK::CCPoissonFACOperator(
-                d_object_name+"::FAC Ops::"+name, d_fac_ops_db);
+                d_object_name+"::FAC Ops::"+name, d_fac_op_db);
             d_helmholtz_fac_ops[l]->setPoissonSpecifications(
                 d_helmholtz_specs[l]);
             d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coefs[l]);
 
             d_helmholtz_fac_pcs[l] = new SAMRAI::solv::FACPreconditioner<NDIM>(
                 d_object_name+"::FAC Preconditioner::"+name,
-                *d_helmholtz_fac_ops[l], d_fac_pcs_db);
+                *d_helmholtz_fac_ops[l], d_fac_pc_db);
             d_helmholtz_fac_ops[l]->setPreconditioner(
                 d_helmholtz_fac_pcs[l]);
         }
@@ -727,10 +736,10 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         {
             d_helmholtz_solvers[l]->setPreconditioner(
                 new IBTK::FACPreconditionerLSWrapper(
-                    d_helmholtz_fac_pcs[l], d_fac_pcs_db));
+                    d_helmholtz_fac_pcs[l], d_fac_pc_db));
         }
 
-        // Indicate the the solvers need to be initialized.
+        // Indicate that the solvers need to be initialized.
         d_helmholtz_solvers_need_init[l] = true;
     }
 

@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <03.Sep.2008 17:29:24 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Aug.2009 12:38:47 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -121,10 +121,10 @@ namespace IBAMR
  * Target point input files end with the extension <TT>".target"</TT> and have
  * the following format:
  \verbatim
- M               # number of target points in the file
- i_0   kappa_0   # vertex index, penalty spring constant
- i_1   kappa_1
- i_2   kappa_2
+ M                       # number of target points in the file
+ i_0   kappa_0   eta_0   # vertex index, penalty spring constant, penalty damping coefficient
+ i_1   kappa_1   eta_1
+ i_2   kappa_2   eta_2
  ...
  \endverbatim
  *
@@ -134,6 +134,10 @@ namespace IBAMR
  * conditions.  The penalty parameter provides control over the energetic
  * penalty imposed when the position of the Lagrangian immersed boundary point
  * deviates from that of its specified fixed location.
+ *
+ * \note Damping coefficients \f$ \eta \f$ are optional and are set to \a 0.0 if
+ * not supplied.  Target points are "anchored" in place using Kelvin-Voigt
+ * viscoelastic elements.
  *
  * \see IBTargetPointForceGen
  * \see IBTargetPointForceSpec

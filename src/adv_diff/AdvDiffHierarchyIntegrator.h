@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <13.Nov.2008 17:31:33 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Aug.2009 15:04:03 griffith@boyce-griffiths-mac-pro.local>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1030,7 +1030,7 @@ private:
     std::vector<bool> d_helmholtz_solvers_need_init;
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_ops_db, d_fac_pcs_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_op_db, d_fac_pc_db;
 };
 }// namespace IBAMR
 

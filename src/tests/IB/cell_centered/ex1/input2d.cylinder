@@ -1,13 +1,6 @@
 // constants
 PI = 3.14159265358979e+0
 
-// advective term options
-CTU_ONLY = -1
-SECOND_ORDER = 0
-FOURTH_ORDER = 1
-MC_LIMITED = 2
-MUSCL_LIMITED = 3
-
 // physical parameters
 R = 0.5             // the cylinder radius
 Re = 100.0          // the desired Reynolds number (Re)
@@ -110,7 +103,6 @@ INSHierarchyIntegrator {
 }
 
 GodunovAdvector {
-   limiter_type = FOURTH_ORDER
 }
 
 AdvDiffHierarchyIntegrator {

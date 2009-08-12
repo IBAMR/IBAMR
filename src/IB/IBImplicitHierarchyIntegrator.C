@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <13.Jul.2009 21:28:53 griffith@griffith-macbook-pro.local>
+// Last modified: <12.Aug.2009 12:31:03 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -139,6 +139,7 @@ namespace IBAMR
 
 namespace
 {
+#if 0
 int
 register_stokes_solver_options(
     const std::string& stokes_prefix,
@@ -150,6 +151,7 @@ register_stokes_solver_options(
     ierr = PetscOptionsEnd();  CHKERRQ(ierr);
     PetscFunctionReturn(0);
 }// register_stokes_solver_options
+#endif
 
 // Timers.
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_integrator;
@@ -857,9 +859,8 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Setup the incompressibile Stokes options.
     const std::string stokes_prefix = "stokes_";
-    d_div_u_abstol = 0.0;  // turn of div u tolerance
-    ierr = register_stokes_solver_options(stokes_prefix, d_div_u_abstol);  IBTK_CHKERRQ(ierr);
-
+//  d_div_u_abstol = 0.0;  // turn of div u tolerance
+//  ierr = register_stokes_solver_options(stokes_prefix, d_div_u_abstol);  IBTK_CHKERRQ(ierr);
 
     // Setup the preconditioner and preconditioner sub-solvers.
     size_t len = 255;

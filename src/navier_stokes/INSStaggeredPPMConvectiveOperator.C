@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPPMConvectiveOperator.C
-// Last modified: <16.Apr.2009 12:28:43 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Aug.2009 12:31:36 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPPMConvectiveOperator.h"
@@ -202,7 +202,7 @@ static const int GADVECTG = 4;
 static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "QUADRATIC"; // XXXX "LINEAR";
+static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.

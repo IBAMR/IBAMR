@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <03.Sep.2008 19:00:31 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Aug.2009 12:41:06 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -1089,6 +1089,16 @@ IBStandardInitializer::readTargetPointFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << std::endl
                                        << "  target point spring constant is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> d_target_damping[ln][j][n]))
+                        {
+                            d_target_damping[ln][j][n] = 0.0;
+                        }
+                        else if (d_target_damping[ln][j][n] < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << std::endl
+                                       << "  target point damping coefficient is negative" << std::endl);
                         }
                     }
                 }

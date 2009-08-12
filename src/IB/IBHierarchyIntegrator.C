@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <01.Jun.2009 18:48:49 griffith@128-122-81-214.DYNAPOOL.NYU.EDU>
+// Last modified: <12.Aug.2009 16:16:23 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -3322,9 +3322,14 @@ IBHierarchyIntegrator::computeSourceStrengths(
     const int wgt_idx = d_ins_hier_integrator->getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
     SAMRAI::math::PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
     double Q_sum = 0.0;
+    double Q_max = 0.0;
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
     {
         Q_sum = std::accumulate(d_Q_src[ln].begin(), d_Q_src[ln].end(), Q_sum);
+        for (unsigned k = 0; k < d_Q_src[ln].size(); ++k)
+        {
+            Q_max = std::max(Q_max,std::abs(d_Q_src[ln][k]));
+        }
     }
     const double q_total = d_hier_cc_data_ops->integral(d_Q_idx, wgt_idx);
 
@@ -3341,9 +3346,8 @@ IBHierarchyIntegrator::computeSourceStrengths(
 #endif
     }
 
-    if (!SAMRAI::tbox::MathUtilities<double>::equalEps(q_total, Q_sum) &&
-        !(std::abs(q_total) <= std::numeric_limits<double>::epsilon() &&
-          std::abs(Q_sum) <= std::numeric_limits<double>::epsilon()))
+    if (std::abs(q_total-Q_sum)                     > 1.0e-12 &&
+        std::abs(q_total-Q_sum)/std::max(Q_max,1.0) > 1.0e-12)
     {
         TBOX_ERROR(d_object_name << ":  "
                    << "Lagrangian and Eulerian source/sink strengths are inconsistent.");

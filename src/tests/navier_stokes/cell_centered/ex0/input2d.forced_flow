@@ -1,10 +1,3 @@
-// advective term options
-CTU_ONLY = -1
-SECOND_ORDER = 0
-FOURTH_ORDER = 1
-MC_LIMITED = 2
-MUSCL_LIMITED = 3
-
 // physical parameters
 MU = 0.0001
 RHO = 1.0
@@ -17,24 +10,18 @@ N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 VelocitySolution {
-   constant_names = "nu"
    nu = MU/RHO
-
    function_0 = "1.0 - 2.0*(cos(2.0*PI*(X_0-t))*sin(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
    function_1 = "1.0 + 2.0*(sin(2.0*PI*(X_0-t))*cos(2.0*PI*(X_1-t)))*exp(-8.0*PI*PI*nu*t)"
 }
 
 PressureSolution {
-   constant_names = "nu"
    nu = MU/RHO
-
    function = "-(cos(4.0*PI*(X_0-t)) + cos(4.0*PI*(X_1-t)))*exp(-16.0*PI*PI*nu*t)"
 }
 
 ForcingFunction {
-   constant_names = "nu"
    nu = MU/RHO
-
    function_0 = "-4*Pi*exp(-16*PI*PI*nu*t)*(2*sin(2*Pi*(X_0-t))*cos(2*Pi*(X_0-t))-sin(4*Pi*(X_0-t)))"
    function_1 = "4*Pi*exp(-16*PI*PI*nu*t)*(2*sin(2*Pi*(-X_1+t))*cos(2*Pi*(-X_1+t))-sin(4*Pi*(-X_1+t)))"
 }
@@ -79,7 +66,6 @@ INSHierarchyIntegrator {
 }
 
 GodunovAdvector {
-   limiter_type = FOURTH_ORDER
    using_full_ctu = TRUE
 }
 

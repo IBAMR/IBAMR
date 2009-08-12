@@ -24,14 +24,12 @@ T_n_X_1 = "2*cos(2*PI*t^2)*t*sin(2*PI*(X_0-sin(2*PI*t^2)))*sin(2*PI*X_1)-4*cos(2
 T_t = "2*nu*(3*X_1-1+2*PI^2*X_1^3-2*PI^2*X_1^2)*cos(2*PI*(X_0-sin(2*PI*t^2)))"
 
 VelocityInitialConditions {
-   constant_names = "nu"
    nu = MU/RHO
    function_0 = U
    function_1 = V
 }
 
 VelocityBcCoefs_0 {
-   constant_names = "nu"
    nu = MU/RHO
 
    acoef_function_0 = "1.0" // U_acoef_0
@@ -51,7 +49,6 @@ VelocityBcCoefs_0 {
 }
 
 VelocityBcCoefs_1 {
-   constant_names = "nu"
    nu = MU/RHO
 
    acoef_function_0 = "1.0" // V_acoef_0
@@ -71,13 +68,11 @@ VelocityBcCoefs_1 {
 }
 
 PressureInitialConditions {
-   constant_names = "nu"
    nu = MU/RHO
    function = P
 }
 
 ForcingFunction {
-   constant_names = "nu"
    nu = MU/RHO
    function_0 = F_U
    function_1 = F_V

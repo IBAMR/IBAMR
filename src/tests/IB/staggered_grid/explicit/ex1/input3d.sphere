@@ -24,7 +24,6 @@ VelocityInitialConditions {
 }
 
 VelocityBcCoefs_0 {
-   constant_names = "t_half" , "tau"
    t_half = 0.5
    tau = 0.125
 
