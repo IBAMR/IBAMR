@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <12.Aug.2009 18:31:30 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Aug.2009 18:46:54 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -2414,7 +2414,7 @@ INSStaggeredHierarchyIntegrator::putToDatabase(
     db->putDouble("d_op_and_solver_init_dt", d_op_and_solver_init_dt);
     db->putDouble("d_integrator_time", d_integrator_time);
     db->putInteger("d_integrator_step", d_integrator_step);
-    db->putDouble("d_clf", d_cfl);
+    db->putDouble("d_cfl", d_cfl);
     db->putDouble("d_dt_max", d_dt_max);
     db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
     db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
@@ -3221,7 +3221,7 @@ INSStaggeredHierarchyIntegrator::getFromRestart()
     d_op_and_solver_init_dt = db->getDouble("d_op_and_solver_init_dt");
     d_integrator_time = db->getDouble("d_integrator_time");
     d_integrator_step = db->getInteger("d_integrator_step");
-    d_cfl = db->getDouble("d_clf");
+    d_cfl = db->getDouble("d_cfl");
     d_dt_max = db->getDouble("d_dt_max");
     d_dt_max_time_max = db->getDouble("d_dt_max_time_max");
     d_dt_max_time_min = db->getDouble("d_dt_max_time_min");

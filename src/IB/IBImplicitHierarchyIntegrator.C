@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <12.Aug.2009 18:28:54 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Aug.2009 18:55:01 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -195,7 +195,7 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Version of IBImplicitHierarchyIntegrator restart file data.
-static const int IB_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
+static const int IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION = 1;
 }
 
 #define OUTPUT_REGRID_DIV_U 0
@@ -2748,8 +2748,47 @@ IBImplicitHierarchyIntegrator::putToDatabase(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
-    SAMRAI::tbox::pout << "IBImplicitHierarchyIntegrator::putToDatabase() is not implemented currently, aborting..." << std::endl;
-    TBOX_ASSERT(false);
+    db->putInteger("IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION",
+                   IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION);
+
+    db->putDouble("d_u_scale", d_u_scale);
+    db->putDouble("d_p_scale", d_p_scale);
+    db->putDouble("d_f_scale", d_f_scale);
+    db->putBool("d_use_mffd_force_jacobian", d_use_mffd_force_jacobian);
+    db->putDouble("d_start_time", d_start_time);
+    db->putDouble("d_end_time", d_end_time);
+    db->putDouble("d_grow_dt", d_grow_dt);
+    db->putInteger("d_max_integrator_steps", d_max_integrator_steps);
+    db->putInteger("d_num_cycles", d_num_cycles);
+    db->putInteger("d_regrid_interval", d_regrid_interval);
+    db->putBool("d_using_default_tag_buffer", d_using_default_tag_buffer);
+    db->putIntegerArray("d_tag_buffer", d_tag_buffer);
+    db->putBool("d_conservation_form", d_conservation_form);
+    db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
+    db->putDoubleArray("d_omega_rel_thresh", d_omega_rel_thresh);
+    db->putDoubleArray("d_omega_abs_thresh", d_omega_abs_thresh);
+    db->putDouble("d_omega_max", d_omega_max);
+    db->putBool("d_normalize_pressure", d_normalize_pressure);
+    db->putBool("d_output_u", d_output_u);
+    db->putBool("d_output_p", d_output_p);
+    db->putBool("d_output_f", d_output_f);
+    db->putBool("d_output_omega", d_output_omega);
+    db->putBool("d_output_div_u", d_output_div_u);
+    db->putDouble("d_old_dt", d_old_dt);
+    db->putDouble("d_op_and_solver_init_dt", d_op_and_solver_init_dt);
+    db->putDouble("d_integrator_time", d_integrator_time);
+    db->putInteger("d_integrator_step", d_integrator_step);
+    db->putDouble("d_cfl", d_cfl);
+    db->putDouble("d_dt_max", d_dt_max);
+    db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
+    db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
+    db->putBool("d_do_log", d_do_log);
+    db->putDouble("d_rho", d_rho);
+    db->putDouble("d_mu", d_mu);
+    db->putDouble("d_lambda", d_lambda);
+//  db->putDouble("d_div_u_abstol", d_div_u_abstol);
+    db->putDouble("d_regrid_max_div_growth_factor", d_regrid_max_div_growth_factor);
+    db->putString("d_delta_fcn", d_delta_fcn);
 
     t_put_to_database->stop();
     return;
@@ -4249,8 +4288,63 @@ IBImplicitHierarchyIntegrator::getFromInput(
 void
 IBImplicitHierarchyIntegrator::getFromRestart()
 {
-    SAMRAI::tbox::pout << "IBImplicitHierarchyIntegrator::getFromRestart() is not implemented currently, aborting..." << std::endl;
-    TBOX_ASSERT(false);
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> restart_db = SAMRAI::tbox::RestartManager::getManager()->getRootDatabase();
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db;
+    if (restart_db->isDatabase(d_object_name))
+    {
+        db = restart_db->getDatabase(d_object_name);
+    }
+    else
+    {
+        TBOX_ERROR("Restart database corresponding to "
+                   << d_object_name << " not found in restart file.");
+    }
+
+    int ver = db->getInteger("IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION");
+    if (ver != IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION)
+    {
+        TBOX_ERROR(d_object_name << ":  "
+                   << "Restart file version different than class version.");
+    }
+
+    d_u_scale = db->getDouble("d_u_scale");
+    d_p_scale = db->getDouble("d_p_scale");
+    d_f_scale = db->getDouble("d_f_scale");
+    d_use_mffd_force_jacobian = db->getBool("d_use_mffd_force_jacobian");
+    d_start_time = db->getDouble("d_start_time");
+    d_end_time = db->getDouble("d_end_time");
+    d_grow_dt = db->getDouble("d_grow_dt");
+    d_max_integrator_steps = db->getInteger("d_max_integrator_steps");
+    d_num_cycles = db->getInteger("d_num_cycles");
+    d_regrid_interval = db->getInteger("d_regrid_interval");
+    d_using_default_tag_buffer = db->getBool("d_using_default_tag_buffer");
+    d_tag_buffer = db->getIntegerArray("d_tag_buffer");
+    d_conservation_form = db->getBool("d_conservation_form");
+    d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
+    d_omega_rel_thresh = db->getDoubleArray("d_omega_rel_thresh");
+    d_omega_abs_thresh = db->getDoubleArray("d_omega_abs_thresh");
+    d_omega_max = db->getDouble("d_omega_max");
+    d_normalize_pressure = db->getBool("d_normalize_pressure");
+    d_output_u = db->getBool("d_output_u");
+    d_output_p = db->getBool("d_output_p");
+    d_output_f = db->getBool("d_output_f");
+    d_output_omega = db->getBool("d_output_omega");
+    d_output_div_u = db->getBool("d_output_div_u");
+    d_old_dt = db->getDouble("d_old_dt");
+    d_op_and_solver_init_dt = db->getDouble("d_op_and_solver_init_dt");
+    d_integrator_time = db->getDouble("d_integrator_time");
+    d_integrator_step = db->getInteger("d_integrator_step");
+    d_cfl = db->getDouble("d_cfl");
+    d_dt_max = db->getDouble("d_dt_max");
+    d_dt_max_time_max = db->getDouble("d_dt_max_time_max");
+    d_dt_max_time_min = db->getDouble("d_dt_max_time_min");
+    d_do_log = db->getBool("d_do_log");
+    d_rho = db->getDouble("d_rho");
+    d_mu = db->getDouble("d_mu");
+    d_lambda = db->getDouble("d_lambda");
+//  d_div_u_abstol = db->getDouble("d_div_u_abstol");
+    d_regrid_max_div_growth_factor = db->getDouble("d_regrid_max_div_growth_factor");
+    d_delta_fcn = db->getString("d_delta_fcn");
     return;
 }// getFromRestart
 
