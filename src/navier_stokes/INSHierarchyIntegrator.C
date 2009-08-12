@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <12.Aug.2009 15:03:48 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Aug.2009 18:31:32 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -3215,90 +3215,6 @@ INSHierarchyIntegrator::putToDatabase(
     t_put_to_database->stop();
     return;
 }// putToDatabase
-
-///
-///  The following routines:
-///
-///      printClassData()
-///
-///  are provided for your viewing pleasure.
-///
-
-void
-INSHierarchyIntegrator::printClassData(
-    std::ostream& os) const
-{
-    os << "\nINSHierarchyIntegrator::printClassData..." << std::endl;
-    os << "this = " << const_cast<INSHierarchyIntegrator*>(this) << std::endl;
-    os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
-    os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
-       << "d_gridding_alg = " << d_gridding_alg.getPointer() << std::endl;
-    os << "d_visit_writer = " << d_visit_writer.getPointer() << "\n"
-       << "d_P_scale = " << d_P_scale << "\n"
-       << "d_F_scale = " << d_F_scale << "\n"
-       << "d_Q_scale = " << d_Q_scale << std::endl;
-    os << "d_explicit_predictor = " << d_explicit_predictor.getPointer() << std::endl;
-    os << "d_adv_diff_hier_integrator = " << d_adv_diff_hier_integrator.getPointer() << std::endl;
-    os << "d_hyp_level_integrator = " << d_hyp_level_integrator.getPointer() << std::endl;
-    os << "d_hier_projector = " << d_hier_projector.getPointer() << std::endl;
-    os << "d_start_time = " << d_start_time << "\n"
-       << "d_end_time = " << d_end_time << "\n"
-       << "d_grow_dt = " << d_grow_dt << "\n"
-       << "d_max_integrator_steps = " << d_max_integrator_steps << std::endl;
-    os << "d_num_cycles = " << d_num_cycles << std::endl;
-    os << "d_num_init_cycles = " << d_num_init_cycles << std::endl;
-    os << "d_regrid_interval = " << d_regrid_interval << std::endl;
-    os << "d_using_default_tag_buffer = " << d_using_default_tag_buffer << "\n"
-       << "d_tag_buffer = [ ";
-    std::copy(d_tag_buffer.getPointer(), d_tag_buffer.getPointer()+d_tag_buffer.size(), std::ostream_iterator<int>(os, " , "));
-    os << " ]" << std::endl;
-    os << "d_using_synch_projection = " << d_using_synch_projection << std::endl;
-    os << "d_conservation_form = " << d_conservation_form << std::endl;
-    os << "d_using_vorticity_tagging = " << d_using_vorticity_tagging << "\n"
-       << "d_Omega_rel_thresh = [ ";
-    std::copy(d_Omega_rel_thresh.getPointer(), d_Omega_rel_thresh.getPointer()+d_Omega_rel_thresh.size(), std::ostream_iterator<double>(os, " , "));
-    os << " ]\n"
-       << "d_Omega_abs_thresh = [ ";
-    std::copy(d_Omega_abs_thresh.getPointer(), d_Omega_abs_thresh.getPointer()+d_Omega_abs_thresh.size(), std::ostream_iterator<double>(os, " , "));
-    os << " ]\n"
-       << "d_Omega_max = " << d_Omega_max << std::endl;
-    os << "d_velocity_projection_type = " << d_velocity_projection_type << "\n"
-       << "d_pressure_projection_type = " << d_pressure_projection_type << "\n"
-       << "d_using_hybrid_projection = " << d_using_hybrid_projection << std::endl;
-    os << "d_second_order_pressure_update = " << d_second_order_pressure_update << "\n"
-       << "d_viscous_timestepping_type = " << d_viscous_timestepping_type << std::endl;
-    os << "d_normalize_pressure = " << d_normalize_pressure << std::endl;
-    os << "d_output_P = " << d_output_P << "\n"
-       << "d_output_F = " << d_output_F << "\n"
-       << "d_output_Q = " << d_output_Q << std::endl;
-    os << "d_output_Omega = " << d_output_Omega << std::endl;
-    os << "d_output_Div_U = " << d_output_Div_U << "\n"
-       << "d_output_Div_u = " << d_output_Div_u << "\n"
-       << "d_output_Div_u_adv = " << d_output_Div_u_adv << std::endl;
-    os << "d_old_dt = " << d_old_dt << "\n"
-       << "d_integrator_time = " << d_integrator_time << "\n"
-       << "d_integrator_step = " << d_integrator_step << std::endl;
-    os << "d_dt_max = " << d_dt_max << "\n"
-       << "d_dt_max_time_max = " << d_dt_max_time_max << "\n"
-       << "d_dt_max_time_min = " << d_dt_max_time_min << std::endl;
-    os << "d_do_log = " << d_do_log << std::endl;
-    os << "d_reproject_after_regrid = " << d_reproject_after_regrid << std::endl;
-    os << "d_cycle = " << d_cycle << "\n"
-       << "d_performing_init_cycles = " << d_performing_init_cycles << std::endl;
-    os << "d_rho = " << d_rho << "\n"
-       << "d_mu = " << d_mu << "\n"
-       << "d_nu = " << d_nu << "\n"
-       << "d_lambda = " << d_lambda << std::endl;
-    os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n"
-       << "d_hier_fc_data_ops = " << d_hier_fc_data_ops.getPointer() << "\n"
-       << "d_hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
-       << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << std::endl;
-    os << "d_wgt_var = " << d_wgt_var.getPointer() << "\n"
-       << "d_volume = " << d_volume << std::endl;
-    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << std::endl;
-    return;
-}// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

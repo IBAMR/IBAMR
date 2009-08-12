@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <13.Jul.2009 19:39:07 griffith@griffith-macbook-pro.local>
+// Last modified: <12.Aug.2009 18:31:30 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -2385,27 +2385,49 @@ INSStaggeredHierarchyIntegrator::putToDatabase(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
-    TBOX_ASSERT(false);
+    db->putInteger("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",
+                   INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION);
+
+    db->putDouble("d_U_scale", d_U_scale);
+    db->putDouble("d_P_scale", d_P_scale);
+    db->putDouble("d_F_scale", d_F_scale);
+    db->putDouble("d_start_time", d_start_time);
+    db->putDouble("d_end_time", d_end_time);
+    db->putDouble("d_grow_dt", d_grow_dt);
+    db->putInteger("d_max_integrator_steps", d_max_integrator_steps);
+    db->putInteger("d_num_cycles", d_num_cycles);
+    db->putInteger("d_regrid_interval", d_regrid_interval);
+    db->putBool("d_using_default_tag_buffer", d_using_default_tag_buffer);
+    db->putIntegerArray("d_tag_buffer", d_tag_buffer);
+    db->putBool("d_conservation_form", d_conservation_form);
+    db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
+    db->putDoubleArray("d_Omega_rel_thresh", d_Omega_rel_thresh);
+    db->putDoubleArray("d_Omega_abs_thresh", d_Omega_abs_thresh);
+    db->putDouble("d_Omega_max", d_Omega_max);
+    db->putBool("d_normalize_pressure", d_normalize_pressure);
+    db->putBool("d_output_U", d_output_U);
+    db->putBool("d_output_P", d_output_P);
+    db->putBool("d_output_F", d_output_F);
+    db->putBool("d_output_Omega", d_output_Omega);
+    db->putBool("d_output_Div_U", d_output_Div_U);
+    db->putDouble("d_old_dt", d_old_dt);
+    db->putDouble("d_op_and_solver_init_dt", d_op_and_solver_init_dt);
+    db->putDouble("d_integrator_time", d_integrator_time);
+    db->putInteger("d_integrator_step", d_integrator_step);
+    db->putDouble("d_clf", d_cfl);
+    db->putDouble("d_dt_max", d_dt_max);
+    db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
+    db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
+    db->putBool("d_do_log", d_do_log);
+    db->putDouble("d_rho", d_rho);
+    db->putDouble("d_mu", d_mu);
+    db->putDouble("d_lambda", d_lambda);
+    db->putDouble("d_div_u_abstol", d_div_u_abstol);
+    db->putDouble("d_regrid_max_div_growth_factor", d_regrid_max_div_growth_factor);
 
     t_put_to_database->stop();
     return;
 }// putToDatabase
-
-///
-///  The following routines:
-///
-///      printClassData()
-///
-///  are provided for your viewing pleasure.
-///
-
-void
-INSStaggeredHierarchyIntegrator::printClassData(
-    std::ostream& os) const
-{
-    TBOX_ASSERT(false);
-    return;
-}// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -3154,7 +3176,61 @@ INSStaggeredHierarchyIntegrator::getFromInput(
 void
 INSStaggeredHierarchyIntegrator::getFromRestart()
 {
-    TBOX_ASSERT(false);
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> restart_db = SAMRAI::tbox::RestartManager::getManager()->getRootDatabase();
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db;
+    if (restart_db->isDatabase(d_object_name))
+    {
+        db = restart_db->getDatabase(d_object_name);
+    }
+    else
+    {
+        TBOX_ERROR("Restart database corresponding to "
+                   << d_object_name << " not found in restart file.");
+    }
+
+    int ver = db->getInteger("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION");
+    if (ver != INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION)
+    {
+        TBOX_ERROR(d_object_name << ":  "
+                   << "Restart file version different than class version.");
+    }
+
+    d_U_scale = db->getDouble("d_U_scale");
+    d_P_scale = db->getDouble("d_P_scale");
+    d_F_scale = db->getDouble("d_F_scale");
+    d_start_time = db->getDouble("d_start_time");
+    d_end_time = db->getDouble("d_end_time");
+    d_grow_dt = db->getDouble("d_grow_dt");
+    d_max_integrator_steps = db->getInteger("d_max_integrator_steps");
+    d_num_cycles = db->getInteger("d_num_cycles");
+    d_regrid_interval = db->getInteger("d_regrid_interval");
+    d_using_default_tag_buffer = db->getBool("d_using_default_tag_buffer");
+    d_tag_buffer = db->getIntegerArray("d_tag_buffer");
+    d_conservation_form = db->getBool("d_conservation_form");
+    d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
+    d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
+    d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
+    d_Omega_max = db->getDouble("d_Omega_max");
+    d_normalize_pressure = db->getBool("d_normalize_pressure");
+    d_output_U = db->getBool("d_output_U");
+    d_output_P = db->getBool("d_output_P");
+    d_output_F = db->getBool("d_output_F");
+    d_output_Omega = db->getBool("d_output_Omega");
+    d_output_Div_U = db->getBool("d_output_Div_U");
+    d_old_dt = db->getDouble("d_old_dt");
+    d_op_and_solver_init_dt = db->getDouble("d_op_and_solver_init_dt");
+    d_integrator_time = db->getDouble("d_integrator_time");
+    d_integrator_step = db->getInteger("d_integrator_step");
+    d_cfl = db->getDouble("d_clf");
+    d_dt_max = db->getDouble("d_dt_max");
+    d_dt_max_time_max = db->getDouble("d_dt_max_time_max");
+    d_dt_max_time_min = db->getDouble("d_dt_max_time_min");
+    d_do_log = db->getBool("d_do_log");
+    d_rho = db->getDouble("d_rho");
+    d_mu = db->getDouble("d_mu");
+    d_lambda = db->getDouble("d_lambda");
+    d_div_u_abstol = db->getDouble("d_div_u_abstol");
+    d_regrid_max_div_growth_factor = db->getDouble("d_regrid_max_div_growth_factor");
     return;
 }// getFromRestart
 

@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <13.Nov.2008 17:31:47 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Aug.2009 18:22:20 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -591,21 +591,6 @@ public:
     virtual void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
-
-    ///
-    ///  The following routines:
-    ///
-    ///      printClassData()
-    ///
-    ///  are provided for your viewing pleasure.
-    ///
-
-    /*!
-     * Print out internal class data for debugging.
-     */
-    virtual void
-    printClassData(
-        std::ostream& os) const;
 
 private:
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;

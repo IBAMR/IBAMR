@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <13.Nov.2008 17:32:17 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Aug.2009 18:20:57 griffith@boyce-griffiths-mac-pro.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -333,21 +333,6 @@ public:
     virtual void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
-
-    ///
-    ///  The following routines:
-    ///
-    ///      printClassData()
-    ///
-    ///  are provided for your viewing pleasure.
-    ///
-
-    /*!
-     * Print out internal class data for debugging.
-     */
-    virtual void
-    printClassData(
-        std::ostream& os) const;
 
 private:
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;

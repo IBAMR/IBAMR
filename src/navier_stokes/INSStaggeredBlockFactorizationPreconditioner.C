@@ -1,5 +1,5 @@
 // Filename: INSStaggeredBlockFactorizationPreconditioner.C
-// Last modified: <14.Oct.2008 13:44:12 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Aug.2009 18:31:33 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Sep 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredBlockFactorizationPreconditioner.h"
@@ -385,14 +385,6 @@ INSStaggeredBlockFactorizationPreconditioner::enableLogging(
     d_do_log = enabled;
     return;
 }// enableLogging
-
-void
-INSStaggeredBlockFactorizationPreconditioner::printClassData(
-    std::ostream& os) const
-{
-    // intentionally blank
-    return;
-}// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

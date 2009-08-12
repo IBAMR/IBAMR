@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPPMConvectiveOperator.C
-// Last modified: <12.Aug.2009 12:31:36 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Aug.2009 18:31:30 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPPMConvectiveOperator.h"
@@ -597,14 +597,6 @@ INSStaggeredPPMConvectiveOperator::enableLogging(
     // intentionally blank
     return;
 }// enableLogging
-
-void
-INSStaggeredPPMConvectiveOperator::printClassData(
-    std::ostream& os) const
-{
-    // intentionally blank
-    return;
-}// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -2,7 +2,7 @@
 #define included_GodunovAdvector
 
 // Filename: GodunovAdvector.h
-// Last modified: <21.Apr.2008 14:43:00 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Aug.2009 18:21:50 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -316,21 +316,6 @@ public:
     virtual void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
-
-    ///
-    ///  The following routines:
-    ///
-    ///      printClassData()
-    ///
-    ///  are provided for your viewing pleasure.
-    ///
-
-    /*!
-     * Print out internal class data for debugging.
-     */
-    virtual void
-    printClassData(
-        std::ostream& os) const;
 
 private:
     /*!

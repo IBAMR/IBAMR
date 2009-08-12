@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <12.Aug.2009 15:04:03 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Aug.2009 18:21:55 griffith@boyce-griffiths-mac-pro.local>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -791,21 +791,6 @@ public:
     virtual void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
-
-    ///
-    ///  The following routines:
-    ///
-    ///      printClassData()
-    ///
-    ///  are provided for your viewing pleasure.
-    ///
-
-    /*!
-     * Print all data members for AdvDiffHierarchyIntegrator class.
-     */
-    virtual void
-    printClassData(
-        std::ostream& os) const;
 
 protected:
     /*!

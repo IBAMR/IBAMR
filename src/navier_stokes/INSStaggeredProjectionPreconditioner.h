@@ -2,7 +2,7 @@
 #define included_INSStaggeredProjectionPreconditioner
 
 // Filename: INSStaggeredProjectionPreconditioner.h
-// Last modified: <09.Jul.2009 10:55:19 griffith@griffith-macbook-pro.local>
+// Last modified: <12.Aug.2009 18:21:32 griffith@boyce-griffiths-mac-pro.local>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -206,13 +206,6 @@ public:
     virtual void
     enableLogging(
         bool enabled=true);
-
-    /*!
-     * \brief Print out internal class data for debugging.
-     */
-    virtual void
-    printClassData(
-        std::ostream& os) const;
 
     //\}
 

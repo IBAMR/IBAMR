@@ -2,7 +2,7 @@
 #define included_INSStaggeredPPMConvectiveOperator
 
 // Filename: INSStaggeredPPMConvectiveOperator.h
-// Last modified: <24.Jul.2008 15:50:17 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Aug.2009 18:21:23 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -154,13 +154,6 @@ public:
     virtual void
     enableLogging(
         bool enabled=true);
-
-    /*!
-     * \brief Print out internal class data for debugging.
-     */
-    virtual void
-    printClassData(
-        std::ostream& os) const;
 
     //\}
 

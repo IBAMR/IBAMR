@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <04.Jun.2009 14:13:05 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Aug.2009 18:31:29 griffith@boyce-griffiths-mac-pro.local>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -258,14 +258,6 @@ INSStaggeredStokesOperator::enableLogging(
     // intentionally blank
     return;
 }// enableLogging
-
-void
-INSStaggeredStokesOperator::printClassData(
-    std::ostream& os) const
-{
-    // intentionally blank
-    return;
-}// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

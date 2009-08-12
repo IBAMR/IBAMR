@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <12.Aug.2009 12:31:03 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Aug.2009 18:28:54 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -2748,27 +2748,12 @@ IBImplicitHierarchyIntegrator::putToDatabase(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
+    SAMRAI::tbox::pout << "IBImplicitHierarchyIntegrator::putToDatabase() is not implemented currently, aborting..." << std::endl;
     TBOX_ASSERT(false);
 
     t_put_to_database->stop();
     return;
 }// putToDatabase
-
-///
-///  The following routines:
-///
-///      printClassData()
-///
-///  are provided for your viewing pleasure.
-///
-
-void
-IBImplicitHierarchyIntegrator::printClassData(
-    std::ostream& os) const
-{
-    TBOX_ASSERT(false);
-    return;
-}// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -4264,6 +4249,7 @@ IBImplicitHierarchyIntegrator::getFromInput(
 void
 IBImplicitHierarchyIntegrator::getFromRestart()
 {
+    SAMRAI::tbox::pout << "IBImplicitHierarchyIntegrator::getFromRestart() is not implemented currently, aborting..." << std::endl;
     TBOX_ASSERT(false);
     return;
 }// getFromRestart

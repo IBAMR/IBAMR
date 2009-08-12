@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <09.Jul.2009 10:56:50 griffith@griffith-macbook-pro.local>
+// Last modified: <12.Aug.2009 18:31:30 griffith@boyce-griffiths-mac-pro.local>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -387,14 +387,6 @@ INSStaggeredProjectionPreconditioner::enableLogging(
     d_do_log = enabled;
     return;
 }// enableLogging
-
-void
-INSStaggeredProjectionPreconditioner::printClassData(
-    std::ostream& os) const
-{
-    // intentionally blank
-    return;
-}// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

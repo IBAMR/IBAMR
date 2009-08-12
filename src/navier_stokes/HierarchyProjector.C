@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <14.Aug.2008 15:48:53 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <12.Aug.2009 18:31:32 griffith@boyce-griffiths-mac-pro.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -853,37 +853,6 @@ HierarchyProjector::putToDatabase(
     t_put_to_database->stop();
     return;
 }// putToDatabase
-
-///
-///  The following routines:
-///
-///      printClassData()
-///
-///  are provided for your viewing pleasure.
-///
-
-void
-HierarchyProjector::printClassData(
-    std::ostream& os) const
-{
-    os << "\nHierarchyProjector::printClassData..." << std::endl;
-    os << "this = " << const_cast<HierarchyProjector*>(this) << std::endl;
-    os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
-    os << "d_do_log = " << d_do_log << std::endl;
-    os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
-       << "d_grid_geom = " << d_grid_geom.getPointer() << std::endl;
-    os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n"
-       << "d_hier_fc_data_ops = " << d_hier_fc_data_ops.getPointer() << "\n"
-       << "d_hier_sc_data_ops = " << d_hier_sc_data_ops.getPointer() << "\n"
-       << "d_hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
-       << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << std::endl;
-    os << "d_wgt_var = " << d_wgt_var.getPointer() << "\n"
-       << "d_wgt_idx = " << d_wgt_idx << "\n"
-       << "d_volume = " << d_volume << std::endl;
-    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << std::endl;
-    return;
-}// printClassData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

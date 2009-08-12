@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <12.Aug.2009 15:05:41 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Aug.2009 18:29:11 griffith@boyce-griffiths-mac-pro.local>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -1794,51 +1794,6 @@ AdvDiffHierarchyIntegrator::putToDatabase(
     t_put_to_database->stop();
     return;
 }// putToDatabase
-
-///
-///  The following routines:
-///
-///      printClassData()
-///
-///  are provided for your viewing pleasure.
-///
-
-void
-AdvDiffHierarchyIntegrator::printClassData(
-    std::ostream& os) const
-{
-    os << "\nAdvDiffHierarchyIntegrator::printClassData..." << std::endl;
-    os << "this = " << const_cast<AdvDiffHierarchyIntegrator*>(this) << std::endl;
-    os << "d_viscous_timestepping_type = " << d_viscous_timestepping_type << std::endl;
-    os << "d_u_is_div_free = " << d_u_is_div_free << std::endl;
-    os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
-    os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
-       << "d_gridding_alg = " << d_gridding_alg.getPointer() << std::endl;
-    os << "d_hyp_level_integrator = " << d_hyp_level_integrator.getPointer() << std::endl;
-    os << "d_hyp_patch_ops = " << d_hyp_patch_ops.getPointer() << std::endl;
-    os << "d_start_time = " << d_start_time << "\n"
-       << "d_end_time = " << d_end_time << "\n"
-       << "d_grow_dt = " << d_grow_dt << "\n"
-       << "d_max_integrator_steps = " << d_max_integrator_steps << std::endl;
-    os << "d_regrid_interval = " << d_regrid_interval << std::endl;
-    os << "d_using_default_tag_buffer = " << d_using_default_tag_buffer << "\n"
-       << "d_tag_buffer = [ ";
-    std::copy(d_tag_buffer.getPointer(), d_tag_buffer.getPointer()+d_tag_buffer.size(), std::ostream_iterator<int>(os, " , "));
-    os << " ]" << std::endl;
-    os << "d_old_dt = " << d_old_dt << "\n"
-       << "d_integrator_time = " << d_integrator_time << "\n"
-       << "d_integrator_step = " << d_integrator_step << std::endl;
-    os << "d_is_initialized = " << d_is_initialized << std::endl;
-    os << "d_do_log = " << d_do_log << std::endl;
-    os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n"
-       << "d_hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
-       << "d_is_managing_hier_math_ops = " << d_is_managing_hier_math_ops << std::endl;
-    os << "d_wgt_var = " << d_wgt_var.getPointer() << "\n"
-       << "d_wgt_idx = " << d_wgt_idx << std::endl;
-    os << "Skipping variables, patch data descriptors, communications algorithms, etc." << std::endl;
-    return;
-}// printClassData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

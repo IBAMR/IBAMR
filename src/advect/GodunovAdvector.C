@@ -1,5 +1,5 @@
 // Filename: GodunovAdvector.C
-// Last modified: <29.Apr.2008 23:06:16 boyce@cpe-68-174-125-35.nyc.res.rr.com>
+// Last modified: <12.Aug.2009 18:31:34 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "GodunovAdvector.h"
@@ -615,21 +615,6 @@ GodunovAdvector::putToDatabase(
     t_put_to_database->stop();
     return;
 }// putToDatabase
-
-void
-GodunovAdvector::printClassData(
-    std::ostream &os) const
-{
-    os << "\nGodunovAdvector::printClassData..." << std::endl;
-    os << "GodunovAdvector: this = " << const_cast<GodunovAdvector*>(this) << "\n";
-    os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
-#if (NDIM == 3)
-    os << "d_using_full_ctu = " << d_using_full_ctu << std::endl;
-#endif
-
-    return;
-}// printClassData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

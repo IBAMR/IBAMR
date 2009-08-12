@@ -2,7 +2,7 @@
 #define included_AdvectHypPatchOps
 
 // Filename: AdvectHypPatchOps.h
-// Last modified: <03.Dec.2007 14:19:43 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Aug.2009 18:21:45 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -527,21 +527,6 @@ public:
     virtual void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
-
-    ///
-    ///  The following routines:
-    ///
-    ///      printClassData()
-    ///
-    ///  are provided for your viewing pleasure.
-    ///
-
-    /*!
-     * \brief Print all data members for AdvectHypPatchOps class.
-     */
-    virtual void
-    printClassData(
-        std::ostream& os) const;
 
 protected:
     /*!

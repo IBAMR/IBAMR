@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <12.Aug.2009 16:16:23 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Aug.2009 18:29:03 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2760,80 +2760,6 @@ IBHierarchyIntegrator::putToDatabase(
     t_put_to_database->stop();
     return;
 }// putToDatabase
-
-///
-///  The following routines:
-///
-///      printClassData()
-///
-///  are provided for your viewing pleasure.
-///
-
-void
-IBHierarchyIntegrator::printClassData(
-    std::ostream& os) const
-{
-    os << "\nIBHierarchyIntegrator::printClassData...\n";
-    os << "this = " << const_cast<IBHierarchyIntegrator*>(this) << "\n";
-    os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << "\n";
-    os << "d_delta_fcn = " << d_delta_fcn << "\n"
-       << "d_ghosts = " << d_ghosts << "\n";
-    os << "d_hierarchy = " << d_hierarchy.getPointer() << "\n"
-       << "d_gridding_alg = " << d_gridding_alg.getPointer() << "\n";
-    os << "d_visit_writer = " << d_visit_writer.getPointer() << "\n"
-       << "d_silo_writer = " << d_silo_writer.getPointer() << "\n";
-    os << "d_load_balancer = " << d_load_balancer.getPointer() << "\n";
-    os << "d_ins_hier_integrator = " << d_ins_hier_integrator.getPointer() << "\n";
-    os << "d_lag_data_manager = " << d_lag_data_manager << "\n";
-    os << "d_lag_init = " << d_lag_init.getPointer() << "\n";
-    os << "d_body_force_set = " << d_body_force_set.getPointer() << "\n"
-       << "d_eluerian_force_set = " << d_eulerian_force_set.getPointer() << "\n"
-       << "d_force_strategy = " << d_force_strategy.getPointer() << "\n"
-       << "d_force_strategy_needs_init = " << d_force_strategy_needs_init << "\n";
-    os << "d_eluerian_source_set = " << d_eulerian_source_set.getPointer() << "\n"
-       << "d_source_strategy = " << d_source_strategy.getPointer() << "\n"
-       << "d_source_strategy_needs_init = " << d_source_strategy_needs_init << "\n";
-    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-    for (int ln = 0; ln <= finest_hier_level; ++ln)
-    {
-        for (int n = 0; n < d_n_src[ln]; ++n)
-        {
-            os << "d_X_src_" << ln << "_" << n << " = ";
-            std::copy(d_X_src[ln][n].begin(), d_X_src[ln][n].end(), std::ostream_iterator<double>(os," , "));
-            os << " ]\n"
-               << "d_r_src_" << ln << "_" << n << d_r_src[ln][n] << "\n"
-               << "d_P_src_" << ln << "_" << n << d_P_src[ln][n] << "\n"
-               << "d_Q_src_" << ln << "_" << n << d_Q_src[ln][n] << "\n";
-        }
-        os << "d_n_src_" << ln << " = " << d_n_src[ln] << "\n";
-    }
-    os << "d_post_processor = " << d_post_processor.getPointer() << "\n"
-       << "d_post_processor_needs_init = " << d_post_processor_needs_init << "\n";
-    os << "d_using_pIB_method = " << d_using_pIB_method << "\n"
-       << "d_gravitational_acceleration = [ ";
-    std::copy(d_gravitational_acceleration.begin(), d_gravitational_acceleration.end(), std::ostream_iterator<double>(os," , "));
-    os << " ]\n";
-    os << "d_start_time = " << d_start_time << "\n"
-       << "d_end_time = " << d_end_time << "\n"
-       << "d_grow_dt = " << d_grow_dt << "\n"
-       << "d_max_integrator_steps = " << d_max_integrator_steps << "\n";
-    os << "d_num_cycles = " << d_num_cycles << "\n";
-    os << "d_num_init_cycles = " << d_num_init_cycles << "\n";
-    os << "d_regrid_interval = " << d_regrid_interval << "\n";
-    os << "d_old_dt = " << d_old_dt << "\n"
-       << "d_integrator_time = " << d_integrator_time << "\n"
-       << "d_integrator_step = " << d_integrator_step << "\n";
-    os << "d_dt_max = " << d_dt_max << "\n"
-       << "d_dt_max_time_max = " << d_dt_max_time_max << "\n"
-       << "d_dt_max_time_min = " << d_dt_max_time_min << "\n";
-    os << "d_is_initialized = " << d_is_initialized << "\n";
-    os << "d_do_log = " << d_do_log << "\n";
-    os << "d_reinterpolate_after_regrid = " << d_reinterpolate_after_regrid << "\n";
-    os << "d_hier_cc_data_ops = " << d_hier_cc_data_ops.getPointer() << "\n";
-    os << "Skipping variables, patch data descriptors, communications algorithms, etc.\n";
-    return;
-}// printClassData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

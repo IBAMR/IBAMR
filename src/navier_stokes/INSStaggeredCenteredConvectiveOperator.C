@@ -1,5 +1,5 @@
 // Filename: INSStaggeredCenteredConvectiveOperator.C
-// Last modified: <30.Oct.2008 19:01:17 griffith@box230.cims.nyu.edu>
+// Last modified: <12.Aug.2009 18:31:31 griffith@boyce-griffiths-mac-pro.local>
 // Created on 30 Oct 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredCenteredConvectiveOperator.h"
@@ -398,14 +398,6 @@ INSStaggeredCenteredConvectiveOperator::enableLogging(
     // intentionally blank
     return;
 }// enableLogging
-
-void
-INSStaggeredCenteredConvectiveOperator::printClassData(
-    std::ostream& os) const
-{
-    // intentionally blank
-    return;
-}// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

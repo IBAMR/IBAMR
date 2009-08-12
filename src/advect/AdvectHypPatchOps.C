@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <01.Apr.2008 17:05:07 griffith@box221.cims.nyu.edu>
+// Last modified: <12.Aug.2009 18:31:33 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -1842,98 +1842,6 @@ AdvectHypPatchOps::putToDatabase(
     t_put_to_database->stop();
     return;
 }// putToDatabase
-
-///
-///  The following routines:
-///
-///      printClassData()
-///
-///  are provided for your viewing pleasure.
-///
-
-void
-AdvectHypPatchOps::printClassData(
-    std::ostream &os) const
-{
-    os << "\nAdvectHypPatchOps::printClassData..." << std::endl;
-    os << "this = " << const_cast<AdvectHypPatchOps*>(this) << std::endl;
-    os << "d_object_name = " << d_object_name << "\n"
-       << "d_registered_for_restart = " << d_registered_for_restart << std::endl;
-    os << "d_grid_geometry = " << d_grid_geometry.getPointer() << std::endl;
-#if (NDIM>1)
-    os << "d_visit_writer = " << d_visit_writer.getPointer() << std::endl;
-#endif
-    os << "d_ghosts = " << d_ghosts << "\n"
-       << "d_flux_ghosts = " << d_flux_ghosts << "\n"
-       << "d_extrap_type = " << d_extrap_type << std::endl;
-    for (int j = 0; j < d_refinement_criteria.getSize(); ++j)
-    {
-        os << "d_refinement_criteria[" << j << "] = "
-           << d_refinement_criteria[j] << std::endl;
-    }
-    os << std::endl;
-    for (int j = 0; j < d_dev_tol.getSize(); ++j)
-    {
-        os << "d_dev_tol[" << j << "] = "
-           << d_dev_tol[j] << std::endl;
-    }
-    for (int j = 0; j < d_dev.getSize(); ++j)
-    {
-        os << "d_dev[" << j << "] = "
-           << d_dev[j] << std::endl;
-    }
-    if (d_dev.getSize()) os << std::endl;
-    for (int j = 0; j < d_dev_time_max.getSize(); ++j)
-    {
-        os << "d_dev_time_max[" << j << "] = "
-           << d_dev_time_max[j] << std::endl;
-    }
-    if (d_dev_time_max.getSize()) os << std::endl;
-    for (int j = 0; j < d_dev_time_min.getSize(); ++j)
-    {
-        os << "d_dev_time_min[" << j << "] = "
-           << d_dev_time_min[j] << std::endl;
-    }
-    if (d_dev_time_min.getSize()) os << std::endl;
-    for (int j = 0; j < d_grad_tol.getSize(); ++j)
-    {
-        os << "d_grad_tol[" << j << "] = "
-           << d_grad_tol[j] << std::endl;
-    }
-    if (d_grad_tol.getSize()) os << std::endl;
-    for (int j = 0; j < d_grad_time_max.getSize(); ++j)
-    {
-        os << "d_grad_time_max[" << j << "] = "
-           << d_grad_time_max[j] << std::endl;
-    }
-    if (d_grad_time_max.getSize()) os << std::endl;
-    for (int j = 0; j < d_grad_time_min.getSize(); ++j)
-    {
-        os << "d_grad_time_min[" << j << "] = "
-           << d_grad_time_min[j] << std::endl;
-    }
-    if (d_grad_time_min.getSize()) os << std::endl;
-    for (int j = 0; j < d_rich_tol.getSize(); ++j)
-    {
-        os << "d_rich_tol[" << j << "] = "
-           << d_rich_tol[j] << std::endl;
-    }
-    if (d_rich_tol.getSize()) os << std::endl;
-    for (int j = 0; j < d_rich_time_max.getSize(); ++j)
-    {
-        os << "d_rich_time_max[" << j << "] = "
-           << d_rich_time_max[j] << std::endl;
-    }
-    if (d_rich_time_max.getSize()) os << std::endl;
-    for (int j = 0; j < d_rich_time_min.getSize(); ++j)
-    {
-        os << "d_rich_time_min[" << j << "] = "
-           << d_rich_time_min[j] << std::endl;
-    }
-    if (d_rich_time_min.getSize()) os << std::endl;
-
-    return;
-}// printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
