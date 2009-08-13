@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <12.Aug.2009 12:41:06 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <13.Aug.2009 13:06:00 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -343,9 +343,13 @@ IBStandardInitializer::initializeDataOnPatchLevel(
                     point_idx, global_index_offset, level_number);
 
             IBTK::LNodeIndexSet& node_set = (*index_data)(idx);
+            static const SAMRAI::hier::IntVector<NDIM> periodic_offset(0);
+            static const std::vector<double> periodic_displacement(NDIM,0.0);
             node_set.push_back(
                 new IBTK::LNodeIndex(current_global_idx, current_local_idx,
-                                     &(*X_data)(current_local_idx), force_spec));
+                                     &(*X_data)(current_local_idx),
+                                     periodic_offset, periodic_displacement,
+                                     force_spec));
 
             // Initialize the velocity of the present vertex.
             double* const node_U = &(*U_data)(current_local_idx);

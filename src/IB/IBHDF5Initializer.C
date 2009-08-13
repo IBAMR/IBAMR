@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <18.Nov.2008 15:28:16 griffith@box230.cims.nyu.edu>
+// Last modified: <13.Aug.2009 13:05:11 griffith@boyce-griffiths-mac-pro.local>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -325,7 +325,9 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             }
             SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> index_data = patch->getPatchData(lag_node_index_idx);
             IBTK::LNodeIndexSet& node_set = (*index_data)(i);
-            node_set.push_back(new IBTK::LNodeIndex(current_global_idx, current_local_idx, &(*X_data)(current_local_idx), vertex_specs));
+            const SAMRAI::hier::IntVector<NDIM> periodic_offset(0);
+            const std::vector<double> periodic_displacement(NDIM,0.0);
+            node_set.push_back(new IBTK::LNodeIndex(current_global_idx, current_local_idx, &(*X_data)(current_local_idx), periodic_offset, periodic_displacement, vertex_specs));
         }
     }
 

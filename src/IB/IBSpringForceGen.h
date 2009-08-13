@@ -2,7 +2,7 @@
 #define included_IBSpringForceGen
 
 // Filename: IBSpringForceGen.h
-// Last modified: <09.Jul.2009 14:30:13 griffith@griffith-macbook-pro.local>
+// Last modified: <13.Aug.2009 13:13:07 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -103,6 +103,10 @@ default_linear_spring_force(
  * \a force_fcn_idx 0.  This is the default force function index.  Users may
  * override this default value with any function that implements the interface
  * required by registerSpringForceFunction().
+ *
+ * \note Class IBSpringForceGen DOES NOT correct for periodic displacements of
+ * IB points; however, when used in conjuction with class IBStandardForceGen,
+ * periodic displacements are handled correctly.
  *
  * \see IBSpringForceSpec
  */

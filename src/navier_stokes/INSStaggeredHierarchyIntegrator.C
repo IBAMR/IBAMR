@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <12.Aug.2009 18:46:54 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <13.Aug.2009 09:38:04 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1511,10 +1511,11 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
     reinterpolateForce(getNewContext());
 
     // Compute Omega = curl U.
+    d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
     d_hier_math_ops->curl(
         d_Omega_new_idx, d_Omega_var,
         d_U_scratch_idx, d_U_var,
-        d_no_fill_op, new_time);
+        d_U_bdry_bc_fill_op, new_time);
 #if (NDIM == 3)
     d_hier_math_ops->pointwise_L2Norm(
         d_Omega_Norm_new_idx, d_Omega_Norm_var,

@@ -2,7 +2,7 @@
 #define included_IBStandardForceGen
 
 // Filename: IBStandardForceGen.h
-// Last modified: <15.Aug.2008 14:54:57 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <13.Aug.2009 17:05:30 griffith@boyce-griffiths-mac-pro.local>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -25,6 +25,9 @@ namespace IBAMR
  *
  * Class IBStandardForceGen provides support for linear and nonlinear spring
  * forces, linear beam forces, and target point penalty forces.
+ *
+ * \note Prior to computing forces, class IBStandardForceGen will correct for
+ * any periodic displacements of IB points.
  *
  * \see IBSpringForceGen
  * \see IBBeamForceGen
@@ -146,6 +149,11 @@ private:
      * The collection of force generation objects.
      */
     SAMRAI::tbox::Pointer<IBLagrangianForceStrategySet> d_force_strategy_set;
+
+    /*!
+     * Data for use in handing periodic boundaries.
+     */
+    std::vector<Vec> d_X_orig_vec, d_shift_vec;
 };
 }// namespace IBAMR
 
