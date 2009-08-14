@@ -1,5 +1,5 @@
 // Filename: INSStaggeredCenteredConvectiveOperator.C
-// Last modified: <12.Aug.2009 18:31:31 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <14.Aug.2009 18:11:35 griffith@boyce-griffiths-mac-pro.local>
 // Created on 30 Oct 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredCenteredConvectiveOperator.h"
@@ -112,7 +112,7 @@ static const int GADVECTG = 1;
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
-static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
+static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";

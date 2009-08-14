@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <12.Aug.2009 18:55:01 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <14.Aug.2009 14:03:40 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -180,12 +180,13 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_regrid_projection;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_operators_and_solvers;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int CELLG = 2;
+static const int SIDEG = 2;
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
-static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
+static const std::string CELL_DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
+static const std::string SIDE_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
@@ -2463,11 +2464,11 @@ IBImplicitHierarchyIntegrator::resetHierarchyConfiguration(
     // Setup the patch boundary filling objects.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 
-    InterpolationTransactionComponent u_bc_component(d_u_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_u_bc_coefs);
+    InterpolationTransactionComponent u_bc_component(d_u_scratch_idx, SIDE_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_u_bc_coefs);
     d_u_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_u_bdry_bc_fill_op->initializeOperatorState(u_bc_component, d_hierarchy);
 
-    InterpolationTransactionComponent u_extrap_component(d_u_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
+    InterpolationTransactionComponent u_extrap_component(d_u_scratch_idx, SIDE_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
     d_u_bdry_extrap_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_u_bdry_extrap_fill_op->initializeOperatorState(u_extrap_component, d_hierarchy);
 
@@ -3802,7 +3803,7 @@ IBImplicitHierarchyIntegrator::regridProjection()
 
     // Setup the interpolation transaction information.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent phi_bc_component(d_phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, &d_regrid_projection_bc_coef);
+    InterpolationTransactionComponent phi_bc_component(d_phi_idx, CELL_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, &d_regrid_projection_bc_coef);
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> phi_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     phi_bdry_bc_fill_op->initializeOperatorState(phi_bc_component, d_hierarchy);
 

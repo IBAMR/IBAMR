@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <12.Aug.2009 18:31:29 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <14.Aug.2009 15:29:34 griffith@boyce-griffiths-mac-pro.local>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -32,7 +32,7 @@ namespace
 {
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
-static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
+static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
@@ -179,25 +179,23 @@ INSStaggeredStokesOperator::apply(
 
     // Compute the action of the operator:
     //      A*[u;p] = [((rho/dt)*I-0.5*mu*L)*u + grad p; -div u].
-    bool cf_bdry_synch;
-    cf_bdry_synch = true;
+    static const bool cf_bdry_synch = true;
     d_hier_math_ops->grad(
         U_out_idx, U_out_sc_var,
         cf_bdry_synch,
         1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time);
-    d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
-
-    cf_bdry_synch = false;
-    d_hier_math_ops->div(
-        P_out_idx, P_out_cc_var,
-        -1.0, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
-        cf_bdry_synch);
     d_hier_math_ops->laplace(
         U_out_idx, U_out_sc_var,
         d_helmholtz_spec,
         U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
         1.0,
         U_out_idx, U_out_sc_var);
+    d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
+
+    d_hier_math_ops->div(
+        P_out_idx, P_out_cc_var,
+        -1.0, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
+        cf_bdry_synch);
 
     // Deallocate the operator (if necessary).
     if (deallocate_at_completion) deallocateOperatorState();
