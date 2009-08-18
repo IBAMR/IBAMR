@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <14.Aug.2009 15:04:15 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <17.Aug.2009 16:20:56 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -122,11 +122,12 @@ namespace
 int
 register_stokes_solver_options(
     const std::string& stokes_prefix,
-    double& div_u_abstol)
+    double& div_u_abstol,
+    const double & default_div_u_abstol)
 {
     PetscErrorCode ierr;
     ierr = PetscOptionsBegin(PETSC_COMM_WORLD, stokes_prefix.c_str(), "additional options for incompressible Stokes solver", "");  CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-div_u_atol", "absolute solver congergence tolerance for the value of ||div u||_oo", "", 1.0e-5, &div_u_abstol, PETSC_NULL);  CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-div_u_atol", "absolute solver congergence tolerance for the value of ||div u||_oo", "", default_div_u_abstol, &div_u_abstol, PETSC_NULL);  CHKERRQ(ierr);
     ierr = PetscOptionsEnd();  CHKERRQ(ierr);
     PetscFunctionReturn(0);
 }// register_stokes_solver_options
@@ -150,8 +151,8 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = 2;
-static const int SIDEG = 2;
+static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
@@ -734,8 +735,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_stokes_solver->setInitialGuessNonzero(true);
     d_stokes_solver->setOperator(d_stokes_op);
     d_stokes_solver->setKSPType("fgmres");
-    d_div_u_abstol = 0.0;  // turn of div u tolerance
-    ierr = register_stokes_solver_options(stokes_prefix, d_div_u_abstol);  IBTK_CHKERRQ(ierr);
+    d_div_u_abstol = 1.0e-5;
+    ierr = register_stokes_solver_options(stokes_prefix, d_div_u_abstol, d_div_u_abstol);  IBTK_CHKERRQ(ierr);
 
     // Setup the preconditioner and preconditioner sub-solvers.
     std::vector<std::string> pc_shell_types(3);
@@ -1512,6 +1513,12 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
     reinterpolateForce(getNewContext());
 
     // Compute Omega = curl U.
+    //
+    // NOTE: Re-filling ghost cell data here overrides the conservative
+    // coarsening of U from fine levels to coarse levels.  In particular, this
+    // means that we need to re-coarsen the data associated with patch data
+    // descriptor index d_U_scratch_idx if we wish to compute, e.g., the
+    // divergence of the velocity field.  This operation
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
     d_hier_math_ops->curl(
         d_Omega_new_idx, d_Omega_var,
@@ -1538,7 +1545,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
 #else
     d_hier_math_ops->div(
         d_Div_U_new_idx, d_Div_U_var,
-        1.0, d_U_scratch_idx, d_U_var,
+        1.0, d_U_new_idx, d_U_var,
         d_no_fill_op, new_time, false);
 #endif
 

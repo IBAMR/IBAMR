@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <14.Aug.2009 14:03:40 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <17.Aug.2009 16:20:09 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -180,12 +180,12 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_regrid_projection;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_operators_and_solvers;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = 2;
-static const int SIDEG = 2;
+static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
-static const std::string CELL_DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
+static const std::string CELL_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 static const std::string SIDE_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
