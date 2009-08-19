@@ -169,7 +169,7 @@ AdvDiffHierarchyIntegrator {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
+      cf_discretization   = "LINEAR_REFINE"
    }
 
    FACPreconditioners {
@@ -201,7 +201,7 @@ HierarchyProjector {
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization = "Ewing"
+      cf_discretization   = "LINEAR_REFINE"
 
       hypre_solver {
          solver_type = "PFMG"

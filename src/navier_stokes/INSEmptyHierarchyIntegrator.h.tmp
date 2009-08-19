@@ -571,21 +571,6 @@ public:
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
-    ///
-    ///  The following routines:
-    ///
-    ///      printClassData()
-    ///
-    ///  are provided for your viewing pleasure.
-    ///
-
-    /*!
-     * Print out internal class data for debugging.
-     */
-    virtual void
-    printClassData(
-        std::ostream& os) const;
-
 protected:
     /*!
      * Register a "state" variable with the integrator.  When a refine operator

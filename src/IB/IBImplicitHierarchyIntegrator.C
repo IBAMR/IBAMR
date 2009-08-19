@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <17.Aug.2009 16:20:09 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <18.Aug.2009 22:04:53 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -1368,6 +1368,9 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
     Vec petsc_nul_multivec;
     Vec petsc_nul_multivecs[2] = { petsc_fluid_nul_vec , petsc_structure_nul_vec };
     ierr = IBTK::VecCreateMultiVec(PETSC_COMM_WORLD, 2, petsc_nul_multivecs, &petsc_nul_multivec);  IBTK_CHKERRQ(ierr);
+    double one_dot_one;
+    ierr = VecDot(petsc_nul_multivec, petsc_nul_multivec, &one_dot_one); IBTK_CHKERRQ(ierr);
+    ierr = VecScale(petsc_nul_multivec, 1.0/one_dot_one); IBTK_CHKERRQ(ierr);
 
     Vec petsc_res_multivec;
     ierr = VecDuplicate(petsc_rhs_multivec, &petsc_res_multivec);  IBTK_CHKERRQ(ierr);

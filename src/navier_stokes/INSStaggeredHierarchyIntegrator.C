@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <17.Aug.2009 16:20:56 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <18.Aug.2009 22:03:21 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1410,6 +1410,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
 
         MatNullSpace petsc_nullsp;
         Vec petsc_nullsp_vec = IBTK::PETScSAMRAIVectorReal<double>::createPETScVector(d_nul_vec, PETSC_COMM_WORLD);
+        double one_dot_one;
+        ierr = VecDot(petsc_nullsp_vec, petsc_nullsp_vec, &one_dot_one); IBTK_CHKERRQ(ierr);
+        ierr = VecScale(petsc_nullsp_vec, 1.0/one_dot_one); IBTK_CHKERRQ(ierr);
         Vec vecs[] = {petsc_nullsp_vec};
         static const PetscTruth has_cnst = PETSC_FALSE;
         ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, has_cnst, 1, vecs, &petsc_nullsp); IBTK_CHKERRQ(ierr);
