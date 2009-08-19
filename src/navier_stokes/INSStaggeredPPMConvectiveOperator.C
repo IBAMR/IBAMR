@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPPMConvectiveOperator.C
-// Last modified: <14.Aug.2009 15:07:31 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <19.Aug.2009 17:36:05 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPPMConvectiveOperator.h"
@@ -197,16 +197,8 @@ namespace
 // Kamm).
 static const int GADVECTG = 4;
 
-// Type of coarsening to perform prior to setting coarse-fine boundary and
-// physical boundary ghost cell values.
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
-
-// Whether to enforce consistent interpolated values at Type 2 coarse-fine
-// interface ghost cells.
-static const bool CONSISTENT_TYPE_2_BDRY = false;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
