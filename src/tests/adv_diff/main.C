@@ -67,6 +67,7 @@ main(
      */
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
     tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     tbox::SAMRAIManager::startup();
 
     string input_filename;

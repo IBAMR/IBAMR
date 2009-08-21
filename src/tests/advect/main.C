@@ -150,6 +150,7 @@ main(
      * Initialize MPI and SAMRAI, enable logging, and process command line.
      */
     tbox::SAMRAI_MPI::init(&argc, &argv);
+    tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     tbox::SAMRAIManager::startup();
 
     string input_filename;

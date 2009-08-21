@@ -4,10 +4,10 @@ MU = 1/Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
+MAX_LEVELS = 5   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
 
-N = 64                                    // coarsest grid spacing
+N = 8                                     // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 VelocityBcCoefs_0 {
@@ -24,7 +24,7 @@ VelocityBcCoefs_0 {
    gcoef_function_0 = "0.0" // U_gcoef_0
    gcoef_function_1 = "0.0" // U_gcoef_1
    gcoef_function_2 = "0.0" // U_gcoef_2
-   gcoef_function_3 = "0.5*(1+sin(2*PI*X_0-0.5*PI))" // U_gcoef_3
+   gcoef_function_3 = "0.5*(1+sin(2*PI*X_0-0.5*PI))*sin(2*PI*t)" // U_gcoef_3
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -32,7 +32,7 @@ INSStaggeredHierarchyIntegrator {
    end_time              = 500.0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
-   regrid_interval       = 1
+   regrid_interval       = 4 // 1
 
    enable_logging = TRUE
 
@@ -44,7 +44,7 @@ INSStaggeredHierarchyIntegrator {
 
    conservation_form = FALSE
    using_vorticity_tagging = TRUE
-   vorticity_abs_thresh = 0.3125 , 1.25 , 5.0
+   vorticity_rel_thresh = 0.25 , 0.125 , 0.0625 , 0.03125
 
    output_U = TRUE
    output_P = TRUE
@@ -143,7 +143,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/2   // zero to turn off
+   viz_dump_interval     = 1 // NFINEST/2   // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 
@@ -163,8 +163,6 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   allow_patches_smaller_than_ghostwidth = TRUE
-
    max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
@@ -183,13 +181,18 @@ GriddingAlgorithm {
 
    }
 
+   allow_patches_smaller_than_ghostwidth = TRUE
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+   check_nonrefined_tags      = 'e'
+   check_overplapping_patches = 'e'
+   coalesce_boxes = TRUE
+
    efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
    combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
-   proper_nesting_buffer = 2
    tagging_method = "GRADIENT_DETECTOR" , "REFINE_BOXES"
    RefineBoxes {
         level_0 = [(0 , (REF_RATIO^0)*N - 1),((REF_RATIO^0)*N - 1 , (REF_RATIO^0)*N - 1)]

@@ -38,6 +38,8 @@ using namespace IBTK;
 using namespace SAMRAI;
 using namespace std;
 
+#define COMPUTE_STREAM_FUNCTION 0
+
 /************************************************************************
  * For each run, the input filename and restart information (if         *
  * needed) must be given on the command line.  For non-restarted case,  *
@@ -62,6 +64,7 @@ main(
      */
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
     tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     tbox::SAMRAIManager::startup();
 
     {// cleanup all smart Pointers prior to shutdown
@@ -342,7 +345,7 @@ main(
          * Setup a variable for computing and storing the streamfunction.
          */
         hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-#if 0
+#if COMPUTE_STREAM_FUNCTION
         tbox::Pointer<hier::VariableContext> main_context = var_db->getContext("main::CONTEXT");
         tbox::Pointer<pdat::NodeVariable<NDIM,double> > psi_var = new pdat::NodeVariable<NDIM,double>("psi");
         const int psi_idx = var_db->registerVariableAndContext(psi_var, main_context, 0);
@@ -357,7 +360,7 @@ main(
          */
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
-#if 0
+#if COMPUTE_STREAM_FUNCTION
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -449,7 +452,7 @@ main(
 
             if (viz_dump_data && iteration_num%viz_dump_interval == 0)
             {
-#if 0
+#if COMPUTE_STREAM_FUNCTION
                 /*
                  * Compute the stream-function.
                  */
@@ -606,7 +609,7 @@ main(
             }
             tbox::plog << "\n";
         }
-#if 0
+#if COMPUTE_STREAM_FUNCTION
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
