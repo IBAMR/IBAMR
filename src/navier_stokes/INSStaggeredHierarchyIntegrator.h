@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <12.Aug.2009 18:20:09 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <21.Aug.2009 18:38:53 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1033,8 +1033,7 @@ private:
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;
 
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid, d_fill_cf_interface_after_regrid;
-    SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
 
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_no_fill_op;
 
@@ -1062,12 +1061,10 @@ private:
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_fast;
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_slow;
 
-    std::map<int,int> d_regrid_current_idx_map, d_regrid_scratch_idx_map;
-
     SAMRAI::hier::ComponentSelector d_current_data;
     SAMRAI::hier::ComponentSelector d_new_data;
     SAMRAI::hier::ComponentSelector d_scratch_data;
-    SAMRAI::hier::ComponentSelector d_regrid_data;
+    SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
 
     /*!
      * Variable contexts.
@@ -1088,7 +1085,7 @@ private:
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int   > > d_indicator_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_indicator_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the

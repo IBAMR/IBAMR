@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <18.Aug.2009 22:04:53 griffith@griffith-macbook-pro.local>
+// Last modified: <21.Aug.2009 17:05:03 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -24,7 +24,6 @@
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
 
 // IBTK INCLUDES
-#include <ibtk/CartSideDoubleDivPreservingRefine.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -2123,11 +2122,9 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
 
         IBTK::CartExtrapPhysBdryOp fill_after_regrid_extrap_bc_op(d_fill_after_regrid_bc_idxs, BDRY_EXTRAP_TYPE);
         IBTK::CartSideRobinPhysBdryOp fill_after_regrid_phys_bdry_bc_op(d_regrid_scratch_idx_map[d_u_scratch_idx], d_u_bc_coefs, false);
-        IBTK::CartSideDoubleDivPreservingRefine fill_after_regrid_div_preserving_op(d_regrid_scratch_idx_map[d_u_scratch_idx]);
-        std::vector<SAMRAI::xfer::RefinePatchStrategy<NDIM>*> refine_patch_strategies(3);
+        std::vector<SAMRAI::xfer::RefinePatchStrategy<NDIM>*> refine_patch_strategies(2);
         refine_patch_strategies[0] = &fill_after_regrid_extrap_bc_op;
         refine_patch_strategies[1] = &fill_after_regrid_phys_bdry_bc_op;
-        refine_patch_strategies[2] = &fill_after_regrid_div_preserving_op;
         IBTK::RefinePatchStrategySet fill_after_regrid_patch_strategy_set(refine_patch_strategies.begin(), refine_patch_strategies.end(), false);
         d_fill_after_regrid->createSchedule(level,
                                             old_level,
@@ -2135,91 +2132,6 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
                                             hierarchy,
                                             &fill_after_regrid_patch_strategy_set)->fillData(init_data_time);
 
-        if (!old_level.isNull() && level_number == hierarchy->getFinestLevelNumber())
-        {
-            old_level->allocatePatchData(d_indicator_idx, init_data_time);
-
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(old_level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = old_level->getPatch(p());
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_data = patch->getPatchData(d_indicator_idx);
-                indicator_data->fillAll(1);
-            }
-
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_data = patch->getPatchData(d_indicator_idx);
-                indicator_data->fillAll(0);
-            }
-
-            IBTK::CartSideRobinPhysBdryOp fill_cf_interface_after_regrid_bc_op(d_u_scratch_idx, d_u_bc_coefs, false);
-            d_fill_cf_interface_after_regrid->createSchedule(level, old_level, &fill_cf_interface_after_regrid_bc_op)->fillData(init_data_time);
-
-            const SAMRAI::hier::IntVector<NDIM>& ratio_to_coarser_level = level->getRatioToCoarserLevel();
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                const double* const dx = patch_geom->getDx();
-
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > indicator_data = patch->getPatchData(d_indicator_idx);
-                const int indicator_ghosts = indicator_data->getGhostCellWidth().max();
-
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_dst_data = patch->getPatchData(d_regrid_current_idx_map[d_u_current_idx]);
-                const int U_dst_ghosts = U_dst_data->getGhostCellWidth().max();
-
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_src_data = patch->getPatchData(d_u_current_idx);
-                const int U_src_ghosts = U_src_data->getGhostCellWidth().max();
-
-                NAVIER_STOKES_SC_REGRID_COPY_FC(
-                    U_dst_data->getPointer(0),
-                    U_dst_data->getPointer(1),
-#if (NDIM == 3)
-                    U_dst_data->getPointer(2),
-#endif
-                    U_dst_ghosts,
-                    U_src_data->getPointer(0),
-                    U_src_data->getPointer(1),
-#if (NDIM == 3)
-                    U_src_data->getPointer(2),
-#endif
-                    U_src_ghosts,
-                    indicator_data->getPointer(0),
-                    indicator_ghosts,
-                    patch_box.lower()(0), patch_box.upper()(0),
-                    patch_box.lower()(1), patch_box.upper()(1)
-#if (NDIM == 3)
-                    ,patch_box.lower()(2),patch_box.upper()(2)
-#endif
-                                                );
-
-                if (ratio_to_coarser_level == SAMRAI::hier::IntVector<NDIM>(2))
-                {
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(U_dst_ghosts%2 == 0);
-                    TBOX_ASSERT(U_dst_ghosts <= indicator_ghosts);
-#endif
-                    NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_FC(
-                        U_dst_data->getPointer(0),
-                        U_dst_data->getPointer(1),
-#if (NDIM == 3)
-                        U_dst_data->getPointer(2),
-#endif
-                        U_dst_ghosts,
-                        indicator_data->getPointer(0),
-                        indicator_ghosts,
-                        patch_box.lower()(0), patch_box.upper()(0),
-                        patch_box.lower()(1), patch_box.upper()(1),
-#if (NDIM == 3)
-                        patch_box.lower()(2), patch_box.upper()(2),
-#endif
-                        dx                                      );
-                }
-            }
-            old_level->deallocatePatchData(d_indicator_idx);
-        }
         level->deallocatePatchData(d_scratch_data);
     }
 
