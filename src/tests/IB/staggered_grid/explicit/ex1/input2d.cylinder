@@ -268,7 +268,7 @@ GriddingAlgorithm {
    extend_tags_to_bdry = FALSE
 
    check_nonrefined_tags = 'e'
-   check_overplapping_patches = 'e'
+   check_overlapping_patches = 'e'
 
    efficiency_tolerance   = 0.95e0    // min % of tag cells in new patch level
    combine_efficiency     = 0.95e0    // chop box if sum of volumes of smaller

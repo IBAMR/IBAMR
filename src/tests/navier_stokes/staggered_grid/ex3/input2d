@@ -183,8 +183,8 @@ GriddingAlgorithm {
 
    allow_patches_smaller_than_ghostwidth = TRUE
    allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
-   check_nonrefined_tags      = 'e'
-   check_overplapping_patches = 'e'
+   check_nonrefined_tags     = 'e'
+   check_overlapping_patches = 'e'
    coalesce_boxes = TRUE
 
    efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
