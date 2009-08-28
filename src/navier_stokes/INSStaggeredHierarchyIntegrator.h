@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <21.Aug.2009 18:38:53 griffith@griffith-macbook-pro.local>
+// Last modified: <28.Aug.2009 19:07:44 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1085,6 +1085,8 @@ private:
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_regrid_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_src_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_indicator_var;
 
     /*
@@ -1110,7 +1112,7 @@ private:
      *
      * Scratch variables have only one context: scratch.
      */
-    int d_Phi_idx, d_indicator_idx;
+    int d_Phi_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx;
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps

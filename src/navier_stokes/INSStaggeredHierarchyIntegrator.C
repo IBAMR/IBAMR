@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <21.Aug.2009 19:41:58 griffith@griffith-macbook-pro.local>
+// Last modified: <28.Aug.2009 19:22:09 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -130,7 +130,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 static const int INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 }
 
-#define OUTPUT_REGRID_DIV_U 1
+#define OUTPUT_REGRID_DIV_U 1  // XXXX
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -532,6 +532,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 #endif
     d_Div_U_var      = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Div_U"      );
     d_Phi_var        = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Phi"        );
+    d_U_regrid_var   = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::U_regrid"   );
+    d_U_src_var      = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::U_src"      );
     d_indicator_var  = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::indicator"  );
 
     // Create the default communication algorithms.
@@ -591,7 +593,9 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // INSStaggeredHierarchyIntegrator.
 
     registerVariable(d_Phi_idx, d_Phi_var, cell_ghosts);
-    registerVariable(d_indicator_idx, d_indicator_var, side_ghosts);
+    registerVariable(d_U_regrid_idx, d_U_regrid_var, 4);  // XXXX
+    registerVariable(d_U_src_idx, d_U_src_var, 4);
+    registerVariable(d_indicator_idx, d_indicator_var, 4);
 
     // Register variables for plotting.
     if (!d_visit_writer.isNull())
@@ -1699,12 +1703,13 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
             // Use divergence- and curl-preserving prolongation to re-set the
             // velocity data.
             SAMRAI::hier::ComponentSelector div_free_prolongation_scratch_data;
-            div_free_prolongation_scratch_data.setFlag(d_F_scratch_idx);
+            div_free_prolongation_scratch_data.setFlag( d_U_regrid_idx);
+            div_free_prolongation_scratch_data.setFlag(    d_U_src_idx);
             div_free_prolongation_scratch_data.setFlag(d_indicator_idx);
 
             // Set the indicator data to equal "0" in each patch of the new
-            // patch level and set values of U and F to indicate an error if
-            // used.  (Of course, we will re-set the U values below.)
+            // patch level and initialize values of U to indicate an error if
+            // used.
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1715,14 +1720,17 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_current_data = patch->getPatchData(d_U_current_idx);
                 U_current_data->fillAll(std::numeric_limits<double>::quiet_NaN());
 
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_scratch_data = patch->getPatchData(d_F_scratch_idx);
-                F_scratch_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
+                U_regrid_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_src_data = patch->getPatchData(d_U_src_idx);
+                U_src_data->fillAll(std::numeric_limits<double>::quiet_NaN());
             }
 
             if (!old_level.isNull())
             {
                 // Set the indicator data to equal "1" on each patch of the old
-                // patch level and copy U onto F.
+                // patch level and reset U.
                 old_level->allocatePatchData(div_free_prolongation_scratch_data, init_data_time);
                 for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(old_level); p; p++)
                 {
@@ -1732,8 +1740,10 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                     indicator_data->fillAll(1.0);
 
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_current_data = patch->getPatchData(d_U_current_idx);
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_scratch_data = patch->getPatchData(d_F_scratch_idx);
-                    F_scratch_data->copy(*U_current_data);
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
+                    U_regrid_data->copy(*U_current_data);
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_src_data = patch->getPatchData(d_U_src_idx);
+                    U_src_data->copy(*U_current_data);
                 }
 
                 // Create a communications schedule to copy data from the old patch
@@ -1741,40 +1751,19 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                 // indicator data to equal "1" at each location in the new patch
                 // level which is a copy of a location from the old patch level.
                 SAMRAI::xfer::RefineAlgorithm<NDIM> copy_data;
-                copy_data.registerRefine(d_U_current_idx, d_U_current_idx, d_U_current_idx, NULL);
-                copy_data.registerRefine(d_F_scratch_idx, d_F_scratch_idx, d_F_scratch_idx, NULL);
+                copy_data.registerRefine( d_U_regrid_idx,  d_U_regrid_idx,  d_U_regrid_idx, NULL);
+                copy_data.registerRefine(    d_U_src_idx,     d_U_src_idx,     d_U_src_idx, NULL);
                 copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, NULL);
                 copy_data.createSchedule(level, old_level, NULL)->fillData(init_data_time);
-            }
-
-            // Allocate coarse grid data, as required by the SAMRAI
-            // RefineSchedule implementation.  Note that these data should not
-            // acutally be used in the prolongation code.
-            for (int ln = 0; ln < level_number; ++ln)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln);
-                coarser_level->allocatePatchData(div_free_prolongation_scratch_data, init_data_time);
-                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(coarser_level); p; p++)
-                {
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = coarser_level->getPatch(p());
-
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > indicator_data = patch->getPatchData(d_indicator_idx);
-                    indicator_data->fillAll(-1.0);
-
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_scratch_data = patch->getPatchData(d_F_scratch_idx);
-                    F_scratch_data->fillAll(std::numeric_limits<double>::quiet_NaN());
-                }
             }
 
             // Setup the divergence- and curl-preserving prolongation refine
             // algorithm and refine the velocity data.
             SAMRAI::xfer::RefineAlgorithm<NDIM> fill_div_free_prolongation;
-            fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_scratch_idx, NULL);
-            fill_div_free_prolongation.registerRefine(d_F_scratch_idx, d_F_scratch_idx, d_F_scratch_idx, NULL);
-            fill_div_free_prolongation.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, NULL);
+            fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, NULL);
 
-            IBTK::CartSideRobinPhysBdryOp fill_div_free_prolongation_phys_bdry_bc_op(d_U_scratch_idx, d_U_bc_coefs, false);
-            IBTK::CartSideDoubleDivPreservingRefine fill_div_free_prolongation_div_preserving_op(d_U_scratch_idx, d_F_scratch_idx, d_indicator_idx);
+            IBTK::CartSideRobinPhysBdryOp fill_div_free_prolongation_phys_bdry_bc_op(d_U_regrid_idx, d_U_bc_coefs, false);
+            IBTK::CartSideDoubleDivPreservingRefine fill_div_free_prolongation_div_preserving_op(d_U_regrid_idx, d_U_src_idx, d_indicator_idx);
             std::vector<SAMRAI::xfer::RefinePatchStrategy<NDIM>*> refine_patch_strategies(2);
             refine_patch_strategies[0] = &fill_div_free_prolongation_phys_bdry_bc_op;
             refine_patch_strategies[1] = &fill_div_free_prolongation_div_preserving_op;
@@ -1785,13 +1774,15 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                                                       hierarchy,
                                                       &fill_div_free_prolongation_patch_strategy_set)->fillData(init_data_time);
 
+            if (!old_level.isNull())
+            {
+                SAMRAI::xfer::RefineAlgorithm<NDIM> copy_data;
+                copy_data.registerRefine(d_U_current_idx, d_U_current_idx, d_U_current_idx, NULL);
+                copy_data.createSchedule(level, old_level, NULL)->fillData(init_data_time);
+            }
+
             // Free scratch data.
             if (!old_level.isNull()) old_level->deallocatePatchData(div_free_prolongation_scratch_data);
-            for (int ln = 0; ln < level_number; ++ln)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln);
-                coarser_level->deallocatePatchData(div_free_prolongation_scratch_data);
-            }
         }
         level->deallocatePatchData(d_scratch_data);
     }
