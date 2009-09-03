@@ -4,15 +4,15 @@ MU = 1/Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 4   // maximum number of levels in locally refined grid
-REF_RATIO  = 2   // refinement ratio between levels
+MAX_LEVELS = 3   // maximum number of levels in locally refined grid
+REF_RATIO  = 4   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 8                                     // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 INSStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 10.0    // final simulation time
+   end_time              = 500.0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 1
@@ -126,7 +126,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 2*NFINEST   // zero to turn off
+   viz_dump_interval     = 16          // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 
@@ -146,8 +146,6 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   allow_patches_smaller_than_ghostwidth = TRUE
-
    max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
@@ -165,6 +163,12 @@ GriddingAlgorithm {
                        // all finer levels will use same values as level_0...
 
    }
+
+   allow_patches_smaller_than_ghostwidth = TRUE
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+   coalesce_boxes = TRUE
+   check_nonrefined_tags     = 'e'
+   check_overlapping_patches = 'e'
 
    efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
    combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller

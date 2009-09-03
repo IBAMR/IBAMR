@@ -8,8 +8,8 @@ MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 5   // maximum number of levels in locally refined grid
-REF_RATIO  = 2   // refinement ratio between levels
+MAX_LEVELS = 3   // maximum number of levels in locally refined grid
+REF_RATIO  = 4   // refinement ratio between levels
 
 N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
@@ -193,7 +193,7 @@ E_s = 2.0*sqrt(K_s*M_s)                  // damping constant for critically damp
 IBStandardInitializer {
    max_levels = MAX_LEVELS
 
-   base_filenames_4 = "cylinder2d_256"
+   base_filenames_2 = "cylinder2d_256"
    cylinder2d_256 {
       uniform_target_stiffness = K_s
       uniform_target_damping = E_s

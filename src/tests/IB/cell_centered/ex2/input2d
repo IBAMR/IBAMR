@@ -6,9 +6,9 @@ G   = 980.0
 
 // grid spacing parameters
 MAX_LEVELS = 4   // maximum number of levels in locally refined grid
-REF_RATIO  = 2   // refinement ratio between levels
+REF_RATIO  = 4   // refinement ratio between levels
 
-N = 64                                    // coarsest grid spacing
+N = 8                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 IBHierarchyIntegrator {
@@ -39,20 +39,6 @@ bdry_mass_stiffness = 1.0e4 // dyne/cm
 IBStandardInitializer {
    max_levels = MAX_LEVELS
 
-// base_filenames_2 = "fila_256"
-// fila_256
-// {
-//    ds = 1.5e-2
-//
-//    uniform_spring_stiffness = spring_stiffness
-//    uniform_spring_rest_length = ds
-//
-//    uniform_beam_bend_rigidity = bend_rigidity*ds/(ds^4)
-//
-//    uniform_bdry_mass = bdry_mass_density*ds
-//    uniform_bdry_mass_stiffness = bdry_mass_stiffness
-// }
-
    base_filenames_3 = "fila_512"
    fila_512
    {
@@ -66,20 +52,6 @@ IBStandardInitializer {
       uniform_bdry_mass = bdry_mass_density*ds
       uniform_bdry_mass_stiffness = bdry_mass_stiffness
    }
-
-// base_filenames_4 = "fila_1024"
-// fila_1024
-// {
-//    ds = 3.75e-3
-//
-//    uniform_spring_stiffness = spring_stiffness
-//    uniform_spring_rest_length = ds
-//
-//    uniform_beam_bend_rigidity = bend_rigidity*ds/(ds^4)
-//
-//    uniform_bdry_mass = bdry_mass_density*ds
-//    uniform_bdry_mass_stiffness = bdry_mass_stiffness
-// }
 }
 
 IBStandardForceGen {

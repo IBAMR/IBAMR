@@ -6,7 +6,7 @@ RHO = 1.0
 MAX_LEVELS = 3   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 8                                     // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 UInit {

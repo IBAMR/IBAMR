@@ -4,9 +4,9 @@ RHO = 1.0
 
 // grid spacing parameters
 MAX_LEVELS = 2   // maximum number of levels in locally refined grid
-REF_RATIO  = 2   // refinement ratio between levels
+REF_RATIO  = 4   // refinement ratio between levels
 
-N = 32                                    // coarsest grid spacing
+N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 IBHierarchyIntegrator {
@@ -20,6 +20,17 @@ IBHierarchyIntegrator {
    regrid_interval = 8
    dt_max = 8.0e-2/NFINEST
    delta_fcn = "IB_6"
+}
+
+LEInteractor {
+   debug_sort_mode = "NO_SORT"
+   precision_mode  = "DOUBLE"
+}
+
+PETScVecOps {
+   sort_mode      = "SORT_DECREASING_MAGNITUDE"
+   precision_mode = "DOUBLE_DOUBLE"
+   summation_mode = "COMPENSATED_SUMMATION"
 }
 
 IBStandardInitializer {

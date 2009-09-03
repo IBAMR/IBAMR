@@ -6,7 +6,7 @@ RHO = 1.0
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N =  64                                   // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 // exact solution function expressions
