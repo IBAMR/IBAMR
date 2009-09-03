@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <03.Sep.2009 12:29:22 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <03.Sep.2009 14:02:51 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -592,10 +592,10 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Register scratch variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
 
-    registerVariable(d_Phi_idx, d_Phi_var, cell_ghosts);
-    registerVariable(d_U_regrid_idx, d_U_regrid_var, 4);  // XXXX
-    registerVariable(d_U_src_idx, d_U_src_var, 4);
-    registerVariable(d_indicator_idx, d_indicator_var, 4);
+    registerVariable(      d_Phi_idx,       d_Phi_var, cell_ghosts);
+    registerVariable( d_U_regrid_idx,  d_U_regrid_var, IBTK::CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
+    registerVariable(    d_U_src_idx,     d_U_src_var, IBTK::CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
+    registerVariable(d_indicator_idx, d_indicator_var, IBTK::CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
 
     // Register variables for plotting.
     if (!d_visit_writer.isNull())
