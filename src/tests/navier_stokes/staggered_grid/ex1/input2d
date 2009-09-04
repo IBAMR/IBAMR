@@ -138,7 +138,7 @@ Main {
 
 // hierarchy data dump parameters
    hier_dump_interval = NFINEST/8      // zero to turn off
-   hier_dump_dirname  = "restart_INS2d"
+   hier_dump_dirname  = "hier_data_INS2d"
 
 // timer dump parameters
    timer_dump_interval   = 0           // zero to turn off
