@@ -64,6 +64,7 @@ main(
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
     tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    tbox::SAMRAIManager::setMaxNumberPatchDataEntries(2048);
     tbox::SAMRAIManager::startup();
 
     {// cleanup all smart Pointers prior to shutdown
