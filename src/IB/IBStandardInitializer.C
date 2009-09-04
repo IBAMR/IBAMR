@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <13.Aug.2009 13:06:00 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <04.Sep.2009 14:12:03 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -1029,7 +1029,7 @@ IBStandardInitializer::readTargetPointFiles()
             if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
             d_target_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
-            d_target_damping  [ln][j].resize(d_num_vertex[ln][j], 0.0);  // XXXX: values not set!
+            d_target_damping  [ln][j].resize(d_num_vertex[ln][j], 0.0);
 
             const std::string target_point_stiffness_filename = d_base_filename[ln][j] + ".target";
             std::ifstream file_stream;

@@ -143,7 +143,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 1           // zero to turn off
+   viz_dump_interval     = 16          // zero to turn off
    viz_dump_dirname      = "viz_INS2d"
    visit_number_procs_per_file = 1
 
@@ -181,11 +181,11 @@ GriddingAlgorithm {
 
    }
 
-   allow_patches_smaller_than_ghostwidth = FALSE
-   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = FALSE
+   allow_patches_smaller_than_ghostwidth = TRUE
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
    coalesce_boxes = TRUE
-   check_nonrefined_tags     = 'w'
-   check_overlapping_patches = 'w'
+   check_nonrefined_tags     = 'e'
+   check_overlapping_patches = 'e'
 
    efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
    combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
@@ -195,11 +195,11 @@ GriddingAlgorithm {
 StandardTagAndInitialize {
    tagging_method = "GRADIENT_DETECTOR" , "REFINE_BOXES"
    RefineBoxes {
-        level_0 = [(0 , (REF_RATIO^0)*N - 1),((REF_RATIO^0)*N - 1 , (REF_RATIO^0)*N - 1)]
-        level_1 = [(0 , (REF_RATIO^1)*N - 1),((REF_RATIO^1)*N - 1 , (REF_RATIO^1)*N - 1)]
-        level_2 = [(0 , (REF_RATIO^2)*N - 1),((REF_RATIO^2)*N - 1 , (REF_RATIO^2)*N - 1)]
-        level_3 = [(0 , (REF_RATIO^3)*N - 1),((REF_RATIO^3)*N - 1 , (REF_RATIO^3)*N - 1)]
-        level_4 = [(0 , (REF_RATIO^4)*N - 1),((REF_RATIO^4)*N - 1 , (REF_RATIO^4)*N - 1)]
+        level_0 = [( (REF_RATIO^0)*N/2 - 1, (REF_RATIO^0)*N - 1),((REF_RATIO^0)*N/2 , (REF_RATIO^0)*N - 1)]
+        level_1 = [( (REF_RATIO^1)*N/2 - 1, (REF_RATIO^1)*N - 1),((REF_RATIO^1)*N/2 , (REF_RATIO^1)*N - 1)]
+        level_2 = [( (REF_RATIO^2)*N/2 - 1, (REF_RATIO^2)*N - 1),((REF_RATIO^2)*N/2 , (REF_RATIO^2)*N - 1)]
+        level_3 = [( (REF_RATIO^3)*N/2 - 1, (REF_RATIO^3)*N - 1),((REF_RATIO^3)*N/2 , (REF_RATIO^3)*N - 1)]
+        level_4 = [( (REF_RATIO^4)*N/2 - 1, (REF_RATIO^4)*N - 1),((REF_RATIO^4)*N/2 , (REF_RATIO^4)*N - 1)]
    }
 }
 

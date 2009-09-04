@@ -5,88 +5,9 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Apply the divergence- and gradient-preserving correction to values
-c     refined from the next coarser level of the patch hierarchy.
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine navier_stokes_sc_regrid_apply_correction2d(
-     &     u0,u1,u_gcw,
-     &     indicator0,indicator1,indicator_gcw,
-     &     ilower0,iupper0,
-     &     ilower1,iupper1,
-     &     dx_fine)
-c
-      implicit none
-c
-c     Input.
-c
-      INTEGER u_gcw,indicator_gcw
-      INTEGER ilower0,iupper0
-      INTEGER ilower1,iupper1
-
-      INTEGER indicator0(SIDE2d0(ilower,iupper,indicator_gcw))
-      INTEGER indicator1(SIDE2d1(ilower,iupper,indicator_gcw))
-
-      REAL dx_fine(0:NDIM-1)
-c
-c     Input/Output.
-c
-      REAL u0(SIDE2d0(ilower,iupper,u_gcw))
-      REAL u1(SIDE2d1(ilower,iupper,u_gcw))
-c
-c     Local variables.
-c
-      INTEGER i0,i1,i,j
-      REAL u(-1:1,-1:1),u_xx
-      REAL v(-1:1,-1:1),v_yy
-      REAL dx,dy,dz
-c
-c     Apply the divergence- and curl-preserving corrections.
-c
-      dx = dx_fine(0)
-      dy = dx_fine(1)
-
-      do i1 = ilower1,iupper1,2
-         do i0 = ilower0,iupper0,2
-! XXXX            if ( indicator(i0,i1).ne.1 ) then
-               u(-1,-1) = u0(i0  ,i1  )
-               u( 1,-1) = u0(i0+2,i1  )
-               u(-1, 1) = u0(i0  ,i1+1)
-               u( 1, 1) = u0(i0+2,i1+1)
-
-               v(-1,-1) = u1(i0  ,i1  )
-               v( 1,-1) = u1(i0+1,i1  )
-               v(-1, 1) = u1(i0  ,i1+2)
-               v( 1, 1) = u1(i0+1,i1+2)
-
-               u_xx = 0.25d0*(v(-1,-1)-v(-1, 1)-v( 1,-1)+v(1,1))
-               v_yy = 0.25d0*(u(-1,-1)-u( 1,-1)-u(-1, 1)+u(1,1))
-
-               do j = -1,1,2
-                  u(0,j) = 0.5d0*(u(1,j)+u(-1,j))+u_xx
-               enddo
-
-               u0(i0+1,i1  ) = u(0,-1)
-               u0(i0+1,i1+1) = u(0, 1)
-
-               do i = -1,1,2
-                  v(i,0) = 0.5d0*(v(i,1)+v(i,-1))+v_yy
-               enddo
-
-               u1(i0  ,i1+1) = v(-1,0)
-               u1(i0+1,i1+1) = v( 1,0)
-! XXXX            endif
-         enddo
-      enddo
-c
-      return
-      end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
 c     Interpolate the components of a staggered velocity field onto the
-c     faces of the zones centered about the x-component of the velocity.
+c     faces of zones centered about the components of the velocity
+c     field.
 c
 c     NOTES:
 c

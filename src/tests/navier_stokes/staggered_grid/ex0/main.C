@@ -335,14 +335,6 @@ main(
             time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
         }
 
-        solv::RobinBcCoefStrategy<NDIM>* P_bc_coef = NULL;
-        if (!periodic_domain && input_db->isDatabase("PressureBcCoef"))
-        {
-            P_bc_coef = new muParserRobinBcCoefs(
-                "PressureBcCoef", input_db->getDatabase("PressureBcCoef"), grid_geometry);
-            //time_integrator->registerPressurePhysicalBcCoef(P_bc_coef);  XXXX
-        }
-
         /*
          * Create body force function specification objects (when necessary).
          */
@@ -577,7 +569,6 @@ main(
             {
                 delete (*cit);
             }
-            if (P_bc_coef != NULL) delete P_bc_coef;
         }
 
     }// cleanup all smart Pointers prior to shutdown

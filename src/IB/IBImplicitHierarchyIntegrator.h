@@ -2,7 +2,7 @@
 #define included_IBImplicitHierarchyIntegrator
 
 // Filename: IBImplicitHierarchyIntegrator.h
-// Last modified: <12.Aug.2009 18:22:27 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <04.Sep.2009 11:34:59 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -1233,7 +1233,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_div_u_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_interp_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_phi_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int   > > d_indicator_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_regrid_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_src_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_indicator_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -1258,7 +1260,7 @@ private:
      *
      * Scratch variables have only one context.
      */
-    int d_u_interp_idx, d_phi_idx, d_indicator_idx;
+    int d_u_interp_idx, d_phi_idx, d_u_regrid_idx, d_u_src_idx, d_indicator_idx;
     int d_u_rhs_idx, d_u_nul_idx, d_u_half_idx, d_n_idx;
     int d_p_rhs_idx, d_p_nul_idx;
     int d_gadvect_u_scratch_idx;
