@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <28.Aug.2009 19:07:44 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <09.Sep.2009 16:46:38 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -549,6 +549,7 @@ public:
     ///
     ///      getVelocityVar(),
     ///      getPressureVar(),
+    ///      getExtrapolatedPressureVar(),
     ///      getForceVar()
     ///
     ///  allows access to the various state variables maintained by the
@@ -566,6 +567,15 @@ public:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
     getPressureVar();
+
+    /*!
+     * Return a pointer to the fluid pressure variable extrapolated forward in
+     * time to time level n.
+     *
+     * \note The pressure state variable is defined at time level n-1/2.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
+    getExtrapolatedPressureVar();
 
     /*!
      * Return a pointer to the body force variable.
@@ -1077,6 +1087,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_extrap_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_var;
@@ -1098,6 +1109,7 @@ private:
     int          d_U_current_idx,          d_U_new_idx,          d_U_scratch_idx;
     int       d_U_cc_current_idx,       d_U_cc_new_idx,       d_U_cc_scratch_idx;
     int          d_P_current_idx,          d_P_new_idx,          d_P_scratch_idx;
+    int   d_P_extrap_current_idx,   d_P_extrap_new_idx,   d_P_extrap_scratch_idx;
     int          d_F_current_idx,          d_F_new_idx,          d_F_scratch_idx;
     int       d_F_cc_current_idx,       d_F_cc_new_idx,       d_F_cc_scratch_idx;
     int      d_Omega_current_idx,      d_Omega_new_idx,      d_Omega_scratch_idx;

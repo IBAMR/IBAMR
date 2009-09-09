@@ -36,7 +36,7 @@ host_triplet = @host@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
 check_PROGRAMS = $(am__EXEEXT_1)
-@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
+@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d convergence_tester2d
 subdir = src/tests/navier_stokes/staggered_grid/ex1
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -51,7 +51,19 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
+@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT) \
+@SAMRAI2D_ENABLED_TRUE@	convergence_tester2d$(EXEEXT)
+am_convergence_tester2d_OBJECTS =  \
+	convergence_tester2d-convergence_tester.$(OBJEXT)
+convergence_tester2d_OBJECTS = $(am_convergence_tester2d_OBJECTS)
+convergence_tester2d_DEPENDENCIES = $(top_builddir)/src/libIBAMR2d.a \
+	$(top_builddir)/src/libIBAMR.a \
+	$(top_builddir)/ibtk/src/libIBTK2d.a \
+	$(top_builddir)/ibtk/src/libIBTK.a \
+	$(top_builddir)/ibtk/third_party/qd-2.3.7/fortran/libqdmod.a \
+	$(top_builddir)/ibtk/third_party/qd-2.3.7/src/libqd.a
+convergence_tester2d_LINK = $(CXXLD) $(convergence_tester2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__objects_1 = main2d-main.$(OBJEXT) main2d-UInit.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
@@ -76,7 +88,7 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(main2d_SOURCES)
+DIST_SOURCES = $(convergence_tester2d_SOURCES) $(main2d_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -396,6 +408,9 @@ EXTRA_DIST = input2d
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/ibtk/src/libIBTK2d.a $(top_builddir)/ibtk/src/libIBTK.a $(top_builddir)/ibtk/third_party/qd-2.3.7/fortran/libqdmod.a $(top_builddir)/ibtk/third_party/qd-2.3.7/src/libqd.a
 main2d_SOURCES = $(SOURCES)
+convergence_tester2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+convergence_tester2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/ibtk/src/libIBTK2d.a $(top_builddir)/ibtk/src/libIBTK.a $(top_builddir)/ibtk/third_party/qd-2.3.7/fortran/libqdmod.a $(top_builddir)/ibtk/third_party/qd-2.3.7/src/libqd.a
+convergence_tester2d_SOURCES = convergence_tester.C
 all: all-am
 
 .SUFFIXES:
@@ -433,6 +448,9 @@ $(am__aclocal_m4_deps):
 
 clean-checkPROGRAMS:
 	-test -z "$(check_PROGRAMS)" || rm -f $(check_PROGRAMS)
+convergence_tester2d$(EXEEXT): $(convergence_tester2d_OBJECTS) $(convergence_tester2d_DEPENDENCIES) 
+	@rm -f convergence_tester2d$(EXEEXT)
+	$(convergence_tester2d_LINK) $(convergence_tester2d_OBJECTS) $(convergence_tester2d_LDADD) $(LIBS)
 main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) 
 	@rm -f main2d$(EXEEXT)
 	$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
@@ -443,6 +461,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convergence_tester2d-convergence_tester.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-UInit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
 
@@ -459,6 +478,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+convergence_tester2d-convergence_tester.o: convergence_tester.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(convergence_tester2d_CXXFLAGS) $(CXXFLAGS) -MT convergence_tester2d-convergence_tester.o -MD -MP -MF $(DEPDIR)/convergence_tester2d-convergence_tester.Tpo -c -o convergence_tester2d-convergence_tester.o `test -f 'convergence_tester.C' || echo '$(srcdir)/'`convergence_tester.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/convergence_tester2d-convergence_tester.Tpo $(DEPDIR)/convergence_tester2d-convergence_tester.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='convergence_tester.C' object='convergence_tester2d-convergence_tester.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(convergence_tester2d_CXXFLAGS) $(CXXFLAGS) -c -o convergence_tester2d-convergence_tester.o `test -f 'convergence_tester.C' || echo '$(srcdir)/'`convergence_tester.C
+
+convergence_tester2d-convergence_tester.obj: convergence_tester.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(convergence_tester2d_CXXFLAGS) $(CXXFLAGS) -MT convergence_tester2d-convergence_tester.obj -MD -MP -MF $(DEPDIR)/convergence_tester2d-convergence_tester.Tpo -c -o convergence_tester2d-convergence_tester.obj `if test -f 'convergence_tester.C'; then $(CYGPATH_W) 'convergence_tester.C'; else $(CYGPATH_W) '$(srcdir)/convergence_tester.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/convergence_tester2d-convergence_tester.Tpo $(DEPDIR)/convergence_tester2d-convergence_tester.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='convergence_tester.C' object='convergence_tester2d-convergence_tester.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(convergence_tester2d_CXXFLAGS) $(CXXFLAGS) -c -o convergence_tester2d-convergence_tester.obj `if test -f 'convergence_tester.C'; then $(CYGPATH_W) 'convergence_tester.C'; else $(CYGPATH_W) '$(srcdir)/convergence_tester.C'; fi`
 
 main2d-main.o: main.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-main.o -MD -MP -MF $(DEPDIR)/main2d-main.Tpo -c -o main2d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C

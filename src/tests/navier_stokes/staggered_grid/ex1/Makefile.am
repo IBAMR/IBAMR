@@ -7,7 +7,7 @@ EXTRA_DIST = input2d
 
 check_PROGRAMS =
 if SAMRAI2D_ENABLED
-check_PROGRAMS += main2d
+check_PROGRAMS += main2d convergence_tester2d
 endif
 
 check-local:
@@ -18,3 +18,7 @@ check-local:
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/ibtk/src/libIBTK2d.a $(top_builddir)/ibtk/src/libIBTK.a $(top_builddir)/ibtk/third_party/qd-2.3.7/fortran/libqdmod.a $(top_builddir)/ibtk/third_party/qd-2.3.7/src/libqd.a
 main2d_SOURCES = $(SOURCES)
+
+convergence_tester2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+convergence_tester2d_LDADD = $(top_builddir)/src/libIBAMR2d.a $(top_builddir)/src/libIBAMR.a $(top_builddir)/ibtk/src/libIBTK2d.a $(top_builddir)/ibtk/src/libIBTK.a $(top_builddir)/ibtk/third_party/qd-2.3.7/fortran/libqdmod.a $(top_builddir)/ibtk/third_party/qd-2.3.7/src/libqd.a
+convergence_tester2d_SOURCES = convergence_tester.C
