@@ -2,7 +2,7 @@
 #define included_TGACoefs
 
 // Filename: TGACoefs.h
-// Last modified: <26.Aug.2007 15:49:43 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Sep.2009 23:15:34 griffith@griffith-macbook-pro.local>
 // Created on 26 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -12,8 +12,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Class TGACoefs is a utility class to provide a common definition for
- * the coefficient employed by the TGA implicit time integration algorithm.
+ * \brief Class TGACoefs is a lightweight utility class which is used to specify
+ * the coefficients employed by the TGA implicit time integration algorithm.
  *
  * The TGA discretization is:
  *

@@ -2,7 +2,7 @@
 #define included_INSStaggeredProjectionBcCoef
 
 // Filename: INSStaggeredProjectionBcCoef.h
-// Last modified: <23.Jul.2008 17:38:33 griffith@box230.cims.nyu.edu>
+// Last modified: <10.Sep.2009 23:14:02 griffith@griffith-macbook-pro.local>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -20,8 +20,8 @@ namespace IBAMR
 /*!
  * \brief Class INSStaggeredProjectionBcCoef is a concrete
  * SAMRAI::solv::RobinBcCoefStrategy that is used to specify boundary conditions
- * for the projection solve embedded in the preconditioner for the staggered
- * grid incompressible Navier-Stokes solver.
+ * for the projection solve embedded in the projection preconditioner for the
+ * staggered grid incompressible Navier-Stokes solver.
  *
  * This class interprets pure Dirichlet boundary conditions on the velocity as
  * prescribed velocity boundary conditions, whereas pure Neumann boundary

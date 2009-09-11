@@ -2,7 +2,7 @@
 #define included_INSCoefs
 
 // Filename: INSCoefs.h
-// Last modified: <24.Jul.2008 16:02:16 griffith@box230.cims.nyu.edu>
+// Last modified: <10.Sep.2009 23:15:52 griffith@griffith-macbook-pro.local>
 // Created on 26 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -15,8 +15,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSCoefs is a lightweight class which is used to specify the
- * physical parameters for the incompressible Navier-Stokes equations.
+ * \brief Class INSCoefs is a lightweight utility class which is used to specify
+ * the physical parameters of the incompressible Navier-Stokes equations.
  */
 class INSCoefs
     : public SAMRAI::tbox::DescribedClass

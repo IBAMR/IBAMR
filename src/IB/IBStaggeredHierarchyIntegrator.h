@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <12.Aug.2009 18:20:32 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <10.Sep.2009 23:10:33 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -50,9 +50,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBStaggeredHierarchyIntegrator is an implementation of a
- * formally second-order accurate, semi-implicit version of the immersed
- * boundary method.
+ * \brief Class IBStaggeredHierarchyIntegrator is an \em EXPERIMENTAL
+ * implementation of a formally second-order accurate, semi-implicit version of
+ * the immersed boundary method.
  */
 class IBStaggeredHierarchyIntegrator
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,

@@ -2,7 +2,7 @@
 #define included_IBImplicitHierarchyIntegrator
 
 // Filename: IBImplicitHierarchyIntegrator.h
-// Last modified: <04.Sep.2009 11:34:59 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <10.Sep.2009 23:14:25 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -65,9 +65,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBImplicitHierarchyIntegrator is an implementation of a
- * formally second-order accurate, implicit version of the immersed boundary
- * method.
+ * \brief Class IBImplicitHierarchyIntegrator is a \em HIGHLY \em EXPERIMENTAL
+ * implementation of a formally second-order accurate, implicit version of the
+ * immersed boundary method.
  */
 class IBImplicitHierarchyIntegrator
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
