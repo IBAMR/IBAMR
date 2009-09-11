@@ -57,13 +57,12 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1
-      INTEGER gc0,gc1
-      REAL D,D_x,D_y
+
 c
 c     Compute N = div(UU) + (U*grad)U.
 c
-
+      print *,'error: 3D case is not implemented'
+      call abort
 c
       return
       end
@@ -122,13 +121,12 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1
-      INTEGER gc0,gc1
-      REAL A,A_x,A_y
+
 c
 c     Compute N = (U*grad)U.
 c
-
+      print *,'error: 3D case is not implemented'
+      call abort
 c
       return
       end
@@ -187,14 +185,12 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1
-      INTEGER gc0,gc1
-      REAL A,A_x,A_y
-      REAL D,D_x,D_y
+
 c
 c     Compute N = 0.5*(div(UU) + (U*grad)U).
 c
-
+      print *,'error: 3D case is not implemented'
+      call abort
 c
       return
       end

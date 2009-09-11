@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <09.Sep.2009 16:47:06 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <11.Sep.2009 12:23:55 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -2880,6 +2880,12 @@ INSStaggeredHierarchyIntegrator::getFromInput(
 
     d_using_vorticity_tagging = db->getBoolWithDefault("using_vorticity_tagging", d_using_vorticity_tagging);
 
+    d_Omega_rel_thresh.resizeArray(1);
+    d_Omega_rel_thresh[0] = 0.3;
+
+    d_Omega_abs_thresh.resizeArray(1);
+    d_Omega_abs_thresh[0] = std::numeric_limits<double>::max();
+
     if (d_using_vorticity_tagging)
     {
         if (db->keyExists("vorticity_rel_thresh"))
@@ -2891,8 +2897,6 @@ INSStaggeredHierarchyIntegrator::getFromInput(
             TBOX_WARNING(d_object_name << ":\n"
                          << "  Vorticity tagging is enabled but key data `vorticity_rel_thresh' not found in input.\n"
                          << "  Using default values for all levels in the locally refined grid.\n");
-            d_Omega_rel_thresh.resizeArray(1);
-            d_Omega_rel_thresh[0] = 1.0;
         }
 
         for (int i = 0; i < d_Omega_rel_thresh.getSize(); ++i)
@@ -2913,8 +2917,6 @@ INSStaggeredHierarchyIntegrator::getFromInput(
             TBOX_WARNING(d_object_name << ":\n"
                          << "  Vorticity tagging is enabled but key data `vorticity_abs_thresh' not found in input.\n"
                          << "  Using default values for all levels in the locally refined grid.\n");
-            d_Omega_abs_thresh.resizeArray(1);
-            d_Omega_abs_thresh[0] = std::numeric_limits<double>::max();
         }
 
         for (int i = 0; i < d_Omega_abs_thresh.getSize(); ++i)
