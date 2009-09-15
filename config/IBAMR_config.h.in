@@ -32,53 +32,8 @@
 /* Define if you have the hdf5_hl library. */
 #undef HAVE_LIBHDF5_HL
 
-/* Define if you have the HYPRE_DistributedMatrix library. */
-#undef HAVE_LIBHYPRE_DISTRIBUTEDMATRIX
-
-/* Define if you have the HYPRE_DistributedMatrixPilutSolver library. */
-#undef HAVE_LIBHYPRE_DISTRIBUTEDMATRIXPILUTSOLVER
-
-/* Define if you have the HYPRE_Euclid library. */
-#undef HAVE_LIBHYPRE_EUCLID
-
-/* Define if you have the HYPRE_IJ_mv library. */
-#undef HAVE_LIBHYPRE_IJ_MV
-
-/* Define if you have the HYPRE_krylov library. */
-#undef HAVE_LIBHYPRE_KRYLOV
-
-/* Define if you have the HYPRE_MatrixMatrix library. */
-#undef HAVE_LIBHYPRE_MATRIXMATRIX
-
-/* Define if you have the HYPRE_ParaSails library. */
-#undef HAVE_LIBHYPRE_PARASAILS
-
-/* Define if you have the HYPRE_parcsr_block_mv library. */
-#undef HAVE_LIBHYPRE_PARCSR_BLOCK_MV
-
-/* Define if you have the HYPRE_parcsr_ls library. */
-#undef HAVE_LIBHYPRE_PARCSR_LS
-
-/* Define if you have the HYPRE_parcsr_mv library. */
-#undef HAVE_LIBHYPRE_PARCSR_MV
-
-/* Define if you have the HYPRE_seq_mv library. */
-#undef HAVE_LIBHYPRE_SEQ_MV
-
-/* Define if you have the HYPRE_sstruct_ls library. */
-#undef HAVE_LIBHYPRE_SSTRUCT_LS
-
-/* Define if you have the HYPRE_sstruct_mv library. */
-#undef HAVE_LIBHYPRE_SSTRUCT_MV
-
-/* Define if you have the HYPRE_struct_ls library. */
-#undef HAVE_LIBHYPRE_STRUCT_LS
-
-/* Define if you have the HYPRE_struct_mv library. */
-#undef HAVE_LIBHYPRE_STRUCT_MV
-
-/* Define if you have the HYPRE_utilities library. */
-#undef HAVE_LIBHYPRE_UTILITIES
+/* Define if you have the HYPRE library. */
+#undef HAVE_LIBHYPRE
 
 /* Define if you have the petsc library. */
 #undef HAVE_LIBPETSC
