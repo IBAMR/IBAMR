@@ -19,6 +19,7 @@ IBAMR_LIB_2D = $(IBAMR_BUILD_DIR)/src/libIBAMR2d.a $(IBAMR_BUILD_DIR)/src/libIBA
 IBAMR_LIB_3D = $(IBAMR_BUILD_DIR)/src/libIBAMR3d.a $(IBAMR_BUILD_DIR)/src/libIBAMR.a
 IBTK_LIB_2D = $(IBAMR_BUILD_DIR)/ibtk/src/libIBTK2d.a $(IBAMR_BUILD_DIR)/ibtk/src/libIBTK.a
 IBTK_LIB_3D = $(IBAMR_BUILD_DIR)/ibtk/src/libIBTK3d.a $(IBAMR_BUILD_DIR)/ibtk/src/libIBTK.a
+QD_LIB = $(IBAMR_BUILD_DIR)/ibtk/third_party/qd-2.3.7/fortran/libqdmod.a $(IBAMR_BUILD_DIR)/ibtk/third_party/qd-2.3.7/src/libqd.a
 
 ######################################################################
 ## Build the IBAMR-based application.
@@ -38,13 +39,13 @@ main3d:
 	touch stamp-3d
 	$(MAKE) PDIM=3 main-3d
 
-main-2d: $(IBAMR_LIB_2D) $(IBTK_LIB_2D) $(OBJS) $(SOURCES)
+main-2d: $(IBAMR_LIB_2D) $(IBTK_LIB_2D) $(QD_LIB) $(OBJS) $(SOURCES)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJS) \
-	$(IBAMR_LIB_2D) $(IBTK_LIB_2D) $(LDFLAGS) $(LIBS) -DNDIM=$(PDIM) -o main2d
+	$(IBAMR_LIB_2D) $(IBTK_LIB_2D) $(QD_LIB) $(LDFLAGS) $(LIBS) -DNDIM=$(PDIM) -o main2d
 
-main-3d: $(IBAMR_LIB_3D) $(IBTK_LIB_3D)  $(OBJS) $(SOURCES)
+main-3d: $(IBAMR_LIB_3D) $(IBTK_LIB_3D) $(QD_LIB) $(OBJS) $(SOURCES)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJS) \
-	$(IBAMR_LIB_3D) $(IBTK_LIB_3D) $(LDFLAGS) $(LIBS) -DNDIM=$(PDIM) -o main3d
+	$(IBAMR_LIB_3D) $(IBTK_LIB_3D) $(QD_LIB) $(LDFLAGS) $(LIBS) -DNDIM=$(PDIM) -o main3d
 
 clean:
 	$(RM) main2d main3d core
