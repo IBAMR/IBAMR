@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <17.Aug.2009 16:18:31 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <18.Sep.2009 11:06:39 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -671,6 +671,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_u_adv_var = new SAMRAI::pdat::FaceVariable<NDIM,double>(d_object_name+"::u_adv");
 
     d_P_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P");
+    d_P_extrap_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P_extrap");
     d_Grad_P_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Grad P",NDIM);
 
     d_Phi_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Phi");
@@ -747,6 +748,11 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                      d_P_var, cell_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSTANT_REFINE");
+
+    registerVariable(d_P_extrap_current_idx, d_P_extrap_new_idx, d_P_extrap_scratch_idx,
+                     d_P_extrap_var, cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "LINEAR_REFINE");
 
     registerVariable(d_Phi_current_idx, d_Phi_new_idx, d_Phi_scratch_idx,
                      d_Phi_var, cell_ghosts,
@@ -2345,6 +2351,13 @@ INSHierarchyIntegrator::updatePressure(
         }
     }
 
+    // Extrapolate the pressure forward in time to obtain an approximation to
+    // p^{n+1}.
+    if (d_old_dt > 0.0)
+    {
+        d_hier_cc_data_ops->linearSum(d_P_extrap_new_idx, (2.0*dt+d_old_dt)/(dt+d_old_dt), d_P_new_idx, -dt/(dt+d_old_dt), d_P_current_idx);
+    }
+
     // Reset the value of P(n-1/2) and Phi(n-1/2) during the initial timestep.
     if (override_current_pressure)
     {
@@ -2793,12 +2806,18 @@ INSHierarchyIntegrator::initializeLevelData(
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > P_current_data =
                     patch->getPatchData(d_P_current_idx);
                 P_current_data->fillAll(0.0);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > P_extrap_current_data =
+                    patch->getPatchData(d_P_extrap_current_idx);
+                P_extrap_current_data->fillAll(0.0);
             }
         }
         else
         {
             d_P_init->setDataOnPatchLevel(
                 d_P_current_idx, d_P_var, level,
+                init_data_time, initial_time);
+            d_P_init->setDataOnPatchLevel(
+                d_P_extrap_current_idx, d_P_extrap_var, level,
                 init_data_time, initial_time);
         }
 
@@ -3080,6 +3099,7 @@ INSHierarchyIntegrator::applyGradientDetector(
 ///
 ///      getVelocityVar(),
 ///      getPressureVar(),
+///      getExtrapolatedPressureVar(),
 ///      getAdvectionVelocityVar(),
 ///      getForceVar(),
 ///      getDivergenceVar()
@@ -3098,6 +3118,12 @@ INSHierarchyIntegrator::getPressureVar()
 {
     return d_P_var;
 }// getPressureVar
+
+SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
+INSHierarchyIntegrator::getExtrapolatedPressureVar()
+{
+    return d_P_extrap_var;
+}// getExtrapolatedPressureVar
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >
 INSHierarchyIntegrator::getAdvectionVelocityVar()

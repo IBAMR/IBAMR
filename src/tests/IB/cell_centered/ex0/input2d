@@ -1,17 +1,17 @@
 // physical parameters
-MU = 0.005
+MU = 0.0025
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3   // maximum number of levels in locally refined grid
+MAX_LEVELS = 4   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 8                                        // coarsest grid spacing
+N = 32                                       // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N/16  // finest   grid spacing
 
 IBHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 0.4e0    // final simulation time
+   end_time              = 1.2e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
 
@@ -35,7 +35,7 @@ PETScVecOps {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_2 = "curve2d_128"
+   base_filenames_3 = "curve2d_128"
 }
 
 LocationIndexRobinBcCoefs_u0 {
@@ -55,7 +55,7 @@ LocationIndexRobinBcCoefs_u1 {
 INSHierarchyIntegrator {
    enable_logging = TRUE
 
-   tag_buffer = 4
+   tag_buffer = 2
 
    conservation_form = FALSE
 
@@ -107,8 +107,8 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.0975e0    // max cfl factor used in problem
-      cfl_init                 = 0.0975e0    // initial cfl factor
+      cfl                      = 0.5e0    // max cfl factor used in problem
+      cfl_init                 = 0.5e0    // initial cfl factor
       lag_dt_computation       = FALSE
       use_ghosts_to_compute_dt = FALSE
    }
@@ -169,13 +169,17 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/2   // zero to turn off
+   viz_dump_interval     = NFINEST/8   // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_interval      = 0           // zero to turn off
    restart_write_dirname = "restart_IB2d"
+
+// hierarchy data dump parameters
+   hier_dump_interval = NFINEST/4      // zero to turn off
+   hier_dump_dirname  = "hier_data_IB2d"
 
 // timer dump parameters
    timer_dump_interval   = 0           // zero to turn off

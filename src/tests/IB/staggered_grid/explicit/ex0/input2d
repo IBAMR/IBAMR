@@ -1,16 +1,16 @@
 // physical parameters
-MU = 0.005
+MU = 0.0025
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
+MAX_LEVELS = 5   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
+N = 16                                       // coarsest grid spacing
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N/16  // finest   grid spacing
 
 VelocityInitialConditions {
-   function_0 = "1.0"
+   function_0 = "0.0"
    function_1 = "0.0"
 }
 
@@ -50,12 +50,12 @@ VelocityBcCoefs_1 {
 
 IBStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 2.4e0    // final simulation time
+   end_time              = 1.2e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 1
-   dt_max = 1.6e-1/NFINEST
-   num_cycles = 3
+   dt_max = 8.0e-2/NFINEST
+   num_cycles = 2
    delta_fcn = "IB_4"
    enable_logging = TRUE
 }
@@ -73,18 +73,18 @@ PETScVecOps {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_0 = "curve2d_128"
+   base_filenames_4 = "curve2d_256"
 }
 
 INSStaggeredHierarchyIntegrator {
    enable_logging = TRUE
 
-   cfl = 0.975
+   cfl = 0.5
 
-   tag_buffer = 1
+   tag_buffer = 2
 
-   conservation_form = FALSE
-   using_vorticity_tagging = FALSE
+   using_vorticity_tagging = TRUE
+   vorticity_rel_thresh = 0.25
 
    output_U = TRUE
    output_P = TRUE
@@ -124,8 +124,8 @@ INSStaggeredHierarchyIntegrator {
       coarse_solver_choice = "block_jacobi"
       coarse_solver_tolerance = 1.0e-30
       coarse_solver_max_iterations = 2
-      prolongation_method = "CONSTANT_REFINE"
-      cf_discretization   = "CONSTANT_REFINE"
+      prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
+      cf_discretization   = "CONSERVATIVE_LINEAR_REFINE"
    }
 
    PoissonHypreSolver {
@@ -183,7 +183,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/2   // zero to turn off
+   viz_dump_interval     = NFINEST/8   // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -191,18 +191,24 @@ Main {
    restart_interval      = 0           // zero to turn off
    restart_write_dirname = "restart_IB2d"
 
+// hierarchy data dump parameters
+   hier_dump_interval = NFINEST/4      // zero to turn off
+   hier_dump_dirname  = "hier_data_IB2d"
+
 // timer dump parameters
    timer_dump_interval   = 0           // zero to turn off
 }
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         = -0.5, -0.5          // lower end of computational domain.
-   x_up         =  0.5,  0.5          // upper end of computational domain.
+   x_lo         = -8, -8          // lower end of computational domain.
+   x_up         =  8,  8          // upper end of computational domain.
    periodic_dimension = 1, 1
 }
 
 GriddingAlgorithm {
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+
    max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
@@ -222,26 +228,13 @@ GriddingAlgorithm {
                        // all finer levels will use same values as level_0...
    }
 
-   proper_nesting_buffer = 1
-
-   allow_patches_smaller_than_ghostwidth = TRUE
-   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
-   coalesce_boxes = TRUE
-   extend_tags_to_bdry = FALSE
-
-   check_nonrefined_tags = 'e'
-   check_overlapping_patches = 'e'
-
-   efficiency_tolerance   = 0.9e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.9e0    // chop box if sum of volumes of smaller
+   efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
-   tagging_method = "GRADIENT_DETECTOR" , "REFINE_BOXES"
-   RefineBoxes {
-      level_0 = [(0,0) , (N - 1,N - 1)]
-   }
+   tagging_method = "GRADIENT_DETECTOR"
 }
 
 LoadBalancer {
