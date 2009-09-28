@@ -1,5 +1,5 @@
 // Filename: m3D_hdf5_strain_analyzer.C
-// Last modified: <19.Feb.2009 11:53:10 griffith@box230.cims.nyu.edu>
+// Last modified: <28.Sep.2009 11:19:06 griffith@boyce-griffiths-mac-pro.local>
 // Created on 17 Feb 2009 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -176,7 +176,7 @@ buildCurvBlock(
     vector<float*> coords(NDIM);
     for (int d = 0; d < NDIM; ++d)
     {
-        coords[d] = X_flat.data()+d*ntot;
+        coords[d] = &X_flat[0]+d*ntot;
     }
 
     int ndims = NDIM;
@@ -186,7 +186,7 @@ buildCurvBlock(
         dims[d] = nelem[d];
     }
 
-    DBPutQuadmesh(dbfile, meshname.c_str(), const_cast<char**>(coordnames), coords.data(), dims.data(), ndims, DB_FLOAT, DB_NONCOLLINEAR, NULL);
+    DBPutQuadmesh(dbfile, meshname.c_str(), const_cast<char**>(coordnames), &coords[0], &dims[0], ndims, DB_FLOAT, DB_NONCOLLINEAR, NULL);
     for (int l = 0; l < nvars; ++l)
     {
         const char* varname = varnames[l].c_str();
