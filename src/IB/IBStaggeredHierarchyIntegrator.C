@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <13.Aug.2009 15:43:13 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Nov.2009 10:14:48 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -115,7 +115,8 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
     bool register_for_restart)
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
-      d_delta_fcn("IB_4"),
+      d_interp_delta_fcn("IB_4"),
+      d_spread_delta_fcn("IB_4"),
       d_ghosts(-1),
       d_hierarchy(hierarchy),
       d_gridding_alg(NULL),
@@ -186,6 +187,13 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
         getFromRestart();
     }
     getFromInput(input_db, from_restart);
+
+    // Check the choices for the delta function.
+    if (d_interp_delta_fcn != d_spread_delta_fcn)
+    {
+        SAMRAI::tbox::pout << "WARNING: different delta functions are being used for velocity interpolation and force spreading.\n"
+                           << "         recommended usage is to employ the same delta functions for both interpolation and spreading.\n";
+    }
 
     // Read in the initial marker positions.
     if (!from_restart && !d_mark_input_file_name.empty())
@@ -285,7 +293,8 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
 
     // Determine the ghost cell width required for side-centered spreading and
     // interpolating.
-    const int stencil_size = IBTK::LEInteractor::getStencilSize(d_delta_fcn);
+    const int stencil_size = std::max(IBTK::LEInteractor::getStencilSize(d_interp_delta_fcn),
+                                      IBTK::LEInteractor::getStencilSize(d_spread_delta_fcn));
     d_ghosts = int(floor(0.5*double(stencil_size)))+1;
 
     // Get the Lagrangian Data Manager.
@@ -898,7 +907,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 
                 // Compute U_mark(n+1/2) = u(X_mark(n+1/2),n+1/2).
                 std::vector<double> U_mark_half(X_mark.size());
-                IBTK::LEInteractor::interpolate(U_mark_half, NDIM, X_mark_half, NDIM, v_data, patch, patch_box, d_delta_fcn);
+                IBTK::LEInteractor::interpolate(U_mark_half, NDIM, X_mark_half, NDIM, v_data, patch, patch_box, d_interp_delta_fcn);
 
                 // Compute X_mark(n+1) = X_mark(n) + dt*U_mark(n+1/2).
                 for (unsigned k = 0; k < X_mark.size(); ++k)
@@ -1696,7 +1705,8 @@ IBStaggeredHierarchyIntegrator::putToDatabase(
     db->putInteger("IB_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",
                    IB_STAGGERED_HIERARCHY_INTEGRATOR_VERSION);
 
-    db->putString("d_delta_fcn", d_delta_fcn);
+    db->putString("d_interp_delta_fcn", d_interp_delta_fcn);
+    db->putString("d_spread_delta_fcn", d_spread_delta_fcn);
     db->putInteger("d_total_flow_volume_sz", d_total_flow_volume.size());
     if (!d_total_flow_volume.empty())
     {
@@ -1775,7 +1785,7 @@ IBStaggeredHierarchyIntegrator::spread(
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
                 const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
                 const SAMRAI::hier::Box<NDIM>& box = idx_data->getGhostBox();
-                IBTK::LEInteractor::spread(f_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_delta_fcn);
+                IBTK::LEInteractor::spread(f_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_delta_fcn);
             }
         }
     }
@@ -1844,7 +1854,7 @@ IBStaggeredHierarchyIntegrator::interp(
                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_data = patch->getPatchData(u_data_idx);
                 const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
                 const SAMRAI::hier::Box<NDIM>& box = idx_data->getBox();
-                IBTK::LEInteractor::interpolate(U_data[ln], X_data[ln], idx_data, u_data, patch, box, periodic_shift, d_delta_fcn);
+                IBTK::LEInteractor::interpolate(U_data[ln], X_data[ln], idx_data, u_data, patch, box, periodic_shift, d_interp_delta_fcn);
             }
         }
     }
@@ -2188,7 +2198,16 @@ IBStaggeredHierarchyIntegrator::getFromInput(
 
     if (!is_from_restart)
     {
-        d_delta_fcn = db->getStringWithDefault("delta_fcn", d_delta_fcn);
+        if (db->isString("interp_delta_fcn") && db->isString("spread_delta_fcn"))
+        {
+            d_interp_delta_fcn = db->getStringWithDefault("interp_delta_fcn", d_interp_delta_fcn);
+            d_spread_delta_fcn = db->getStringWithDefault("spread_delta_fcn", d_spread_delta_fcn);
+        }
+        else
+        {
+            d_interp_delta_fcn = db->getStringWithDefault("delta_fcn", d_interp_delta_fcn);
+            d_spread_delta_fcn = db->getStringWithDefault("delta_fcn", d_spread_delta_fcn);
+        }
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
         d_mark_input_file_name = db->getStringWithDefault("marker_input_file_name", d_mark_input_file_name);
     }
@@ -2217,7 +2236,8 @@ IBStaggeredHierarchyIntegrator::getFromRestart()
                    << "Restart file version different than class version.");
     }
 
-    d_delta_fcn = db->getString("d_delta_fcn");
+    d_interp_delta_fcn = db->getString("d_interp_delta_fcn");
+    d_spread_delta_fcn = db->getString("d_spread_delta_fcn");
     const int total_flow_volume_sz = db->getInteger("d_total_flow_volume_sz");
     d_total_flow_volume.resize(total_flow_volume_sz, std::numeric_limits<double>::quiet_NaN());
     if (!d_total_flow_volume.empty())

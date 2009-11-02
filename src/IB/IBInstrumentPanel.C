@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <05.Jun.2009 11:57:17 griffith@griffith-macbook-pro.local>
+// Last modified: <02.Nov.2009 11:02:23 griffith@griffith-macbook-pro.local>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -549,7 +549,8 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     {
         d_num_perimeter_nodes[m] = max_node_index[m]+1;
     }
-    SAMRAI::tbox::SAMRAI_MPI::maxReduction(&d_num_perimeter_nodes[0], d_num_meters);
+    SAMRAI::tbox::SAMRAI_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : NULL,
+                                           d_num_meters);
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (int m = 0; m < d_num_meters; ++m)
     {

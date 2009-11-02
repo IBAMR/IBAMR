@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <13.Aug.2009 17:05:42 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Nov.2009 11:12:07 griffith@griffith-macbook-pro.local>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBStandardForceGen.h"
@@ -102,6 +102,8 @@ IBStandardForceGen::initializeLevelData(
     const bool initial_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     d_X_orig_vec.resize(std::max(d_X_orig_vec.size(),size_t(level_number+1)),PETSC_NULL);
     d_shift_vec .resize(std::max( d_shift_vec.size(),size_t(level_number+1)),PETSC_NULL);
     if (lag_manager->levelContainsLagrangianData(level_number))
@@ -171,6 +173,8 @@ IBStandardForceGen::computeLagrangianForce(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     int ierr;
     ierr = VecSwap(X_data->getGlobalVec(), d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
     ierr = VecWAXPY(X_data->getGlobalVec(), 1.0, d_shift_vec[level_number], d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
@@ -190,6 +194,7 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
     d_force_strategy_set->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, hierarchy, level_number, data_time, lag_manager);
     return;
 }// computeLagrangianForceJacobianNonzeroStructure
@@ -207,6 +212,8 @@ IBStandardForceGen::computeLagrangianForceJacobian(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     int ierr;
     ierr = VecSwap(X_data->getGlobalVec(), d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
     ierr = VecWAXPY(X_data->getGlobalVec(), 1.0, d_shift_vec[level_number], d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);

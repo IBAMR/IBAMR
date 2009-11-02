@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <09.Jul.2009 16:55:54 griffith@griffith-macbook-pro.local>
+// Last modified: <02.Nov.2009 11:26:31 griffith@griffith-macbook-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -113,6 +113,8 @@ IBBeamForceGen::initializeLevelData(
     const bool initial_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     t_initialize_level_data->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -263,15 +265,15 @@ IBBeamForceGen::initializeLevelData(
     ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
                             NDIM, NDIM*local_sz, NDIM*num_local_nodes,
                             PETSC_DETERMINE, PETSC_DETERMINE,
-                            PETSC_DEFAULT, &next_d_nz[0],
-                            PETSC_DEFAULT, &next_o_nz[0],
+                            PETSC_DEFAULT, local_sz > 0 ? &next_d_nz[0] : PETSC_NULL,
+                            PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : PETSC_NULL,
                             &D_next_mat);  IBTK_CHKERRQ(ierr);
 
     ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
                             NDIM, NDIM*local_sz, NDIM*num_local_nodes,
                             PETSC_DETERMINE, PETSC_DETERMINE,
-                            PETSC_DEFAULT, &prev_d_nz[0],
-                            PETSC_DEFAULT, &prev_o_nz[0],
+                            PETSC_DEFAULT, local_sz > 0 ? &prev_d_nz[0] : PETSC_NULL,
+                            PETSC_DEFAULT, local_sz > 0 ? &prev_o_nz[0] : PETSC_NULL,
                             &D_prev_mat);  IBTK_CHKERRQ(ierr);
 
     blitz::Array<double,2> mastr_vals(NDIM,NDIM);  mastr_vals = 0.0;
@@ -333,6 +335,8 @@ IBBeamForceGen::computeLagrangianForce(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     t_compute_lagrangian_force->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -361,11 +365,11 @@ IBBeamForceGen::computeLagrangianForce(
     ierr = MatMult(d_D_prev_mats[level_number], X_data->getGlobalVec(), D_prev_vec);  IBTK_CHKERRQ(ierr);
 
     // Compute the beam forces acting on the nodes of the Lagrangian mesh.
-    double* D_next_arr;
-    ierr = VecGetArray(D_next_vec, &D_next_arr);  IBTK_CHKERRQ(ierr);
+    double* D_next_vals;
+    ierr = VecGetArray(D_next_vec, &D_next_vals);  IBTK_CHKERRQ(ierr);
 
-    double* D_prev_arr;
-    ierr = VecGetArray(D_prev_vec, &D_prev_arr);  IBTK_CHKERRQ(ierr);
+    double* D_prev_vals;
+    ierr = VecGetArray(D_prev_vec, &D_prev_vals);  IBTK_CHKERRQ(ierr);
 
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
@@ -374,17 +378,17 @@ IBBeamForceGen::computeLagrangianForce(
     std::vector<std::vector<double> >& mesh_dependent_curvatures = d_mesh_dependent_curvatures[level_number];
 
     const int local_sz = petsc_mastr_node_idxs.size();
-    std::vector<double> F_mastr_node_arr(NDIM*local_sz,0.0);
-    std::vector<double> F_nghbr_node_arr(NDIM*local_sz,0.0);
+    std::vector<double> F_mastr_node_vals(NDIM*local_sz,0.0);
+    std::vector<double> F_nghbr_node_vals(NDIM*local_sz,0.0);
 
     for (int k = 0; k < local_sz; ++k)
     {
         // Compute the forces applied by the beam to the "master" and "slave"
         // nodes.
-        double* const F_mastr_node = &F_mastr_node_arr[k*NDIM];
-        double* const F_nghbr_node = &F_nghbr_node_arr[k*NDIM];
-        const double* const D_next = &D_next_arr[k*NDIM];
-        const double* const D_prev = &D_prev_arr[k*NDIM];
+        double* const F_mastr_node = &F_mastr_node_vals[k*NDIM];
+        double* const F_nghbr_node = &F_nghbr_node_vals[k*NDIM];
+        const double* const D_next = &D_next_vals[k*NDIM];
+        const double* const D_prev = &D_prev_vals[k*NDIM];
         const double& bend = bend_rigidities[k];
         const std::vector<double>& curv = mesh_dependent_curvatures[k];
         for (int d = 0; d < NDIM; ++d)
@@ -394,23 +398,47 @@ IBBeamForceGen::computeLagrangianForce(
         }
     }
 
-    ierr = VecRestoreArray(D_next_vec, &D_next_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArray(D_next_vec, &D_next_vals);  IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(D_next_vec);                    IBTK_CHKERRQ(ierr);
 
-    ierr = VecRestoreArray(D_prev_vec, &D_prev_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArray(D_prev_vec, &D_prev_vals);  IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(D_prev_vec);                    IBTK_CHKERRQ(ierr);
 
     Vec F_vec = F_data->getGlobalVec();
 #if 0
-    ierr = VecSetValuesBlocked(F_vec, petsc_mastr_node_idxs.size(), &petsc_mastr_node_idxs[0], &F_mastr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = VecSetValuesBlocked(F_vec, petsc_next_node_idxs.size(), &petsc_next_node_idxs[0], &F_nghbr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = VecSetValuesBlocked(F_vec, petsc_prev_node_idxs.size(), &petsc_prev_node_idxs[0], &F_nghbr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetValuesBlocked(F_vec,
+                               petsc_mastr_node_idxs.size(),
+                               !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0] : PETSC_NULL,
+                               !petsc_mastr_node_idxs.empty() ? &    F_mastr_node_vals[0] : PETSC_NULL,
+                               ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetValuesBlocked(F_vec,
+                               petsc_next_node_idxs.size(),
+                               !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
+                               !petsc_next_node_idxs.empty() ? &   F_nghbr_node_vals[0] : PETSC_NULL,
+                               ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetValuesBlocked(F_vec,
+                               petsc_prev_node_idxs.size(),
+                               !petsc_prev_node_idxs.empty() ? &petsc_prev_node_idxs[0] : PETSC_NULL,
+                               !petsc_prev_node_idxs.empty() ? &   F_nghbr_node_vals[0] : PETSC_NULL,
+                               ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
 #else
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec, petsc_mastr_node_idxs.size(), &petsc_mastr_node_idxs[0], &F_mastr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec, petsc_next_node_idxs.size(), &petsc_next_node_idxs[0], &F_nghbr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec, petsc_prev_node_idxs.size(), &petsc_prev_node_idxs[0], &F_nghbr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec,
+                                                  petsc_mastr_node_idxs.size(),
+                                                  !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0] : PETSC_NULL,
+                                                  !petsc_mastr_node_idxs.empty() ? &    F_mastr_node_vals[0] : PETSC_NULL,
+                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec,
+                                                  petsc_next_node_idxs.size(),
+                                                  !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
+                                                  !petsc_next_node_idxs.empty() ? &   F_nghbr_node_vals[0] : PETSC_NULL,
+                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec,
+                                                  petsc_prev_node_idxs.size(),
+                                                  !petsc_prev_node_idxs.empty() ? &petsc_prev_node_idxs[0] : PETSC_NULL,
+                                                  !petsc_prev_node_idxs.empty() ? &   F_nghbr_node_vals[0] : PETSC_NULL,
+                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = IBTK::PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
     ierr = IBTK::PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
 #endif
@@ -427,6 +455,8 @@ IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     t_compute_lagrangian_force_jacobian_nonzero_structure->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -555,6 +585,8 @@ IBBeamForceGen::computeLagrangianForceJacobian(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     t_compute_lagrangian_force_jacobian->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS

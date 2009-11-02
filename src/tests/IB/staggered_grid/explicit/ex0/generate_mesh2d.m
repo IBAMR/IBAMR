@@ -2,7 +2,7 @@
 
 % Problem parameters
 
-NFINEST = 4;  % NFINEST = 4 corresponds to a uniform grid spacing of h=1/64
+NFINEST = 16;  % NFINEST = 4 corresponds to a uniform grid spacing of h=1/64
 
 width = 0.0; %4.0/64.0;
 alpha = 0.2;
@@ -11,7 +11,7 @@ beta  = 0.3;
 perim = 2*pi*sqrt(0.5*(alpha^2 + beta^2));  % approximate perimeter of ellipse
 dx = 1/(16*NFINEST);
 num_layers = max(1,ceil(width/(0.5*dx)));
-num_nodes = ceil(perim/(0.5*dx));
+num_nodes = ceil(perim/(0.5*dx)/4)*4;
 
 tapered_stiffness = false;
 stiffness = 1.0/num_layers;

@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <09.Jul.2009 14:11:32 griffith@griffith-macbook-pro.local>
+// Last modified: <02.Nov.2009 11:22:31 griffith@griffith-macbook-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -123,6 +123,8 @@ IBSpringForceGen::initializeLevelData(
     const bool initial_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     t_initialize_level_data->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -260,8 +262,8 @@ IBSpringForceGen::initializeLevelData(
     ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
                             NDIM, NDIM*local_sz, NDIM*num_local_nodes,
                             PETSC_DETERMINE, PETSC_DETERMINE,
-                            PETSC_DEFAULT, &d_nnz[0],
-                            PETSC_DEFAULT, &o_nnz[0],
+                            PETSC_DEFAULT, local_sz > 0 ? &d_nnz[0] : PETSC_NULL,
+                            PETSC_DEFAULT, local_sz > 0 ? &o_nnz[0] : PETSC_NULL,
                             &D_mat);  IBTK_CHKERRQ(ierr);
 
     blitz::Array<double,2> mastr_vals(NDIM,NDIM);  mastr_vals = 0.0;
@@ -307,6 +309,8 @@ IBSpringForceGen::computeLagrangianForce(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     t_compute_lagrangian_force->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -331,8 +335,8 @@ IBSpringForceGen::computeLagrangianForce(
     IBTK_CHKERRQ(ierr);
 
     // Compute the spring forces acting on the nodes of the Lagrangian mesh.
-    double* D_arr;
-    ierr = VecGetArray(D_vec, &D_arr);  IBTK_CHKERRQ(ierr);
+    double* D_vals;
+    ierr = VecGetArray(D_vec, &D_vals);  IBTK_CHKERRQ(ierr);
 
     std::vector<int>& lag_mastr_node_idxs = d_lag_mastr_node_idxs[level_number];
     std::vector<int>& lag_slave_node_idxs = d_lag_slave_node_idxs[level_number];
@@ -343,14 +347,14 @@ IBSpringForceGen::computeLagrangianForce(
     std::vector<double>& rest_lengths = d_rest_lengths[level_number];
 
     const int local_sz = petsc_mastr_node_idxs.size();
-    std::vector<double> F_mastr_node_arr(NDIM*local_sz,0.0);
-    std::vector<double> F_slave_node_arr(NDIM*local_sz,0.0);
+    std::vector<double> F_mastr_node_vals(NDIM*local_sz,0.0);
+    std::vector<double> F_slave_node_vals(NDIM*local_sz,0.0);
 
     for (int k = 0; k < local_sz; ++k)
     {
         // Compute the force applied by the spring to the "master" node.
-        double* const F_mastr_node = &F_mastr_node_arr[k*NDIM];
-        const double* const D = &D_arr[k*NDIM];
+        double* const F_mastr_node = &F_mastr_node_vals[k*NDIM];
+        const double* const D = &D_vals[k*NDIM];
         const double& stf = stiffnesses[k];
         const double& rst = rest_lengths[k];
         const int& lag_mastr_idx = lag_mastr_node_idxs[k];
@@ -360,25 +364,41 @@ IBSpringForceGen::computeLagrangianForce(
 
         // Compute the force applied by the spring to the corresponding "slave"
         // node.
-        double* const F_slave_node = &F_slave_node_arr[k*NDIM];
+        double* const F_slave_node = &F_slave_node_vals[k*NDIM];
         for (int d = 0; d < NDIM; ++d)
         {
             F_slave_node[d] = -F_mastr_node[d];
         }
     }
 
-    ierr = VecRestoreArray(D_vec, &D_arr);  IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(D_vec);               IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArray(D_vec, &D_vals);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(D_vec);                IBTK_CHKERRQ(ierr);
 
     Vec F_vec = F_data->getGlobalVec();
 #if 0
-    ierr = VecSetValuesBlocked(F_vec, petsc_mastr_node_idxs.size(), &petsc_mastr_node_idxs[0], &F_mastr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = VecSetValuesBlocked(F_vec, petsc_slave_node_idxs.size(), &petsc_slave_node_idxs[0], &F_slave_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetValuesBlocked(F_vec,
+                               petsc_mastr_node_idxs.size(),
+                               !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0] : PETSC_NULL,
+                               !petsc_mastr_node_idxs.empty() ? &    F_mastr_node_vals[0] : PETSC_NULL,
+                               ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetValuesBlocked(F_vec,
+                               petsc_slave_node_idxs.size(),
+                               !petsc_slave_node_idxs.empty() ? &petsc_slave_node_idxs[0] : PETSC_NULL,
+                               !petsc_slave_node_idxs.empty() ? &    F_slave_node_vals[0] : PETSC_NULL,
+                               ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
 #else
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec, petsc_mastr_node_idxs.size(), &petsc_mastr_node_idxs[0], &F_mastr_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec, petsc_slave_node_idxs.size(), &petsc_slave_node_idxs[0], &F_slave_node_arr[0], ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec,
+                                                  petsc_mastr_node_idxs.size(),
+                                                  !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0] : PETSC_NULL,
+                                                  !petsc_mastr_node_idxs.empty() ? &    F_mastr_node_vals[0] : PETSC_NULL,
+                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec,
+                                                  petsc_slave_node_idxs.size(),
+                                                  !petsc_slave_node_idxs.empty() ? &petsc_slave_node_idxs[0] : PETSC_NULL,
+                                                  !petsc_slave_node_idxs.empty() ? &    F_slave_node_vals[0] : PETSC_NULL,
+                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = IBTK::PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
     ierr = IBTK::PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
 #endif
@@ -395,6 +415,8 @@ IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     t_compute_lagrangian_force_jacobian_nonzero_structure->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -488,6 +510,8 @@ IBSpringForceGen::computeLagrangianForceJacobian(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     t_compute_lagrangian_force_jacobian->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -512,8 +536,8 @@ IBSpringForceGen::computeLagrangianForceJacobian(
     IBTK_CHKERRQ(ierr);
 
     // Compute the force Jacobians and insert them into the Jacobian matrix.
-    double* D_arr;
-    ierr = VecGetArray(D_vec, &D_arr);  IBTK_CHKERRQ(ierr);
+    double* D_vals;
+    ierr = VecGetArray(D_vec, &D_vals);  IBTK_CHKERRQ(ierr);
 
     std::vector<int>& lag_mastr_node_idxs = d_lag_mastr_node_idxs[level_number];
     std::vector<int>& lag_slave_node_idxs = d_lag_slave_node_idxs[level_number];
@@ -529,7 +553,7 @@ IBSpringForceGen::computeLagrangianForceJacobian(
         // Compute the Jacobian of the force applied by the spring to the
         // "master" node with respect to the position of the "slave" node.
         blitz::Array<double,2> dF_dX(NDIM,NDIM);
-        const double* const D = &D_arr[k*NDIM];
+        const double* const D = &D_vals[k*NDIM];
         const double& stf = stiffnesses[k];
         const double& rst = rest_lengths[k];
         const int& lag_mastr_idx = lag_mastr_node_idxs[k];
@@ -574,8 +598,8 @@ IBSpringForceGen::computeLagrangianForceJacobian(
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_slave_idx,1,&petsc_slave_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
     }
 
-    ierr = VecRestoreArray(D_vec, &D_arr);  IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(D_vec);               IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArray(D_vec, &D_vals);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(D_vec);                IBTK_CHKERRQ(ierr);
 
     // Assemble the matrix.
     ierr = MatAssemblyBegin(J_mat, assembly_type);  IBTK_CHKERRQ(ierr);

@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <10.Sep.2009 23:10:33 griffith@griffith-macbook-pro.local>
+// Last modified: <02.Nov.2009 10:10:09 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -703,10 +703,10 @@ private:
     bool d_registered_for_restart;
 
     /*
-     * The name of the discrete delta function to employ for interpolation and
-     * spreading.
+     * The names of the discrete delta functions to employ for velocity
+     * interpolation and force spreading.
      */
-    std::string d_delta_fcn;
+    std::string d_interp_delta_fcn, d_spread_delta_fcn;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
     /*

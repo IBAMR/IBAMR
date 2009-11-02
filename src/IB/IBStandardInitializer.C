@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <04.Sep.2009 14:12:03 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Nov.2009 10:44:47 griffith@griffith-macbook-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -1651,9 +1651,8 @@ IBStandardInitializer::getVertexPosn(
     const std::pair<int,int>& point_index,
     const int level_number) const
 {
-    return std::vector<double>(
-        &d_vertex_posn[level_number][point_index.first][point_index.second*NDIM     ],
-        &d_vertex_posn[level_number][point_index.first][point_index.second*NDIM+NDIM]);
+    const double* posn_ptr = &d_vertex_posn[level_number][point_index.first][point_index.second*NDIM];
+    return std::vector<double>(posn_ptr,posn_ptr+NDIM);
 }// getVertexPosn
 
 double

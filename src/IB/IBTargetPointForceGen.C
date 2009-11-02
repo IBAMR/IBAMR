@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <09.Jul.2009 00:09:50 griffith@griffith-macbook-pro.local>
+// Last modified: <02.Nov.2009 11:12:11 griffith@griffith-macbook-pro.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
@@ -93,6 +93,8 @@ IBTargetPointForceGen::computeLagrangianForce(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     t_compute_lagrangian_force->start();
 
     int ierr;
@@ -210,6 +212,8 @@ IBTargetPointForceGen::computeLagrangianForceJacobianNonzeroStructure(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     t_compute_lagrangian_force_jacobian_nonzero_structure->start();
 
     // Get the patch data descriptor index for the LNodeIndexData2.
@@ -267,6 +271,8 @@ IBTargetPointForceGen::computeLagrangianForceJacobian(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+
     t_compute_lagrangian_force_jacobian->start();
 
     int ierr;
