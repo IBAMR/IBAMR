@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <04.Sep.2009 11:44:32 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <03.Nov.2009 21:08:27 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -481,9 +481,9 @@ IBImplicitHierarchyIntegrator::registerPressureInitialConditions(
 
 void
 IBImplicitHierarchyIntegrator::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> body_force_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> body_force_setter)
 {
-    d_body_force_set = body_force_set;
+    d_body_force_setter = body_force_setter;
     return;
 }// registerBodyForceSpecification
 
@@ -1352,9 +1352,9 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
         d_u_bdry_bc_fill_op, current_time);
     d_u_bc_helper->clearBcCoefData();
     d_u_bc_helper->cacheBcCoefData(d_u_scratch_idx, d_u_var, d_u_bc_coefs, new_time, SAMRAI::hier::IntVector<NDIM>(SIDEG), d_hierarchy);
-    if (!d_body_force_set.isNull())
+    if (!d_body_force_setter.isNull())
     {
-        d_body_force_set->setDataOnPatchHierarchy(d_f_scratch_idx, d_f_var, d_hierarchy, current_time+0.5*dt);
+        d_body_force_setter->setDataOnPatchHierarchy(d_f_scratch_idx, d_f_var, d_hierarchy, current_time+0.5*dt);
         d_hier_sc_data_ops->add(d_u_rhs_idx, d_f_scratch_idx, d_u_rhs_idx);
     }
 
@@ -2381,7 +2381,7 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
         // If no initialization object is provided, initialize the body force to
         // zero.  Otherwise, use the initialization object to set the body force
         // to some specified value.
-        if (d_f_set.isNull())
+        if (d_f_setter.isNull())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -2399,7 +2399,7 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
         else
         {
             // Initialize F.
-            d_f_set->setDataOnPatchLevel(
+            d_f_setter->setDataOnPatchLevel(
                 d_f_current_idx, d_f_var, level,
                 init_data_time, initial_time);
             IBTK::PatchMathOps patch_math_ops;

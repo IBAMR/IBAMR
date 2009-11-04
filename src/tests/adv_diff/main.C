@@ -36,7 +36,7 @@
 #include <ibamr/GodunovAdvector.h>
 
 #include "QInit.h"
-#include "USet.h"
+#include "USetter.h"
 
 using namespace IBAMR;
 using namespace SAMRAI;
@@ -284,10 +284,10 @@ main(
 
     tbox::Pointer< pdat::FaceVariable<NDIM,double> > u_var =
         new pdat::FaceVariable<NDIM,double>("u");
-    USet u_set("USet", grid_geometry, input_db->getDatabase("USet"));
+    USetter u_setter("USetter", grid_geometry, input_db->getDatabase("USetter"));
     const bool u_is_div_free = true;
     time_integrator->registerAdvectionVelocity(
-        u_var, u_is_div_free, tbox::Pointer<SetDataStrategy>(&u_set,false));
+        u_var, u_is_div_free, tbox::Pointer<SetDataStrategy>(&u_setter,false));
 
     tbox::Pointer< pdat::CellVariable<NDIM,double> > Q_var =
         new pdat::CellVariable<NDIM,double>("Q");

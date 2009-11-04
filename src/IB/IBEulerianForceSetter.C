@@ -1,5 +1,5 @@
 // Filename: IBEulerianForceSetter.C
-// Last modified: <20.Nov.2008 20:02:53 griffith@box230.cims.nyu.edu>
+// Last modified: <03.Nov.2009 21:10:37 griffith@griffith-macbook-pro.local>
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBEulerianForceSetter.h"
@@ -45,7 +45,7 @@ IBEulerianForceSetter::IBEulerianForceSetter(
       d_F_current_idx(F_current_idx),
       d_F_new_idx(F_new_idx),
       d_F_half_idx(F_half_idx),
-      d_body_force_set(NULL)
+      d_body_force_setter(NULL)
 {
     // intentionally blank
     return;
@@ -75,9 +75,9 @@ IBEulerianForceSetter::isTimeDependent() const
 
 void
 IBEulerianForceSetter::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter)
 {
-    d_body_force_set = F_set;
+    d_body_force_setter = F_setter;
     return;
 }// registerBodyForceSpecification
 
@@ -98,9 +98,9 @@ IBEulerianForceSetter::setDataOnPatch(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_cc_data.isNull() || !f_sc_data.isNull());
 #endif
-    if (!d_body_force_set.isNull())
+    if (!d_body_force_setter.isNull())
     {
-        d_body_force_set->setDataOnPatch(data_idx, var, patch, data_time, initial_time);
+        d_body_force_setter->setDataOnPatch(data_idx, var, patch, data_time, initial_time);
     }
     else
     {

@@ -1,5 +1,5 @@
 // Filename: AdvDiffHypPatchOps.C
-// Last modified: <12.Feb.2008 21:18:45 griffith@box221.cims.nyu.edu>
+// Last modified: <03.Nov.2009 21:16:29 griffith@griffith-macbook-pro.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHypPatchOps.h"
@@ -191,8 +191,8 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
     const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_Q_vars.size() == d_flux_integral_vars.size());
-    TBOX_ASSERT(d_Q_vars.size() == d_q_integral_vars.size());
+    TBOX_ASSERT(d_Q_var.size() == d_flux_integral_var.size());
+    TBOX_ASSERT(d_Q_var.size() == d_q_integral_var.size());
 #endif
 
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
@@ -207,30 +207,30 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
          ? u_integral_data->getGhostCellWidth()
          : 0);
 
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
-            patch.getPatchData(d_Q_vars[l], getDataContext());
+            patch.getPatchData(d_Q_var[l], getDataContext());
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux_integral_data =
-            (d_Q_conservation_form[l]
-             ? patch.getPatchData(d_flux_integral_vars[l], getDataContext())
+            (d_Q_in_consv_form[l]
+             ? patch.getPatchData(d_flux_integral_var[l], getDataContext())
              : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL));
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > q_integral_data =
-            ((!d_u_is_div_free) || (!d_Q_conservation_form[l])
-             ? patch.getPatchData(d_q_integral_vars[l], getDataContext())
+            ((!d_u_is_div_free) || (!d_Q_in_consv_form[l])
+             ? patch.getPatchData(d_q_integral_var[l], getDataContext())
              : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL));
 
         const SAMRAI::hier::IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
         const SAMRAI::hier::IntVector<NDIM>& flux_integral_data_ghost_cells =
-            (d_Q_conservation_form[l]
+            (d_Q_in_consv_form[l]
              ? flux_integral_data->getGhostCellWidth()
              : 0);
         const SAMRAI::hier::IntVector<NDIM>& q_integral_data_ghost_cells =
-            ((!d_u_is_div_free) || (!d_Q_conservation_form[l])
+            ((!d_u_is_div_free) || (!d_Q_in_consv_form[l])
              ? q_integral_data->getGhostCellWidth()
              : 0);
 
-        if (d_Q_conservation_form[l])
+        if (d_Q_in_consv_form[l])
         {
             for (int depth = 0; depth < Q_data->getDepth(); ++depth)
             {
@@ -360,12 +360,12 @@ AdvDiffHypPatchOps::preprocessAdvanceLevelState(
     (void) regrid_advance;
 
     // Update the advection velocity.
-    if (!d_u_set.isNull() && d_u_set->isTimeDependent() && d_compute_init_velocity)
+    if (!d_u_setter.isNull() && d_u_setter->isTimeDependent() && d_compute_init_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, d_integrator->getScratchContext());
-        d_u_set->setDataOnPatchLevel(u_idx, d_u_var, level, current_time);
+        d_u_setter->setDataOnPatchLevel(u_idx, d_u_var, level, current_time);
     }
 
     t_preprocess_advance_level_state->stop();
@@ -389,12 +389,12 @@ AdvDiffHypPatchOps::postprocessAdvanceLevelState(
     (void) regrid_advance;
 
     // Update the advection velocity.
-    if (!d_u_set.isNull() && d_u_set->isTimeDependent() && d_compute_final_velocity)
+    if (!d_u_setter.isNull() && d_u_setter->isTimeDependent() && d_compute_final_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, d_integrator->getNewContext());
-        d_u_set->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
+        d_u_setter->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
     }
 
     t_postprocess_advance_level_state->stop();

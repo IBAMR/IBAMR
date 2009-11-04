@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <17.Aug.2009 16:19:00 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <03.Nov.2009 21:49:57 griffith@griffith-macbook-pro.local>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -91,17 +91,18 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     SAMRAI::tbox::Pointer<GodunovAdvector> explicit_predictor,
     bool register_for_restart)
     : d_viscous_timestepping_type("CRANK_NICOLSON"),
-      d_Q_vars(),
-      d_F_vars(),
-      d_Psi_vars(),
-      d_grad_vars(),
-      d_Q_inits(),
-      d_Q_bc_coefs(),
-      d_F_sets(),
-      d_Q_mus(),
-      d_Q_lambdas(),
+      d_Q_var(),
+      d_F_var(),
+      d_Psi_var(),
+      d_grad_var(),
+      d_Q_init(),
+      d_Q_bc_coef(),
+      d_F_setter(),
+      d_Q_mu(),
+      d_Q_lambda(),
+      d_Q_in_consv_form(),
       d_u_var(NULL),
-      d_u_set(NULL),
+      d_u_setter(NULL),
       d_u_is_div_free(false),
       d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
@@ -351,7 +352,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     const double Q_lambda,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -363,51 +364,35 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
         Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
 
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
-    if (Q_bc_coefs_local.empty())
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef_local = Q_bc_coef;
+    if (Q_bc_coef_local.empty())
     {
-        Q_bc_coefs_local = std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
+        Q_bc_coef_local = std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
             Q_depth,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
     }
 
-    if (Q_depth != int(Q_bc_coefs_local.size()))
+    if (Q_depth != int(Q_bc_coef_local.size()))
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedAndDiffusedQuantity():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
+                   << "  but " << Q_bc_coef_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
     }
 
-    if (!SAMRAI::tbox::MathUtilities<double>::equalEps(Q_mu    ,0.0) ||
-        !SAMRAI::tbox::MathUtilities<double>::equalEps(Q_lambda,0.0))
-    {
-        d_Q_vars    .push_back(Q_var);
-        d_Q_inits   .push_back(Q_init);
-        d_Q_bc_coefs.push_back(Q_bc_coefs_local);
-        d_Q_mus     .push_back(Q_mu);
-        d_Q_lambdas .push_back(Q_lambda);
+    d_Q_var          .push_back(Q_var);
+    d_Q_init         .push_back(Q_init);
+    d_Q_bc_coef      .push_back(Q_bc_coef_local);
+    d_Q_mu           .push_back(Q_mu);
+    d_Q_lambda       .push_back(Q_lambda);
+    d_Q_in_consv_form.push_back(conservation_form);
 
-        d_grad_vars.push_back(grad_var);
+    d_grad_var.push_back(grad_var);
 
-        d_F_vars.push_back(NULL);
-        d_F_sets.push_back(NULL);
+    d_F_var.push_back(NULL);
+    d_F_setter.push_back(NULL);
 
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
-            Q_var->getPatchDataFactory();
-        const int Q_depth = Q_factory->getDefaultDepth();
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var =
-            new SAMRAI::pdat::CellVariable<NDIM,double>(Q_var->getName()+"::Psi",Q_depth);
-
-        d_Psi_vars.push_back(Psi_var);
-
-        d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
-            Q_var, Psi_var, conservation_form, Q_init, Q_bc_coefs_local,
-            SAMRAI::tbox::Pointer<IBTK::SetDataStrategy>(NULL), grad_var);
-    }
-    else
-    {
-        d_hyp_patch_ops->registerAdvectedQuantity(
-            Q_var, conservation_form, Q_init, Q_bc_coefs_local, grad_var);
-    }
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var =
+        new SAMRAI::pdat::CellVariable<NDIM,double>(Q_var->getName()+"::Psi",Q_depth);
+    d_Psi_var.push_back(Psi_var);
     return;
 }// registerAdvectedAndDiffusedQuantity
 
@@ -420,13 +405,13 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     const bool conservation_form,
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedAndDiffusedQuantityWithSourceTerm(
         Q_var, Q_mu, Q_lambda, F_var, conservation_form, Q_init,
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
-        F_set, grad_var);
+        F_setter, grad_var);
     return;
 }// registerAdvectedAndDiffusedQuantityWithSourceTerm
 
@@ -438,8 +423,8 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -451,58 +436,41 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
         Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
 
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
-    if (Q_bc_coefs_local.empty())
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef_local = Q_bc_coef;
+    if (Q_bc_coef_local.empty())
     {
-        Q_bc_coefs_local = std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
+        Q_bc_coef_local = std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
             Q_depth,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
     }
 
-    if (Q_depth != int(Q_bc_coefs_local.size()))
+    if (Q_depth != int(Q_bc_coef_local.size()))
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedAndDiffusedQuantityWithSourceTerm():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
+                   << "  but " << Q_bc_coef_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
     }
 
-    if (!SAMRAI::tbox::MathUtilities<double>::equalEps(Q_mu    ,0.0) ||
-        !SAMRAI::tbox::MathUtilities<double>::equalEps(Q_lambda,0.0))
-    {
-        d_Q_vars    .push_back(Q_var);
-        d_Q_inits   .push_back(Q_init);
-        d_Q_bc_coefs.push_back(Q_bc_coefs_local);
-        d_Q_mus     .push_back(Q_mu);
-        d_Q_lambdas .push_back(Q_lambda);
+    d_Q_var          .push_back(Q_var);
+    d_Q_init         .push_back(Q_init);
+    d_Q_bc_coef      .push_back(Q_bc_coef_local);
+    d_Q_mu           .push_back(Q_mu);
+    d_Q_lambda       .push_back(Q_lambda);
+    d_Q_in_consv_form.push_back(conservation_form);
 
-        d_grad_vars.push_back(grad_var);
+    d_grad_var.push_back(grad_var);
 
-        d_F_vars.push_back(F_var);
-        d_F_sets.push_back(F_set);
-
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory =
-            Q_var->getPatchDataFactory();
-        const int Q_depth = Q_factory->getDefaultDepth();
+    d_F_var.push_back(F_var);
+    d_F_setter.push_back(F_setter);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > F_factory =
-            F_var->getPatchDataFactory();
-        TBOX_ASSERT(Q_depth == F_factory->getDefaultDepth());
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > F_factory =
+        F_var->getPatchDataFactory();
+    TBOX_ASSERT(Q_depth == F_factory->getDefaultDepth());
 #endif
 
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var =
-            new SAMRAI::pdat::CellVariable<NDIM,double>(Q_var->getName()+"::Psi",Q_depth);
-
-        d_Psi_vars.push_back(Psi_var);
-
-        d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
-            Q_var, Psi_var, conservation_form, Q_init, Q_bc_coefs_local,
-            SAMRAI::tbox::Pointer<IBTK::SetDataStrategy>(NULL), grad_var);
-    }
-    else
-    {
-        d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
-            Q_var, F_var, conservation_form, Q_init, Q_bc_coefs_local, F_set, grad_var);
-    }
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var =
+        new SAMRAI::pdat::CellVariable<NDIM,double>(Q_var->getName()+"::Psi",Q_depth);
+    d_Psi_var.push_back(Psi_var);
     return;
 }// registerAdvectedAndDiffusedQuantityWithSourceTerm
 
@@ -510,15 +478,15 @@ void
 AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
     const bool u_is_div_free,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_setter)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!u_var.isNull());
 #endif
     d_hyp_patch_ops->registerAdvectionVelocity(
-        u_var,u_is_div_free,u_set);
+        u_var,u_is_div_free,u_setter);
     d_u_var = u_var;
-    d_u_set = u_set;
+    d_u_setter = u_setter;
     d_u_is_div_free = u_is_div_free;
     return;
 }// registerAdvectionVelocity
@@ -618,11 +586,11 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Register forcing term data with the hyperbolic level integrator.
     const SAMRAI::hier::IntVector<NDIM> cell_ghosts = CELLG;
-    for (unsigned l = 0; l < d_F_vars.size(); ++l)
+    for (unsigned l = 0; l < d_F_var.size(); ++l)
     {
         // Advected and diffused quantities do not necessarily have source
         // terms.
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_var[l];
 
         if (!F_var.isNull())
         {
@@ -635,21 +603,18 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         }
     }
 
-    // Register temporary data with the variable database.
+    // Register variables with the patch strategy object and register
+    // corresponding temporary data with the variable database.
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
     d_temp_context = var_db->getContext(d_object_name+"::TEMP_CONTEXT");
 
-    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
+    for (unsigned l = 0; l < d_Q_var.size(); ++l)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
-        const int Q_temp_idx = var_db->registerVariableAndContext(
-            Q_var, d_temp_context, CELLG);
-        (void) Q_temp_idx;
-
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_vars[l];
-        const int Psi_temp_idx = var_db->registerVariableAndContext(
-            Psi_var, d_temp_context, CELLG);
-        (void) Psi_temp_idx;
+        d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
+            d_Q_var[l], d_Psi_var[l], d_Q_in_consv_form[l], d_Q_init[l], d_Q_bc_coef[l],
+            SAMRAI::tbox::Pointer<IBTK::SetDataStrategy>(NULL), d_grad_var[l]);
+        var_db->registerVariableAndContext(  d_Q_var[l], d_temp_context, CELLG);
+        var_db->registerVariableAndContext(d_Psi_var[l], d_temp_context, CELLG);
     }
 
     // Initialize the SAMRAI::algs::HyperbolicLevelIntegrator.
@@ -661,9 +626,9 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     // refined regions of coarse data with the underlying fine data.
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     d_calgs["SYNCH_NEW_STATE_DATA"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
-    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
+    for (unsigned l = 0; l < d_Q_var.size(); ++l)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_var[l];
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
         SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator =
             grid_geom->lookupCoarsenOperator(Q_var, "CONSERVATIVE_COARSEN");
@@ -682,9 +647,9 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // One set of operators/specifications is maintained for each variable
     // registered with the integrator.
-    d_helmholtz_ops.reserve(d_Q_vars.size());
-    d_helmholtz_specs.reserve(d_Q_vars.size());
-    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
+    d_helmholtz_ops.reserve(d_Q_var.size());
+    d_helmholtz_specs.reserve(d_Q_var.size());
+    for (unsigned l = 0; l < d_Q_var.size(); ++l)
     {
         std::ostringstream stream;
         stream << l;
@@ -694,16 +659,16 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
                                         d_object_name+"::Helmholtz Specs::"+name));
         d_helmholtz_ops.push_back(new IBTK::CCLaplaceOperator(
                                       d_object_name+"::Helmholtz Operator::"+name,
-                                      d_helmholtz_specs[l], d_Q_bc_coefs[l]));
+                                      d_helmholtz_specs[l], d_Q_bc_coef[l]));
     }
 
     // One set of solvers/preconditioners is maintained for each variable
     // registered with the integrator
-    d_helmholtz_solvers.resize(d_Q_vars.size());
-    d_helmholtz_fac_ops.resize(d_Q_vars.size());
-    d_helmholtz_fac_pcs.resize(d_Q_vars.size());
-    d_helmholtz_solvers_need_init.resize(d_Q_vars.size());
-    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
+    d_helmholtz_solvers.resize(d_Q_var.size());
+    d_helmholtz_fac_ops.resize(d_Q_var.size());
+    d_helmholtz_fac_pcs.resize(d_Q_var.size());
+    d_helmholtz_solvers_need_init.resize(d_Q_var.size());
+    for (unsigned l = 0; l < d_Q_var.size(); ++l)
     {
         std::ostringstream stream;
         stream << l;
@@ -716,7 +681,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
                 d_object_name+"::FAC Ops::"+name, d_fac_op_db);
             d_helmholtz_fac_ops[l]->setPoissonSpecifications(
                 d_helmholtz_specs[l]);
-            d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coefs[l]);
+            d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coef[l]);
 
             d_helmholtz_fac_pcs[l] = new SAMRAI::solv::FACPreconditioner<NDIM>(
                 d_object_name+"::FAC Preconditioner::"+name,
@@ -979,14 +944,14 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
 
-    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
+    for (unsigned l = 0; l < d_Q_var.size(); ++l)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var   = d_Q_vars[l];
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var   = d_F_vars[l];
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_vars[l];
-        const double mu = d_Q_mus[l];
-        const double lambda = d_Q_lambdas[l];
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set = d_F_sets[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var   = d_Q_var[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var   = d_F_var[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_var[l];
+        const double mu = d_Q_mu[l];
+        const double lambda = d_Q_lambda[l];
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter = d_F_setter[l];
 
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
@@ -999,9 +964,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         const int Psi_current_idx = var_db->mapVariableAndContextToIndex(Psi_var, getCurrentContext());
 
         // Compute the time-dependent forcing term F(n).
-        if (!F_set.isNull() && F_set->isTimeDependent())
+        if (!F_setter.isNull() && F_setter->isTimeDependent())
         {
-            F_set->setDataOnPatchHierarchy(F_var, getCurrentContext(), d_hierarchy, current_time);
+            F_setter->setDataOnPatchHierarchy(F_var, getCurrentContext(), d_hierarchy, current_time);
         }
 
         // Allocate temporary data.
@@ -1084,15 +1049,15 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         d_finest_reset_ln = finest_ln;
     }
 
-    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
+    for (unsigned l = 0; l < d_Q_var.size(); ++l)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var   = d_Q_vars[l];
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var   = d_F_vars[l];
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_vars[l];
-        const double mu = d_Q_mus[l];
-        const double lambda = d_Q_lambdas[l];
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs = d_Q_bc_coefs[l];
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set = d_F_sets[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var   = d_Q_var[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var   = d_F_var[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_var[l];
+        const double mu = d_Q_mu[l];
+        const double lambda = d_Q_lambda[l];
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[l];
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter = d_F_setter[l];
 
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
@@ -1114,9 +1079,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         }
 
         // Compute the time-dependent forcing term F(n+1/2).
-        if (!F_set.isNull() && F_set->isTimeDependent())
+        if (!F_setter.isNull() && F_setter->isTimeDependent())
         {
-            F_set->setDataOnPatchHierarchy(F_var, getCurrentContext(), d_hierarchy, current_time+0.5*dt);
+            F_setter->setDataOnPatchHierarchy(F_var, getCurrentContext(), d_hierarchy, current_time+0.5*dt);
         }
 
         if (!F_var.isNull())
@@ -1285,7 +1250,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
         // Initialize the linear solver.
         helmholtz_op->setPoissonSpecifications(helmholtz_spec);
-        helmholtz_op->setPhysicalBcCoefs(Q_bc_coefs);
+        helmholtz_op->setPhysicalBcCoefs(Q_bc_coef);
         helmholtz_op->setHomogeneousBc(false);
         helmholtz_op->setTime(new_time);
         helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
@@ -1521,20 +1486,20 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-        for (unsigned l = 0; l < d_F_vars.size(); ++l)
+        for (unsigned l = 0; l < d_F_var.size(); ++l)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_var[l];
 
             if (!F_var.isNull())
             {
                 const int F_idx = var_db->mapVariableAndContextToIndex(
                     F_var, getCurrentContext());
-                SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set = d_F_sets [l];
+                SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter = d_F_setter [l];
 
-                if (!F_set.isNull())
+                if (!F_setter.isNull())
                 {
-                    F_set->setDataOnPatchLevel(F_idx, F_var, level,
-                                               init_data_time, initial_time);
+                    F_setter->setDataOnPatchLevel(F_idx, F_var, level,
+                                                  init_data_time, initial_time);
                 }
                 else
                 {
@@ -1590,15 +1555,15 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
 
     // Reset the interpolation operators.
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    d_hier_bdry_fill_ops.resize(d_Q_vars.size());
-    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
+    d_hier_bdry_fill_ops.resize(d_Q_var.size());
+    for (unsigned l = 0; l < d_Q_var.size(); ++l)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_var[l];
         const int Q_temp_idx = var_db->mapVariableAndContextToIndex(Q_var, d_temp_context);
 
         // Setup the interpolation transaction information.
         typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent transaction_comp(Q_temp_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Q_bc_coefs[l]);
+        InterpolationTransactionComponent transaction_comp(Q_temp_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Q_bc_coef[l]);
 
         // Initialize the interpolation operators.
         d_hier_bdry_fill_ops[l] = new IBTK::HierarchyGhostCellInterpolation();
@@ -1617,22 +1582,22 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
     d_wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
 
     // Reset the solution and rhs vectors.
-    d_sol_vecs.resize(d_Q_vars.size());
-    d_rhs_vecs.resize(d_Q_vars.size());
-    for (unsigned l = 0; l < d_Q_vars.size(); ++l)
+    d_sol_vecs.resize(d_Q_var.size());
+    d_rhs_vecs.resize(d_Q_var.size());
+    for (unsigned l = 0; l < d_Q_var.size(); ++l)
     {
         std::ostringstream stream;
         stream << l;
         const std::string& name = stream.str();
 
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_var[l];
         const int Q_temp_idx = var_db->mapVariableAndContextToIndex(
             Q_var, d_temp_context);
         d_sol_vecs[l] = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(
             d_object_name+"::sol_vec::"+name, d_hierarchy, 0, finest_hier_level);
         d_sol_vecs[l]->addComponent(Q_var,Q_temp_idx,d_wgt_idx,d_hier_cc_data_ops);
 
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_var[l];
         const int Psi_temp_idx = var_db->mapVariableAndContextToIndex(
             Psi_var, d_temp_context);
         d_rhs_vecs[l] = new SAMRAI::solv::SAMRAIVectorReal<NDIM,double>(

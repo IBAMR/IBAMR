@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <11.Sep.2009 12:23:55 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <03.Nov.2009 20:37:45 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -381,9 +381,9 @@ INSStaggeredHierarchyIntegrator::registerPressureInitialConditions(
 
 void
 INSStaggeredHierarchyIntegrator::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter)
 {
-    d_F_set = F_set;
+    d_F_setter = F_setter;
     return;
 }// registerBodyForceSpecification
 
@@ -1353,9 +1353,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Setup the right-hand side vector.
     d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
-    if (!d_F_set.isNull())
+    if (!d_F_setter.isNull())
     {
-        d_F_set->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, current_time+0.5*dt);
+        d_F_setter->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, current_time+0.5*dt);
         d_hier_sc_data_ops->add(d_rhs_vec->getComponentDescriptorIndex(0), d_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
@@ -1375,7 +1375,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Reset the right-hand side vector.
     d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), +d_rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
-    if (!d_F_set.isNull())
+    if (!d_F_setter.isNull())
     {
         d_hier_sc_data_ops->subtract(d_rhs_vec->getComponentDescriptorIndex(0), d_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
         d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
@@ -1911,7 +1911,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
         // If no initialization object is provided, initialize the body force to
         // zero.  Otherwise, use the initialization object to set the body force
         // to some specified value.
-        if (d_F_set.isNull())
+        if (d_F_setter.isNull())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -1927,7 +1927,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
         else
         {
             // Initialize F.
-            d_F_set->setDataOnPatchLevel(d_F_current_idx, d_F_var, level, init_data_time, initial_time);
+            d_F_setter->setDataOnPatchLevel(d_F_current_idx, d_F_var, level, init_data_time, initial_time);
             IBTK::PatchMathOps patch_math_ops;
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {

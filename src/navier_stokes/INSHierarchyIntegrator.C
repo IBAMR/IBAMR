@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <18.Sep.2009 11:06:39 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <03.Nov.2009 20:38:44 griffith@griffith-macbook-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -518,17 +518,17 @@ INSHierarchyIntegrator::registerPressureInitialConditions(
 
 void
 INSHierarchyIntegrator::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter)
 {
-    d_F_set = F_set;
+    d_F_setter = F_setter;
     return;
 }// registerBodyForceSpecification
 
 void
 INSHierarchyIntegrator::registerDivergenceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_setter)
 {
-    d_Q_set = Q_set;
+    d_Q_setter = Q_setter;
     return;
 }// registerDivergenceSpecification
 
@@ -680,11 +680,11 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_V_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::V",NDIM);
 
-    if (!d_F_set.isNull())
+    if (!d_F_setter.isNull())
     {
         d_F_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::F",NDIM);
     }
-    if (!d_Q_set.isNull())
+    if (!d_Q_setter.isNull())
     {
         d_Q_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Q");
         d_F_div_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::F_div",NDIM);
@@ -890,7 +890,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // AdvDiffHierarchyIntegrator.
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
 
-    const bool u_adv_is_div_free = d_Q_set.isNull();
+    const bool u_adv_is_div_free = d_Q_setter.isNull();
     d_adv_diff_hier_integrator->registerAdvectionVelocity(
         d_u_adv_var, u_adv_is_div_free);
 
@@ -1688,7 +1688,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         d_hier_cc_data_ops->axpy(d_F_U_current_idx, +(1.0/d_rho), d_F_current_idx, d_F_U_current_idx);
     }
 
-    if (!d_Q_set.isNull())
+    if (!d_Q_setter.isNull())
     {
         computeDivSourceTerm(
             d_F_div_current_idx, d_Q_current_idx, d_u_adv_current_idx,
@@ -1751,9 +1751,9 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     }
 
     // Project the advection velocity.
-    if (!d_Q_set.isNull())
+    if (!d_Q_setter.isNull())
     {
-        d_Q_set->setDataOnPatchHierarchy(
+        d_Q_setter->setDataOnPatchHierarchy(
             d_Q_new_idx, d_Q_var, d_hierarchy, current_time+0.5*dt);
     }
 
@@ -1823,18 +1823,18 @@ INSHierarchyIntegrator::integrateAdvDiff(
         d_hier_cc_data_ops->axpy(d_F_U_current_idx, -(1.0/d_rho), d_Grad_P_idx, d_F_U_current_idx);
     }
 
-    if (!d_F_set.isNull())
+    if (!d_F_setter.isNull())
     {
-        if (d_F_set->isTimeDependent())
+        if (d_F_setter->isTimeDependent())
         {
-            d_F_set->setDataOnPatchHierarchy(
+            d_F_setter->setDataOnPatchHierarchy(
                 d_F_new_idx, d_F_var, d_hierarchy, current_time+dt);
         }
         d_hier_cc_data_ops->axpy(d_F_U_current_idx, +(0.5/d_rho), d_F_current_idx, d_F_U_current_idx);
         d_hier_cc_data_ops->axpy(d_F_U_current_idx, +(0.5/d_rho), d_F_new_idx    , d_F_U_current_idx);
     }
 
-    if (!d_Q_set.isNull())
+    if (!d_Q_setter.isNull())
     {
         computeDivSourceTerm(
             d_F_div_new_idx, d_Q_new_idx, d_u_adv_current_idx,
@@ -1890,9 +1890,9 @@ INSHierarchyIntegrator::projectVelocity(
     d_hier_cc_data_ops->copyData(d_U_star_new_idx, d_U_new_idx);
 
     // Compute Q = div u(n+1).
-    if (!d_Q_set.isNull())
+    if (!d_Q_setter.isNull())
     {
-        d_Q_set->setDataOnPatchHierarchy(
+        d_Q_setter->setDataOnPatchHierarchy(
             d_Q_new_idx, d_Q_var, d_hierarchy, new_time);
     }
 
@@ -2837,18 +2837,18 @@ INSHierarchyIntegrator::initializeLevelData(
 
         // If an initialization object is provided, initialize the
         // applied force.
-        if (!d_F_set.isNull())
+        if (!d_F_setter.isNull())
         {
-            d_F_set->setDataOnPatchLevel(
+            d_F_setter->setDataOnPatchLevel(
                 d_F_current_idx, d_F_var, level,
                 init_data_time, initial_time);
         }
 
         // If an initialization object is provided, initialize the
         // divergence.
-        if (!d_Q_set.isNull())
+        if (!d_Q_setter.isNull())
         {
-            d_Q_set->setDataOnPatchLevel(
+            d_Q_setter->setDataOnPatchLevel(
                 d_Q_current_idx, d_Q_var, level,
                 init_data_time, initial_time);
 

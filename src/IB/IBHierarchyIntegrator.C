@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <02.Nov.2009 10:14:34 griffith@griffith-macbook-pro.local>
+// Last modified: <03.Nov.2009 21:09:34 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -152,11 +152,11 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_U_bc_coefs(),
       d_P_bc_coef(NULL),
       d_lag_init(NULL),
-      d_body_force_set(NULL),
-      d_eulerian_force_set(NULL),
+      d_body_force_setter(NULL),
+      d_eulerian_force_setter(NULL),
       d_force_strategy(force_strategy),
       d_force_strategy_needs_init(true),
-      d_eulerian_source_set(NULL),
+      d_eulerian_source_setter(NULL),
       d_source_strategy(source_strategy),
       d_source_strategy_needs_init(true),
       d_X_src(),
@@ -489,9 +489,9 @@ IBHierarchyIntegrator::registerPressurePhysicalBcCoef(
 
 void
 IBHierarchyIntegrator::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> body_force_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> body_force_setter)
 {
-    d_body_force_set = body_force_set;
+    d_body_force_setter = body_force_setter;
     return;
 }// registerBodyForceSpecification
 
@@ -637,16 +637,16 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     // NOTE: The IBEulerianForceSetter only has to set the new Cartesian grid
     // force.  The current Cartesian grid force is set manually by
     // IBHierarchyIntegrator::advanceHierarchy().
-    d_eulerian_force_set = new IBEulerianForceSetter(
+    d_eulerian_force_setter = new IBEulerianForceSetter(
         d_object_name+"::IBEulerianForceSetter", -1, d_F_idx, -1);
-    d_ins_hier_integrator->registerBodyForceSpecification(d_eulerian_force_set);
+    d_ins_hier_integrator->registerBodyForceSpecification(d_eulerian_force_setter);
 
     if (!d_source_strategy.isNull())
     {
-        d_eulerian_source_set = new IBEulerianSourceSetter(
+        d_eulerian_source_setter = new IBEulerianSourceSetter(
             d_object_name+"::IBEulerianSourceSetter", d_Q_idx, d_Q_idx, d_Q_idx);
         d_ins_hier_integrator->registerDivergenceSpecification(
-            d_eulerian_source_set);
+            d_eulerian_source_setter);
     }
 
     // Initialize the INSHierarchyIntegrator.
@@ -914,11 +914,11 @@ IBHierarchyIntegrator::advanceHierarchy(
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
     // Set the current time interval in the force specification objects.
-    d_eulerian_force_set->setTimeInterval(current_time, new_time);
+    d_eulerian_force_setter->setTimeInterval(current_time, new_time);
     d_force_strategy->setTimeInterval(current_time, new_time);
     if (!d_source_strategy.isNull())
     {
-        d_eulerian_source_set->setTimeInterval(current_time, new_time);
+        d_eulerian_source_setter->setTimeInterval(current_time, new_time);
         d_source_strategy->setTimeInterval(current_time, new_time);
     }
 
@@ -1432,20 +1432,20 @@ IBHierarchyIntegrator::advanceHierarchy(
     // 7. If an additional body force specification object is provided, compute
     //    the body force at the beginning and end of the time step, and add
     //    those values to f(n) and f(n+1).
-    if (!d_body_force_set.isNull())
+    if (!d_body_force_setter.isNull())
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int F_current_idx = var_db->mapVariableAndContextToIndex(
             d_ins_hier_integrator->getForceVar(),
             d_ins_hier_integrator->getCurrentContext());
 
-        d_body_force_set->setDataOnPatchHierarchy(
+        d_body_force_setter->setDataOnPatchHierarchy(
             d_F_scratch1_idx, d_F_var, d_hierarchy,
             current_time, false, coarsest_ln, finest_ln);
 
         d_hier_cc_data_ops->add(F_current_idx, F_current_idx, d_F_scratch1_idx);
 
-        d_body_force_set->setDataOnPatchHierarchy(
+        d_body_force_setter->setDataOnPatchHierarchy(
             d_F_scratch2_idx, d_F_var, d_hierarchy,
             current_time+dt, false, coarsest_ln, finest_ln);
 

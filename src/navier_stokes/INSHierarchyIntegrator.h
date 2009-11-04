@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <18.Sep.2009 11:02:19 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <03.Nov.2009 20:38:59 griffith@griffith-macbook-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -156,14 +156,14 @@ public:
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter);
 
     /*!
      * Supply an optional cell centered divergence specification.
      */
     void
     registerDivergenceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_set);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_setter);
 
     /*!
      * Register a VisIt data writer so this object will write plot files that
@@ -1118,7 +1118,7 @@ private:
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_P_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     INSProjectionBcCoef* d_Phi_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_set, d_Q_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_setter, d_Q_setter;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects

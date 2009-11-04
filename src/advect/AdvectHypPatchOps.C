@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <12.Aug.2009 18:31:33 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <03.Nov.2009 20:49:14 griffith@griffith-macbook-pro.local>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -198,18 +198,18 @@ AdvectHypPatchOps::AdvectHypPatchOps(
     bool register_for_restart)
     : d_integrator(NULL),
       d_godunov_advector(godunov_advector),
-      d_Q_vars(),
-      d_F_vars(),
-      d_grad_vars(),
-      d_Q_conservation_form(),
-      d_flux_integral_vars(),
-      d_q_integral_vars(),
+      d_Q_var(),
+      d_F_var(),
+      d_grad_var(),
+      d_Q_in_consv_form(),
+      d_flux_integral_var(),
+      d_q_integral_var(),
       d_u_integral_var(),
-      d_Q_inits(),
-      d_Q_bc_coefs(),
-      d_F_sets(),
+      d_Q_init(),
+      d_Q_bc_coef(),
+      d_F_setter(),
       d_u_var(NULL),
-      d_u_set(NULL),
+      d_u_setter(NULL),
       d_u_is_div_free(false),
       d_u_is_registered(false),
       d_compute_init_velocity(true),
@@ -339,7 +339,7 @@ AdvectHypPatchOps::registerAdvectedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -350,18 +350,18 @@ AdvectHypPatchOps::registerAdvectedQuantity(
         Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
 
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
-    if (Q_bc_coefs_local.empty())
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef_local = Q_bc_coef;
+    if (Q_bc_coef_local.empty())
     {
-        Q_bc_coefs_local = std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
+        Q_bc_coef_local = std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
             Q_depth,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
     }
 
-    if (Q_depth != int(Q_bc_coefs_local.size()))
+    if (Q_depth != int(Q_bc_coef_local.size()))
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedQuantity():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
+                   << "  but " << Q_bc_coef_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
     }
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > flux_integral_var;
@@ -381,19 +381,19 @@ AdvectHypPatchOps::registerAdvectedQuantity(
             Q_factory->getDefaultDepth());
     }
 
-    d_Q_vars    .push_back(Q_var);
-    d_Q_inits   .push_back(Q_init);
-    d_Q_bc_coefs.push_back(Q_bc_coefs_local);
+    d_Q_var    .push_back(Q_var);
+    d_Q_init   .push_back(Q_init);
+    d_Q_bc_coef.push_back(Q_bc_coef_local);
 
-    d_Q_conservation_form.push_back(conservation_form);
+    d_Q_in_consv_form.push_back(conservation_form);
 
-    d_grad_vars.push_back(grad_var);
+    d_grad_var.push_back(grad_var);
 
-    d_F_vars.push_back(NULL);
-    d_F_sets.push_back(NULL);
+    d_F_var.push_back(NULL);
+    d_F_setter.push_back(NULL);
 
-    d_flux_integral_vars.push_back(flux_integral_var);
-    d_q_integral_vars.push_back(q_integral_var);
+    d_flux_integral_var.push_back(flux_integral_var);
+    d_q_integral_var.push_back(q_integral_var);
 
     if (!conservation_form && d_u_integral_var.isNull())
     {
@@ -411,13 +411,13 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     const bool conservation_form,
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedQuantityWithSourceTerm(
         Q_var, F_var, conservation_form, Q_init,
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
-        F_set, grad_var);
+        F_setter, grad_var);
     return;
 }// registerAdvectedQuantityWithSourceTerm
 
@@ -427,8 +427,8 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -440,18 +440,18 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
         Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
 
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs_local = Q_bc_coefs;
-    if (Q_bc_coefs_local.empty())
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef_local = Q_bc_coef;
+    if (Q_bc_coef_local.empty())
     {
-        Q_bc_coefs_local = std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
+        Q_bc_coef_local = std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(
             Q_depth,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL));
     }
 
-    if (Q_depth != int(Q_bc_coefs_local.size()))
+    if (Q_depth != int(Q_bc_coef_local.size()))
     {
         TBOX_ERROR(d_object_name << "::registerAdvectedQuantityWithSourceTerm():\n"
                    << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coefs_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
+                   << "  but " << Q_bc_coef_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
     }
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > flux_integral_var;
@@ -476,19 +476,19 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
         F_var->getPatchDataFactory();
     TBOX_ASSERT(Q_factory->getDefaultDepth() == F_factory->getDefaultDepth());
 #endif
-    d_Q_vars    .push_back(Q_var);
-    d_Q_inits   .push_back(Q_init);
-    d_Q_bc_coefs.push_back(Q_bc_coefs_local);
+    d_Q_var    .push_back(Q_var);
+    d_Q_init   .push_back(Q_init);
+    d_Q_bc_coef.push_back(Q_bc_coef_local);
 
-    d_Q_conservation_form.push_back(conservation_form);
+    d_Q_in_consv_form.push_back(conservation_form);
 
-    d_grad_vars.push_back(grad_var);
+    d_grad_var.push_back(grad_var);
 
-    d_F_vars.push_back(F_var);
-    d_F_sets.push_back(F_set);
+    d_F_var.push_back(F_var);
+    d_F_setter.push_back(F_setter);
 
-    d_flux_integral_vars.push_back(flux_integral_var);
-    d_q_integral_vars.push_back(q_integral_var);
+    d_flux_integral_var.push_back(flux_integral_var);
+    d_q_integral_var.push_back(q_integral_var);
 
     if (!conservation_form && d_u_integral_var.isNull())
     {
@@ -503,14 +503,14 @@ void
 AdvectHypPatchOps::registerAdvectionVelocity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
     const bool u_is_div_free,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_setter)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_u_is_registered);
     TBOX_ASSERT(!u_var.isNull());
 #endif
     d_u_var = u_var;
-    d_u_set = u_set;
+    d_u_setter = u_setter;
     d_u_is_div_free = u_is_div_free;
 
     if (!d_u_is_div_free)
@@ -566,7 +566,7 @@ AdvectHypPatchOps::registerModelVariables(
 
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
 
-    for (CellVariableVector::iterator it = d_Q_vars.begin(); it != d_Q_vars.end(); ++it)
+    for (CellVariableVector::iterator it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = *it;
 
@@ -614,7 +614,7 @@ AdvectHypPatchOps::registerModelVariables(
 #endif
     }
 
-    for (CellVariableVector::iterator it = d_F_vars.begin(); it != d_F_vars.end(); ++it)
+    for (CellVariableVector::iterator it = d_F_var.begin(); it != d_F_var.end(); ++it)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = *it;
 
@@ -631,8 +631,8 @@ AdvectHypPatchOps::registerModelVariables(
     }
 
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > FaceVariableVector;
-    for (FaceVariableVector::iterator it = d_flux_integral_vars.begin();
-         it != d_flux_integral_vars.end(); ++it)
+    for (FaceVariableVector::iterator it = d_flux_integral_var.begin();
+         it != d_flux_integral_var.end(); ++it)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > flux_integral_var = *it;
 
@@ -648,8 +648,8 @@ AdvectHypPatchOps::registerModelVariables(
         }
     }
 
-    for (FaceVariableVector::iterator it = d_q_integral_vars.begin();
-         it != d_q_integral_vars.end(); ++it)
+    for (FaceVariableVector::iterator it = d_q_integral_var.begin();
+         it != d_q_integral_var.end(); ++it)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > q_integral_var = *it;
 
@@ -705,12 +705,12 @@ AdvectHypPatchOps::initializeDataOnPatch(
         // We try to use the IBTK::SetDataStrategy associated with each
         // advected quantity.  If there is no strategy associated with a given
         // quantity, initialize its value to zero.
-        for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+        for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_var[l];
             const int Q_idx = var_db->mapVariableAndContextToIndex(
                 Q_var, getDataContext());
-            SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init = d_Q_inits[l];
+            SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init = d_Q_init[l];
 
             if (!Q_init.isNull())
             {
@@ -731,19 +731,19 @@ AdvectHypPatchOps::initializeDataOnPatch(
         // We try to use the IBTK::SetDataStrategy associated with the source
         // term.  If there is no strategy associated with the source term,
         // initialize its value to zero.
-        for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
+        for (CellVariableVector::size_type l = 0; l < d_F_var.size(); ++l)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_var[l];
 
             if (!F_var.isNull())
             {
                 const int F_idx = var_db->mapVariableAndContextToIndex(
                     F_var, getDataContext());
-                SAMRAI::tbox::Pointer<IBTK::SetDataStrategy>  F_set = d_F_sets[l];
+                SAMRAI::tbox::Pointer<IBTK::SetDataStrategy>  F_setter = d_F_setter[l];
 
-                if (!F_set.isNull())
+                if (!F_setter.isNull())
                 {
-                    F_set->setDataOnPatch(
+                    F_setter->setDataOnPatch(
                         F_idx, F_var, patch, data_time, initial_time);
                 }
                 else
@@ -764,9 +764,9 @@ AdvectHypPatchOps::initializeDataOnPatch(
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, getDataContext());
 
-        if (!d_u_set.isNull())
+        if (!d_u_setter.isNull())
         {
-            d_u_set->setDataOnPatch(
+            d_u_setter->setDataOnPatch(
                 u_idx, d_u_var, patch, data_time, initial_time);
         }
         else
@@ -820,9 +820,9 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     (void) time;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_Q_vars.size() == d_F_vars.size());
-    TBOX_ASSERT(d_Q_vars.size() == d_flux_integral_vars.size());
-    TBOX_ASSERT(d_Q_vars.size() == d_q_integral_vars.size());
+    TBOX_ASSERT(d_Q_var.size() == d_F_var.size());
+    TBOX_ASSERT(d_Q_var.size() == d_flux_integral_var.size());
+    TBOX_ASSERT(d_Q_var.size() == d_q_integral_var.size());
 #endif
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
@@ -835,16 +835,16 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
 
     // Predict time- and face-centered values.
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
-            patch.getPatchData(d_Q_vars[l], getDataContext());
+            patch.getPatchData(d_Q_var[l], getDataContext());
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > q_integral_data =
             getQIntegralData(l, patch, getDataContext());
-        if (!d_F_vars[l].isNull())
+        if (!d_F_var[l].isNull())
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_data =
-                patch.getPatchData(d_F_vars[l], getDataContext());
+                patch.getPatchData(d_F_var[l], getDataContext());
             d_godunov_advector->predictValueWithSourceTerm(
                 *q_integral_data, *u_data, *Q_data, *F_data, patch, dt);
         }
@@ -858,14 +858,14 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     // For incompressible flow problems, we allow for the specification of an
     // auxiliary gradient that is used to enforce the incompressibility
     // constraint in an extremely approximate manner.
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
     {
-        if (!d_grad_vars[l].isNull())
+        if (!d_grad_var[l].isNull())
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > q_integral_data =
                 getQIntegralData(l, patch, getDataContext());
             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > grad_data =
-                patch.getPatchData(d_grad_vars[l], getDataContext());
+                patch.getPatchData(d_grad_var[l], getDataContext());
             d_godunov_advector->enforceIncompressibility(
                 *q_integral_data, *u_data, *grad_data, patch);
         }
@@ -879,19 +879,19 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     }
 
     // Update the advection velocity.
-    if (!d_u_set.isNull() && d_u_set->isTimeDependent() && d_compute_half_velocity)
+    if (!d_u_setter.isNull() && d_u_setter->isTimeDependent() && d_compute_half_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, getDataContext());
-        d_u_set->setDataOnPatch(u_idx, d_u_var, patch, time+0.5*dt);
+        d_u_setter->setDataOnPatch(u_idx, d_u_var, patch, time+0.5*dt);
     }
 
     // Compute fluxes for those quantities that are to be conservatively
     // differenced.
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
     {
-        if (d_Q_conservation_form[l])
+        if (d_Q_in_consv_form[l])
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux_integral_data =
                 getFluxIntegralData(l, patch, getDataContext());
@@ -907,9 +907,9 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     // These values are used in computing the proper source terms to maintain
     // consistency between the conservative and non-conservative forms of the
     // advection equation.
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
     {
-        if (!d_u_is_div_free || !d_Q_conservation_form[l])
+        if (!d_u_is_div_free || !d_Q_in_consv_form[l])
         {
             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > q_integral_data =
                 getQIntegralData(l, patch, getDataContext());
@@ -953,8 +953,8 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
     (void) at_synchronization;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_Q_vars.size() == d_flux_integral_vars.size());
-    TBOX_ASSERT(d_Q_vars.size() == d_q_integral_vars.size());
+    TBOX_ASSERT(d_Q_var.size() == d_flux_integral_var.size());
+    TBOX_ASSERT(d_Q_var.size() == d_q_integral_var.size());
 #endif
 
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
@@ -975,10 +975,10 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
     SAMRAI::math::PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
 
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
-            patch.getPatchData(d_Q_vars[l], getDataContext());
+            patch.getPatchData(d_Q_var[l], getDataContext());
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux_integral_data =
             getFluxIntegralData(l, patch, getDataContext());
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > q_integral_data =
@@ -994,7 +994,7 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
              ? q_integral_data->getGhostCellWidth()
              : 0);
 
-        if (d_Q_conservation_form[l])
+        if (d_Q_in_consv_form[l])
         {
             for (int depth = 0; depth < Q_data->getDepth(); ++depth)
             {
@@ -1119,12 +1119,12 @@ AdvectHypPatchOps::preprocessAdvanceLevelState(
     (void) regrid_advance;
 
     // Update the advection velocity.
-    if (!d_u_set.isNull() && d_u_set->isTimeDependent() && d_compute_init_velocity)
+    if (!d_u_setter.isNull() && d_u_setter->isTimeDependent() && d_compute_init_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, d_integrator->getScratchContext());
-        d_u_set->setDataOnPatchLevel(u_idx, d_u_var, level, current_time);
+        d_u_setter->setDataOnPatchLevel(u_idx, d_u_var, level, current_time);
     }
 
     if (!d_coarse_fine_bdry_op.isNull() && level->inHierarchy())
@@ -1135,14 +1135,14 @@ AdvectHypPatchOps::preprocessAdvanceLevelState(
         SAMRAI::hier::ComponentSelector patch_data_indices;
 
         typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-        for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+        for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_var[l];
             const int Q_data_idx = var_db->mapVariableAndContextToIndex(
                 Q_var, d_integrator->getScratchContext());
             patch_data_indices.setFlag(Q_data_idx);
 
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_var[l];
             if (!F_var.isNull())
             {
                 const int F_data_idx = var_db->mapVariableAndContextToIndex(
@@ -1187,17 +1187,17 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
 
     // Update the values of any time-dependent source terms and add the values
     // of all source terms to the advected quantities.
-    for (CellVariableVector::size_type l = 0; l < d_F_vars.size(); ++l)
+    for (CellVariableVector::size_type l = 0; l < d_F_var.size(); ++l)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> new_context     = d_integrator->getNewContext();
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> scratch_context = d_integrator->getScratchContext();
 
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var   = d_Q_vars[l];
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var   = d_Q_var[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_var[l];
 
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set = d_F_sets[l];
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter = d_F_setter[l];
 
-        if (!F_var.isNull() && !F_set.isNull() && F_set->isTimeDependent())
+        if (!F_var.isNull() && !F_setter.isNull() && F_setter->isTimeDependent())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -1216,9 +1216,7 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
                                         patch_box);
             }
 
-            F_set->setDataOnPatchLevel(F_var, new_context,
-                                       level, current_time+dt);
-
+            F_setter->setDataOnPatchLevel(F_var, new_context, level, current_time+dt);
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1258,12 +1256,12 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
     }
 
     // Update the advection velocity.
-    if (!d_u_set.isNull() && d_u_set->isTimeDependent() && d_compute_final_velocity)
+    if (!d_u_setter.isNull() && d_u_setter->isTimeDependent() && d_compute_final_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, d_integrator->getNewContext());
-        d_u_set->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
+        d_u_setter->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
     }
 
     t_postprocess_advance_level_state->stop();
@@ -1372,12 +1370,12 @@ AdvectHypPatchOps::tagRichardsonExtrapolationCells(
                 typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
 
                 for (CellVariableVector::size_type l = 0;
-                     l < d_Q_vars.size(); ++l)
+                     l < d_Q_var.size(); ++l)
                 {
                     coarsened_fine_var =
-                        patch.getPatchData(d_Q_vars[l], coarsened_fine);
+                        patch.getPatchData(d_Q_var[l], coarsened_fine);
                     advanced_coarse_var =
-                        patch.getPatchData(d_Q_vars[l], advanced_coarse);
+                        patch.getPatchData(d_Q_var[l], advanced_coarse);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
                     TBOX_ASSERT(!coarsened_fine_var.isNull());
@@ -1526,10 +1524,10 @@ AdvectHypPatchOps::tagGradientDetectorCells(
                 // Richardson extrapolation.
                 typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
                 for (CellVariableVector::size_type l = 0;
-                     l < d_Q_vars.size(); ++l)
+                     l < d_Q_var.size(); ++l)
                 {
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > var =
-                        patch.getPatchData(d_Q_vars[l], getDataContext());
+                        patch.getPatchData(d_Q_var[l], getDataContext());
 #ifdef DEBUG_CHECK_ASSERTIONS
                     TBOX_ASSERT(!var.isNull());
 #endif
@@ -1576,10 +1574,10 @@ AdvectHypPatchOps::tagGradientDetectorCells(
             {
                 typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
                 for (CellVariableVector::size_type l = 0;
-                     l < d_Q_vars.size(); ++l)
+                     l < d_Q_var.size(); ++l)
                 {
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > var =
-                        patch.getPatchData(d_Q_vars[l], getDataContext());
+                        patch.getPatchData(d_Q_var[l], getDataContext());
 #ifdef DEBUG_CHECK_ASSERTIONS
                     TBOX_ASSERT(!var.isNull());
 #endif
@@ -1671,14 +1669,14 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
 
     SAMRAI::hier::ComponentSelector patch_data_indices;
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_var[l];
         const int Q_data_idx = var_db->mapVariableAndContextToIndex(
             Q_var, d_integrator->getScratchContext());
         patch_data_indices.setFlag(Q_data_idx);
 
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_var[l];
         if (!F_var.isNull())
         {
             const int F_data_idx = var_db->mapVariableAndContextToIndex(
@@ -1729,14 +1727,14 @@ AdvectHypPatchOps::preprocessRefine(
         SAMRAI::hier::ComponentSelector patch_data_indices;
 
         typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-        for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+        for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_var[l];
             const int Q_data_idx = var_db->mapVariableAndContextToIndex(
                 Q_var, getDataContext());
             patch_data_indices.setFlag(Q_data_idx);
 
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_var[l];
             if (!F_var.isNull())
             {
                 const int F_data_idx = var_db->mapVariableAndContextToIndex(
@@ -1766,14 +1764,14 @@ AdvectHypPatchOps::postprocessRefine(
         SAMRAI::hier::ComponentSelector patch_data_indices;
 
         typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-        for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+        for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_var[l];
             const int Q_data_idx = var_db->mapVariableAndContextToIndex(
                 Q_var, getDataContext());
             patch_data_indices.setFlag(Q_data_idx);
 
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_vars[l];
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_var[l];
             if (!F_var.isNull())
             {
                 const int F_data_idx = var_db->mapVariableAndContextToIndex(
@@ -1851,9 +1849,9 @@ AdvectHypPatchOps::getFluxIntegralData(
     SAMRAI::hier::Patch<NDIM>& patch,
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context)
 {
-    if (d_Q_conservation_form[l])
+    if (d_Q_in_consv_form[l])
     {
-        return patch.getPatchData(d_flux_integral_vars[l], context);
+        return patch.getPatchData(d_flux_integral_var[l], context);
     }
     else
     {
@@ -1867,9 +1865,9 @@ AdvectHypPatchOps::getQIntegralData(
     SAMRAI::hier::Patch<NDIM>& patch,
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context)
 {
-    if (!d_u_is_div_free || !d_Q_conservation_form[l])
+    if (!d_u_is_div_free || !d_Q_in_consv_form[l])
     {
-        return patch.getPatchData(d_q_integral_vars[l], context);
+        return patch.getPatchData(d_q_integral_var[l], context);
     }
     else
     {
@@ -1906,9 +1904,9 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
     const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
     const double* const dx = pgeom->getDx();
     typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
-    for (CellVariableVector::size_type l = 0; l < d_Q_vars.size(); ++l)
+    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_vars[l];
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_var[l];
         const int Q_data_idx = var_db->mapVariableAndContextToIndex(
             Q_var, d_integrator->getScratchContext());
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > q_integral_data =
@@ -1917,7 +1915,7 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
         // Setup any extended Robin BC coef objects.
         for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
         {
-            IBTK::ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<IBTK::ExtendedRobinBcCoefStrategy*>(d_Q_bc_coefs[l][depth]);
+            IBTK::ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<IBTK::ExtendedRobinBcCoefStrategy*>(d_Q_bc_coef[l][depth]);
             if (extended_bc_coef != NULL)
             {
                 extended_bc_coef->setHomogeneousBc(false);
@@ -1950,7 +1948,7 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > gcoef_data =
                     new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
 
-                d_Q_bc_coefs[l][depth]->setBcCoefs(
+                d_Q_bc_coef[l][depth]->setBcCoefs(
                     acoef_data, bcoef_data, gcoef_data, Q_var,
                     patch, trimmed_bdry_box, fill_time);
 

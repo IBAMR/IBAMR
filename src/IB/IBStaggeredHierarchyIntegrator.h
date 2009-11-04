@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <02.Nov.2009 10:10:09 griffith@griffith-macbook-pro.local>
+// Last modified: <03.Nov.2009 21:07:18 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -110,7 +110,7 @@ public:
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter);
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
@@ -762,8 +762,8 @@ private:
     /*
      * The force generators.
      */
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_body_force_set;
-    SAMRAI::tbox::Pointer<IBEulerianForceSetter> d_eulerian_force_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_body_force_setter;
+    SAMRAI::tbox::Pointer<IBEulerianForceSetter> d_eulerian_force_setter;
     SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_force_strategy;
     bool d_force_strategy_needs_init;
 

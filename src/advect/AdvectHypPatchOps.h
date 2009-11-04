@@ -2,7 +2,7 @@
 #define included_AdvectHypPatchOps
 
 // Filename: AdvectHypPatchOps.h
-// Last modified: <12.Aug.2009 18:21:45 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <03.Nov.2009 20:49:48 griffith@griffith-macbook-pro.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -241,7 +241,7 @@ public:
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -281,7 +281,7 @@ public:
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -303,7 +303,7 @@ public:
     registerAdvectionVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
         const bool u_is_div_free,
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_set=NULL);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_setter=NULL);
 
 #if (NDIM>1)
     /*!
@@ -564,21 +564,21 @@ protected:
      * Advected quantities Q, source terms F (possibly NULL) and the optional
      * face-centered gradient terms used to enforce incompressibility.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_vars;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_vars;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_grad_vars;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_var;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_var;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_grad_var;
 
     /*
      * Indicates whether conservative or non-conservative differencing should be
      * employed for a given quantity.
      */
-    std::vector<bool> d_Q_conservation_form;
+    std::vector<bool> d_Q_in_consv_form;
 
     /*
      * When conservative differencing is employed for a quantity Q, we maintain
      * the time integral of the advective flux corresponding to that quantity.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_flux_integral_vars;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_flux_integral_var;
 
     /*
      * When non-conservative differencing is employed for a quantity Q, we
@@ -588,22 +588,22 @@ protected:
      * These values must also be maintained when the advection velocity is not
      * discretely divergence free.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_q_integral_vars;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_q_integral_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_integral_var;
 
     /*
      * Objects to set initial and boundary conditions as well as forcing terms
      * for each advected quantity.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_Q_inits;
-    std::vector<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coefs;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_F_sets;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_Q_init;
+    std::vector<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_F_setter;
 
     /*
      * The advection velocity.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_var;
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_setter;
     bool d_u_is_div_free, d_u_is_registered;
     bool d_compute_init_velocity, d_compute_half_velocity, d_compute_final_velocity;
 

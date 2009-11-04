@@ -2,7 +2,7 @@
 #define included_IBEulerianForceSetter
 
 // Filename: IBEulerianForceSetter.h
-// Last modified: <20.Nov.2008 19:39:15 griffith@box230.cims.nyu.edu>
+// Last modified: <03.Nov.2009 21:10:45 griffith@griffith-macbook-pro.local>
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -57,7 +57,7 @@ public:
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter);
 
     /*!
      * \name Methods to set the data.
@@ -128,7 +128,7 @@ private:
     /*!
      * Optional body force generator.
      */
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_body_force_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_body_force_setter;
 };
 }// namespace IBAMR
 

@@ -2,7 +2,7 @@
 #define included_IBImplicitHierarchyIntegrator
 
 // Filename: IBImplicitHierarchyIntegrator.h
-// Last modified: <10.Sep.2009 23:14:25 griffith@griffith-macbook-pro.local>
+// Last modified: <03.Nov.2009 21:08:11 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -133,7 +133,7 @@ public:
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> f_set);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> f_setter);
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
@@ -1194,7 +1194,7 @@ private:
     SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_u_bc_helper;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_p_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_phi_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_f_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_f_setter;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
@@ -1295,7 +1295,7 @@ private:
     /*
      * The force generators.
      */
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_body_force_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_body_force_setter;
     SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_force_strategy;
     bool d_force_strategy_needs_init;
 

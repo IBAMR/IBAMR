@@ -1,8 +1,8 @@
-#ifndef included_USet
-#define included_USet
+#ifndef included_USetter
+#define included_USetter
 
-// Filename: USet.h
-// Last modified: <12.Mar.2008 23:23:05 griffith@box221.cims.nyu.edu>
+// Filename: USetter.h
+// Last modified: <03.Nov.2009 21:21:27 griffith@griffith-macbook-pro.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -26,14 +26,14 @@ using namespace std;
 /*!
  * \brief Class to initialize the value of the advection velocity u.
  */
-class USet
+class USetter
     : public SetDataStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    USet(
+    USetter(
         const string& object_name,
         tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
         tbox::Pointer<tbox::Database> input_db);
@@ -42,7 +42,7 @@ public:
      * \brief Destructor.
      */
     virtual
-    ~USet();
+    ~USetter();
 
     /*!
      * Indicates whether the concrete SetDataStrategy object is time
@@ -71,7 +71,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    USet();
+    USetter();
 
     /*!
      * \brief Copy constructor.
@@ -80,8 +80,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    USet(
-        const USet& from);
+    USetter(
+        const USetter& from);
 
     /*!
      * \brief Assignment operator.
@@ -92,9 +92,9 @@ private:
      *
      * \return A reference to this object.
      */
-    USet&
+    USetter&
     operator=(
-        const USet& that);
+        const USetter& that);
 
     /*!
      * Read input values, indicated above, from given database.
@@ -138,8 +138,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "USet.I"
+//#include "USetter.I"
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_USet
+#endif //#ifndef included_USetter

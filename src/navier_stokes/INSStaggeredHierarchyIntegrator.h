@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <10.Sep.2009 23:10:04 griffith@griffith-macbook-pro.local>
+// Last modified: <03.Nov.2009 20:37:54 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -126,7 +126,7 @@ public:
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter);
 
     /*!
      * Register a VisIt data writer so this object will write plot files that
@@ -1059,7 +1059,7 @@ private:
     SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_setter;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects

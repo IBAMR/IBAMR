@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <02.Nov.2009 10:14:48 griffith@griffith-macbook-pro.local>
+// Last modified: <03.Nov.2009 21:07:36 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -128,8 +128,8 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
       d_instrument_panel(NULL),
       d_total_flow_volume(),
       d_lag_init(NULL),
-      d_body_force_set(NULL),
-      d_eulerian_force_set(NULL),
+      d_body_force_setter(NULL),
+      d_eulerian_force_setter(NULL),
       d_force_strategy(force_strategy),
       d_force_strategy_needs_init(true),
       d_post_processor(post_processor),
@@ -391,9 +391,9 @@ IBStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
 
 void
 IBStaggeredHierarchyIntegrator::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> body_force_set)
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> body_force_setter)
 {
-    d_body_force_set = body_force_set;
+    d_body_force_setter = body_force_setter;
     return;
 }// registerBodyForceSpecification
 
@@ -522,8 +522,8 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Initialize the objects used to manage Lagragian-Eulerian interaction.
-    d_eulerian_force_set = new IBEulerianForceSetter(d_object_name+"::IBEulerianForceSetter", -1, -1, d_F_idx);
-    d_ins_hier_integrator->registerBodyForceSpecification(d_eulerian_force_set);
+    d_eulerian_force_setter = new IBEulerianForceSetter(d_object_name+"::IBEulerianForceSetter", -1, -1, d_F_idx);
+    d_ins_hier_integrator->registerBodyForceSpecification(d_eulerian_force_setter);
 
     // Initialize the INSStaggeredHierarchyIntegrator.
     //
@@ -668,8 +668,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
     // Set the current time interval in the force specification objects.
-    d_eulerian_force_set->registerBodyForceSpecification(d_body_force_set);
-    d_eulerian_force_set->setTimeInterval(current_time, new_time);
+    d_eulerian_force_setter->registerBodyForceSpecification(d_body_force_setter);
+    d_eulerian_force_setter->setTimeInterval(current_time, new_time);
     d_force_strategy->setTimeInterval(current_time, new_time);
 
     // (Re)initialize the force strategy and the post-processor.

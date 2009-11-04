@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <12.Aug.2009 18:21:55 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <03.Nov.2009 09:00:56 griffith@griffith-macbook-pro.local>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -247,7 +247,7 @@ public:
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -287,7 +287,7 @@ public:
         const bool conservation_form=true,
         SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_set=NULL,
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -305,7 +305,7 @@ public:
     registerAdvectionVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
         const bool u_is_div_free,
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_set=NULL);
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_setter=NULL);
 
     ///
     ///  The following routines:
@@ -809,30 +809,36 @@ protected:
      * advection source terms Psi = F + mu*L*Q, and optional face centered
      * gradient terms to enforce incompressibility.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_vars;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_vars;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Psi_vars;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_grad_vars;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_var;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_var;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Psi_var;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_grad_var;
 
     /*!
      * Objects to set initial and boundary conditions as well as forcing terms
      * for each advected and diffused quantity.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_Q_inits;
-    std::vector<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coefs;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_F_sets;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_Q_init;
+    std::vector<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_F_setter;
 
     /*!
      * The diffusivity and drag coefficients associated with each advected and
      * diffused quantity.
      */
-    std::vector<double> d_Q_mus, d_Q_lambdas;
+    std::vector<double> d_Q_mu, d_Q_lambda;
+
+    /*!
+     * Whether each advected and diffused quantity is taken to be in
+     * conservation form (or not).
+     */
+    std::vector<bool> d_Q_in_consv_form;
 
     /*!
      * The advection velocity.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_var;
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_set;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_setter;
     bool d_u_is_div_free;
 
 private:
