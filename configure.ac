@@ -262,6 +262,29 @@ fi
 
 AC_CHECK_HEADER([petsc.h],,AC_MSG_ERROR([could not find header file petsc.h]))
 
+AC_TRY_COMPILE([
+#include <petsc.h>
+],[
+#ifdef PETSC_HAVE_X11
+#if (PETSC_HAVE_X11 == 1)
+asdf
+#endif
+#endif
+], PETSC_HAS_X11=no, PETSC_HAS_X11=yes)
+
+if test "$PETSC_HAS_X11" == "yes"; then
+  echo "NOTE: PETSc appears to have been configured with X11 support enabled"
+  echo "looking for libX11"
+  LDFLAGS="-L/usr/X11/lib $LDFLAGS"
+  AC_LIB_HAVE_LINKFLAGS([X11])
+  if test "$HAVE_LIBX11" != "yes"; then
+    AC_MSG_ERROR([could not find working X11 library
+try modifying the value of the LDFLAGS environment variable,
+or reconfigure PETSc with the flag --with-x=0])
+  fi
+  LIBS="$LIBX11 $LIBS"
+fi
+
 AC_LIB_HAVE_LINKFLAGS([petsc])
 LIBS="$LIBPETSC $LIBS"
 
@@ -307,6 +330,21 @@ AC_SUBST(SAMRAI_DIR,[${SAMRAI_DIR}])
 AC_SUBST(SAMRAI_FORTDIR,[${SAMRAI_DIR}/include])
 
 AC_CHECK_HEADER([SAMRAI_config.h],,AC_MSG_ERROR([could not find header file SAMRAI_config.h]))
+
+AC_TRY_COMPILE([
+#include <SAMRAI_config.h>
+],[
+#ifdef INCLUDE_TEMPLATE_IMPLEMENTATION
+#if (INCLUDE_TEMPLATE_IMPLEMENTATION == 1)
+asdf
+#endif
+#endif
+], SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION=no, SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION=yes)
+
+if test "$SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION" == "no"; then
+  AC_MSG_ERROR([SAMRAI must be configured with implicit template instantiation enabled
+reconfigure and recompile SAMRAI with the flag --enable-implicit-template-instantiation])
+fi
 
 AC_LIB_HAVE_LINKFLAGS([SAMRAI])
 LIBS="$LIBSAMRAI $LIBS"
