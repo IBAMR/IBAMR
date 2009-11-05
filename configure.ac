@@ -525,7 +525,6 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
-AC_CONFIG_SUBDIRS([ibtk])
 AC_CONFIG_FILES([
   Makefile
   bin/Makefile
@@ -572,4 +571,25 @@ AC_CONFIG_FILES([
   src/utilities/Makefile
   src/tools/Makefile
 ])
+AC_CONFIG_SUBDIRS([ibtk])
 AC_OUTPUT
+echo
+echo "           ========================================================="
+AC_MSG_NOTICE([IBAMR appears to have been configured successfully.  Now:
+
+   make lib        Build the IBAMR library and its supporting IBTK library
+   make check      Build and run basic library tests
+   make examples   Build all of the IBAMR and IBTK example programs
+
+Note that the IBAMR and IBTK example programs are not run by "make examples".
+To run the examples, e.g.,
+
+   make examples
+   cd examples/IB/cell_centered/ex0
+   ./main2d input2d
+
+You may also build and run individual example programs, e.g., via
+
+   cd examples/IB/cell_centered/ex0
+   make
+   ./main2d input2d])

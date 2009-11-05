@@ -5,15 +5,15 @@ include $(top_srcdir)/config/Make-rules
 SOURCES = main.C QInit.C QInit.h USetter.C USetter.h
 EXTRA_DIST = input2d input3d
 
-check_PROGRAMS =
+bin_PROGRAMS =
 if SAMRAI2D_ENABLED
-check_PROGRAMS += main2d
+bin_PROGRAMS += main2d
 endif
 if SAMRAI3D_ENABLED
-check_PROGRAMS += main3d
+bin_PROGRAMS += main3d
 endif
 
-check-local:
+all-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
 	fi ;

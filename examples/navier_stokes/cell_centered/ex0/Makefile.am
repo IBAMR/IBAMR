@@ -5,15 +5,15 @@ include $(top_srcdir)/config/Make-rules
 SOURCES = main.C
 EXTRA_DIST = input2d input2d.dirichlet_bcs input2d.dirichlet_bcs.forced_flow input3d
 
-check_PROGRAMS =
+bin_PROGRAMS =
 if SAMRAI2D_ENABLED
-check_PROGRAMS += main2d
+bin_PROGRAMS += main2d
 endif
 if SAMRAI3D_ENABLED
-check_PROGRAMS += main3d
+bin_PROGRAMS += main3d
 endif
 
-check-local:
+all-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
 	  cp -f $(srcdir)/input2d.dirichlet_bcs $(PWD) ; \

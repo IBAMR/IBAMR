@@ -12,15 +12,15 @@ EXTRA_DIST += shell2d_64.vertex shell2d_128.vertex shell2d_256.vertex
 EXTRA_DIST += shell2d_64.spring shell2d_128.spring shell2d_256.spring
 EXTRA_DIST += sphere3d.vertex sphere3d.spring
 
-check_PROGRAMS =
+bin_PROGRAMS =
 if SAMRAI2D_ENABLED
-check_PROGRAMS += main2d
+bin_PROGRAMS += main2d
 endif
 if SAMRAI3D_ENABLED
-check_PROGRAMS += main3d
+bin_PROGRAMS += main3d
 endif
 
-check-local:
+all-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
 	  cp -f $(srcdir)/curve2d_{64,128,256}.{vertex,spring} $(PWD) ; \

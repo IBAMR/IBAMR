@@ -29564,11 +29564,11 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
+ac_config_files="$ac_config_files Makefile bin/Makefile config/make.inc doc/Makefile doc/Doxyfile examples/Makefile examples/IB/Makefile examples/IB/cell_centered/Makefile examples/IB/cell_centered/ex0/Makefile examples/IB/cell_centered/ex1/Makefile examples/IB/cell_centered/ex2/Makefile examples/IB/staggered_grid/Makefile examples/IB/staggered_grid/explicit/Makefile examples/IB/staggered_grid/explicit/ex0/Makefile examples/IB/staggered_grid/explicit/ex1/Makefile examples/IB/staggered_grid/implicit/Makefile examples/IB/staggered_grid/implicit/ex0/Makefile examples/IB/staggered_grid/implicit/ex1/Makefile examples/adv_diff/Makefile examples/advect/Makefile examples/navier_stokes/Makefile examples/navier_stokes/cell_centered/Makefile examples/navier_stokes/cell_centered/ex0/Makefile examples/navier_stokes/cell_centered/ex1/Makefile examples/navier_stokes/cell_centered/ex2/Makefile examples/navier_stokes/staggered_grid/Makefile examples/navier_stokes/staggered_grid/ex0/Makefile examples/navier_stokes/staggered_grid/ex1/Makefile examples/navier_stokes/staggered_grid/ex2/Makefile examples/navier_stokes/staggered_grid/ex3/Makefile lib/Makefile sample/IB/Makefile sample/empty_project/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/tools/Makefile"
+
 
 
 subdirs="$subdirs ibtk"
-
-ac_config_files="$ac_config_files Makefile bin/Makefile config/make.inc doc/Makefile doc/Doxyfile examples/Makefile examples/IB/Makefile examples/IB/cell_centered/Makefile examples/IB/cell_centered/ex0/Makefile examples/IB/cell_centered/ex1/Makefile examples/IB/cell_centered/ex2/Makefile examples/IB/staggered_grid/Makefile examples/IB/staggered_grid/explicit/Makefile examples/IB/staggered_grid/explicit/ex0/Makefile examples/IB/staggered_grid/explicit/ex1/Makefile examples/IB/staggered_grid/implicit/Makefile examples/IB/staggered_grid/implicit/ex0/Makefile examples/IB/staggered_grid/implicit/ex1/Makefile examples/adv_diff/Makefile examples/advect/Makefile examples/navier_stokes/Makefile examples/navier_stokes/cell_centered/Makefile examples/navier_stokes/cell_centered/ex0/Makefile examples/navier_stokes/cell_centered/ex1/Makefile examples/navier_stokes/cell_centered/ex2/Makefile examples/navier_stokes/staggered_grid/Makefile examples/navier_stokes/staggered_grid/ex0/Makefile examples/navier_stokes/staggered_grid/ex1/Makefile examples/navier_stokes/staggered_grid/ex2/Makefile examples/navier_stokes/staggered_grid/ex3/Makefile lib/Makefile sample/IB/Makefile sample/empty_project/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/tools/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -31281,3 +31281,41 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
+echo
+echo "           ========================================================="
+{ $as_echo "$as_me:$LINENO: IBAMR appears to have been configured successfully.  Now:
+
+   make lib        Build the IBAMR library and its supporting IBTK library
+   make check      Build and run basic library tests
+   make examples   Build all of the IBAMR and IBTK example programs
+
+Note that the IBAMR and IBTK example programs are not run by \"make examples\".
+To run the examples, e.g.,
+
+   make examples
+   cd examples/IB/cell_centered/ex0
+   ./main2d input2d
+
+You may also build and run individual example programs, e.g., via
+
+   cd examples/IB/cell_centered/ex0
+   make
+   ./main2d input2d" >&5
+$as_echo "$as_me: IBAMR appears to have been configured successfully.  Now:
+
+   make lib        Build the IBAMR library and its supporting IBTK library
+   make check      Build and run basic library tests
+   make examples   Build all of the IBAMR and IBTK example programs
+
+Note that the IBAMR and IBTK example programs are not run by \"make examples\".
+To run the examples, e.g.,
+
+   make examples
+   cd examples/IB/cell_centered/ex0
+   ./main2d input2d
+
+You may also build and run individual example programs, e.g., via
+
+   cd examples/IB/cell_centered/ex0
+   make
+   ./main2d input2d" >&6;}

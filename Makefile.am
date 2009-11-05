@@ -1,7 +1,12 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = doc ibtk src lib bin examples
+SUBDIRS = doc ibtk src lib bin
 ACLOCAL_AMFLAGS = -I m4
+
+## Standard make targets.
+lib: all
+examples: all
+	@(cd examples && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 
 ## Add various "extra" files to the IBAMR distribution.
 EXTRA_DIST  = $(top_srcdir)/autogen.sh

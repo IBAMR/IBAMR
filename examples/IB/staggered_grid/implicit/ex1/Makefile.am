@@ -11,15 +11,15 @@ EXTRA_DIST += cylinder3d_128.vertex cylinder3d_256.vertex cylinder3d_512.vertex
 EXTRA_DIST += sphere3d_32.vertex sphere3d_64.vertex sphere3d_128.vertex sphere3d_256.vertex
 EXTRA_DIST += sphere3d_32.spring sphere3d_64.spring sphere3d_128.spring sphere3d_256.spring
 
-check_PROGRAMS =
+bin_PROGRAMS =
 if SAMRAI2D_ENABLED
-check_PROGRAMS += main2d
+bin_PROGRAMS += main2d
 endif
 if SAMRAI3D_ENABLED
-check_PROGRAMS += main3d
+bin_PROGRAMS += main3d
 endif
 
-check-local:
+all-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input{2d.cylinder,3d.cylinder,3d.sphere} $(PWD) ; \
 	  cp -f $(srcdir)/cylinder2d_{128,256,512,1024}.{vertex,spring} $(PWD) ; \
