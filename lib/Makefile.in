@@ -483,7 +483,7 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 lib_LIBRARIES = libIBAMR.a $(am__append_1) $(am__append_2)
 libIBAMR_a_SOURCES = \
-$(top_srcdir)/src/advect/fortran/godunov_helpers.f \
+$(top_builddir)/src/advect/fortran/godunov_helpers.f \
 $(top_srcdir)/src/adv_diff/TGACoefs.C
 
 pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
@@ -595,31 +595,31 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
-$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
-$(top_srcdir)/src/advect/fortran/advect_detect2d.f \
-$(top_srcdir)/src/advect/fortran/advect_diff2d.f \
-$(top_srcdir)/src/advect/fortran/advect_stable2d.f \
-$(top_srcdir)/src/advect/fortran/godunov_predictors2d.f \
-$(top_srcdir)/src/advect/fortran/weno_fluxes2d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
+$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
+$(top_builddir)/src/advect/fortran/advect_detect2d.f \
+$(top_builddir)/src/advect/fortran/advect_diff2d.f \
+$(top_builddir)/src/advect/fortran/advect_stable2d.f \
+$(top_builddir)/src/advect/fortran/godunov_predictors2d.f \
+$(top_builddir)/src/advect/fortran/weno_fluxes2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
 
 libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
-$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
-$(top_srcdir)/src/advect/fortran/advect_detect3d.f \
-$(top_srcdir)/src/advect/fortran/advect_diff3d.f \
-$(top_srcdir)/src/advect/fortran/advect_stable3d.f \
-$(top_srcdir)/src/advect/fortran/godunov_predictors3d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
+$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
+$(top_builddir)/src/advect/fortran/advect_detect3d.f \
+$(top_builddir)/src/advect/fortran/advect_diff3d.f \
+$(top_builddir)/src/advect/fortran/advect_stable3d.f \
+$(top_builddir)/src/advect/fortran/godunov_predictors3d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
 
 all: all-am
 
@@ -2212,143 +2212,143 @@ libIBAMR3d_a-INSStaggeredVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INS
 .f.obj:
 	$(F77COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-godunov_helpers.o: $(top_srcdir)/src/advect/fortran/godunov_helpers.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_helpers.o `test -f '$(top_srcdir)/src/advect/fortran/godunov_helpers.f' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/fortran/godunov_helpers.f
+godunov_helpers.o: $(top_builddir)/src/advect/fortran/godunov_helpers.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_helpers.o `test -f '$(top_builddir)/src/advect/fortran/godunov_helpers.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/godunov_helpers.f
 
-godunov_helpers.obj: $(top_srcdir)/src/advect/fortran/godunov_helpers.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_helpers.obj `if test -f '$(top_srcdir)/src/advect/fortran/godunov_helpers.f'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/fortran/godunov_helpers.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/fortran/godunov_helpers.f'; fi`
+godunov_helpers.obj: $(top_builddir)/src/advect/fortran/godunov_helpers.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_helpers.obj `if test -f '$(top_builddir)/src/advect/fortran/godunov_helpers.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/godunov_helpers.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/godunov_helpers.f'; fi`
 
-adv_diff_consdiff2d.o: $(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o adv_diff_consdiff2d.o `test -f '$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff2d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff2d.f
+adv_diff_consdiff2d.o: $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o adv_diff_consdiff2d.o `test -f '$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f
 
-adv_diff_consdiff2d.obj: $(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o adv_diff_consdiff2d.obj `if test -f '$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff2d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff2d.f'; fi`
+adv_diff_consdiff2d.obj: $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o adv_diff_consdiff2d.obj `if test -f '$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f'; fi`
 
-advect_detect2d.o: $(top_srcdir)/src/advect/fortran/advect_detect2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_detect2d.o `test -f '$(top_srcdir)/src/advect/fortran/advect_detect2d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/fortran/advect_detect2d.f
+advect_detect2d.o: $(top_builddir)/src/advect/fortran/advect_detect2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_detect2d.o `test -f '$(top_builddir)/src/advect/fortran/advect_detect2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/advect_detect2d.f
 
-advect_detect2d.obj: $(top_srcdir)/src/advect/fortran/advect_detect2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_detect2d.obj `if test -f '$(top_srcdir)/src/advect/fortran/advect_detect2d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/fortran/advect_detect2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/fortran/advect_detect2d.f'; fi`
+advect_detect2d.obj: $(top_builddir)/src/advect/fortran/advect_detect2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_detect2d.obj `if test -f '$(top_builddir)/src/advect/fortran/advect_detect2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/advect_detect2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/advect_detect2d.f'; fi`
 
-advect_diff2d.o: $(top_srcdir)/src/advect/fortran/advect_diff2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_diff2d.o `test -f '$(top_srcdir)/src/advect/fortran/advect_diff2d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/fortran/advect_diff2d.f
+advect_diff2d.o: $(top_builddir)/src/advect/fortran/advect_diff2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_diff2d.o `test -f '$(top_builddir)/src/advect/fortran/advect_diff2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/advect_diff2d.f
 
-advect_diff2d.obj: $(top_srcdir)/src/advect/fortran/advect_diff2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_diff2d.obj `if test -f '$(top_srcdir)/src/advect/fortran/advect_diff2d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/fortran/advect_diff2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/fortran/advect_diff2d.f'; fi`
+advect_diff2d.obj: $(top_builddir)/src/advect/fortran/advect_diff2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_diff2d.obj `if test -f '$(top_builddir)/src/advect/fortran/advect_diff2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/advect_diff2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/advect_diff2d.f'; fi`
 
-advect_stable2d.o: $(top_srcdir)/src/advect/fortran/advect_stable2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_stable2d.o `test -f '$(top_srcdir)/src/advect/fortran/advect_stable2d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/fortran/advect_stable2d.f
+advect_stable2d.o: $(top_builddir)/src/advect/fortran/advect_stable2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_stable2d.o `test -f '$(top_builddir)/src/advect/fortran/advect_stable2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/advect_stable2d.f
 
-advect_stable2d.obj: $(top_srcdir)/src/advect/fortran/advect_stable2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_stable2d.obj `if test -f '$(top_srcdir)/src/advect/fortran/advect_stable2d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/fortran/advect_stable2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/fortran/advect_stable2d.f'; fi`
+advect_stable2d.obj: $(top_builddir)/src/advect/fortran/advect_stable2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_stable2d.obj `if test -f '$(top_builddir)/src/advect/fortran/advect_stable2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/advect_stable2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/advect_stable2d.f'; fi`
 
-godunov_predictors2d.o: $(top_srcdir)/src/advect/fortran/godunov_predictors2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_predictors2d.o `test -f '$(top_srcdir)/src/advect/fortran/godunov_predictors2d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/fortran/godunov_predictors2d.f
+godunov_predictors2d.o: $(top_builddir)/src/advect/fortran/godunov_predictors2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_predictors2d.o `test -f '$(top_builddir)/src/advect/fortran/godunov_predictors2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/godunov_predictors2d.f
 
-godunov_predictors2d.obj: $(top_srcdir)/src/advect/fortran/godunov_predictors2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_predictors2d.obj `if test -f '$(top_srcdir)/src/advect/fortran/godunov_predictors2d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/fortran/godunov_predictors2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/fortran/godunov_predictors2d.f'; fi`
+godunov_predictors2d.obj: $(top_builddir)/src/advect/fortran/godunov_predictors2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_predictors2d.obj `if test -f '$(top_builddir)/src/advect/fortran/godunov_predictors2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/godunov_predictors2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/godunov_predictors2d.f'; fi`
 
-weno_fluxes2d.o: $(top_srcdir)/src/advect/fortran/weno_fluxes2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o weno_fluxes2d.o `test -f '$(top_srcdir)/src/advect/fortran/weno_fluxes2d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/fortran/weno_fluxes2d.f
+weno_fluxes2d.o: $(top_builddir)/src/advect/fortran/weno_fluxes2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o weno_fluxes2d.o `test -f '$(top_builddir)/src/advect/fortran/weno_fluxes2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/weno_fluxes2d.f
 
-weno_fluxes2d.obj: $(top_srcdir)/src/advect/fortran/weno_fluxes2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o weno_fluxes2d.obj `if test -f '$(top_srcdir)/src/advect/fortran/weno_fluxes2d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/fortran/weno_fluxes2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/fortran/weno_fluxes2d.f'; fi`
+weno_fluxes2d.obj: $(top_builddir)/src/advect/fortran/weno_fluxes2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o weno_fluxes2d.obj `if test -f '$(top_builddir)/src/advect/fortran/weno_fluxes2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/weno_fluxes2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/weno_fluxes2d.f'; fi`
 
-navier_stokes_bdryop2d.o: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_bdryop2d.o `test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f
+navier_stokes_bdryop2d.o: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_bdryop2d.o `test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f
 
-navier_stokes_bdryop2d.obj: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_bdryop2d.obj `if test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f'; fi`
+navier_stokes_bdryop2d.obj: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_bdryop2d.obj `if test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f'; fi`
 
-navier_stokes_divsource2d.o: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_divsource2d.o `test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f
+navier_stokes_divsource2d.o: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_divsource2d.o `test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f
 
-navier_stokes_divsource2d.obj: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_divsource2d.obj `if test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f'; fi`
+navier_stokes_divsource2d.obj: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_divsource2d.obj `if test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f'; fi`
 
-navier_stokes_godunov_predictors2d.o: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_godunov_predictors2d.o `test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f
+navier_stokes_godunov_predictors2d.o: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_godunov_predictors2d.o `test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f
 
-navier_stokes_godunov_predictors2d.obj: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_godunov_predictors2d.obj `if test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f'; fi`
+navier_stokes_godunov_predictors2d.obj: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_godunov_predictors2d.obj `if test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f'; fi`
 
-navier_stokes_stabledt2d.o: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_stabledt2d.o `test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f
+navier_stokes_stabledt2d.o: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_stabledt2d.o `test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f
 
-navier_stokes_stabledt2d.obj: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_stabledt2d.obj `if test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f'; fi`
+navier_stokes_stabledt2d.obj: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_stabledt2d.obj `if test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f'; fi`
 
-navier_stokes_staggered_derivatives2d.o: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_derivatives2d.o `test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f
+navier_stokes_staggered_derivatives2d.o: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_derivatives2d.o `test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f
 
-navier_stokes_staggered_derivatives2d.obj: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_derivatives2d.obj `if test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f'; fi`
+navier_stokes_staggered_derivatives2d.obj: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_derivatives2d.obj `if test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f'; fi`
 
-navier_stokes_staggered_helpers2d.o: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_helpers2d.o `test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
+navier_stokes_staggered_helpers2d.o: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_helpers2d.o `test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
 
-navier_stokes_staggered_helpers2d.obj: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_helpers2d.obj `if test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f'; fi`
+navier_stokes_staggered_helpers2d.obj: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_helpers2d.obj `if test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f'; fi`
 
-adv_diff_consdiff3d.o: $(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o adv_diff_consdiff3d.o `test -f '$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff3d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff3d.f
+adv_diff_consdiff3d.o: $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o adv_diff_consdiff3d.o `test -f '$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f
 
-adv_diff_consdiff3d.obj: $(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o adv_diff_consdiff3d.obj `if test -f '$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff3d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff3d.f'; fi`
+adv_diff_consdiff3d.obj: $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o adv_diff_consdiff3d.obj `if test -f '$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f'; fi`
 
-advect_detect3d.o: $(top_srcdir)/src/advect/fortran/advect_detect3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_detect3d.o `test -f '$(top_srcdir)/src/advect/fortran/advect_detect3d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/fortran/advect_detect3d.f
+advect_detect3d.o: $(top_builddir)/src/advect/fortran/advect_detect3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_detect3d.o `test -f '$(top_builddir)/src/advect/fortran/advect_detect3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/advect_detect3d.f
 
-advect_detect3d.obj: $(top_srcdir)/src/advect/fortran/advect_detect3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_detect3d.obj `if test -f '$(top_srcdir)/src/advect/fortran/advect_detect3d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/fortran/advect_detect3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/fortran/advect_detect3d.f'; fi`
+advect_detect3d.obj: $(top_builddir)/src/advect/fortran/advect_detect3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_detect3d.obj `if test -f '$(top_builddir)/src/advect/fortran/advect_detect3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/advect_detect3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/advect_detect3d.f'; fi`
 
-advect_diff3d.o: $(top_srcdir)/src/advect/fortran/advect_diff3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_diff3d.o `test -f '$(top_srcdir)/src/advect/fortran/advect_diff3d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/fortran/advect_diff3d.f
+advect_diff3d.o: $(top_builddir)/src/advect/fortran/advect_diff3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_diff3d.o `test -f '$(top_builddir)/src/advect/fortran/advect_diff3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/advect_diff3d.f
 
-advect_diff3d.obj: $(top_srcdir)/src/advect/fortran/advect_diff3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_diff3d.obj `if test -f '$(top_srcdir)/src/advect/fortran/advect_diff3d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/fortran/advect_diff3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/fortran/advect_diff3d.f'; fi`
+advect_diff3d.obj: $(top_builddir)/src/advect/fortran/advect_diff3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_diff3d.obj `if test -f '$(top_builddir)/src/advect/fortran/advect_diff3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/advect_diff3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/advect_diff3d.f'; fi`
 
-advect_stable3d.o: $(top_srcdir)/src/advect/fortran/advect_stable3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_stable3d.o `test -f '$(top_srcdir)/src/advect/fortran/advect_stable3d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/fortran/advect_stable3d.f
+advect_stable3d.o: $(top_builddir)/src/advect/fortran/advect_stable3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_stable3d.o `test -f '$(top_builddir)/src/advect/fortran/advect_stable3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/advect_stable3d.f
 
-advect_stable3d.obj: $(top_srcdir)/src/advect/fortran/advect_stable3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_stable3d.obj `if test -f '$(top_srcdir)/src/advect/fortran/advect_stable3d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/fortran/advect_stable3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/fortran/advect_stable3d.f'; fi`
+advect_stable3d.obj: $(top_builddir)/src/advect/fortran/advect_stable3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_stable3d.obj `if test -f '$(top_builddir)/src/advect/fortran/advect_stable3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/advect_stable3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/advect_stable3d.f'; fi`
 
-godunov_predictors3d.o: $(top_srcdir)/src/advect/fortran/godunov_predictors3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_predictors3d.o `test -f '$(top_srcdir)/src/advect/fortran/godunov_predictors3d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/fortran/godunov_predictors3d.f
+godunov_predictors3d.o: $(top_builddir)/src/advect/fortran/godunov_predictors3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_predictors3d.o `test -f '$(top_builddir)/src/advect/fortran/godunov_predictors3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/godunov_predictors3d.f
 
-godunov_predictors3d.obj: $(top_srcdir)/src/advect/fortran/godunov_predictors3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_predictors3d.obj `if test -f '$(top_srcdir)/src/advect/fortran/godunov_predictors3d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/fortran/godunov_predictors3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/fortran/godunov_predictors3d.f'; fi`
+godunov_predictors3d.obj: $(top_builddir)/src/advect/fortran/godunov_predictors3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_predictors3d.obj `if test -f '$(top_builddir)/src/advect/fortran/godunov_predictors3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/godunov_predictors3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/godunov_predictors3d.f'; fi`
 
-navier_stokes_bdryop3d.o: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_bdryop3d.o `test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f
+navier_stokes_bdryop3d.o: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_bdryop3d.o `test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f
 
-navier_stokes_bdryop3d.obj: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_bdryop3d.obj `if test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f'; fi`
+navier_stokes_bdryop3d.obj: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_bdryop3d.obj `if test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f'; fi`
 
-navier_stokes_divsource3d.o: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_divsource3d.o `test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f
+navier_stokes_divsource3d.o: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_divsource3d.o `test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f
 
-navier_stokes_divsource3d.obj: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_divsource3d.obj `if test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f'; fi`
+navier_stokes_divsource3d.obj: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_divsource3d.obj `if test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f'; fi`
 
-navier_stokes_stabledt3d.o: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_stabledt3d.o `test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f
+navier_stokes_stabledt3d.o: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_stabledt3d.o `test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f
 
-navier_stokes_stabledt3d.obj: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_stabledt3d.obj `if test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f'; fi`
+navier_stokes_stabledt3d.obj: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_stabledt3d.obj `if test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f'; fi`
 
-navier_stokes_staggered_derivatives3d.o: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_derivatives3d.o `test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f
+navier_stokes_staggered_derivatives3d.o: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_derivatives3d.o `test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f
 
-navier_stokes_staggered_derivatives3d.obj: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_derivatives3d.obj `if test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f'; fi`
+navier_stokes_staggered_derivatives3d.obj: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_derivatives3d.obj `if test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f'; fi`
 
-navier_stokes_staggered_helpers3d.o: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_helpers3d.o `test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
+navier_stokes_staggered_helpers3d.o: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_helpers3d.o `test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
 
-navier_stokes_staggered_helpers3d.obj: $(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_helpers3d.obj `if test -f '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f'; fi`
+navier_stokes_staggered_helpers3d.obj: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_staggered_helpers3d.obj `if test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f'; fi`
 install-pkg_includeHEADERS: $(pkg_include_HEADERS)
 	@$(NORMAL_INSTALL)
 	test -z "$(pkg_includedir)" || $(MKDIR_P) "$(DESTDIR)$(pkg_includedir)"

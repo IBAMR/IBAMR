@@ -16,7 +16,7 @@ all-local:
 
 ## Dimension-independent library
 libIBAMR_a_SOURCES = \
-$(top_srcdir)/src/advect/fortran/godunov_helpers.f \
+$(top_builddir)/src/advect/fortran/godunov_helpers.f \
 $(top_srcdir)/src/adv_diff/TGACoefs.C
 
 pkg_include_HEADERS = \
@@ -133,28 +133,28 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
-$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
-$(top_srcdir)/src/advect/fortran/advect_detect2d.f \
-$(top_srcdir)/src/advect/fortran/advect_diff2d.f \
-$(top_srcdir)/src/advect/fortran/advect_stable2d.f \
-$(top_srcdir)/src/advect/fortran/godunov_predictors2d.f \
-$(top_srcdir)/src/advect/fortran/weno_fluxes2d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
+$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
+$(top_builddir)/src/advect/fortran/advect_detect2d.f \
+$(top_builddir)/src/advect/fortran/advect_diff2d.f \
+$(top_builddir)/src/advect/fortran/advect_stable2d.f \
+$(top_builddir)/src/advect/fortran/godunov_predictors2d.f \
+$(top_builddir)/src/advect/fortran/weno_fluxes2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
 
 libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
-$(top_srcdir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
-$(top_srcdir)/src/advect/fortran/advect_detect3d.f \
-$(top_srcdir)/src/advect/fortran/advect_diff3d.f \
-$(top_srcdir)/src/advect/fortran/advect_stable3d.f \
-$(top_srcdir)/src/advect/fortran/godunov_predictors3d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f \
-$(top_srcdir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
+$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
+$(top_builddir)/src/advect/fortran/advect_detect3d.f \
+$(top_builddir)/src/advect/fortran/advect_diff3d.f \
+$(top_builddir)/src/advect/fortran/advect_stable3d.f \
+$(top_builddir)/src/advect/fortran/godunov_predictors3d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
