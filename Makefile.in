@@ -367,9 +367,9 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_srcdi
 AM_FFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = doc ibtk src lib bin
+SUBDIRS = doc ibtk src lib bin examples
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = $(top_srcdir)/autogen.sh $(top_srcdir)/doc/Doxyfile \
+EXTRA_DIST = $(top_srcdir)/autogen.sh $(top_srcdir)/doc/Doxyfile.in \
 	$(top_srcdir)/doc/libstdc++.tag \
 	$(top_srcdir)/include/ibamr/AdvDiffHierarchyIntegrator.h \
 	$(top_srcdir)/include/ibamr/AdvDiffHypPatchOps.h \
@@ -938,7 +938,7 @@ uninstall-am:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
 lib: all
-examples: all
+examples: lib
 	@(cd examples && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 
 all-local:

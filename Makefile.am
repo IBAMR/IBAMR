@@ -1,16 +1,16 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = doc ibtk src lib bin
+SUBDIRS = doc ibtk src lib bin examples
 ACLOCAL_AMFLAGS = -I m4
 
 ## Standard make targets.
 lib: all
-examples: all
+examples: lib
 	@(cd examples && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 
 ## Add various "extra" files to the IBAMR distribution.
 EXTRA_DIST  = $(top_srcdir)/autogen.sh
-EXTRA_DIST += $(top_srcdir)/doc/Doxyfile
+EXTRA_DIST += $(top_srcdir)/doc/Doxyfile.in
 EXTRA_DIST += $(top_srcdir)/doc/libstdc++.tag
 EXTRA_DIST += $(top_srcdir)/include/ibamr/AdvDiffHierarchyIntegrator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/AdvDiffHypPatchOps.h

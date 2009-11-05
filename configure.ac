@@ -574,7 +574,9 @@ AC_CONFIG_FILES([
 AC_CONFIG_SUBDIRS([ibtk])
 AC_OUTPUT
 echo
-echo "           ========================================================="
+echo "===================================================================="
+echo "===================================================================="
+echo
 AC_MSG_NOTICE([IBAMR appears to have been configured successfully.  Now:
 
    make lib        Build the IBAMR library and its supporting IBTK library
@@ -591,5 +593,5 @@ To run the examples, e.g.,
 You may also build and run individual example programs, e.g., via
 
    cd examples/IB/cell_centered/ex0
-   make
+   make examples
    ./main2d input2d])

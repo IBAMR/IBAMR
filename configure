@@ -31282,7 +31282,9 @@ $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
 echo
-echo "           ========================================================="
+echo "===================================================================="
+echo "===================================================================="
+echo
 { $as_echo "$as_me:$LINENO: IBAMR appears to have been configured successfully.  Now:
 
    make lib        Build the IBAMR library and its supporting IBTK library
@@ -31299,7 +31301,7 @@ To run the examples, e.g.,
 You may also build and run individual example programs, e.g., via
 
    cd examples/IB/cell_centered/ex0
-   make
+   make examples
    ./main2d input2d" >&5
 $as_echo "$as_me: IBAMR appears to have been configured successfully.  Now:
 
@@ -31317,5 +31319,5 @@ To run the examples, e.g.,
 You may also build and run individual example programs, e.g., via
 
    cd examples/IB/cell_centered/ex0
-   make
+   make examples
    ./main2d input2d" >&6;}
