@@ -92,14 +92,14 @@ if test -z "$M4" ; then
 fi
 
 AC_ARG_WITH([doxygen-dir],
-  AS_HELP_STRING([--with-doxygen-dir=ARG],[manually set directory where the doxygen executable resides to ARG]),
+  AS_HELP_STRING([--with-doxygen-dir=PATH],[manually set directory where the doxygen executable resides to PATH]),
   DOXYGEN_PATH=$withval
   AC_CHECK_PROGS(DOXYGEN, "$DOXYGEN_PATH/doxygen" doxygen,,),
   DOXYGEN_PATH=""
   AC_CHECK_PROGS(DOXYGEN, doxygen,,))
 if test -z "$DOXYGEN" ; then
   AC_MSG_WARN([doxygen not found])
-  echo "if doxygen is installed, specify its location via --with-doxygen-dir=ARG"
+  echo "if doxygen is installed, specify its location via --with-doxygen-dir=PATH"
   HAVE_DOXYGEN="NO"
 else
   HAVE_DOXYGEN="YES"
@@ -109,14 +109,14 @@ AC_SUBST(DOXYGEN,$DOXYGEN)
 AC_SUBST(DOXYGEN_PATH,$DOXYGEN_PATH)
 
 AC_ARG_WITH([dot-dir],
-  AS_HELP_STRING([--with-dot-dir=ARG],[manually set directory where the Graphviz dot executable resides to ARG]),
+  AS_HELP_STRING([--with-dot-dir=PATH],[manually set directory where the Graphviz dot executable resides to PATH]),
   DOT_PATH=$withval
   AC_CHECK_PROGS(DOT, "$DOT_PATH/dot" dot,,),
   DOT_PATH=""
   AC_CHECK_PROGS(DOT, dot,,))
 if test -z "$DOT" ; then
   AC_MSG_WARN([dot not found])
-  echo "if the Graphviz dot tool is installed, specify its location via --with-dot-dir=ARG"
+  echo "if the Graphviz dot tool is installed, specify its location via --with-dot-dir=PATH"
   HAVE_DOT="NO"
 else
   HAVE_DOT="YES"
@@ -528,6 +528,7 @@ echo "================"
 AC_CONFIG_SUBDIRS([ibtk])
 AC_CONFIG_FILES([
   Makefile
+  bin/Makefile
   config/make.inc
   doc/Makefile
   doc/Doxyfile
@@ -556,10 +557,10 @@ AC_CONFIG_FILES([
   examples/navier_stokes/staggered_grid/ex1/Makefile
   examples/navier_stokes/staggered_grid/ex2/Makefile
   examples/navier_stokes/staggered_grid/ex3/Makefile
+  lib/Makefile
   sample/IB/Makefile
   sample/empty_project/Makefile
   src/Makefile
-  src/get_version.C
   src/fortran/Makefile
   src/IB/Makefile
   src/adv_diff/Makefile

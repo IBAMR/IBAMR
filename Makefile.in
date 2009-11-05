@@ -367,73 +367,83 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_srcdi
 AM_FFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = doc ibtk src examples
+SUBDIRS = doc ibtk src lib bin examples
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
-	include/ibamr/AdvDiffHierarchyIntegrator.h \
-	include/ibamr/AdvDiffHypPatchOps.h \
-	include/ibamr/AdvectHypPatchOps.h \
-	include/ibamr/GodunovAdvector.h \
-	include/ibamr/HierarchyProjector.h \
-	include/ibamr/IBAnchorPointSpec.I \
-	include/ibamr/IBAnchorPointSpec.h \
-	include/ibamr/IBAnchorPointSpecFactory.h \
-	include/ibamr/IBBeamForceGen.h include/ibamr/IBBeamForceSpec.I \
-	include/ibamr/IBBeamForceSpec.h \
-	include/ibamr/IBBeamForceSpecFactory.h \
-	include/ibamr/IBDataPostProcessor.h \
-	include/ibamr/IBEulerianForceSetter.h \
-	include/ibamr/IBEulerianSourceSetter.h \
-	include/ibamr/IBHDF5Initializer.h \
-	include/ibamr/IBHierarchyIntegrator.h \
-	include/ibamr/IBImplicitHierarchyIntegrator.h \
-	include/ibamr/IBInstrumentPanel.h \
-	include/ibamr/IBInstrumentationSpec.I \
-	include/ibamr/IBInstrumentationSpec.h \
-	include/ibamr/IBInstrumentationSpecFactory.h \
-	include/ibamr/IBLagrangianForceStrategy.h \
-	include/ibamr/IBLagrangianForceStrategySet.h \
-	include/ibamr/IBLagrangianSourceStrategy.h \
-	include/ibamr/IBMovingTargetPointForceGen.h \
-	include/ibamr/IBMovingTargetPointForceSpec.I \
-	include/ibamr/IBMovingTargetPointForceSpec.h \
-	include/ibamr/IBMovingTargetPointForceSpecFactory.h \
-	include/ibamr/IBSpringForceGen.h \
-	include/ibamr/IBSpringForceSpec.I \
-	include/ibamr/IBSpringForceSpec.h \
-	include/ibamr/IBSpringForceSpecFactory.h \
-	include/ibamr/IBStaggeredHierarchyIntegrator.h \
-	include/ibamr/IBStandardForceGen.h \
-	include/ibamr/IBStandardInitializer.h \
-	include/ibamr/IBTargetPointForceGen.h \
-	include/ibamr/IBTargetPointForceSpec.I \
-	include/ibamr/IBTargetPointForceSpec.h \
-	include/ibamr/IBTargetPointForceSpecFactory.h \
-	include/ibamr/INSCoefs.h \
-	include/ibamr/INSHierarchyIntegrator.h \
-	include/ibamr/INSIntermediateVelocityBcCoef.h \
-	include/ibamr/INSProjectionBcCoef.h \
-	include/ibamr/INSStaggeredBlockFactorizationPreconditioner.h \
-	include/ibamr/INSStaggeredCenteredConvectiveOperator.h \
-	include/ibamr/INSStaggeredHierarchyIntegrator.h \
-	include/ibamr/INSStaggeredIntermediateVelocityBcCoef.h \
-	include/ibamr/INSStaggeredPPMConvectiveOperator.h \
-	include/ibamr/INSStaggeredPhysicalBoundaryHelper.h \
-	include/ibamr/INSStaggeredPressureBcCoef.h \
-	include/ibamr/INSStaggeredProjectionBcCoef.h \
-	include/ibamr/INSStaggeredProjectionPreconditioner.h \
-	include/ibamr/INSStaggeredStokesOperator.h \
-	include/ibamr/INSStaggeredVelocityBcCoef.h \
-	include/ibamr/TGACoefs.h include/ibamr/get_version.h \
-	sample/IB/Makefile.in sample/IB/curve2d_128.spring \
-	sample/IB/curve2d_128.vertex sample/IB/curve2d_256.spring \
-	sample/IB/curve2d_256.vertex sample/IB/curve2d_64.spring \
-	sample/IB/curve2d_64.vertex sample/IB/input2d \
-	sample/IB/input3d sample/IB/main.C \
-	sample/IB/shell2d_128.spring sample/IB/shell2d_128.vertex \
-	sample/IB/shell2d_256.spring sample/IB/shell2d_256.vertex \
-	sample/IB/shell2d_64.spring sample/IB/shell2d_64.vertex \
-	sample/IB/sphere3d.spring sample/IB/sphere3d.vertex
+EXTRA_DIST = $(top_srcdir)/autogen.sh $(top_srcdir)/doc/Doxyfile \
+	$(top_srcdir)/doc/libstdc++.tag \
+	$(top_srcdir)/include/ibamr/AdvDiffHierarchyIntegrator.h \
+	$(top_srcdir)/include/ibamr/AdvDiffHypPatchOps.h \
+	$(top_srcdir)/include/ibamr/AdvectHypPatchOps.h \
+	$(top_srcdir)/include/ibamr/GodunovAdvector.h \
+	$(top_srcdir)/include/ibamr/HierarchyProjector.h \
+	$(top_srcdir)/include/ibamr/IBAnchorPointSpec.I \
+	$(top_srcdir)/include/ibamr/IBAnchorPointSpec.h \
+	$(top_srcdir)/include/ibamr/IBAnchorPointSpecFactory.h \
+	$(top_srcdir)/include/ibamr/IBBeamForceGen.h \
+	$(top_srcdir)/include/ibamr/IBBeamForceSpec.I \
+	$(top_srcdir)/include/ibamr/IBBeamForceSpec.h \
+	$(top_srcdir)/include/ibamr/IBBeamForceSpecFactory.h \
+	$(top_srcdir)/include/ibamr/IBDataPostProcessor.h \
+	$(top_srcdir)/include/ibamr/IBEulerianForceSetter.h \
+	$(top_srcdir)/include/ibamr/IBEulerianSourceSetter.h \
+	$(top_srcdir)/include/ibamr/IBHDF5Initializer.h \
+	$(top_srcdir)/include/ibamr/IBHierarchyIntegrator.h \
+	$(top_srcdir)/include/ibamr/IBImplicitHierarchyIntegrator.h \
+	$(top_srcdir)/include/ibamr/IBInstrumentPanel.h \
+	$(top_srcdir)/include/ibamr/IBInstrumentationSpec.I \
+	$(top_srcdir)/include/ibamr/IBInstrumentationSpec.h \
+	$(top_srcdir)/include/ibamr/IBInstrumentationSpecFactory.h \
+	$(top_srcdir)/include/ibamr/IBLagrangianForceStrategy.h \
+	$(top_srcdir)/include/ibamr/IBLagrangianForceStrategySet.h \
+	$(top_srcdir)/include/ibamr/IBLagrangianSourceStrategy.h \
+	$(top_srcdir)/include/ibamr/IBMovingTargetPointForceGen.h \
+	$(top_srcdir)/include/ibamr/IBMovingTargetPointForceSpec.I \
+	$(top_srcdir)/include/ibamr/IBMovingTargetPointForceSpec.h \
+	$(top_srcdir)/include/ibamr/IBMovingTargetPointForceSpecFactory.h \
+	$(top_srcdir)/include/ibamr/IBSpringForceGen.h \
+	$(top_srcdir)/include/ibamr/IBSpringForceSpec.I \
+	$(top_srcdir)/include/ibamr/IBSpringForceSpec.h \
+	$(top_srcdir)/include/ibamr/IBSpringForceSpecFactory.h \
+	$(top_srcdir)/include/ibamr/IBStaggeredHierarchyIntegrator.h \
+	$(top_srcdir)/include/ibamr/IBStandardForceGen.h \
+	$(top_srcdir)/include/ibamr/IBStandardInitializer.h \
+	$(top_srcdir)/include/ibamr/IBTargetPointForceGen.h \
+	$(top_srcdir)/include/ibamr/IBTargetPointForceSpec.I \
+	$(top_srcdir)/include/ibamr/IBTargetPointForceSpec.h \
+	$(top_srcdir)/include/ibamr/IBTargetPointForceSpecFactory.h \
+	$(top_srcdir)/include/ibamr/INSCoefs.h \
+	$(top_srcdir)/include/ibamr/INSHierarchyIntegrator.h \
+	$(top_srcdir)/include/ibamr/INSIntermediateVelocityBcCoef.h \
+	$(top_srcdir)/include/ibamr/INSProjectionBcCoef.h \
+	$(top_srcdir)/include/ibamr/INSStaggeredBlockFactorizationPreconditioner.h \
+	$(top_srcdir)/include/ibamr/INSStaggeredCenteredConvectiveOperator.h \
+	$(top_srcdir)/include/ibamr/INSStaggeredHierarchyIntegrator.h \
+	$(top_srcdir)/include/ibamr/INSStaggeredIntermediateVelocityBcCoef.h \
+	$(top_srcdir)/include/ibamr/INSStaggeredPPMConvectiveOperator.h \
+	$(top_srcdir)/include/ibamr/INSStaggeredPhysicalBoundaryHelper.h \
+	$(top_srcdir)/include/ibamr/INSStaggeredPressureBcCoef.h \
+	$(top_srcdir)/include/ibamr/INSStaggeredProjectionBcCoef.h \
+	$(top_srcdir)/include/ibamr/INSStaggeredProjectionPreconditioner.h \
+	$(top_srcdir)/include/ibamr/INSStaggeredStokesOperator.h \
+	$(top_srcdir)/include/ibamr/INSStaggeredVelocityBcCoef.h \
+	$(top_srcdir)/include/ibamr/TGACoefs.h \
+	$(top_srcdir)/sample/IB/Makefile.in \
+	$(top_srcdir)/sample/IB/curve2d_128.spring \
+	$(top_srcdir)/sample/IB/curve2d_128.vertex \
+	$(top_srcdir)/sample/IB/curve2d_256.spring \
+	$(top_srcdir)/sample/IB/curve2d_256.vertex \
+	$(top_srcdir)/sample/IB/curve2d_64.spring \
+	$(top_srcdir)/sample/IB/curve2d_64.vertex \
+	$(top_srcdir)/sample/IB/input2d \
+	$(top_srcdir)/sample/IB/input3d $(top_srcdir)/sample/IB/main.C \
+	$(top_srcdir)/sample/IB/shell2d_128.spring \
+	$(top_srcdir)/sample/IB/shell2d_128.vertex \
+	$(top_srcdir)/sample/IB/shell2d_256.spring \
+	$(top_srcdir)/sample/IB/shell2d_256.vertex \
+	$(top_srcdir)/sample/IB/shell2d_64.spring \
+	$(top_srcdir)/sample/IB/shell2d_64.vertex \
+	$(top_srcdir)/sample/IB/sphere3d.spring \
+	$(top_srcdir)/sample/IB/sphere3d.vertex
 all: all-recursive
 
 .SUFFIXES:
