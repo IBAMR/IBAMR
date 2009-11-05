@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <03.Nov.2009 20:38:44 griffith@griffith-macbook-pro.local>
+// Last modified: <04.Nov.2009 12:38:26 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -227,9 +227,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_output_P = false;
     d_output_F = false;
     d_output_Q = false;
-
     d_output_Omega = false;
-
     d_output_Div_U = false;
     d_output_Div_u = false;
     d_output_Div_u_adv = false;
@@ -525,12 +523,12 @@ INSHierarchyIntegrator::registerBodyForceSpecification(
 }// registerBodyForceSpecification
 
 void
-INSHierarchyIntegrator::registerDivergenceSpecification(
+INSHierarchyIntegrator::registerSourceSpecification(
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_setter)
 {
     d_Q_setter = Q_setter;
     return;
-}// registerDivergenceSpecification
+}// registerSourceSpecification
 
 void
 INSHierarchyIntegrator::registerVisItDataWriter(
@@ -1347,8 +1345,7 @@ INSHierarchyIntegrator::getStableTimestep()
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        dt_next = std::min(dt_next, d_hyp_level_integrator->
-                           getLevelDt(level, d_integrator_time, initial_time));
+        dt_next = std::min(dt_next, d_hyp_level_integrator->getLevelDt(level, d_integrator_time, initial_time));
     }
 
     if (d_integrator_time+dt_next >= d_end_time)
@@ -3138,19 +3135,17 @@ INSHierarchyIntegrator::getForceVar()
 }// getForceVar
 
 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-INSHierarchyIntegrator::getDivergenceVar()
+INSHierarchyIntegrator::getSourceVar()
 {
     return d_Q_var;
-}// getDivergenceVar
+}// getSourceVar
 
 ///
 ///  The following routines:
 ///
 ///      getCurrentContext(),
 ///      getNewContext(),
-///      getOldContext(),
-///      getScratchContext(),
-///      getPlotContext()
+///      getScratchContext()
 ///
 ///  allow access to the various variable contexts maintained by the integrator.
 ///
@@ -3173,22 +3168,10 @@ INSHierarchyIntegrator::getNewContext() const
 }// getNewContext
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
-INSHierarchyIntegrator::getOldContext() const
-{
-    return d_adv_diff_hier_integrator->getOldContext();
-}// getOldContext
-
-SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
 INSHierarchyIntegrator::getScratchContext() const
 {
     return d_adv_diff_hier_integrator->getScratchContext();
 }// getScratchContext
-
-SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
-INSHierarchyIntegrator::getPlotContext() const
-{
-    return d_adv_diff_hier_integrator->getPlotContext();
-}// getPlotContext
 
 ///
 ///  The following routines:

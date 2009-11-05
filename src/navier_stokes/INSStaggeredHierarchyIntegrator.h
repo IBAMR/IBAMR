@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <03.Nov.2009 20:37:54 griffith@griffith-macbook-pro.local>
+// Last modified: <04.Nov.2009 12:27:35 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -122,11 +122,18 @@ public:
         SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init);
 
     /*!
-     * Supply an optional (side centered) forcing term.
+     * Supply an optional side centered body force specification object.
      */
     void
     registerBodyForceSpecification(
         SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter);
+
+    /*!
+     * Supply an optional cell centered source/sink specification object.
+     */
+    void
+    registerSourceSpecification(
+        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_setter);
 
     /*!
      * Register a VisIt data writer so this object will write plot files that
@@ -350,7 +357,7 @@ public:
     ///      resetHierDataToPreadvanceState()
     ///
     ///  allow the INSStaggeredHierarchyIntegrator to provide data management
-    ///  for a time integrator which making use of this class.
+    ///  for a time integrator which makes use of this class.
     ///
 
     /*!
@@ -362,7 +369,7 @@ public:
     /*!
      * Prepare to advance the data from current_time to new_time.
      *
-     * Note that data IS NOT synchronized by this routine.
+     * Note that hierarchy data ARE NOT synchronized by this routine.
      */
     virtual void
     integrateHierarchy_initialize(
@@ -550,7 +557,8 @@ public:
     ///      getVelocityVar(),
     ///      getPressureVar(),
     ///      getExtrapolatedPressureVar(),
-    ///      getForceVar()
+    ///      getForceVar(),
+    ///      getSourceVar()
     ///
     ///  allows access to the various state variables maintained by the
     ///  integrator.
@@ -564,6 +572,8 @@ public:
 
     /*!
      * Return a pointer to the fluid pressure state variable.
+     *
+     * \note The pressure state variable is defined at time level n-1/2.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
     getPressureVar();
@@ -582,6 +592,12 @@ public:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >
     getForceVar();
+
+    /*!
+     * Return a pointer to the source strength variable.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
+    getSourceVar();
 
     ///
     ///  The following routines:
@@ -628,14 +644,14 @@ public:
     /// are miscelaneous utility functions.
 
     /*!
-     * Te-interpolate the staggered velocity from cell faces to cell centers.
+     * Re-interpolate the staggered velocity from cell faces to cell centers.
      */
     void
     reinterpolateVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
 
     /*!
-     * Te-interpolate the staggered body force from cell faces to cell centers.
+     * Re-interpolate the staggered body force from cell faces to cell centers.
      */
     void
     reinterpolateForce(
@@ -840,7 +856,7 @@ private:
      * velocity, pressure, and force for plotting.
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
-    double d_U_scale, d_P_scale, d_F_scale;
+    double d_U_scale, d_P_scale, d_F_scale, d_Q_scale;
 
     /*
      * Integrator data read from input or set at initialization.
@@ -909,6 +925,12 @@ private:
      * visualization.
      */
     bool d_output_F;
+
+    /*
+     * This boolean value indicates whether to output the source/sink strength
+     * for visualization.
+     */
+    bool d_output_Q;
 
     /*
      * This boolean value indicates whether to store the cell centered vorticity
@@ -1059,7 +1081,7 @@ private:
     SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_setter;
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_setter, d_Q_setter;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
@@ -1090,6 +1112,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_extrap_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_var;
 #if (NDIM == 3)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
@@ -1112,6 +1135,7 @@ private:
     int   d_P_extrap_current_idx,   d_P_extrap_new_idx,   d_P_extrap_scratch_idx;
     int          d_F_current_idx,          d_F_new_idx,          d_F_scratch_idx;
     int       d_F_cc_current_idx,       d_F_cc_new_idx,       d_F_cc_scratch_idx;
+    int          d_Q_current_idx,          d_Q_new_idx,          d_Q_scratch_idx;
     int      d_Omega_current_idx,      d_Omega_new_idx,      d_Omega_scratch_idx;
 #if (NDIM == 3)
     int d_Omega_Norm_current_idx, d_Omega_Norm_new_idx, d_Omega_Norm_scratch_idx;

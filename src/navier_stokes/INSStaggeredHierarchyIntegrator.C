@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <03.Nov.2009 20:37:45 griffith@griffith-macbook-pro.local>
+// Last modified: <04.Nov.2009 12:47:10 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -157,6 +157,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_U_scale = 1.0;
     d_P_scale = 1.0;
     d_F_scale = 1.0;
+    d_Q_scale = 1.0;
 
     d_start_time = 0.0;
     d_end_time = std::numeric_limits<double>::max();
@@ -181,6 +182,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_output_U = false;
     d_output_P = false;
     d_output_F = false;
+    d_output_Q = false;
     d_output_Omega = false;
     d_output_Div_U = false;
 
@@ -388,6 +390,20 @@ INSStaggeredHierarchyIntegrator::registerBodyForceSpecification(
 }// registerBodyForceSpecification
 
 void
+INSStaggeredHierarchyIntegrator::registerSourceSpecification(
+    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_setter)
+{
+    d_Q_setter = Q_setter;
+    SAMRAI::tbox::pout << "\n"
+                       << "WARNING: There is an extra term which should be added to the momentum equation\n"
+                       << "         in the case that div u != 0.\n"
+                       << "         At the present time, this term has NOT beed incorporated into the\n"
+                       << "         staggered-grid incompressible Navier-Stokes solver.\n"
+                       << "\n";
+    return;
+}// registerSourceSpecification
+
+void
 INSStaggeredHierarchyIntegrator::registerVisItDataWriter(
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
 {
@@ -517,8 +533,15 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_U_cc_var       = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::U_cc",  NDIM);
     d_P_var          = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P"          );
     d_P_extrap_var   = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::P_extrap"   );
-    d_F_var          = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::F"          );
-    d_F_cc_var       = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::F_cc",  NDIM);
+    if (!d_F_setter.isNull())
+    {
+        d_F_var      = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::F"          );
+        d_F_cc_var   = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::F_cc",  NDIM);
+    }
+    if (!d_Q_setter.isNull())
+    {
+        d_Q_var      = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Q"          );
+    }
 #if ( NDIM == 2)
     d_Omega_var      = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Omega"      );
 #endif
@@ -565,15 +588,41 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                      "CONSERVATIVE_COARSEN",
                      "LINEAR_REFINE");
 
-    registerVariable(d_F_current_idx, d_F_new_idx, d_F_scratch_idx,
-                     d_F_var, side_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE");
+    if (!d_F_setter.isNull())
+    {
+        registerVariable(d_F_current_idx, d_F_new_idx, d_F_scratch_idx,
+                         d_F_var, side_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE");
 
-    registerVariable(d_F_cc_current_idx, d_F_cc_new_idx, d_F_cc_scratch_idx,
-                     d_F_cc_var, cell_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE");
+        registerVariable(d_F_cc_current_idx, d_F_cc_new_idx, d_F_cc_scratch_idx,
+                         d_F_cc_var, cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE");
+    }
+    else
+    {
+        d_F_current_idx = -1;
+        d_F_new_idx     = -1;
+        d_F_scratch_idx = -1;
+        d_F_cc_current_idx = -1;
+        d_F_cc_new_idx     = -1;
+        d_F_cc_scratch_idx = -1;
+    }
+
+    if (!d_Q_setter.isNull())
+    {
+        registerVariable(d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx,
+                         d_Q_var, cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSTANT_REFINE");
+    }
+    else
+    {
+        d_Q_current_idx = -1;
+        d_Q_new_idx     = -1;
+        d_Q_scratch_idx = -1;
+    }
 
     registerVariable(d_Omega_current_idx, d_Omega_new_idx, d_Omega_scratch_idx,
                      d_Omega_var, cell_ghosts,
@@ -617,7 +666,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
             d_visit_writer->registerPlotQuantity(d_P_var->getName(), "SCALAR", d_P_current_idx, 0, d_P_scale);
         }
 
-        if (d_output_F)
+        if (!d_F_setter.isNull() && d_output_F)
         {
             d_visit_writer->registerPlotQuantity(d_F_var->getName(), "VECTOR", d_F_cc_current_idx, 0, d_F_scale);
             for (int d = 0; d < NDIM; ++d)
@@ -626,6 +675,11 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 stream << d;
                 d_visit_writer->registerPlotQuantity(d_F_var->getName()+stream.str(), "SCALAR", d_F_cc_current_idx, d, d_F_scale);
             }
+        }
+
+        if (!d_Q_setter.isNull() && d_output_Q)
+        {
+            d_visit_writer->registerPlotQuantity(d_Q_var->getName(), "SCALAR", d_Q_current_idx, 0, d_Q_scale);
         }
 
         if (d_output_Omega)
@@ -1358,6 +1412,11 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_F_setter->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, current_time+0.5*dt);
         d_hier_sc_data_ops->add(d_rhs_vec->getComponentDescriptorIndex(0), d_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
+    if (!d_Q_setter.isNull())
+    {
+        d_Q_setter->setDataOnPatchHierarchy(d_Q_scratch_idx, d_Q_var, d_hierarchy, current_time+0.5*dt);
+        d_hier_sc_data_ops->subtract(d_rhs_vec->getComponentDescriptorIndex(1), d_rhs_vec->getComponentDescriptorIndex(1), d_Q_scratch_idx);
+    }
 
     // Ensure there is no forcing at Dirichlet boundaries (the Dirichlet
     // boundary condition takes precedence).
@@ -1379,6 +1438,11 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     {
         d_hier_sc_data_ops->subtract(d_rhs_vec->getComponentDescriptorIndex(0), d_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
         d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
+    }
+    if (!d_Q_setter.isNull())
+    {
+        d_hier_sc_data_ops->add(d_rhs_vec->getComponentDescriptorIndex(1), d_rhs_vec->getComponentDescriptorIndex(1), d_Q_scratch_idx);
+        d_hier_sc_data_ops->copyData(d_Q_new_idx, d_Q_scratch_idx);
     }
 
     t_integrate_hierarchy->start();
@@ -1415,7 +1479,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
 
     // Compute the cell-centered approximation to f^{n+1} (used for
     // visualization only).
-    reinterpolateForce(getNewContext());
+    if (!d_F_setter.isNull()) reinterpolateForce(getNewContext());
 
     // Compute Omega = curl U.
     //
@@ -1908,37 +1972,27 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
             d_P_init->setDataOnPatchLevel(d_P_extrap_current_idx, d_P_extrap_var, level, init_data_time, initial_time);
         }
 
-        // If no initialization object is provided, initialize the body force to
-        // zero.  Otherwise, use the initialization object to set the body force
-        // to some specified value.
-        if (d_F_setter.isNull())
+        // Use the initialization object to set the body force to some specified
+        // value.
+        if (!d_F_setter.isNull())
         {
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_current_data = patch->getPatchData(d_F_current_idx);
-                F_current_data->fillAll(0.0);
-
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_cc_current_data = patch->getPatchData(d_F_cc_current_idx);
-                F_cc_current_data->fillAll(0.0);
-            }
-        }
-        else
-        {
-            // Initialize F.
             d_F_setter->setDataOnPatchLevel(d_F_current_idx, d_F_var, level, init_data_time, initial_time);
             IBTK::PatchMathOps patch_math_ops;
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_current_data = patch->getPatchData(d_F_current_idx);
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_cc_current_data = patch->getPatchData(d_F_cc_current_idx);
-
                 patch_math_ops.interp(F_cc_current_data, F_current_data, patch);
             }
 
+        }
+
+        // Use the initialization object to set the source/sink strength to some
+        // specified value.
+        if (!d_Q_setter.isNull())
+        {
+            d_Q_setter->setDataOnPatchLevel(d_Q_current_idx, d_Q_var, level, init_data_time, initial_time);
         }
     }
 
@@ -2157,7 +2211,8 @@ INSStaggeredHierarchyIntegrator::applyGradientDetector(
 ///      getVelocityVar(),
 ///      getPressureVar(),
 ///      getExtrapolatedPressureVar(),
-///      getForceVar()
+///      getForceVar(),
+///      getSourceVar()
 ///
 ///  allows access to the various state variables maintained by the integrator.
 ///
@@ -2185,6 +2240,12 @@ INSStaggeredHierarchyIntegrator::getForceVar()
 {
     return d_F_var;
 }// getForceVar
+
+SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
+INSStaggeredHierarchyIntegrator::getSourceVar()
+{
+    return d_Q_var;
+}// getSourceVar
 
 ///
 ///  The following routines:
@@ -2246,14 +2307,17 @@ void
 INSStaggeredHierarchyIntegrator::reinterpolateForce(
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx)
 {
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    const int    F_idx = var_db->mapVariableAndContextToIndex(   d_F_var, ctx);
-    const int F_cc_idx = var_db->mapVariableAndContextToIndex(d_F_cc_var, ctx);
-    static const bool synch_cf_interface = true;
-    d_hier_math_ops->interp(
-        F_cc_idx, d_F_cc_var,
-        F_idx   , d_F_var   ,
-        d_no_fill_op, d_integrator_time, synch_cf_interface);
+    if (!d_F_setter.isNull())
+    {
+        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+        const int    F_idx = var_db->mapVariableAndContextToIndex(   d_F_var, ctx);
+        const int F_cc_idx = var_db->mapVariableAndContextToIndex(d_F_cc_var, ctx);
+        static const bool synch_cf_interface = true;
+        d_hier_math_ops->interp(
+            F_cc_idx, d_F_cc_var,
+            F_idx   , d_F_var   ,
+            d_no_fill_op, d_integrator_time, synch_cf_interface);
+    }
     return;
 }// reinterpolateForce
 
@@ -2298,6 +2362,7 @@ INSStaggeredHierarchyIntegrator::putToDatabase(
     db->putBool("d_output_U", d_output_U);
     db->putBool("d_output_P", d_output_P);
     db->putBool("d_output_F", d_output_F);
+    db->putBool("d_output_Q", d_output_Q);
     db->putBool("d_output_Omega", d_output_Omega);
     db->putBool("d_output_Div_U", d_output_Div_U);
     db->putDouble("d_old_dt", d_old_dt);
@@ -2439,12 +2504,7 @@ INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
 
     // Whenever the default convergence test is satisfied, compute the discrete
     // divergence of the solution vector and ensure that it satisfies the
-    // relevant convergence tolerance.
-    //
-    // NOTE: Here, we assume that the flow is incompressible with no internal
-    // fluid sources or sinks (i.e., div u = 0 holds throughout the
-    // computational domain).  This convergence test will require some minor
-    // modifications to support internal fluid sources and sinks.
+    // user-specified convergence tolerance.
     const double& div_u_abstol = hier_integrator->d_div_u_abstol;
     if (int(*reason) > 0 && div_u_abstol > 0.0)
     {
@@ -2468,16 +2528,22 @@ INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_var = sol_vec_clone->getComponentVariable(0);
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_sc_var = U_var;
 
+        const int Q_idx = hier_integrator->d_Q_scratch_idx;
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& Q_var = hier_integrator->d_Q_var;
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_cc_var = Q_var;
+
         hier_integrator->d_U_bc_helper->resetValuesAtDirichletBoundaries(U_idx);
 
         static const bool U_cf_bdry_synch = true;
         hier_math_ops->div(
             Div_U_idx, Div_U_cc_var, // dst
             +1.0,                    // alpha
-            U_idx, U_sc_var,         // src
-            no_fill_op,              // src_bdry_fill
-            integrator_time,         // src_bdry_fill_time
-            U_cf_bdry_synch);        // src_cf_bdry_synch
+            U_idx, U_sc_var,         // src1
+            no_fill_op,              // src1_bdry_fill
+            integrator_time,         // src1_bdry_fill_time
+            U_cf_bdry_synch,         // src1_cf_bdry_synch
+            -1.0,                    // beta
+            Q_idx, Q_cc_var);        // src2
 
         sol_vec_clone->freeVectorComponents();
         sol_vec_clone->deallocateVectorData();
@@ -2932,12 +2998,14 @@ INSStaggeredHierarchyIntegrator::getFromInput(
     d_output_U     = db->getBoolWithDefault("output_U"    , d_output_U     );
     d_output_P     = db->getBoolWithDefault("output_P"    , d_output_P     );
     d_output_F     = db->getBoolWithDefault("output_F"    , d_output_F     );
+    d_output_Q     = db->getBoolWithDefault("output_Q"    , d_output_Q     );
     d_output_Omega = db->getBoolWithDefault("output_Omega", d_output_Omega );
     d_output_Div_U = db->getBoolWithDefault("output_Div_U", d_output_Div_U );
 
     d_U_scale = db->getDoubleWithDefault("U_scale", d_U_scale);
     d_P_scale = db->getDoubleWithDefault("P_scale", d_P_scale);
     d_F_scale = db->getDoubleWithDefault("F_scale", d_F_scale);
+    d_Q_scale = db->getDoubleWithDefault("Q_scale", d_Q_scale);
 
     d_cfl = db->getDoubleWithDefault("cfl",d_cfl);
 
@@ -3018,6 +3086,7 @@ INSStaggeredHierarchyIntegrator::getFromRestart()
     d_U_scale = db->getDouble("d_U_scale");
     d_P_scale = db->getDouble("d_P_scale");
     d_F_scale = db->getDouble("d_F_scale");
+    d_Q_scale = db->getDouble("d_Q_scale");
     d_start_time = db->getDouble("d_start_time");
     d_end_time = db->getDouble("d_end_time");
     d_grow_dt = db->getDouble("d_grow_dt");
@@ -3035,6 +3104,7 @@ INSStaggeredHierarchyIntegrator::getFromRestart()
     d_output_U = db->getBool("d_output_U");
     d_output_P = db->getBool("d_output_P");
     d_output_F = db->getBool("d_output_F");
+    d_output_Q = db->getBool("d_output_Q");
     d_output_Omega = db->getBool("d_output_Omega");
     d_output_Div_U = db->getBool("d_output_Div_U");
     d_old_dt = db->getDouble("d_old_dt");

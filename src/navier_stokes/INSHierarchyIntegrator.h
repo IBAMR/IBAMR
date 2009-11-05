@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <03.Nov.2009 20:38:59 griffith@griffith-macbook-pro.local>
+// Last modified: <04.Nov.2009 12:16:12 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -152,17 +152,17 @@ public:
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef);
 
     /*!
-     * Supply an optional cell centered forcing term.
+     * Supply an optional cell centered body force specification object.
      */
     void
     registerBodyForceSpecification(
         SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter);
 
     /*!
-     * Supply an optional cell centered divergence specification.
+     * Supply an optional cell centered source/sink specification object.
      */
     void
-    registerDivergenceSpecification(
+    registerSourceSpecification(
         SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_setter);
 
     /*!
@@ -410,7 +410,7 @@ public:
     ///      resetHierDataToPreadvanceState()
     ///
     ///  allow the INSHierarchyIntegrator to provide data management for a time
-    ///  integrator which making use of this class.
+    ///  integrator which makes use of this class.
     ///
 
     /*!
@@ -624,7 +624,7 @@ public:
     ///      getExtrapolatedPressureVar(),
     ///      getAdvectionVelocityVar(),
     ///      getForceVar(),
-    ///      getDivergenceVar()
+    ///      getSourceVar()
     ///
     ///  allows access to the various state variables maintained by the
     ///  integrator.
@@ -638,6 +638,8 @@ public:
 
     /*!
      * Return a pointer to the fluid pressure state variable.
+     *
+     * \note The pressure state variable is defined at time level n-1/2.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
     getPressureVar();
@@ -664,19 +666,17 @@ public:
     getForceVar();
 
     /*!
-     * Return a pointer to the specified divergence variable.
+     * Return a pointer to the source strength variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getDivergenceVar();
+    getSourceVar();
 
     ///
     ///  The following routines:
     ///
     ///      getCurrentContext(),
     ///      getNewContext(),
-    ///      getOldContext(),
-    ///      getScratchContext(),
-    ///      getPlotContext()
+    ///      getScratchContext()
     ///
     ///  allow access to the various variable contexts maintained by the
     ///  integrator.
@@ -699,19 +699,6 @@ public:
     getNewContext() const;
 
     /*!
-     * Return pointer to "old" variable context used by integrator.  Old data
-     * corresponds to an extra time level of state data used for Richardson
-     * extrapolation error estimation.  The data is one timestep earlier than
-     * the "current" data.
-     *
-     * Note that only in certain cases when using time-dependent error
-     * estimation, such as Richardson extrapolation, is the returned pointer
-     * will non-null.  See contructor for more information.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
-    getOldContext() const;
-
-    /*!
      * Return pointer to "scratch" variable context used by integrator.  Scratch
      * data typically corresponds to storage that user-routines in the concrete
      * GodunovAdvector object manipulate; in particular, scratch data contains
@@ -719,14 +706,6 @@ public:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
     getScratchContext() const;
-
-    /*!
-     * Return pointer to variable context used for plotting.  This context
-     * corresponds to the data storage that should be written to plot files.
-     * Typically, this is the same as the "current" context.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
-    getPlotContext() const;
 
     ///
     ///  The following routines:

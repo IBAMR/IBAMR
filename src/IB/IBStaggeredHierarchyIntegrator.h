@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <03.Nov.2009 21:07:18 griffith@griffith-macbook-pro.local>
+// Last modified: <04.Nov.2009 11:55:19 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -10,8 +10,10 @@
 // IBAMR INCLUDES
 #include <ibamr/IBDataPostProcessor.h>
 #include <ibamr/IBEulerianForceSetter.h>
+#include <ibamr/IBEulerianSourceSetter.h>
 #include <ibamr/IBInstrumentPanel.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
+#include <ibamr/IBLagrangianSourceStrategy.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 // IBTK INCLUDES
@@ -50,9 +52,10 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBStaggeredHierarchyIntegrator is an \em EXPERIMENTAL
- * implementation of a formally second-order accurate, semi-implicit version of
- * the immersed boundary method.
+ * \brief Class IBStaggeredHierarchyIntegrator is an implementation of a
+ * formally second-order accurate, semi-implicit version of the immersed
+ * boundary method which uses a staggered-grid incompressible Navier-Stokes
+ * solver.
  */
 class IBStaggeredHierarchyIntegrator
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
@@ -71,6 +74,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
         SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> force_strategy,
+        SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_strategy=NULL,
         SAMRAI::tbox::Pointer<IBDataPostProcessor> post_processor=NULL,
         bool register_for_restart=true);
 
@@ -614,6 +618,15 @@ private:
         const bool initial_time);
 
     /*!
+     * Initialize the IBLagrangianSourceStrategy object for the current
+     * configuration of the curvilinear mesh.
+     */
+    void
+    resetLagrangianSourceStrategy(
+        const double init_data_time,
+        const bool initial_time);
+
+    /*!
      * Initialize the IBPostProcessor object for the current configuration of
      * the curvilinear mesh.
      */
@@ -665,6 +678,36 @@ private:
         std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > V_data,
         const int coarsest_ln,
         const int finest_ln);
+
+
+    /*!
+     * Set the values of the distributed internal sources/sinks on the Cartesian
+     * grid hierarchy.
+     *
+     * \note This method computes the point source/sink strengths, spreads those
+     * values to the Cartesian grid using the cosine delta function, and
+     * synchronizes the data on the hierarchy.
+     */
+    void
+    computeSourceStrengths(
+        const int coarsest_level,
+        const int finest_level,
+        const double data_time,
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> >& X_data);
+
+    /*!
+     * Get the values of the pressures at the positions of the distributed
+     * internal sources/sinks.
+     *
+     * \note This method interpolates the \em new Cartesian grid pressure at the
+     * given locations of the internal sources/sinks.
+     */
+    void
+    computeSourcePressures(
+        const int coarsest_level,
+        const int finest_level,
+        const double data_time,
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> >& X_data);
 
     /*!
      * Read input values, indicated above, from given database.  The boolean
@@ -768,6 +811,16 @@ private:
     bool d_force_strategy_needs_init;
 
     /*
+     * The source/sink generators.
+     */
+    SAMRAI::tbox::Pointer<IBEulerianSourceSetter> d_eulerian_source_setter;
+    SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> d_source_strategy;
+    bool d_source_strategy_needs_init;
+    std::vector<std::vector<std::vector<double> > > d_X_src;
+    std::vector<std::vector<double > > d_r_src, d_P_src, d_Q_src;
+    std::vector<int> d_n_src;
+
+    /*
      * Post-processors.
      */
     SAMRAI::tbox::Pointer<IBDataPostProcessor> d_post_processor;
@@ -826,6 +879,7 @@ private:
     /*
      * Hierarchy operations objects.
      */
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > d_hier_sc_data_ops;
 
     /*
@@ -843,9 +897,10 @@ private:
      * Variables and variable contexts.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_V_var, d_F_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
-    int d_V_idx, d_F_idx, d_mark_current_idx, d_mark_scratch_idx;
+    int d_V_idx, d_F_idx, d_Q_idx, d_mark_current_idx, d_mark_scratch_idx;
 
     /*
      * List of local indicies of local anchor points.

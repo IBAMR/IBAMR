@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <03.Nov.2009 21:09:01 griffith@griffith-macbook-pro.local>
+// Last modified: <04.Nov.2009 11:55:17 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -34,7 +34,6 @@
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
 #include <GriddingAlgorithm.h>
-#include <HierarchyCellDataOpsReal.h>
 #include <IndexVariable.h>
 #include <IntVector.h>
 #include <LoadBalancer.h>
@@ -58,7 +57,9 @@ namespace IBAMR
 {
 /*!
  * \brief Class IBHierarchyIntegrator is an implementation of a formally
- * second-order accurate, semi-implicit version of the immersed boundary method.
+ * second-order accurate, semi-implicit version of the immersed boundary method
+ * which uses a cell-centered approximate projection method to solve the
+ * incompressible Navier-Stokes equations.
  */
 class IBHierarchyIntegrator
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
@@ -520,9 +521,7 @@ public:
     ///
     ///      getCurrentContext(),
     ///      getNewContext(),
-    ///      getOldContext(),
-    ///      getScratchContext(),
-    ///      getPlotContext()
+    ///      getScratchContext()
     ///
     ///  allow access to the various variable contexts maintained by the
     ///  integrator.
@@ -545,19 +544,6 @@ public:
     getNewContext() const;
 
     /*!
-     * Return pointer to "old" variable context used by integrator.  Old data
-     * corresponds to an extra time level of state data used for Richardson
-     * extrapolation error estimation.  The data is one timestep earlier than
-     * the "current" data.
-     *
-     * Note that only in certain cases when using time-dependent error
-     * estimation, such as Richardson extrapolation, is the returned pointer
-     * will non-null.  See contructor for more information.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
-    getOldContext() const;
-
-    /*!
      * Return pointer to "scratch" variable context used by integrator.  Scratch
      * data typically corresponds to storage that user-routines in the concrete
      * GodunovAdvector object manipulate; in particular, scratch data contains
@@ -565,14 +551,6 @@ public:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
     getScratchContext() const;
-
-    /*!
-     * Return pointer to variable context used for plotting.  This context
-     * corresponds to the data storage that should be written to plot files.
-     * Typically, this is the same as the "current" context.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
-    getPlotContext() const;
 
     ///
     ///  The following routines:
