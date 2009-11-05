@@ -1,0 +1,148 @@
+Convergence study for an advected and diffused "lattice" of Gaussians.
+The initial configuration and exact solution are taken to be the
+superposition of an 5-by-5-by-5 array of Gaussians.  For the range of
+diffusivities considered, this is a good approximation to an infinite
+lattice of Gaussians.
+
+The advection velocity is used to set the timestep.  Here,
+(u,v,w)=(10,-10,5) and the timestep satisfies a CFL restriction of the
+form
+
+  dx/dt <= 0.9375 ||(u,v,w)||_oo
+
+---------------------------------------------------
+TGA a=2-sqrt(2)-eps (with advection, MUSCL limiter)
+---------------------------------------------------
+
+   domain_boxes = [ (0,0,0) , (16*N - 1,16*N - 1,16*N - 1) ]
+
+============
+kappa = 0.01
+============
+
+N = 1
+
+  L1-norm:  0.15054
+  L2-norm:  0.301992
+  max-norm: 2.30677
+
+N = 2
+
+  L1-norm:  0.0392988
+  L2-norm:  0.083234
+  max-norm: 0.725059
+
+N = 4
+
+  L1-norm:  0.00980083
+  L2-norm:  0.020887
+  max-norm: 0.181572
+
+N = 8
+
+
+N = 16
+
+
+convergence rates:
+
+  L1-norm:  
+  L2-norm:  
+  max-norm: 
+
+---------------------------------------------------
+TGA a=2-sqrt(2)-eps (with advection, MUSCL limiter)
+---------------------------------------------------
+
+   domain_boxes = [ (0,0,0) , (16*N - 1,16*N - 1,16*N - 1) ]
+
+   max_levels             = 2      // Maximum number of levels in hierarchy.
+   ratio_to_coarser {            
+      level_1             = 2,2,2  // vector ratio to next coarser level
+   }
+
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(4*N,4*N,4*N),(12*N - 1,12*N - 1,12*N - 1)]
+   }
+
+============
+kappa = 0.01
+============
+
+N = 1
+
+  L1-norm:  0.202829
+  L2-norm:  0.412256
+  max-norm: 4.56149
+
+N = 2
+
+  L1-norm:  0.0496727
+  L2-norm:  0.099838
+  max-norm: 1.14281
+
+N = 4
+
+  L1-norm:  0.0116881
+  L2-norm:  0.0223509
+  max-norm: 0.163554
+
+N = 8
+
+
+N = 16
+
+
+convergence rates:
+
+  L1-norm:  
+  L2-norm:  
+  max-norm: 
+
+---------------------------------------------------
+TGA a=2-sqrt(2)-eps (with advection, MUSCL limiter)
+---------------------------------------------------
+
+   domain_boxes = [ (0,0,0) , (16*N - 1,16*N - 1,16*N - 1) ]
+
+   max_levels             = 2      // Maximum number of levels in hierarchy.
+   ratio_to_coarser {            
+      level_1             = 4,4,4  // vector ratio to next coarser level
+   }
+
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(4*N,4*N,4*N),(12*N - 1,12*N - 1,12*N - 1)]
+   }
+
+============
+kappa = 0.01
+============
+
+N = 1
+
+  L1-norm:  0.178159
+  L2-norm:  0.399163
+  max-norm: 5.24746
+
+N = 2
+
+  L1-norm:  0.0462198
+  L2-norm:  0.0905631
+  max-norm: 1.40502
+
+N = 4
+
+
+N = 8
+
+
+N = 16
+
+
+convergence rates:
+
+  L1-norm:  
+  L2-norm:  
+  max-norm: 

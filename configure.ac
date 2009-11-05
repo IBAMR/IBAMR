@@ -77,6 +77,13 @@ fi
 # Checks for other programs.
 AC_PROG_RANLIB
 
+AC_ARG_WITH([ar],
+  AS_HELP_STRING([--with-ar=ARG],[manually set ar to ARG]))
+AC_CHECK_PROGS(AR, $with_ar ar,,)
+if test -z "$AR" ; then
+  AC_MSG_ERROR([ar not found, specify via --with-ar=ARG])
+fi
+
 AC_ARG_WITH([M4],
   AS_HELP_STRING([--with-M4=ARG],[manually set M4 to ARG]))
 AC_CHECK_PROGS(M4, $with_M4 gm4 m4,,)
@@ -524,9 +531,35 @@ AC_CONFIG_FILES([
   config/make.inc
   doc/Makefile
   doc/Doxyfile
+  examples/Makefile
+  examples/IB/Makefile
+  examples/IB/cell_centered/Makefile
+  examples/IB/cell_centered/ex0/Makefile
+  examples/IB/cell_centered/ex1/Makefile
+  examples/IB/cell_centered/ex2/Makefile
+  examples/IB/staggered_grid/Makefile
+  examples/IB/staggered_grid/explicit/Makefile
+  examples/IB/staggered_grid/explicit/ex0/Makefile
+  examples/IB/staggered_grid/explicit/ex1/Makefile
+  examples/IB/staggered_grid/implicit/Makefile
+  examples/IB/staggered_grid/implicit/ex0/Makefile
+  examples/IB/staggered_grid/implicit/ex1/Makefile
+  examples/adv_diff/Makefile
+  examples/advect/Makefile
+  examples/navier_stokes/Makefile
+  examples/navier_stokes/cell_centered/Makefile
+  examples/navier_stokes/cell_centered/ex0/Makefile
+  examples/navier_stokes/cell_centered/ex1/Makefile
+  examples/navier_stokes/cell_centered/ex2/Makefile
+  examples/navier_stokes/staggered_grid/Makefile
+  examples/navier_stokes/staggered_grid/ex0/Makefile
+  examples/navier_stokes/staggered_grid/ex1/Makefile
+  examples/navier_stokes/staggered_grid/ex2/Makefile
+  examples/navier_stokes/staggered_grid/ex3/Makefile
   sample/IB/Makefile
   sample/empty_project/Makefile
   src/Makefile
+  src/get_version.C
   src/fortran/Makefile
   src/IB/Makefile
   src/adv_diff/Makefile
@@ -536,32 +569,6 @@ AC_CONFIG_FILES([
   src/navier_stokes/Makefile
   src/navier_stokes/fortran/Makefile
   src/utilities/Makefile
-  src/utilities/get_version.C
-  src/tests/Makefile
-  src/tests/IB/Makefile
-  src/tests/IB/cell_centered/Makefile
-  src/tests/IB/cell_centered/ex0/Makefile
-  src/tests/IB/cell_centered/ex1/Makefile
-  src/tests/IB/cell_centered/ex2/Makefile
-  src/tests/IB/staggered_grid/Makefile
-  src/tests/IB/staggered_grid/explicit/Makefile
-  src/tests/IB/staggered_grid/explicit/ex0/Makefile
-  src/tests/IB/staggered_grid/explicit/ex1/Makefile
-  src/tests/IB/staggered_grid/implicit/Makefile
-  src/tests/IB/staggered_grid/implicit/ex0/Makefile
-  src/tests/IB/staggered_grid/implicit/ex1/Makefile
-  src/tests/adv_diff/Makefile
-  src/tests/advect/Makefile
-  src/tests/navier_stokes/Makefile
-  src/tests/navier_stokes/cell_centered/Makefile
-  src/tests/navier_stokes/cell_centered/ex0/Makefile
-  src/tests/navier_stokes/cell_centered/ex1/Makefile
-  src/tests/navier_stokes/cell_centered/ex2/Makefile
-  src/tests/navier_stokes/staggered_grid/Makefile
-  src/tests/navier_stokes/staggered_grid/ex0/Makefile
-  src/tests/navier_stokes/staggered_grid/ex1/Makefile
-  src/tests/navier_stokes/staggered_grid/ex2/Makefile
-  src/tests/navier_stokes/staggered_grid/ex3/Makefile
   src/tools/Makefile
 ])
 AC_OUTPUT

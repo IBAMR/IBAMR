@@ -14,7 +14,6 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
-
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -36,8 +35,6 @@ build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
-@SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBAMR_adv_diff_fortran2d.a
-@SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBAMR_adv_diff_fortran3d.a
 subdir = src/adv_diff/fortran
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -52,35 +49,12 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-LIBRARIES = $(noinst_LIBRARIES)
-AR = ar
-ARFLAGS = cru
-libIBAMR_adv_diff_fortran2d_a_AR = $(AR) $(ARFLAGS)
-libIBAMR_adv_diff_fortran2d_a_LIBADD =
-am_libIBAMR_adv_diff_fortran2d_a_OBJECTS =  \
-	adv_diff_consdiff2d.$(OBJEXT)
-libIBAMR_adv_diff_fortran2d_a_OBJECTS =  \
-	$(am_libIBAMR_adv_diff_fortran2d_a_OBJECTS)
-libIBAMR_adv_diff_fortran3d_a_AR = $(AR) $(ARFLAGS)
-libIBAMR_adv_diff_fortran3d_a_LIBADD =
-am_libIBAMR_adv_diff_fortran3d_a_OBJECTS =  \
-	adv_diff_consdiff3d.$(OBJEXT)
-libIBAMR_adv_diff_fortran3d_a_OBJECTS =  \
-	$(am_libIBAMR_adv_diff_fortran3d_a_OBJECTS)
-DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
-F77COMPILE = $(F77) $(AM_FFLAGS) $(FFLAGS)
-F77LD = $(F77)
-F77LINK = $(F77LD) $(AM_FFLAGS) $(FFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
-	$@
-SOURCES = $(libIBAMR_adv_diff_fortran2d_a_SOURCES) \
-	$(libIBAMR_adv_diff_fortran3d_a_SOURCES)
-DIST_SOURCES = $(libIBAMR_adv_diff_fortran2d_a_SOURCES) \
-	$(libIBAMR_adv_diff_fortran3d_a_SOURCES)
-ETAGS = etags
-CTAGS = ctags
+SOURCES =
+DIST_SOURCES =
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -330,23 +304,18 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = Makefile.in
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_srcdir}/third_party/qd-2.3.7/include -I${top_builddir}/third_party/qd-2.3.7/include
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_srcdir}/ibtk/third_party/qd-2.3.7/include -I${top_builddir}/ibtk/third_party/qd-2.3.7/include
 AM_FFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXTRA_DIST = adv_diff_consdiff2d.f.m4 adv_diff_consdiff3d.f.m4
 BUILT_SOURCES = adv_diff_consdiff2d.f adv_diff_consdiff3d.f
 CLEANFILES = ${BUILT_SOURCES}
-noinst_LIBRARIES = $(am__append_1) $(am__append_2)
-libIBAMR_adv_diff_fortran2d_a_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_adv_diff_fortran2d_a_SOURCES = adv_diff_consdiff2d.f
-libIBAMR_adv_diff_fortran3d_a_F77FLAGS = $(AM_F77FLAGS)
-libIBAMR_adv_diff_fortran3d_a_SOURCES = adv_diff_consdiff3d.f
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: .f.m4 .f .o .obj
+.SUFFIXES: .f.m4 .f
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -377,81 +346,12 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-
-clean-noinstLIBRARIES:
-	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-libIBAMR_adv_diff_fortran2d.a: $(libIBAMR_adv_diff_fortran2d_a_OBJECTS) $(libIBAMR_adv_diff_fortran2d_a_DEPENDENCIES) 
-	-rm -f libIBAMR_adv_diff_fortran2d.a
-	$(libIBAMR_adv_diff_fortran2d_a_AR) libIBAMR_adv_diff_fortran2d.a $(libIBAMR_adv_diff_fortran2d_a_OBJECTS) $(libIBAMR_adv_diff_fortran2d_a_LIBADD)
-	$(RANLIB) libIBAMR_adv_diff_fortran2d.a
-libIBAMR_adv_diff_fortran3d.a: $(libIBAMR_adv_diff_fortran3d_a_OBJECTS) $(libIBAMR_adv_diff_fortran3d_a_DEPENDENCIES) 
-	-rm -f libIBAMR_adv_diff_fortran3d.a
-	$(libIBAMR_adv_diff_fortran3d_a_AR) libIBAMR_adv_diff_fortran3d.a $(libIBAMR_adv_diff_fortran3d_a_OBJECTS) $(libIBAMR_adv_diff_fortran3d_a_LIBADD)
-	$(RANLIB) libIBAMR_adv_diff_fortran3d.a
-
-mostlyclean-compile:
-	-rm -f *.$(OBJEXT)
-
-distclean-compile:
-	-rm -f *.tab.c
-
-.f.o:
-	$(F77COMPILE) -c -o $@ $<
-
-.f.obj:
-	$(F77COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
-	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
-	unique=`for i in $$list; do \
-	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
-	  done | \
-	  $(AWK) '{ files[$$0] = 1; nonempty = 1; } \
-	      END { if (nonempty) { for (i in files) print i; }; }'`; \
-	mkid -fID $$unique
 tags: TAGS
+TAGS:
 
-TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
-		$(TAGS_FILES) $(LISP)
-	set x; \
-	here=`pwd`; \
-	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
-	unique=`for i in $$list; do \
-	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
-	  done | \
-	  $(AWK) '{ files[$$0] = 1; nonempty = 1; } \
-	      END { if (nonempty) { for (i in files) print i; }; }'`; \
-	shift; \
-	if test -z "$(ETAGS_ARGS)$$*$$unique"; then :; else \
-	  test -n "$$unique" || unique=$$empty_fix; \
-	  if test $$# -gt 0; then \
-	    $(ETAGS) $(ETAGSFLAGS) $(AM_ETAGSFLAGS) $(ETAGS_ARGS) \
-	      "$$@" $$unique; \
-	  else \
-	    $(ETAGS) $(ETAGSFLAGS) $(AM_ETAGSFLAGS) $(ETAGS_ARGS) \
-	      $$unique; \
-	  fi; \
-	fi
 ctags: CTAGS
-CTAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
-		$(TAGS_FILES) $(LISP)
-	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
-	unique=`for i in $$list; do \
-	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
-	  done | \
-	  $(AWK) '{ files[$$0] = 1; nonempty = 1; } \
-	      END { if (nonempty) { for (i in files) print i; }; }'`; \
-	test -z "$(CTAGS_ARGS)$$unique" \
-	  || $(CTAGS) $(CTAGSFLAGS) $(AM_CTAGSFLAGS) $(CTAGS_ARGS) \
-	     $$unique
+CTAGS:
 
-GTAGS:
-	here=`$(am__cd) $(top_builddir) && pwd` \
-	  && $(am__cd) $(top_srcdir) \
-	  && gtags -i $(GTAGS_ARGS) "$$here"
-
-distclean-tags:
-	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
 distdir: $(DISTFILES)
 	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
@@ -486,7 +386,7 @@ distdir: $(DISTFILES)
 check-am: all-am
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile
 installdirs:
 install: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) install-am
@@ -519,12 +419,11 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
-clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
+clean-am: clean-generic mostlyclean-am
 
 distclean: distclean-am
 	-rm -f Makefile
-distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-tags
+distclean-am: clean-am distclean-generic
 
 dvi: dvi-am
 
@@ -572,7 +471,7 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic
+mostlyclean-am: mostlyclean-generic
 
 pdf: pdf-am
 
@@ -586,18 +485,15 @@ uninstall-am:
 
 .MAKE: all check install install-am install-strip
 
-.PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-noinstLIBRARIES ctags distclean distclean-compile \
-	distclean-generic distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am
+.PHONY: all all-am check check-am clean clean-generic distclean \
+	distclean-generic distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-generic pdf pdf-am ps ps-am uninstall uninstall-am
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@

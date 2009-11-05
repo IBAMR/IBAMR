@@ -14,8 +14,6 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
-
-
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -35,11 +33,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-DIST_COMMON = $(pkg_include_HEADERS) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(srcdir)/get_version.C.in \
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
-@SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBAMR_utilities2d.a
-@SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBAMR_utilities3d.a
 subdir = src/utilities
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
@@ -52,98 +47,14 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
-CONFIG_CLEAN_FILES = get_version.C
+CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-LIBRARIES = $(noinst_LIBRARIES)
-AR = ar
-ARFLAGS = cru
-libIBAMR_utilities2d_a_AR = $(AR) $(ARFLAGS)
-libIBAMR_utilities2d_a_LIBADD =
-am__objects_1 = libIBAMR_utilities2d_a-get_version.$(OBJEXT)
-am_libIBAMR_utilities2d_a_OBJECTS = $(am__objects_1)
-libIBAMR_utilities2d_a_OBJECTS = $(am_libIBAMR_utilities2d_a_OBJECTS)
-libIBAMR_utilities3d_a_AR = $(AR) $(ARFLAGS)
-libIBAMR_utilities3d_a_LIBADD =
-am__objects_2 = libIBAMR_utilities3d_a-get_version.$(OBJEXT)
-am_libIBAMR_utilities3d_a_OBJECTS = $(am__objects_2)
-libIBAMR_utilities3d_a_OBJECTS = $(am_libIBAMR_utilities3d_a_OBJECTS)
-DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
-depcomp = $(SHELL) $(top_srcdir)/config/depcomp
-am__depfiles_maybe = depfiles
-am__mv = mv -f
-CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-CXXLD = $(CXX)
-CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
-	-o $@
-DIST_SOURCES = $(libIBAMR_utilities2d_a_SOURCES) \
-	$(libIBAMR_utilities3d_a_SOURCES)
-RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
-	html-recursive info-recursive install-data-recursive \
-	install-dvi-recursive install-exec-recursive \
-	install-html-recursive install-info-recursive \
-	install-pdf-recursive install-ps-recursive install-recursive \
-	installcheck-recursive installdirs-recursive pdf-recursive \
-	ps-recursive uninstall-recursive
-am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
-am__vpath_adj = case $$p in \
-    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
-    *) f=$$p;; \
-  esac;
-am__strip_dir = f=`echo $$p | sed -e 's|^.*/||'`;
-am__install_max = 40
-am__nobase_strip_setup = \
-  srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*|]/\\\\&/g'`
-am__nobase_strip = \
-  for p in $$list; do echo "$$p"; done | sed -e "s|$$srcdirstrip/||"
-am__nobase_list = $(am__nobase_strip_setup); \
-  for p in $$list; do echo "$$p $$p"; done | \
-  sed "s| $$srcdirstrip/| |;"' / .*\//!s/ .*/ ./; s,\( .*\)/[^/]*$$,\1,' | \
-  $(AWK) 'BEGIN { files["."] = "" } { files[$$2] = files[$$2] " " $$1; \
-    if (++n[$$2] == $(am__install_max)) \
-      { print $$2, files[$$2]; n[$$2] = 0; files[$$2] = "" } } \
-    END { for (dir in files) print dir, files[dir] }'
-am__base_list = \
-  sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
-  sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(pkg_includedir)"
-HEADERS = $(pkg_include_HEADERS)
-RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
-  distclean-recursive maintainer-clean-recursive
-AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
-	$(RECURSIVE_CLEAN_TARGETS:-recursive=) tags TAGS ctags CTAGS \
-	distdir
-ETAGS = etags
-CTAGS = ctags
-DIST_SUBDIRS = $(SUBDIRS)
+SOURCES =
+DIST_SOURCES =
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-am__relativize = \
-  dir0=`pwd`; \
-  sed_first='s,^\([^/]*\)/.*$$,\1,'; \
-  sed_rest='s,^[^/]*/*,,'; \
-  sed_last='s,^.*/\([^/]*\)$$,\1,'; \
-  sed_butlast='s,/*[^/]*$$,,'; \
-  while test -n "$$dir1"; do \
-    first=`echo "$$dir1" | sed -e "$$sed_first"`; \
-    if test "$$first" != "."; then \
-      if test "$$first" = ".."; then \
-        dir2=`echo "$$dir0" | sed -e "$$sed_last"`/"$$dir2"; \
-        dir0=`echo "$$dir0" | sed -e "$$sed_butlast"`; \
-      else \
-        first2=`echo "$$dir2" | sed -e "$$sed_first"`; \
-        if test "$$first2" = "$$first"; then \
-          dir2=`echo "$$dir2" | sed -e "$$sed_rest"`; \
-        else \
-          dir2="../$$dir2"; \
-        fi; \
-        dir0="$$dir0"/"$$first"; \
-      fi; \
-    fi; \
-    dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
-  done; \
-  reldir="$$dir2"
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -393,26 +304,14 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = Makefile.in
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_srcdir}/third_party/qd-2.3.7/include -I${top_builddir}/third_party/qd-2.3.7/include
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_srcdir}/ibtk/third_party/qd-2.3.7/include -I${top_builddir}/ibtk/third_party/qd-2.3.7/include
 AM_FFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = .
-noinst_LIBRARIES = $(am__append_1) $(am__append_2)
-SOURCES = \
-get_version.C
-
-pkg_include_HEADERS = \
-get_version.h
-
-libIBAMR_utilities2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-libIBAMR_utilities2d_a_SOURCES = $(SOURCES)
-libIBAMR_utilities3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBAMR_utilities3d_a_SOURCES = $(SOURCES)
-all: all-recursive
+all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .f.m4 .C .f .o .obj
+.SUFFIXES: .f.m4 .f
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -443,225 +342,12 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-get_version.C: $(top_builddir)/config.status $(srcdir)/get_version.C.in
-	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-
-clean-noinstLIBRARIES:
-	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-libIBAMR_utilities2d.a: $(libIBAMR_utilities2d_a_OBJECTS) $(libIBAMR_utilities2d_a_DEPENDENCIES) 
-	-rm -f libIBAMR_utilities2d.a
-	$(libIBAMR_utilities2d_a_AR) libIBAMR_utilities2d.a $(libIBAMR_utilities2d_a_OBJECTS) $(libIBAMR_utilities2d_a_LIBADD)
-	$(RANLIB) libIBAMR_utilities2d.a
-libIBAMR_utilities3d.a: $(libIBAMR_utilities3d_a_OBJECTS) $(libIBAMR_utilities3d_a_DEPENDENCIES) 
-	-rm -f libIBAMR_utilities3d.a
-	$(libIBAMR_utilities3d_a_AR) libIBAMR_utilities3d.a $(libIBAMR_utilities3d_a_OBJECTS) $(libIBAMR_utilities3d_a_LIBADD)
-	$(RANLIB) libIBAMR_utilities3d.a
-
-mostlyclean-compile:
-	-rm -f *.$(OBJEXT)
-
-distclean-compile:
-	-rm -f *.tab.c
-
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities2d_a-get_version.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR_utilities3d_a-get_version.Po@am__quote@
-
-.C.o:
-@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
-
-.C.obj:
-@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-libIBAMR_utilities2d_a-get_version.o: get_version.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-get_version.o -MD -MP -MF $(DEPDIR)/libIBAMR_utilities2d_a-get_version.Tpo -c -o libIBAMR_utilities2d_a-get_version.o `test -f 'get_version.C' || echo '$(srcdir)/'`get_version.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR_utilities2d_a-get_version.Tpo $(DEPDIR)/libIBAMR_utilities2d_a-get_version.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='get_version.C' object='libIBAMR_utilities2d_a-get_version.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-get_version.o `test -f 'get_version.C' || echo '$(srcdir)/'`get_version.C
-
-libIBAMR_utilities2d_a-get_version.obj: get_version.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities2d_a-get_version.obj -MD -MP -MF $(DEPDIR)/libIBAMR_utilities2d_a-get_version.Tpo -c -o libIBAMR_utilities2d_a-get_version.obj `if test -f 'get_version.C'; then $(CYGPATH_W) 'get_version.C'; else $(CYGPATH_W) '$(srcdir)/get_version.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR_utilities2d_a-get_version.Tpo $(DEPDIR)/libIBAMR_utilities2d_a-get_version.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='get_version.C' object='libIBAMR_utilities2d_a-get_version.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities2d_a-get_version.obj `if test -f 'get_version.C'; then $(CYGPATH_W) 'get_version.C'; else $(CYGPATH_W) '$(srcdir)/get_version.C'; fi`
-
-libIBAMR_utilities3d_a-get_version.o: get_version.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-get_version.o -MD -MP -MF $(DEPDIR)/libIBAMR_utilities3d_a-get_version.Tpo -c -o libIBAMR_utilities3d_a-get_version.o `test -f 'get_version.C' || echo '$(srcdir)/'`get_version.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR_utilities3d_a-get_version.Tpo $(DEPDIR)/libIBAMR_utilities3d_a-get_version.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='get_version.C' object='libIBAMR_utilities3d_a-get_version.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-get_version.o `test -f 'get_version.C' || echo '$(srcdir)/'`get_version.C
-
-libIBAMR_utilities3d_a-get_version.obj: get_version.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR_utilities3d_a-get_version.obj -MD -MP -MF $(DEPDIR)/libIBAMR_utilities3d_a-get_version.Tpo -c -o libIBAMR_utilities3d_a-get_version.obj `if test -f 'get_version.C'; then $(CYGPATH_W) 'get_version.C'; else $(CYGPATH_W) '$(srcdir)/get_version.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR_utilities3d_a-get_version.Tpo $(DEPDIR)/libIBAMR_utilities3d_a-get_version.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='get_version.C' object='libIBAMR_utilities3d_a-get_version.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR_utilities3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR_utilities3d_a-get_version.obj `if test -f 'get_version.C'; then $(CYGPATH_W) 'get_version.C'; else $(CYGPATH_W) '$(srcdir)/get_version.C'; fi`
-install-pkg_includeHEADERS: $(pkg_include_HEADERS)
-	@$(NORMAL_INSTALL)
-	test -z "$(pkg_includedir)" || $(MKDIR_P) "$(DESTDIR)$(pkg_includedir)"
-	@list='$(pkg_include_HEADERS)'; test -n "$(pkg_includedir)" || list=; \
-	for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  echo "$$d$$p"; \
-	done | $(am__base_list) | \
-	while read files; do \
-	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(pkg_includedir)'"; \
-	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(pkg_includedir)" || exit $$?; \
-	done
-
-uninstall-pkg_includeHEADERS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(pkg_include_HEADERS)'; test -n "$(pkg_includedir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	test -n "$$files" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(pkg_includedir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(pkg_includedir)" && rm -f $$files
-
-# This directory's subdirectories are mostly independent; you can cd
-# into them and run `make' without going through this Makefile.
-# To change the values of `make' variables: instead of editing Makefiles,
-# (1) if the variable is set in `config.status', edit `config.status'
-#     (which will cause the Makefiles to be regenerated when you run `make');
-# (2) otherwise, pass the desired values on the `make' command line.
-$(RECURSIVE_TARGETS):
-	@failcom='exit 1'; \
-	for f in x $$MAKEFLAGS; do \
-	  case $$f in \
-	    *=* | --[!k]*);; \
-	    *k*) failcom='fail=yes';; \
-	  esac; \
-	done; \
-	dot_seen=no; \
-	target=`echo $@ | sed s/-recursive//`; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    dot_seen=yes; \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done; \
-	if test "$$dot_seen" = "no"; then \
-	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
-	fi; test -z "$$fail"
-
-$(RECURSIVE_CLEAN_TARGETS):
-	@failcom='exit 1'; \
-	for f in x $$MAKEFLAGS; do \
-	  case $$f in \
-	    *=* | --[!k]*);; \
-	    *k*) failcom='fail=yes';; \
-	  esac; \
-	done; \
-	dot_seen=no; \
-	case "$@" in \
-	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
-	  *) list='$(SUBDIRS)' ;; \
-	esac; \
-	rev=''; for subdir in $$list; do \
-	  if test "$$subdir" = "."; then :; else \
-	    rev="$$subdir $$rev"; \
-	  fi; \
-	done; \
-	rev="$$rev ."; \
-	target=`echo $@ | sed s/-recursive//`; \
-	for subdir in $$rev; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done && test -z "$$fail"
-tags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
-	done
-ctags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) ctags); \
-	done
-
-ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
-	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
-	unique=`for i in $$list; do \
-	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
-	  done | \
-	  $(AWK) '{ files[$$0] = 1; nonempty = 1; } \
-	      END { if (nonempty) { for (i in files) print i; }; }'`; \
-	mkid -fID $$unique
 tags: TAGS
+TAGS:
 
-TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
-		$(TAGS_FILES) $(LISP)
-	set x; \
-	here=`pwd`; \
-	if ($(ETAGS) --etags-include --version) >/dev/null 2>&1; then \
-	  include_option=--etags-include; \
-	  empty_fix=.; \
-	else \
-	  include_option=--include; \
-	  empty_fix=; \
-	fi; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test ! -f $$subdir/TAGS || \
-	      set "$$@" "$$include_option=$$here/$$subdir/TAGS"; \
-	  fi; \
-	done; \
-	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
-	unique=`for i in $$list; do \
-	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
-	  done | \
-	  $(AWK) '{ files[$$0] = 1; nonempty = 1; } \
-	      END { if (nonempty) { for (i in files) print i; }; }'`; \
-	shift; \
-	if test -z "$(ETAGS_ARGS)$$*$$unique"; then :; else \
-	  test -n "$$unique" || unique=$$empty_fix; \
-	  if test $$# -gt 0; then \
-	    $(ETAGS) $(ETAGSFLAGS) $(AM_ETAGSFLAGS) $(ETAGS_ARGS) \
-	      "$$@" $$unique; \
-	  else \
-	    $(ETAGS) $(ETAGSFLAGS) $(AM_ETAGSFLAGS) $(ETAGS_ARGS) \
-	      $$unique; \
-	  fi; \
-	fi
 ctags: CTAGS
-CTAGS: ctags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
-		$(TAGS_FILES) $(LISP)
-	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
-	unique=`for i in $$list; do \
-	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
-	  done | \
-	  $(AWK) '{ files[$$0] = 1; nonempty = 1; } \
-	      END { if (nonempty) { for (i in files) print i; }; }'`; \
-	test -z "$(CTAGS_ARGS)$$unique" \
-	  || $(CTAGS) $(CTAGSFLAGS) $(AM_CTAGSFLAGS) $(CTAGS_ARGS) \
-	     $$unique
+CTAGS:
 
-GTAGS:
-	here=`$(am__cd) $(top_builddir) && pwd` \
-	  && $(am__cd) $(top_srcdir) \
-	  && gtags -i $(GTAGS_ARGS) "$$here"
-
-distclean-tags:
-	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
 distdir: $(DISTFILES)
 	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
@@ -693,51 +379,19 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
-	@list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test -d "$(distdir)/$$subdir" \
-	    || $(MKDIR_P) "$(distdir)/$$subdir" \
-	    || exit 1; \
-	  fi; \
-	done
-	@list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    dir1=$$subdir; dir2="$(distdir)/$$subdir"; \
-	    $(am__relativize); \
-	    new_distdir=$$reldir; \
-	    dir1=$$subdir; dir2="$(top_distdir)"; \
-	    $(am__relativize); \
-	    new_top_distdir=$$reldir; \
-	    echo " (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir="$$new_top_distdir" distdir="$$new_distdir" \\"; \
-	    echo "     am__remove_distdir=: am__skip_length_check=: am__skip_mode_fix=: distdir)"; \
-	    ($(am__cd) $$subdir && \
-	      $(MAKE) $(AM_MAKEFLAGS) \
-	        top_distdir="$$new_top_distdir" \
-	        distdir="$$new_distdir" \
-		am__remove_distdir=: \
-		am__skip_length_check=: \
-		am__skip_mode_fix=: \
-	        distdir) \
-	      || exit 1; \
-	  fi; \
-	done
 check-am: all-am
-check: check-recursive
-all-am: Makefile $(LIBRARIES) $(HEADERS)
-installdirs: installdirs-recursive
-installdirs-am:
-	for dir in "$(DESTDIR)$(pkg_includedir)"; do \
-	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
-	done
-install: install-recursive
-install-exec: install-exec-recursive
-install-data: install-data-recursive
-uninstall: uninstall-recursive
+check: check-am
+all-am: Makefile
+installdirs:
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-recursive
+installcheck: installcheck-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
 	  install_sh_PROGRAM="$(INSTALL_STRIP_PROGRAM)" INSTALL_STRIP_FLAG=-s \
@@ -755,92 +409,83 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
-clean: clean-recursive
+clean: clean-am
 
-clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
+clean-am: clean-generic mostlyclean-am
 
-distclean: distclean-recursive
-	-rm -rf ./$(DEPDIR)
+distclean: distclean-am
 	-rm -f Makefile
-distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-tags
+distclean-am: clean-am distclean-generic
 
-dvi: dvi-recursive
+dvi: dvi-am
 
 dvi-am:
 
-html: html-recursive
+html: html-am
 
 html-am:
 
-info: info-recursive
+info: info-am
 
 info-am:
 
-install-data-am: install-pkg_includeHEADERS
+install-data-am:
 
-install-dvi: install-dvi-recursive
+install-dvi: install-dvi-am
 
 install-dvi-am:
 
 install-exec-am:
 
-install-html: install-html-recursive
+install-html: install-html-am
 
 install-html-am:
 
-install-info: install-info-recursive
+install-info: install-info-am
 
 install-info-am:
 
 install-man:
 
-install-pdf: install-pdf-recursive
+install-pdf: install-pdf-am
 
 install-pdf-am:
 
-install-ps: install-ps-recursive
+install-ps: install-ps-am
 
 install-ps-am:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-recursive
-	-rm -rf ./$(DEPDIR)
+maintainer-clean: maintainer-clean-am
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-recursive
+mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic
+mostlyclean-am: mostlyclean-generic
 
-pdf: pdf-recursive
+pdf: pdf-am
 
 pdf-am:
 
-ps: ps-recursive
+ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-pkg_includeHEADERS
+uninstall-am:
 
-.MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) ctags-recursive \
-	install-am install-strip tags-recursive
+.MAKE: install-am install-strip
 
-.PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
-	all all-am check check-am clean clean-generic \
-	clean-noinstLIBRARIES ctags ctags-recursive distclean \
-	distclean-compile distclean-generic distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-pkg_includeHEADERS install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic pdf pdf-am ps ps-am tags tags-recursive \
-	uninstall uninstall-am uninstall-pkg_includeHEADERS
+.PHONY: all all-am check check-am clean clean-generic distclean \
+	distclean-generic distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-generic pdf pdf-am ps ps-am uninstall uninstall-am
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@

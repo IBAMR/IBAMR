@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = IB fortran adv_diff advect navier_stokes utilities . tests tools
+SUBDIRS = IB fortran adv_diff advect navier_stokes utilities . tools
 
 lib_LIBRARIES = libIBAMR.a
 if SAMRAI2D_ENABLED
@@ -11,133 +11,148 @@ lib_LIBRARIES += libIBAMR3d.a
 endif
 
 ## Dimension-independent library
-libIBAMR_a_LIBADD = \
-advect/fortran/godunov_helpers.o \
-adv_diff/libIBAMR_adv_diff_a-TGACoefs.o
-libIBAMR_a_SOURCES = # intentionally blank
+libIBAMR_a_SOURCES = \
+get_version.C \
+advect/fortran/godunov_helpers.f \
+adv_diff/TGACoefs.C
+
+pkg_include_HEADERS = \
+get_version.h \
+adv_diff/TGACoefs.h
 
 ## Dimension-dependent libraries
-libIBAMR2d_a_LIBADD = \
-IB/libIBAMR_IB2d_a-IBAnchorPointSpec.o \
-IB/libIBAMR_IB2d_a-IBAnchorPointSpecFactory.o \
-IB/libIBAMR_IB2d_a-IBBeamForceGen.o \
-IB/libIBAMR_IB2d_a-IBBeamForceSpec.o \
-IB/libIBAMR_IB2d_a-IBBeamForceSpecFactory.o \
-IB/libIBAMR_IB2d_a-IBDataPostProcessor.o \
-IB/libIBAMR_IB2d_a-IBEulerianForceSetter.o \
-IB/libIBAMR_IB2d_a-IBEulerianSourceSetter.o \
-IB/libIBAMR_IB2d_a-IBHDF5Initializer.o \
-IB/libIBAMR_IB2d_a-IBHierarchyIntegrator.o \
-IB/libIBAMR_IB2d_a-IBImplicitHierarchyIntegrator.o \
-IB/libIBAMR_IB2d_a-IBInstrumentPanel.o \
-IB/libIBAMR_IB2d_a-IBInstrumentationSpec.o \
-IB/libIBAMR_IB2d_a-IBInstrumentationSpecFactory.o \
-IB/libIBAMR_IB2d_a-IBLagrangianForceStrategy.o \
-IB/libIBAMR_IB2d_a-IBLagrangianForceStrategySet.o \
-IB/libIBAMR_IB2d_a-IBLagrangianSourceStrategy.o \
-IB/libIBAMR_IB2d_a-IBMovingTargetPointForceGen.o \
-IB/libIBAMR_IB2d_a-IBMovingTargetPointForceSpecFactory.o \
-IB/libIBAMR_IB2d_a-IBMovingTargetPointForceSpec.o \
-IB/libIBAMR_IB2d_a-IBSpringForceGen.o \
-IB/libIBAMR_IB2d_a-IBSpringForceSpecFactory.o \
-IB/libIBAMR_IB2d_a-IBSpringForceSpec.o \
-IB/libIBAMR_IB2d_a-IBStaggeredHierarchyIntegrator.o \
-IB/libIBAMR_IB2d_a-IBStandardForceGen.o \
-IB/libIBAMR_IB2d_a-IBStandardInitializer.o \
-IB/libIBAMR_IB2d_a-IBTargetPointForceGen.o \
-IB/libIBAMR_IB2d_a-IBTargetPointForceSpecFactory.o \
-IB/libIBAMR_IB2d_a-IBTargetPointForceSpec.o \
-adv_diff/fortran/adv_diff_consdiff2d.o \
-adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHierarchyIntegrator.o \
-adv_diff/libIBAMR_adv_diff2d_a-AdvDiffHypPatchOps.o \
-advect/fortran/advect_diff2d.o \
-advect/fortran/advect_stable2d.o \
-advect/fortran/advect_detect2d.o \
-advect/fortran/godunov_predictors2d.o \
-advect/fortran/weno_fluxes2d.o \
-advect/libIBAMR_advect2d_a-AdvectHypPatchOps.o \
-advect/libIBAMR_advect2d_a-GodunovAdvector.o \
-navier_stokes/fortran/navier_stokes_bdryop2d.o \
-navier_stokes/fortran/navier_stokes_divsource2d.o \
-navier_stokes/fortran/navier_stokes_stabledt2d.o \
-navier_stokes/fortran/navier_stokes_staggered_derivatives2d.o \
-navier_stokes/fortran/navier_stokes_staggered_helpers2d.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-HierarchyProjector.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSHierarchyIntegrator.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSIntermediateVelocityBcCoef.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSProjectionBcCoef.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredBlockFactorizationPreconditioner.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredCenteredConvectiveOperator.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredHierarchyIntegrator.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredIntermediateVelocityBcCoef.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredPPMConvectiveOperator.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredPhysicalBoundaryHelper.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredPressureBcCoef.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredProjectionBcCoef.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredProjectionPreconditioner.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredStokesOperator.o \
-navier_stokes/libIBAMR_navier_stokes2d_a-INSStaggeredVelocityBcCoef.o \
-utilities/libIBAMR_utilities2d_a-get_version.o
-libIBAMR2d_a_SOURCES = # intentionally blank
+DIM_INDEPENDENT_SOURCES = \
+IB/IBAnchorPointSpec.C \
+IB/IBAnchorPointSpecFactory.C \
+IB/IBBeamForceGen.C \
+IB/IBBeamForceSpec.C \
+IB/IBBeamForceSpecFactory.C \
+IB/IBDataPostProcessor.C \
+IB/IBEulerianForceSetter.C \
+IB/IBEulerianSourceSetter.C \
+IB/IBHDF5Initializer.C \
+IB/IBHierarchyIntegrator.C \
+IB/IBImplicitHierarchyIntegrator.C \
+IB/IBInstrumentPanel.C \
+IB/IBInstrumentationSpec.C \
+IB/IBInstrumentationSpecFactory.C \
+IB/IBLagrangianForceStrategy.C \
+IB/IBLagrangianForceStrategySet.C \
+IB/IBLagrangianSourceStrategy.C \
+IB/IBMovingTargetPointForceGen.C \
+IB/IBMovingTargetPointForceSpec.C \
+IB/IBMovingTargetPointForceSpecFactory.C \
+IB/IBSpringForceGen.C \
+IB/IBSpringForceSpec.C \
+IB/IBSpringForceSpecFactory.C \
+IB/IBStaggeredHierarchyIntegrator.C \
+IB/IBStandardForceGen.C \
+IB/IBStandardInitializer.C \
+IB/IBTargetPointForceGen.C \
+IB/IBTargetPointForceSpec.C \
+IB/IBTargetPointForceSpecFactory.C \
+adv_diff/AdvDiffHierarchyIntegrator.C \
+adv_diff/AdvDiffHypPatchOps.C \
+advect/AdvectHypPatchOps.C \
+advect/GodunovAdvector.C \
+navier_stokes/HierarchyProjector.C \
+navier_stokes/INSCoefs.C \
+navier_stokes/INSHierarchyIntegrator.C \
+navier_stokes/INSIntermediateVelocityBcCoef.C \
+navier_stokes/INSProjectionBcCoef.C \
+navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C \
+navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
+navier_stokes/INSStaggeredHierarchyIntegrator.C \
+navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C \
+navier_stokes/INSStaggeredPPMConvectiveOperator.C \
+navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
+navier_stokes/INSStaggeredPressureBcCoef.C \
+navier_stokes/INSStaggeredProjectionBcCoef.C \
+navier_stokes/INSStaggeredProjectionPreconditioner.C \
+navier_stokes/INSStaggeredStokesOperator.C \
+navier_stokes/INSStaggeredVelocityBcCoef.C
 
-libIBAMR3d_a_LIBADD = \
-IB/libIBAMR_IB3d_a-IBAnchorPointSpec.o \
-IB/libIBAMR_IB3d_a-IBAnchorPointSpecFactory.o \
-IB/libIBAMR_IB3d_a-IBBeamForceGen.o \
-IB/libIBAMR_IB3d_a-IBBeamForceSpec.o \
-IB/libIBAMR_IB3d_a-IBBeamForceSpecFactory.o \
-IB/libIBAMR_IB3d_a-IBDataPostProcessor.o \
-IB/libIBAMR_IB3d_a-IBEulerianForceSetter.o \
-IB/libIBAMR_IB3d_a-IBEulerianSourceSetter.o \
-IB/libIBAMR_IB3d_a-IBHDF5Initializer.o \
-IB/libIBAMR_IB3d_a-IBHierarchyIntegrator.o \
-IB/libIBAMR_IB3d_a-IBImplicitHierarchyIntegrator.o \
-IB/libIBAMR_IB3d_a-IBInstrumentPanel.o \
-IB/libIBAMR_IB3d_a-IBInstrumentationSpec.o \
-IB/libIBAMR_IB3d_a-IBInstrumentationSpecFactory.o \
-IB/libIBAMR_IB3d_a-IBLagrangianForceStrategy.o \
-IB/libIBAMR_IB3d_a-IBLagrangianForceStrategySet.o \
-IB/libIBAMR_IB3d_a-IBLagrangianSourceStrategy.o \
-IB/libIBAMR_IB3d_a-IBMovingTargetPointForceGen.o \
-IB/libIBAMR_IB3d_a-IBMovingTargetPointForceSpecFactory.o \
-IB/libIBAMR_IB3d_a-IBMovingTargetPointForceSpec.o \
-IB/libIBAMR_IB3d_a-IBSpringForceGen.o \
-IB/libIBAMR_IB3d_a-IBSpringForceSpecFactory.o \
-IB/libIBAMR_IB3d_a-IBSpringForceSpec.o \
-IB/libIBAMR_IB3d_a-IBStaggeredHierarchyIntegrator.o \
-IB/libIBAMR_IB3d_a-IBStandardForceGen.o \
-IB/libIBAMR_IB3d_a-IBStandardInitializer.o \
-IB/libIBAMR_IB3d_a-IBTargetPointForceGen.o \
-IB/libIBAMR_IB3d_a-IBTargetPointForceSpecFactory.o \
-IB/libIBAMR_IB3d_a-IBTargetPointForceSpec.o \
-adv_diff/fortran/adv_diff_consdiff3d.o \
-adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHierarchyIntegrator.o \
-adv_diff/libIBAMR_adv_diff3d_a-AdvDiffHypPatchOps.o \
-advect/fortran/advect_diff3d.o \
-advect/fortran/advect_stable3d.o \
-advect/fortran/advect_detect3d.o \
-advect/fortran/godunov_predictors3d.o \
-advect/libIBAMR_advect3d_a-AdvectHypPatchOps.o \
-advect/libIBAMR_advect3d_a-GodunovAdvector.o \
-navier_stokes/fortran/navier_stokes_bdryop3d.o \
-navier_stokes/fortran/navier_stokes_divsource3d.o \
-navier_stokes/fortran/navier_stokes_stabledt3d.o \
-navier_stokes/fortran/navier_stokes_staggered_derivatives3d.o \
-navier_stokes/fortran/navier_stokes_staggered_helpers3d.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-HierarchyProjector.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSHierarchyIntegrator.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSIntermediateVelocityBcCoef.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSProjectionBcCoef.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredBlockFactorizationPreconditioner.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredCenteredConvectiveOperator.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredHierarchyIntegrator.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredIntermediateVelocityBcCoef.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredPPMConvectiveOperator.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredPhysicalBoundaryHelper.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredPressureBcCoef.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredProjectionBcCoef.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredProjectionPreconditioner.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredStokesOperator.o \
-navier_stokes/libIBAMR_navier_stokes3d_a-INSStaggeredVelocityBcCoef.o \
-utilities/libIBAMR_utilities3d_a-get_version.o
-libIBAMR3d_a_SOURCES = # intentionally blank
+pkg_include_HEADERS += \
+IB/IBAnchorPointSpec.I \
+IB/IBAnchorPointSpec.h \
+IB/IBAnchorPointSpecFactory.h \
+IB/IBBeamForceGen.h \
+IB/IBBeamForceSpec.I \
+IB/IBBeamForceSpec.h \
+IB/IBBeamForceSpecFactory.h \
+IB/IBDataPostProcessor.h \
+IB/IBEulerianForceSetter.h \
+IB/IBEulerianSourceSetter.h \
+IB/IBHDF5Initializer.h \
+IB/IBHierarchyIntegrator.h \
+IB/IBImplicitHierarchyIntegrator.h \
+IB/IBInstrumentPanel.h \
+IB/IBInstrumentationSpec.I \
+IB/IBInstrumentationSpec.h \
+IB/IBInstrumentationSpecFactory.h \
+IB/IBLagrangianForceStrategy.h \
+IB/IBLagrangianForceStrategySet.h \
+IB/IBLagrangianSourceStrategy.h \
+IB/IBMovingTargetPointForceGen.h \
+IB/IBMovingTargetPointForceSpec.I \
+IB/IBMovingTargetPointForceSpec.h \
+IB/IBMovingTargetPointForceSpecFactory.h \
+IB/IBSpringForceGen.h \
+IB/IBSpringForceSpec.I \
+IB/IBSpringForceSpec.h \
+IB/IBSpringForceSpecFactory.h \
+IB/IBStaggeredHierarchyIntegrator.h \
+IB/IBStandardForceGen.h \
+IB/IBStandardInitializer.h \
+IB/IBTargetPointForceGen.h \
+IB/IBTargetPointForceSpec.I \
+IB/IBTargetPointForceSpec.h \
+IB/IBTargetPointForceSpecFactory.h \
+adv_diff/AdvDiffHierarchyIntegrator.h \
+adv_diff/AdvDiffHypPatchOps.h \
+advect/AdvectHypPatchOps.h \
+advect/GodunovAdvector.h \
+navier_stokes/HierarchyProjector.h \
+navier_stokes/INSCoefs.h \
+navier_stokes/INSHierarchyIntegrator.h \
+navier_stokes/INSIntermediateVelocityBcCoef.h \
+navier_stokes/INSProjectionBcCoef.h \
+navier_stokes/INSStaggeredBlockFactorizationPreconditioner.h \
+navier_stokes/INSStaggeredCenteredConvectiveOperator.h \
+navier_stokes/INSStaggeredHierarchyIntegrator.h \
+navier_stokes/INSStaggeredIntermediateVelocityBcCoef.h \
+navier_stokes/INSStaggeredPPMConvectiveOperator.h \
+navier_stokes/INSStaggeredPhysicalBoundaryHelper.h \
+navier_stokes/INSStaggeredPressureBcCoef.h \
+navier_stokes/INSStaggeredProjectionBcCoef.h \
+navier_stokes/INSStaggeredProjectionPreconditioner.h \
+navier_stokes/INSStaggeredStokesOperator.h \
+navier_stokes/INSStaggeredVelocityBcCoef.h
+
+libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+adv_diff/fortran/adv_diff_consdiff2d.f \
+advect/fortran/advect_detect2d.f \
+advect/fortran/advect_diff2d.f \
+advect/fortran/advect_stable2d.f \
+advect/fortran/godunov_predictors2d.f \
+advect/fortran/weno_fluxes2d.f \
+navier_stokes/fortran/navier_stokes_bdryop2d.f \
+navier_stokes/fortran/navier_stokes_divsource2d.f \
+navier_stokes/fortran/navier_stokes_godunov_predictors2d.f \
+navier_stokes/fortran/navier_stokes_stabledt2d.f \
+navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f \
+navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
+
+libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+libIBAMR3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+adv_diff/fortran/adv_diff_consdiff3d.f \
+advect/fortran/advect_detect3d.f \
+advect/fortran/advect_diff3d.f \
+advect/fortran/advect_stable3d.f \
+advect/fortran/godunov_predictors3d.f \
+navier_stokes/fortran/navier_stokes_bdryop3d.f \
+navier_stokes/fortran/navier_stokes_divsource3d.f \
+navier_stokes/fortran/navier_stokes_stabledt3d.f \
+navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f \
+navier_stokes/fortran/navier_stokes_staggered_helpers3d.f

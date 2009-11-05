@@ -1,6 +1,5 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = .
 
 bin_PROGRAMS = ascii2hdf2d ascii2hdf3d m3D_hdf5_fiber_converter m3D_hdf5_marker_converter m3D_hdf5_strain_analyzer marker_flooder3d
 

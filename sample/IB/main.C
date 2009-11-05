@@ -1,1 +1,1 @@
-../../src/tests/IB/cell_centered/ex0/main.C
+../../examples/IB/cell_centered/ex0/main.C

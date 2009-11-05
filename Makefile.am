@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = doc ibtk src
+SUBDIRS = doc ibtk src examples
 ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST  = autogen.sh
@@ -63,10 +63,20 @@ EXTRA_DIST += include/ibamr/INSStaggeredStokesOperator.h
 EXTRA_DIST += include/ibamr/INSStaggeredVelocityBcCoef.h
 EXTRA_DIST += include/ibamr/TGACoefs.h
 EXTRA_DIST += include/ibamr/get_version.h
+EXTRA_DIST += sample/IB/Makefile.in
+EXTRA_DIST += sample/IB/curve2d_128.spring
+EXTRA_DIST += sample/IB/curve2d_128.vertex
+EXTRA_DIST += sample/IB/curve2d_256.spring
+EXTRA_DIST += sample/IB/curve2d_256.vertex
+EXTRA_DIST += sample/IB/curve2d_64.spring
+EXTRA_DIST += sample/IB/curve2d_64.vertex
 EXTRA_DIST += sample/IB/input2d
 EXTRA_DIST += sample/IB/input3d
 EXTRA_DIST += sample/IB/main.C
-EXTRA_DIST += sample/IB/Makefile
+EXTRA_DIST += sample/IB/shell2d_128.spring
+EXTRA_DIST += sample/IB/shell2d_128.vertex
+EXTRA_DIST += sample/IB/shell2d_256.spring
+EXTRA_DIST += sample/IB/shell2d_256.vertex
 EXTRA_DIST += sample/IB/shell2d_64.spring
 EXTRA_DIST += sample/IB/shell2d_64.vertex
 EXTRA_DIST += sample/IB/sphere3d.spring
@@ -77,7 +87,8 @@ all-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(top_srcdir)/sample/IB/input[23]d $(top_builddir)/sample/IB ; \
 	  cp -f $(top_srcdir)/sample/IB/main.C $(top_builddir)/sample/IB ; \
-	  cp -f $(top_srcdir)/sample/IB/shell2d_64.{spring,vertex} $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/curve2d_{64,128,256}.{spring,vertex} $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/shell2d_{64,128,256}.{spring,vertex} $(top_builddir)/sample/IB ; \
 	  cp -f $(top_srcdir)/sample/IB/sphere3d.{spring,vertex} $(top_builddir)/sample/IB ; \
 	fi ;
 

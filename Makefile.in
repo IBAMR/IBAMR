@@ -113,6 +113,7 @@ distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -362,11 +363,11 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = Makefile.in
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_srcdir}/third_party/qd-2.3.7/include -I${top_builddir}/third_party/qd-2.3.7/include
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_srcdir}/ibtk/third_party/qd-2.3.7/include -I${top_builddir}/ibtk/third_party/qd-2.3.7/include
 AM_FFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = doc ibtk src
+SUBDIRS = doc ibtk src examples
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/AdvDiffHierarchyIntegrator.h \
@@ -424,10 +425,15 @@ EXTRA_DIST = autogen.sh doc/Doxyfile doc/libstdc++.tag \
 	include/ibamr/INSStaggeredStokesOperator.h \
 	include/ibamr/INSStaggeredVelocityBcCoef.h \
 	include/ibamr/TGACoefs.h include/ibamr/get_version.h \
-	sample/IB/input2d sample/IB/input3d sample/IB/main.C \
-	sample/IB/Makefile sample/IB/shell2d_64.spring \
-	sample/IB/shell2d_64.vertex sample/IB/sphere3d.spring \
-	sample/IB/sphere3d.vertex
+	sample/IB/Makefile.in sample/IB/curve2d_128.spring \
+	sample/IB/curve2d_128.vertex sample/IB/curve2d_256.spring \
+	sample/IB/curve2d_256.vertex sample/IB/curve2d_64.spring \
+	sample/IB/curve2d_64.vertex sample/IB/input2d \
+	sample/IB/input3d sample/IB/main.C \
+	sample/IB/shell2d_128.spring sample/IB/shell2d_128.vertex \
+	sample/IB/shell2d_256.spring sample/IB/shell2d_256.vertex \
+	sample/IB/shell2d_64.spring sample/IB/shell2d_64.vertex \
+	sample/IB/sphere3d.spring sample/IB/sphere3d.vertex
 all: all-recursive
 
 .SUFFIXES:
@@ -925,7 +931,8 @@ all-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(top_srcdir)/sample/IB/input[23]d $(top_builddir)/sample/IB ; \
 	  cp -f $(top_srcdir)/sample/IB/main.C $(top_builddir)/sample/IB ; \
-	  cp -f $(top_srcdir)/sample/IB/shell2d_64.{spring,vertex} $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/curve2d_{64,128,256}.{spring,vertex} $(top_builddir)/sample/IB ; \
+	  cp -f $(top_srcdir)/sample/IB/shell2d_{64,128,256}.{spring,vertex} $(top_builddir)/sample/IB ; \
 	  cp -f $(top_srcdir)/sample/IB/sphere3d.{spring,vertex} $(top_builddir)/sample/IB ; \
 	fi ;
 
