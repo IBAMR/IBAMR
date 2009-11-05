@@ -10,7 +10,9 @@ lib_LIBRARIES += libIBAMR3d.a
 endif
 
 all-local:
-	ln -fs $(lib_LIBRARIES) $(top_builddir)/src/
+	for file in "lib*.a" ; do \
+	  ln -fs $(PWD)/$$file $(PWD)/../src; \
+	done
 
 ## Dimension-independent library
 libIBAMR_a_SOURCES = \

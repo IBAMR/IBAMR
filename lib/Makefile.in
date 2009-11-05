@@ -2575,7 +2575,9 @@ uninstall-am: uninstall-libLIBRARIES uninstall-pkg_includeHEADERS
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
 all-local:
-	ln -fs $(lib_LIBRARIES) $(top_builddir)/src/
+	for file in "lib*.a" ; do \
+	  ln -fs $(PWD)/$$file $(PWD)/../src; \
+	done
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
