@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <04.Nov.2009 11:59:51 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <20.Nov.2009 10:08:15 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -2143,6 +2143,8 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
+    const int num_marks_before_coarsening = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
+
     // Collect all marker data on the patch hierarchy.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > mark_coarsen_alg = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
     mark_coarsen_alg->registerCoarsen(d_mark_scratch_idx, d_mark_current_idx, new IBTK::LagMarkerCoarsen());
@@ -2187,6 +2189,18 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
 
         // Deallocate scratch data.
         coarser_level->deallocatePatchData(d_mark_scratch_idx);
+    }
+
+    // Ensure that the total number of markers is correct.
+    const int num_marks_after_coarsening = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
+    const int num_marks_after_coarsening_level_0 = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
+    if (num_marks_before_coarsening != num_marks_after_coarsening || num_marks_before_coarsening != num_marks_after_coarsening_level_0)
+    {
+        TBOX_ERROR(d_object_name << "::collectMarkersOnPatchHierarchy()\n"
+                   << "  number of marker particles changed during collection to coarsest level\n"
+                   << "  number of markers in hierarchy before collection to coarsest level = " << num_marks_before_coarsening << "\n"
+                   << "  number of markers in hierarchy after  collection to coarsest level = " << num_marks_after_coarsening << "\n"
+                   << "  number of markers on level 0   after  collection to coarsest level = " << num_marks_after_coarsening_level_0 << "\n");
     }
 
     // Reset the assignment of markers to Cartesian grid cells on the coarsest
@@ -2267,6 +2281,18 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
 
         // Swap the old and new patch data pointers.
         patch->setPatchData(d_mark_current_idx, new_mark_data);
+    }
+
+    // Ensure that the total number of markers is correct.
+    const int num_marks_after_posn_reset = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
+    const int num_marks_after_posn_reset_level_0 = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
+    if (num_marks_before_coarsening != num_marks_after_posn_reset || num_marks_before_coarsening != num_marks_after_posn_reset_level_0)
+    {
+        TBOX_ERROR(d_object_name << "::collectMarkersOnPatchHierarchy()\n"
+                   << "  number of marker particles changed during collection to coarsest level\n"
+                   << "  number of markers in hierarchy before collection to coarsest level = " << num_marks_before_coarsening << "\n"
+                   << "  number of markers in hierarchy after  collection to coarsest level = " << num_marks_after_posn_reset << "\n"
+                   << "  number of markers on level 0   after  collection to coarsest level = " << num_marks_after_posn_reset_level_0 << "\n");
     }
     return;
 }// collectMarkersOnPatchHierarchy
