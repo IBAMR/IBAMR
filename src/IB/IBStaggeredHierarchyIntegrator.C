@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <20.Nov.2009 11:15:35 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <20.Nov.2009 11:21:54 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -2216,7 +2216,8 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
     mark_level_fill_alg->createSchedule(level,NULL)->fillData(d_integrator_time);
     level->deallocatePatchData(d_mark_scratch_idx);
     int added_counter = 0;
-    int total_counter = 0;
+    int interior_counter = 0;
+    int ghost_counter = 0;
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -2277,7 +2278,11 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
 
                 if (current_mark_data->getBox().contains(it.getIndex()))
                 {
-                    total_counter++;
+                    interior_counter++;
+                }
+                else
+                {
+                    ghost_counter++;
                 }
             }
         }
@@ -2288,7 +2293,8 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
 
     // Ensure that the total number of markers is correct.
     SAMRAI::tbox::plog << "added_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(added_counter) << "\n";
-    SAMRAI::tbox::plog << "total_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(total_counter) << "\n";
+    SAMRAI::tbox::plog << "interior_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(interior_counter) << "\n";
+    SAMRAI::tbox::plog << "ghost_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(ghost_counter) << "\n";
     const int num_marks_after_posn_reset = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
     const int num_marks_after_posn_reset_level_0 = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
     if (num_marks_before_coarsening != num_marks_after_posn_reset || num_marks_before_coarsening != num_marks_after_posn_reset_level_0)
