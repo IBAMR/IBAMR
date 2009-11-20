@@ -9,7 +9,7 @@ if SAMRAI3D_ENABLED
 lib_LIBRARIES += libIBAMR3d.a
 endif
 
-all-local:
+all-local: $(lib_LIBRARIES)
 	for file in "lib*.a" ; do \
 	  ln -fs $(PWD)/$$file $(PWD)/../src; \
 	done

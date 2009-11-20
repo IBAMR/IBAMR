@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <20.Nov.2009 10:08:15 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <20.Nov.2009 10:15:35 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -2289,7 +2289,7 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
     if (num_marks_before_coarsening != num_marks_after_posn_reset || num_marks_before_coarsening != num_marks_after_posn_reset_level_0)
     {
         TBOX_ERROR(d_object_name << "::collectMarkersOnPatchHierarchy()\n"
-                   << "  number of marker particles changed during collection to coarsest level\n"
+                   << "  number of marker particles changed during position reset on coarsest level\n"
                    << "  number of markers in hierarchy before collection to coarsest level = " << num_marks_before_coarsening << "\n"
                    << "  number of markers in hierarchy after  collection to coarsest level = " << num_marks_after_posn_reset << "\n"
                    << "  number of markers on level 0   after  collection to coarsest level = " << num_marks_after_posn_reset_level_0 << "\n");

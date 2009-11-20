@@ -2574,7 +2574,7 @@ uninstall-am: uninstall-libLIBRARIES uninstall-pkg_includeHEADERS
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
-all-local:
+all-local: $(lib_LIBRARIES)
 	for file in "lib*.a" ; do \
 	  ln -fs $(PWD)/$$file $(PWD)/../src; \
 	done
