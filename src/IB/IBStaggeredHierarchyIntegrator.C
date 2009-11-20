@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <20.Nov.2009 12:54:01 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <20.Nov.2009 15:03:51 griffith@netnyuotp008599ots.med.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -2144,6 +2144,7 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     const int num_marks_before_coarsening = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
+    const int num_marks_before_coarsening_level_0 = countMarkers(0,0,false);
 
     // Collect all marker data on the patch hierarchy.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > mark_coarsen_alg = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
@@ -2193,12 +2194,13 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
 
     // Ensure that the total number of markers is correct.
     const int num_marks_after_coarsening = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
-    const int num_marks_after_coarsening_level_0 = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
+    const int num_marks_after_coarsening_level_0 = countMarkers(0,0,false);
     if (num_marks_before_coarsening != num_marks_after_coarsening || num_marks_before_coarsening != num_marks_after_coarsening_level_0)
     {
         TBOX_ERROR(d_object_name << "::collectMarkersOnPatchHierarchy()\n"
                    << "  number of marker particles changed during collection to coarsest level\n"
                    << "  number of markers in hierarchy before collection to coarsest level = " << num_marks_before_coarsening << "\n"
+                   << "  number of markers on level 0   before collection to coarsest level = " << num_marks_before_coarsening_level_0 << "\n"
                    << "  number of markers in hierarchy after  collection to coarsest level = " << num_marks_after_coarsening << "\n"
                    << "  number of markers on level 0   after  collection to coarsest level = " << num_marks_after_coarsening_level_0 << "\n");
     }
@@ -2217,7 +2219,7 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
     level->deallocatePatchData(d_mark_scratch_idx);
     int added_counter = 0;
     int interior_counter = 0;
-    int ghost_counter = 0;
+    int not_owned_counter = 0;
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -2279,10 +2281,13 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
                 if (current_mark_data->getBox().contains(it.getIndex()))
                 {
                     interior_counter++;
-                }
-                else
-                {
-                    ghost_counter++;
+                    if (!patch_owns_node_at_new_loc)
+                    {
+                        not_owned_counter++;
+                        SAMRAI::tbox::plog << "patchXLower: " << patchXLower[0] << " " << patchXLower[1] << " " << patchXLower[2] << "\n";
+                        SAMRAI::tbox::plog << "patchXUpper: " << patchXUpper[0] << " " << patchXUpper[1] << " " << patchXUpper[2] << "\n";
+                        SAMRAI::tbox::plog << "X: " << X_shifted[0] << " " << X_shifted[1] << " " << X_shifted[2] << "\n\n";
+                    }
                 }
             }
         }
@@ -2294,11 +2299,17 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
     // Ensure that the total number of markers is correct.
     SAMRAI::tbox::plog << "added_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(added_counter) << "\n";
     SAMRAI::tbox::plog << "interior_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(interior_counter) << "\n";
-    SAMRAI::tbox::plog << "ghost_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(ghost_counter) << "\n";
+    SAMRAI::tbox::plog << "not_owned_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(not_owned_counter) << "\n";
     const int num_marks_after_posn_reset = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
     const int num_marks_after_posn_reset_level_0 = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
     if (num_marks_before_coarsening != num_marks_after_posn_reset || num_marks_before_coarsening != num_marks_after_posn_reset_level_0)
     {
+        SAMRAI::tbox::plog << d_object_name << "::collectMarkersOnPatchHierarchy()\n"
+                           << "  number of marker particles changed during collection to coarsest level\n"
+                           << "  number of markers in hierarchy before collection to coarsest level = " << num_marks_before_coarsening << "\n"
+                           << "  number of markers on level 0   before collection to coarsest level = " << num_marks_before_coarsening_level_0 << "\n"
+                           << "  number of markers in hierarchy after  collection to coarsest level = " << num_marks_after_coarsening << "\n"
+                           << "  number of markers on level 0   after  collection to coarsest level = " << num_marks_after_coarsening_level_0 << "\n";
         TBOX_ERROR(d_object_name << "::collectMarkersOnPatchHierarchy()\n"
                    << "  number of marker particles changed during position reset on coarsest level\n"
                    << "  number of markers in hierarchy before position reset on coarsest level = " << num_marks_before_coarsening << "\n"
