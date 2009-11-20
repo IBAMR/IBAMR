@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <20.Nov.2009 11:21:54 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <20.Nov.2009 12:54:01 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -964,7 +964,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                 // Compute X_mark(n+1) = X_mark(n) + dt*U_mark(n+1/2).
                 for (unsigned k = 0; k < X_mark.size(); ++k)
                 {
-                    X_mark_new[k] = X_mark[k] + dt*U_mark_half[k];
+                    X_mark_new[k] = X_mark[k]; // XXXX + dt*U_mark_half[k];
                 }
 
                 // Prevent markers from leaving the computational domain through
