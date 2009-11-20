@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <20.Nov.2009 10:55:38 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <20.Nov.2009 11:15:35 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -2208,14 +2208,15 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
     //
     // NOTE: It is important to do this only *after* collecting markers on the
     // patch hierarchy, as markers which have left a fine level through the
-    // coarse-fine interface are discarded by this procedure.
+    // coarse-fine interface would be discarded by this procedure.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > mark_level_fill_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     mark_level_fill_alg->registerRefine(d_mark_current_idx, d_mark_current_idx, d_mark_scratch_idx, NULL);
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(coarsest_ln);
     level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
     mark_level_fill_alg->createSchedule(level,NULL)->fillData(d_integrator_time);
     level->deallocatePatchData(d_mark_scratch_idx);
-    int counter = 0;
+    int added_counter = 0;
+    int total_counter = 0;
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -2271,7 +2272,12 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
                     new_X.insert(new_X.end(),X_shifted,X_shifted+NDIM);
                     new_U.insert(new_U.end(),U,U+NDIM);
                     new_idx.push_back(idx);
-                    counter++;
+                    added_counter++;
+                }
+
+                if (current_mark_data->getBox().contains(it.getIndex()))
+                {
+                    total_counter++;
                 }
             }
         }
@@ -2281,7 +2287,8 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
     }
 
     // Ensure that the total number of markers is correct.
-    SAMRAI::tbox::plog << "counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(counter) << "\n";
+    SAMRAI::tbox::plog << "added_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(added_counter) << "\n";
+    SAMRAI::tbox::plog << "total_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(total_counter) << "\n";
     const int num_marks_after_posn_reset = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
     const int num_marks_after_posn_reset_level_0 = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
     if (num_marks_before_coarsening != num_marks_after_posn_reset || num_marks_before_coarsening != num_marks_after_posn_reset_level_0)
