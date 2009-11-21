@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <20.Nov.2009 19:09:25 griffith@netnyuotp008599ots.med.nyu.edu>
+// Last modified: <20.Nov.2009 19:17:53 griffith@netnyuotp008599ots.med.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -816,12 +816,9 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > mark_data = patch->getPatchData(d_mark_current_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > mark_data         = patch->getPatchData(d_mark_current_idx);
             SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
-            for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> >::Iterator it(*mark_data); it; it++)
-            {
-                mark_scratch_data->appendItem(it.getIndex(),it.getItem());
-            }
+            mark_scratch_data->copy(*mark_data);
         }
     }
 
@@ -906,13 +903,14 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 #endif
                 for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> >::Iterator it(*mark_data); it; it++)
                 {
-                    if (patch_box.contains(it.getIndex()))
+                    const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                    if (patch_box.contains(i))
                     {
-                        const IBTK::LagMarker& mark = it.getItem();
-                        const std::vector<double>& X = mark.getPositions();
+                        const IBTK::LagMarker* mark = mark_data->getItem(i);
+                        const std::vector<double>& X = mark->getPositions();
                         X_mark.insert(X_mark.end(), X.begin(), X.end());
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        const std::vector<int>& idx = mark.getIndices();
+                        const std::vector<int>& idx = mark->getIndices();
                         idx_mark.insert(idx_mark.end(), idx.begin(), idx.end());
 #endif
                     }
@@ -924,15 +922,16 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 #ifdef DEBUG_CHECK_ASSERTIONS
                 std::vector<int> idx_mark_new;
 #endif
-                for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> >::Iterator it(*mark_scratch_data); it; it++)
+                for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> >::Iterator it(*mark_data); it; it++)
                 {
-                    if (patch_box.contains(it.getIndex()))
+                    const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                    if (patch_box.contains(i))
                     {
-                        const IBTK::LagMarker& mark_new = it.getItem();
-                        const std::vector<double>& X_new = mark_new.getPositions();
+                        const IBTK::LagMarker* mark_new = mark_scratch_data->getItem(i);
+                        const std::vector<double>& X_new = mark_new->getPositions();
                         X_mark_new.insert(X_mark_new.end(), X_new.begin(), X_new.end());
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        const std::vector<int>& idx_new = mark_new.getIndices();
+                        const std::vector<int>& idx_new = mark_new->getIndices();
                         idx_mark_new.insert(idx_mark_new.end(), idx_new.begin(), idx_new.end());
 #endif
                     }
@@ -987,14 +986,15 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 
                 // Store the updated marker positions.
                 int marker_offset = 0;
-                for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> >::Iterator it(*mark_scratch_data); it; it++)
+                for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> >::Iterator it(*mark_data); it; it++)
                 {
-                    if (patch_box.contains(it.getIndex()))
+                    const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
+                    if (patch_box.contains(it))
                     {
-                        IBTK::LagMarker& mark_new = it.getItem();
-                        const int nmarks = mark_new.getNumberOfMarkers();
+                        IBTK::LagMarker* mark_new = mark_scratch_data->getItem();
+                        const int nmarks = mark_new->getNumberOfMarkers();
                         std::vector<double> X(X_mark_new.begin()+NDIM*marker_offset,X_mark_new.begin()+NDIM*(marker_offset+nmarks));
-                        mark_new.setPositions(X);
+                        mark_new->setPositions(X);
                         marker_offset += nmarks;
                     }
                 }
@@ -2212,9 +2212,6 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
     level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
     mark_level_fill_alg->createSchedule(level,NULL)->fillData(d_integrator_time);
     level->deallocatePatchData(d_mark_scratch_idx);
-    int added_counter = 0;
-    int interior_counter = 0;
-    int not_owned_counter = 0;
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -2270,19 +2267,6 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
                     new_X.insert(new_X.end(),X_shifted,X_shifted+NDIM);
                     new_U.insert(new_U.end(),U,U+NDIM);
                     new_idx.push_back(idx);
-                    added_counter++;
-                }
-
-                if (current_mark_data->getBox().contains(it.getIndex()))
-                {
-                    interior_counter++;
-                    if (!patch_owns_node_at_new_loc)
-                    {
-                        not_owned_counter++;
-                        SAMRAI::tbox::plog << "patchXLower: " << patchXLower[0] << " " << patchXLower[1] << " " << patchXLower[2] << "\n";
-                        SAMRAI::tbox::plog << "patchXUpper: " << patchXUpper[0] << " " << patchXUpper[1] << " " << patchXUpper[2] << "\n";
-                        SAMRAI::tbox::plog << "X: " << X_shifted[0] << " " << X_shifted[1] << " " << X_shifted[2] << "\n\n";
-                    }
                 }
             }
         }
@@ -2292,19 +2276,10 @@ IBStaggeredHierarchyIntegrator::collectMarkersOnPatchHierarchy()
     }
 
     // Ensure that the total number of markers is correct.
-    SAMRAI::tbox::plog << "added_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(added_counter) << "\n";
-    SAMRAI::tbox::plog << "interior_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(interior_counter) << "\n";
-    SAMRAI::tbox::plog << "not_owned_counter = " << SAMRAI::tbox::SAMRAI_MPI::sumReduction(not_owned_counter) << "\n";
     const int num_marks_after_posn_reset = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
     const int num_marks_after_posn_reset_level_0 = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
     if (num_marks_before_coarsening != num_marks_after_posn_reset || num_marks_before_coarsening != num_marks_after_posn_reset_level_0)
     {
-        SAMRAI::tbox::plog << d_object_name << "::collectMarkersOnPatchHierarchy()\n"
-                           << "  number of marker particles changed during collection to coarsest level\n"
-                           << "  number of markers in hierarchy before collection to coarsest level = " << num_marks_before_coarsening << "\n"
-                           << "  number of markers on level 0   before collection to coarsest level = " << num_marks_before_coarsening_level_0 << "\n"
-                           << "  number of markers in hierarchy after  collection to coarsest level = " << num_marks_after_coarsening << "\n"
-                           << "  number of markers on level 0   after  collection to coarsest level = " << num_marks_after_coarsening_level_0 << "\n";
         TBOX_ERROR(d_object_name << "::collectMarkersOnPatchHierarchy()\n"
                    << "  number of marker particles changed during position reset on coarsest level\n"
                    << "  number of markers in hierarchy before position reset on coarsest level = " << num_marks_before_coarsening << "\n"
