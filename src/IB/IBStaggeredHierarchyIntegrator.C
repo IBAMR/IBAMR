@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <20.Nov.2009 19:17:53 griffith@netnyuotp008599ots.med.nyu.edu>
+// Last modified: <20.Nov.2009 19:18:52 griffith@netnyuotp008599ots.med.nyu.edu>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -989,9 +989,9 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                 for (SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> >::Iterator it(*mark_data); it; it++)
                 {
                     const SAMRAI::hier::Index<NDIM>& i = it.getIndex();
-                    if (patch_box.contains(it))
+                    if (patch_box.contains(i))
                     {
-                        IBTK::LagMarker* mark_new = mark_scratch_data->getItem();
+                        IBTK::LagMarker* mark_new = mark_scratch_data->getItem(i);
                         const int nmarks = mark_new->getNumberOfMarkers();
                         std::vector<double> X(X_mark_new.begin()+NDIM*marker_offset,X_mark_new.begin()+NDIM*(marker_offset+nmarks));
                         mark_new->setPositions(X);
