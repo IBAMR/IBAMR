@@ -204,3 +204,111 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Convert a side-centered vector field into a face-centered vector
+c     field.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine navier_stokes_side_to_face2d(
+     &     ifirst0,ilast0,
+     &     ifirst1,ilast1,
+     &     u_sc0,u_sc1,u_sc_gcw,
+     &     u_fc0,u_fc1,u_fc_gcw)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0
+      INTEGER ifirst1,ilast1
+
+      INTEGER u_sc_gcw,u_fc_gcw
+
+      REAL u_sc0(SIDE2d0(ifirst,ilast,u_sc_gcw))
+      REAL u_sc1(SIDE2d1(ifirst,ilast,u_sc_gcw))
+c
+c     Input/Output.
+c
+      REAL u_fc0(FACE2d0(ifirst,ilast,u_sc_gcw))
+      REAL u_fc1(FACE2d1(ifirst,ilast,u_sc_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      INTEGER gcw
+c
+c     Swap the velocity values.
+c
+      gcw = min(u_sc_gcw,u_fc_gcw)
+
+      do i1 = ifirst1-gcw,ilast1+gcw
+         do i0 = ifirst0-gcw,ilast0+gcw+1
+            u_fc0(i0,i1) = u_sc0(i0,i1)
+         enddo
+      enddo
+
+      do i1 = ifirst1-gcw,ilast1+gcw+1
+         do i0 = ifirst0-gcw,ilast0+gcw
+            u_fc1(i1,i0) = u_sc1(i0,i1)
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Convert a face-centered vector field into a side-centered vector
+c     field.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine navier_stokes_face_to_sie2d(
+     &     ifirst0,ilast0,
+     &     ifirst1,ilast1,
+     &     u_fc0,u_fc1,u_fc_gcw,
+     &     u_sc0,u_sc1,u_sc_gcw)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0
+      INTEGER ifirst1,ilast1
+
+      INTEGER u_fc_gcw,u_sc_gcw
+
+      REAL u_fc0(FACE2d0(ifirst,ilast,u_sc_gcw))
+      REAL u_fc1(FACE2d1(ifirst,ilast,u_sc_gcw))
+c
+c     Input/Output.
+c
+      REAL u_sc0(SIDE2d0(ifirst,ilast,u_sc_gcw))
+      REAL u_sc1(SIDE2d1(ifirst,ilast,u_sc_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      INTEGER gcw
+c
+c     Swap the velocity values.
+c
+      gcw = min(u_sc_gcw,u_fc_gcw)
+
+      do i1 = ifirst1-gcw,ilast1+gcw
+         do i0 = ifirst0-gcw,ilast0+gcw+1
+            u_sc0(i0,i1) = u_fc0(i0,i1)
+         enddo
+      enddo
+
+      do i1 = ifirst1-gcw,ilast1+gcw+1
+         do i0 = ifirst0-gcw,ilast0+gcw
+            u_sc1(i0,i1) = u_fc1(i1,i0)
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
