@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <04.Nov.2009 12:47:10 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <24.Nov.2009 17:45:24 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -44,12 +44,13 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION_FC FC_FUNC_(navier_stokes_sc_regrid_apply_correction2d,NAVIER_STOKES_SC_REGRID_APPLY_CORRECTION2D)
 #define NAVIER_STOKES_SC_STABLEDT_FC FC_FUNC_(navier_stokes_sc_stabledt2d, NAVIER_STOKES_SC_STABLEDT2D)
+#define NAVIER_STOKES_SIDE_TO_FACE_FC FC_FUNC_(navier_stokes_side_to_face2d, NAVIER_STOKES_SIDE_TO_FACE2D)
 #endif
 
 #if (NDIM == 3)
 #define NAVIER_STOKES_SC_STABLEDT_FC FC_FUNC_(navier_stokes_sc_stabledt3d, NAVIER_STOKES_SC_STABLEDT3D)
+#define NAVIER_STOKES_SIDE_TO_FACE_FC FC_FUNC_(navier_stokes_side_to_face3d, NAVIER_STOKES_SIDE_TO_FACE3D)
 #endif
 
 extern "C"
@@ -68,6 +69,22 @@ extern "C"
         const double* , const double* , const double* ,
 #endif
         double&
+                                  );
+
+    void
+    NAVIER_STOKES_SIDE_TO_FACE_FC(
+#if (NDIM == 2)
+        const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* , const int& ,
+        double* , double* , const int&
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* , const int& ,
+        double* , double* , double* , const int&
+#endif
                                   );
 }
 
@@ -404,6 +421,14 @@ INSStaggeredHierarchyIntegrator::registerSourceSpecification(
 }// registerSourceSpecification
 
 void
+INSStaggeredHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
+    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
+{
+    d_adv_diff_hier_integrator = adv_diff_hier_integrator;
+    return;
+}// registerAdvDiffHierarchyIntegrator
+
+void
 INSStaggeredHierarchyIntegrator::registerVisItDataWriter(
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer)
 {
@@ -411,6 +436,10 @@ INSStaggeredHierarchyIntegrator::registerVisItDataWriter(
     TBOX_ASSERT(!visit_writer.isNull());
 #endif
     d_visit_writer = visit_writer;
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        d_adv_diff_hier_integrator->registerVisItDataWriter(visit_writer);
+    }
     return;
 }// registerVisItDataWriter
 
@@ -699,6 +728,16 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         {
             d_visit_writer->registerPlotQuantity(d_Div_U_var->getName(), "SCALAR", d_Div_U_current_idx);
         }
+    }
+
+    // Setup (optional) advection-diffusion variables.
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        // NOTE: Memory management for the face-centered advection velocity is
+        // handled by the advection-diffusion hierarchy integrator class.
+        d_U_fc_var = new SAMRAI::pdat::FaceVariable<NDIM,double>(d_object_name+"::U_fc");
+        d_adv_diff_hier_integrator->registerAdvectionVelocity(d_U_fc_var, d_Q_setter.isNull());
+        d_adv_diff_hier_integrator->initializeHierarchyIntegrator(d_gridding_alg);
     }
 
     // Set the current integration time.
@@ -1087,6 +1126,10 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(
     integrateHierarchy_initialize(current_time, new_time);
     for (int cycle = 0; cycle < d_num_cycles; ++cycle)
     {
+        if (!d_adv_diff_hier_integrator.isNull() && cycle > 0)
+        {
+            d_adv_diff_hier_integrator->resetHierDataToPreadvanceState();
+        }
         integrateHierarchy(current_time, new_time);
     }
     integrateHierarchy_finalize(current_time, new_time);
@@ -1425,6 +1468,57 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
 
+    // Update the values of any advected-and-diffused quantities registered with
+    // the optional advection-diffusion solver.
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+        const int u_adv_idx = var_db->mapVariableAndContextToIndex(d_U_fc_var, d_adv_diff_hier_integrator->getCurrentContext());
+        const int coarsest_ln = 0;
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
+                const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_half_data = patch->getPatchData(U_half_idx);
+                const int u_half_data_gcw = u_half_data->getGhostCellWidth().min();
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(u_half_data_gcw == u_half_data->getGhostCellWidth().max());
+#endif
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_adv_data = patch->getPatchData(u_adv_idx);
+                const int u_adv_data_gcw = u_adv_data->getGhostCellWidth().min();
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(u_adv_data_gcw == u_adv_data->getGhostCellWidth().max());
+#endif
+                NAVIER_STOKES_SIDE_TO_FACE_FC(
+                    patch_lower(0), patch_upper(0),
+                    patch_lower(1), patch_upper(1),
+#if (NDIM == 3)
+                    patch_lower(2), patch_upper(2),
+#endif
+                    u_half_data->getPointer(0),
+                    u_half_data->getPointer(1),
+#if (NDIM == 3)
+                    u_half_data->getPointer(2),
+#endif
+                    u_half_data_gcw,
+                    u_adv_data->getPointer(0),
+                    u_adv_data->getPointer(1),
+#if (NDIM == 3)
+                    u_adv_data->getPointer(2),
+#endif
+                    u_adv_data_gcw);
+            }
+        }
+        d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time);
+        d_adv_diff_hier_integrator->synchronizeHierarchy();
+    }
+
     // Enforce Dirichlet boundary conditions.
     d_U_bc_helper->resetValuesAtDirichletBoundaries(d_sol_vec->getComponentDescriptorIndex(0));
 
@@ -1564,6 +1658,11 @@ INSStaggeredHierarchyIntegrator::synchronizeHierarchy()
         d_cscheds["SYNCH_NEW_STATE_DATA"][ln]->coarsenData();
     }
 
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        d_adv_diff_hier_integrator->synchronizeHierarchy();
+    }
+
     t_synchronize_hierarchy->stop();
     return;
 }// synchronizeHierarchy
@@ -1595,6 +1694,12 @@ INSStaggeredHierarchyIntegrator::synchronizeNewLevels(
         {
             d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
         }
+    }
+
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        d_adv_diff_hier_integrator->synchronizeNewLevels(hierarchy, coarsest_level, finest_level,
+                                                         sync_time, initial_time);
     }
 
     t_synchronize_new_levels->stop();
@@ -1655,6 +1760,11 @@ INSStaggeredHierarchyIntegrator::resetTimeDependentHierData(
         level->deallocatePatchData(d_new_data);
     }
 
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        d_adv_diff_hier_integrator->resetTimeDependentHierData(new_time);
+    }
+
     t_reset_time_dependent_data->stop();
     return;
 }// resetTimeDependentHierData
@@ -1674,6 +1784,11 @@ INSStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()
         level->setTime(d_integrator_time, d_current_data);
         level->deallocatePatchData(d_scratch_data);
         level->deallocatePatchData(d_new_data);
+    }
+
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        d_adv_diff_hier_integrator->resetHierDataToPreadvanceState();
     }
 
     t_reset_data_to_preadvance_state->stop();
@@ -1996,6 +2111,14 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
         }
     }
 
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        d_adv_diff_hier_integrator->
+            initializeLevelData(hierarchy, level_number, init_data_time,
+                                can_be_refined, initial_time, old_level,
+                                allocate_data);
+    }
+
     t_initialize_level_data->stop();
     return;
 }// initializeLevelData
@@ -2106,6 +2229,11 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     // Indicate that we need to perform a regrid projection.
     d_needs_regrid_projection = true;
 
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        d_adv_diff_hier_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+    }
+
     t_reset_hierarchy_configuration->stop();
     return;
 }// resetHierarchyConfiguration
@@ -2136,6 +2264,14 @@ INSStaggeredHierarchyIntegrator::applyGradientDetector(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tags_data = patch->getPatchData(tag_index);
         tags_data->fillAll(0);
+    }
+
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        d_adv_diff_hier_integrator->
+            applyGradientDetector(hierarchy, level_number, error_data_time,
+                                  tag_index, initial_time,
+                                  uses_richardson_extrapolation_too);
     }
 
     // Tag cells based on the magnatude of the vorticity.

@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <04.Nov.2009 12:27:35 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <24.Nov.2009 16:40:52 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -11,6 +11,7 @@
 #include <petsc.h>
 
 // IBAMR INCLUDES
+#include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSCoefs.h>
 #include <ibamr/INSStaggeredBlockFactorizationPreconditioner.h>
 #include <ibamr/INSStaggeredPPMConvectiveOperator.h>
@@ -134,6 +135,13 @@ public:
     void
     registerSourceSpecification(
         SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_setter);
+
+    /*!
+     * Supply an optional advection-diffusion solver object.
+     */
+    void
+    registerAdvDiffHierarchyIntegrator(
+        SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator);
 
     /*!
      * Register a VisIt data writer so this object will write plot files that
@@ -1084,6 +1092,13 @@ private:
     SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_setter, d_Q_setter;
 
     /*
+     * Optional advection-diffusion solver which will use the computed
+     * incompressible velocity field to advect and diffuse associated
+     * quantities.
+     */
+    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
+
+    /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
      * are used for data management.
      */
@@ -1108,6 +1123,7 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_U_fc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_extrap_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_var;

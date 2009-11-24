@@ -230,8 +230,8 @@ c
 c
 c     Input/Output.
 c
-      REAL u_fc0(FACE2d0(ifirst,ilast,u_sc_gcw))
-      REAL u_fc1(FACE2d1(ifirst,ilast,u_sc_gcw))
+      REAL u_fc0(FACE2d0(ifirst,ilast,u_fc_gcw))
+      REAL u_fc1(FACE2d1(ifirst,ilast,u_fc_gcw))
 c
 c     Local variables.
 c
@@ -264,7 +264,7 @@ c     field.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine navier_stokes_face_to_sie2d(
+      subroutine navier_stokes_face_to_side2d(
      &     ifirst0,ilast0,
      &     ifirst1,ilast1,
      &     u_fc0,u_fc1,u_fc_gcw,
@@ -279,8 +279,8 @@ c
 
       INTEGER u_fc_gcw,u_sc_gcw
 
-      REAL u_fc0(FACE2d0(ifirst,ilast,u_sc_gcw))
-      REAL u_fc1(FACE2d1(ifirst,ilast,u_sc_gcw))
+      REAL u_fc0(FACE2d0(ifirst,ilast,u_fc_gcw))
+      REAL u_fc1(FACE2d1(ifirst,ilast,u_fc_gcw))
 c
 c     Input/Output.
 c

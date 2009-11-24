@@ -367,9 +367,9 @@ c
 c
 c     Input/Output.
 c
-      REAL u_fc0(FACE3d0(ifirst,ilast,u_sc_gcw))
-      REAL u_fc1(FACE3d1(ifirst,ilast,u_sc_gcw))
-      REAL u_fc2(FACE3d2(ifirst,ilast,u_sc_gcw))
+      REAL u_fc0(FACE3d0(ifirst,ilast,u_fc_gcw))
+      REAL u_fc1(FACE3d1(ifirst,ilast,u_fc_gcw))
+      REAL u_fc2(FACE3d2(ifirst,ilast,u_fc_gcw))
 c
 c     Local variables.
 c
@@ -431,9 +431,9 @@ c
 
       INTEGER u_fc_gcw,u_sc_gcw
 
-      REAL u_fc0(FACE3d0(ifirst,ilast,u_sc_gcw))
-      REAL u_fc1(FACE3d1(ifirst,ilast,u_sc_gcw))
-      REAL u_fc2(FACE3d2(ifirst,ilast,u_sc_gcw))
+      REAL u_fc0(FACE3d0(ifirst,ilast,u_fc_gcw))
+      REAL u_fc1(FACE3d1(ifirst,ilast,u_fc_gcw))
+      REAL u_fc2(FACE3d2(ifirst,ilast,u_fc_gcw))
 c
 c     Input/Output.
 c
