@@ -6,8 +6,8 @@ SOURCES = main.C
 EXTRA_DIST  = input2d input3d
 EXTRA_DIST += generate_mesh2d.m
 
-EXTRA_DIST += curve2d_64.vertex curve2d_128.vertex curve2d_256.vertex
-EXTRA_DIST += curve2d_64.spring curve2d_128.spring curve2d_256.spring
+EXTRA_DIST += curve2d_64.vertex curve2d_128.vertex curve2d_256.vertex curve2d_512.vertex curve2d_1024.vertex
+EXTRA_DIST += curve2d_64.spring curve2d_128.spring curve2d_256.spring curve2d_512.spring curve2d_1024.spring
 EXTRA_DIST += shell2d_64.vertex shell2d_128.vertex shell2d_256.vertex
 EXTRA_DIST += shell2d_64.spring shell2d_128.spring shell2d_256.spring
 EXTRA_DIST += sphere3d.vertex sphere3d.spring
@@ -31,7 +31,7 @@ main3d_SOURCES = $(SOURCES)
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/curve2d_{64,128,256}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/curve2d_{64,128,256,512,1024}.{vertex,spring} $(PWD) ; \
 	  cp -f $(srcdir)/shell2d_{64,128,256}.{vertex,spring} $(PWD) ; \
 	  cp -f $(srcdir)/sphere3d.{vertex,spring} $(PWD) ; \
 	fi ;
@@ -40,7 +40,7 @@ clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input[23]d ; \
-	  rm -f $(builddir)/curve2d_{64,128,256}.{vertex,spring} ; \
+	  rm -f $(builddir)/curve2d_{64,128,256,512,1024}.{vertex,spring} ; \
 	  rm -f $(builddir)/shell2d_{64,128,256}.{vertex,spring} ; \
 	  rm -f $(builddir)/sphere3d.{vertex,spring} ; \
 	fi ;

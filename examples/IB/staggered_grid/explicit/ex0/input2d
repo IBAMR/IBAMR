@@ -197,6 +197,9 @@ Main {
 
 // timer dump parameters
    timer_dump_interval   = 0           // zero to turn off
+
+// post processor parameters
+   postprocess_interval = NFINEST/32   // zero to turn off
 }
 
 CartesianGeometry {
