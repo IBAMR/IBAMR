@@ -1,5 +1,0 @@
-NOTE: These files essentially correspond to the versions of the
-incompressible Navier-Stokes solver from revision 121 of IBAMR.
-
-These solvers yield results that are essentially identical to those
-recorded in Griffith's PhD thesis.
