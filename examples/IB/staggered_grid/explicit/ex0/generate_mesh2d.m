@@ -2,7 +2,7 @@
 
 % Problem parameters
 
-NFINEST = 16;  % NFINEST = 4 corresponds to a uniform grid spacing of h=1/64
+NFINEST = 4;  % NFINEST = 4 corresponds to a uniform grid spacing of h=1/64
 
 width = 0.0; %4.0/64.0;
 alpha = 0.2;
