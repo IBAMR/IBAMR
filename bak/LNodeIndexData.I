@@ -1,0 +1,29 @@
+// Filename: LNodeIndexData.I
+// Last modified: <17.Apr.2007 18:25:19 griffith@box221.cims.nyu.edu>
+// Created on 17 Apr 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+namespace IBAMR
+{
+/////////////////////////////// PUBLIC ///////////////////////////////////////
+
+inline const std::vector<int>&
+LNodeIndexData::getInteriorLocalIndices() const
+{
+    return d_interior_local_indices;
+}// getInteriorLocalIndices
+
+inline const std::vector<int>&
+LNodeIndexData::getGhostLocalIndices() const
+{
+    return d_ghost_local_indices;
+}// getGhostLocalIndices
+
+//////////////////////////////////////////////////////////////////////////////
+
+}// namespace IBAMR
+
+//////////////////////////////////////////////////////////////////////////////
