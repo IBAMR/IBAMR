@@ -2453,7 +2453,7 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
-clean-am: clean-generic clean-libLIBRARIES mostlyclean-am
+clean-am: clean-generic clean-libLIBRARIES clean-local mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -2511,7 +2511,7 @@ uninstall-am: uninstall-libLIBRARIES uninstall-pkg_includeHEADERS
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am all-local check check-am clean \
-	clean-generic clean-libLIBRARIES ctags distclean \
+	clean-generic clean-libLIBRARIES clean-local ctags distclean \
 	distclean-compile distclean-generic distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-data install-data-am install-dvi install-dvi-am \
@@ -2532,6 +2532,11 @@ all-local: $(lib_LIBRARIES)
 	for file in "lib*.a" ; do \
 	  ln -fs $(PWD)/$$file $(PWD)/../src; \
 	done
+
+clean-local:
+	rm -f $(PWD)/../src/libIBAMR.a
+	rm -f $(PWD)/../src/libIBAMR2d.a
+	rm -f $(PWD)/../src/libIBAMR3d.a
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
