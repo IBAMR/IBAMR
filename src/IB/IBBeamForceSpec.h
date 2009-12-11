@@ -2,7 +2,7 @@
 #define included_IBBeamForceSpec
 
 // Filename: IBBeamForceSpec.h
-// Last modified: <03.Sep.2008 17:25:37 griffith@box230.cims.nyu.edu>
+// Last modified: <10.Dec.2009 19:19:04 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -194,7 +194,7 @@ private:
     /*!
      * Data required to define the beam forces.
      */
-    int d_num_beams, d_master_idx;
+    int d_master_idx;
     std::vector<NeighborIdxs> d_neighbor_idxs;
     std::vector<double> d_bend_rigidities;
     std::vector<std::vector<double> > d_mesh_dependent_curvatures;
