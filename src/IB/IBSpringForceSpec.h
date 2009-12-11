@@ -2,7 +2,7 @@
 #define included_IBSpringForceSpec
 
 // Filename: IBSpringForceSpec.h
-// Last modified: <12.Mar.2008 22:38:41 griffith@box221.cims.nyu.edu>
+// Last modified: <10.Dec.2009 19:15:22 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -224,7 +224,7 @@ private:
     /*!
      * Data required to define the spring forces.
      */
-    int d_num_springs, d_master_idx;
+    int d_master_idx;
     std::vector<int> d_slave_idxs, d_force_fcn_idxs;
     std::vector<double> d_stiffnesses, d_rest_lengths;
 };

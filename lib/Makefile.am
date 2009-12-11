@@ -14,6 +14,11 @@ all-local: $(lib_LIBRARIES)
 	  ln -fs $(PWD)/$$file $(PWD)/../src; \
 	done
 
+clean-local:
+	rm -f $(PWD)/../src/libIBAMR.a
+	rm -f $(PWD)/../src/libIBAMR2d.a
+	rm -f $(PWD)/../src/libIBAMR3d.a
+
 ## Dimension-independent library
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
