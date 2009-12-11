@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpec.I
-// Last modified: <10.Dec.2009 19:21:22 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <10.Dec.2009 20:03:55 griffith@boyce-griffiths-mac-pro.local>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -57,8 +57,8 @@ IBBeamForceSpec::~IBBeamForceSpec()
 inline unsigned
 IBBeamForceSpec::getNumberOfBeams() const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
     const int num_beams = d_neighbor_idxs.size();
+#ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(num_beams == int(d_bend_rigidities.size()));
     TBOX_ASSERT(num_beams == int(d_mesh_dependent_curvatures.size()));
 #endif
