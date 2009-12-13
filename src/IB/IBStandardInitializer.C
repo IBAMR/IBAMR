@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <10.Dec.2009 17:20:51 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <13.Dec.2009 17:56:00 griffith@griffith-macbook-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -25,7 +25,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
-#include <ibtk/LNodeIndexData2.h>
+#include <ibtk/LNodeIndexData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -260,12 +260,12 @@ IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     IBTK::LDataManager* const lag_manager)
 {
     (void) lag_manager;
-    for (int j = 0, offset = 0;
-         j < int(d_base_filename[level_number].size());
-         ++j, offset += d_num_vertex[level_number][j])
+    int offset = 0;
+    for (int j = 0; j < int(d_base_filename[level_number].size()); ++j)
     {
         strct_id_to_strct_name_map   [j] = d_base_filename[level_number][j];
         strct_id_to_lag_idx_range_map[j] = std::make_pair(offset,offset+d_num_vertex[level_number][j]);
+        offset += d_num_vertex[level_number][j];
     }
     return;
 }// initializeStructureIndexingOnPatchLevel
@@ -312,8 +312,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
         const double* const xUpper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> index_data =
-            patch->getPatchData(lag_node_index_idx);
+        SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> index_data = patch->getPatchData(lag_node_index_idx);
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -363,10 +362,14 @@ IBStandardInitializer::initializeDataOnPatchLevel(
                 initializeSpecs(
                     point_idx, global_index_offset, level_number);
 
-            IBTK::LNodeIndexSet& node_set = (*index_data)(idx);
+            if (!index_data->isElement(idx))
+            {
+                index_data->appendItemPointer(idx, new IBTK::LNodeIndexSet());
+            }
+            IBTK::LNodeIndexSet* const node_set = index_data->getItem(idx);
             static const SAMRAI::hier::IntVector<NDIM> periodic_offset(0);
             static const std::vector<double> periodic_displacement(NDIM,0.0);
-            node_set.push_back(
+            node_set->push_back(
                 new IBTK::LNodeIndex(current_global_idx, current_local_idx,
                                      &(*X_data)(current_local_idx),
                                      periodic_offset, periodic_displacement,

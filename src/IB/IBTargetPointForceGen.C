@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <02.Nov.2009 11:12:11 griffith@griffith-macbook-pro.local>
+// Last modified: <13.Dec.2009 15:52:14 griffith@griffith-macbook-pro.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
@@ -21,7 +21,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/LNodeIndexData2.h>
+#include <ibtk/LNodeIndexData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -121,7 +121,7 @@ IBTargetPointForceGen::computeLagrangianForce(
                    << "  physical domain must be a single box.\n");
     }
 
-    // Get the patch data descriptor index for the LNodeIndexData2.
+    // Get the patch data descriptor index for the LNodeIndexData.
     const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
 
     // Compute the penalty force associated with the Lagrangian target points.
@@ -132,50 +132,39 @@ IBTargetPointForceGen::computeLagrangianForce(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data =
-            patch->getPatchData(lag_node_index_idx);
-
-        for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
+        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+             it != idx_data->lnode_index_end(); ++it)
         {
-            const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-            const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
-            for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin();
-                 n != node_set.end(); ++n)
+            const IBTK::LNodeIndex& node_idx = *it;
+            SAMRAI::tbox::Pointer<IBTargetPointForceSpec> force_spec = node_idx.getStashData<IBTargetPointForceSpec>();
+            if (!force_spec.isNull())
             {
-                const IBTK::LNodeIndexSet::value_type& node_idx = *n;
-                const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data = node_idx->getStashData();
-                for (unsigned l = 0; l < stash_data.size(); ++l)
-                {
-                    SAMRAI::tbox::Pointer<IBTargetPointForceSpec> force_spec = stash_data[l];
-                    if (!force_spec.isNull())
-                    {
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        const int& mastr_idx = node_idx->getLagrangianIndex();
-                        TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
+                const int& mastr_idx = node_idx.getLagrangianIndex();
+                TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
-                        const double& kappa_target = force_spec->getStiffness();
-                        const double&   eta_target = force_spec->getDamping();
-                        if (!SAMRAI::tbox::MathUtilities<double>::equalEps(kappa_target,0.0) ||
-                            !SAMRAI::tbox::MathUtilities<double>::equalEps(  eta_target,0.0))
-                        {
-                            const int& petsc_idx = node_idx->getLocalPETScIndex();
-                            const double* const X = &X_arr[NDIM*petsc_idx];
-                            const double* const U = &U_arr[NDIM*petsc_idx];
-                            const std::vector<double>& X_target = force_spec->getTargetPointPosition();
+                const double& kappa_target = force_spec->getStiffness();
+                const double&   eta_target = force_spec->getDamping();
+                if (!SAMRAI::tbox::MathUtilities<double>::equalEps(kappa_target,0.0) ||
+                    !SAMRAI::tbox::MathUtilities<double>::equalEps(  eta_target,0.0))
+                {
+                    const int& petsc_idx = node_idx.getLocalPETScIndex();
+                    const double* const X = &X_arr[NDIM*petsc_idx];
+                    const double* const U = &U_arr[NDIM*petsc_idx];
+                    const std::vector<double>& X_target = force_spec->getTargetPointPosition();
 
-                            double* const F = &F_arr[NDIM*petsc_idx];
-                            double displacement = 0.0;
-                            for (int d = 0; d < NDIM; ++d)
-                            {
-                                F[d] += kappa_target*(X_target[d] - X[d]) - eta_target*(U[d]);
-                                displacement += pow(X_target[d] - X[d],2.0);
-                            }
-                            displacement = sqrt(displacement);
-                            if (displacement > max_config_displacement)
-                            {
-                                max_config_displacement = displacement;
-                            }
-                        }
+                    double* const F = &F_arr[NDIM*petsc_idx];
+                    double displacement = 0.0;
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        F[d] += kappa_target*(X_target[d] - X[d]) - eta_target*(U[d]);
+                        displacement += pow(X_target[d] - X[d],2.0);
+                    }
+                    displacement = sqrt(displacement);
+                    if (displacement > max_config_displacement)
+                    {
+                        max_config_displacement = displacement;
                     }
                 }
             }
@@ -216,7 +205,7 @@ IBTargetPointForceGen::computeLagrangianForceJacobianNonzeroStructure(
 
     t_compute_lagrangian_force_jacobian_nonzero_structure->start();
 
-    // Get the patch data descriptor index for the LNodeIndexData2.
+    // Get the patch data descriptor index for the LNodeIndexData.
     const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
 
     // Determine the PETSc indices of the target point nodes and the
@@ -226,30 +215,20 @@ IBTargetPointForceGen::computeLagrangianForceJacobianNonzeroStructure(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
+        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+             it != idx_data->lnode_index_end(); ++it)
         {
-            const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-            const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
-            for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin();
-                 n != node_set.end(); ++n)
+            const IBTK::LNodeIndex& node_idx = *it;
+            SAMRAI::tbox::Pointer<IBTargetPointForceSpec> force_spec = node_idx.getStashData<IBTargetPointForceSpec>();
+            if (!force_spec.isNull())
             {
-                const IBTK::LNodeIndexSet::value_type& node_idx = *n;
-                const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data =
-                    node_idx->getStashData();
-                for (unsigned l = 0; l < stash_data.size(); ++l)
-                {
-                    SAMRAI::tbox::Pointer<IBTargetPointForceSpec> force_spec = stash_data[l];
-                    if (!force_spec.isNull())
-                    {
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        const int& mastr_idx = node_idx->getLagrangianIndex();
-                        TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
+                const int& mastr_idx = node_idx.getLagrangianIndex();
+                TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
-                        const int& local_petsc_idx = node_idx->getLocalPETScIndex();
-                        ++d_nnz[local_petsc_idx];
-                    }
-                }
+                const int& local_petsc_idx = node_idx.getLocalPETScIndex();
+                ++d_nnz[local_petsc_idx];
             }
         }
     }
@@ -277,7 +256,7 @@ IBTargetPointForceGen::computeLagrangianForceJacobian(
 
     int ierr;
 
-    // Get the patch data descriptor index for the LNodeIndexData2.
+    // Get the patch data descriptor index for the LNodeIndexData.
     const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
 
     // Determine the PETSc indices of the target point nodes and the
@@ -290,37 +269,27 @@ IBTargetPointForceGen::computeLagrangianForceJacobian(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
+        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+             it != idx_data->lnode_index_end(); ++it)
         {
-            const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-            const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
-            for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin();
-                 n != node_set.end(); ++n)
+            const IBTK::LNodeIndex& node_idx = *it;
+            SAMRAI::tbox::Pointer<IBTargetPointForceSpec> force_spec = node_idx.getStashData<IBTargetPointForceSpec>();
+            if (!force_spec.isNull())
             {
-                const IBTK::LNodeIndexSet::value_type& node_idx = *n;
-                const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data =
-                    node_idx->getStashData();
-                for (unsigned l = 0; l < stash_data.size(); ++l)
-                {
-                    SAMRAI::tbox::Pointer<IBTargetPointForceSpec> force_spec = stash_data[l];
-                    if (!force_spec.isNull())
-                    {
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        const int& mastr_idx = node_idx->getLagrangianIndex();
-                        TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
+                const int& mastr_idx = node_idx.getLagrangianIndex();
+                TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
-                        const int& local_petsc_idx = node_idx->getLocalPETScIndex();
-                        const int global_petsc_idx = local_petsc_idx+global_node_offset;
-                        global_petsc_idxs.push_back(global_petsc_idx);
+                const int& local_petsc_idx = node_idx.getLocalPETScIndex();
+                const int global_petsc_idx = local_petsc_idx+global_node_offset;
+                global_petsc_idxs.push_back(global_petsc_idx);
 
-                        const double& spring_stiffness = force_spec->getStiffness();
-                        spring_stiffnesses.push_back(spring_stiffness);
+                const double& spring_stiffness = force_spec->getStiffness();
+                spring_stiffnesses.push_back(spring_stiffness);
 
-                        const double& damping_coefficient = force_spec->getDamping();
-                        damping_coefficients.push_back(damping_coefficient);
-                    }
-                }
+                const double& damping_coefficient = force_spec->getDamping();
+                damping_coefficients.push_back(damping_coefficient);
             }
         }
     }

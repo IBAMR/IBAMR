@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <02.Nov.2009 11:26:31 griffith@griffith-macbook-pro.local>
+// Last modified: <13.Dec.2009 15:55:12 griffith@griffith-macbook-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -21,7 +21,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/LNodeIndexData2.h>
+#include <ibtk/LNodeIndexData.h>
 #include <ibtk/PETScVecOps.h>
 
 // SAMRAI INCLUDES
@@ -163,7 +163,7 @@ IBBeamForceGen::initializeLevelData(
     bend_rigidities.clear();
     mesh_dependent_curvatures.clear();
 
-    // The patch data descriptor index for the LNodeIndexData2.
+    // The patch data descriptor index for the LNodeIndexData.
     const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
 
     // Determine the "next" and "prev" node indices for all beams associated
@@ -172,46 +172,34 @@ IBBeamForceGen::initializeLevelData(
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data =
-            patch->getPatchData(lag_node_index_idx);
-
-        for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
+        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+             it != idx_data->lnode_index_end(); ++it)
         {
-            const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-            const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
-            for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin();
-                 n != node_set.end(); ++n)
+            const IBTK::LNodeIndex& node_idx = *it;
+            const SAMRAI::tbox::Pointer<IBBeamForceSpec> force_spec = node_idx.getStashData<IBBeamForceSpec>();
+            if (!force_spec.isNull())
             {
-                const IBTK::LNodeIndexSet::value_type& node_idx = *n;
-                const int& mastr_idx = node_idx->getLagrangianIndex();
-                const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data =
-                    node_idx->getStashData();
-                for (unsigned l = 0; l < stash_data.size(); ++l)
+                const int& mastr_idx = node_idx.getLagrangianIndex();
+                const unsigned num_beams = force_spec->getNumberOfBeams();
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
+#endif
+                const std::vector<std::pair<int,int> >& nghbrs = force_spec->getNeighborNodeIndices();
+                const std::vector<double>& bend = force_spec->getBendingRigidities();
+                const std::vector<std::vector<double> >& curv = force_spec->getMeshDependentCurvatures();
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(num_beams == nghbrs.size());
+                TBOX_ASSERT(num_beams == bend.size());
+                TBOX_ASSERT(num_beams == curv.size());
+#endif
+                for (unsigned k = 0; k < num_beams; ++k)
                 {
-                    SAMRAI::tbox::Pointer<IBBeamForceSpec> force_spec = stash_data[l];
-                    if (!force_spec.isNull())
-                    {
-                        const unsigned num_beams = force_spec->getNumberOfBeams();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                        TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
-#endif
-                        const std::vector<std::pair<int,int> >& nghbrs = force_spec->getNeighborNodeIndices();
-                        const std::vector<double>& bend = force_spec->getBendingRigidities();
-                        const std::vector<std::vector<double> >& curv = force_spec->getMeshDependentCurvatures();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                        TBOX_ASSERT(num_beams == nghbrs.size());
-                        TBOX_ASSERT(num_beams == bend.size());
-                        TBOX_ASSERT(num_beams == curv.size());
-#endif
-                        for (unsigned k = 0; k < num_beams; ++k)
-                        {
-                            petsc_mastr_node_idxs.push_back(mastr_idx);
-                            petsc_next_node_idxs.push_back(nghbrs[k].second);
-                            petsc_prev_node_idxs.push_back(nghbrs[k].first );
-                            bend_rigidities.push_back(bend[k]);
-                            mesh_dependent_curvatures.push_back(curv[k]);
-                        }
-                    }
+                    petsc_mastr_node_idxs.push_back(mastr_idx);
+                    petsc_next_node_idxs.push_back(nghbrs[k].second);
+                    petsc_prev_node_idxs.push_back(nghbrs[k].first );
+                    bend_rigidities.push_back(bend[k]);
+                    mesh_dependent_curvatures.push_back(curv[k]);
                 }
             }
         }

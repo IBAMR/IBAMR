@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <03.Dec.2009 13:03:12 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <13.Dec.2009 15:52:54 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -24,7 +24,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LEInteractor.h>
-#include <ibtk/LNodeIndexData2.h>
+#include <ibtk/LNodeIndexData.h>
 #include <ibtk/LagMarkerCoarsen.h>
 #include <ibtk/LagMarkerRefine.h>
 
@@ -1344,24 +1344,15 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
                 const int lag_node_index_idx = d_lag_data_manager->getLNodeIndexPatchDescriptorIndex();
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+                for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+                     it != idx_data->lnode_index_end(); ++it)
                 {
-                    const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-                    const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
-                    for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin();
-                         n != node_set.end(); ++n)
+                    const IBTK::LNodeIndex& node_idx = *it;
+                    SAMRAI::tbox::Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx.getStashData<IBAnchorPointSpec>();
+                    if (!anchor_point_spec.isNull())
                     {
-                        const IBTK::LNodeIndexSet::value_type& node_idx = *n;
-                        const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data = node_idx->getStashData();
-                        for (unsigned l = 0; l < stash_data.size(); ++l)
-                        {
-                            SAMRAI::tbox::Pointer<IBAnchorPointSpec> anchor_point_spec = stash_data[l];
-                            if (!anchor_point_spec.isNull())
-                            {
-                                d_anchor_point_local_idxs[ln].insert(node_idx->getLocalPETScIndex());
-                            }
-                        }
+                        d_anchor_point_local_idxs[ln].insert(node_idx.getLocalPETScIndex());
                     }
                 }
             }
@@ -1976,7 +1967,7 @@ IBStaggeredHierarchyIntegrator::spread(
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
                 const SAMRAI::hier::Box<NDIM>& box = idx_data->getGhostBox();
                 IBTK::LEInteractor::spread(f_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_delta_fcn);
             }
@@ -2045,7 +2036,7 @@ IBStaggeredHierarchyIntegrator::interp(
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_data = patch->getPatchData(u_data_idx);
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
                 const SAMRAI::hier::Box<NDIM>& box = idx_data->getBox();
                 IBTK::LEInteractor::interpolate(U_data[ln], X_data[ln], idx_data, u_data, patch, box, periodic_shift, d_interp_delta_fcn);
             }
