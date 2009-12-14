@@ -577,7 +577,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_ralgs["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVar(), "CONSERVATIVE_LINEAR_REFINE");
     d_ralgs["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_V_idx, U_current_idx, d_V_idx, refine_operator);
-    d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] = new IBTK::CartExtrapPhysBdryOp(d_V_idx, "QUADRATIC");
+    d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] = new IBTK::CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
 
     d_ralgs["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVar(), "CONSERVATIVE_LINEAR_REFINE");
@@ -595,7 +595,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     SAMRAI::hier::ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(U_scratch_idx);
     instrumentation_data_fill_bc_idxs.setFlag(P_scratch_idx);
-    d_rstrategies["INSTRUMENTATION_DATA_FILL"] = new IBTK::CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "QUADRATIC");
+    d_rstrategies["INSTRUMENTATION_DATA_FILL"] = new IBTK::CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
 
     // Set the current integration time.
     if (!SAMRAI::tbox::RestartManager::getManager()->isFromRestart())

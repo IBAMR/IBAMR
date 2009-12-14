@@ -668,7 +668,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         U_current_idx, // source
         d_V_idx,       // temporary work space
         refine_operator);
-    d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] = new IBTK::CartExtrapPhysBdryOp(d_V_idx, "QUADRATIC");
+    d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] = new IBTK::CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
 
     const int U_new_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
@@ -683,7 +683,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         U_new_idx, // source
         d_W_idx,   // temporary work space
         refine_operator);
-    d_rstrategies["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"] = new IBTK::CartExtrapPhysBdryOp(d_W_idx, "QUADRATIC");
+    d_rstrategies["U->W::N->S::CONSERVATIVE_LINEAR_REFINE"] = new IBTK::CartExtrapPhysBdryOp(d_W_idx, "LINEAR");
 
     const int U_scratch_idx = var_db->mapVariableAndContextToIndex(
         d_ins_hier_integrator->getVelocityVar(),
@@ -717,7 +717,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     SAMRAI::hier::ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(U_scratch_idx);
     instrumentation_data_fill_bc_idxs.setFlag(P_scratch_idx);
-    d_rstrategies["INSTRUMENTATION_DATA_FILL"] = new IBTK::CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "QUADRATIC");
+    d_rstrategies["INSTRUMENTATION_DATA_FILL"] = new IBTK::CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
 
     // NOTE: When using conservative averaging to coarsen the velocity from
     // finer levels to coarser levels, the appropriate prolongation operator for
@@ -734,8 +734,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                                          F_current_idx,     // source
                                          d_F_scratch1_idx,  // temporary work space
                                          refine_operator);
-    d_force_current_rstrategy = new IBTK::CartExtrapPhysBdryOp(
-        d_F_scratch1_idx, "QUADRATIC");
+    d_force_current_rstrategy = new IBTK::CartExtrapPhysBdryOp(d_F_scratch1_idx, "LINEAR");
 
     d_force_new_ralg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(
@@ -744,8 +743,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                                      d_F_idx,           // source
                                      d_F_scratch2_idx,  // temporary work space
                                      refine_operator);
-    d_force_new_rstrategy = new IBTK::CartExtrapPhysBdryOp(
-        d_F_scratch2_idx, "QUADRATIC");
+    d_force_new_rstrategy = new IBTK::CartExtrapPhysBdryOp(d_F_scratch2_idx, "LINEAR");
 
     if (!d_source_strategy.isNull())
     {
@@ -756,8 +754,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
                                       d_Q_idx,          // source
                                       d_Q_scratch_idx,  // temporary work space
                                       refine_operator);
-        d_source_rstrategy = new IBTK::CartExtrapPhysBdryOp(
-            d_Q_scratch_idx, "QUADRATIC");
+        d_source_rstrategy = new IBTK::CartExtrapPhysBdryOp(d_Q_scratch_idx, "LINEAR");
     }
 
     d_calgs["U->U::C->C::CONSERVATIVE_COARSEN"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
