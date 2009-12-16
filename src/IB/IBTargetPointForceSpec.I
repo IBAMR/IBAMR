@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceSpec.C
-// Last modified: <13.Aug.2009 13:07:10 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Dec.2009 19:23:25 griffith@boyce-griffiths-mac-pro.local>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,6 +21,29 @@ IBTargetPointForceSpec::getIsRegisteredWithStashableManager()
 }// getIsRegisteredWithStashableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+
+inline void*
+IBTargetPointForceSpec::operator new(
+    std::size_t size)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(size == sizeof(IBTargetPointForceSpec));
+#endif
+    return s_arena.alloc(size);
+}// operator new
+
+inline void
+IBTargetPointForceSpec::operator delete(
+    void* ptr,
+    std::size_t size)
+{
+    if (ptr == NULL) return;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(size == sizeof(IBTargetPointForceSpec));
+#endif
+    s_arena.free(ptr);
+    return;
+}// operator delete
 
 inline
 IBTargetPointForceSpec::IBTargetPointForceSpec(

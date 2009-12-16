@@ -2,12 +2,13 @@
 #define included_IBSpringForceSpec
 
 // Filename: IBSpringForceSpec.h
-// Last modified: <10.Dec.2009 19:15:22 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Dec.2009 19:22:22 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
+#include <ibtk/DynamicArena.h>
 #include <ibtk/Stashable.h>
 
 // SAMRAI INCLUDES
@@ -66,6 +67,21 @@ public:
      */
     static bool
     getIsRegisteredWithStashableManager();
+
+    /*!
+     * \brief Operator new.
+     */
+    static void*
+    operator new(
+        std::size_t size);
+
+    /*!
+     * \brief Operator delete.
+     */
+    static void
+    operator delete(
+        void* ptr,
+        std::size_t size);
 
     /*!
      * \brief Default constructor.
@@ -220,6 +236,11 @@ private:
      * The stashable ID for this object type.
      */
     static int s_stashable_id;
+
+    /*!
+     * Memory arena for allocating objects.
+     */
+    static IBTK::DynamicArena s_arena;
 
     /*!
      * Data required to define the spring forces.
