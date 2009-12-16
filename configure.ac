@@ -35,6 +35,9 @@ AC_ARG_WITH([mpi],
    fi
    if test -d "$withval/bin" ; then
      PATH="${withval}/bin:$PATH"
+   fi
+   if test -d "$withval/include" ; then
+     CPPFLAGS="-I${withval}/include $CPPFLAGS"
    fi],)
 AC_ARG_WITH([mpicc],
   AS_HELP_STRING(--with-mpicc=ARG,MPI C compiler command),
@@ -45,16 +48,9 @@ AC_ARG_WITH([mpicxx],
 
 AC_LANG_PUSH([C])
 ACX_MPI(,AC_MSG_WARN([unable to find working MPI C complier wrapper]))
-CC="$MPICC"
-if test "$MPICC" != "" ; then
-  CC="$MPICC"
-fi
 AC_LANG_POP([C])
 
 ACX_MPI(,AC_MSG_WARN([unable to find working MPI C++ compiler wrapper]))
-if test "$MPICXX" != "" ; then
-  CXX="$MPICXX"
-fi
 
 if test "$MPILIBS" != "" ; then
   LIBS="$MPILIBS $LIBS"
