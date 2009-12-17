@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <13.Dec.2009 15:52:54 griffith@griffith-macbook-pro.local>
+// Last modified: <17.Dec.2009 10:50:28 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -167,6 +167,7 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
       d_is_initialized(false),
       d_do_log(false),
       d_mark_input_file_name(""),
+      d_num_mark(0),
       d_mark_init_posns(),
       d_hier_cc_data_ops(),
       d_hier_sc_data_ops(),
@@ -232,7 +233,7 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
                 std::ifstream file_stream(d_mark_input_file_name.c_str(), std::ios::in);
 
                 // The first entry in the file is the number of markers.
-                int num_marks;
+                int d_num_mark;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << d_mark_input_file_name << "\n");
@@ -241,21 +242,21 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
                 {
                     line_string = discard_comments(line_string);
                     std::istringstream line_stream(line_string);
-                    if (!(line_stream >> num_marks))
+                    if (!(line_stream >> d_num_mark))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << d_mark_input_file_name << "\n");
                     }
                 }
 
-                if (num_marks <= 0)
+                if (d_num_mark <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << d_mark_input_file_name << "\n");
                 }
 
                 // Each successive line provides the initial position of each
                 // marker in the input file.
-                d_mark_init_posns.resize(NDIM*num_marks,0.0);
-                for (int k = 0; k < num_marks; ++k)
+                d_mark_init_posns.resize(NDIM*d_num_mark,0.0);
+                for (int k = 0; k < d_num_mark; ++k)
                 {
                     if (!std::getline(file_stream, line_string))
                     {
@@ -641,13 +642,12 @@ IBStaggeredHierarchyIntegrator::initializeHierarchy()
     pruneDuplicateMarkers(0,d_hierarchy->getFinestLevelNumber());
 
     // Ensure that we haven't misplaced any of the markers.
-    const int num_marks = d_mark_init_posns.size()/NDIM;
     const int num_marks_after_init = countMarkers(0,d_hierarchy->getFinestLevelNumber(),true);
-    if (num_marks != num_marks_after_init)
+    if (d_num_mark != num_marks_after_init)
     {
         TBOX_ERROR(d_object_name << "::initializeHierarchy()\n"
                    << "  number of marker particles is incorrect\n"
-                   << "  expected number of markers = " << num_marks << "\n"
+                   << "  expected number of markers = " << d_num_mark << "\n"
                    << "  actual   number of markers = " << num_marks_after_init << "\n");
     }
 
@@ -1875,23 +1875,19 @@ IBStaggeredHierarchyIntegrator::putToDatabase(
 
     db->putString("d_interp_delta_fcn", d_interp_delta_fcn);
     db->putString("d_spread_delta_fcn", d_spread_delta_fcn);
+    db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
+
+    const std::vector<std::string>& instrument_names = IBInstrumentationSpec::getInstrumentNames();
+    if (!instrument_names.empty())
+    {
+        db->putInteger("instrument_names_sz", instrument_names.size());
+        db->putStringArray("instrument_names", &instrument_names[0], instrument_names.size());
+    }
     db->putInteger("d_total_flow_volume_sz", d_total_flow_volume.size());
     if (!d_total_flow_volume.empty())
     {
         db->putDoubleArray("d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
     }
-    db->putDouble("d_start_time", d_start_time);
-    db->putDouble("d_end_time", d_end_time);
-    db->putDouble("d_grow_dt", d_grow_dt);
-    db->putInteger("d_max_integrator_steps", d_max_integrator_steps);
-    db->putInteger("d_num_cycles", d_num_cycles);
-    db->putInteger("d_regrid_interval", d_regrid_interval);
-    db->putDouble("d_old_dt", d_old_dt);
-    db->putDouble("d_integrator_time", d_integrator_time);
-    db->putInteger("d_integrator_step", d_integrator_step);
-    db->putDouble("d_dt_max", d_dt_max);
-    db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
-    db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
 
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     db->putInteger("finest_hier_level", finest_hier_level);
@@ -1910,11 +1906,31 @@ IBStaggeredHierarchyIntegrator::putToDatabase(
         }
     }
 
-    const std::vector<std::string> instrument_names = IBInstrumentationSpec::getInstrumentNames();
-    if (!instrument_names.empty())
+    db->putDouble("d_start_time", d_start_time);
+    db->putDouble("d_end_time", d_end_time);
+    db->putDouble("d_grow_dt", d_grow_dt);
+    db->putInteger("d_max_integrator_steps", d_max_integrator_steps);
+
+    db->putInteger("d_num_cycles", d_num_cycles);
+
+    db->putInteger("d_regrid_interval", d_regrid_interval);
+
+    db->putDouble("d_old_dt", d_old_dt);
+    db->putDouble("d_integrator_time", d_integrator_time);
+    db->putInteger("d_integrator_step", d_integrator_step);
+
+    db->putDouble("d_dt_max", d_dt_max);
+    db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
+    db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
+
+    db->putString("d_mark_input_file_name", d_mark_input_file_name);
+    db->putInteger("d_num_mark", d_num_mark);
+    if (d_num_mark > 0)
     {
-        db->putInteger("instrument_names_sz", instrument_names.size());
-        db->putStringArray("instrument_names", &instrument_names[0], instrument_names.size());
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(NDIM*d_num_mark == int(d_mark_init_posns.size()));
+#endif
+        db->putDoubleArray("d_mark_init_posns", &d_mark_init_posns[0], d_mark_init_posns.size());
     }
 
     t_put_to_database->stop();
@@ -2808,24 +2824,21 @@ IBStaggeredHierarchyIntegrator::getFromRestart()
 
     d_interp_delta_fcn = db->getString("d_interp_delta_fcn");
     d_spread_delta_fcn = db->getString("d_spread_delta_fcn");
+    db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
+
+    if (db->keyExists("instrument_names"))
+    {
+        const int sz = db->getInteger("instrument_names_sz");
+        std::vector<std::string> instrument_names(sz);
+        db->getStringArray("instrument_names", &instrument_names[0], sz);
+        IBInstrumentationSpec::setInstrumentNames(instrument_names);
+    }
     const int total_flow_volume_sz = db->getInteger("d_total_flow_volume_sz");
     d_total_flow_volume.resize(total_flow_volume_sz, std::numeric_limits<double>::quiet_NaN());
     if (!d_total_flow_volume.empty())
     {
         db->getDoubleArray("d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
     }
-    d_start_time = db->getDouble("d_start_time");
-    d_end_time = db->getDouble("d_end_time");
-    d_grow_dt = db->getDouble("d_grow_dt");
-    d_max_integrator_steps = db->getInteger("d_max_integrator_steps");
-    d_num_cycles = db->getInteger("d_num_cycles");
-    d_regrid_interval = db->getInteger("d_regrid_interval");
-    d_old_dt = db->getDouble("d_old_dt");
-    d_integrator_time = db->getDouble("d_integrator_time");
-    d_integrator_step = db->getInteger("d_integrator_step");
-    d_dt_max = db->getDouble("d_dt_max");
-    d_dt_max_time_max = db->getDouble("d_dt_max_time_max");
-    d_dt_max_time_min = db->getDouble("d_dt_max_time_min");
 
     const int finest_hier_level = db->getInteger("finest_hier_level");
     d_X_src.resize(finest_hier_level+1);
@@ -2833,7 +2846,6 @@ IBStaggeredHierarchyIntegrator::getFromRestart()
     d_P_src.resize(finest_hier_level+1);
     d_Q_src.resize(finest_hier_level+1);
     d_n_src.resize(finest_hier_level+1,0);
-
     db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level+1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
@@ -2853,12 +2865,29 @@ IBStaggeredHierarchyIntegrator::getFromRestart()
         }
     }
 
-    if (db->keyExists("instrument_names"))
+    d_start_time = db->getDouble("d_start_time");
+    d_end_time = db->getDouble("d_end_time");
+    d_grow_dt = db->getDouble("d_grow_dt");
+    d_max_integrator_steps = db->getInteger("d_max_integrator_steps");
+
+    d_num_cycles = db->getInteger("d_num_cycles");
+
+    d_regrid_interval = db->getInteger("d_regrid_interval");
+
+    d_old_dt = db->getDouble("d_old_dt");
+    d_integrator_time = db->getDouble("d_integrator_time");
+    d_integrator_step = db->getInteger("d_integrator_step");
+
+    d_dt_max = db->getDouble("d_dt_max");
+    d_dt_max_time_max = db->getDouble("d_dt_max_time_max");
+    d_dt_max_time_min = db->getDouble("d_dt_max_time_min");
+
+    d_mark_input_file_name = db->getString("d_mark_input_file_name");
+    d_num_mark = db->getInteger("d_num_mark");
+    d_mark_init_posns.resize(NDIM*d_num_mark);
+    if (d_num_mark > 0)
     {
-        const int sz = db->getInteger("instrument_names_sz");
-        std::vector<std::string> instrument_names(sz);
-        db->getStringArray("instrument_names", &instrument_names[0], sz);
-        IBInstrumentationSpec::setInstrumentNames(instrument_names);
+        db->getDoubleArray("d_mark_init_posns", &d_mark_init_posns[0], d_mark_init_posns.size());
     }
     return;
 }// getFromRestart

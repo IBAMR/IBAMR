@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <04.Nov.2009 11:55:19 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <17.Dec.2009 10:33:15 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -874,6 +874,7 @@ private:
      * Input file for initial marker positions, indices, and clouds.
      */
     std::string d_mark_input_file_name;
+    int d_num_mark;
     std::vector<double> d_mark_init_posns;
 
     /*
@@ -908,7 +909,7 @@ private:
      * NOTE: IB points are automatically considered to be anchored if they are
      * within 2.0*sqrt(epsilon_mach) of the physical boundary.
      */
-    std::vector<std::set<int > > d_anchor_point_local_idxs;
+    std::vector<std::set<int> > d_anchor_point_local_idxs;
 };
 }// namespace IBAMR
 
