@@ -2,12 +2,13 @@
 #define included_IBMovingTargetPointForceSpec
 
 // Filename: IBMovingTargetPointForceSpec.h
-// Last modified: <14.Aug.2008 14:23:26 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <15.Dec.2009 19:21:06 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Aug 2008 by Boyce Griffith (boyce@dm-linux.maths.gla.ac.uk)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
+#include <ibtk/DynamicArena.h>
 #include <ibtk/Stashable.h>
 
 // SAMRAI INCLUDES
@@ -46,6 +47,21 @@ public:
      */
     static bool
     getIsRegisteredWithStashableManager();
+
+    /*!
+     * \brief Operator new.
+     */
+    static void*
+    operator new(
+        std::size_t size);
+
+    /*!
+     * \brief Operator delete.
+     */
+    static void
+    operator delete(
+        void* ptr,
+        std::size_t size);
 
     /*!
      * \brief Default constructor.
@@ -196,6 +212,11 @@ private:
      * The stashable ID for this object type.
      */
     static int s_stashable_id;
+
+    /*!
+     * Memory arena for allocating objects.
+     */
+    static IBTK::DynamicArena s_arena;
 
     /*!
      * Data required to define the target point penalty forces.

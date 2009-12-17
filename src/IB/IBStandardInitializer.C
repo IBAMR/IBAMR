@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <02.Nov.2009 10:44:47 griffith@griffith-macbook-pro.local>
+// Last modified: <13.Dec.2009 17:56:00 griffith@griffith-macbook-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -25,7 +25,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
-#include <ibtk/LNodeIndexData2.h>
+#include <ibtk/LNodeIndexData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -249,6 +249,27 @@ IBStandardInitializer::getLocalNodeCountOnPatchLevel(
     return local_node_count;
 }// getLocalNodeCountOnPatchLevel
 
+void
+IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
+    std::map<int,std::string>& strct_id_to_strct_name_map,
+    std::map<int,std::pair<int,int> >& strct_id_to_lag_idx_range_map,
+    const int level_number,
+    const double init_data_time,
+    const bool can_be_refined,
+    const bool initial_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    (void) lag_manager;
+    int offset = 0;
+    for (int j = 0; j < int(d_base_filename[level_number].size()); ++j)
+    {
+        strct_id_to_strct_name_map   [j] = d_base_filename[level_number][j];
+        strct_id_to_lag_idx_range_map[j] = std::make_pair(offset,offset+d_num_vertex[level_number][j]);
+        offset += d_num_vertex[level_number][j];
+    }
+    return;
+}// initializeStructureIndexingOnPatchLevel
+
 int
 IBStandardInitializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
@@ -291,8 +312,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
         const double* const xUpper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> index_data =
-            patch->getPatchData(lag_node_index_idx);
+        SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> index_data = patch->getPatchData(lag_node_index_idx);
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -342,10 +362,14 @@ IBStandardInitializer::initializeDataOnPatchLevel(
                 initializeSpecs(
                     point_idx, global_index_offset, level_number);
 
-            IBTK::LNodeIndexSet& node_set = (*index_data)(idx);
+            if (!index_data->isElement(idx))
+            {
+                index_data->appendItemPointer(idx, new IBTK::LNodeIndexSet());
+            }
+            IBTK::LNodeIndexSet* const node_set = index_data->getItem(idx);
             static const SAMRAI::hier::IntVector<NDIM> periodic_offset(0);
             static const std::vector<double> periodic_displacement(NDIM,0.0);
-            node_set.push_back(
+            node_set->push_back(
                 new IBTK::LNodeIndex(current_global_idx, current_local_idx,
                                      &(*X_data)(current_local_idx),
                                      periodic_offset, periodic_displacement,
@@ -1891,21 +1915,66 @@ IBStandardInitializer::getFromInput(
     d_global_index_offset.resize(d_max_levels);
 
     // Determine the various input file names.
-    for (int ln = 0; ln < d_max_levels; ++ln)
+    //
+    // Prefer to use the new ``structure_names'' key, but revert to the
+    // level-by-level ``base_filenames'' keys if necessary.
+    if (db->keyExists("structure_names"))
     {
-        std::ostringstream db_key_name_stream;
-        db_key_name_stream << "base_filenames_" << ln;
-        const std::string db_key_name = db_key_name_stream.str();
-        if (db->keyExists(db_key_name))
+        const int n_strcts = db->getArraySize("structure_names");
+        std::vector<std::string> structure_names(n_strcts);
+        db->getStringArray("structure_names", &structure_names[0], n_strcts);
+        for (int n = 0; n < n_strcts; ++n)
         {
-            const int n_files = db->getArraySize(db_key_name);
-            d_base_filename[ln].resize(n_files);
-            db->getStringArray(db_key_name, &d_base_filename[ln][0], n_files);
+            const std::string& strct_name = structure_names[n];
+            if (db->keyExists(strct_name))
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> sub_db = db->getDatabase((strct_name));
+                if (sub_db->keyExists("level_number"))
+                {
+                    const int ln = sub_db->getInteger("level_number");
+                    if (ln < 0)
+                    {
+                        TBOX_ERROR(d_object_name << ":  "
+                                   << "Key data `level_number' associated with structure `" << strct_name << "' is negative.");
+                    }
+                    else if (ln > d_max_levels)
+                    {
+                        TBOX_ERROR(d_object_name << ":  "
+                                   << "Key data `level_number' associated with structure `" << strct_name << "' is greater than the expected maximum level number " << d_max_levels << ".");
+                    }
+                    d_base_filename[ln].push_back(strct_name);
+                }
+                else
+                {
+                    TBOX_ERROR(d_object_name << ":  "
+                               << "Key data `level_number' not found in structure `" << strct_name << "' input.");
+                }
+            }
+            else
+            {
+                TBOX_ERROR(d_object_name << ":  "
+                           << "Key data `" << strct_name << "' not found in input.");
+            }
         }
-        else
+    }
+    else
+    {
+        for (int ln = 0; ln < d_max_levels; ++ln)
         {
-            TBOX_WARNING(d_object_name << ":  "
-                         << "Key data `" + db_key_name + "' not found in input.");
+            std::ostringstream db_key_name_stream;
+            db_key_name_stream << "base_filenames_" << ln;
+            const std::string db_key_name = db_key_name_stream.str();
+            if (db->keyExists(db_key_name))
+            {
+                const int n_files = db->getArraySize(db_key_name);
+                d_base_filename[ln].resize(n_files);
+                db->getStringArray(db_key_name, &d_base_filename[ln][0], n_files);
+            }
+            else
+            {
+                TBOX_WARNING(d_object_name << ":  "
+                             << "Key data `" << db_key_name << "' not found in input.");
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 // Filename: IBInstrumentationSpec.I
-// Last modified: <12.Mar.2008 22:38:41 griffith@box221.cims.nyu.edu>
+// Last modified: <15.Dec.2009 19:17:45 griffith@boyce-griffiths-mac-pro.local>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -27,6 +27,29 @@ IBInstrumentationSpec::getInstrumentNames()
 }// getInstrumentNames
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+
+inline void*
+IBInstrumentationSpec::operator new(
+    std::size_t size)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(size == sizeof(IBInstrumentationSpec));
+#endif
+    return s_arena.alloc(size);
+}// operator new
+
+inline void
+IBInstrumentationSpec::operator delete(
+    void* ptr,
+    std::size_t size)
+{
+    if (ptr == NULL) return;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(size == sizeof(IBInstrumentationSpec));
+#endif
+    s_arena.free(ptr);
+    return;
+}// operator delete
 
 inline
 IBInstrumentationSpec::IBInstrumentationSpec(

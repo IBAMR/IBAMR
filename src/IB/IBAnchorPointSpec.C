@@ -1,5 +1,5 @@
 // Filename: IBAnchorPointSpec.C
-// Last modified: <18.Aug.2008 13:35:10 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <15.Dec.2009 19:19:47 griffith@boyce-griffiths-mac-pro.local>
 // Created on 18 Aug 2008 by Boyce Griffith (boyce@dm-linux.maths.gla.ac.uk)
 
 #include "IBAnchorPointSpec.h"
@@ -31,8 +31,9 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-bool IBAnchorPointSpec::s_registered_factory = false;
-int  IBAnchorPointSpec::s_stashable_id = -1;
+bool               IBAnchorPointSpec::s_registered_factory = false;
+int                IBAnchorPointSpec::s_stashable_id = -1;
+IBTK::DynamicArena IBAnchorPointSpec::s_arena(sizeof(IBAnchorPointSpec));
 
 void
 IBAnchorPointSpec::registerWithStashableManager()

@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <02.Nov.2009 11:02:23 griffith@griffith-macbook-pro.local>
+// Last modified: <13.Dec.2009 15:53:28 griffith@griffith-macbook-pro.local>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -22,7 +22,7 @@
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
-#include <ibtk/LNodeIndexData2.h>
+#include <ibtk/LNodeIndexData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -509,28 +509,20 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+                for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+                     it != idx_data->lnode_index_end(); ++it)
                 {
-                    const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-                    const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
-                    for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin(); n != node_set.end(); ++n)
+                    const IBTK::LNodeIndex& node_idx = *it;
+                    SAMRAI::tbox::Pointer<IBInstrumentationSpec> spec = node_idx.getStashData<IBInstrumentationSpec>();
+                    if (!spec.isNull())
                     {
-                        const IBTK::LNodeIndexSet::value_type& node_idx = *n;
-                        const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data = node_idx->getStashData();
-                        for (unsigned l = 0; l < stash_data.size(); ++l)
-                        {
-                            SAMRAI::tbox::Pointer<IBInstrumentationSpec> spec = stash_data[l];
-                            if (!spec.isNull())
-                            {
-                                const int m = spec->getMeterIndex();
-                                max_meter_index = std::max(m, max_meter_index);
+                        const int m = spec->getMeterIndex();
+                        max_meter_index = std::max(m, max_meter_index);
 
-                                const int n = spec->getNodeIndex();
-                                max_node_index.resize(max_meter_index+1,-1);
-                                max_node_index[m] = std::max(n, max_node_index[m]);
-                            }
-                        }
+                        const int n = spec->getNodeIndex();
+                        max_node_index.resize(max_meter_index+1,-1);
+                        max_node_index[m] = std::max(n, max_node_index[m]);
                     }
                 }
             }
@@ -676,27 +668,19 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+                for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+                     it != idx_data->lnode_index_end(); ++it)
                 {
-                    const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-                    const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
-                    for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin(); n != node_set.end(); ++n)
+                    const IBTK::LNodeIndex& node_idx = *it;
+                    SAMRAI::tbox::Pointer<IBInstrumentationSpec> spec = node_idx.getStashData<IBInstrumentationSpec>();
+                    if (!spec.isNull())
                     {
-                        const IBTK::LNodeIndexSet::value_type& node_idx = *n;
-                        const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data = node_idx->getStashData();
-                        for (unsigned l = 0; l < stash_data.size(); ++l)
-                        {
-                            SAMRAI::tbox::Pointer<IBInstrumentationSpec> spec = stash_data[l];
-                            if (!spec.isNull())
-                            {
-                                const int& petsc_idx = node_idx->getLocalPETScIndex();
-                                const double* const X = &X_arr[NDIM*petsc_idx];
-                                const int m = spec->getMeterIndex();
-                                const int n = spec->getNodeIndex();
-                                std::copy(X,X+NDIM,d_X_perimeter[m](n).data());
-                            }
-                        }
+                        const int& petsc_idx = node_idx.getLocalPETScIndex();
+                        const double* const X = &X_arr[NDIM*petsc_idx];
+                        const int m = spec->getMeterIndex();
+                        const int n = spec->getNodeIndex();
+                        std::copy(X,X+NDIM,d_X_perimeter[m](n).data());
                     }
                 }
             }
@@ -1029,27 +1013,19 @@ IBInstrumentPanel::readInstrumentData(
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+                for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+                     it != idx_data->lnode_index_end(); ++it)
                 {
-                    const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-                    const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
-                    for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin(); n != node_set.end(); ++n)
+                    const IBTK::LNodeIndex& node_idx = *it;
+                    SAMRAI::tbox::Pointer<IBInstrumentationSpec> spec = node_idx.getStashData<IBInstrumentationSpec>();
+                    if (!spec.isNull())
                     {
-                        const IBTK::LNodeIndexSet::value_type& node_idx = *n;
-                        const std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >& stash_data = node_idx->getStashData();
-                        for (unsigned l = 0; l < stash_data.size(); ++l)
-                        {
-                            SAMRAI::tbox::Pointer<IBInstrumentationSpec> spec = stash_data[l];
-                            if (!spec.isNull())
-                            {
-                                const int& petsc_idx = node_idx->getLocalPETScIndex();
-                                const double* const U = &U_arr[NDIM*petsc_idx];
-                                const int m = spec->getMeterIndex();
-                                const int n = spec->getNodeIndex();
-                                std::copy(U,U+NDIM,U_perimeter[m](n).data());
-                            }
-                        }
+                        const int& petsc_idx = node_idx.getLocalPETScIndex();
+                        const double* const U = &U_arr[NDIM*petsc_idx];
+                        const int m = spec->getMeterIndex();
+                        const int n = spec->getNodeIndex();
+                        std::copy(U,U+NDIM,U_perimeter[m](n).data());
                     }
                 }
             }

@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <02.Nov.2009 11:12:07 griffith@griffith-macbook-pro.local>
+// Last modified: <13.Dec.2009 15:52:44 griffith@griffith-macbook-pro.local>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBStandardForceGen.h"
@@ -17,7 +17,7 @@
 #endif
 
 // IBTK INCLUDES
-#include <ibtk/LNodeIndexData2.h>
+#include <ibtk/LNodeIndexData.h>
 #include <ibtk/LNodeLevelData.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -137,22 +137,18 @@ IBStandardForceGen::initializeLevelData(
         {
             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
             const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> idx_data = patch->getPatchData(lag_node_index_idx);
-            for (IBTK::LNodeIndexData2::Iterator it(patch_box); it; it++)
+            const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+            for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+                 it != idx_data->lnode_index_end(); ++it)
             {
-                const SAMRAI::pdat::CellIndex<NDIM>& i = *it;
-                const IBTK::LNodeIndexSet& node_set = (*idx_data)(i);
-                for (IBTK::LNodeIndexSet::const_iterator n = node_set.begin(); n != node_set.end(); ++n)
+                const IBTK::LNodeIndex& node_idx = *it;
+                if (node_idx.getPeriodicOffset() != SAMRAI::hier::IntVector<NDIM>(0))
                 {
-                    const IBTK::LNodeIndexSet::value_type& node_idx = *n;
-                    if (node_idx->getPeriodicOffset() != SAMRAI::hier::IntVector<NDIM>(0))
+                    const int petsc_local_idx = node_idx.getLocalPETScIndex();
+                    const std::vector<double>& periodic_displacement = node_idx.getPeriodicDisplacement();
+                    for (int d = 0; d < NDIM; ++d)
                     {
-                        const int petsc_local_idx = node_idx->getLocalPETScIndex();
-                        const std::vector<double>& periodic_displacement = node_idx->getPeriodicDisplacement();
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            shift_arr[NDIM*petsc_local_idx+d] = -periodic_displacement[d];
-                        }
+                        shift_arr[NDIM*petsc_local_idx+d] = -periodic_displacement[d];
                     }
                 }
             }

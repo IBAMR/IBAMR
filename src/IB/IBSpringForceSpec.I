@@ -1,5 +1,5 @@
 // Filename: IBSpringForceSpec.I
-// Last modified: <10.Dec.2009 19:18:26 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Dec.2009 19:21:46 griffith@boyce-griffiths-mac-pro.local>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,6 +21,29 @@ IBSpringForceSpec::getIsRegisteredWithStashableManager()
 }// getIsRegisteredWithStashableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+
+inline void*
+IBSpringForceSpec::operator new(
+    std::size_t size)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(size == sizeof(IBSpringForceSpec));
+#endif
+    return s_arena.alloc(size);
+}// operator new
+
+inline void
+IBSpringForceSpec::operator delete(
+    void* ptr,
+    std::size_t size)
+{
+    if (ptr == NULL) return;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(size == sizeof(IBSpringForceSpec));
+#endif
+    s_arena.free(ptr);
+    return;
+}// operator delete
 
 inline
 IBSpringForceSpec::IBSpringForceSpec(

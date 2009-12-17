@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <13.Aug.2009 13:05:11 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <13.Dec.2009 17:50:15 griffith@griffith-macbook-pro.local>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -24,7 +24,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
-#include <ibtk/LNodeIndexData2.h>
+#include <ibtk/LNodeIndexData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -323,11 +323,15 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
                            << "  assigned patch number = " << patch_num << "\n"
                            << "  assigned patch box = " << patch_box << "\n");
             }
-            SAMRAI::tbox::Pointer<IBTK::LNodeIndexData2> index_data = patch->getPatchData(lag_node_index_idx);
-            IBTK::LNodeIndexSet& node_set = (*index_data)(i);
+            SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> index_data = patch->getPatchData(lag_node_index_idx);
+            if (!index_data->isElement(i))
+            {
+                index_data->appendItemPointer(i, new IBTK::LNodeIndexSet());
+            }
+            IBTK::LNodeIndexSet* const node_set = index_data->getItem(i);
             const SAMRAI::hier::IntVector<NDIM> periodic_offset(0);
             const std::vector<double> periodic_displacement(NDIM,0.0);
-            node_set.push_back(new IBTK::LNodeIndex(current_global_idx, current_local_idx, &(*X_data)(current_local_idx), periodic_offset, periodic_displacement, vertex_specs));
+            node_set->push_back(new IBTK::LNodeIndex(current_global_idx, current_local_idx, &(*X_data)(current_local_idx), periodic_offset, periodic_displacement, vertex_specs));
         }
     }
 

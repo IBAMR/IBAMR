@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <24.Nov.2009 16:40:52 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <17.Dec.2009 10:50:28 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -862,9 +862,13 @@ private:
      *
      * Double precision values are (optional) factors used to rescale the
      * velocity, pressure, and force for plotting.
+     *
+     * Boolean values indicates whether to output various quantities for
+     * visualization.
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
     double d_U_scale, d_P_scale, d_F_scale, d_Q_scale;
+    bool d_output_U, d_output_P, d_output_F, d_output_Q, d_output_Omega, d_output_Div_U;
 
     /*
      * Integrator data read from input or set at initialization.
@@ -915,42 +919,6 @@ private:
      * zero mean (i.e., discrete integral) at the end of each timestep.
      */
     bool d_normalize_pressure;
-
-    /*
-     * This boolean value indicates whether to output the velocity for
-     * visualization.
-     */
-    bool d_output_U;
-
-    /*
-     * This boolean value indicates whether to output the pressure for
-     * visualization.
-     */
-    bool d_output_P;
-
-    /*
-     * This boolean value indicates whether to output the force for
-     * visualization.
-     */
-    bool d_output_F;
-
-    /*
-     * This boolean value indicates whether to output the source/sink strength
-     * for visualization.
-     */
-    bool d_output_Q;
-
-    /*
-     * This boolean value indicates whether to store the cell centered vorticity
-     * (curl U) for visualization.
-     */
-    bool d_output_Omega;
-
-    /*
-     * These boolean values indicate whether to store the cell centered
-     * divergences of U, u, and u_adv for visualization.
-     */
-    bool d_output_Div_U;
 
     /*
      * Integrator data that evolves during time integration and maintains the
