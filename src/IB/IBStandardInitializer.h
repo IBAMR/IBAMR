@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <12.Aug.2009 12:38:47 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <10.Dec.2009 17:13:47 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -270,6 +270,19 @@ public:
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time);
+
+    /*!
+     * \brief Initialize the structure indexing information on the patch level.
+     */
+    virtual void
+    initializeStructureIndexingOnPatchLevel(
+        std::map<int,std::string>& strct_id_to_strct_name_map,
+        std::map<int,std::pair<int,int> >& strct_id_to_lag_idx_range_map,
+        const int level_number,
+        const double init_data_time,
+        const bool can_be_refined,
+        const bool initial_time,
+        IBTK::LDataManager* const lag_manager);
 
     /*!
      * \brief Initialize the LNodeIndex and LNodeLevel data needed to specify
