@@ -233,7 +233,6 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
                 std::ifstream file_stream(d_mark_input_file_name.c_str(), std::ios::in);
 
                 // The first entry in the file is the number of markers.
-                int d_num_mark;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << d_mark_input_file_name << "\n");
