@@ -92,14 +92,7 @@ public:
         double potential_energy = 0.0;
         for (int ln = coarsest_level_number; ln <= finest_level_number; ++ln)
         {
-            if (lag_manager->levelContainsLagrangianData(ln))
-            {
-                Vec X_vec = X_data[ln]->getGlobalVec();
-                Vec F_vec = F_data[ln]->getGlobalVec();
-                double X_dot_F;
-                int ierr = VecDot(X_vec, F_vec, &X_dot_F);  IBTK_CHKERRQ(ierr);
-                potential_energy -= X_dot_F;
-            }
+            potential_energy += d_force_generator->computeLagrangianEnergy(X_data[ln], U_data[ln], hierarchy, ln, data_time, lag_manager);
         }
 
         SAMRAI::tbox::pout << "\ntime = " << data_time << "\n"

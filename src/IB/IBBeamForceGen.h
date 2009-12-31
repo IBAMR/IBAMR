@@ -2,7 +2,7 @@
 #define included_IBBeamForceGen
 
 // Filename: IBBeamForceGen.h
-// Last modified: <13.Aug.2009 13:12:38 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <30.Dec.2009 19:50:50 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -107,6 +107,22 @@ public:
         const double X_coef,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         const double U_coef,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double data_time,
+        IBTK::LDataManager* const lag_manager);
+
+    /*!
+     * \brief Compute the potential energy with respect to the present structure
+     * configuration and velocity.
+     *
+     * \note This method is not actually implemented --- it just prints a
+     * warning message and returns 0.0.
+     */
+    virtual double
+    computeLagrangianEnergy(
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

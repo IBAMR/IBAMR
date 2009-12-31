@@ -52,6 +52,8 @@ class myPostProcessor
     : public IBDataPostProcessor
 {
 public:
+    tbox::Pointer<IBLagrangianForceStrategy> d_force_generator;
+
     myPostProcessor()
     {
         // intentionally blank
@@ -90,14 +92,7 @@ public:
         double potential_energy = 0.0;
         for (int ln = coarsest_level_number; ln <= finest_level_number; ++ln)
         {
-            if (lag_manager->levelContainsLagrangianData(ln))
-            {
-                Vec X_vec = X_data[ln]->getGlobalVec();
-                Vec F_vec = F_data[ln]->getGlobalVec();
-                double X_dot_F;
-                int ierr = VecDot(X_vec, F_vec, &X_dot_F);  IBTK_CHKERRQ(ierr);
-                potential_energy -= X_dot_F;
-            }
+            potential_energy += d_force_generator->computeLagrangianEnergy(X_data[ln], U_data[ln], hierarchy, ln, data_time, lag_manager);
         }
 
         SAMRAI::tbox::pout << "\ntime = " << data_time << "\n"
@@ -423,7 +418,9 @@ main(
 
         SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
 
-        SAMRAI::tbox::Pointer<IBDataPostProcessor> post_processor = new myPostProcessor();
+        myPostProcessor* t_post_processor = new myPostProcessor();
+        t_post_processor->d_force_generator = force_generator;
+        tbox::Pointer<IBDataPostProcessor> post_processor = t_post_processor;
 
         tbox::Pointer<IBStaggeredHierarchyIntegrator> time_integrator =
             new IBStaggeredHierarchyIntegrator(

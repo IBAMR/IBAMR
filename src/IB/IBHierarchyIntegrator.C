@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <13.Dec.2009 15:53:53 griffith@griffith-macbook-pro.local>
+// Last modified: <30.Dec.2009 18:45:41 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1839,19 +1839,24 @@ IBHierarchyIntegrator::postProcessData()
 {
     if (d_post_processor.isNull()) return;
 
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getCurrentContext());
+    const int P_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVar(), d_ins_hier_integrator->getCurrentContext());
+    const int F_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getForceVar(), d_ins_hier_integrator->getCurrentContext());
+
     const double current_time = d_integrator_time;
-    const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(current_time,d_start_time);
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
-    // Initialize X_data, F_data, and U_data on each level of the patch
-    // hierarchy.
+    // Initialize data on each level of the patch hierarchy.
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data(finest_ln+1);
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data(finest_ln+1);
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_data(finest_ln+1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_V_idx, current_time);
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             X_data[ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
@@ -1861,38 +1866,37 @@ IBHierarchyIntegrator::postProcessData()
     }
 
     // Interpolate u(n) from the Cartesian grid onto the Lagrangian mesh.
-    //
-    // NOTE: Since we are maintaining the Lagrangian velocity data, this step is
-    // skipped for each timestep following the initial one execpt immediately
-    // following a regridding operation.
-    if (initial_time || d_reinterpolate_after_regrid)
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-            if (d_lag_data_manager->levelContainsLagrangianData(ln))
+            d_rscheds["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > v_data = patch->getPatchData(d_V_idx);
-                    const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(
-                        d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-                    IBTK::LEInteractor::interpolate(
-                        U_data[ln], X_data[ln], idx_data, v_data,
-                        patch, patch_box, periodic_shift,
-                        d_interp_delta_fcn);
-                }
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > v_data = patch->getPatchData(d_V_idx);
+                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(
+                    d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
+                IBTK::LEInteractor::interpolate(
+                    U_data[ln], X_data[ln], idx_data, v_data,
+                    patch, patch_box, periodic_shift,
+                    d_interp_delta_fcn);
             }
         }
     }
-
     resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
 
     // Compute F(n) = F(X(n),n), the Lagrangian force corresponding to
     // configuration X(n) at time t_{n}.
+    if (d_force_strategy_needs_init)
+    {
+        const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(current_time,d_start_time);
+        resetLagrangianForceStrategy(current_time, initial_time);
+        d_force_strategy_needs_init = false;
+    }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -1904,24 +1908,18 @@ IBHierarchyIntegrator::postProcessData()
                 d_hierarchy, ln, current_time, d_lag_data_manager);
         }
     }
-
     resetAnchorPointValues(F_data, coarsest_ln, finest_ln);
 
     // Perform the user-defined post-processing.
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    const int U_current_idx = var_db->mapVariableAndContextToIndex(
-        d_ins_hier_integrator->getVelocityVar(),
-        d_ins_hier_integrator->getCurrentContext());
-    const int P_current_idx = var_db->mapVariableAndContextToIndex(
-        d_ins_hier_integrator->getPressureVar(),
-        d_ins_hier_integrator->getCurrentContext());
-    const int F_current_idx = var_db->mapVariableAndContextToIndex(
-        d_ins_hier_integrator->getForceVar(),
-        d_ins_hier_integrator->getCurrentContext());
-    d_post_processor->postProcessData(
-        U_current_idx, P_current_idx, F_current_idx,
-        F_data, X_data, U_data,
-        d_hierarchy, coarsest_ln, finest_ln, current_time, d_lag_data_manager);
+    d_post_processor->postProcessData(U_current_idx, P_current_idx, F_current_idx, F_data, X_data, U_data, d_hierarchy, coarsest_ln, finest_ln, current_time, d_lag_data_manager);
+
+    // Deallocate data on each level of the patch hierarchy.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_V_idx);
+    }
+    return;
 }// postProcessData
 
 bool

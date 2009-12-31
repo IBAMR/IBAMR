@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <13.Dec.2009 15:52:44 griffith@griffith-macbook-pro.local>
+// Last modified: <30.Dec.2009 19:28:49 griffith@boyce-griffiths-mac-pro.local>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBStandardForceGen.h"
@@ -219,6 +219,27 @@ IBStandardForceGen::computeLagrangianForceJacobian(
     ierr = VecSwap(X_data->getGlobalVec(), d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
     return;
 }// computeLagrangianForceJacobian
+
+double
+IBStandardForceGen::computeLagrangianEnergy(
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return 0.0;
+
+    int ierr;
+    ierr = VecSwap(X_data->getGlobalVec(), d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
+    ierr = VecWAXPY(X_data->getGlobalVec(), 1.0, d_shift_vec[level_number], d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
+
+    double ret_val = d_force_strategy_set->computeLagrangianEnergy(X_data, U_data, hierarchy, level_number, data_time, lag_manager);
+
+    ierr = VecSwap(X_data->getGlobalVec(), d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
+    return ret_val;
+}// computeLagrangianEnergy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

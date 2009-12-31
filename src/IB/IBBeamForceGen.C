@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <13.Dec.2009 15:55:12 griffith@griffith-macbook-pro.local>
+// Last modified: <30.Dec.2009 19:49:33 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -632,6 +632,20 @@ IBBeamForceGen::computeLagrangianForceJacobian(
     t_compute_lagrangian_force_jacobian->stop();
     return;
 }// computeLagrangianForceJacobian
+
+double
+IBBeamForceGen::computeLagrangianEnergy(
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    TBOX_WARNING("IBBeamForceGen::computeLagrangianEnergy():\n"
+               << "  unimplemented; returning 0.0." << std::endl);
+    return 0.0;
+}// computeLagrangianEnergy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -2,7 +2,7 @@
 #define included_IBSpringForceGen
 
 // Filename: IBSpringForceGen.h
-// Last modified: <13.Aug.2009 13:13:07 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <30.Dec.2009 19:41:46 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -202,6 +202,22 @@ public:
         const double X_coef,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         const double U_coef,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double data_time,
+        IBTK::LDataManager* const lag_manager);
+
+    /*!
+     * \brief Compute the potential energy with respect to the present structure
+     * configuration and velocity.
+     *
+     * \note The implementation of this method will not yield the correct result
+     * except for the standard force function.
+     */
+    virtual double
+    computeLagrangianEnergy(
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

@@ -2,7 +2,7 @@
 #define included_IBLagrangianForceStrategySet
 
 // Filename: IBLagrangianForceStrategySet.h
-// Last modified: <15.Aug.2008 15:12:41 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <30.Dec.2009 19:05:27 griffith@boyce-griffiths-mac-pro.local>
 // Created on 04 April 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -107,6 +107,19 @@ public:
         const double X_coef,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         const double U_coef,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double data_time,
+        IBTK::LDataManager* const lag_manager);
+
+    /*!
+     * \brief Compute the potential energy with respect to the present structure
+     * configuration and velocity.
+     */
+    virtual double
+    computeLagrangianEnergy(
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

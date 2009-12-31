@@ -1,5 +1,5 @@
 // Filename: IBLagrangianForceStrategy.C
-// Last modified: <15.Aug.2008 14:40:57 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <30.Dec.2009 19:52:24 griffith@boyce-griffiths-mac-pro.local>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBLagrangianForceStrategy.h"
@@ -88,6 +88,20 @@ IBLagrangianForceStrategy::computeLagrangianForceJacobian(
                << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy." << std::endl);
     return;
 }// computeLagrangianForceJacobian
+
+double
+IBLagrangianForceStrategy::computeLagrangianEnergy(
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianEnergy():\n"
+               << "  potential energy functionality not implemented for this IBLagrangianForceStrategy." << std::endl);
+    return 0.0;
+}// computeLagrangianEnergy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

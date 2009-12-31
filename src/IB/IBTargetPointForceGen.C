@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceGen.C
-// Last modified: <13.Dec.2009 15:52:14 griffith@griffith-macbook-pro.local>
+// Last modified: <30.Dec.2009 19:50:23 griffith@boyce-griffiths-mac-pro.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceGen.h"
@@ -316,6 +316,20 @@ IBTargetPointForceGen::computeLagrangianForceJacobian(
     t_compute_lagrangian_force_jacobian->stop();
     return;
 }// computeLagrangianForceJacobian
+
+double
+IBTargetPointForceGen::computeLagrangianEnergy(
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    TBOX_WARNING("IBTargetPointForceGen::computeLagrangianEnergy():\n"
+               << "  unimplemented; returning 0.0." << std::endl);
+    return 0.0;
+}// computeLagrangianEnergy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
