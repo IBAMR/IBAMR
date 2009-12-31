@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <30.Dec.2009 19:47:21 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <30.Dec.2009 20:09:01 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -609,6 +609,9 @@ IBSpringForceGen::computeLagrangianEnergy(
     const double data_time,
     IBTK::LDataManager* const lag_manager)
 {
+    TBOX_WARNING("IBSpringForceGen::computeLagrangianEnergy():\n"
+               << "  the implementation of this function is specialized to linear springs." << std::endl);
+
     if (!lag_manager->levelContainsLagrangianData(level_number)) return 0.0;
 
     t_compute_lagrangian_energy->start();
