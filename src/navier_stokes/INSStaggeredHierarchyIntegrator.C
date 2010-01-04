@@ -799,6 +799,22 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                    "  valid stokes preconditioner types: shell, none" << std::endl);
     }
 
+    char helmholtz_pc_type_str[len];
+    ierr = PetscOptionsGetString("helmholtz_", "-pc_type", helmholtz_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
+    std::string helmholtz_pc_type = "shell";
+    if (flg)
+    {
+        helmholtz_pc_type = std::string(helmholtz_pc_type_str);
+    }
+
+    char poisson_pc_type_str[len];
+    ierr = PetscOptionsGetString("poisson_", "-pc_type", poisson_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
+    std::string poisson_pc_type = "shell";
+    if (flg)
+    {
+        poisson_pc_type = std::string(poisson_pc_type_str);
+    }
+
     std::string stokes_pc_shell_type;
     if (stokes_pc_type == "shell")
     {
@@ -838,32 +854,35 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz_solver->setInitialGuessNonzero(false);
         d_helmholtz_solver->setOperator(d_helmholtz_op);
 
-        if (d_gridding_alg->getMaxLevels() == 1)
+        if (helmholtz_pc_type != "none")
         {
-            if (d_helmholtz_hypre_pc_db.isNull())
+            if (d_gridding_alg->getMaxLevels() == 1)
             {
-                TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                             "  helmholtz hypre pc solver database is null." << std::endl);
-            }
-            d_helmholtz_hypre_pc = new IBTK::SCPoissonHypreLevelSolver(d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
-            d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
+                if (d_helmholtz_hypre_pc_db.isNull())
+                {
+                    TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
+                                 "  helmholtz hypre pc solver database is null." << std::endl);
+                }
+                d_helmholtz_hypre_pc = new IBTK::SCPoissonHypreLevelSolver(d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
+                d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
 
-            d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
-        }
-        else
-        {
-            if (d_helmholtz_fac_pc_db.isNull())
+                d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
+            }
+            else
             {
-                TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                             "  helmholtz fac pc solver database is null." << std::endl);
+                if (d_helmholtz_fac_pc_db.isNull())
+                {
+                    TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
+                                 "  helmholtz fac pc solver database is null." << std::endl);
+                }
+                d_helmholtz_fac_op = new IBTK::SCPoissonFACOperator(d_object_name+"::Helmholtz FAC Operator", d_helmholtz_fac_pc_db);
+                d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
+
+                d_helmholtz_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
+                d_helmholtz_fac_op->setPreconditioner(d_helmholtz_fac_pc);
+
+                d_helmholtz_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_helmholtz_fac_pc_db));
             }
-            d_helmholtz_fac_op = new IBTK::SCPoissonFACOperator(d_object_name+"::Helmholtz FAC Operator", d_helmholtz_fac_pc_db);
-            d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
-
-            d_helmholtz_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
-            d_helmholtz_fac_op->setPreconditioner(d_helmholtz_fac_pc);
-
-            d_helmholtz_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_helmholtz_fac_pc_db));
         }
 
         // Set some default options.
@@ -898,32 +917,35 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_poisson_solver->setInitialGuessNonzero(false);
         d_poisson_solver->setOperator(d_poisson_op);
 
-        if (d_gridding_alg->getMaxLevels() == 1)
+        if (poisson_pc_type != "none")
         {
-            if (d_poisson_hypre_pc_db.isNull())
+            if (d_gridding_alg->getMaxLevels() == 1)
             {
-                TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                             "  poisson hypre pc solver database is null." << std::endl);
-            }
-            d_poisson_hypre_pc = new IBTK::CCPoissonHypreLevelSolver(d_object_name+"::Poisson Preconditioner", d_poisson_hypre_pc_db);
-            d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
+                if (d_poisson_hypre_pc_db.isNull())
+                {
+                    TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
+                                 "  poisson hypre pc solver database is null." << std::endl);
+                }
+                d_poisson_hypre_pc = new IBTK::CCPoissonHypreLevelSolver(d_object_name+"::Poisson Preconditioner", d_poisson_hypre_pc_db);
+                d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
 
-            d_poisson_solver->setPreconditioner(d_poisson_hypre_pc);
-        }
-        else
-        {
-            if (d_poisson_fac_pc_db.isNull())
+                d_poisson_solver->setPreconditioner(d_poisson_hypre_pc);
+            }
+            else
             {
-                TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                             "  poisson fac pc solver database is null." << std::endl);
+                if (d_poisson_fac_pc_db.isNull())
+                {
+                    TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
+                                 "  poisson fac pc solver database is null." << std::endl);
+                }
+                d_poisson_fac_op = new IBTK::CCPoissonFACOperator(d_object_name+"::Poisson FAC Operator", d_poisson_fac_pc_db);
+                d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
+
+                d_poisson_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
+                d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
+
+                d_poisson_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_poisson_fac_pc, d_poisson_fac_pc_db));
             }
-            d_poisson_fac_op = new IBTK::CCPoissonFACOperator(d_object_name+"::Poisson FAC Operator", d_poisson_fac_pc_db);
-            d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
-
-            d_poisson_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
-            d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
-
-            d_poisson_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_poisson_fac_pc, d_poisson_fac_pc_db));
         }
 
         // Set some default options.
