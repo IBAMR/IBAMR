@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <13.Dec.2009 17:56:00 griffith@griffith-macbook-pro.local>
+// Last modified: <17.Feb.2010 16:21:22 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -581,7 +581,7 @@ IBStandardInitializer::readVertexFiles()
             if (!file_stream.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertex_filename << std::endl);
 
             SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "processing vertex data from ASCII input filename " << vertex_filename << std::endl
+                               << "processing vertex data from ASCII input file named " << vertex_filename << std::endl
                                << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
 
             // The first entry in the file is the number of vertices.
@@ -632,7 +632,7 @@ IBStandardInitializer::readVertexFiles()
             file_stream.close();
 
             SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "read " << d_num_vertex[ln][j] << " vertices from ASCII input filename " << vertex_filename << std::endl
+                               << "read " << d_num_vertex[ln][j] << " vertices from ASCII input file named " << vertex_filename << std::endl
                                << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
 
             // Free the next MPI process to start reading the current file.
@@ -663,6 +663,8 @@ IBStandardInitializer::readSpringFiles()
         d_spring_force_fcn_idx[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
+            bool warned = false;
+
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
@@ -673,7 +675,7 @@ IBStandardInitializer::readSpringFiles()
             if (file_stream.is_open())
             {
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing spring data from ASCII input filename " << spring_filename << std::endl
+                                   << "processing spring data from ASCII input file named " << spring_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of edges in the input
@@ -763,25 +765,17 @@ IBStandardInitializer::readSpringFiles()
                     // Modify kappa and length according to whether spring forces are
                     // enabled, or whether uniform values are to be employed, for this
                     // particular structure.
-                    if (!d_enable_springs[ln][j])
+                    if (d_using_uniform_spring_stiffness[ln][j])
                     {
-                        kappa = 0.0;
-                        length = 0.0;
+                        kappa = d_uniform_spring_stiffness[ln][j];
                     }
-                    else
+                    if (d_using_uniform_spring_rest_length[ln][j])
                     {
-                        if (d_using_uniform_spring_stiffness[ln][j])
-                        {
-                            kappa = d_uniform_spring_stiffness[ln][j];
-                        }
-                        if (d_using_uniform_spring_rest_length[ln][j])
-                        {
-                            length = d_uniform_spring_rest_length[ln][j];
-                        }
-                        if (d_using_uniform_spring_force_fcn_idx[ln][j])
-                        {
-                            force_fcn_idx = d_uniform_spring_force_fcn_idx[ln][j];
-                        }
+                        length = d_uniform_spring_rest_length[ln][j];
+                    }
+                    if (d_using_uniform_spring_force_fcn_idx[ln][j])
+                    {
+                        force_fcn_idx = d_uniform_spring_force_fcn_idx[ln][j];
                     }
 
                     // Correct the edge numbers to be in the global Lagrangian indexing
@@ -838,13 +832,22 @@ IBStandardInitializer::readSpringFiles()
                         d_spring_rest_length[ln][j][e] = length;
                         d_spring_force_fcn_idx[ln][j][e] = force_fcn_idx;
                     }
+
+                    // Check to see if the spring constant is zero and, if so,
+                    // emit a warning.
+                    if (!warned && d_enable_springs[ln][j] &&
+                        (kappa == 0.0 || SAMRAI::tbox::MathUtilities<double>::equalEps(kappa,0.0)))
+                    {
+                        TBOX_WARNING(d_object_name << ":\n  Spring with zero spring constant encountered in ASCII input file named " << spring_filename << "." << std::endl);
+                        warned = true;
+                    }
                 }
 
                 // Close the input file.
                 file_stream.close();
 
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_edges << " edges from ASCII input filename " << spring_filename << std::endl
+                                   << "read " << num_edges << " edges from ASCII input file named " << spring_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
             }
 
@@ -873,6 +876,8 @@ IBStandardInitializer::readBeamFiles()
         d_beam_specs[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
+            bool warned = false;
+
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
@@ -882,7 +887,7 @@ IBStandardInitializer::readBeamFiles()
             if (file_stream.is_open())
             {
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing beam data from input filename " << beam_filename << std::endl
+                                   << "processing beam data from ASCII input file named " << beam_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of beams in
@@ -985,16 +990,9 @@ IBStandardInitializer::readBeamFiles()
                     // Modify the value of bend according to whether beam forces
                     // are enabled, or whether uniform values are to be
                     // employed, for this particular structure.
-                    if (!d_enable_beams[ln][j])
+                    if (d_using_uniform_beam_bend_rigidity[ln][j])
                     {
-                        bend = 0.0;
-                    }
-                    else
-                    {
-                        if (d_using_uniform_beam_bend_rigidity[ln][j])
-                        {
-                            bend = d_uniform_beam_bend_rigidity[ln][j];
-                        }
+                        bend = d_uniform_beam_bend_rigidity[ln][j];
                     }
 
                     // Correct the node numbers to be in the global Lagrangian
@@ -1013,13 +1011,22 @@ IBStandardInitializer::readBeamFiles()
                             curr_idx, std::make_pair(
                                 std::make_pair(next_idx,prev_idx),
                                 std::make_pair(bend,curv))));
+
+                    // Check to see if the bending rigidity is zero and, if so,
+                    // emit a warning.
+                    if (!warned && d_enable_beams[ln][j] &&
+                        (bend == 0.0 || SAMRAI::tbox::MathUtilities<double>::equalEps(bend,0.0)))
+                    {
+                        TBOX_WARNING(d_object_name << ":\n  Beam with zero bending rigidity encountered in ASCII input file named " << beam_filename << "." << std::endl);
+                        warned = true;
+                    }
                 }
 
                 // Close the input file.
                 file_stream.close();
 
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_beams << " beams from input filename " << beam_filename << std::endl
+                                   << "read " << num_beams << " beams from ASCII input file named " << beam_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
             }
 
@@ -1049,6 +1056,8 @@ IBStandardInitializer::readTargetPointFiles()
         d_target_damping  [ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
+            bool warned = false;
+
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
@@ -1061,7 +1070,7 @@ IBStandardInitializer::readTargetPointFiles()
             if (file_stream.is_open())
             {
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing target point data from input filename " << target_point_stiffness_filename << std::endl
+                                   << "processing target point data from ASCII input file named " << target_point_stiffness_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of target
@@ -1129,34 +1138,37 @@ IBStandardInitializer::readTargetPointFiles()
                                        << "  target point damping coefficient is negative" << std::endl);
                         }
                     }
+
+                    // Modify the target point stiffness constant according to
+                    // whether target point penalty forces are enabled, or
+                    // whether uniform values are to be employed, for this
+                    // particular structure.
+                    if (d_using_uniform_target_stiffness[ln][j])
+                    {
+                        d_target_stiffness[ln][j][n] = d_uniform_target_stiffness[ln][j];
+                    }
+                    if (d_using_uniform_target_damping  [ln][j])
+                    {
+                        d_target_damping  [ln][j][n] = d_uniform_target_damping  [ln][j];
+                    }
+
+                    // Check to see if the penalty spring constant is zero and,
+                    // if so, emit a warning.
+                    const double kappa = d_target_stiffness[ln][j][n];
+                    if (!warned && d_enable_target_points[ln][j] &&
+                        (kappa == 0.0 || SAMRAI::tbox::MathUtilities<double>::equalEps(kappa,0.0)))
+                    {
+                        TBOX_WARNING(d_object_name << ":\n  Target point with zero penalty spring constant encountered in ASCII input file named " << target_point_stiffness_filename << "." << std::endl);
+                        warned = true;
+                    }
                 }
 
                 // Close the input file.
                 file_stream.close();
 
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_target_points << " target points from input filename " << target_point_stiffness_filename << std::endl
+                                   << "read " << num_target_points << " target points from ASCII input file named " << target_point_stiffness_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
-            }
-
-            // Modify the target point stiffness constant according to whether
-            // target point penalty forces are enabled, or whether uniform
-            // values are to be employed, for this particular structure.
-            if (!d_enable_target_points[ln][j])
-            {
-                d_target_stiffness[ln][j] = std::vector<double>(d_num_vertex[ln][j], 0.0);
-                d_target_damping  [ln][j] = std::vector<double>(d_num_vertex[ln][j], 0.0);
-            }
-            else
-            {
-                if (d_using_uniform_target_stiffness[ln][j])
-                {
-                    d_target_stiffness[ln][j] = std::vector<double>(d_num_vertex[ln][j], d_uniform_target_stiffness[ln][j]);
-                }
-                if (d_using_uniform_target_damping[ln][j])
-                {
-                    d_target_damping[ln][j] = std::vector<double>(d_num_vertex[ln][j], d_uniform_target_damping[ln][j]);
-                }
             }
 
             // Free the next MPI process to start reading the current file.
@@ -1195,7 +1207,7 @@ IBStandardInitializer::readAnchorPointFiles()
             if (file_stream.is_open())
             {
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing anchor point data from input filename " << anchor_point_filename << std::endl
+                                   << "processing anchor point data from ASCII input file named " << anchor_point_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of anchor
@@ -1251,16 +1263,8 @@ IBStandardInitializer::readAnchorPointFiles()
                 file_stream.close();
 
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_anchor_pts << " anchor points from input filename " << anchor_point_filename << std::endl
+                                   << "read " << num_anchor_pts << " anchor points from ASCII input file named " << anchor_point_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
-            }
-
-            // Modify the anchor point information if anchor points are
-            // disabled.
-            if (!d_enable_anchor_points[ln][j])
-            {
-                d_is_anchor_point[ln][j] = std::vector<bool>(
-                    d_num_vertex[ln][j], false);
             }
 
             // Free the next MPI process to start reading the current file.
@@ -1298,7 +1302,7 @@ IBStandardInitializer::readBoundaryMassFiles()
             if (file_stream.is_open())
             {
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing boundary mass data from input filename " << bdry_mass_filename << std::endl
+                                   << "processing boundary mass data from ASCII input file named " << bdry_mass_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of massive IB
@@ -1373,7 +1377,7 @@ IBStandardInitializer::readBoundaryMassFiles()
                 file_stream.close();
 
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_bdry_mass_pts << " boundary mass points from input filename " << bdry_mass_filename << std::endl
+                                   << "read " << num_bdry_mass_pts << " boundary mass points from ASCII input file named " << bdry_mass_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
             }
 
@@ -1436,7 +1440,7 @@ IBStandardInitializer::readInstrumentationFiles()
             if (file_stream.is_open() && d_enable_instrumentation[ln][j])
             {
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing instrumentation data from input filename " << inst_filename << std::endl
+                                   << "processing instrumentation data from ASCII input file named " << inst_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of
@@ -1612,7 +1616,7 @@ IBStandardInitializer::readInstrumentationFiles()
                 file_stream.close();
 
                 SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_inst_pts << " instrumentation points from input filename " << inst_filename << std::endl
+                                   << "read " << num_inst_pts << " instrumentation points from ASCII input file named " << inst_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
             }
 
@@ -1747,89 +1751,102 @@ IBStandardInitializer::initializeSpecs(
     const int j = point_index.first;
     const int mastr_idx = getCannonicalLagrangianIndex(point_index, level_number);
 
-    std::vector<int> slave_idxs, force_fcn_idxs;
-    std::vector<double> stiffness, rest_length;
-    for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
-         it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
+    // Initialize any spring specifications associated with the present vertex.
+    if (d_enable_springs[level_number][j])
     {
+        std::vector<int> slave_idxs, force_fcn_idxs;
+        std::vector<double> stiffness, rest_length;
+        for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
+             it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
+        {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(mastr_idx == (*it).first);
+            TBOX_ASSERT(mastr_idx == (*it).first);
 #endif
-        // The connectivity information.
-        const Edge& e = (*it).second;
-        if (e.first == mastr_idx)
-        {
-            slave_idxs.push_back(e.second+global_index_offset);
-        }
-        else
-        {
-            slave_idxs.push_back(e.first+global_index_offset);
-        }
+            // The connectivity information.
+            const Edge& e = (*it).second;
+            if (e.first == mastr_idx)
+            {
+                slave_idxs.push_back(e.second+global_index_offset);
+            }
+            else
+            {
+                slave_idxs.push_back(e.first+global_index_offset);
+            }
 
-        // The material properties.
-        force_fcn_idxs.push_back((*d_spring_force_fcn_idx[level_number][j].find(e)).second);
-        stiffness     .push_back((*d_spring_stiffness    [level_number][j].find(e)).second);
-        rest_length   .push_back((*d_spring_rest_length  [level_number][j].find(e)).second);
+            // The material properties.
+            force_fcn_idxs.push_back((*d_spring_force_fcn_idx[level_number][j].find(e)).second);
+            stiffness     .push_back((*d_spring_stiffness    [level_number][j].find(e)).second);
+            rest_length   .push_back((*d_spring_rest_length  [level_number][j].find(e)).second);
+        }
+        if (slave_idxs.size() > 0)
+        {
+            vertex_specs.push_back(
+                new IBSpringForceSpec(
+                    mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length));
+        }
     }
 
-    if (slave_idxs.size() > 0)
+    // Initialize any beam specifications associated with the present vertex.
+    if (d_enable_beams[level_number][j])
     {
-        vertex_specs.push_back(
-            new IBSpringForceSpec(
-                mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length));
-    }
-
-    std::vector<std::pair<int,int> > beam_neighbor_idxs;
-    std::vector<double> beam_bend_rigidity;
-    std::vector<std::vector<double> > beam_mesh_dependent_curvature;
-    for (std::multimap<int,std::pair<Neighbors,std::pair<double,std::vector<double > > > >::const_iterator it = d_beam_specs[level_number][j].lower_bound(mastr_idx);
-         it != d_beam_specs[level_number][j].upper_bound(mastr_idx); ++it)
-    {
-        const std::pair<int,int>& neighbor_idxs             = (*it).second.first;
-        const double& bend_rigidity                         = (*it).second.second.first;
-        const std::vector<double>& mesh_dependent_curvature = (*it).second.second.second;
-        if (!SAMRAI::tbox::MathUtilities<double>::equalEps(bend_rigidity,0.0))
+        std::vector<std::pair<int,int> > beam_neighbor_idxs;
+        std::vector<double> beam_bend_rigidity;
+        std::vector<std::vector<double> > beam_mesh_dependent_curvature;
+        for (std::multimap<int,std::pair<Neighbors,std::pair<double,std::vector<double > > > >::const_iterator it = d_beam_specs[level_number][j].lower_bound(mastr_idx);
+             it != d_beam_specs[level_number][j].upper_bound(mastr_idx); ++it)
         {
+            const std::pair<int,int>& neighbor_idxs             = (*it).second.first;
+            const double& bend_rigidity                         = (*it).second.second.first;
+            const std::vector<double>& mesh_dependent_curvature = (*it).second.second.second;
             beam_neighbor_idxs.push_back(neighbor_idxs);
             beam_bend_rigidity.push_back(bend_rigidity);
             beam_mesh_dependent_curvature.push_back(mesh_dependent_curvature);
         }
+        if (!beam_neighbor_idxs.empty())
+        {
+            vertex_specs.push_back(
+                new IBBeamForceSpec(
+                    mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature));
+        }
     }
 
-    if (!beam_neighbor_idxs.empty())
+    // Initialize any target point specifications associated with the present
+    // vertex.
+    if (d_enable_target_points[level_number][j])
     {
-        vertex_specs.push_back(
-            new IBBeamForceSpec(
-                mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature));
-    }
-
-    const double kappa_target = getVertexTargetStiffness(point_index, level_number);
-    const double eta_target = getVertexTargetDamping(point_index, level_number);
-    const std::vector<double> X_target = getVertexPosn(point_index, level_number);
-
-    if (!SAMRAI::tbox::MathUtilities<double>::equalEps(kappa_target,0.0))
-    {
+        const double kappa_target = getVertexTargetStiffness(point_index, level_number);
+        const double eta_target = getVertexTargetDamping(point_index, level_number);
+        const std::vector<double> X_target = getVertexPosn(point_index, level_number);
         vertex_specs.push_back(
             new IBTargetPointForceSpec(
                 mastr_idx, kappa_target, eta_target, X_target));
     }
 
-    const bool is_anchor_point = getIsAnchorPoint(point_index, level_number);
-
-    if (is_anchor_point)
+    // Initialize any anchor point specifications associated with the present
+    // vertex.
+    if (d_enable_anchor_points[level_number][j])
     {
-        vertex_specs.push_back(
-            new IBAnchorPointSpec(mastr_idx));
+        const bool is_anchor_point = getIsAnchorPoint(point_index, level_number);
+        if (is_anchor_point)
+        {
+            vertex_specs.push_back(
+                new IBAnchorPointSpec(mastr_idx));
+        }
     }
 
-    const std::pair<int,int> inst_idx = getVertexInstrumentationIndices(point_index, level_number);
-
-    if (inst_idx.first != -1 && inst_idx.second != -1)
+    // Initialize any instrumentation specifications associated with the present
+    // vertex.
+    if (d_enable_instrumentation[level_number][j])
     {
-        vertex_specs.push_back(
-            new IBInstrumentationSpec(
-                mastr_idx, inst_idx.first, inst_idx.second));
+        const std::pair<int,int> inst_idx = getVertexInstrumentationIndices(point_index, level_number);
+        if (inst_idx.first != -1 && inst_idx.second != -1)
+        {
+            vertex_specs.push_back(
+                new IBInstrumentationSpec(
+                    mastr_idx, inst_idx.first, inst_idx.second));
+        }
     }
+
     return vertex_specs;
 }// initializeSpecs
 

@@ -1410,8 +1410,8 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     // Setup the convergence test.
     PetscErrorCode ierr;
     KSP petsc_ksp = d_stokes_solver->getPETScKSP();
-    ierr = KSPDefaultConvergedCreate(&d_default_conv_ctx);  IBTK_CHKERRQ(ierr);
-    ierr = KSPSetConvergenceTest(petsc_ksp, INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest, static_cast<void*>(this), PETSC_NULL);  IBTK_CHKERRQ(ierr);
+//  ierr = KSPDefaultConvergedCreate(&d_default_conv_ctx);  IBTK_CHKERRQ(ierr);
+//  ierr = KSPSetConvergenceTest(petsc_ksp, INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest, static_cast<void*>(this), PETSC_NULL);  IBTK_CHKERRQ(ierr);
 
     // Setup the nullspace object.
     if (d_normalize_pressure)
@@ -1641,7 +1641,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
     }
 
     // Deallocate the convergence test context.
-    PetscErrorCode ierr = KSPDefaultConvergedDestroy(d_default_conv_ctx); IBTK_CHKERRQ(ierr);
+//  PetscErrorCode ierr = KSPDefaultConvergedDestroy(d_default_conv_ctx); IBTK_CHKERRQ(ierr);
 
     // Deallocate scratch data.
     d_U_rhs_vec->freeVectorComponents();
