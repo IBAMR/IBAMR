@@ -1,9 +1,8 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = ex0 ex1 ex2
+SUBDIRS = approx_projection exact_projection
 
 ## Standard make targets.
 examples:
-	@(cd ex0 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd ex1 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd ex2 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd approx_projection && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd exact_projection && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
