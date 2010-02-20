@@ -62,6 +62,7 @@ $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
 $(top_srcdir)/src/advect/AdvectHypPatchOps.C \
 $(top_srcdir)/src/advect/GodunovAdvector.C \
+$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C \
 $(top_srcdir)/src/navier_stokes/HierarchyProjector.C \
 $(top_srcdir)/src/navier_stokes/INSCoefs.C \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
@@ -119,6 +120,7 @@ $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.h \
 $(top_srcdir)/src/advect/AdvectHypPatchOps.h \
 $(top_srcdir)/src/advect/GodunovAdvector.h \
+$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.h \
 $(top_srcdir)/src/navier_stokes/HierarchyProjector.h \
 $(top_srcdir)/src/navier_stokes/INSCoefs.h \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \

@@ -1,12 +1,12 @@
 // physical parameters
-MU = 1.0e-2
+MU = 1.0e-3
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 2   // maximum number of levels in locally refined grid
+MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 32                                    // coarsest grid spacing
+N = 256                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 // exact solution function expressions
@@ -56,7 +56,7 @@ INSHierarchyIntegrator {
    mu  = MU
    rho = RHO
 
-   velocity_projection_type = "pressure_increment"
+   velocity_projection_type = "pressure_update"
    pressure_projection_type = "pressure_update"
 
    using_synch_projection = FALSE
@@ -177,7 +177,7 @@ HierarchyProjector {
 
    max_iterations = 25
    abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-12
+   rel_residual_tol = 1.0e-6
 
    FACOp {
       fac_max_cycles = 1
@@ -196,7 +196,7 @@ HierarchyProjector {
       cf_discretization   = "LINEAR_REFINE"
 
       hypre_solver {
-         solver_type = "PFMG"
+         solver_type = "SMG"
          rap_type = 1
          relax_type = 3
          num_pre_relax_steps   = 2

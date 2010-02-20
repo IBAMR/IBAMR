@@ -24,14 +24,10 @@ main3d_SOURCES = $(SOURCES)
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/input2d.dirichlet_bcs $(PWD) ; \
-	  cp -f $(srcdir)/input2d.dirichlet_bcs.forced_flow $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input[23]d ; \
-	  rm -f $(builddir)/input2d.dirichlet_bcs ; \
-	  rm -f $(builddir)/input2d.dirichlet_bcs.forced_flow ; \
 	fi ;

@@ -2,13 +2,14 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <04.Nov.2009 12:16:12 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <19.Feb.2010 21:19:49 griffith@griffith-macbook-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/CCHierarchyProjector.h>
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/HierarchyProjector.h>
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
@@ -96,7 +97,8 @@ public:
      * registers the integrator object with the restart manager when requested.
      *
      * When assertion checking is active, passing in any null pointer or an
-     * empty string will result in an unrecoverable exception.
+     * empty string will result in an unrecoverable exception, except for the
+     * optional cell-centered exact projection operator.
      */
     INSHierarchyIntegrator(
         const std::string& object_name,
@@ -105,6 +107,7 @@ public:
         SAMRAI::tbox::Pointer<GodunovAdvector> explicit_predictor,
         SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
         SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
+        SAMRAI::tbox::Pointer<CCHierarchyProjector> cc_hier_projector=SAMRAI::tbox::Pointer<CCHierarchyProjector>(NULL),
         bool register_for_restart=true);
 
     /*!
@@ -260,7 +263,8 @@ public:
     ///      getGriddingAlgorithm(),
     ///      getGodunovAdvector(),
     ///      getAdvDiffHierarchyIntegrator(),
-    ///      getHierarchyProjector()
+    ///      getHierarchyProjector(),
+    ///      getCCHierarchyProjector()
     ///
     ///  allow the INSHierarchyIntegrator to be used as a hierarchy integrator.
     ///
@@ -390,11 +394,18 @@ public:
     getAdvDiffHierarchyIntegrator() const;
 
     /*!
-     * Return a pointer to the HierarchyProjector being used to inforce
+     * Return a pointer to the HierarchyProjector being used to enforce
      * incompressibility.
      */
     SAMRAI::tbox::Pointer<HierarchyProjector>
     getHierarchyProjector() const;
+
+    /*!
+     * Return a pointer to the CCHierarchyProjector being used to enforce
+     * incompressibility.
+     */
+    SAMRAI::tbox::Pointer<CCHierarchyProjector>
+    getCCHierarchyProjector() const;
 
     ///
     ///  The following routines:
@@ -897,9 +908,17 @@ private:
 
     /*
      * The HierarchyProjector maintains the linear solvers and related data
-     * needed to enforce the incompressibility constraint.
+     * needed to enforce the incompressibility constraint exactly for MAC vector
+     * fields and approximately for cell-centered vector fields.
      */
     SAMRAI::tbox::Pointer<HierarchyProjector> d_hier_projector;
+
+    /*
+     * The CCHierarchyProjector maintains the linear solvers and related data
+     * needed to enforce the incompressibility constraint exactly for
+     * cell-centered vector fields.
+     */
+    SAMRAI::tbox::Pointer<CCHierarchyProjector> d_cc_hier_projector;
 
     /*
      * Integrator data read from input or set at initialization.

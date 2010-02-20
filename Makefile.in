@@ -373,6 +373,7 @@ EXTRA_DIST = $(top_srcdir)/autogen.sh $(top_srcdir)/doc/Doxyfile.in \
 	$(top_srcdir)/include/ibamr/AdvDiffHierarchyIntegrator.h \
 	$(top_srcdir)/include/ibamr/AdvDiffHypPatchOps.h \
 	$(top_srcdir)/include/ibamr/AdvectHypPatchOps.h \
+	$(top_srcdir)/include/ibamr/CCHierarchyProjector.h \
 	$(top_srcdir)/include/ibamr/GodunovAdvector.h \
 	$(top_srcdir)/include/ibamr/HierarchyProjector.h \
 	$(top_srcdir)/include/ibamr/IBAnchorPointSpec.I \

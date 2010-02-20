@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <12.Aug.2009 18:20:57 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <18.Feb.2010 20:12:46 griffith@griffith-macbook-pro.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,31 +21,8 @@
 #include <ibtk/HierarchyMathOps.h>
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <CellVariable.h>
-#include <CoarsenAlgorithm.h>
-#include <CoarsenSchedule.h>
-#include <FACPreconditioner.h>
-#include <HierarchyCellDataOpsReal.h>
-#include <HierarchyFaceDataOpsReal.h>
-#include <HierarchySideDataOpsReal.h>
-#include <LocationIndexRobinBcCoefs.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
-#include <SAMRAIVectorReal.h>
 #include <StandardTagAndInitStrategy.h>
-#include <VariableContext.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
 #include <tbox/Serializable.h>
-
-// C++ STDLIB INCLUDES
-#include <map>
-#include <ostream>
-#include <string>
-#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

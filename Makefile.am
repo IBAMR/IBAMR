@@ -15,6 +15,7 @@ EXTRA_DIST += $(top_srcdir)/doc/libstdc++.tag
 EXTRA_DIST += $(top_srcdir)/include/ibamr/AdvDiffHierarchyIntegrator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/AdvDiffHypPatchOps.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/AdvectHypPatchOps.h
+EXTRA_DIST += $(top_srcdir)/include/ibamr/CCHierarchyProjector.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/GodunovAdvector.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/HierarchyProjector.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBAnchorPointSpec.I

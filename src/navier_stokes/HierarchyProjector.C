@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <17.Aug.2009 16:18:40 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <19.Feb.2010 20:35:12 griffith@griffith-macbook-pro.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -17,20 +17,14 @@
 #endif
 
 // IBTK INCLUDES
-#include <ibtk/KrylovLinearSolver.h>
 #include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
-#include <IntVector.h>
-#include <Patch.h>
-#include <Variable.h>
-#include <VariableDatabase.h>
 #include <tbox/RestartManager.h>
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -457,7 +451,7 @@ HierarchyProjector::projectHierarchy(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-       level->allocatePatchData(scratch_idxs, time);
+        level->allocatePatchData(scratch_idxs, time);
     }
 
     // Fill the pressure data if we are using a pressure-increment projection.
@@ -596,7 +590,7 @@ HierarchyProjector::projectHierarchy(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-       level->allocatePatchData(scratch_idxs, time);
+        level->allocatePatchData(scratch_idxs, time);
     }
 
     // Fill the pressure data if we are using a pressure-increment projection.
@@ -769,6 +763,9 @@ HierarchyProjector::resetHierarchyConfiguration(
     d_hier_fc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_fc_data_ops->resetLevels(0, finest_hier_level);
 
+    d_hier_sc_data_ops->setPatchHierarchy(hierarchy);
+    d_hier_sc_data_ops->resetLevels(0, finest_hier_level);
+
     // Reset the Hierarchy math operations for the new configuration.
     if (d_is_managing_hier_math_ops)
     {
@@ -897,7 +894,6 @@ HierarchyProjector::getFromRestart()
         TBOX_ERROR(d_object_name << ":  "
                    << "Restart file version different than class version.");
     }
-
     return;
 }// getFromRestart
 

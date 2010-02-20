@@ -37,7 +37,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
 EXTRA_PROGRAMS = $(am__EXEEXT_1)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
-subdir = examples/navier_stokes/cell_centered/ex1
+subdir = examples/navier_stokes/cell_centered/exact_projection/ex1
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
 	$(top_srcdir)/m4/ac_cxx_namespaces.m4 \
@@ -356,9 +356,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/navier_stokes/cell_centered/ex1/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/navier_stokes/cell_centered/exact_projection/ex1/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/navier_stokes/cell_centered/ex1/Makefile
+	  $(AUTOMAKE) --foreign examples/navier_stokes/cell_centered/exact_projection/ex1/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

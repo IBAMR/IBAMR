@@ -38,7 +38,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 EXTRA_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = main3d
-subdir = examples/navier_stokes/cell_centered/ex0
+subdir = examples/navier_stokes/cell_centered/exact_projection/ex0
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
 	$(top_srcdir)/m4/ac_cxx_namespaces.m4 \
@@ -368,9 +368,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/navier_stokes/cell_centered/ex0/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/navier_stokes/cell_centered/exact_projection/ex0/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/navier_stokes/cell_centered/ex0/Makefile
+	  $(AUTOMAKE) --foreign examples/navier_stokes/cell_centered/exact_projection/ex0/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -649,16 +649,12 @@ uninstall-am:
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/input2d.dirichlet_bcs $(PWD) ; \
-	  cp -f $(srcdir)/input2d.dirichlet_bcs.forced_flow $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input[23]d ; \
-	  rm -f $(builddir)/input2d.dirichlet_bcs ; \
-	  rm -f $(builddir)/input2d.dirichlet_bcs.forced_flow ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

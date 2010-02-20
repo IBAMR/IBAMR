@@ -116,6 +116,7 @@ am__objects_1 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffHypPatchOps.$(OBJEXT) \
 	libIBAMR2d_a-AdvectHypPatchOps.$(OBJEXT) \
 	libIBAMR2d_a-GodunovAdvector.$(OBJEXT) \
+	libIBAMR2d_a-CCHierarchyProjector.$(OBJEXT) \
 	libIBAMR2d_a-HierarchyProjector.$(OBJEXT) \
 	libIBAMR2d_a-INSCoefs.$(OBJEXT) \
 	libIBAMR2d_a-INSHierarchyIntegrator.$(OBJEXT) \
@@ -178,6 +179,7 @@ am__objects_2 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffHypPatchOps.$(OBJEXT) \
 	libIBAMR3d_a-AdvectHypPatchOps.$(OBJEXT) \
 	libIBAMR3d_a-GodunovAdvector.$(OBJEXT) \
+	libIBAMR3d_a-CCHierarchyProjector.$(OBJEXT) \
 	libIBAMR3d_a-HierarchyProjector.$(OBJEXT) \
 	libIBAMR3d_a-INSCoefs.$(OBJEXT) \
 	libIBAMR3d_a-INSHierarchyIntegrator.$(OBJEXT) \
@@ -528,6 +530,7 @@ pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.h \
 	$(top_srcdir)/src/advect/AdvectHypPatchOps.h \
 	$(top_srcdir)/src/advect/GodunovAdvector.h \
+	$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.h \
 	$(top_srcdir)/src/navier_stokes/HierarchyProjector.h \
 	$(top_srcdir)/src/navier_stokes/INSCoefs.h \
 	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
@@ -578,6 +581,7 @@ $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
 $(top_srcdir)/src/advect/AdvectHypPatchOps.C \
 $(top_srcdir)/src/advect/GodunovAdvector.C \
+$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C \
 $(top_srcdir)/src/navier_stokes/HierarchyProjector.C \
 $(top_srcdir)/src/navier_stokes/INSCoefs.C \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
@@ -712,6 +716,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvectHypPatchOps.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-CCHierarchyProjector.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-GodunovAdvector.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-HierarchyProjector.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po@am__quote@
@@ -761,6 +766,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvectHypPatchOps.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-CCHierarchyProjector.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-GodunovAdvector.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-HierarchyProjector.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po@am__quote@
@@ -1297,6 +1303,20 @@ libIBAMR2d_a-GodunovAdvector.obj: $(top_srcdir)/src/advect/GodunovAdvector.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/advect/GodunovAdvector.C' object='libIBAMR2d_a-GodunovAdvector.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-GodunovAdvector.obj `if test -f '$(top_srcdir)/src/advect/GodunovAdvector.C'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/GodunovAdvector.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/GodunovAdvector.C'; fi`
+
+libIBAMR2d_a-CCHierarchyProjector.o: $(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-CCHierarchyProjector.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-CCHierarchyProjector.Tpo -c -o libIBAMR2d_a-CCHierarchyProjector.o `test -f '$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-CCHierarchyProjector.Tpo $(DEPDIR)/libIBAMR2d_a-CCHierarchyProjector.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C' object='libIBAMR2d_a-CCHierarchyProjector.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-CCHierarchyProjector.o `test -f '$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C
+
+libIBAMR2d_a-CCHierarchyProjector.obj: $(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-CCHierarchyProjector.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-CCHierarchyProjector.Tpo -c -o libIBAMR2d_a-CCHierarchyProjector.obj `if test -f '$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-CCHierarchyProjector.Tpo $(DEPDIR)/libIBAMR2d_a-CCHierarchyProjector.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C' object='libIBAMR2d_a-CCHierarchyProjector.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-CCHierarchyProjector.obj `if test -f '$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C'; fi`
 
 libIBAMR2d_a-HierarchyProjector.o: $(top_srcdir)/src/navier_stokes/HierarchyProjector.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-HierarchyProjector.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-HierarchyProjector.Tpo -c -o libIBAMR2d_a-HierarchyProjector.o `test -f '$(top_srcdir)/src/navier_stokes/HierarchyProjector.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/HierarchyProjector.C
@@ -1983,6 +2003,20 @@ libIBAMR3d_a-GodunovAdvector.obj: $(top_srcdir)/src/advect/GodunovAdvector.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/advect/GodunovAdvector.C' object='libIBAMR3d_a-GodunovAdvector.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-GodunovAdvector.obj `if test -f '$(top_srcdir)/src/advect/GodunovAdvector.C'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/GodunovAdvector.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/GodunovAdvector.C'; fi`
+
+libIBAMR3d_a-CCHierarchyProjector.o: $(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-CCHierarchyProjector.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-CCHierarchyProjector.Tpo -c -o libIBAMR3d_a-CCHierarchyProjector.o `test -f '$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-CCHierarchyProjector.Tpo $(DEPDIR)/libIBAMR3d_a-CCHierarchyProjector.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C' object='libIBAMR3d_a-CCHierarchyProjector.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-CCHierarchyProjector.o `test -f '$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C
+
+libIBAMR3d_a-CCHierarchyProjector.obj: $(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-CCHierarchyProjector.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-CCHierarchyProjector.Tpo -c -o libIBAMR3d_a-CCHierarchyProjector.obj `if test -f '$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-CCHierarchyProjector.Tpo $(DEPDIR)/libIBAMR3d_a-CCHierarchyProjector.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C' object='libIBAMR3d_a-CCHierarchyProjector.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-CCHierarchyProjector.obj `if test -f '$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C'; fi`
 
 libIBAMR3d_a-HierarchyProjector.o: $(top_srcdir)/src/navier_stokes/HierarchyProjector.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-HierarchyProjector.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-HierarchyProjector.Tpo -c -o libIBAMR3d_a-HierarchyProjector.o `test -f '$(top_srcdir)/src/navier_stokes/HierarchyProjector.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/HierarchyProjector.C

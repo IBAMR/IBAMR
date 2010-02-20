@@ -290,11 +290,17 @@ main(
                 input_db->getDatabase("HierarchyProjector"),
                 patch_hierarchy);
 
+        tbox::Pointer<CCHierarchyProjector> cc_hier_projector =
+            new CCHierarchyProjector(
+                "CCHierarchyProjector",
+                input_db->getDatabase("HierarchyProjector"),
+                patch_hierarchy);
+
         tbox::Pointer<INSHierarchyIntegrator> time_integrator =
             new INSHierarchyIntegrator(
                 "INSHierarchyIntegrator",
                 input_db->getDatabase("INSHierarchyIntegrator"),
-                patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
+                patch_hierarchy, predictor, adv_diff_integrator, hier_projector, cc_hier_projector);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
