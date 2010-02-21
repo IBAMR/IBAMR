@@ -215,6 +215,25 @@ HierarchyProjector {
    }
 }
 
+CCHierarchyProjector {
+   enable_logging = TRUE
+
+   max_iterations = 2500
+   abs_residual_tol = 1.0e-30
+   rel_residual_tol = 1.0e-12
+
+   hypre_solver {
+      solver_type = "PFMG"
+      rap_type = 1
+      relax_type = 3
+      num_pre_relax_steps   = 2
+      num_post_relax_steps  = 2
+      max_iterations        = 1
+      relative_residual_tol = 1.0e-12
+      enable_logging = FALSE
+   }
+}
+
 Main {
 // log file parameters
    log_file_name    = "INS2d.log"

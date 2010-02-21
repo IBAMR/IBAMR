@@ -293,7 +293,7 @@ main(
         tbox::Pointer<CCHierarchyProjector> cc_hier_projector =
             new CCHierarchyProjector(
                 "CCHierarchyProjector",
-                input_db->getDatabase("HierarchyProjector"),
+                input_db->getDatabase("CCHierarchyProjector"),
                 patch_hierarchy);
 
         tbox::Pointer<INSHierarchyIntegrator> time_integrator =

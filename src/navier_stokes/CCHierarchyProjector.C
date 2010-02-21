@@ -1,5 +1,5 @@
 // Filename: CCHierarchyProjector.C
-// Last modified: <20.Feb.2010 15:16:40 griffith@griffith-macbook-pro.local>
+// Last modified: <20.Feb.2010 19:37:54 griffith@griffith-macbook-pro.local>
 // Created on 18 Feb 2010 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "CCHierarchyProjector.h"
@@ -17,10 +17,12 @@
 #endif
 
 // IBTK INCLUDES
-#include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
+
+// SAMRAI INCLUDES
+#include <HierarchyDataOpsManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -86,11 +88,9 @@ CCHierarchyProjector::CCHierarchyProjector(
       d_abs_residual_tol(1.0e-12),
       d_rel_residual_tol(1.0e-8),
       d_initial_guess_nonzero(true),
-      d_poisson_spec(d_object_name+"::Poisson spec"),
       d_poisson_solver(NULL),
       d_cc_div_grad_op(NULL),
-      d_poisson_fac_op(NULL),
-      d_poisson_fac_pc(NULL),
+      d_cc_div_grad_hypre_solver(NULL),
       d_sol_var(NULL),
       d_rhs_var(NULL),
       d_sol_idx(-1),
@@ -144,42 +144,23 @@ CCHierarchyProjector::CCHierarchyProjector(
         new SAMRAI::pdat::CellVariable<NDIM,double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy);
 
-    // Initialize the Poisson specifications.
-    d_poisson_spec.setCZero();
-    d_poisson_spec.setDConstant(-1.0);
-
-    // Get initialization data for the FAC ops and FAC preconditioners and
-    // initialize them.
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> fac_op_db, fac_pc_db;
-
-    if (input_db->keyExists("FACOp"))
+    // Initialize the hypre preconditioner.
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> hypre_db;
+    if (input_db->isDatabase("hypre_solver"))
     {
-        fac_op_db = input_db->getDatabase("FACOp");
+        hypre_db = input_db->getDatabase("hypre_solver");
     }
-    if (input_db->keyExists("FACPreconditioner"))
-    {
-        fac_pc_db = input_db->getDatabase("FACPreconditioner");
-    }
-
-    d_poisson_fac_op = new IBTK::CCPoissonFACOperator(
-        d_object_name+"::FAC Op", fac_op_db);
-    d_poisson_fac_op->setPoissonSpecifications(d_poisson_spec);
-
-    d_poisson_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(
-        d_object_name+"::FAC Preconditioner", *d_poisson_fac_op, fac_pc_db);
-    d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
+    d_cc_div_grad_hypre_solver = new IBTK::CCDivGradHypreLevelSolver(d_object_name+"::hypre D*G solver", hypre_db);
 
     // Initialize the Poisson solver.
-    d_cc_div_grad_op = new IBTK::CCDivGradOperator(
-        d_object_name+"::-D*G Operator");
-
+    d_cc_div_grad_op = new IBTK::CCDivGradOperator(d_object_name+"::-D*G Operator");
     d_poisson_solver = new IBTK::PETScKrylovLinearSolver(d_object_name+"::PETSc Krylov solver", "cc_proj_");
     d_poisson_solver->setMaxIterations(d_max_iterations);
     d_poisson_solver->setAbsoluteTolerance(d_abs_residual_tol);
     d_poisson_solver->setRelativeTolerance(d_rel_residual_tol);
     d_poisson_solver->setInitialGuessNonzero(d_initial_guess_nonzero);
     d_poisson_solver->setOperator(d_cc_div_grad_op);
-    d_poisson_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_poisson_fac_pc, fac_pc_db));
+    d_poisson_solver->setPreconditioner(d_cc_div_grad_hypre_solver);
 
     // Setup Timers.
     static bool timers_need_init = true;
@@ -337,9 +318,6 @@ CCHierarchyProjector::projectHierarchy(
     // Setup the linear operator.
     d_cc_div_grad_op->setHierarchyMathOps(d_hier_math_ops);
 
-    // Setup the preconditioner.
-    d_poisson_fac_op->setTime(time);
-
     // Compute F = (rho/dt)*(Q - div W).
     d_hier_math_ops->div(
         d_F_idx, d_F_var,   // dst
@@ -452,36 +430,31 @@ CCHierarchyProjector::initializeLevelData(
     for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-        std::vector<int> k(3,0);  // NOTE: This must be a 3-dimensional vector (i.e., even when NDIM == 2).
+        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::hier::Box<NDIM> coarsened_box = SAMRAI::hier::Box<NDIM>::coarsen(patch_box,2);
+        SAMRAI::hier::IntVector<NDIM> mode_id;
 #if (NDIM > 2)
-        for (k[2] = 0; k[2] < 2; ++k[2])
+        for (mode_id(2) = 0; mode_id(2) < 2; ++mode_id(2))
         {
 #endif
-            for (k[1] = 0; k[1] < 2; ++k[1])
+            for (mode_id(1) = 0; mode_id(1) < 2; ++mode_id(1))
             {
-                for (k[0] = 0; k[0] < 2; ++k[0])
+                for (mode_id(0) = 0; mode_id(0) < 2; ++mode_id(0))
                 {
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > null_space_data =
-                        patch->getPatchData(d_null_space_idxs[k[0] + 2*k[1] + 4*k[2]]);
-                    const SAMRAI::hier::Box<NDIM>& ghost_box = null_space_data->getGhostBox();
-                    for (SAMRAI::pdat::CellData<NDIM,double>::Iterator it(ghost_box); it; it++)
+                        patch->getPatchData(d_null_space_idxs[mode_id(0) + 2*(mode_id(1) + 2*(NDIM > 2 ? mode_id(2) : 0))]);
+                    null_space_data->fillAll(0.0);
+                    for (SAMRAI::pdat::CellData<NDIM,double>::Iterator it(coarsened_box); it; it++)
                     {
                         const SAMRAI::hier::Index<NDIM>& i = (*it);
-                        const bool is_one =
-                            (   i(0) % 2 == k[0])
-                            && (i(1) % 2 == k[1])
-#if (NDIM > 2)
-                            && (i(2) % 2 == k[2])
-#endif
-                            ;
-                        (*null_space_data)(i) = is_one ? 1.0 : 0.0;
+                        (*null_space_data)(i*2+mode_id) = 1.0;
                     }
                 }
             }
-        }
 #if (NDIM > 2)
-    }
+        }
 #endif
+    }
 
     t_initialize_level_data->stop();
     return;
@@ -541,7 +514,6 @@ CCHierarchyProjector::resetHierarchyConfiguration(
 
     // (Re)-initialize the Poisson solver.
     d_cc_div_grad_op->setHierarchyMathOps(d_hier_math_ops);
-    d_poisson_fac_op->setResetLevels(coarsest_level, finest_level);
     d_poisson_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
 
     // Setup the nullspace object associated with the Poisson solver.

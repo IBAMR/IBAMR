@@ -2,17 +2,17 @@
 #define included_CCHierarchyProjector
 
 // Filename: CCHierarchyProjector.h
-// Last modified: <20.Feb.2010 15:14:54 griffith@griffith-macbook-pro.local>
+// Last modified: <20.Feb.2010 19:11:25 griffith@griffith-macbook-pro.local>
 // Created on 18 Feb 2010 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSc INCLUDES
-#include <petsc.h>
+#include <petscksp.h>
 
 // IBTK INCLUDES
+#include <ibtk/CCDivGradHypreLevelSolver.h>
 #include <ibtk/CCDivGradOperator.h>
-#include <ibtk/CCPoissonFACOperator.h>
 #include <ibtk/KrylovLinearSolver.h>
 #include <ibtk/HierarchyMathOps.h>
 
@@ -360,11 +360,9 @@ private:
     double d_abs_residual_tol, d_rel_residual_tol;
     bool d_initial_guess_nonzero;
 
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
     SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> d_poisson_solver;
     SAMRAI::tbox::Pointer<IBTK::CCDivGradOperator> d_cc_div_grad_op;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator> d_poisson_fac_op;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_poisson_fac_pc;
+    SAMRAI::tbox::Pointer<IBTK::CCDivGradHypreLevelSolver> d_cc_div_grad_hypre_solver;
 
     /*
      * Note that data is NOT allocated for these variables.  They are only used
