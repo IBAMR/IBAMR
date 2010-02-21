@@ -1,5 +1,5 @@
 // Filename: CCHierarchyProjector.C
-// Last modified: <20.Feb.2010 19:37:54 griffith@griffith-macbook-pro.local>
+// Last modified: <20.Feb.2010 20:06:37 griffith@griffith-macbook-pro.local>
 // Created on 18 Feb 2010 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "CCHierarchyProjector.h"
@@ -432,22 +432,22 @@ CCHierarchyProjector::initializeLevelData(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
         const SAMRAI::hier::Box<NDIM> coarsened_box = SAMRAI::hier::Box<NDIM>::coarsen(patch_box,2);
-        SAMRAI::hier::IntVector<NDIM> mode_id;
+        SAMRAI::hier::IntVector<NDIM> chkbrd_mode_id;
 #if (NDIM > 2)
-        for (mode_id(2) = 0; mode_id(2) < 2; ++mode_id(2))
+        for (chkbrd_mode_id(2) = 0; chkbrd_mode_id(2) < 2; ++chkbrd_mode_id(2))
         {
 #endif
-            for (mode_id(1) = 0; mode_id(1) < 2; ++mode_id(1))
+            for (chkbrd_mode_id(1) = 0; chkbrd_mode_id(1) < 2; ++chkbrd_mode_id(1))
             {
-                for (mode_id(0) = 0; mode_id(0) < 2; ++mode_id(0))
+                for (chkbrd_mode_id(0) = 0; chkbrd_mode_id(0) < 2; ++chkbrd_mode_id(0))
                 {
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > null_space_data =
-                        patch->getPatchData(d_null_space_idxs[mode_id(0) + 2*(mode_id(1) + 2*(NDIM > 2 ? mode_id(2) : 0))]);
+                        patch->getPatchData(d_null_space_idxs[chkbrd_mode_id(0) + 2*(chkbrd_mode_id(1) + 2*(NDIM > 2 ? chkbrd_mode_id(2) : 0))]);
                     null_space_data->fillAll(0.0);
                     for (SAMRAI::pdat::CellData<NDIM,double>::Iterator it(coarsened_box); it; it++)
                     {
                         const SAMRAI::hier::Index<NDIM>& i = (*it);
-                        (*null_space_data)(i*2+mode_id) = 1.0;
+                        (*null_space_data)(i*2+chkbrd_mode_id) = 1.0;
                     }
                 }
             }
