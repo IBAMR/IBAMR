@@ -22,7 +22,7 @@ namespace IBAMR
  * at the nodes of the Lagrangian mesh).
  *
  * \note Class IBTargetPointForceGen DOES NOT correct for periodic displacements
- * of IB points; however, when used in conjuction with class IBStandardForceGen,
+ * of IB points; however, when used in conjunction with class IBStandardForceGen,
  * periodic displacements are handled correctly.
  */
 class IBTargetPointForceGen

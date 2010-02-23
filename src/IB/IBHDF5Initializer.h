@@ -122,7 +122,7 @@ public:
      *
      * When the patch hierarchy is being constructed at the initial simulation
      * time, it is necessary to instruct the gridding algorithm where to place
-     * local refinement in order to accomodate portions of the curvilinear mesh
+     * local refinement in order to accommodate portions of the curvilinear mesh
      * that will reside in any yet-to-be-constructed level(s) of the patch
      * hierarchy.
      */

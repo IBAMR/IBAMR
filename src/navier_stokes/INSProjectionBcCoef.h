@@ -55,7 +55,7 @@ public:
     ~INSProjectionBcCoef();
 
     /*!
-     * \brief Reset the problem coefficents required to specify the boundary
+     * \brief Reset the problem coefficients required to specify the boundary
      * conditions for the scalar function phi.
      */
     void

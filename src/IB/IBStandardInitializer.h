@@ -104,7 +104,7 @@ namespace IBAMR
  * \note There is no restriction on the number of beams that may be associated
  * with any particular node of the Lagrangian mesh.
  *
- * \note For each bending-resistant triple \a(i,j,k), it is neccessary that
+ * \note For each bending-resistant triple \a(i,j,k), it is necessary that
  * vertex \a j correspond to an "interior" node, i.e., a node that is not the
  * first or last node in the beam.
  *
@@ -328,7 +328,7 @@ public:
      *
      * When the patch hierarchy is being constructed at the initial simulation
      * time, it is necessary to instruct the gridding algorithm where to place
-     * local refinement in order to accomodate portions of the curvilinear mesh
+     * local refinement in order to accommodate portions of the curvilinear mesh
      * that will reside in any yet-to-be-constructed level(s) of the patch
      * hierarchy.
      */

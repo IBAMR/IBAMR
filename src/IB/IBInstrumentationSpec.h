@@ -91,7 +91,7 @@ public:
     ~IBInstrumentationSpec();
 
     /*!
-     * \return A const refernce to the master node index.
+     * \return A const reference to the master node index.
      */
     const int&
     getMasterNodeIndex() const;
@@ -103,28 +103,28 @@ public:
     getMasterNodeIndex();
 
     /*!
-     * \return A const refrence to the meter index associated with the master
+     * \return A const reference to the meter index associated with the master
      * node.
      */
     const int&
     getMeterIndex() const;
 
     /*!
-     * \return A non-const refrence to the meter index associated with the
+     * \return A non-const reference to the meter index associated with the
      * master node.
      */
     int&
     getMeterIndex();
 
     /*!
-     * \return A const refrence to the node index associated with the master
+     * \return A const reference to the node index associated with the master
      * node.
      */
     const int&
     getNodeIndex() const;
 
     /*!
-     * \return A non-const refrence to the node index associated with the master
+     * \return A non-const reference to the node index associated with the master
      * node.
      */
     int&

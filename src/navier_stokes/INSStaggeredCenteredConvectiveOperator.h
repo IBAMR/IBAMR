@@ -50,7 +50,7 @@ public:
     ~INSStaggeredCenteredConvectiveOperator();
 
     /*!
-     * \brief Compute the actaion of the convective operator.
+     * \brief Compute the action of the convective operator.
      */
     void
     applyConvectiveOperator(

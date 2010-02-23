@@ -26,7 +26,7 @@ namespace IBAMR
  * structures that resist bending).
  *
  * \note Class IBBeamForceGen DOES NOT correct for periodic displacements of IB
- * points; however, when used in conjuction with class IBStandardForceGen,
+ * points; however, when used in conjunction with class IBStandardForceGen,
  * periodic displacements are handled correctly.
  *
  * \see IBBeamForceSpec

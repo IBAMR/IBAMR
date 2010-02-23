@@ -81,7 +81,7 @@ public:
     ~IBTargetPointForceSpec();
 
     /*!
-     * \return A const refernce to the master node index.
+     * \return A const reference to the master node index.
      */
     const int&
     getMasterNodeIndex() const;

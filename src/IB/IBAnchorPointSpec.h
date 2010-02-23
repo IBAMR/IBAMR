@@ -79,7 +79,7 @@ public:
     ~IBAnchorPointSpec();
 
     /*!
-     * \return A const refernce to the node index.
+     * \return A const reference to the node index.
      */
     const int&
     getNodeIndex() const;

@@ -27,7 +27,7 @@ namespace IBAMR
  * prescribed velocity boundary conditions, whereas pure Neumann boundary
  * conditions are interpreted as prescribed traction (stress) boundary
  * conditions.  These are translated into Dirichlet and Neumann boundary
- * conditions, respectively.  Since the intermdiate velocity solve is performed
+ * conditions, respectively.  Since the intermediate velocity solve is performed
  * within the context of a preconditioning step, homogeneous boundary conditions
  * are prescribed.
  */

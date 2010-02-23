@@ -224,7 +224,7 @@ public:
 
     /*!
      * \brief Compute predicted time- and face-centered MAC velocities from a
-     * cell-centered veclocity field using a second-order Godunov method (\em
+     * cell-centered velocity field using a second-order Godunov method (\em
      * non-forced version).
      *
      * The predictor assumes that \f$ \vec{V} \f$ satisfies an equation of the
@@ -253,7 +253,7 @@ public:
 
     /*!
      * \brief Compute predicted time- and face-centered MAC velocities from a
-     * cell-centered veclocity using a second-order Godunov method (\em forced
+     * cell-centered velocity using a second-order Godunov method (\em forced
      * version).
      *
      * The predictor assumes that \f$ \vec{V} \f$ satisfies an equation of the

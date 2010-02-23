@@ -105,7 +105,7 @@ default_linear_spring_force(
  * required by registerSpringForceFunction().
  *
  * \note Class IBSpringForceGen DOES NOT correct for periodic displacements of
- * IB points; however, when used in conjuction with class IBStandardForceGen,
+ * IB points; however, when used in conjunction with class IBStandardForceGen,
  * periodic displacements are handled correctly.
  *
  * \see IBSpringForceSpec

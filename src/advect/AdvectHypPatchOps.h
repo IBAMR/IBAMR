@@ -121,7 +121,7 @@ public:
      * patch strategy.
      *
      * \note Support for sophisticated coarse-fine interface discretizations is
-     * still experimental.  Note that it is the caller's reposibility to ensure
+     * still experimental.  Note that it is the caller's responsibility to ensure
      * that the coarse-fine boundary data associated with the coarse-fine
      * interface operator remains consistent.
      */
