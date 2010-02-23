@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <19.Feb.2010 21:32:55 griffith@griffith-macbook-pro.local>
+// Last modified: <23.Feb.2010 18:14:26 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -2940,7 +2940,10 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
     // handle as much data management as possible.
     d_adv_diff_hier_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     d_hier_projector          ->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
-    d_cc_hier_projector       ->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+    if (!d_cc_hier_projector.isNull())
+    {
+        d_cc_hier_projector   ->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+    }
 
     // Indicate that the velocity field needs to be re-projected (but only in
     // the multi-level case).
