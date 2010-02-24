@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <17.Dec.2009 10:33:15 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <24.Feb.2010 17:20:28 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -825,6 +825,13 @@ private:
      */
     SAMRAI::tbox::Pointer<IBDataPostProcessor> d_post_processor;
     bool d_post_processor_needs_init;
+
+    /*
+     * Parameters for the penalty IB method for boundaries with additional
+     * boundary mass.
+     */
+    bool d_using_pIB_method;
+    std::vector<double> d_gravitational_acceleration;
 
     /*
      * Integrator data read from input or set at initialization.

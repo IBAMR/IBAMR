@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <17.Dec.2009 14:50:04 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <24.Feb.2010 18:16:30 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -152,6 +152,8 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
       d_source_strategy_needs_init(true),
       d_post_processor(post_processor),
       d_post_processor_needs_init(true),
+      d_using_pIB_method(false),
+      d_gravitational_acceleration(NDIM,0.0),
       d_start_time(0.0),
       d_end_time(std::numeric_limits<double>::max()),
       d_grow_dt(2.0),
@@ -746,6 +748,15 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_half_data(finest_ln+1);
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_half_data(finest_ln+1);
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_half_data(finest_ln+1);
+
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > K_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > M_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > Y_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > dY_dt_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > Y_new_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > dY_dt_new_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_K_half_data(finest_ln+1);
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -763,6 +774,18 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             X_half_data[ln]->restoreLocalFormVec();
             U_half_data[ln]->restoreLocalFormVec();
             F_half_data[ln]->restoreLocalFormVec();
+
+            if (d_using_pIB_method)
+            {
+                K_data[ln]        = d_lag_data_manager->getLNodeLevelData("K",ln);
+                M_data[ln]        = d_lag_data_manager->getLNodeLevelData("M",ln);
+                Y_data[ln]        = d_lag_data_manager->getLNodeLevelData("Y",ln);
+                dY_dt_data[ln]    = d_lag_data_manager->getLNodeLevelData("dY_dt",ln);
+
+                Y_new_data[ln]     = d_lag_data_manager->createLNodeLevelData("Y",ln,NDIM);
+                dY_dt_new_data[ln] = d_lag_data_manager->createLNodeLevelData("dY_dt",ln,NDIM);
+                F_K_half_data[ln]  = d_lag_data_manager->createLNodeLevelData("F_K_half",ln,NDIM);
+            }
         }
     }
 
@@ -832,6 +855,49 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         }
     }
 
+    if (d_using_pIB_method)
+    {
+        // Set the initial values of Y and dY/dt.
+        if (initial_time)
+        {
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                if (d_lag_data_manager->levelContainsLagrangianData(ln))
+                {
+                    int ierr;
+                    Vec X_vec = X_data[ln]->getGlobalVec();
+                    Vec U_vec = U_data[ln]->getGlobalVec();
+                    Vec Y_vec = Y_data[ln]->getGlobalVec();
+                    Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
+                    ierr = VecCopy(X_vec, Y_vec);  IBTK_CHKERRQ(ierr);
+                    ierr = VecCopy(U_vec, dY_dt_vec);  IBTK_CHKERRQ(ierr);
+                }
+            }
+        }
+
+        // Initialize Y(n+1) to equal Y(n).
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_lag_data_manager->levelContainsLagrangianData(ln))
+            {
+                Vec Y_vec = Y_data[ln]->getGlobalVec();
+                Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
+                int ierr = VecCopy(Y_vec, Y_new_vec);  IBTK_CHKERRQ(ierr);
+            }
+        }
+
+        // Initialize dY/dt(n+1) to equal dY/dt(n).
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_lag_data_manager->levelContainsLagrangianData(ln))
+            {
+                Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
+                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getGlobalVec();
+                int ierr = VecCopy(dY_dt_vec, dY_dt_new_vec);  IBTK_CHKERRQ(ierr);
+            }
+        }
+    }
+
     // Perform one or more cycles of fixed point iteration to compute the
     // updated configuration of the coupled fluid-structure system.
     d_ins_hier_integrator->integrateHierarchy_initialize(current_time, new_time);
@@ -847,6 +913,72 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                 d_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_lag_data_manager);
             }
         }
+
+        if (d_using_pIB_method)
+        {
+            // Compute pIB-related penalty forces and update pIB-related state
+            // variables.
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                if (d_lag_data_manager->levelContainsLagrangianData(ln))
+                {
+                    int ierr;
+
+                    Vec K_vec = K_data[ln]->getGlobalVec();
+                    Vec M_vec = M_data[ln]->getGlobalVec();
+                    Vec X_half_vec = X_half_data[ln]->getGlobalVec();
+                    Vec Y_vec = Y_data[ln]->getGlobalVec();
+                    Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
+                    Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
+                    Vec dY_dt_new_vec = dY_dt_new_data[ln]->getGlobalVec();
+                    Vec F_K_half_vec = F_K_half_data[ln]->getGlobalVec();
+
+                    int n_local = 0;
+                    ierr = VecGetLocalSize(M_vec, &n_local);  IBTK_CHKERRQ(ierr);
+
+                    double* K_arr, * M_arr, * X_half_arr, * Y_arr, * Y_new_arr, * dY_dt_arr, * dY_dt_new_arr, * F_K_half_arr;
+                    ierr = VecGetArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecGetArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecGetArray(X_half_vec, &X_half_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecGetArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecGetArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecGetArray(dY_dt_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecGetArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecGetArray(F_K_half_vec, &F_K_half_arr);  IBTK_CHKERRQ(ierr);
+
+                    for (int i = 0; i < n_local; ++i)
+                    {
+                        const double& K = K_arr[i];
+                        const double& M = M_arr[i];
+                        const double* const X_half = &X_half_arr[NDIM*i];
+                        const double* const Y = &Y_arr[NDIM*i];
+                        const double* const dY_dt = &dY_dt_arr[NDIM*i];
+                        double* const Y_new = &Y_new_arr[NDIM*i];
+                        double* const dY_dt_new = &dY_dt_new_arr[NDIM*i];
+                        double* const F_K_half = &F_K_half_arr[NDIM*i];
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            F_K_half[d] = K*(0.5*(Y_new[d]+Y[d]) - X_half[d]);
+                            Y_new[d] = Y[d] + 0.5*dt*(dY_dt_new[d]+dY_dt[d]);
+                            dY_dt_new[d] = dY_dt[d] - (dt/M)*F_K_half[d] + dt*d_gravitational_acceleration[d];
+                        }
+                    }
+
+                    ierr = VecRestoreArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecRestoreArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecRestoreArray(X_half_vec, &X_half_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecRestoreArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecRestoreArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecRestoreArray(dY_dt_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecRestoreArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecRestoreArray(F_K_half_vec, &F_K_half_arr);  IBTK_CHKERRQ(ierr);
+
+                    Vec F_half_vec = F_half_data[ln]->getGlobalVec();
+                    ierr = VecAXPY(F_half_vec,1.0,F_K_half_vec);  IBTK_CHKERRQ(ierr);
+                }
+            }
+        }
+
         resetAnchorPointValues(F_half_data, coarsest_ln, finest_ln);
 
         // Spread F(n+1/2) to f(n+1/2).
@@ -1060,6 +1192,31 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             mark_data->copy(*mark_scratch_data);
         }
         level->deallocatePatchData(d_mark_scratch_idx);
+    }
+
+    if (d_using_pIB_method)
+    {
+        // Reset Y to equal Y_new.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_lag_data_manager->levelContainsLagrangianData(ln))
+            {
+                Vec Y_vec = Y_data[ln]->getGlobalVec();
+                Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
+                int ierr = VecCopy(Y_new_vec, Y_vec);  IBTK_CHKERRQ(ierr);
+            }
+        }
+
+        // Reset dY_dt to equal dY_dt_new.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_lag_data_manager->levelContainsLagrangianData(ln))
+            {
+                Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
+                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getGlobalVec();
+                int ierr = VecCopy(dY_dt_new_vec, dY_dt_vec);  IBTK_CHKERRQ(ierr);
+            }
+        }
     }
 
     // Deallocate scratch data.
@@ -1549,6 +1706,27 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
         }
     }
 
+    // Setup the pIB data at the inital time only.
+    if (initial_time && d_lag_init->getLevelHasLagrangianData(level_number, can_be_refined))
+    {
+        static const bool manage_data = true;
+        if (d_using_pIB_method)
+        {
+            SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> M_data = d_lag_data_manager->createLNodeLevelData("M",level_number,1,manage_data);
+            SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> K_data = d_lag_data_manager->createLNodeLevelData("K",level_number,1,manage_data);
+            SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> Y_data = d_lag_data_manager->createLNodeLevelData("Y",level_number,NDIM,manage_data);
+            SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> dY_dt_data = d_lag_data_manager->createLNodeLevelData("dY_dt",level_number,NDIM,manage_data);
+
+            static const int global_index_offset = 0;
+            static const int local_index_offset = 0;
+            d_lag_init->initializeMassDataOnPatchLevel(
+                global_index_offset, local_index_offset,
+                M_data, K_data,
+                hierarchy, level_number,
+                init_data_time, can_be_refined, initial_time, d_lag_data_manager);
+        }
+    }
+
     // Initialize the marker data, but do so only on the coarsest level of the
     // patch hierarchy.  Marker data on finer levels is initialized via
     // refinement.
@@ -1904,6 +2082,12 @@ IBStaggeredHierarchyIntegrator::putToDatabase(
             db->putDouble("d_P_src_"+id_string, d_P_src[ln][n]);
             db->putDouble("d_Q_src_"+id_string, d_Q_src[ln][n]);
         }
+    }
+
+    db->putBool("d_using_pIB_method", d_using_pIB_method);
+    if (d_using_pIB_method)
+    {
+        db->putDoubleArray("d_gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
     }
 
     db->putDouble("d_start_time", d_start_time);
@@ -2794,6 +2978,19 @@ IBStaggeredHierarchyIntegrator::getFromInput(
             d_interp_delta_fcn = db->getStringWithDefault("delta_fcn", d_interp_delta_fcn);
             d_spread_delta_fcn = db->getStringWithDefault("delta_fcn", d_spread_delta_fcn);
         }
+        d_using_pIB_method = db->getBoolWithDefault("using_pIB_method", d_using_pIB_method);
+        if (d_using_pIB_method)
+        {
+            if (db->keyExists("gravitational_acceleration"))
+            {
+                db->getDoubleArray("gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
+            }
+            else
+            {
+                TBOX_WARNING(d_object_name << ":  "
+                             << "Using penalty-IB method but key data `gravitational_acceleration' not found in input.");
+            }
+        }
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
         d_mark_input_file_name = db->getStringWithDefault("marker_input_file_name", d_mark_input_file_name);
     }
@@ -2863,6 +3060,12 @@ IBStaggeredHierarchyIntegrator::getFromRestart()
             d_P_src[ln][n] = db->getDouble("d_P_src_"+id_string);
             d_Q_src[ln][n] = db->getDouble("d_Q_src_"+id_string);
         }
+    }
+
+    d_using_pIB_method = db->getBoolWithDefault("d_using_pIB_method",false);
+    if (d_using_pIB_method)
+    {
+        db->getDoubleArray("d_gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
     }
 
     d_start_time = db->getDouble("d_start_time");
