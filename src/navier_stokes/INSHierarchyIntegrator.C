@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <24.Feb.2010 10:58:58 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <24.Feb.2010 15:35:49 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -1535,7 +1535,7 @@ INSHierarchyIntegrator::regridHierarchy()
             d_V_idx        , d_V_var, // U(n,*)
             d_V_bdry_fill_op, d_integrator_time);
 
-        // Project u^(n,*)->u(n).
+        // Compute the MAC projection of u^(n,*).
         d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0, false);
         d_hier_projector->projectHierarchy(
             initial_time ? 1.0 : d_rho, initial_time ? 1.0 : d_old_dt, d_integrator_time,
@@ -1549,8 +1549,8 @@ INSHierarchyIntegrator::regridHierarchy()
 
         if (d_cc_hier_projector.isNull())
         {
-            // Use grad Phi to compute the cell-centered approximate projection
-            // of U^(n,*).
+            // Interpolate grad Phi to evaluate the cell-centered approximate
+            // projection of U^(n,*).
             d_hier_math_ops->interp(
                 d_Grad_Phi_idx, d_Grad_Phi_var, // Grad Phi
                 d_grad_Phi_idx, d_grad_Phi_var, // grad Phi
@@ -1928,7 +1928,7 @@ INSHierarchyIntegrator::projectVelocity(
 
     const double dt = new_time - current_time;
 
-    // Keep U^{*} for use in hybrid projections or regridding operations.
+    // Keep U^(n,*) for use in hybrid projections or regridding operations.
     d_hier_cc_data_ops->copyData(d_U_star_new_idx, d_U_new_idx);
 
     // Compute Q = div u(n+1).
@@ -1963,7 +1963,7 @@ INSHierarchyIntegrator::projectVelocity(
         d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
     }
 
-    // Project u^(n,*)->u(n+1).
+    // Compute the MAC projection of u^(n,*).
     d_hier_projector->projectHierarchy(
         d_rho, dt, new_time,
         d_velocity_projection_type,
@@ -1976,8 +1976,8 @@ INSHierarchyIntegrator::projectVelocity(
 
     if (d_cc_hier_projector.isNull())
     {
-        // Use grad Phi to compute the cell-centered approximate projection of
-        // U^(n,*).
+        // Interpolate grad Phi to evaluate the cell-centered approximate
+        // projection of U^(n,*).
         d_hier_math_ops->interp(
             d_Grad_Phi_idx, d_Grad_Phi_var, // dst
             d_grad_Phi_idx, d_grad_Phi_var, // src
@@ -2221,8 +2221,8 @@ INSHierarchyIntegrator::updatePressure(
             d_helmholtz_solver->initializeSolverState(*vector_sol_vec,*vector_rhs_vec);
         }
 
-        // Solve for delta U^{*} = U~^{*} - U^{*}.
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): about to solve for U~^{*} - U^{*} . . . \n";
+        // Solve for delta U^(n,*) = U~^(n,*) - U^(n,*).
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): about to solve for U~^(n,*) - U^(n,*) . . . \n";
 
         if (d_viscous_timestepping_type == "BACKWARD_EULER" || d_viscous_timestepping_type == "CRANK_NICOLSON")
         {
@@ -2281,7 +2281,7 @@ INSHierarchyIntegrator::updatePressure(
             level->deallocatePatchData(d_F_U_scratch_idx);
         }
 
-        // Store the value of U~^{*} in V.
+        // Store the value of U~^(n,*) in V.
         d_hier_cc_data_ops->add(d_V_idx, d_U_star_new_idx, d_V_idx);
 
         // Setup the intermediate velocity bc coefs.
@@ -2294,7 +2294,7 @@ INSHierarchyIntegrator::updatePressure(
                 current_time, new_time, d_rho, velocity_correction);
         }
 
-        // Interpolate U~(*)->u~(*).
+        // Interpolate U~^(n,*)->u~^(n,*).
         d_hier_math_ops->interp(
             d_u_scratch_idx, d_u_var, // u~(n+1,*)
             false,                    // do not synch u~(n+1,*) coarse-fine bdry
@@ -2308,7 +2308,7 @@ INSHierarchyIntegrator::updatePressure(
             d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
         }
 
-        // Project U~^{*}.
+        // Compute the MAC projection of u~^(n,*).
         d_hier_cc_data_ops->add(d_Phi_tilde_scratch_idx, d_P_current_idx, d_Phi_new_idx);
         d_hier_projector->projectHierarchy(
             d_rho, dt, new_time,
