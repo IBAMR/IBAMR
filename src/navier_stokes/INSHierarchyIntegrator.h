@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <19.Feb.2010 21:19:49 griffith@griffith-macbook-pro.local>
+// Last modified: <24.Feb.2010 09:53:45 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -98,7 +98,7 @@ public:
      *
      * When assertion checking is active, passing in any null pointer or an
      * empty string will result in an unrecoverable exception, except for the
-     * optional cell-centered exact projection operator.
+     * \em optional cell-centered exact projection operator.
      */
     INSHierarchyIntegrator(
         const std::string& object_name,

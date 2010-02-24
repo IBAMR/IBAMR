@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <23.Feb.2010 18:14:26 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <24.Feb.2010 10:58:58 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -290,15 +290,6 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     getFromInput(input_db, from_restart);
 
     // Determine whether we are using a hybrid projection algorithm.
-    if (!d_cc_hier_projector.isNull())
-    {
-        if (d_velocity_projection_type != d_pressure_projection_type)
-        {
-            TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
-                       << "  cannot use a hybrid projection algorithm in conjunction with an exact projection algorithm" << std::endl);
-        }
-    }
-
     if (d_velocity_projection_type != "pressure_increment" &&
         d_velocity_projection_type != "pressure_update")
     {
@@ -315,13 +306,26 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
                    << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << std::endl);
     }
 
+    if (!d_cc_hier_projector.isNull())
+    {
+        if (d_velocity_projection_type != d_pressure_projection_type)
+        {
+            TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
+                       << "  cannot use a hybrid projection algorithm in conjunction with an exact projection algorithm:\n"
+                       << "  velocity projection type = " << d_velocity_projection_type << "\n"
+                       << "  pressure projection type = " << d_pressure_projection_type << std::endl);
+        }
+    }
+
     if (d_velocity_projection_type != d_pressure_projection_type)
     {
         if (d_velocity_projection_type != "pressure_increment")
         {
             TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
                        << "  invalid hybrid projection configuration.\n"
-                       << "  for hybrid projection, it is required that velocity_projection_type = ``pressure_increment''." << std::endl);
+                       << "  for hybrid projection, it is required that velocity projection type = ``pressure_increment''\n"
+                       << "  velocity projection type = " << d_velocity_projection_type << "\n"
+                       << "  pressure projection type = " << d_pressure_projection_type << std::endl);
         }
     }
 
@@ -329,9 +333,10 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 
     SAMRAI::tbox::pout << d_object_name << ": velocity projection type = ``" << d_velocity_projection_type << "''\n"
                        << d_object_name << ": pressure projection type = ``" << d_pressure_projection_type << "''\n"
-                       << d_object_name << ": using a " << (d_using_hybrid_projection ? "HYBRID" : "STANDARD") << " approximate projection algorithm\n"
-                       << d_object_name << ": using a " << (d_second_order_pressure_update ? "SECOND-ORDER" : "FIRST-ORDER") << " pressure update\n"
-                       << d_object_name << ": using " << (d_conservation_form ? "CONSERVATIVE" : "NON-CONSERVATIVE") << " differencing\n";
+                       << d_object_name << ": using a  " << (d_using_hybrid_projection ? "HYBRID" : "STANDARD") << " approximate projection algorithm\n"
+                       << d_object_name << ": using a  " << (d_second_order_pressure_update ? "SECOND-ORDER" : "FIRST-ORDER") << " pressure update\n"
+                       << d_object_name << ": using    " << (d_conservation_form ? "CONSERVATIVE" : "NON-CONSERVATIVE") << " differencing\n"
+                       << d_object_name << ": using an " << (d_cc_hier_projector.isNull() ? "APPROXIMATE" : "EXACT") << " cell-centered projection algorithm\n";
 
     // Get initialization data for the FAC ops and FAC preconditioners.
     if (d_helmholtz_using_FAC)
@@ -1530,8 +1535,7 @@ INSHierarchyIntegrator::regridHierarchy()
             d_V_idx        , d_V_var, // U(n,*)
             d_V_bdry_fill_op, d_integrator_time);
 
-        // Project u^(n,*)->u(n) and re-use grad Phi to project
-        // U^(n,*)->U^(n).
+        // Project u^(n,*)->u(n).
         d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0, false);
         d_hier_projector->projectHierarchy(
             initial_time ? 1.0 : d_rho, initial_time ? 1.0 : d_old_dt, d_integrator_time,
@@ -1545,6 +1549,8 @@ INSHierarchyIntegrator::regridHierarchy()
 
         if (d_cc_hier_projector.isNull())
         {
+            // Use grad Phi to compute the cell-centered approximate projection
+            // of U^(n,*).
             d_hier_math_ops->interp(
                 d_Grad_Phi_idx, d_Grad_Phi_var, // Grad Phi
                 d_grad_Phi_idx, d_grad_Phi_var, // grad Phi
@@ -1554,6 +1560,7 @@ INSHierarchyIntegrator::regridHierarchy()
         }
         else
         {
+            // Compute the cell-centered exact projection of U^(n,*).
             d_cc_hier_projector->projectHierarchy(
                 initial_time ? 1.0 : d_rho, initial_time ? 1.0 : d_old_dt, d_integrator_time,
                 d_U_current_idx  , d_U_var       ,   // u(n)
@@ -1709,7 +1716,14 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
 
     // Setup the forcing terms for velocity prediction.
-    d_hier_cc_data_ops->scale(d_F_U_current_idx, -(1.0/d_rho), d_Grad_P_idx);
+    if (d_velocity_projection_type == "pressure_increment")
+    {
+        d_hier_cc_data_ops->scale(d_F_U_current_idx, -(1.0/d_rho), d_Grad_P_idx);
+    }
+    else
+    {
+        d_hier_cc_data_ops->setToScalar(d_F_U_current_idx, 0.0);
+    }
 
     if (!d_F_var.isNull())
     {
@@ -1949,8 +1963,7 @@ INSHierarchyIntegrator::projectVelocity(
         d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
     }
 
-    // Project u^(n,*)->u(n+1) and re-use grad Phi to project
-    // U^(n,*)->U^(n+1).
+    // Project u^(n,*)->u(n+1).
     d_hier_projector->projectHierarchy(
         d_rho, dt, new_time,
         d_velocity_projection_type,
@@ -1960,10 +1973,11 @@ INSHierarchyIntegrator::projectVelocity(
         d_grad_Phi_idx   , d_grad_Phi_var,   // grad Phi
         d_u_scratch_idx  , d_u_var       ,   // u(n+1,*)
         d_Q_new_idx      , d_Q_var        ); // div u(n+1)
-    d_hier_cc_data_ops->copyData(d_Phi_new_idx, d_Phi_scratch_idx);
 
     if (d_cc_hier_projector.isNull())
     {
+        // Use grad Phi to compute the cell-centered approximate projection of
+        // U^(n,*).
         d_hier_math_ops->interp(
             d_Grad_Phi_idx, d_Grad_Phi_var, // dst
             d_grad_Phi_idx, d_grad_Phi_var, // src
@@ -1973,6 +1987,7 @@ INSHierarchyIntegrator::projectVelocity(
     }
     else
     {
+        // Compute the cell-centered exact projection of U^(n,*).
         d_cc_hier_projector->projectHierarchy(
             d_rho, dt, new_time,
             d_U_new_idx      , d_U_var       ,   // u(n+1)
@@ -1981,6 +1996,8 @@ INSHierarchyIntegrator::projectVelocity(
             d_U_star_new_idx , d_U_var       ,   // u(n+1,*)
             d_Q_new_idx      , d_Q_var        ); // div u(n+1)
     }
+
+    d_hier_cc_data_ops->copyData(d_Phi_new_idx, d_Phi_scratch_idx);
 
     // Optionally compute auxiliary quantities.
     if (!d_Omega_var.isNull() || !d_Div_U_var.isNull())
@@ -2084,7 +2101,7 @@ INSHierarchyIntegrator::updatePressure(
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(d_cc_hier_projector.isNull());
         TBOX_ASSERT(d_velocity_projection_type == "pressure_increment" &&
-               d_pressure_projection_type == "pressure_update");
+                    d_pressure_projection_type == "pressure_update");
 #endif
         // Allocate scratch data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -2341,7 +2358,7 @@ INSHierarchyIntegrator::updatePressure(
         else if (d_viscous_timestepping_type == "TGA")
         {
             TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                       << "  second-order pressure update is not available when using TGA for the viscous timestepping scheme.");
+                       << "  second-order pressure update is not available when using TGA as the viscous timestepping scheme.");
         }
         else
         {
