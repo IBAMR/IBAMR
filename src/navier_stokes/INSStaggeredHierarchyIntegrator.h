@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <17.Dec.2009 10:50:28 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <25.Feb.2010 13:11:08 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -765,20 +765,6 @@ private:
     INSStaggeredHierarchyIntegrator&
     operator=(
         const INSStaggeredHierarchyIntegrator& that);
-
-    /*!
-     * Modified KSP convergence test which indicates the linear solver is
-     * converged only if the standard KSP convergence test indicates that the
-     * solver is converged *and* if the divergence of the velocity field is
-     * sufficiently small.
-     */
-    static PetscErrorCode
-    KSPDivUConvergenceTest(
-        KSP ksp,
-        PetscInt n,
-        PetscReal rnorm,
-        KSPConvergedReason* reason,
-        void* convergence_test_ctx);
 
     /*!
      * Project the velocity field following a regridding operation.

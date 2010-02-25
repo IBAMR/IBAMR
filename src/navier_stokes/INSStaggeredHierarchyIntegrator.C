@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <17.Dec.2009 10:50:27 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <25.Feb.2010 17:09:56 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1407,12 +1407,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     // Setup the operators and solvers.
     initializeOperatorsAndSolvers(current_time, new_time);
 
-    // Setup the convergence test.
-    PetscErrorCode ierr;
-    KSP petsc_ksp = d_stokes_solver->getPETScKSP();
-//  ierr = KSPDefaultConvergedCreate(&d_default_conv_ctx);  IBTK_CHKERRQ(ierr);
-//  ierr = KSPSetConvergenceTest(petsc_ksp, INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest, static_cast<void*>(this), PETSC_NULL);  IBTK_CHKERRQ(ierr);
-
     // Setup the nullspace object.
     if (d_normalize_pressure)
     {
@@ -1421,6 +1415,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
         d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
         d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
 
+        int ierr;
         MatNullSpace petsc_nullsp;
         Vec petsc_nullsp_vec = IBTK::PETScSAMRAIVectorReal<double>::createPETScVector(d_nul_vec, PETSC_COMM_WORLD);
         double one_dot_one;
@@ -1891,42 +1886,14 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
             div_free_prolongation_scratch_data.setFlag(d_indicator_idx);
 
             // Set the indicator data to equal "0" in each patch of the new
-            // patch level (EXCEPT at physical boundaries) and initialize values
-            // of U to cause a floating point error if used incorrectly.
+            // patch level and initialize values of U to cause a floating point
+            // error if used incorrectly.
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
-                const SAMRAI::hier::Index<NDIM>& iupper = patch_box.upper();
 
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > indicator_data = patch->getPatchData(d_indicator_idx);
                 indicator_data->fillAll(0.0);
-                if (patch_geom->getTouchesRegularBoundary())
-                {
-                    for (int axis = 0; axis < NDIM; ++axis)
-                    {
-                        for (int upperlower = 0; upperlower <= 1; ++upperlower)
-                        {
-                            if (patch_geom->getTouchesRegularBoundary(axis,upperlower))
-                            {
-                                SAMRAI::hier::Box<NDIM> fill_box = patch_box;
-                                if (upperlower == 0)
-                                {
-                                    fill_box.lower()(axis) = ilower(axis)-1;
-                                    fill_box.upper()(axis) = ilower(axis)-1;
-                                }
-                                else
-                                {
-                                    fill_box.lower()(axis) = iupper(axis)+1;
-                                    fill_box.upper()(axis) = iupper(axis)+1;
-                                }
-                                indicator_data->fillAll(1.0,fill_box);
-                            }
-                        }
-                    }
-                }
 
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_current_data = patch->getPatchData(d_U_current_idx);
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> >  U_regrid_data = patch->getPatchData( d_U_regrid_idx);
@@ -1956,9 +1923,11 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                 }
 
                 // Create a communications schedule to copy data from the old patch
-                // level to the new patch level.  Note that this will set the
-                // indicator data to equal "1" at each location in the new patch
-                // level which is a copy of a location from the old patch level.
+                // level to the new patch level.
+                //
+                // Note that this will set the indicator data to equal "1" at
+                // each location in the new patch level which is a copy of a
+                // location from the old patch level.
                 SAMRAI::xfer::RefineAlgorithm<NDIM> copy_data;
                 copy_data.registerRefine( d_U_regrid_idx,  d_U_regrid_idx,  d_U_regrid_idx, NULL);
                 copy_data.registerRefine(    d_U_src_idx,     d_U_src_idx,     d_U_src_idx, NULL);
@@ -2660,81 +2629,6 @@ INSStaggeredHierarchyIntegrator::registerVariable(
 }// registerVariable
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
-PetscErrorCode
-INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
-    KSP ksp,
-    PetscInt n,
-    PetscReal rnorm,
-    KSPConvergedReason* reason,
-    void* convergence_test_ctx)
-{
-    INSStaggeredHierarchyIntegrator* hier_integrator = static_cast<INSStaggeredHierarchyIntegrator*>(convergence_test_ctx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(hier_integrator != NULL);
-#endif
-    PetscErrorCode ierr;
-    ierr = KSPDefaultConverged(ksp, n, rnorm, reason, hier_integrator->d_default_conv_ctx);  IBTK_CHKERRQ(ierr);
-
-    // Whenever the default convergence test is satisfied, compute the discrete
-    // divergence of the solution vector and ensure that it satisfies the
-    // user-specified convergence tolerance.
-    const double& div_u_abstol = hier_integrator->d_div_u_abstol;
-    if (int(*reason) > 0 && div_u_abstol > 0.0)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops = hier_integrator->d_hier_cc_data_ops;
-        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops = hier_integrator->d_hier_math_ops;
-        const int wgt_cc_idx = hier_integrator->d_wgt_cc_idx;
-
-        const int Div_U_idx = hier_integrator->d_Div_U_scratch_idx;
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Div_U_cc_var = hier_integrator->d_Div_U_var;
-        const SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>& no_fill_op = hier_integrator->d_no_fill_op;
-        const double& integrator_time = hier_integrator->d_integrator_time;
-
-        Vec petsc_sol_vec;
-        ierr = KSPBuildSolution(ksp, PETSC_NULL, &petsc_sol_vec);  IBTK_CHKERRQ(ierr);
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_sol_vec);
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec_clone = sol_vec->cloneVector("");
-        sol_vec_clone->allocateVectorData(integrator_time);
-        sol_vec_clone->copyVector(sol_vec);
-
-        const int U_idx = sol_vec_clone->getComponentDescriptorIndex(0);
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_var = sol_vec_clone->getComponentVariable(0);
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_sc_var = U_var;
-
-        const int Q_idx = hier_integrator->d_Q_scratch_idx;
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& Q_var = hier_integrator->d_Q_var;
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_cc_var = Q_var;
-
-        hier_integrator->d_U_bc_helper->resetValuesAtDirichletBoundaries(U_idx);
-
-        static const bool U_cf_bdry_synch = true;
-        hier_math_ops->div(
-            Div_U_idx, Div_U_cc_var, // dst
-            +1.0,                    // alpha
-            U_idx, U_sc_var,         // src1
-            no_fill_op,              // src1_bdry_fill
-            integrator_time,         // src1_bdry_fill_time
-            U_cf_bdry_synch,         // src1_cf_bdry_synch
-            -1.0,                    // beta
-            Q_idx, Q_cc_var);        // src2
-
-        sol_vec_clone->freeVectorComponents();
-        sol_vec_clone->deallocateVectorData();
-
-        const double Div_U_oo = hier_cc_data_ops->maxNorm(Div_U_idx, wgt_cc_idx);
-        if (Div_U_oo > div_u_abstol)
-        {
-            PetscInfo3(ksp,"Linear solver has converged according to KSPDefaultConverged, but solution does not yet satisfy the absolute convergence tolerance on div U. Divergence max-norm %G is greater than the absolute tolerance %G at iteration %D\n", Div_U_oo, div_u_abstol, n);
-            *reason = KSP_CONVERGED_ITERATING;
-        }
-        else
-        {
-            PetscInfo3(ksp,"Linear solver has converged according to KSPDefaultConverged, and solution satisfies the absolute convergence tolerance on div U. Divergence max-norm %G is less than or equal to the absolute tolerance %G at iteration %D\n", Div_U_oo, div_u_abstol, n);
-        }
-    }
-    PetscFunctionReturn(0);
-}// KSPDivUConvergenceTest
 
 void
 INSStaggeredHierarchyIntegrator::regridProjection()
