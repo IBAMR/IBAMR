@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <24.Feb.2010 18:16:30 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <25.Feb.2010 11:08:31 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -782,8 +782,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                 Y_data[ln]        = d_lag_data_manager->getLNodeLevelData("Y",ln);
                 dY_dt_data[ln]    = d_lag_data_manager->getLNodeLevelData("dY_dt",ln);
 
-                Y_new_data[ln]     = d_lag_data_manager->createLNodeLevelData("Y",ln,NDIM);
-                dY_dt_new_data[ln] = d_lag_data_manager->createLNodeLevelData("dY_dt",ln,NDIM);
+                Y_new_data[ln]     = d_lag_data_manager->createLNodeLevelData("Y_new",ln,NDIM);
+                dY_dt_new_data[ln] = d_lag_data_manager->createLNodeLevelData("dY_dt_new",ln,NDIM);
                 F_K_half_data[ln]  = d_lag_data_manager->createLNodeLevelData("F_K_half",ln,NDIM);
             }
         }
@@ -916,8 +916,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 
         if (d_using_pIB_method)
         {
-            // Compute pIB-related penalty forces and update pIB-related state
-            // variables.
+            // Compute pIB-related penalty forces, F_K = K*(Y-X), and update the
+            // pIB-related state variables, Y and dY/dt.
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 if (d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -946,6 +946,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                     ierr = VecGetArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
                     ierr = VecGetArray(F_K_half_vec, &F_K_half_arr);  IBTK_CHKERRQ(ierr);
 
+                    static double max_displacement = 0.0;
+                    double max_config_displacement = 0.0;
                     for (int i = 0; i < n_local; ++i)
                     {
                         const double& K = K_arr[i];
@@ -956,12 +958,26 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                         double* const Y_new = &Y_new_arr[NDIM*i];
                         double* const dY_dt_new = &dY_dt_new_arr[NDIM*i];
                         double* const F_K_half = &F_K_half_arr[NDIM*i];
+
+                        double displacement = 0.0;
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            F_K_half[d] = K*(0.5*(Y_new[d]+Y[d]) - X_half[d]);
+                            double Y_minus_X = 0.5*(Y_new[d]+Y[d]) - X_half[d];
+                            displacement += Y_minus_X;
+                            F_K_half[d] = K*Y_minus_X;
                             Y_new[d] = Y[d] + 0.5*dt*(dY_dt_new[d]+dY_dt[d]);
                             dY_dt_new[d] = dY_dt[d] - (dt/M)*F_K_half[d] + dt*d_gravitational_acceleration[d];
                         }
+                        displacement = sqrt(displacement);
+                        max_config_displacement = std::max(displacement,max_config_displacement);
+                    }
+
+                    max_displacement = std::max(max_config_displacement,max_displacement);
+                    if (d_do_log && !SAMRAI::tbox::MathUtilities<double>::equalEps(max_config_displacement,0.0))
+                    {
+                        SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy():\n";
+                        SAMRAI::tbox::plog << "  maximum massive boundary point displacement [present configuration] = " << max_config_displacement << "\n";
+                        SAMRAI::tbox::plog << "  maximum massive boundary point displacement [entire simulation]     = " << max_displacement << "\n";
                     }
 
                     ierr = VecRestoreArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);

@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <30.Dec.2009 18:45:41 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <25.Feb.2010 11:08:46 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1178,7 +1178,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 {
                     SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy():\n";
                     SAMRAI::tbox::plog << "  maximum massive boundary point displacement [present configuration] = " << max_config_displacement << "\n";
-                    SAMRAI::tbox::plog << "  maximum massive boundary point displacement [entire simulation] = " << max_displacement << "\n";
+                    SAMRAI::tbox::plog << "  maximum massive boundary point displacement [entire simulation]     = " << max_displacement << "\n";
                 }
 
                 ierr = VecRestoreArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);

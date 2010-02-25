@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <17.Feb.2010 16:21:22 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <25.Feb.2010 11:44:09 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -1139,19 +1139,6 @@ IBStandardInitializer::readTargetPointFiles()
                         }
                     }
 
-                    // Modify the target point stiffness constant according to
-                    // whether target point penalty forces are enabled, or
-                    // whether uniform values are to be employed, for this
-                    // particular structure.
-                    if (d_using_uniform_target_stiffness[ln][j])
-                    {
-                        d_target_stiffness[ln][j][n] = d_uniform_target_stiffness[ln][j];
-                    }
-                    if (d_using_uniform_target_damping  [ln][j])
-                    {
-                        d_target_damping  [ln][j][n] = d_uniform_target_damping  [ln][j];
-                    }
-
                     // Check to see if the penalty spring constant is zero and,
                     // if so, emit a warning.
                     const double kappa = d_target_stiffness[ln][j][n];
@@ -1169,6 +1156,25 @@ IBStandardInitializer::readTargetPointFiles()
                 SAMRAI::tbox::plog << d_object_name << ":  "
                                    << "read " << num_target_points << " target points from ASCII input file named " << target_point_stiffness_filename << std::endl
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+            }
+
+            // Modify the target point stiffness constants according to whether
+            // target point penalty forces are enabled, or whether uniform
+            // values are to be employed, for this particular structure.
+            if (!d_enable_target_points[ln][j])
+            {
+                d_target_stiffness[ln][j] = std::vector<double>(d_num_vertex[ln][j], 0.0);
+            }
+            else
+            {
+                if (d_using_uniform_target_stiffness[ln][j])
+                {
+                    d_target_stiffness[ln][j] = std::vector<double>(d_num_vertex[ln][j], d_uniform_target_stiffness[ln][j]);
+                }
+                if (d_using_uniform_target_damping[ln][j])
+                {
+                    d_target_damping[ln][j] = std::vector<double>(d_num_vertex[ln][j], d_uniform_target_damping[ln][j]);
+                }
             }
 
             // Free the next MPI process to start reading the current file.
@@ -1381,29 +1387,23 @@ IBStandardInitializer::readBoundaryMassFiles()
                                    << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
             }
 
-            // Modify the boundary mass and boundary mass stiffness constant
+            // Modify the boundary masses and boundary mass stiffness constants
             // according to whether boundary mass is enabled, or whether uniform
             // values are to be employed, for this particular structure.
             if (!d_enable_bdry_mass[ln][j])
             {
-                d_bdry_mass[ln][j] = std::vector<double>(
-                    d_num_vertex[ln][j], 0.0);
-                d_bdry_mass_stiffness[ln][j] = std::vector<double>(
-                    d_num_vertex[ln][j], 0.0);
+                d_bdry_mass          [ln][j] = std::vector<double>(d_num_vertex[ln][j], 0.0);
+                d_bdry_mass_stiffness[ln][j] = std::vector<double>(d_num_vertex[ln][j], 0.0);
             }
             else
             {
                 if (d_using_uniform_bdry_mass[ln][j])
                 {
-                    d_bdry_mass[ln][j] = std::vector<double>(
-                        d_num_vertex[ln][j],
-                        d_uniform_bdry_mass[ln][j]);
+                    d_bdry_mass[ln][j] = std::vector<double>(d_num_vertex[ln][j], d_uniform_bdry_mass[ln][j]);
                 }
                 if (d_using_uniform_bdry_mass_stiffness[ln][j])
                 {
-                    d_bdry_mass_stiffness[ln][j] = std::vector<double>(
-                        d_num_vertex[ln][j],
-                        d_uniform_bdry_mass_stiffness[ln][j]);
+                    d_bdry_mass_stiffness[ln][j] = std::vector<double>(d_num_vertex[ln][j], d_uniform_bdry_mass_stiffness[ln][j]);
                 }
             }
 
