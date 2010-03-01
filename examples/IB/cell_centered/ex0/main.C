@@ -54,6 +54,8 @@ class myPostProcessor
     : public IBDataPostProcessor
 {
 public:
+    tbox::Pointer<IBLagrangianForceStrategy> d_force_generator;
+
     myPostProcessor()
     {
         // intentionally blank
@@ -456,13 +458,16 @@ main(
 
         SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
 
-        SAMRAI::tbox::Pointer<IBDataPostProcessor> post_processor = new myPostProcessor();
+        myPostProcessor* t_post_processor = new myPostProcessor();
+        t_post_processor->d_force_generator = force_generator;
+        tbox::Pointer<IBDataPostProcessor> post_processor = t_post_processor;
 
         tbox::Pointer<IBHierarchyIntegrator> time_integrator =
             new IBHierarchyIntegrator(
                 "IBHierarchyIntegrator",
                 input_db->getDatabase("IBHierarchyIntegrator"),
-                patch_hierarchy, navier_stokes_integrator, force_generator, source_generator, post_processor);
+                patch_hierarchy, navier_stokes_integrator,
+                force_generator, source_generator, post_processor);
         time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
         tbox::Pointer<IBStandardInitializer> initializer =
