@@ -2,7 +2,7 @@
 #define included_CCHierarchyProjector
 
 // Filename: CCHierarchyProjector.h
-// Last modified: <20.Feb.2010 19:11:25 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 13:43:24 griffith@boyce-griffiths-mac-pro.local>
 // Created on 18 Feb 2010 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -30,7 +30,7 @@ namespace IBAMR
  *
  * \note The class implementation is intended to be used only for uniform grids
  * with periodic boundaries.  This class may also work in some cases for
- * locally-refined discretiations, but if it does, its success is purely
+ * locally-refined discretizations, but if it does, its success is purely
  * accidental.
  */
 class CCHierarchyProjector
@@ -73,7 +73,7 @@ public:
     ///      isManagingHierarchyMathOps()
     ///
     ///  allow for the sharing of a single HierarchyMathOps object between
-    ///  mutiple HierarchyIntegrator objects.
+    ///  multiple HierarchyIntegrator objects.
     ///
 
     /*!
@@ -205,7 +205,7 @@ public:
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
-     * example, due to regidding) and the data has been initialized on the new
+     * example, due to regridding) and the data has been initialized on the new
      * levels.  The intent is that the cost of data movement on the hierarchy
      * will be amortized across multiple communication cycles, if possible.  The
      * level numbers indicate the range of levels in the hierarchy that have
@@ -339,7 +339,7 @@ private:
 
     /*
      * The Poisson solver and associated data including Poisson specifications,
-     * boundary conditions, and the solver configuation database.
+     * boundary conditions, and the solver configuration database.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
 

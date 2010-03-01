@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <01.Mar.2010 12:02:06 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 13:57:22 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -96,19 +96,6 @@ namespace IBAMR
 
 namespace
 {
-int
-register_stokes_solver_options(
-    const std::string& stokes_prefix,
-    double& div_u_abstol,
-    const double & default_div_u_abstol)
-{
-    PetscErrorCode ierr;
-    ierr = PetscOptionsBegin(PETSC_COMM_WORLD, stokes_prefix.c_str(), "additional options for incompressible Stokes solver", "");  CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-div_u_atol", "absolute solver congergence tolerance for the value of ||div u||_oo", "", default_div_u_abstol, &div_u_abstol, PETSC_NULL);  CHKERRQ(ierr);
-    ierr = PetscOptionsEnd();  CHKERRQ(ierr);
-    PetscFunctionReturn(0);
-}// register_stokes_solver_options
-
 // Timers.
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_integrator;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy;
@@ -414,7 +401,7 @@ INSStaggeredHierarchyIntegrator::registerSourceSpecification(
     SAMRAI::tbox::pout << "\n"
                        << "WARNING: There is an extra term which should be added to the momentum equation\n"
                        << "         in the case that div u != 0.\n"
-                       << "         At the present time, this term has NOT beed incorporated into the\n"
+                       << "         At the present time, this term has NOT been incorporated into the\n"
                        << "         staggered-grid incompressible Navier-Stokes solver.\n"
                        << "\n";
     return;
@@ -470,7 +457,7 @@ INSStaggeredHierarchyIntegrator::registerApplyGradientDetectorCallback(
 ///      setHierarchyMathOps(),
 ///      isManagingHierarchyMathOps()
 ///
-///  allow for the sharing of a single HierarchyMathOps object between mutiple
+///  allow for the sharing of a single HierarchyMathOps object between multiple
 ///  HierarchyIntegrator objects.
 ///
 
@@ -773,8 +760,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_stokes_solver->setInitialGuessNonzero(true);
     d_stokes_solver->setOperator(d_stokes_op);
     d_stokes_solver->setKSPType("fgmres");
-    d_div_u_abstol = 1.0e-5;
-    ierr = register_stokes_solver_options(stokes_prefix, d_div_u_abstol, d_div_u_abstol);  IBTK_CHKERRQ(ierr);
 
     // Setup the preconditioner and preconditioner sub-solvers.
     std::vector<std::string> pc_shell_types(3);
@@ -1652,9 +1637,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
         ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
     }
 
-    // Deallocate the convergence test context.
-//  PetscErrorCode ierr = KSPDefaultConvergedDestroy(d_default_conv_ctx); IBTK_CHKERRQ(ierr);
-
     // Deallocate scratch data.
     d_U_rhs_vec->freeVectorComponents();
     d_U_half_vec->freeVectorComponents();
@@ -1974,9 +1956,9 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
     if (initial_time)
     {
         // If no initialization object is provided, initialize the velocity,
-        // divergance, and vorticity to zero.  Otherwise, use the initialization
+        // divergence, and vorticity to zero.  Otherwise, use the initialization
         // object to set the velocity to some specified value and compute the
-        // divergance and vorticity corresponding to the initial velocity.
+        // divergence and vorticity corresponding to the initial velocity.
         if (d_U_init.isNull())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2283,7 +2265,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetector(
                                   uses_richardson_extrapolation_too);
     }
 
-    // Tag cells based on the magnatude of the vorticity.
+    // Tag cells based on the magnitude of the vorticity.
     //
     // Note that if either the relative or absolute threshold is zero for a
     // particular level, no tagging is performed on that level.
@@ -2404,7 +2386,7 @@ INSStaggeredHierarchyIntegrator::getSourceVar()
 
 ///
 /// We simply reuse the SAMRAI::hier::VariableContext objects defined in the
-/// AdvDiffIntegrator object.
+/// AdvDiffHierarchyIntegrator object.
 ///
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
@@ -2431,7 +2413,7 @@ INSStaggeredHierarchyIntegrator::getScratchContext() const
 ///      reinterpolateVelocity(),
 ///      reinterpolateForce()
 ///
-/// are miscelaneous utility functions.
+/// are miscellaneous utility functions.
 
 void
 INSStaggeredHierarchyIntegrator::reinterpolateVelocity(
@@ -2536,8 +2518,6 @@ INSStaggeredHierarchyIntegrator::putToDatabase(
     db->putDouble("d_rho", d_rho);
     db->putDouble("d_mu", d_mu);
     db->putDouble("d_lambda", d_lambda);
-
-    db->putDouble("d_div_u_abstol", d_div_u_abstol);
 
     db->putDouble("d_regrid_max_div_growth_factor", d_regrid_max_div_growth_factor);
 
@@ -3076,7 +3056,7 @@ INSStaggeredHierarchyIntegrator::getFromInput(
             if (d_Omega_abs_thresh[i] < 0.0)
             {
                 TBOX_ERROR(d_object_name << ":  "
-                           << "absolute vorticity thresholds for each level must be nonnegative.\n");
+                           << "absolute vorticity thresholds for each level must be non-negative.\n");
             }
         }
     }
@@ -3218,8 +3198,6 @@ INSStaggeredHierarchyIntegrator::getFromRestart()
     d_rho = db->getDouble("d_rho");
     d_mu = db->getDouble("d_mu");
     d_lambda = db->getDouble("d_lambda");
-
-    d_div_u_abstol = db->getDouble("d_div_u_abstol");
 
     d_regrid_max_div_growth_factor = db->getDouble("d_regrid_max_div_growth_factor");
     return;

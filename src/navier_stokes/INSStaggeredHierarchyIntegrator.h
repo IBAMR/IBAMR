@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <01.Mar.2010 11:43:37 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 13:58:10 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -186,7 +186,7 @@ public:
     ///      isManagingHierarchyMathOps()
     ///
     ///  allow for the sharing of a single HierarchyMathOps object between
-    ///  mutiple HierarchyIntegrator objects.
+    ///  multiple HierarchyIntegrator objects.
     ///
 
     /*!
@@ -512,7 +512,7 @@ public:
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
-     * example, due to regidding) and the data has been initialized on the new
+     * example, due to regridding) and the data has been initialized on the new
      * levels.  The intent is that the cost of data movement on the hierarchy
      * will be amortized across multiple communication cycles, if possible.  The
      * level numbers indicate the range of levels in the hierarchy that have
@@ -650,7 +650,7 @@ public:
     ///      reinterpolateVelocity(),
     ///      reinterpolateForce()
     ///
-    /// are miscelaneous utility functions.
+    /// are miscellaneous utility functions.
 
     /*!
      * Re-interpolate the staggered velocity from cell faces to cell centers.
@@ -1004,8 +1004,6 @@ private:
 
     bool d_stokes_solver_needs_init;
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;
-    double d_div_u_abstol;
-    void* d_default_conv_ctx;
 
     bool d_needs_regrid_projection;
     double d_regrid_max_div_growth_factor;

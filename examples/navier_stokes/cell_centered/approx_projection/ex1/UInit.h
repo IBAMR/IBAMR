@@ -2,7 +2,7 @@
 #define included_UInit
 
 // Filename: UInit.h
-// Last modified: <12.Mar.2008 23:26:00 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Mar.2010 14:33:23 griffith@boyce-griffiths-mac-pro.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -99,7 +99,7 @@ private:
     string d_object_name;
 
     /*
-     * Shear layer paramters.
+     * Shear layer parameters.
      */
     double d_rho, d_delta;
 };

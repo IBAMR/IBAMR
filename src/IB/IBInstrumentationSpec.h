@@ -2,7 +2,7 @@
 #define included_IBInstrumentationSpec
 
 // Filename: IBInstrumentationSpec.h
-// Last modified: <15.Dec.2009 19:18:58 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 15:41:12 griffith@boyce-griffiths-mac-pro.local>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -91,7 +91,7 @@ public:
     ~IBInstrumentationSpec();
 
     /*!
-     * \return A const refernce to the master node index.
+     * \return A const reference to the master node index.
      */
     const int&
     getMasterNodeIndex() const;
@@ -103,28 +103,28 @@ public:
     getMasterNodeIndex();
 
     /*!
-     * \return A const refrence to the meter index associated with the master
+     * \return A const reference to the meter index associated with the master
      * node.
      */
     const int&
     getMeterIndex() const;
 
     /*!
-     * \return A non-const refrence to the meter index associated with the
+     * \return A non-const reference to the meter index associated with the
      * master node.
      */
     int&
     getMeterIndex();
 
     /*!
-     * \return A const refrence to the node index associated with the master
+     * \return A const reference to the node index associated with the master
      * node.
      */
     const int&
     getNodeIndex() const;
 
     /*!
-     * \return A non-const refrence to the node index associated with the master
+     * \return A non-const reference to the node index associated with the master
      * node.
      */
     int&

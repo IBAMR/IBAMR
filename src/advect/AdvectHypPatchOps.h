@@ -2,7 +2,7 @@
 #define included_AdvectHypPatchOps
 
 // Filename: AdvectHypPatchOps.h
-// Last modified: <03.Nov.2009 20:49:48 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 14:09:40 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -121,7 +121,7 @@ public:
      * patch strategy.
      *
      * \note Support for sophisticated coarse-fine interface discretizations is
-     * still experimental.  Note that it is the caller's reposibility to ensure
+     * still experimental.  Note that it is the caller's responsibility to ensure
      * that the coarse-fine boundary data associated with the coarse-fine
      * interface operator remains consistent.
      */
@@ -499,7 +499,7 @@ public:
         const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
-     * Postprocess data refine operations.
+     * \brief Postprocess data refine operations.
      */
     virtual void
     postprocessRefine(

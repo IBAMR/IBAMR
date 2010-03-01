@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <30.Dec.2009 20:09:01 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 15:56:15 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -417,7 +417,7 @@ IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure(
 
     int ierr;
 
-    // Lookup the cached connectivity information.
+    // Look up the cached connectivity information.
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
     std::vector<int>& petsc_slave_node_idxs = d_petsc_slave_node_idxs[level_number];
     const int local_sz = petsc_mastr_node_idxs.size();

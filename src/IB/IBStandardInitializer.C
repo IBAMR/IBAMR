@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <25.Feb.2010 11:44:09 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 16:07:13 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -75,7 +75,6 @@ discard_comments(
     string_stream.str(output_string);
     std::getline(string_stream, output_string, '%');
     string_stream.clear();
-
     return output_string;
 }// discard_comments
 }
@@ -323,7 +322,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
              it != patch_vertices.end(); ++it)
         {
             const std::pair<int,int>& point_idx = (*it);
-            const int current_global_idx = getCannonicalLagrangianIndex(
+            const int current_global_idx = getCanonicalLagrangianIndex(
                 point_idx, level_number) + global_index_offset;
             const int current_local_idx = ++local_idx + local_index_offset;
 
@@ -356,7 +355,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             const SAMRAI::pdat::CellIndex<NDIM> idx = IBTK::IndexUtilities::getCellIndex(
                 X, xLower, xUpper, dx, patch_lower, patch_upper);
 
-            // Initialize the force specification object assocaited with the
+            // Initialize the force specification object associated with the
             // present vertex.
             std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> > force_spec =
                 initializeSpecs(
@@ -1662,17 +1661,16 @@ IBStandardInitializer::getPatchVertices(
             if (patch_owns_node) patch_vertices.push_back(std::make_pair(j,k));
         }
     }
-
     return;
 }// getPatchVertices
 
 int
-IBStandardInitializer::getCannonicalLagrangianIndex(
+IBStandardInitializer::getCanonicalLagrangianIndex(
     const std::pair<int,int>& point_index,
     const int level_number) const
 {
     return d_vertex_offset[level_number][point_index.first]+point_index.second;
-}// getCannonicalLagrangianIndex
+}// getCanonicalLagrangianIndex
 
 std::vector<double>
 IBStandardInitializer::getVertexPosn(
@@ -1749,7 +1747,7 @@ IBStandardInitializer::initializeSpecs(
     std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> > vertex_specs;
 
     const int j = point_index.first;
-    const int mastr_idx = getCannonicalLagrangianIndex(point_index, level_number);
+    const int mastr_idx = getCanonicalLagrangianIndex(point_index, level_number);
 
     // Initialize any spring specifications associated with the present vertex.
     if (d_enable_springs[level_number][j])
@@ -1846,7 +1844,6 @@ IBStandardInitializer::initializeSpecs(
                     mastr_idx, inst_idx.first, inst_idx.second));
         }
     }
-
     return vertex_specs;
 }// initializeSpecs
 

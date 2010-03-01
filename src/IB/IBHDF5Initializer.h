@@ -2,7 +2,7 @@
 #define included_IBHDF5Initializer
 
 // Filename: IBHDF5Initializer.h
-// Last modified: <30.Jul.2008 17:31:15 griffith@box230.cims.nyu.edu>
+// Last modified: <01.Mar.2010 16:07:37 griffith@boyce-griffiths-mac-pro.local>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -122,7 +122,7 @@ public:
      *
      * When the patch hierarchy is being constructed at the initial simulation
      * time, it is necessary to instruct the gridding algorithm where to place
-     * local refinement in order to accomodate portions of the curvilinear mesh
+     * local refinement in order to accommodate portions of the curvilinear mesh
      * that will reside in any yet-to-be-constructed level(s) of the patch
      * hierarchy.
      */
@@ -282,10 +282,10 @@ private:
     clearLevelDataCache();
 
     /*!
-     * \return The cannonical Lagrangian index of the specified vertex.
+     * \return The canonical Lagrangian index of the specified vertex.
      */
     int
-    getCannonicalLagrangianIndex(
+    getCanonicalLagrangianIndex(
         const std::pair<int,int>& global_vertex_idx,
         const int global_index_offset) const;
 

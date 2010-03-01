@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <30.Dec.2009 19:49:33 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 15:27:22 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -454,7 +454,7 @@ IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure(
 
     int ierr;
 
-    // Lookup the cached connectivity information.
+    // Look up the cached connectivity information.
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
     std::vector<int>& petsc_prev_node_idxs = d_petsc_prev_node_idxs[level_number];
@@ -516,7 +516,7 @@ IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure(
         }
         else
         {
-            // NOTE: Here, we are slightly pessimisticly allocating space both
+            // NOTE: Here, we are slightly pessimistically allocating space both
             // for the case that the previous and next nodes are on different
             // processors, and for the case that the previous and next nodes are
             // on the same processor.
@@ -584,7 +584,7 @@ IBBeamForceGen::computeLagrangianForceJacobian(
 
     int ierr;
 
-    // Lookup the cached connectivity information.
+    // Look up the cached connectivity information.
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
     std::vector<int>& petsc_prev_node_idxs = d_petsc_prev_node_idxs[level_number];

@@ -1,5 +1,5 @@
 // Filename: CCHierarchyProjector.C
-// Last modified: <20.Feb.2010 20:06:37 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 13:42:09 griffith@boyce-griffiths-mac-pro.local>
 // Created on 18 Feb 2010 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "CCHierarchyProjector.h"
@@ -222,7 +222,7 @@ CCHierarchyProjector::getName() const
 ///      setHierarchyMathOps(),
 ///      isManagingHierarchyMathOps()
 ///
-///  allow for the sharing of a single HierarchyMathOps object between mutiple
+///  allow for the sharing of a single HierarchyMathOps object between multiple
 ///  HierarchyIntegrator objects.
 ///
 

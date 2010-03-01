@@ -2,7 +2,7 @@
 #define included_GravitationalBodyForce
 
 // Filename: GravitationalBodyForce.h
-// Last modified: <12.Mar.2008 23:23:54 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Mar.2010 14:43:31 griffith@boyce-griffiths-mac-pro.local>
 // Created on 03 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -24,7 +24,7 @@ using namespace std;
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 /*!
- * \brief Class to specify a uniform body force that arises from graviational
+ * \brief Class to specify a uniform body force that arises from gravitational
  * forces acting on an incompressible fluid with uniform mass density.
  */
 class GravitationalBodyForce

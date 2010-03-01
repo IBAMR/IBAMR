@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <03.Nov.2009 09:00:56 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 14:15:58 griffith@boyce-griffiths-mac-pro.local>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -315,7 +315,7 @@ public:
     ///      isManagingHierarchyMathOps()
     ///
     ///  allow for the sharing of a single HierarchyMathOps object between
-    ///  mutiple HierarchyIntegrator objects.
+    ///  multiple HierarchyIntegrator objects.
     ///
 
     /*!
@@ -663,7 +663,7 @@ public:
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
-     * example, due to regidding) and the data has been initialized on the new
+     * example, due to regridding) and the data has been initialized on the new
      * levels.  The intent is that the cost of data movement on the hierarchy
      * will be amortized across multiple communication cycles, if possible.  The
      * level numbers indicate the range of levels in the hierarchy that have
@@ -752,7 +752,7 @@ public:
      *
      * Note that only in certain cases when using time-dependent error
      * estimation, such as Richardson extrapolation, is the returned pointer
-     * will non-null.  See contructor for more information.
+     * will non-null.  See constructor for more information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
     getOldContext() const;
@@ -1004,7 +1004,7 @@ private:
 
     /*
      * Linear solvers and associated data including Poisson specifications,
-     * boundary conditions, and solver configuation databases.
+     * boundary conditions, and solver configuration databases.
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_sol_vecs, d_rhs_vecs;
 

@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <25.Feb.2010 11:08:46 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 13:37:05 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -472,7 +472,7 @@ IBHierarchyIntegrator::registerPressurePhysicalBcCoef(
 {
     if (d_is_initialized)
     {
-        TBOX_ERROR(d_object_name << "::registerPressurePhysicalBcCoefs():\n"
+        TBOX_ERROR(d_object_name << "::registerPressurePhysicalBcCoef():\n"
                    << "  pressure boundary conditions must be registered prior to initialization\n"
                    << "  of the hierarchy integrator object." << std::endl);
     }
@@ -629,7 +629,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         var_db->registerPatchDataForRestart(d_mark_current_idx);
     }
 
-    // Initialize the objects used to manage Lagragian-Eulerian interaction.
+    // Initialize the objects used to manage Lagrangian-Eulerian interaction.
     //
     // NOTE: The IBEulerianForceSetter only has to set the new Cartesian grid
     // force.  The current Cartesian grid force is set manually by
@@ -1085,7 +1085,7 @@ IBHierarchyIntegrator::advanceHierarchy(
     // 1. Interpolate u(n) from the Cartesian grid onto the Lagrangian mesh.
     //
     // NOTE: Since we are maintaining the Lagrangian velocity data, this step is
-    // skipped for each timestep following the initial one execpt immediately
+    // skipped for each timestep following the initial one except immediately
     // following a regridding operation.
     if (initial_time || d_reinterpolate_after_regrid)
     {
@@ -2031,7 +2031,7 @@ IBHierarchyIntegrator::regridHierarchy()
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
     d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
 
-    // Before regriding, begin Lagrangian data movement.
+    // Before regridding, begin Lagrangian data movement.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement.\n";
     d_lag_data_manager->beginDataRedistribution();
 
@@ -2067,7 +2067,7 @@ IBHierarchyIntegrator::regridHierarchy()
     d_source_strategy_needs_init = true;
     d_post_processor_needs_init  = true;
 
-    // Lookup the re-distributed Lagrangian position data.
+    // Look up the re-distributed Lagrangian position data.
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data(d_hierarchy->getFinestLevelNumber()+1);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
@@ -2297,7 +2297,7 @@ IBHierarchyIntegrator::initializeLevelData(
         }
     }
 
-    // Setup the pIB data at the inital time only.
+    // Setup the pIB data at the initial time only.
     if (initial_time && d_lag_init->getLevelHasLagrangianData(level_number, can_be_refined))
     {
         static const bool manage_data = true;
@@ -3612,7 +3612,7 @@ IBHierarchyIntegrator::getFromRestart()
 
 } // namespace IBAMR
 
-/////////////////////////////// TEMPLATE INTANTIATION ///////////////////////
+/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
 template class SAMRAI::tbox::Pointer<IBAMR::IBHierarchyIntegrator>;

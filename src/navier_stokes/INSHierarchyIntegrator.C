@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <24.Feb.2010 15:35:49 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 13:49:06 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -585,7 +585,7 @@ INSHierarchyIntegrator::registerApplyGradientDetectorCallback(
 ///      setHierarchyMathOps(),
 ///      isManagingHierarchyMathOps()
 ///
-///  allow for the sharing of a single HierarchyMathOps object between mutiple
+///  allow for the sharing of a single HierarchyMathOps object between multiple
 ///  HierarchyIntegrator objects.
 ///
 
@@ -1324,7 +1324,7 @@ INSHierarchyIntegrator::advanceHierarchy(
         if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): updating pressure\n";
         updatePressure(current_time, new_time, true);
 
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): synchronizing hierarhcy\n";
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): synchronizing hierarchy\n";
         synchronizeHierarchy();
 
         if (d_cycle < (num_cycles-1))
@@ -1847,7 +1847,7 @@ INSHierarchyIntegrator::integrateAdvDiff(
     const double dt = new_time - current_time;
 
     // Rescale the face-centered gradient of Phi so that it has the appropriate
-    // units to enfore incompressibility.
+    // units to enforce incompressibility.
     d_hier_fc_data_ops->scale(d_grad_Phi_idx, dt/d_rho, d_grad_Phi_idx);
 
     // The face-centered gradient of Phi is reused to provide an approximate
@@ -2187,7 +2187,7 @@ INSHierarchyIntegrator::updatePressure(
         else
         {
             TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                       << "  unrecongnized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
+                       << "  unrecognized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
         }
 
         // Setup the intermediate velocity bc coefs.
@@ -2363,7 +2363,7 @@ INSHierarchyIntegrator::updatePressure(
         else
         {
             TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                       << "  unrecongnized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
+                       << "  unrecognized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
         }
 
         // Update the pressure.
@@ -2675,9 +2675,9 @@ INSHierarchyIntegrator::initializeLevelData(
     if (initial_time)
     {
         // If no initialization object is provided, initialize the velocity,
-        // divergance, and vorticity to zero.  Otherwise, use the initialization
+        // divergence, and vorticity to zero.  Otherwise, use the initialization
         // object to set the velocity to some specified value and compute the
-        // divergance and vorticity corresponding to the initial velocity.
+        // divergence and vorticity corresponding to the initial velocity.
         if (d_U_init.isNull())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -3093,7 +3093,7 @@ INSHierarchyIntegrator::applyGradientDetector(
                               tag_index, initial_time,
                               uses_richardson_extrapolation_too);
 
-    // Tag cells based on the magnatude of the vorticity.
+    // Tag cells based on the magnitude of the vorticity.
     //
     // Note that if either the relative or absolute threshold is zero for a
     // particular level, no tagging is performed on that level.
@@ -3225,7 +3225,7 @@ INSHierarchyIntegrator::getSourceVar()
 
 ///
 /// We simply reuse the SAMRAI::hier::VariableContext objects defined in the
-/// AdvDiffIntegrator object.
+/// AdvDiffHierarchyIntegrator object.
 ///
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
@@ -3582,7 +3582,7 @@ INSHierarchyIntegrator::getFromInput(
             if (d_Omega_abs_thresh[i] < 0.0)
             {
                 TBOX_ERROR(d_object_name << ":  "
-                           << "absolute vorticity thresholds for each level must be nonnegative.\n");
+                           << "absolute vorticity thresholds for each level must be non-negative.\n");
             }
         }
     }

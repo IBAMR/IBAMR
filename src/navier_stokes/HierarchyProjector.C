@@ -1,5 +1,5 @@
 // Filename: HierarchyProjector.C
-// Last modified: <19.Feb.2010 20:35:12 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 13:44:25 griffith@boyce-griffiths-mac-pro.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "HierarchyProjector.h"
@@ -313,7 +313,7 @@ HierarchyProjector::getName() const
 ///      setHierarchyMathOps(),
 ///      isManagingHierarchyMathOps()
 ///
-///  allow for the sharing of a single HierarchyMathOps object between mutiple
+///  allow for the sharing of a single HierarchyMathOps object between multiple
 ///  HierarchyIntegrator objects.
 ///
 
@@ -365,7 +365,7 @@ HierarchyProjector::setVelocityPhysicalBcCoefs(
     if (u_bc_coefs.size() != NDIM)
     {
         TBOX_ERROR(d_object_name << "::setVelocityPhysicalBcCoefs():\n"
-                   << "  precisely NDIM boundary condiiton objects must be provided." << std::endl);
+                   << "  precisely NDIM boundary condition objects must be provided." << std::endl);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned l = 0; l < u_bc_coefs.size(); ++l)

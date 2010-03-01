@@ -1,5 +1,5 @@
-// Filename: QInitAndSoln.C
-// Last modified: <01.Apr.2008 17:11:12 griffith@box221.cims.nyu.edu>
+// Filename: QInit.C
+// Last modified: <01.Mar.2010 14:48:05 griffith@boyce-griffiths-mac-pro.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "QInit.h"

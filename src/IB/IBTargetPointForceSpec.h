@@ -2,7 +2,7 @@
 #define included_IBTargetPointForceSpec
 
 // Filename: IBTargetPointForceSpec.h
-// Last modified: <15.Dec.2009 19:23:59 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 16:08:53 griffith@boyce-griffiths-mac-pro.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -81,7 +81,7 @@ public:
     ~IBTargetPointForceSpec();
 
     /*!
-     * \return A const refernce to the master node index.
+     * \return A const reference to the master node index.
      */
     const int&
     getMasterNodeIndex() const;

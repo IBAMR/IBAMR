@@ -101,7 +101,7 @@ main(
     }
     else
     {
-        TBOX_ERROR("key `coarse_hier_dump_dirname' not specifed in input file");
+        TBOX_ERROR("key `coarse_hier_dump_dirname' not specified in input file");
     }
 
     string fine_hier_dump_dirname;
@@ -111,7 +111,7 @@ main(
     }
     else
     {
-        TBOX_ERROR("key `fine_hier_dump_dirname' not specifed in input file");
+        TBOX_ERROR("key `fine_hier_dump_dirname' not specified in input file");
     }
 
     /*

@@ -2,7 +2,7 @@
 #define included_IBBeamForceGen
 
 // Filename: IBBeamForceGen.h
-// Last modified: <30.Dec.2009 19:50:50 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 15:27:38 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -26,7 +26,7 @@ namespace IBAMR
  * structures that resist bending).
  *
  * \note Class IBBeamForceGen DOES NOT correct for periodic displacements of IB
- * points; however, when used in conjuction with class IBStandardForceGen,
+ * points; however, when used in conjunction with class IBStandardForceGen,
  * periodic displacements are handled correctly.
  *
  * \see IBBeamForceSpec

@@ -2,7 +2,7 @@
 #define included_INSProjectionBcCoef
 
 // Filename: INSProjectionBcCoef.h
-// Last modified: <13.Feb.2008 20:10:17 griffith@box221.cims.nyu.edu>
+// Last modified: <01.Mar.2010 13:52:09 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -55,7 +55,7 @@ public:
     ~INSProjectionBcCoef();
 
     /*!
-     * \brief Reset the problem coefficents required to specify the boundary
+     * \brief Reset the problem coefficients required to specify the boundary
      * conditions for the scalar function phi.
      */
     void

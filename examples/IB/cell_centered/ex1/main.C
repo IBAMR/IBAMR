@@ -239,7 +239,7 @@ main(
             else
             {
                 TBOX_ERROR("restart_interval > 0, but key `restart_write_dirname'"
-                           << " not specifed in input file");
+                           << " not specified in input file");
             }
         }
 
@@ -483,7 +483,7 @@ main(
             navier_stokes_integrator->getCurrentContext());
 
         /*
-         * Set the feedback forcing parmeter.
+         * Set the feedback forcing parameter.
          */
         feedback_forcer.d_kappa = 0.5*input_db->getDouble("RHO")/dt_now;
 #endif
@@ -529,21 +529,21 @@ main(
         {
             iteration_num = time_integrator->getIntegratorStep() + 1;
 
-            tbox::pout <<                                                       endl;
-            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
-            tbox::pout << "Simulation time is " << loop_time                 << endl;
+            tbox::pout <<                                                        endl;
+            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++"  << endl;
+            tbox::pout << "At beginning of timestep # " <<  iteration_num - 1 << endl;
+            tbox::pout << "Simulation time is " << loop_time                  << endl;
 
             double dt_new = time_integrator->advanceHierarchy(dt_now);
 
             loop_time += dt_now;
             dt_now = dt_new;
 
-            tbox::pout <<                                                       endl;
-            tbox::pout << "At end      of timestep # " <<  iteration_num - 1 << endl;
-            tbox::pout << "Simulation time is " << loop_time                 << endl;
-            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout <<                                                       endl;
+            tbox::pout <<                                                        endl;
+            tbox::pout << "At end       of timestep # " <<  iteration_num - 1 << endl;
+            tbox::pout << "Simulation time is " << loop_time                  << endl;
+            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++"  << endl;
+            tbox::pout <<                                                        endl;
 
             /*
              * Compute the drag and lift coefficients by integrating the

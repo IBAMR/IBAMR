@@ -1,5 +1,5 @@
 // Filename: SimpleIBSourceGen.C
-// Last modified: <01.Jun.2009 18:10:42 griffith@128-122-81-214.DYNAPOOL.NYU.EDU>
+// Last modified: <01.Mar.2010 14:47:01 griffith@boyce-griffiths-mac-pro.local>
 // Created on 01 Jun 2009 by Boyce Griffith (griffith@128-122-81-214.DYNAPOOL.NYU.EDU)
 
 #include "SimpleIBSourceGen.h"
@@ -40,7 +40,7 @@ SimpleIBSourceGen::setTimeInterval(
     const double current_time,
     const double new_time)
 {
-    // Method setTimeInterval() is used to report to class SimpleIbSource the
+    // Method setTimeInterval() is used to report to class SimpleIBSourceGen the
     // current simulation time.  This simple implementation of the strategy
     // class IBLagrangianSourceStrategy does not make use of this feature,
     // however.

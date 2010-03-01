@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <13.Dec.2009 17:50:15 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 16:07:31 griffith@boyce-griffiths-mac-pro.local>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -244,7 +244,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             const int patch_num = d_level_patch_nums[j][k];
 
             // Compute the index information for the present vertex.
-            const int current_global_idx = getCannonicalLagrangianIndex(vertex_idx,global_index_offset);
+            const int current_global_idx = getCanonicalLagrangianIndex(vertex_idx,global_index_offset);
             const int current_local_idx = ++local_idx + local_index_offset;
 
             // Ensure the point lies within the physical domain.
@@ -305,7 +305,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             double* const vertex_U = &(*U_data)(current_local_idx);
             std::fill(vertex_U,vertex_U+NDIM,0.0);
 
-            // Initialize the specification objects assocaited with the present
+            // Initialize the specification objects associated with the present
             // vertex.
             std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> > vertex_specs = initializeSpecs(
                 std::make_pair(j,k), vertex_idx, global_index_offset);
@@ -1858,12 +1858,12 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
 }// buildLevelInstrumentationDataCacheFromHDF5
 
 int
-IBHDF5Initializer::getCannonicalLagrangianIndex(
+IBHDF5Initializer::getCanonicalLagrangianIndex(
     const std::pair<int,int>& global_vertex_idx,
     const int global_index_offset) const
 {
     return d_level_vertex_offset[global_vertex_idx.first]+global_vertex_idx.second+global_index_offset;
-}// getCannonicalLagrangianIndex
+}// getCanonicalLagrangianIndex
 
 void
 IBHDF5Initializer::clearLevelDataCache()

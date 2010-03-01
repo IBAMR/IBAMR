@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <24.Feb.2010 09:53:45 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 13:50:41 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -77,7 +77,7 @@ namespace IBAMR
  *
  * The viscous terms are treated by the AdvDiffHierarchyIntegrator object
  * supplied to the class constructor, and the advective terms are discretized by
- * the GodunovAdvector object suppled to the class constructor.
+ * the GodunovAdvector object supplied to the class constructor.
  *
  * \see AdvDiffHierarchyIntegrator
  * \see GodunovAdvector
@@ -210,7 +210,7 @@ public:
     ///      isManagingHierarchyMathOps()
     ///
     ///  allow for the sharing of a single HierarchyMathOps object between
-    ///  mutiple HierarchyIntegrator objects.
+    ///  multiple HierarchyIntegrator objects.
     ///
 
     /*!
@@ -579,7 +579,7 @@ public:
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
-     * example, due to regidding) and the data has been initialized on the new
+     * example, due to regridding) and the data has been initialized on the new
      * levels.  The intent is that the cost of data movement on the hierarchy
      * will be amortized across multiple communication cycles, if possible.  The
      * level numbers indicate the range of levels in the hierarchy that have
@@ -1062,7 +1062,7 @@ private:
     bool d_reproject_after_regrid;
 
     /*
-     * Indicates whether the integrator is attempting to initialize the pressue.
+     * Indicates whether the integrator is attempting to initialize the pressure.
      */
     int d_cycle;
     bool d_performing_init_cycles;

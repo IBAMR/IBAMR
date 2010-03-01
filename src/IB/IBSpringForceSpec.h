@@ -2,7 +2,7 @@
 #define included_IBSpringForceSpec
 
 // Filename: IBSpringForceSpec.h
-// Last modified: <15.Dec.2009 19:22:22 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 15:57:24 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -38,8 +38,8 @@ namespace IBAMR
  * IBSpringForceSpec objects are stored as IBTK::Stashable data associated with only
  * the master nodes in the mesh.
  *
- * \note Different spring force functions may be speficied for each link in the
- * mesh.  This data is speficied as \a force_fcn_idxs in the class constructor.
+ * \note Different spring force functions may be specified for each link in the
+ * mesh.  This data is specified as \a force_fcn_idxs in the class constructor.
  * By default, function default_linear_spring_force() is associated with \a
  * force_fcn_idx 0.  Users may override this default value with any function
  * that implements the interface required by
@@ -86,8 +86,8 @@ public:
     /*!
      * \brief Default constructor.
      *
-     * \note Different spring force functions may be speficied for each link in
-     * the mesh.  This data is speficied as \a force_fcn_idxs in the class
+     * \note Different spring force functions may be specified for each link in
+     * the mesh.  This data is specified as \a force_fcn_idxs in the class
      * constructor.  By default, function default_linear_spring_force() is
      * associated with \a force_fcn_idx 0.  Users may override this default
      * value with any function that implements the interface required by
@@ -107,13 +107,13 @@ public:
     ~IBSpringForceSpec();
 
     /*!
-     * \return The number of springs attatched to the master node.
+     * \return The number of springs attached to the master node.
      */
     unsigned
     getNumberOfSprings() const;
 
     /*!
-     * \return A const refernce to the master node index.
+     * \return A const reference to the master node index.
      */
     const int&
     getMasterNodeIndex() const;
@@ -125,14 +125,14 @@ public:
     getMasterNodeIndex();
 
     /*!
-     * \return A const refrence to the slave node indices for the springs
+     * \return A const reference to the slave node indices for the springs
      * attached to the master node.
      */
     const std::vector<int>&
     getSlaveNodeIndices() const;
 
     /*!
-     * \return A non-const refrence to the slave node indices for the springs
+     * \return A non-const reference to the slave node indices for the springs
      * attached to the master node.
      */
     std::vector<int>&

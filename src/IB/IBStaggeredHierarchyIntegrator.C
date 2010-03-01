@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <25.Feb.2010 11:08:31 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 16:03:45 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -548,7 +548,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         var_db->registerPatchDataForRestart(d_mark_current_idx);
     }
 
-    // Initialize the objects used to manage Lagragian-Eulerian interaction.
+    // Initialize the objects used to manage Lagrangian-Eulerian interaction.
     d_eulerian_force_setter = new IBEulerianForceSetter(d_object_name+"::IBEulerianForceSetter", -1, -1, d_F_idx);
     d_ins_hier_integrator->registerBodyForceSpecification(d_eulerian_force_setter);
 
@@ -1453,7 +1453,7 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
     d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
 
-    // Before regriding, begin Lagrangian data movement.
+    // Before regridding, begin Lagrangian data movement.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement.\n";
     d_lag_data_manager->beginDataRedistribution();
 
@@ -1489,7 +1489,7 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
     d_source_strategy_needs_init = true;
     d_post_processor_needs_init  = true;
 
-    // Lookup the re-distributed Lagrangian position data.
+    // Look up the re-distributed Lagrangian position data.
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data(d_hierarchy->getFinestLevelNumber()+1);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
@@ -1722,7 +1722,7 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
         }
     }
 
-    // Setup the pIB data at the inital time only.
+    // Setup the pIB data at the initial time only.
     if (initial_time && d_lag_init->getLevelHasLagrangianData(level_number, can_be_refined))
     {
         static const bool manage_data = true;
@@ -3115,7 +3115,7 @@ IBStaggeredHierarchyIntegrator::getFromRestart()
 
 } // namespace IBAMR
 
-/////////////////////////////// TEMPLATE INTANTIATION ///////////////////////
+/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
 template class SAMRAI::tbox::Pointer<IBAMR::IBStaggeredHierarchyIntegrator>;

@@ -2,7 +2,7 @@
 #define included_IBBeamForceSpec
 
 // Filename: IBBeamForceSpec.h
-// Last modified: <15.Dec.2009 19:18:34 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 15:28:11 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -91,13 +91,13 @@ public:
     ~IBBeamForceSpec();
 
     /*!
-     * \return The number of beams attatched to the master node.
+     * \return The number of beams attached to the master node.
      */
     unsigned
     getNumberOfBeams() const;
 
     /*!
-     * \return A const refernce to the master node index.
+     * \return A const reference to the master node index.
      */
     const int&
     getMasterNodeIndex() const;
@@ -109,14 +109,14 @@ public:
     getMasterNodeIndex();
 
     /*!
-     * \return A const refrence to the neighbor node indices for the beams
+     * \return A const reference to the neighbor node indices for the beams
      * attached to the master node.
      */
     const std::vector<NeighborIdxs>&
     getNeighborNodeIndices() const;
 
     /*!
-     * \return A non-const refrence to the neighbor node indices for the beams
+     * \return A non-const reference to the neighbor node indices for the beams
      * attached to the master node.
      */
     std::vector<NeighborIdxs>&

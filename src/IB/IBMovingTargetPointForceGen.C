@@ -1,5 +1,5 @@
 // Filename: IBMovingTargetPointForceGen.C
-// Last modified: <30.Dec.2009 19:50:02 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 15:54:35 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Aug 2008 by Boyce Griffith (boyce@dm-linux.maths.gla.ac.uk)
 
 #include "IBMovingTargetPointForceGen.h"
@@ -88,7 +88,7 @@ IBMovingTargetPointForceGen::registerPositionAndVelocityFunction(
 {
     d_spec_fcn_map[spec_fcn_index] = spec_fcn;
     return;
-}// registerPositionFunction
+}// registerPositionAndVelocityFunction
 
 void
 IBMovingTargetPointForceGen::computeLagrangianForce(
