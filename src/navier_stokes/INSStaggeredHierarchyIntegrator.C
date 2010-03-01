@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <01.Mar.2010 13:57:22 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 18:58:44 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1481,7 +1481,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
-    d_side_synch_op->synchronizeData(current_time);
 
     // Synchronize solution data after solve.
     d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
