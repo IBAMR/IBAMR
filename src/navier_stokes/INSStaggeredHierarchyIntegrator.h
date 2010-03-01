@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <25.Feb.2010 13:11:08 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 11:43:37 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -27,6 +27,7 @@
 #include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SCPoissonFACOperator.h>
 #include <ibtk/SetDataStrategy.h>
+#include <ibtk/SideDataSynchronization.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -1030,6 +1031,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
 
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_no_fill_op;
+
+    SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 
     /*
      * Objects to set initial conditions (note that the initial value of the

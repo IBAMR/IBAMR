@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <25.Feb.2010 17:09:56 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 12:02:06 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1482,8 +1482,25 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // boundary condition takes precedence).
     d_U_bc_helper->zeroValuesAtDirichletBoundaries(d_rhs_vec->getComponentDescriptorIndex(0));
 
+    // Synchronize solution and right-hand-side data before solve.
+    typedef IBTK::SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    SynchronizationTransactionComponent sol_synch_transaction =
+        SynchronizationTransactionComponent(d_sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+    SynchronizationTransactionComponent rhs_synch_transaction =
+        SynchronizationTransactionComponent(d_rhs_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+
+    d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
+    d_side_synch_op->synchronizeData(current_time);
+    d_side_synch_op->resetTransactionComponent(rhs_synch_transaction);
+    d_side_synch_op->synchronizeData(current_time);
+
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
+    d_side_synch_op->synchronizeData(current_time);
+
+    // Synchronize solution data after solve.
+    d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
+    d_side_synch_op->synchronizeData(current_time);
 
     // Update the values of any advected-and-diffused quantities registered with
     // the optional advection-diffusion solver.
@@ -2162,14 +2179,15 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
 
     // Setup the patch boundary filling objects.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-
     InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, SIDE_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
     d_U_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
 
-//  InterpolationTransactionComponent U_extrap_component(d_U_scratch_idx, SIDE_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-//  d_U_bdry_extrap_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-//  d_U_bdry_extrap_fill_op->initializeOperatorState(U_extrap_component, d_hierarchy);
+    // Setup the patch boundary synchronization objects.
+    typedef IBTK::SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    SynchronizationTransactionComponent synch_transaction = SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+    d_side_synch_op = new IBTK::SideDataSynchronization();
+    d_side_synch_op->initializeOperatorState(synch_transaction, d_hierarchy);
 
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
