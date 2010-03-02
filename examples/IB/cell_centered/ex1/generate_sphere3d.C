@@ -200,7 +200,7 @@ main(
 #endif
 
 #if 1
-    // Setup the initial mesh to correspond to an icosohedron.
+    // Setup the initial mesh to correspond to an icosahedron.
     static const double phi = (1.0+sqrt(5.0))/2.0;  // the golden ratio
 
     double  X0[3] = { 0.0 , -1.0 , -phi};

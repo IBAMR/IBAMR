@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <13.Dec.2009 15:53:40 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 15:39:08 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -139,20 +139,6 @@ namespace IBAMR
 
 namespace
 {
-#if 0
-int
-register_stokes_solver_options(
-    const std::string& stokes_prefix,
-    double& div_u_abstol)
-{
-    PetscErrorCode ierr;
-    ierr = PetscOptionsBegin(PETSC_COMM_WORLD, stokes_prefix.c_str(), "additional options for incompressible Stokes solver", "");  CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-div_u_atol", "absolute solver congergence tolerance for the value of ||div u||_oo", "", 1.0e-5, &div_u_abstol, PETSC_NULL);  CHKERRQ(ierr);
-    ierr = PetscOptionsEnd();  CHKERRQ(ierr);
-    PetscFunctionReturn(0);
-}// register_stokes_solver_options
-#endif
-
 // Timers.
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_integrator;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy;
@@ -861,11 +847,6 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     d_convective_op = new INSStaggeredPPMConvectiveOperator(
         *d_problem_coefs,
         d_conservation_form);
-
-    // Setup the incompressibile Stokes options.
-    const std::string stokes_prefix = "stokes_";
-//  d_div_u_abstol = 0.0;  // turn of div u tolerance
-//  ierr = register_stokes_solver_options(stokes_prefix, d_div_u_abstol);  IBTK_CHKERRQ(ierr);
 
     // Setup the preconditioner and preconditioner sub-solvers.
     size_t len = 255;
@@ -1767,7 +1748,7 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
     d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
 
-    // Before regriding, begin Lagrangian data movement.
+    // Before regridding, begin Lagrangian data movement.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement.\n";
     d_lag_data_manager->beginDataRedistribution();
 
@@ -2232,9 +2213,9 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
     if (initial_time)
     {
         // If no initialization object is provided, initialize the velocity,
-        // divergance, and vorticity to zero.  Otherwise, use the initialization
+        // divergence, and vorticity to zero.  Otherwise, use the initialization
         // object to set the velocity to some specified value and compute the
-        // divergance and vorticity corresponding to the initial velocity.
+        // divergence and vorticity corresponding to the initial velocity.
         if (d_u_init.isNull())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2573,7 +2554,7 @@ IBImplicitHierarchyIntegrator::applyGradientDetector(
     // Tag cells which contain Lagrangian nodes.
     d_lag_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
 
-    // Tag cells based on the magnatude of the vorticity.
+    // Tag cells based on the magnitude of the vorticity.
     //
     // Note that if either the relative or absolute threshold is zero for a
     // particular level, no tagging is performed on that level.
@@ -2680,7 +2661,7 @@ IBImplicitHierarchyIntegrator::getForceVar()
 
 ///
 /// We simply reuse the SAMRAI::hier::VariableContext objects defined in the
-/// AdvDiffIntegrator object.
+/// AdvDiffHierarchyIntegrator object.
 ///
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
@@ -2707,7 +2688,7 @@ IBImplicitHierarchyIntegrator::getScratchContext() const
 ///      reinterpolateVelocity(),
 ///      reinterpolateForce()
 ///
-/// are miscelaneous utility functions.
+/// are miscellaneous utility functions.
 
 void
 IBImplicitHierarchyIntegrator::reinterpolateVelocity(
@@ -2795,7 +2776,6 @@ IBImplicitHierarchyIntegrator::putToDatabase(
     db->putDouble("d_rho", d_rho);
     db->putDouble("d_mu", d_mu);
     db->putDouble("d_lambda", d_lambda);
-//  db->putDouble("d_div_u_abstol", d_div_u_abstol);
     db->putDouble("d_regrid_max_div_growth_factor", d_regrid_max_div_growth_factor);
     db->putString("d_delta_fcn", d_delta_fcn);
 
@@ -4218,7 +4198,7 @@ IBImplicitHierarchyIntegrator::getFromInput(
             if (d_omega_abs_thresh[i] < 0.0)
             {
                 TBOX_ERROR(d_object_name << ":  "
-                           << "absolute vorticity thresholds for each level must be nonnegative.\n");
+                           << "absolute vorticity thresholds for each level must be non-negative.\n");
             }
         }
     }
@@ -4351,7 +4331,6 @@ IBImplicitHierarchyIntegrator::getFromRestart()
     d_rho = db->getDouble("d_rho");
     d_mu = db->getDouble("d_mu");
     d_lambda = db->getDouble("d_lambda");
-//  d_div_u_abstol = db->getDouble("d_div_u_abstol");
     d_regrid_max_div_growth_factor = db->getDouble("d_regrid_max_div_growth_factor");
     d_delta_fcn = db->getString("d_delta_fcn");
     return;
@@ -4361,7 +4340,7 @@ IBImplicitHierarchyIntegrator::getFromRestart()
 
 } // namespace IBAMR
 
-/////////////////////////////// TEMPLATE INTANTIATION ///////////////////////
+/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
 template class SAMRAI::tbox::Pointer<IBAMR::IBImplicitHierarchyIntegrator>;

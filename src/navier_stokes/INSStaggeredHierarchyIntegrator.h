@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <17.Dec.2009 10:50:28 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 13:58:10 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -27,6 +27,7 @@
 #include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SCPoissonFACOperator.h>
 #include <ibtk/SetDataStrategy.h>
+#include <ibtk/SideDataSynchronization.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -185,7 +186,7 @@ public:
     ///      isManagingHierarchyMathOps()
     ///
     ///  allow for the sharing of a single HierarchyMathOps object between
-    ///  mutiple HierarchyIntegrator objects.
+    ///  multiple HierarchyIntegrator objects.
     ///
 
     /*!
@@ -511,7 +512,7 @@ public:
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
-     * example, due to regidding) and the data has been initialized on the new
+     * example, due to regridding) and the data has been initialized on the new
      * levels.  The intent is that the cost of data movement on the hierarchy
      * will be amortized across multiple communication cycles, if possible.  The
      * level numbers indicate the range of levels in the hierarchy that have
@@ -649,7 +650,7 @@ public:
     ///      reinterpolateVelocity(),
     ///      reinterpolateForce()
     ///
-    /// are miscelaneous utility functions.
+    /// are miscellaneous utility functions.
 
     /*!
      * Re-interpolate the staggered velocity from cell faces to cell centers.
@@ -765,20 +766,6 @@ private:
     INSStaggeredHierarchyIntegrator&
     operator=(
         const INSStaggeredHierarchyIntegrator& that);
-
-    /*!
-     * Modified KSP convergence test which indicates the linear solver is
-     * converged only if the standard KSP convergence test indicates that the
-     * solver is converged *and* if the divergence of the velocity field is
-     * sufficiently small.
-     */
-    static PetscErrorCode
-    KSPDivUConvergenceTest(
-        KSP ksp,
-        PetscInt n,
-        PetscReal rnorm,
-        KSPConvergedReason* reason,
-        void* convergence_test_ctx);
 
     /*!
      * Project the velocity field following a regridding operation.
@@ -1017,8 +1004,6 @@ private:
 
     bool d_stokes_solver_needs_init;
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;
-    double d_div_u_abstol;
-    void* d_default_conv_ctx;
 
     bool d_needs_regrid_projection;
     double d_regrid_max_div_growth_factor;
@@ -1044,6 +1029,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
 
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_no_fill_op;
+
+    SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 
     /*
      * Objects to set initial conditions (note that the initial value of the

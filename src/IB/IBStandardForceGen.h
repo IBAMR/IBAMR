@@ -2,7 +2,7 @@
 #define included_IBStandardForceGen
 
 // Filename: IBStandardForceGen.h
-// Last modified: <13.Aug.2009 17:05:30 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <30.Dec.2009 19:26:56 griffith@boyce-griffiths-mac-pro.local>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -108,6 +108,19 @@ public:
         const double X_coef,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         const double U_coef,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double data_time,
+        IBTK::LDataManager* const lag_manager);
+
+    /*!
+     * \brief Compute the potential energy with respect to the present structure
+     * configuration and velocity.
+     */
+    virtual double
+    computeLagrangianEnergy(
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

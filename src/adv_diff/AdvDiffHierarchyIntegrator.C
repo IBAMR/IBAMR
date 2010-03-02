@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <03.Nov.2009 21:49:57 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 14:15:27 griffith@boyce-griffiths-mac-pro.local>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -498,7 +498,7 @@ AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
 ///      setHierarchyMathOps(),
 ///      isManagingHierarchyMathOps()
 ///
-///  allow for the sharing of a single HierarchyMathOps object between mutiple
+///  allow for the sharing of a single HierarchyMathOps object between multiple
 ///  HierarchyIntegrator objects.
 ///
 

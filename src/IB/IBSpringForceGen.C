@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <13.Dec.2009 15:53:04 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 15:56:15 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -52,6 +52,7 @@ namespace
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian_nonzero_structure;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_energy;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 }
 
@@ -88,6 +89,8 @@ IBSpringForceGen::IBSpringForceGen(
             getTimer("IBAMR::IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure()");
         t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBSpringForceGen::initializeLevelData()");
+        t_compute_lagrangian_energy = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBSpringForceGen::computeLagrangianEnergy()");
         timers_need_init = false;
     }
     return;
@@ -414,7 +417,7 @@ IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure(
 
     int ierr;
 
-    // Lookup the cached connectivity information.
+    // Look up the cached connectivity information.
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
     std::vector<int>& petsc_slave_node_idxs = d_petsc_slave_node_idxs[level_number];
     const int local_sz = petsc_mastr_node_idxs.size();
@@ -596,6 +599,79 @@ IBSpringForceGen::computeLagrangianForceJacobian(
     t_compute_lagrangian_force_jacobian->stop();
     return;
 }// computeLagrangianForceJacobian
+
+double
+IBSpringForceGen::computeLagrangianEnergy(
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    TBOX_WARNING("IBSpringForceGen::computeLagrangianEnergy():\n"
+               << "  the implementation of this function is specialized to linear springs." << std::endl);
+
+    if (!lag_manager->levelContainsLagrangianData(level_number)) return 0.0;
+
+    t_compute_lagrangian_energy->start();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(level_number < int(d_is_initialized.size()));
+    TBOX_ASSERT(d_is_initialized[level_number]);
+#endif
+
+    int ierr;
+
+    // Create an appropriately sized temporary vector to store the node
+    // displacements.
+    int i_start, i_stop;
+    ierr = MatGetOwnershipRange(d_D_mats[level_number], &i_start, &i_stop);
+    IBTK_CHKERRQ(ierr);
+
+    Vec D_vec;
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &D_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetBlockSize(D_vec, NDIM);                                          IBTK_CHKERRQ(ierr);
+
+    // Compute the node displacements.
+    ierr = MatMult(d_D_mats[level_number], X_data->getGlobalVec(), D_vec);
+    IBTK_CHKERRQ(ierr);
+
+    // Compute the energy stored in a collection of linear springs with the
+    // specified resting lengths.
+    //
+    // WARNING: This will not yield the correct result except for the standard
+    // linear force function.
+    double* D_vals;
+    ierr = VecGetArray(D_vec, &D_vals);  IBTK_CHKERRQ(ierr);
+
+    std::vector<double>& stiffnesses = d_stiffnesses[level_number];
+    std::vector<double>& rest_lengths = d_rest_lengths[level_number];
+    const int local_sz = stiffnesses.size();
+
+    double energy = 0.0;
+    for (int k = 0; k < local_sz; ++k)
+    {
+        const double* const D = &D_vals[k*NDIM];
+        double R_sq = 0.0;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            R_sq += D[d]*D[d];
+        }
+        const double R = sqrt(R_sq);
+
+        const double& kappa = stiffnesses[k];
+        const double& R0 = rest_lengths[k];
+
+        energy += 0.5*kappa*(R-R0)*(R-R0);
+    }
+
+    ierr = VecRestoreArray(D_vec, &D_vals);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(D_vec);                IBTK_CHKERRQ(ierr);
+
+    t_compute_lagrangian_energy->stop();
+    return SAMRAI::tbox::SAMRAI_MPI::sumReduction(energy);
+}// computeLagrangianEnergy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -1,5 +1,5 @@
 // Filename: ascii2hdf.C
-// Last modified: <18.Nov.2008 18:58:01 griffith@box230.cims.nyu.edu>
+// Last modified: <01.Mar.2010 13:39:17 griffith@boyce-griffiths-mac-pro.local>
 // Created on 30 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -215,7 +215,7 @@ initializeVertexData(
         // Write out data as the buffer fills up.
         if ((k+1)%BUFFER_SIZE == 0 || k+1 == num_vertex)
         {
-            // Determine wiether we are writing out the last block in the file.
+            // Determine whether we are writing out the last block in the file.
             const bool last_block = (block == num_blocks-1);
 #ifdef DEBUG_CHECK_ASSERTIONS
             assert(!last_block || (last_block && k+1 == num_vertex));
@@ -426,7 +426,7 @@ initializeSpringData(
             // Write out data as the buffer fills up.
             if ((k+1)%BUFFER_SIZE == 0 || k+1 == num_spring)
             {
-                // Determine wiether we are writing out the last block in the
+                // Determine whether we are writing out the last block in the
                 // file.
                 const bool last_block = (block == num_blocks-1);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -673,7 +673,7 @@ initializeBeamData(
             // Write out data as the buffer fills up.
             if ((k+1)%BUFFER_SIZE == 0 || k+1 == num_beam)
             {
-                // Determine wiether we are writing out the last block in the
+                // Determine whether we are writing out the last block in the
                 // file.
                 const bool last_block = (block == num_blocks-1);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -874,7 +874,7 @@ initializeTargetPointData(
             // Write out data as the buffer fills up.
             if ((k+1)%BUFFER_SIZE == 0 || k+1 == num_target_point)
             {
-                // Determine wiether we are writing out the last block in the
+                // Determine whether we are writing out the last block in the
                 // file.
                 const bool last_block = (block == num_blocks-1);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1066,7 +1066,7 @@ initializeMassData(
             // Write out data as the buffer fills up.
             if ((k+1)%BUFFER_SIZE == 0 || k+1 == num_mass_point)
             {
-                // Determine wiether we are writing out the last block in the
+                // Determine whether we are writing out the last block in the
                 // file.
                 const bool last_block = (block == num_blocks-1);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1331,7 +1331,7 @@ initializeInstrumentationData(
             // Write out data as the buffer fills up.
             if ((k+1)%BUFFER_SIZE == 0 || k+1 == num_inst_point)
             {
-                // Determine wiether we are writing out the last block in the
+                // Determine whether we are writing out the last block in the
                 // file.
                 const bool last_block = (block == num_blocks-1);
 #ifdef DEBUG_CHECK_ASSERTIONS

@@ -1,5 +1,5 @@
 // Filename: IBInstrumentPanel.C
-// Last modified: <13.Dec.2009 15:53:28 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 15:40:20 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "IBInstrumentPanel.h"
@@ -108,7 +108,7 @@ init_meter_elements(
         // i.e., it becomes a triangle.
         //
         // The only change required between these two cases is that the centroid
-        // of a nondegenerate quadrilateral is different from that of a
+        // of a non-degenerate quadrilateral is different from that of a
         // degenerate quadrilateral.
         for (int n = 0; n < num_web_nodes; ++n)
         {
@@ -131,7 +131,7 @@ init_meter_elements(
             //
             // Note that by construction, the quadrilateral is guaranteed to lie
             // within a plane.  Also, note that if X2 == X3, the following is
-            // simply the forumla for the area-weighted normal to a triangle.
+            // simply the formula for the area-weighted normal to a triangle.
             dA_web(m,n) = 0.5*blitz::cross(blitz::TinyVector<double,NDIM>(X2-X0),blitz::TinyVector<double,NDIM>(X3-X1));
         }
     }

@@ -265,15 +265,15 @@ fi
 
 AC_CHECK_HEADER([petsc.h],,AC_MSG_ERROR([could not find header file petsc.h]))
 
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <petsc.h>
-],[
+]], [[
 #ifdef PETSC_HAVE_X11
 #if (PETSC_HAVE_X11 == 1)
 asdf
 #endif
 #endif
-], PETSC_HAS_X11=no, PETSC_HAS_X11=yes)
+]])],[PETSC_HAS_X11=no],[PETSC_HAS_X11=yes])
 
 if test "$PETSC_HAS_X11" == "yes"; then
   echo "NOTE: PETSc appears to have been configured with X11 support enabled"
@@ -334,15 +334,15 @@ AC_SUBST(SAMRAI_FORTDIR,[${SAMRAI_DIR}/include])
 
 AC_CHECK_HEADER([SAMRAI_config.h],,AC_MSG_ERROR([could not find header file SAMRAI_config.h]))
 
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <SAMRAI_config.h>
-],[
+]], [[
 #ifdef INCLUDE_TEMPLATE_IMPLEMENTATION
 #if (INCLUDE_TEMPLATE_IMPLEMENTATION == 1)
 asdf
 #endif
 #endif
-], SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION=no, SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION=yes)
+]])],[SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION=no],[SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION=yes])
 
 if test "$SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION" == "no"; then
   AC_MSG_ERROR([SAMRAI must be configured with implicit template instantiation enabled
@@ -537,6 +537,7 @@ AC_CONFIG_FILES([
   examples/IB/staggered_grid/explicit/Makefile
   examples/IB/staggered_grid/explicit/ex0/Makefile
   examples/IB/staggered_grid/explicit/ex1/Makefile
+  examples/IB/staggered_grid/explicit/ex2/Makefile
   examples/IB/staggered_grid/implicit/Makefile
   examples/IB/staggered_grid/implicit/ex0/Makefile
   examples/IB/staggered_grid/implicit/ex1/Makefile
@@ -544,17 +545,19 @@ AC_CONFIG_FILES([
   examples/advect/Makefile
   examples/navier_stokes/Makefile
   examples/navier_stokes/cell_centered/Makefile
-  examples/navier_stokes/cell_centered/ex0/Makefile
-  examples/navier_stokes/cell_centered/ex1/Makefile
-  examples/navier_stokes/cell_centered/ex2/Makefile
+  examples/navier_stokes/cell_centered/approx_projection/Makefile
+  examples/navier_stokes/cell_centered/approx_projection/ex0/Makefile
+  examples/navier_stokes/cell_centered/approx_projection/ex1/Makefile
+  examples/navier_stokes/cell_centered/approx_projection/ex2/Makefile
+  examples/navier_stokes/cell_centered/exact_projection/Makefile
+  examples/navier_stokes/cell_centered/exact_projection/ex0/Makefile
+  examples/navier_stokes/cell_centered/exact_projection/ex1/Makefile
   examples/navier_stokes/staggered_grid/Makefile
   examples/navier_stokes/staggered_grid/ex0/Makefile
   examples/navier_stokes/staggered_grid/ex1/Makefile
   examples/navier_stokes/staggered_grid/ex2/Makefile
   examples/navier_stokes/staggered_grid/ex3/Makefile
   lib/Makefile
-  sample/IB/Makefile
-  sample/empty_project/Makefile
   src/Makefile
   src/fortran/Makefile
   src/IB/Makefile

@@ -2,7 +2,7 @@
 #define included_HierarchyProjector
 
 // Filename: HierarchyProjector.h
-// Last modified: <12.Aug.2009 18:20:57 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 13:44:48 griffith@boyce-griffiths-mac-pro.local>
 // Created on 30 Mar 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,31 +21,8 @@
 #include <ibtk/HierarchyMathOps.h>
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <CellVariable.h>
-#include <CoarsenAlgorithm.h>
-#include <CoarsenSchedule.h>
-#include <FACPreconditioner.h>
-#include <HierarchyCellDataOpsReal.h>
-#include <HierarchyFaceDataOpsReal.h>
-#include <HierarchySideDataOpsReal.h>
-#include <LocationIndexRobinBcCoefs.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
-#include <SAMRAIVectorReal.h>
 #include <StandardTagAndInitStrategy.h>
-#include <VariableContext.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
 #include <tbox/Serializable.h>
-
-// C++ STDLIB INCLUDES
-#include <map>
-#include <ostream>
-#include <string>
-#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -95,7 +72,7 @@ public:
     ///      isManagingHierarchyMathOps()
     ///
     ///  allow for the sharing of a single HierarchyMathOps object between
-    ///  mutiple HierarchyIntegrator objects.
+    ///  multiple HierarchyIntegrator objects.
     ///
 
     /*!
@@ -295,7 +272,7 @@ public:
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
-     * example, due to regidding) and the data has been initialized on the new
+     * example, due to regridding) and the data has been initialized on the new
      * levels.  The intent is that the cost of data movement on the hierarchy
      * will be amortized across multiple communication cycles, if possible.  The
      * level numbers indicate the range of levels in the hierarchy that have
@@ -442,7 +419,7 @@ private:
 
     /*
      * The Poisson solver and associated data including Poisson specifications,
-     * boundary conditions, and the solver configuation database.
+     * boundary conditions, and the solver configuration database.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
 

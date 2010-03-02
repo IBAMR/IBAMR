@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <10.Dec.2009 17:13:47 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 16:07:00 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -435,10 +435,10 @@ private:
         const bool can_be_refined) const;
 
     /*!
-     * \return The cannonical Lagrangian index of the specified vertex.
+     * \return The canonical Lagrangian index of the specified vertex.
      */
     int
-    getCannonicalLagrangianIndex(
+    getCanonicalLagrangianIndex(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
@@ -562,7 +562,7 @@ private:
      * lengths.
      *
      * \note The shift factor should have the same units as the positions in the
-     * input files, i.e., X_final = scale*(X_inital + shift).
+     * input files, i.e., X_final = scale*(X_initial + shift).
      */
     double d_length_scale_factor;
     std::vector<double> d_posn_shift;

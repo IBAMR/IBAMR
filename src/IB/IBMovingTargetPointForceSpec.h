@@ -2,7 +2,7 @@
 #define included_IBMovingTargetPointForceSpec
 
 // Filename: IBMovingTargetPointForceSpec.h
-// Last modified: <15.Dec.2009 19:21:06 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 15:55:32 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Aug 2008 by Boyce Griffith (boyce@dm-linux.maths.gla.ac.uk)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -121,7 +121,7 @@ public:
 
     /*!
      * \return A const reference to the index of the target point position and
-     * velocity specificaiton function associated with the target point.
+     * velocity specification function associated with the target point.
      */
     const int&
     getPositionAndVelocityFunctionIndex() const;

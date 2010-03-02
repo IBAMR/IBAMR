@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <04.Nov.2009 12:38:26 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 13:49:06 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -162,6 +162,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     SAMRAI::tbox::Pointer<GodunovAdvector> explicit_predictor,
     SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
     SAMRAI::tbox::Pointer<HierarchyProjector> hier_projector,
+    SAMRAI::tbox::Pointer<CCHierarchyProjector> cc_hier_projector,
     bool register_for_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -180,6 +181,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_explicit_predictor = explicit_predictor;
     d_adv_diff_hier_integrator = adv_diff_hier_integrator;
     d_hier_projector = hier_projector;
+    d_cc_hier_projector = cc_hier_projector;
 
     d_hyp_level_integrator = d_adv_diff_hier_integrator->getHyperbolicLevelIntegrator();
 
@@ -304,13 +306,26 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
                    << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << std::endl);
     }
 
+    if (!d_cc_hier_projector.isNull())
+    {
+        if (d_velocity_projection_type != d_pressure_projection_type)
+        {
+            TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
+                       << "  cannot use a hybrid projection algorithm in conjunction with an exact projection algorithm:\n"
+                       << "  velocity projection type = " << d_velocity_projection_type << "\n"
+                       << "  pressure projection type = " << d_pressure_projection_type << std::endl);
+        }
+    }
+
     if (d_velocity_projection_type != d_pressure_projection_type)
     {
         if (d_velocity_projection_type != "pressure_increment")
         {
             TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
                        << "  invalid hybrid projection configuration.\n"
-                       << "  for hybrid projection, it is required that velocity_projection_type = ``pressure_increment''." << std::endl);
+                       << "  for hybrid projection, it is required that velocity projection type = ``pressure_increment''\n"
+                       << "  velocity projection type = " << d_velocity_projection_type << "\n"
+                       << "  pressure projection type = " << d_pressure_projection_type << std::endl);
         }
     }
 
@@ -318,9 +333,10 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 
     SAMRAI::tbox::pout << d_object_name << ": velocity projection type = ``" << d_velocity_projection_type << "''\n"
                        << d_object_name << ": pressure projection type = ``" << d_pressure_projection_type << "''\n"
-                       << d_object_name << ": using a " << (d_using_hybrid_projection ? "HYBRID" : "STANDARD") << " approximate projection algorithm\n"
-                       << d_object_name << ": using a " << (d_second_order_pressure_update ? "SECOND-ORDER" : "FIRST-ORDER") << " pressure update\n"
-                       << d_object_name << ": using " << (d_conservation_form ? "CONSERVATIVE" : "NON-CONSERVATIVE") << " differencing\n";
+                       << d_object_name << ": using a  " << (d_using_hybrid_projection ? "HYBRID" : "STANDARD") << " approximate projection algorithm\n"
+                       << d_object_name << ": using a  " << (d_second_order_pressure_update ? "SECOND-ORDER" : "FIRST-ORDER") << " pressure update\n"
+                       << d_object_name << ": using    " << (d_conservation_form ? "CONSERVATIVE" : "NON-CONSERVATIVE") << " differencing\n"
+                       << d_object_name << ": using an " << (d_cc_hier_projector.isNull() ? "APPROXIMATE" : "EXACT") << " cell-centered projection algorithm\n";
 
     // Get initialization data for the FAC ops and FAC preconditioners.
     if (d_helmholtz_using_FAC)
@@ -569,7 +585,7 @@ INSHierarchyIntegrator::registerApplyGradientDetectorCallback(
 ///      setHierarchyMathOps(),
 ///      isManagingHierarchyMathOps()
 ///
-///  allow for the sharing of a single HierarchyMathOps object between mutiple
+///  allow for the sharing of a single HierarchyMathOps object between multiple
 ///  HierarchyIntegrator objects.
 ///
 
@@ -618,7 +634,8 @@ INSHierarchyIntegrator::isManagingHierarchyMathOps() const
 ///      getGriddingAlgorithm(),
 ///      getGodunovAdvector(),
 ///      getAdvDiffHierarchyIntegrator(),
-///      getHierarchyProjector()
+///      getHierarchyProjector(),
+///      getCCHierarchyProjector()
 ///
 ///  allow the INSHierarchyIntegrator to be used as a hierarchy integrator.
 ///
@@ -1116,6 +1133,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the Hierarchy math operations object.
     setHierarchyMathOps(d_adv_diff_hier_integrator->getHierarchyMathOps());
     d_hier_projector->setHierarchyMathOps(d_hier_math_ops);
+    if (!d_cc_hier_projector.isNull()) d_cc_hier_projector->setHierarchyMathOps(d_hier_math_ops);
 
     // Setup hybrid pressure update solvers.
     d_helmholtz_spec = NULL;
@@ -1306,7 +1324,7 @@ INSHierarchyIntegrator::advanceHierarchy(
         if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): updating pressure\n";
         updatePressure(current_time, new_time, true);
 
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): synchronizing hierarhcy\n";
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy(): synchronizing hierarchy\n";
         synchronizeHierarchy();
 
         if (d_cycle < (num_cycles-1))
@@ -1445,6 +1463,12 @@ INSHierarchyIntegrator::getHierarchyProjector() const
     return d_hier_projector;
 }// getHierarchyProjector
 
+SAMRAI::tbox::Pointer<CCHierarchyProjector>
+INSHierarchyIntegrator::getCCHierarchyProjector() const
+{
+    return d_cc_hier_projector;
+}// getCCHierarchyProjector
+
 ///
 ///  The following routines:
 ///
@@ -1511,8 +1535,7 @@ INSHierarchyIntegrator::regridHierarchy()
             d_V_idx        , d_V_var, // U(n,*)
             d_V_bdry_fill_op, d_integrator_time);
 
-        // Project u^(n,*)->u(n) and re-use grad Phi to project
-        // U^(n,*)->U^(n).
+        // Compute the MAC projection of u^(n,*).
         d_hier_cc_data_ops->setToScalar(d_Phi_scratch_idx, 0.0, false);
         d_hier_projector->projectHierarchy(
             initial_time ? 1.0 : d_rho, initial_time ? 1.0 : d_old_dt, d_integrator_time,
@@ -1524,13 +1547,28 @@ INSHierarchyIntegrator::regridHierarchy()
             d_u_current_idx  , d_u_var       ,   // u(n,*)
             d_Q_current_idx  , d_Q_var        ); // div u(n)
 
-        d_hier_math_ops->interp(
-            d_Grad_Phi_idx, d_Grad_Phi_var, // Grad Phi
-            d_grad_Phi_idx, d_grad_Phi_var, // grad Phi
-            d_no_fill_op, d_integrator_time,
-            false);                         // do not re-synch grad Phi coarse-fine bdry
-
-        d_hier_cc_data_ops->axpy(d_U_current_idx, initial_time ? -1.0 : -d_old_dt/d_rho, d_Grad_Phi_idx, d_U_current_idx);
+        if (d_cc_hier_projector.isNull())
+        {
+            // Interpolate grad Phi to evaluate the cell-centered approximate
+            // projection of U^(n,*).
+            d_hier_math_ops->interp(
+                d_Grad_Phi_idx, d_Grad_Phi_var, // Grad Phi
+                d_grad_Phi_idx, d_grad_Phi_var, // grad Phi
+                d_no_fill_op, d_integrator_time,
+                false);                         // do not re-synch grad Phi coarse-fine bdry
+            d_hier_cc_data_ops->axpy(d_U_current_idx, initial_time ? -1.0 : -d_old_dt/d_rho, d_Grad_Phi_idx, d_U_current_idx);
+        }
+        else
+        {
+            // Compute the cell-centered exact projection of U^(n,*).
+            d_cc_hier_projector->projectHierarchy(
+                initial_time ? 1.0 : d_rho, initial_time ? 1.0 : d_old_dt, d_integrator_time,
+                d_U_current_idx  , d_U_var       ,   // u(n)
+                d_Phi_scratch_idx, d_Phi_var     ,   // Phi
+                d_Grad_Phi_idx   , d_Grad_Phi_var,   // grad Phi
+                d_U_current_idx  , d_U_var       ,   // u(n,*)
+                d_Q_current_idx  , d_Q_var        ); // div u(n)
+        }
     }
     else if (d_reproject_after_regrid && !initial_time)
     {
@@ -1678,7 +1716,14 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
 
     // Setup the forcing terms for velocity prediction.
-    d_hier_cc_data_ops->scale(d_F_U_current_idx, -(1.0/d_rho), d_Grad_P_idx);
+    if (d_velocity_projection_type == "pressure_increment")
+    {
+        d_hier_cc_data_ops->scale(d_F_U_current_idx, -(1.0/d_rho), d_Grad_P_idx);
+    }
+    else
+    {
+        d_hier_cc_data_ops->setToScalar(d_F_U_current_idx, 0.0);
+    }
 
     if (!d_F_var.isNull())
     {
@@ -1802,7 +1847,7 @@ INSHierarchyIntegrator::integrateAdvDiff(
     const double dt = new_time - current_time;
 
     // Rescale the face-centered gradient of Phi so that it has the appropriate
-    // units to enfore incompressibility.
+    // units to enforce incompressibility.
     d_hier_fc_data_ops->scale(d_grad_Phi_idx, dt/d_rho, d_grad_Phi_idx);
 
     // The face-centered gradient of Phi is reused to provide an approximate
@@ -1883,7 +1928,7 @@ INSHierarchyIntegrator::projectVelocity(
 
     const double dt = new_time - current_time;
 
-    // Keep U^{*} for use in hybrid projections or regridding operations.
+    // Keep U^(n,*) for use in hybrid projections or regridding operations.
     d_hier_cc_data_ops->copyData(d_U_star_new_idx, d_U_new_idx);
 
     // Compute Q = div u(n+1).
@@ -1918,8 +1963,7 @@ INSHierarchyIntegrator::projectVelocity(
         d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
     }
 
-    // Project u^(n,*)->u(n+1) and re-use grad Phi to project
-    // U^(n,*)->U^(n+1).
+    // Compute the MAC projection of u^(n,*).
     d_hier_projector->projectHierarchy(
         d_rho, dt, new_time,
         d_velocity_projection_type,
@@ -1929,14 +1973,31 @@ INSHierarchyIntegrator::projectVelocity(
         d_grad_Phi_idx   , d_grad_Phi_var,   // grad Phi
         d_u_scratch_idx  , d_u_var       ,   // u(n+1,*)
         d_Q_new_idx      , d_Q_var        ); // div u(n+1)
-    d_hier_cc_data_ops->copyData(d_Phi_new_idx, d_Phi_scratch_idx);
 
-    d_hier_math_ops->interp(
-        d_Grad_Phi_idx, d_Grad_Phi_var, // dst
-        d_grad_Phi_idx, d_grad_Phi_var, // src
-        d_no_fill_op, current_time,
-        false);                         // do not re-synch grad Phi coarse-fine bdry
-    d_hier_cc_data_ops->axpy(d_U_new_idx, -dt/d_rho, d_Grad_Phi_idx, d_U_star_new_idx);
+    if (d_cc_hier_projector.isNull())
+    {
+        // Interpolate grad Phi to evaluate the cell-centered approximate
+        // projection of U^(n,*).
+        d_hier_math_ops->interp(
+            d_Grad_Phi_idx, d_Grad_Phi_var, // dst
+            d_grad_Phi_idx, d_grad_Phi_var, // src
+            d_no_fill_op, current_time,
+            false);                         // do not re-synch grad Phi coarse-fine bdry
+        d_hier_cc_data_ops->axpy(d_U_new_idx, -dt/d_rho, d_Grad_Phi_idx, d_U_star_new_idx);
+    }
+    else
+    {
+        // Compute the cell-centered exact projection of U^(n,*).
+        d_cc_hier_projector->projectHierarchy(
+            d_rho, dt, new_time,
+            d_U_new_idx      , d_U_var       ,   // u(n+1)
+            d_Phi_scratch_idx, d_Phi_var     ,   // Phi
+            d_Grad_Phi_idx   , d_Grad_Phi_var,   // grad Phi
+            d_U_star_new_idx , d_U_var       ,   // u(n+1,*)
+            d_Q_new_idx      , d_Q_var        ); // div u(n+1)
+    }
+
+    d_hier_cc_data_ops->copyData(d_Phi_new_idx, d_Phi_scratch_idx);
 
     // Optionally compute auxiliary quantities.
     if (!d_Omega_var.isNull() || !d_Div_U_var.isNull())
@@ -2038,8 +2099,9 @@ INSHierarchyIntegrator::updatePressure(
     if (d_using_hybrid_projection)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(d_cc_hier_projector.isNull());
         TBOX_ASSERT(d_velocity_projection_type == "pressure_increment" &&
-               d_pressure_projection_type == "pressure_update");
+                    d_pressure_projection_type == "pressure_update");
 #endif
         // Allocate scratch data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -2125,7 +2187,7 @@ INSHierarchyIntegrator::updatePressure(
         else
         {
             TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                       << "  unrecongnized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
+                       << "  unrecognized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
         }
 
         // Setup the intermediate velocity bc coefs.
@@ -2159,8 +2221,8 @@ INSHierarchyIntegrator::updatePressure(
             d_helmholtz_solver->initializeSolverState(*vector_sol_vec,*vector_rhs_vec);
         }
 
-        // Solve for delta U^{*} = U~^{*} - U^{*}.
-        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): about to solve for U~^{*} - U^{*} . . . \n";
+        // Solve for delta U^(n,*) = U~^(n,*) - U^(n,*).
+        if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::updatePressure(): about to solve for U~^(n,*) - U^(n,*) . . . \n";
 
         if (d_viscous_timestepping_type == "BACKWARD_EULER" || d_viscous_timestepping_type == "CRANK_NICOLSON")
         {
@@ -2219,7 +2281,7 @@ INSHierarchyIntegrator::updatePressure(
             level->deallocatePatchData(d_F_U_scratch_idx);
         }
 
-        // Store the value of U~^{*} in V.
+        // Store the value of U~^(n,*) in V.
         d_hier_cc_data_ops->add(d_V_idx, d_U_star_new_idx, d_V_idx);
 
         // Setup the intermediate velocity bc coefs.
@@ -2232,7 +2294,7 @@ INSHierarchyIntegrator::updatePressure(
                 current_time, new_time, d_rho, velocity_correction);
         }
 
-        // Interpolate U~(*)->u~(*).
+        // Interpolate U~^(n,*)->u~^(n,*).
         d_hier_math_ops->interp(
             d_u_scratch_idx, d_u_var, // u~(n+1,*)
             false,                    // do not synch u~(n+1,*) coarse-fine bdry
@@ -2246,7 +2308,7 @@ INSHierarchyIntegrator::updatePressure(
             d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
         }
 
-        // Project U~^{*}.
+        // Compute the MAC projection of u~^(n,*).
         d_hier_cc_data_ops->add(d_Phi_tilde_scratch_idx, d_P_current_idx, d_Phi_new_idx);
         d_hier_projector->projectHierarchy(
             d_rho, dt, new_time,
@@ -2296,12 +2358,12 @@ INSHierarchyIntegrator::updatePressure(
         else if (d_viscous_timestepping_type == "TGA")
         {
             TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                       << "  second-order pressure update is not available when using TGA for the viscous timestepping scheme.");
+                       << "  second-order pressure update is not available when using TGA as the viscous timestepping scheme.");
         }
         else
         {
             TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                       << "  unrecongnized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
+                       << "  unrecognized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
         }
 
         // Update the pressure.
@@ -2568,6 +2630,13 @@ INSHierarchyIntegrator::initializeLevelData(
         initializeLevelData(hierarchy, level_number, init_data_time,
                             can_be_refined, initial_time, old_level,
                             allocate_data);
+    if (!d_cc_hier_projector.isNull())
+    {
+        d_cc_hier_projector->
+            initializeLevelData(hierarchy, level_number, init_data_time,
+                                can_be_refined, initial_time, old_level,
+                                allocate_data);
+    }
 
     // Allocate storage needed to initialize the level and fill data from
     // coarser levels in AMR hierarchy, if any.
@@ -2606,9 +2675,9 @@ INSHierarchyIntegrator::initializeLevelData(
     if (initial_time)
     {
         // If no initialization object is provided, initialize the velocity,
-        // divergance, and vorticity to zero.  Otherwise, use the initialization
+        // divergence, and vorticity to zero.  Otherwise, use the initialization
         // object to set the velocity to some specified value and compute the
-        // divergance and vorticity corresponding to the initial velocity.
+        // divergence and vorticity corresponding to the initial velocity.
         if (d_U_init.isNull())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2888,6 +2957,10 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
     // handle as much data management as possible.
     d_adv_diff_hier_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     d_hier_projector          ->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+    if (!d_cc_hier_projector.isNull())
+    {
+        d_cc_hier_projector   ->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+    }
 
     // Indicate that the velocity field needs to be re-projected (but only in
     // the multi-level case).
@@ -3020,7 +3093,7 @@ INSHierarchyIntegrator::applyGradientDetector(
                               tag_index, initial_time,
                               uses_richardson_extrapolation_too);
 
-    // Tag cells based on the magnatude of the vorticity.
+    // Tag cells based on the magnitude of the vorticity.
     //
     // Note that if either the relative or absolute threshold is zero for a
     // particular level, no tagging is performed on that level.
@@ -3152,7 +3225,7 @@ INSHierarchyIntegrator::getSourceVar()
 
 ///
 /// We simply reuse the SAMRAI::hier::VariableContext objects defined in the
-/// AdvDiffIntegrator object.
+/// AdvDiffHierarchyIntegrator object.
 ///
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
@@ -3509,7 +3582,7 @@ INSHierarchyIntegrator::getFromInput(
             if (d_Omega_abs_thresh[i] < 0.0)
             {
                 TBOX_ERROR(d_object_name << ":  "
-                           << "absolute vorticity thresholds for each level must be nonnegative.\n");
+                           << "absolute vorticity thresholds for each level must be non-negative.\n");
             }
         }
     }

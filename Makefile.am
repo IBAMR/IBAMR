@@ -15,6 +15,7 @@ EXTRA_DIST += $(top_srcdir)/doc/libstdc++.tag
 EXTRA_DIST += $(top_srcdir)/include/ibamr/AdvDiffHierarchyIntegrator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/AdvDiffHypPatchOps.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/AdvectHypPatchOps.h
+EXTRA_DIST += $(top_srcdir)/include/ibamr/CCHierarchyProjector.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/GodunovAdvector.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/HierarchyProjector.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBAnchorPointSpec.I
@@ -68,35 +69,6 @@ EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredProjectionPreconditioner.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredStokesOperator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredVelocityBcCoef.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/TGACoefs.h
-EXTRA_DIST += $(top_srcdir)/sample/IB/Makefile.in
-EXTRA_DIST += $(top_srcdir)/sample/IB/curve2d_128.spring
-EXTRA_DIST += $(top_srcdir)/sample/IB/curve2d_128.vertex
-EXTRA_DIST += $(top_srcdir)/sample/IB/curve2d_256.spring
-EXTRA_DIST += $(top_srcdir)/sample/IB/curve2d_256.vertex
-EXTRA_DIST += $(top_srcdir)/sample/IB/curve2d_64.spring
-EXTRA_DIST += $(top_srcdir)/sample/IB/curve2d_64.vertex
-EXTRA_DIST += $(top_srcdir)/sample/IB/input2d
-EXTRA_DIST += $(top_srcdir)/sample/IB/input3d
-EXTRA_DIST += $(top_srcdir)/sample/IB/main.C
-EXTRA_DIST += $(top_srcdir)/sample/IB/shell2d_128.spring
-EXTRA_DIST += $(top_srcdir)/sample/IB/shell2d_128.vertex
-EXTRA_DIST += $(top_srcdir)/sample/IB/shell2d_256.spring
-EXTRA_DIST += $(top_srcdir)/sample/IB/shell2d_256.vertex
-EXTRA_DIST += $(top_srcdir)/sample/IB/shell2d_64.spring
-EXTRA_DIST += $(top_srcdir)/sample/IB/shell2d_64.vertex
-EXTRA_DIST += $(top_srcdir)/sample/IB/sphere3d.spring
-EXTRA_DIST += $(top_srcdir)/sample/IB/sphere3d.vertex
-
-## Copy the sample sources to the build directory.
-all-local:
-	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(top_srcdir)/sample/IB/input[23]d $(top_builddir)/sample/IB ; \
-	  cp -f $(top_srcdir)/sample/IB/main.C $(top_builddir)/sample/IB ; \
-	  cp -f $(top_srcdir)/sample/IB/curve2d_{64,128,256}.{spring,vertex} $(top_builddir)/sample/IB ; \
-	  cp -f $(top_srcdir)/sample/IB/shell2d_{64,128,256}.{spring,vertex} $(top_builddir)/sample/IB ; \
-	  cp -f $(top_srcdir)/sample/IB/sphere3d.{spring,vertex} $(top_builddir)/sample/IB ; \
-	fi ;
-
 
 ## Automatically link header files in $(top_srcdir)/include and
 ## refresh emacs TAGS file.

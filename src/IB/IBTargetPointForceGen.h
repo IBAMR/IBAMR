@@ -2,7 +2,7 @@
 #define included_IBTargetPointForceGen
 
 // Filename: IBTargetPointForceGen.h
-// Last modified: <13.Aug.2009 13:13:21 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 16:08:29 griffith@boyce-griffiths-mac-pro.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -86,6 +86,22 @@ public:
         const double X_coef,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         const double U_coef,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double data_time,
+        IBTK::LDataManager* const lag_manager);
+
+    /*!
+     * \brief Compute the potential energy with respect to the present structure
+     * configuration and velocity.
+     *
+     * \note This method is not actually implemented --- it just prints a
+     * warning message and returns 0.0.
+     */
+    virtual double
+    computeLagrangianEnergy(
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

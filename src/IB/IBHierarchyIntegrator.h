@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <04.Nov.2009 11:55:17 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 15:33:50 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -46,7 +46,7 @@
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
-// STL INCLUDES
+// C++ STDLIB INCLUDES
 #include <map>
 #include <set>
 #include <vector>
@@ -453,7 +453,7 @@ public:
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
-     * example, due to regidding) and the data has been initialized on the new
+     * example, due to regridding) and the data has been initialized on the new
      * levels.  The intent is that the cost of data movement on the hierarchy
      * will be amortized across multiple communication cycles, if possible.  The
      * level numbers indicate the range of levels in the hierarchy that have
@@ -628,8 +628,8 @@ private:
         const bool initial_time);
 
     /*!
-     * Initialize the IBPostProcessor object for the current configuration of
-     * the curvilinear mesh.
+     * Initialize the IBDataPostProcessor object for the current configuration
+     * of the curvilinear mesh.
      */
     void
     resetPostProcessor(
@@ -779,7 +779,7 @@ private:
 
     /*
      * The INSHierarchyIntegrator is used to provide time integration
-     * capabilitiy for the incompressible Navier-Stokes equations.
+     * capability for the incompressible Navier-Stokes equations.
      */
     SAMRAI::tbox::Pointer<INSHierarchyIntegrator> d_ins_hier_integrator;
 
@@ -933,7 +933,7 @@ private:
     int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_mark_current_idx, d_mark_scratch_idx, d_Q_idx, d_Q_scratch_idx;
 
     /*
-     * List of local indicies of local anchor points.
+     * List of local indices of local anchor points.
      *
      * NOTE: IB points are automatically considered to be anchored if they are
      * within 2.0*sqrt(epsilon_mach) of the physical boundary.

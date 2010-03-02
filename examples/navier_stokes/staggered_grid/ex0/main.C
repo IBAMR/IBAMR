@@ -226,7 +226,7 @@ main(
             else
             {
                 TBOX_ERROR("restart_interval > 0, but key `restart_write_dirname'"
-                           << " not specifed in input file");
+                           << " not specified in input file");
             }
         }
 
@@ -391,7 +391,7 @@ main(
         }
 
         /*
-         * Count the nubmer of cells in each level of the patch hierarchy.
+         * Count the number of cells in each level of the patch hierarchy.
          */
         int number_of_cells = 0;
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
@@ -431,10 +431,10 @@ main(
         {
             iteration_num = time_integrator->getIntegratorStep() + 1;
 
-            tbox::pout <<                                                       endl;
-            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
-            tbox::pout << "Simulation time is " << loop_time                 << endl;
+            tbox::pout <<                                                        endl;
+            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++"  << endl;
+            tbox::pout << "At beginning of timestep # " <<  iteration_num - 1 << endl;
+            tbox::pout << "Simulation time is " << loop_time                  << endl;
 
             t_advance_hierarchy->start();
             dt_old = dt_now;
@@ -444,11 +444,11 @@ main(
             loop_time += dt_now;
             dt_now = dt_new;
 
-            tbox::pout <<                                                       endl;
-            tbox::pout << "At end      of timestep # " <<  iteration_num - 1 << endl;
-            tbox::pout << "Simulation time is " << loop_time                 << endl;
-            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout <<                                                       endl;
+            tbox::pout <<                                                        endl;
+            tbox::pout << "At end       of timestep # " <<  iteration_num - 1 << endl;
+            tbox::pout << "Simulation time is " << loop_time                  << endl;
+            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++"  << endl;
+            tbox::pout <<                                                        endl;
 
             /*
              * At specified intervals, write visualization and restart files,

@@ -2,7 +2,7 @@
 #define included_IBImplicitHierarchyIntegrator
 
 // Filename: IBImplicitHierarchyIntegrator.h
-// Last modified: <03.Nov.2009 21:08:11 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 15:36:56 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -220,7 +220,7 @@ public:
     ///      isManagingHierarchyMathOps()
     ///
     ///  allow for the sharing of a single HierarchyMathOps object between
-    ///  mutiple HierarchyIntegrator objects.
+    ///  multiple HierarchyIntegrator objects.
     ///
 
     /*!
@@ -517,7 +517,7 @@ public:
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
-     * example, due to regidding) and the data has been initialized on the new
+     * example, due to regridding) and the data has been initialized on the new
      * levels.  The intent is that the cost of data movement on the hierarchy
      * will be amortized across multiple communication cycles, if possible.  The
      * level numbers indicate the range of levels in the hierarchy that have
@@ -636,7 +636,7 @@ public:
     ///      reinterpolateVelocity(),
     ///      reinterpolateForce()
     ///
-    /// are miscelaneous utility functions.
+    /// are miscellaneous utility functions.
 
     /*!
      * Te-interpolate the staggered velocity from cell faces to cell centers.
@@ -1152,8 +1152,6 @@ private:
     bool d_block_pc_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredBlockFactorizationPreconditioner> d_block_pc;
 
-//  double d_div_u_abstol;
-
     bool d_needs_regrid_projection;
     double d_regrid_max_div_growth_factor;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>                 d_regrid_projection_fac_pc_db;
@@ -1318,7 +1316,7 @@ private:
     Vec d_petsc_x_vec, d_petsc_f_vec;
 
     /*
-     * List of local indicies of local anchor points.
+     * List of local indices of local anchor points.
      *
      * NOTE: IB points are automatically considered to be anchored if they are
      * within 2.0*sqrt(epsilon_mach) of the physical boundary.

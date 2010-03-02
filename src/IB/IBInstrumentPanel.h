@@ -2,7 +2,7 @@
 #define included_IBInstrumentPanel
 
 // Filename: IBInstrumentPanel.h
-// Last modified: <04.Feb.2009 20:22:09 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 15:40:45 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 May 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -15,7 +15,7 @@
 #include <PatchHierarchy.h>
 #include <tbox/DescribedClass.h>
 
-// BLITZ++ INLCUDES
+// BLITZ++ INCLUDES
 #include <blitz/array.h>
 
 // C++ STDLIB INCLUDES
@@ -224,7 +224,7 @@ private:
 
     /*!
      * \brief Data structures employed to manage mappings between cell indices
-     * and web patch data (i.e., patch centroids and area-weigthed normals) and
+     * and web patch data (i.e., patch centroids and area-weighted normals) and
      * meter centroid data.
      */
     struct IndexFortranOrder

@@ -11,7 +11,7 @@ RHO = 1.0
 MAX_LEVELS = 3   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 8                                     // coarsest grid spacing
+N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 16.0                                  // width of computational domain
 
@@ -66,8 +66,9 @@ IBStaggeredHierarchyIntegrator {
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 4
    dt_max = 0.125*dx
-   num_cycles = 3
+   num_cycles = 2
    delta_fcn = "IB_4"
+   enable_logging = TRUE
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -201,8 +202,8 @@ E_s = 2.0*sqrt(K_s*M_s)                  // damping constant for critically damp
 IBStandardInitializer {
    max_levels = MAX_LEVELS
 
-   base_filenames_2 = "cylinder2d_128"
-   cylinder2d_512 {
+   base_filenames_2 = "cylinder2d_256"
+   cylinder2d_256 {
       uniform_target_stiffness = K_s
       uniform_target_damping   = E_s
    }

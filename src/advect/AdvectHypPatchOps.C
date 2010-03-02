@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <03.Nov.2009 20:49:14 griffith@griffith-macbook-pro.local>
+// Last modified: <01.Mar.2010 14:03:07 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -759,7 +759,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
         }
 
         // We try to use the IBTK::SetDataStrategy associated with the
-        // advection velocirt.  If there is no strategy associated with the
+        // advection velocity.  If there is no strategy associated with the
         // advection velocity, initialize its value to zero.
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, getDataContext());
@@ -1888,11 +1888,11 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
     // boundary.
     if (!pgeom->getTouchesRegularBoundary()) return;
 
-    // Compute the codimension one boundary boxes.
+    // Compute the co-dimension one boundary boxes.
     const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> > physical_codim1_boxes =
         IBTK::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
 
-    // There is nothing to do if the patch does not have any codimension one
+    // There is nothing to do if the patch does not have any co-dimension one
     // boundary boxes.
     if (physical_codim1_boxes.size() == 0) return;
 
@@ -2024,7 +2024,7 @@ AdvectHypPatchOps::getFromInput(
         {
             TBOX_WARNING(d_object_name << ":\n"
                          << "  No key `refine_criteria' found in data for"
-                         << " RefinementData. No refinement will occur.\n");
+                         << " Refinement_data. No refinement will occur.\n");
         }
 
         SAMRAI::tbox::Array<std::string> ref_keys_defined(num_keys);

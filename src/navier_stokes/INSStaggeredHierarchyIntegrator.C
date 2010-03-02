@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <17.Dec.2009 10:50:27 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 18:58:44 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -96,19 +96,6 @@ namespace IBAMR
 
 namespace
 {
-int
-register_stokes_solver_options(
-    const std::string& stokes_prefix,
-    double& div_u_abstol,
-    const double & default_div_u_abstol)
-{
-    PetscErrorCode ierr;
-    ierr = PetscOptionsBegin(PETSC_COMM_WORLD, stokes_prefix.c_str(), "additional options for incompressible Stokes solver", "");  CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-div_u_atol", "absolute solver congergence tolerance for the value of ||div u||_oo", "", default_div_u_abstol, &div_u_abstol, PETSC_NULL);  CHKERRQ(ierr);
-    ierr = PetscOptionsEnd();  CHKERRQ(ierr);
-    PetscFunctionReturn(0);
-}// register_stokes_solver_options
-
 // Timers.
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy_integrator;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_hierarchy;
@@ -414,7 +401,7 @@ INSStaggeredHierarchyIntegrator::registerSourceSpecification(
     SAMRAI::tbox::pout << "\n"
                        << "WARNING: There is an extra term which should be added to the momentum equation\n"
                        << "         in the case that div u != 0.\n"
-                       << "         At the present time, this term has NOT beed incorporated into the\n"
+                       << "         At the present time, this term has NOT been incorporated into the\n"
                        << "         staggered-grid incompressible Navier-Stokes solver.\n"
                        << "\n";
     return;
@@ -470,7 +457,7 @@ INSStaggeredHierarchyIntegrator::registerApplyGradientDetectorCallback(
 ///      setHierarchyMathOps(),
 ///      isManagingHierarchyMathOps()
 ///
-///  allow for the sharing of a single HierarchyMathOps object between mutiple
+///  allow for the sharing of a single HierarchyMathOps object between multiple
 ///  HierarchyIntegrator objects.
 ///
 
@@ -773,8 +760,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_stokes_solver->setInitialGuessNonzero(true);
     d_stokes_solver->setOperator(d_stokes_op);
     d_stokes_solver->setKSPType("fgmres");
-    d_div_u_abstol = 1.0e-5;
-    ierr = register_stokes_solver_options(stokes_prefix, d_div_u_abstol, d_div_u_abstol);  IBTK_CHKERRQ(ierr);
 
     // Setup the preconditioner and preconditioner sub-solvers.
     std::vector<std::string> pc_shell_types(3);
@@ -797,6 +782,22 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n" <<
                    "  invalid stokes preconditioner type: " << stokes_pc_type << "\n"
                    "  valid stokes preconditioner types: shell, none" << std::endl);
+    }
+
+    char helmholtz_pc_type_str[len];
+    ierr = PetscOptionsGetString("helmholtz_", "-pc_type", helmholtz_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
+    std::string helmholtz_pc_type = "shell";
+    if (flg)
+    {
+        helmholtz_pc_type = std::string(helmholtz_pc_type_str);
+    }
+
+    char poisson_pc_type_str[len];
+    ierr = PetscOptionsGetString("poisson_", "-pc_type", poisson_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
+    std::string poisson_pc_type = "shell";
+    if (flg)
+    {
+        poisson_pc_type = std::string(poisson_pc_type_str);
     }
 
     std::string stokes_pc_shell_type;
@@ -838,32 +839,35 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz_solver->setInitialGuessNonzero(false);
         d_helmholtz_solver->setOperator(d_helmholtz_op);
 
-        if (d_gridding_alg->getMaxLevels() == 1)
+        if (helmholtz_pc_type != "none")
         {
-            if (d_helmholtz_hypre_pc_db.isNull())
+            if (d_gridding_alg->getMaxLevels() == 1)
             {
-                TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                             "  helmholtz hypre pc solver database is null." << std::endl);
-            }
-            d_helmholtz_hypre_pc = new IBTK::SCPoissonHypreLevelSolver(d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
-            d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
+                if (d_helmholtz_hypre_pc_db.isNull())
+                {
+                    TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
+                                 "  helmholtz hypre pc solver database is null." << std::endl);
+                }
+                d_helmholtz_hypre_pc = new IBTK::SCPoissonHypreLevelSolver(d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
+                d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
 
-            d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
-        }
-        else
-        {
-            if (d_helmholtz_fac_pc_db.isNull())
+                d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
+            }
+            else
             {
-                TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                             "  helmholtz fac pc solver database is null." << std::endl);
+                if (d_helmholtz_fac_pc_db.isNull())
+                {
+                    TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
+                                 "  helmholtz fac pc solver database is null." << std::endl);
+                }
+                d_helmholtz_fac_op = new IBTK::SCPoissonFACOperator(d_object_name+"::Helmholtz FAC Operator", d_helmholtz_fac_pc_db);
+                d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
+
+                d_helmholtz_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
+                d_helmholtz_fac_op->setPreconditioner(d_helmholtz_fac_pc);
+
+                d_helmholtz_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_helmholtz_fac_pc_db));
             }
-            d_helmholtz_fac_op = new IBTK::SCPoissonFACOperator(d_object_name+"::Helmholtz FAC Operator", d_helmholtz_fac_pc_db);
-            d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
-
-            d_helmholtz_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
-            d_helmholtz_fac_op->setPreconditioner(d_helmholtz_fac_pc);
-
-            d_helmholtz_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_helmholtz_fac_pc_db));
         }
 
         // Set some default options.
@@ -898,32 +902,35 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_poisson_solver->setInitialGuessNonzero(false);
         d_poisson_solver->setOperator(d_poisson_op);
 
-        if (d_gridding_alg->getMaxLevels() == 1)
+        if (poisson_pc_type != "none")
         {
-            if (d_poisson_hypre_pc_db.isNull())
+            if (d_gridding_alg->getMaxLevels() == 1)
             {
-                TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                             "  poisson hypre pc solver database is null." << std::endl);
-            }
-            d_poisson_hypre_pc = new IBTK::CCPoissonHypreLevelSolver(d_object_name+"::Poisson Preconditioner", d_poisson_hypre_pc_db);
-            d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
+                if (d_poisson_hypre_pc_db.isNull())
+                {
+                    TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
+                                 "  poisson hypre pc solver database is null." << std::endl);
+                }
+                d_poisson_hypre_pc = new IBTK::CCPoissonHypreLevelSolver(d_object_name+"::Poisson Preconditioner", d_poisson_hypre_pc_db);
+                d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
 
-            d_poisson_solver->setPreconditioner(d_poisson_hypre_pc);
-        }
-        else
-        {
-            if (d_poisson_fac_pc_db.isNull())
+                d_poisson_solver->setPreconditioner(d_poisson_hypre_pc);
+            }
+            else
             {
-                TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                             "  poisson fac pc solver database is null." << std::endl);
+                if (d_poisson_fac_pc_db.isNull())
+                {
+                    TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
+                                 "  poisson fac pc solver database is null." << std::endl);
+                }
+                d_poisson_fac_op = new IBTK::CCPoissonFACOperator(d_object_name+"::Poisson FAC Operator", d_poisson_fac_pc_db);
+                d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
+
+                d_poisson_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
+                d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
+
+                d_poisson_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_poisson_fac_pc, d_poisson_fac_pc_db));
             }
-            d_poisson_fac_op = new IBTK::CCPoissonFACOperator(d_object_name+"::Poisson FAC Operator", d_poisson_fac_pc_db);
-            d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
-
-            d_poisson_fac_pc = new SAMRAI::solv::FACPreconditioner<NDIM>(d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
-            d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
-
-            d_poisson_solver->setPreconditioner(new IBTK::FACPreconditionerLSWrapper(d_poisson_fac_pc, d_poisson_fac_pc_db));
         }
 
         // Set some default options.
@@ -1385,12 +1392,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     // Setup the operators and solvers.
     initializeOperatorsAndSolvers(current_time, new_time);
 
-    // Setup the convergence test.
-    PetscErrorCode ierr;
-    KSP petsc_ksp = d_stokes_solver->getPETScKSP();
-    ierr = KSPDefaultConvergedCreate(&d_default_conv_ctx);  IBTK_CHKERRQ(ierr);
-    ierr = KSPSetConvergenceTest(petsc_ksp, INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest, static_cast<void*>(this), PETSC_NULL);  IBTK_CHKERRQ(ierr);
-
     // Setup the nullspace object.
     if (d_normalize_pressure)
     {
@@ -1399,6 +1400,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
         d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
         d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
 
+        int ierr;
         MatNullSpace petsc_nullsp;
         Vec petsc_nullsp_vec = IBTK::PETScSAMRAIVectorReal<double>::createPETScVector(d_nul_vec, PETSC_COMM_WORLD);
         double one_dot_one;
@@ -1465,8 +1467,24 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // boundary condition takes precedence).
     d_U_bc_helper->zeroValuesAtDirichletBoundaries(d_rhs_vec->getComponentDescriptorIndex(0));
 
+    // Synchronize solution and right-hand-side data before solve.
+    typedef IBTK::SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    SynchronizationTransactionComponent sol_synch_transaction =
+        SynchronizationTransactionComponent(d_sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+    SynchronizationTransactionComponent rhs_synch_transaction =
+        SynchronizationTransactionComponent(d_rhs_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+
+    d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
+    d_side_synch_op->synchronizeData(current_time);
+    d_side_synch_op->resetTransactionComponent(rhs_synch_transaction);
+    d_side_synch_op->synchronizeData(current_time);
+
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
+
+    // Synchronize solution data after solve.
+    d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
+    d_side_synch_op->synchronizeData(current_time);
 
     // Update the values of any advected-and-diffused quantities registered with
     // the optional advection-diffusion solver.
@@ -1617,9 +1635,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
         ierr = KSPGetNullSpace(petsc_ksp, &petsc_nullsp); IBTK_CHKERRQ(ierr);
         ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
     }
-
-    // Deallocate the convergence test context.
-    PetscErrorCode ierr = KSPDefaultConvergedDestroy(d_default_conv_ctx); IBTK_CHKERRQ(ierr);
 
     // Deallocate scratch data.
     d_U_rhs_vec->freeVectorComponents();
@@ -1869,42 +1884,14 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
             div_free_prolongation_scratch_data.setFlag(d_indicator_idx);
 
             // Set the indicator data to equal "0" in each patch of the new
-            // patch level (EXCEPT at physical boundaries) and initialize values
-            // of U to cause a floating point error if used incorrectly.
+            // patch level and initialize values of U to cause a floating point
+            // error if used incorrectly.
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                const SAMRAI::hier::Index<NDIM>& ilower = patch_box.lower();
-                const SAMRAI::hier::Index<NDIM>& iupper = patch_box.upper();
 
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > indicator_data = patch->getPatchData(d_indicator_idx);
                 indicator_data->fillAll(0.0);
-                if (patch_geom->getTouchesRegularBoundary())
-                {
-                    for (int axis = 0; axis < NDIM; ++axis)
-                    {
-                        for (int upperlower = 0; upperlower <= 1; ++upperlower)
-                        {
-                            if (patch_geom->getTouchesRegularBoundary(axis,upperlower))
-                            {
-                                SAMRAI::hier::Box<NDIM> fill_box = patch_box;
-                                if (upperlower == 0)
-                                {
-                                    fill_box.lower()(axis) = ilower(axis)-1;
-                                    fill_box.upper()(axis) = ilower(axis)-1;
-                                }
-                                else
-                                {
-                                    fill_box.lower()(axis) = iupper(axis)+1;
-                                    fill_box.upper()(axis) = iupper(axis)+1;
-                                }
-                                indicator_data->fillAll(1.0,fill_box);
-                            }
-                        }
-                    }
-                }
 
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_current_data = patch->getPatchData(d_U_current_idx);
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> >  U_regrid_data = patch->getPatchData( d_U_regrid_idx);
@@ -1934,9 +1921,11 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                 }
 
                 // Create a communications schedule to copy data from the old patch
-                // level to the new patch level.  Note that this will set the
-                // indicator data to equal "1" at each location in the new patch
-                // level which is a copy of a location from the old patch level.
+                // level to the new patch level.
+                //
+                // Note that this will set the indicator data to equal "1" at
+                // each location in the new patch level which is a copy of a
+                // location from the old patch level.
                 SAMRAI::xfer::RefineAlgorithm<NDIM> copy_data;
                 copy_data.registerRefine( d_U_regrid_idx,  d_U_regrid_idx,  d_U_regrid_idx, NULL);
                 copy_data.registerRefine(    d_U_src_idx,     d_U_src_idx,     d_U_src_idx, NULL);
@@ -1966,9 +1955,9 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
     if (initial_time)
     {
         // If no initialization object is provided, initialize the velocity,
-        // divergance, and vorticity to zero.  Otherwise, use the initialization
+        // divergence, and vorticity to zero.  Otherwise, use the initialization
         // object to set the velocity to some specified value and compute the
-        // divergance and vorticity corresponding to the initial velocity.
+        // divergence and vorticity corresponding to the initial velocity.
         if (d_U_init.isNull())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2171,14 +2160,15 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
 
     // Setup the patch boundary filling objects.
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-
     InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, SIDE_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
     d_U_bdry_bc_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
 
-//  InterpolationTransactionComponent U_extrap_component(d_U_scratch_idx, SIDE_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL);
-//  d_U_bdry_extrap_fill_op = new IBTK::HierarchyGhostCellInterpolation();
-//  d_U_bdry_extrap_fill_op->initializeOperatorState(U_extrap_component, d_hierarchy);
+    // Setup the patch boundary synchronization objects.
+    typedef IBTK::SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    SynchronizationTransactionComponent synch_transaction = SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+    d_side_synch_op = new IBTK::SideDataSynchronization();
+    d_side_synch_op->initializeOperatorState(synch_transaction, d_hierarchy);
 
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
@@ -2274,7 +2264,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetector(
                                   uses_richardson_extrapolation_too);
     }
 
-    // Tag cells based on the magnatude of the vorticity.
+    // Tag cells based on the magnitude of the vorticity.
     //
     // Note that if either the relative or absolute threshold is zero for a
     // particular level, no tagging is performed on that level.
@@ -2395,7 +2385,7 @@ INSStaggeredHierarchyIntegrator::getSourceVar()
 
 ///
 /// We simply reuse the SAMRAI::hier::VariableContext objects defined in the
-/// AdvDiffIntegrator object.
+/// AdvDiffHierarchyIntegrator object.
 ///
 
 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
@@ -2422,7 +2412,7 @@ INSStaggeredHierarchyIntegrator::getScratchContext() const
 ///      reinterpolateVelocity(),
 ///      reinterpolateForce()
 ///
-/// are miscelaneous utility functions.
+/// are miscellaneous utility functions.
 
 void
 INSStaggeredHierarchyIntegrator::reinterpolateVelocity(
@@ -2527,8 +2517,6 @@ INSStaggeredHierarchyIntegrator::putToDatabase(
     db->putDouble("d_rho", d_rho);
     db->putDouble("d_mu", d_mu);
     db->putDouble("d_lambda", d_lambda);
-
-    db->putDouble("d_div_u_abstol", d_div_u_abstol);
 
     db->putDouble("d_regrid_max_div_growth_factor", d_regrid_max_div_growth_factor);
 
@@ -2638,81 +2626,6 @@ INSStaggeredHierarchyIntegrator::registerVariable(
 }// registerVariable
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
-PetscErrorCode
-INSStaggeredHierarchyIntegrator::KSPDivUConvergenceTest(
-    KSP ksp,
-    PetscInt n,
-    PetscReal rnorm,
-    KSPConvergedReason* reason,
-    void* convergence_test_ctx)
-{
-    INSStaggeredHierarchyIntegrator* hier_integrator = static_cast<INSStaggeredHierarchyIntegrator*>(convergence_test_ctx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(hier_integrator != NULL);
-#endif
-    PetscErrorCode ierr;
-    ierr = KSPDefaultConverged(ksp, n, rnorm, reason, hier_integrator->d_default_conv_ctx);  IBTK_CHKERRQ(ierr);
-
-    // Whenever the default convergence test is satisfied, compute the discrete
-    // divergence of the solution vector and ensure that it satisfies the
-    // user-specified convergence tolerance.
-    const double& div_u_abstol = hier_integrator->d_div_u_abstol;
-    if (int(*reason) > 0 && div_u_abstol > 0.0)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops = hier_integrator->d_hier_cc_data_ops;
-        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops = hier_integrator->d_hier_math_ops;
-        const int wgt_cc_idx = hier_integrator->d_wgt_cc_idx;
-
-        const int Div_U_idx = hier_integrator->d_Div_U_scratch_idx;
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >& Div_U_cc_var = hier_integrator->d_Div_U_var;
-        const SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>& no_fill_op = hier_integrator->d_no_fill_op;
-        const double& integrator_time = hier_integrator->d_integrator_time;
-
-        Vec petsc_sol_vec;
-        ierr = KSPBuildSolution(ksp, PETSC_NULL, &petsc_sol_vec);  IBTK_CHKERRQ(ierr);
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec = IBTK::PETScSAMRAIVectorReal<double>::getSAMRAIVector(petsc_sol_vec);
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > sol_vec_clone = sol_vec->cloneVector("");
-        sol_vec_clone->allocateVectorData(integrator_time);
-        sol_vec_clone->copyVector(sol_vec);
-
-        const int U_idx = sol_vec_clone->getComponentDescriptorIndex(0);
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_var = sol_vec_clone->getComponentVariable(0);
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_sc_var = U_var;
-
-        const int Q_idx = hier_integrator->d_Q_scratch_idx;
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& Q_var = hier_integrator->d_Q_var;
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_cc_var = Q_var;
-
-        hier_integrator->d_U_bc_helper->resetValuesAtDirichletBoundaries(U_idx);
-
-        static const bool U_cf_bdry_synch = true;
-        hier_math_ops->div(
-            Div_U_idx, Div_U_cc_var, // dst
-            +1.0,                    // alpha
-            U_idx, U_sc_var,         // src1
-            no_fill_op,              // src1_bdry_fill
-            integrator_time,         // src1_bdry_fill_time
-            U_cf_bdry_synch,         // src1_cf_bdry_synch
-            -1.0,                    // beta
-            Q_idx, Q_cc_var);        // src2
-
-        sol_vec_clone->freeVectorComponents();
-        sol_vec_clone->deallocateVectorData();
-
-        const double Div_U_oo = hier_cc_data_ops->maxNorm(Div_U_idx, wgt_cc_idx);
-        if (Div_U_oo > div_u_abstol)
-        {
-            PetscInfo3(ksp,"Linear solver has converged according to KSPDefaultConverged, but solution does not yet satisfy the absolute convergence tolerance on div U. Divergence max-norm %G is greater than the absolute tolerance %G at iteration %D\n", Div_U_oo, div_u_abstol, n);
-            *reason = KSP_CONVERGED_ITERATING;
-        }
-        else
-        {
-            PetscInfo3(ksp,"Linear solver has converged according to KSPDefaultConverged, and solution satisfies the absolute convergence tolerance on div U. Divergence max-norm %G is less than or equal to the absolute tolerance %G at iteration %D\n", Div_U_oo, div_u_abstol, n);
-        }
-    }
-    PetscFunctionReturn(0);
-}// KSPDivUConvergenceTest
 
 void
 INSStaggeredHierarchyIntegrator::regridProjection()
@@ -3142,7 +3055,7 @@ INSStaggeredHierarchyIntegrator::getFromInput(
             if (d_Omega_abs_thresh[i] < 0.0)
             {
                 TBOX_ERROR(d_object_name << ":  "
-                           << "absolute vorticity thresholds for each level must be nonnegative.\n");
+                           << "absolute vorticity thresholds for each level must be non-negative.\n");
             }
         }
     }
@@ -3284,8 +3197,6 @@ INSStaggeredHierarchyIntegrator::getFromRestart()
     d_rho = db->getDouble("d_rho");
     d_mu = db->getDouble("d_mu");
     d_lambda = db->getDouble("d_lambda");
-
-    d_div_u_abstol = db->getDouble("d_div_u_abstol");
 
     d_regrid_max_div_growth_factor = db->getDouble("d_regrid_max_div_growth_factor");
     return;

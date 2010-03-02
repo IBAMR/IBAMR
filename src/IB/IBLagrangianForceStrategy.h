@@ -2,7 +2,7 @@
 #define included_IBLagrangianForceStrategy
 
 // Filename: IBLagrangianForceStrategy.h
-// Last modified: <10.Sep.2009 23:11:39 griffith@griffith-macbook-pro.local>
+// Last modified: <30.Dec.2009 19:51:53 griffith@boyce-griffiths-mac-pro.local>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -116,7 +116,7 @@ public:
      * provided matrix J.
      *
      * \note A default implementation is provided with results in an assertion
-     * failure for structures for which no Jacobian is available.
+     * failure.
      */
     virtual void
     computeLagrangianForceJacobian(
@@ -125,6 +125,22 @@ public:
         const double X_coef,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         const double U_coef,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double data_time,
+        IBTK::LDataManager* const lag_manager);
+
+    /*!
+     * \brief Compute the potential energy with respect to the present structure
+     * configuration and velocity.
+     *
+     * \note A default implementation is provided which results in an assertion
+     * failure.
+     */
+    virtual double
+    computeLagrangianEnergy(
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
         SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

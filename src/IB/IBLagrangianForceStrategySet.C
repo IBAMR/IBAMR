@@ -1,5 +1,5 @@
 // Filename: IBLagrangianForceStrategySet.C
-// Last modified: <15.Aug.2008 15:12:54 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <30.Dec.2009 19:06:59 griffith@boyce-griffiths-mac-pro.local>
 // Created on 04 April 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBLagrangianForceStrategySet.h"
@@ -124,6 +124,24 @@ IBLagrangianForceStrategySet::computeLagrangianForceJacobian(
     }
     return;
 }// computeLagrangianForceJacobian
+
+double
+IBLagrangianForceStrategySet::computeLagrangianEnergy(
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    double ret_val = 0.0;
+    for (std::vector<SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> >::iterator it = d_strategy_set.begin();
+         it != d_strategy_set.end(); ++it)
+    {
+        ret_val += (*it)->computeLagrangianEnergy(X_data, U_data, hierarchy, level_number, data_time, lag_manager);
+    }
+    return ret_val;
+}// computeLagrangianEnergy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

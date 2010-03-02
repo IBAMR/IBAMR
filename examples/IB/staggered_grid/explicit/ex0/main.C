@@ -52,6 +52,8 @@ class myPostProcessor
     : public IBDataPostProcessor
 {
 public:
+    tbox::Pointer<IBLagrangianForceStrategy> d_force_generator;
+
     myPostProcessor()
     {
         // intentionally blank
@@ -90,21 +92,16 @@ public:
         double potential_energy = 0.0;
         for (int ln = coarsest_level_number; ln <= finest_level_number; ++ln)
         {
-            if (lag_manager->levelContainsLagrangianData(ln))
-            {
-                Vec X_vec = X_data[ln]->getGlobalVec();
-                Vec F_vec = F_data[ln]->getGlobalVec();
-                double X_dot_F;
-                int ierr = VecDot(X_vec, F_vec, &X_dot_F);  IBTK_CHKERRQ(ierr);
-                potential_energy -= X_dot_F;
-            }
+            potential_energy += d_force_generator->computeLagrangianEnergy(X_data[ln], U_data[ln], hierarchy, ln, data_time, lag_manager);
         }
 
-        SAMRAI::tbox::pout << "time = " << data_time << " total energy = " << kinetic_energy + potential_energy << "\n";
+        SAMRAI::tbox::pout << "\ntime = " << data_time << "\n"
+                           << "kinetic energy = " << kinetic_energy << "\n"
+                           << "potential energy = " << potential_energy << "\n"
+                           << "total energy = " << kinetic_energy + potential_energy << "\n\n";
         return;
     }// postProcessData
 };
-
 
 /************************************************************************
  * For each run, the input filename and restart information (if         *
@@ -292,7 +289,7 @@ main(
             else
             {
                 TBOX_ERROR("restart_interval > 0, but key `restart_write_dirname'"
-                           << " not specifed in input file");
+                           << " not specified in input file");
             }
         }
 
@@ -325,7 +322,7 @@ main(
             else
             {
                 TBOX_ERROR("hier_dump_interval > 0, but key `hier_dump_dirname'"
-                           << " not specifed in input file");
+                           << " not specified in input file");
             }
         }
 
@@ -420,7 +417,9 @@ main(
 
         SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
 
-        SAMRAI::tbox::Pointer<IBDataPostProcessor> post_processor = new myPostProcessor();
+        myPostProcessor* t_post_processor = new myPostProcessor();
+        t_post_processor->d_force_generator = force_generator;
+        tbox::Pointer<IBDataPostProcessor> post_processor = t_post_processor;
 
         tbox::Pointer<IBStaggeredHierarchyIntegrator> time_integrator =
             new IBStaggeredHierarchyIntegrator(
@@ -638,10 +637,10 @@ main(
         {
             iteration_num = time_integrator->getIntegratorStep() + 1;
 
-            tbox::pout <<                                                       endl;
-            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
-            tbox::pout << "Simulation time is " << loop_time                 << endl;
+            tbox::pout <<                                                        endl;
+            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++"  << endl;
+            tbox::pout << "At beginning of timestep # " <<  iteration_num - 1 << endl;
+            tbox::pout << "Simulation time is " << loop_time                  << endl;
 
             dt_old = dt_now;
             double dt_new = time_integrator->advanceHierarchy(dt_now);
@@ -649,11 +648,11 @@ main(
             loop_time += dt_now;
             dt_now = dt_new;
 
-            tbox::pout <<                                                       endl;
-            tbox::pout << "At end      of timestep # " <<  iteration_num - 1 << endl;
-            tbox::pout << "Simulation time is " << loop_time                 << endl;
-            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout <<                                                       endl;
+            tbox::pout <<                                                        endl;
+            tbox::pout << "At end       of timestep # " <<  iteration_num - 1 << endl;
+            tbox::pout << "Simulation time is " << loop_time                  << endl;
+            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++"  << endl;
+            tbox::pout <<                                                        endl;
 
             /*
              * At specified intervals, write visualization and restart files,

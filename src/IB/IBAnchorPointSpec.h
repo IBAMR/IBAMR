@@ -2,7 +2,7 @@
 #define included_IBAnchorPointSpec
 
 // Filename: IBAnchorPointSpec.h
-// Last modified: <15.Dec.2009 19:15:20 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 15:26:14 griffith@boyce-griffiths-mac-pro.local>
 // Created on 18 Aug 2008 by Boyce Griffith (boyce@dm-linux.maths.gla.ac.uk)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////

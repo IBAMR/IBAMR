@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <17.Dec.2009 10:33:15 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 15:35:05 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -42,7 +42,7 @@
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
-// STL INCLUDES
+// C++ STDLIB INCLUDES
 #include <map>
 #include <set>
 #include <vector>
@@ -432,7 +432,7 @@ public:
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
-     * example, due to regidding) and the data has been initialized on the new
+     * example, due to regridding) and the data has been initialized on the new
      * levels.  The intent is that the cost of data movement on the hierarchy
      * will be amortized across multiple communication cycles, if possible.  The
      * level numbers indicate the range of levels in the hierarchy that have
@@ -627,8 +627,8 @@ private:
         const bool initial_time);
 
     /*!
-     * Initialize the IBPostProcessor object for the current configuration of
-     * the curvilinear mesh.
+     * Initialize the IBDataPostProcessor object for the current configuration
+     * of the curvilinear mesh.
      */
     void
     resetPostProcessor(
@@ -779,7 +779,7 @@ private:
 
     /*
      * The INSStaggeredHierarchyIntegrator is used to provide time integration
-     * capabilitiy for the incompressible Navier-Stokes equations.
+     * capability for the incompressible Navier-Stokes equations.
      */
     SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> d_ins_hier_integrator;
 
@@ -825,6 +825,13 @@ private:
      */
     SAMRAI::tbox::Pointer<IBDataPostProcessor> d_post_processor;
     bool d_post_processor_needs_init;
+
+    /*
+     * Parameters for the penalty IB method for boundaries with additional
+     * boundary mass.
+     */
+    bool d_using_pIB_method;
+    std::vector<double> d_gravitational_acceleration;
 
     /*
      * Integrator data read from input or set at initialization.
@@ -904,7 +911,7 @@ private:
     int d_V_idx, d_F_idx, d_Q_idx, d_mark_current_idx, d_mark_scratch_idx;
 
     /*
-     * List of local indicies of local anchor points.
+     * List of local indices of local anchor points.
      *
      * NOTE: IB points are automatically considered to be anchored if they are
      * within 2.0*sqrt(epsilon_mach) of the physical boundary.

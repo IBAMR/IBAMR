@@ -275,7 +275,7 @@ main(
             else
             {
                 TBOX_ERROR("restart_interval > 0, but key `restart_write_dirname'"
-                           << " not specifed in input file");
+                           << " not specified in input file");
             }
         }
 
@@ -514,7 +514,7 @@ main(
         }
 
         /*
-         * Open file to output the coordinates of the end of the fillament.
+         * Open file to output the coordinates of the end of the filament.
          */
         ofstream X_stream;
         if (tbox::SAMRAI_MPI::getRank() == 0)
@@ -544,21 +544,21 @@ main(
         {
             iteration_num = time_integrator->getIntegratorStep() + 1;
 
-            tbox::pout <<                                                       endl;
-            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
-            tbox::pout << "Simulation time is " << loop_time                 << endl;
+            tbox::pout <<                                                        endl;
+            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++"  << endl;
+            tbox::pout << "At beginning of timestep # " <<  iteration_num - 1 << endl;
+            tbox::pout << "Simulation time is " << loop_time                  << endl;
 
             double dt_new = time_integrator->advanceHierarchy(dt_now);
 
             loop_time += dt_now;
             dt_now = dt_new;
 
-            tbox::pout <<                                                       endl;
-            tbox::pout << "At end      of timestep # " <<  iteration_num - 1 << endl;
-            tbox::pout << "Simulation time is " << loop_time                 << endl;
-            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout <<                                                       endl;
+            tbox::pout <<                                                        endl;
+            tbox::pout << "At end       of timestep # " <<  iteration_num - 1 << endl;
+            tbox::pout << "Simulation time is " << loop_time                  << endl;
+            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++"  << endl;
+            tbox::pout <<                                                        endl;
 
             /*
              * Determine the coordinates of the free end of the filament.

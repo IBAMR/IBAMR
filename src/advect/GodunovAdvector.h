@@ -2,7 +2,7 @@
 #define included_GodunovAdvector
 
 // Filename: GodunovAdvector.h
-// Last modified: <12.Aug.2009 18:21:50 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <01.Mar.2010 14:14:11 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Feb 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -44,7 +44,7 @@ namespace IBAMR
  * \f]
  *
  * The class employs an upwind (Godunov) explicit predictor which can be used to
- * generate time and face cenetered values or fluxes.  These predicted values
+ * generate time and face centered values or fluxes.  These predicted values
  * can be used in a second-order accurate predictor-corrector method for solving
  * the advection equation, as well as related problems such as the
  * advection-diffusion equation and the equations of incompressible flow.
@@ -152,7 +152,7 @@ public:
      *
      * \f} where \f$ \vec{u}^{\mbox{\scriptsize ADV}} = (u^{\mbox{\scriptsize
      * ADV}},v^{\mbox{\scriptsize ADV}},w^{\mbox{\scriptsize ADV}}) \f$ is the
-     * MAC advection velocity.  Analogous forulae hold in other spatial
+     * MAC advection velocity.  Analogous formulae hold in other spatial
      * dimensions.
      */
     void
@@ -286,7 +286,7 @@ public:
      * face-centered velocity field to enforce incompressibility \em
      * approximately.
      *
-     * \note The face-centerd velocity field \p v_half must provide both normal
+     * \note The face-centered velocity field \p v_half must provide both normal
      * and transverse velocity components at each cell face, i.e., \p v_half
      * must \em NOT be a MAC velocity field.
      */
