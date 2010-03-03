@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <01.Mar.2010 13:49:06 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Mar.2010 18:12:20 griffith@griffith-macbook-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -458,7 +458,7 @@ INSHierarchyIntegrator::getName() const
 
 void
 INSHierarchyIntegrator::registerVelocityInitialConditions(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init)
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> U_init)
 {
     d_U_init = U_init;
     return;
@@ -524,7 +524,7 @@ INSHierarchyIntegrator::registerPressurePhysicalBcCoef(
 
 void
 INSHierarchyIntegrator::registerPressureInitialConditions(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init)
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> P_init)
 {
     d_P_init = P_init;
     return;
@@ -532,17 +532,17 @@ INSHierarchyIntegrator::registerPressureInitialConditions(
 
 void
 INSHierarchyIntegrator::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter)
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn)
 {
-    d_F_setter = F_setter;
+    d_F_fcn = F_fcn;
     return;
 }// registerBodyForceSpecification
 
 void
 INSHierarchyIntegrator::registerSourceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_setter)
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_fcn)
 {
-    d_Q_setter = Q_setter;
+    d_Q_fcn = Q_fcn;
     return;
 }// registerSourceSpecification
 
@@ -695,11 +695,11 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_V_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::V",NDIM);
 
-    if (!d_F_setter.isNull())
+    if (!d_F_fcn.isNull())
     {
         d_F_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::F",NDIM);
     }
-    if (!d_Q_setter.isNull())
+    if (!d_Q_fcn.isNull())
     {
         d_Q_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::Q");
         d_F_div_var = new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::F_div",NDIM);
@@ -905,7 +905,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // AdvDiffHierarchyIntegrator.
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
 
-    const bool u_adv_is_div_free = d_Q_setter.isNull();
+    const bool u_adv_is_div_free = d_Q_fcn.isNull();
     d_adv_diff_hier_integrator->registerAdvectionVelocity(
         d_u_adv_var, u_adv_is_div_free);
 
@@ -915,7 +915,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_adv_diff_hier_integrator->registerAdvectedAndDiffusedQuantityWithSourceTerm(
         d_U_var, d_nu, d_lambda, d_F_U_var, d_conservation_form,
         d_U_init, U_bc_coefs,
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy>(NULL),
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction>(NULL),
         d_grad_Phi_var);
 
     // Initialize the AdvDiffHierarchyIntegrator.
@@ -1730,7 +1730,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         d_hier_cc_data_ops->axpy(d_F_U_current_idx, +(1.0/d_rho), d_F_current_idx, d_F_U_current_idx);
     }
 
-    if (!d_Q_setter.isNull())
+    if (!d_Q_fcn.isNull())
     {
         computeDivSourceTerm(
             d_F_div_current_idx, d_Q_current_idx, d_u_adv_current_idx,
@@ -1793,9 +1793,9 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     }
 
     // Project the advection velocity.
-    if (!d_Q_setter.isNull())
+    if (!d_Q_fcn.isNull())
     {
-        d_Q_setter->setDataOnPatchHierarchy(
+        d_Q_fcn->setDataOnPatchHierarchy(
             d_Q_new_idx, d_Q_var, d_hierarchy, current_time+0.5*dt);
     }
 
@@ -1865,18 +1865,18 @@ INSHierarchyIntegrator::integrateAdvDiff(
         d_hier_cc_data_ops->axpy(d_F_U_current_idx, -(1.0/d_rho), d_Grad_P_idx, d_F_U_current_idx);
     }
 
-    if (!d_F_setter.isNull())
+    if (!d_F_fcn.isNull())
     {
-        if (d_F_setter->isTimeDependent())
+        if (d_F_fcn->isTimeDependent())
         {
-            d_F_setter->setDataOnPatchHierarchy(
+            d_F_fcn->setDataOnPatchHierarchy(
                 d_F_new_idx, d_F_var, d_hierarchy, current_time+dt);
         }
         d_hier_cc_data_ops->axpy(d_F_U_current_idx, +(0.5/d_rho), d_F_current_idx, d_F_U_current_idx);
         d_hier_cc_data_ops->axpy(d_F_U_current_idx, +(0.5/d_rho), d_F_new_idx    , d_F_U_current_idx);
     }
 
-    if (!d_Q_setter.isNull())
+    if (!d_Q_fcn.isNull())
     {
         computeDivSourceTerm(
             d_F_div_new_idx, d_Q_new_idx, d_u_adv_current_idx,
@@ -1932,9 +1932,9 @@ INSHierarchyIntegrator::projectVelocity(
     d_hier_cc_data_ops->copyData(d_U_star_new_idx, d_U_new_idx);
 
     // Compute Q = div u(n+1).
-    if (!d_Q_setter.isNull())
+    if (!d_Q_fcn.isNull())
     {
-        d_Q_setter->setDataOnPatchHierarchy(
+        d_Q_fcn->setDataOnPatchHierarchy(
             d_Q_new_idx, d_Q_var, d_hierarchy, new_time);
     }
 
@@ -2903,18 +2903,18 @@ INSHierarchyIntegrator::initializeLevelData(
 
         // If an initialization object is provided, initialize the
         // applied force.
-        if (!d_F_setter.isNull())
+        if (!d_F_fcn.isNull())
         {
-            d_F_setter->setDataOnPatchLevel(
+            d_F_fcn->setDataOnPatchLevel(
                 d_F_current_idx, d_F_var, level,
                 init_data_time, initial_time);
         }
 
         // If an initialization object is provided, initialize the
         // divergence.
-        if (!d_Q_setter.isNull())
+        if (!d_Q_fcn.isNull())
         {
-            d_Q_setter->setDataOnPatchLevel(
+            d_Q_fcn->setDataOnPatchLevel(
                 d_Q_current_idx, d_Q_var, level,
                 init_data_time, initial_time);
 

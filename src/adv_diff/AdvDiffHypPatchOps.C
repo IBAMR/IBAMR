@@ -1,5 +1,5 @@
 // Filename: AdvDiffHypPatchOps.C
-// Last modified: <03.Nov.2009 21:16:29 griffith@griffith-macbook-pro.local>
+// Last modified: <02.Mar.2010 18:13:18 griffith@griffith-macbook-pro.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHypPatchOps.h"
@@ -360,12 +360,12 @@ AdvDiffHypPatchOps::preprocessAdvanceLevelState(
     (void) regrid_advance;
 
     // Update the advection velocity.
-    if (!d_u_setter.isNull() && d_u_setter->isTimeDependent() && d_compute_init_velocity)
+    if (!d_u_fcn.isNull() && d_u_fcn->isTimeDependent() && d_compute_init_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, d_integrator->getScratchContext());
-        d_u_setter->setDataOnPatchLevel(u_idx, d_u_var, level, current_time);
+        d_u_fcn->setDataOnPatchLevel(u_idx, d_u_var, level, current_time);
     }
 
     t_preprocess_advance_level_state->stop();
@@ -389,12 +389,12 @@ AdvDiffHypPatchOps::postprocessAdvanceLevelState(
     (void) regrid_advance;
 
     // Update the advection velocity.
-    if (!d_u_setter.isNull() && d_u_setter->isTimeDependent() && d_compute_final_velocity)
+    if (!d_u_fcn.isNull() && d_u_fcn->isTimeDependent() && d_compute_final_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, d_integrator->getNewContext());
-        d_u_setter->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
+        d_u_fcn->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
     }
 
     t_postprocess_advance_level_state->stop();

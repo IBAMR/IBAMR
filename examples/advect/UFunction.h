@@ -1,14 +1,14 @@
-#ifndef included_USetter
-#define included_USetter
+#ifndef included_UFunction
+#define included_UFunction
 
-// Filename: USetter.h
-// Last modified: <03.Nov.2009 21:21:27 griffith@griffith-macbook-pro.local>
+// Filename: UFunction.h
+// Last modified: <02.Mar.2010 19:06:21 griffith@griffith-macbook-pro.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/SetDataStrategy.h>
+#include <ibtk/CartGridFunction.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -26,14 +26,14 @@ using namespace std;
 /*!
  * \brief Class to initialize the value of the advection velocity u.
  */
-class USetter
-    : public SetDataStrategy
+class UFunction
+    : public CartGridFunction
 {
 public:
     /*!
      * \brief Constructor.
      */
-    USetter(
+    UFunction(
         const string& object_name,
         tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
         tbox::Pointer<tbox::Database> input_db);
@@ -42,10 +42,10 @@ public:
      * \brief Destructor.
      */
     virtual
-    ~USetter();
+    ~UFunction();
 
     /*!
-     * Indicates whether the concrete SetDataStrategy object is time
+     * Indicates whether the concrete CartGridFunction object is time
      * dependent.
      */
     virtual bool
@@ -71,7 +71,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    USetter();
+    UFunction();
 
     /*!
      * \brief Copy constructor.
@@ -80,8 +80,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    USetter(
-        const USetter& from);
+    UFunction(
+        const UFunction& from);
 
     /*!
      * \brief Assignment operator.
@@ -92,9 +92,9 @@ private:
      *
      * \return A reference to this object.
      */
-    USetter&
+    UFunction&
     operator=(
-        const USetter& that);
+        const UFunction& that);
 
     /*!
      * Read input values, indicated above, from given database.
@@ -138,8 +138,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "USetter.I"
+//#include "UFunction.I"
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_USetter
+#endif //#ifndef included_UFunction

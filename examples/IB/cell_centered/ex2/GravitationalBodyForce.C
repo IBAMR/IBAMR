@@ -1,5 +1,5 @@
 // Filename: GravitationalBodyForce.C
-// Last modified: <12.Feb.2008 21:23:54 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Mar.2010 18:35:03 griffith@griffith-macbook-pro.local>
 // Created on 03 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "GravitationalBodyForce.h"
@@ -26,7 +26,7 @@
 GravitationalBodyForce::GravitationalBodyForce(
     const string& object_name,
     tbox::Pointer<tbox::Database> input_db)
-    : SetDataStrategy(object_name),
+    : CartGridFunction(object_name),
       d_object_name(object_name),
       d_gravitational_force(NDIM,0.0)
 {

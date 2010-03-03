@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <01.Mar.2010 14:15:27 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Mar.2010 18:14:04 griffith@griffith-macbook-pro.local>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -97,12 +97,12 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_grad_var(),
       d_Q_init(),
       d_Q_bc_coef(),
-      d_F_setter(),
+      d_F_fcn(),
       d_Q_mu(),
       d_Q_lambda(),
       d_Q_in_consv_form(),
       d_u_var(NULL),
-      d_u_setter(NULL),
+      d_u_fcn(NULL),
       d_u_is_div_free(false),
       d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
@@ -334,7 +334,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     const double Q_mu,
     const double Q_lambda,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init,
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
@@ -351,7 +351,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     const double Q_mu,
     const double Q_lambda,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
@@ -388,7 +388,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     d_grad_var.push_back(grad_var);
 
     d_F_var.push_back(NULL);
-    d_F_setter.push_back(NULL);
+    d_F_fcn.push_back(NULL);
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var =
         new SAMRAI::pdat::CellVariable<NDIM,double>(Q_var->getName()+"::Psi",Q_depth);
@@ -403,15 +403,15 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     const double Q_lambda,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init,
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter,
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedAndDiffusedQuantityWithSourceTerm(
         Q_var, Q_mu, Q_lambda, F_var, conservation_form, Q_init,
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
-        F_setter, grad_var);
+        F_fcn, grad_var);
     return;
 }// registerAdvectedAndDiffusedQuantityWithSourceTerm
 
@@ -422,9 +422,9 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     const double Q_lambda,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter,
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -460,7 +460,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     d_grad_var.push_back(grad_var);
 
     d_F_var.push_back(F_var);
-    d_F_setter.push_back(F_setter);
+    d_F_fcn.push_back(F_fcn);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > F_factory =
@@ -478,15 +478,15 @@ void
 AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
     const bool u_is_div_free,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_setter)
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!u_var.isNull());
 #endif
     d_hyp_patch_ops->registerAdvectionVelocity(
-        u_var,u_is_div_free,u_setter);
+        u_var,u_is_div_free,u_fcn);
     d_u_var = u_var;
-    d_u_setter = u_setter;
+    d_u_fcn = u_fcn;
     d_u_is_div_free = u_is_div_free;
     return;
 }// registerAdvectionVelocity
@@ -612,7 +612,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
             d_Q_var[l], d_Psi_var[l], d_Q_in_consv_form[l], d_Q_init[l], d_Q_bc_coef[l],
-            SAMRAI::tbox::Pointer<IBTK::SetDataStrategy>(NULL), d_grad_var[l]);
+            SAMRAI::tbox::Pointer<IBTK::CartGridFunction>(NULL), d_grad_var[l]);
         var_db->registerVariableAndContext(  d_Q_var[l], d_temp_context, CELLG);
         var_db->registerVariableAndContext(d_Psi_var[l], d_temp_context, CELLG);
     }
@@ -951,7 +951,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Psi_var = d_Psi_var[l];
         const double mu = d_Q_mu[l];
         const double lambda = d_Q_lambda[l];
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter = d_F_setter[l];
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn = d_F_fcn[l];
 
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
@@ -964,9 +964,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         const int Psi_current_idx = var_db->mapVariableAndContextToIndex(Psi_var, getCurrentContext());
 
         // Compute the time-dependent forcing term F(n).
-        if (!F_setter.isNull() && F_setter->isTimeDependent())
+        if (!F_fcn.isNull() && F_fcn->isTimeDependent())
         {
-            F_setter->setDataOnPatchHierarchy(F_var, getCurrentContext(), d_hierarchy, current_time);
+            F_fcn->setDataOnPatchHierarchy(F_var, getCurrentContext(), d_hierarchy, current_time);
         }
 
         // Allocate temporary data.
@@ -1057,7 +1057,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         const double mu = d_Q_mu[l];
         const double lambda = d_Q_lambda[l];
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[l];
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter = d_F_setter[l];
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn = d_F_fcn[l];
 
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
@@ -1079,9 +1079,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         }
 
         // Compute the time-dependent forcing term F(n+1/2).
-        if (!F_setter.isNull() && F_setter->isTimeDependent())
+        if (!F_fcn.isNull() && F_fcn->isTimeDependent())
         {
-            F_setter->setDataOnPatchHierarchy(F_var, getCurrentContext(), d_hierarchy, current_time+0.5*dt);
+            F_fcn->setDataOnPatchHierarchy(F_var, getCurrentContext(), d_hierarchy, current_time+0.5*dt);
         }
 
         if (!F_var.isNull())
@@ -1494,12 +1494,11 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
             {
                 const int F_idx = var_db->mapVariableAndContextToIndex(
                     F_var, getCurrentContext());
-                SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter = d_F_setter [l];
+                SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn = d_F_fcn[l];
 
-                if (!F_setter.isNull())
+                if (!F_fcn.isNull())
                 {
-                    F_setter->setDataOnPatchLevel(F_idx, F_var, level,
-                                                  init_data_time, initial_time);
+                    F_fcn->setDataOnPatchLevel(F_idx, F_var, level, init_data_time, initial_time);
                 }
                 else
                 {

@@ -39,7 +39,7 @@
 #include <ibtk/LagSiloDataWriter.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/PETScVecOps.h>
-#include <ibtk/muParserDataSetter.h>
+#include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
 using namespace IBAMR;
@@ -357,7 +357,7 @@ main(
         /*
          * Create initial condition specification objects.
          */
-        tbox::Pointer<SetDataStrategy> u_init = new muParserDataSetter(
+        tbox::Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
             "u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
         time_integrator->registerVelocityInitialConditions(u_init);
 

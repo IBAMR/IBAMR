@@ -2,13 +2,13 @@
 #define included_QInit
 
 // Filename: QInit.h
-// Last modified: <12.Mar.2008 23:23:00 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Mar.2010 19:06:31 griffith@griffith-macbook-pro.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/SetDataStrategy.h>
+#include <ibtk/CartGridFunction.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -27,7 +27,7 @@ using namespace std;
  * \brief Class to initialize the value of the advected scalar Q.
  */
 class QInit
-    : public SetDataStrategy
+    : public CartGridFunction
 {
 public:
     /*!
@@ -45,7 +45,7 @@ public:
     ~QInit();
 
     /*!
-     * Indicates whether the concrete SetDataStrategy object is time
+     * Indicates whether the concrete CartGridFunction object is time
      * dependent.
      */
     virtual bool

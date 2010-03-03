@@ -1,5 +1,5 @@
 // Filename: UInit.C
-// Last modified: <17.Jul.2008 18:23:13 griffith@box230.cims.nyu.edu>
+// Last modified: <02.Mar.2010 19:11:14 griffith@griffith-macbook-pro.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "UInit.h"
@@ -31,7 +31,7 @@
 UInit::UInit(
     const string& object_name,
     tbox::Pointer<tbox::Database> input_db)
-    : SetDataStrategy(object_name),
+    : CartGridFunction(object_name),
       d_object_name(object_name),
       d_rho(80.0),
       d_delta(0.05)

@@ -2,7 +2,7 @@
 #define included_IBImplicitHierarchyIntegrator
 
 // Filename: IBImplicitHierarchyIntegrator.h
-// Last modified: <01.Mar.2010 15:36:56 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Mar.2010 18:16:21 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -22,6 +22,7 @@
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonFACOperator.h>
+#include <ibtk/CartGridFunction.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/LNodeInitStrategy.h>
 #if (NDIM == 3)
@@ -31,7 +32,6 @@
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SCPoissonFACOperator.h>
-#include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -107,7 +107,7 @@ public:
      */
     void
     registerVelocityInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_init);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_init);
 
     /*!
      * Supply physical boundary conditions for the (side centered) velocity.
@@ -124,7 +124,7 @@ public:
      */
     void
     registerPressureInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> p_init);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> p_init);
 
     /*!
      * Supply an optional side centered body forcing term.
@@ -133,7 +133,7 @@ public:
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> f_setter);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> f_fcn);
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
@@ -1185,14 +1185,14 @@ private:
      * pressure is only used for visualization), boundary conditions, and body
      * forcing.
      */
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_init, d_p_init;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_u_init, d_p_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_u_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_star_bc_coefs;
     SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_u_bc_helper;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_p_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_phi_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_f_setter;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_f_fcn;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
@@ -1293,7 +1293,7 @@ private:
     /*
      * The force generators.
      */
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_body_force_setter;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_body_force_fcn;
     SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_force_strategy;
     bool d_force_strategy_needs_init;
 

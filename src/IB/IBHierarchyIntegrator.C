@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <01.Mar.2010 13:37:05 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Mar.2010 18:17:23 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -151,11 +151,11 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_U_bc_coefs(),
       d_P_bc_coef(NULL),
       d_lag_init(NULL),
-      d_body_force_setter(NULL),
-      d_eulerian_force_setter(NULL),
+      d_body_force_fcn(NULL),
+      d_eulerian_force_fcn(NULL),
       d_force_strategy(force_strategy),
       d_force_strategy_needs_init(true),
-      d_eulerian_source_setter(NULL),
+      d_eulerian_source_fcn(NULL),
       d_source_strategy(source_strategy),
       d_source_strategy_needs_init(true),
       d_X_src(),
@@ -429,7 +429,7 @@ IBHierarchyIntegrator::getName() const
 
 void
 IBHierarchyIntegrator::registerVelocityInitialConditions(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init)
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> U_init)
 {
     d_U_init = U_init;
     d_ins_hier_integrator->registerVelocityInitialConditions(d_U_init);
@@ -459,7 +459,7 @@ IBHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
 
 void
 IBHierarchyIntegrator::registerPressureInitialConditions(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init)
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> P_init)
 {
     d_P_init = P_init;
     d_ins_hier_integrator->registerPressureInitialConditions(d_P_init);
@@ -486,9 +486,9 @@ IBHierarchyIntegrator::registerPressurePhysicalBcCoef(
 
 void
 IBHierarchyIntegrator::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> body_force_setter)
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> body_force_fcn)
 {
-    d_body_force_setter = body_force_setter;
+    d_body_force_fcn = body_force_fcn;
     return;
 }// registerBodyForceSpecification
 
@@ -631,16 +631,16 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Initialize the objects used to manage Lagrangian-Eulerian interaction.
     //
-    // NOTE: The IBEulerianForceSetter only has to set the new Cartesian grid
+    // NOTE: The IBEulerianForceFunction only has to set the new Cartesian grid
     // force.  The current Cartesian grid force is set manually by
     // IBHierarchyIntegrator::advanceHierarchy().
-    d_eulerian_force_setter = new IBEulerianForceSetter(d_object_name+"::IBEulerianForceSetter", -1, d_F_idx, -1);
-    d_ins_hier_integrator->registerBodyForceSpecification(d_eulerian_force_setter);
+    d_eulerian_force_fcn = new IBEulerianForceFunction(d_object_name+"::IBEulerianForceFunction", -1, d_F_idx, -1);
+    d_ins_hier_integrator->registerBodyForceSpecification(d_eulerian_force_fcn);
 
     if (!d_source_strategy.isNull())
     {
-        d_eulerian_source_setter = new IBEulerianSourceSetter(d_object_name+"::IBEulerianSourceSetter", d_Q_idx, d_Q_idx, d_Q_idx);
-        d_ins_hier_integrator->registerSourceSpecification(d_eulerian_source_setter);
+        d_eulerian_source_fcn = new IBEulerianSourceFunction(d_object_name+"::IBEulerianSourceFunction", d_Q_idx, d_Q_idx, d_Q_idx);
+        d_ins_hier_integrator->registerSourceSpecification(d_eulerian_source_fcn);
     }
 
     // Initialize the INSHierarchyIntegrator.
@@ -906,11 +906,11 @@ IBHierarchyIntegrator::advanceHierarchy(
 
     // Set the current time interval in the force and (optional) source
     // specification objects.
-    d_eulerian_force_setter->setTimeInterval(current_time, new_time);
+    d_eulerian_force_fcn->setTimeInterval(current_time, new_time);
     d_force_strategy->setTimeInterval(current_time, new_time);
     if (!d_source_strategy.isNull())
     {
-        d_eulerian_source_setter->setTimeInterval(current_time, new_time);
+        d_eulerian_source_fcn->setTimeInterval(current_time, new_time);
         d_source_strategy->setTimeInterval(current_time, new_time);
     }
 
@@ -1425,20 +1425,20 @@ IBHierarchyIntegrator::advanceHierarchy(
     // 7. If an additional body force specification object is provided, compute
     //    the body force at the beginning and end of the time step, and add
     //    those values to f(n) and f(n+1).
-    if (!d_body_force_setter.isNull())
+    if (!d_body_force_fcn.isNull())
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int F_current_idx = var_db->mapVariableAndContextToIndex(
             d_ins_hier_integrator->getForceVar(),
             d_ins_hier_integrator->getCurrentContext());
 
-        d_body_force_setter->setDataOnPatchHierarchy(
+        d_body_force_fcn->setDataOnPatchHierarchy(
             d_F_scratch1_idx, d_F_var, d_hierarchy,
             current_time, false, coarsest_ln, finest_ln);
 
         d_hier_cc_data_ops->add(F_current_idx, F_current_idx, d_F_scratch1_idx);
 
-        d_body_force_setter->setDataOnPatchHierarchy(
+        d_body_force_fcn->setDataOnPatchHierarchy(
             d_F_scratch2_idx, d_F_var, d_hierarchy,
             current_time+dt, false, coarsest_ln, finest_ln);
 

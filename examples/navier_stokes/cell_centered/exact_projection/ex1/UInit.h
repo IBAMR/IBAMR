@@ -2,13 +2,13 @@
 #define included_UInit
 
 // Filename: UInit.h
-// Last modified: <01.Mar.2010 14:34:47 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Mar.2010 19:11:56 griffith@griffith-macbook-pro.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/SetDataStrategy.h>
+#include <ibtk/CartGridFunction.h>
 
 // SAMRAI INCLUDES
 #include <tbox/Database.h>
@@ -24,7 +24,7 @@ using namespace std;
  * \brief Method to initialize the value of the fluid velocity U.
  */
 class UInit
-    : public SetDataStrategy
+    : public CartGridFunction
 {
 public:
     /*!
@@ -41,7 +41,7 @@ public:
     ~UInit();
 
     /*!
-     * Indicates whether the concrete SetDataStrategy object is time
+     * Indicates whether the concrete CartGridFunction object is time
      * dependent.
      */
     virtual bool

@@ -36,7 +36,7 @@
 #include <ibamr/GodunovAdvector.h>
 
 #include "QInit.h"
-#include "USetter.h"
+#include "UFunction.h"
 
 using namespace IBAMR;
 using namespace SAMRAI;
@@ -284,10 +284,10 @@ main(
 
     tbox::Pointer< pdat::FaceVariable<NDIM,double> > u_var =
         new pdat::FaceVariable<NDIM,double>("u");
-    USetter u_setter("USetter", grid_geometry, input_db->getDatabase("USetter"));
+    UFunction u_fcn("UFunction", grid_geometry, input_db->getDatabase("UFunction"));
     const bool u_is_div_free = true;
     time_integrator->registerAdvectionVelocity(
-        u_var, u_is_div_free, tbox::Pointer<SetDataStrategy>(&u_setter,false));
+        u_var, u_is_div_free, tbox::Pointer<CartGridFunction>(&u_fcn,false));
 
     tbox::Pointer< pdat::CellVariable<NDIM,double> > Q_var =
         new pdat::CellVariable<NDIM,double>("Q");
@@ -299,7 +299,7 @@ main(
     const double lambda = 0.0;
     const bool consv_form = false;
     time_integrator->registerAdvectedAndDiffusedQuantity(
-        Q_var, kappa, lambda, consv_form, tbox::Pointer<SetDataStrategy>(&Q_init,false),
+        Q_var, kappa, lambda, consv_form, tbox::Pointer<CartGridFunction>(&Q_init,false),
         &physical_bc_coef);
 
     tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =

@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C QInit.C QInit.h USetter.C USetter.h
+SOURCES = main.C QInit.C QInit.h UFunction.C UFunction.h
 EXTRA_DIST = input2d input3d
 
 EXTRA_PROGRAMS =

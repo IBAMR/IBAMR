@@ -2,13 +2,13 @@
 #define included_GravitationalBodyForce
 
 // Filename: GravitationalBodyForce.h
-// Last modified: <01.Mar.2010 14:43:31 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Mar.2010 18:33:43 griffith@griffith-macbook-pro.local>
 // Created on 03 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/SetDataStrategy.h>
+#include <ibtk/CartGridFunction.h>
 
 // SAMRAI INCLUDES
 #include <tbox/Database.h>
@@ -28,7 +28,7 @@ using namespace std;
  * forces acting on an incompressible fluid with uniform mass density.
  */
 class GravitationalBodyForce
-    : public SetDataStrategy
+    : public CartGridFunction
 {
 public:
     /*!
@@ -45,15 +45,14 @@ public:
     ~GravitationalBodyForce();
 
     /*!
-     * Indicates whether the concrete SetDataStrategy object is time
-     * dependent.
+     * Indicates whether the concrete CartGridFunction object is time dependent.
      */
     virtual bool
     isTimeDependent() const
         { return true; }
 
     /*!
-     * Set the data on the patch interior to some values.
+     * Evaluate the function on the patch interior.
      */
     virtual void
     setDataOnPatch(

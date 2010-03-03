@@ -2,7 +2,7 @@
 #define included_AdvDiffHierarchyIntegrator
 
 // Filename: AdvDiffHierarchyIntegrator.h
-// Last modified: <01.Mar.2010 14:15:58 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Mar.2010 18:14:20 griffith@griffith-macbook-pro.local>
 // Created on 16 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -17,9 +17,9 @@
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonFACOperator.h>
+#include <ibtk/CartGridFunction.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/KrylovLinearSolver.h>
-#include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -153,7 +153,7 @@ public:
      * when conservation_form is true.  Otherwise, non-conservative differencing
      * is used to update the quantity.
      *
-     * Optional concrete IBTK::SetDataStrategy and
+     * Optional concrete IBTK::CartGridFunction and
      * SAMRAI::solv::RobinBcCoefStrategy objects allow for the specification of
      * initial and boundary data for the advected and diffused quantity Q.  If
      * an initialization object is not specified, Q is initialized to zero.  If
@@ -173,7 +173,7 @@ public:
         const double Q_mu,
         const double Q_lambda,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
@@ -186,7 +186,7 @@ public:
      * when conservation_form is true.  Otherwise, non-conservative differencing
      * is used to update the quantity.
      *
-     * Optional concrete IBTK::SetDataStrategy and
+     * Optional concrete IBTK::CartGridFunction and
      * SAMRAI::solv::RobinBcCoefStrategy objects allow for the specification of
      * initial and boundary data for the advected and diffused quantity Q.  If
      * an initialization object is not specified, Q is initialized to zero.  If
@@ -206,7 +206,7 @@ public:
         const double Q_mu,
         const double Q_lambda,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
@@ -219,7 +219,7 @@ public:
      * when conservation_form is true.  Otherwise, non-conservative differencing
      * is used to update the quantity.
      *
-     * Optional concrete IBTK::SetDataStrategy and
+     * Optional concrete IBTK::CartGridFunction and
      * SAMRAI::solv::RobinBcCoefStrategy objects allow for the specification of
      * initial and boundary data for the advected and diffused quantity Q.  If
      * an initialization object is not specified, Q is initialized to zero.  If
@@ -228,7 +228,7 @@ public:
      * can have no "physical" boundaries.)
      *
      * The value of the source term is determined by an (optional)
-     * IBTK::SetDataStrategy object.  This allows for the specification of
+     * IBTK::CartGridFunction object.  This allows for the specification of
      * either a constant or a time-dependent source term.  If this object is not
      * provided, the source term is initialized to zero.
      *
@@ -245,9 +245,9 @@ public:
         const double Q_lambda,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter=NULL,
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
@@ -259,7 +259,7 @@ public:
      * when conservation_form is true.  Otherwise, non-conservative differencing
      * is used to update the quantity.
      *
-     * Optional concrete IBTK::SetDataStrategy and
+     * Optional concrete IBTK::CartGridFunction and
      * SAMRAI::solv::RobinBcCoefStrategy objects allow for the specification of
      * initial and boundary data for the advected and diffused quantity Q.  If
      * an initialization object is not specified, Q is initialized to zero.  If
@@ -268,7 +268,7 @@ public:
      * can have no "physical" boundaries.)
      *
      * The value of the source term is determined by an (optional)
-     * IBTK::SetDataStrategy object.  This allows for the specification of
+     * IBTK::CartGridFunction object.  This allows for the specification of
      * either a constant or a time-dependent source term.  If this object is not
      * provided, the source term is initialized to zero.
      *
@@ -285,16 +285,16 @@ public:
         const double Q_lambda,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
         const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init=NULL,
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter=NULL,
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
 
     /*!
      * Register a face centered advection velocity, used by the integrator to
      * advect the cell centered quantities registered with the integrator.
      *
-     * An optional IBTK::SetDataStrategy object allows for the specification
+     * An optional IBTK::CartGridFunction object allows for the specification
      * of a constant or time-dependent advection velocity.  If this object is
      * not provided, the advection velocity is initialized to zero.
      *
@@ -305,7 +305,7 @@ public:
     registerAdvectionVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
         const bool u_is_div_free,
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_setter=NULL);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_fcn=NULL);
 
     ///
     ///  The following routines:
@@ -818,9 +818,9 @@ protected:
      * Objects to set initial and boundary conditions as well as forcing terms
      * for each advected and diffused quantity.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_Q_init;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;
     std::vector<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> > d_F_setter;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_F_fcn;
 
     /*!
      * The diffusivity and drag coefficients associated with each advected and
@@ -838,7 +838,7 @@ protected:
      * The advection velocity.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_var;
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_u_setter;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_u_fcn;
     bool d_u_is_div_free;
 
 private:

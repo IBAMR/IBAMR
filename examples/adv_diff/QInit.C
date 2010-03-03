@@ -1,5 +1,5 @@
 // Filename: QInit.C
-// Last modified: <01.Apr.2008 17:10:53 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Mar.2010 19:04:29 griffith@griffith-macbook-pro.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "QInit.h"
@@ -31,7 +31,7 @@ QInit::QInit(
     const string& object_name,
     tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
     tbox::Pointer<tbox::Database> input_db)
-    : SetDataStrategy(object_name),
+    : CartGridFunction(object_name),
       d_object_name(object_name),
       d_grid_geom(grid_geom),
       d_X(NDIM),

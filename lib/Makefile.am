@@ -35,8 +35,8 @@ $(top_srcdir)/src/IB/IBBeamForceGen.C \
 $(top_srcdir)/src/IB/IBBeamForceSpec.C \
 $(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBDataPostProcessor.C \
-$(top_srcdir)/src/IB/IBEulerianForceSetter.C \
-$(top_srcdir)/src/IB/IBEulerianSourceSetter.C \
+$(top_srcdir)/src/IB/IBEulerianForceFunction.C \
+$(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
 $(top_srcdir)/src/IB/IBHDF5Initializer.C \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 $(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
@@ -89,8 +89,8 @@ $(top_srcdir)/src/IB/IBBeamForceSpec.I \
 $(top_srcdir)/src/IB/IBBeamForceSpec.h \
 $(top_srcdir)/src/IB/IBBeamForceSpecFactory.h \
 $(top_srcdir)/src/IB/IBDataPostProcessor.h \
-$(top_srcdir)/src/IB/IBEulerianForceSetter.h \
-$(top_srcdir)/src/IB/IBEulerianSourceSetter.h \
+$(top_srcdir)/src/IB/IBEulerianForceFunction.h \
+$(top_srcdir)/src/IB/IBEulerianSourceFunction.h \
 $(top_srcdir)/src/IB/IBHDF5Initializer.h \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.h \

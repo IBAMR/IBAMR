@@ -384,7 +384,7 @@ main(
 
 #if (USE_FEEDBACK_FORCING == 1)
         FeedbackForcer feedback_forcer("feedback_forcer", grid_geometry);
-        time_integrator->registerBodyForceSpecification(tbox::Pointer<SetDataStrategy>(&feedback_forcer,false));
+        time_integrator->registerBodyForceSpecification(tbox::Pointer<CartGridFunction>(&feedback_forcer,false));
 #endif
         time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 

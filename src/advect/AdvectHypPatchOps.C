@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <01.Mar.2010 14:03:07 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Mar.2010 18:13:03 griffith@griffith-macbook-pro.local>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -207,9 +207,9 @@ AdvectHypPatchOps::AdvectHypPatchOps(
       d_u_integral_var(),
       d_Q_init(),
       d_Q_bc_coef(),
-      d_F_setter(),
+      d_F_fcn(),
       d_u_var(NULL),
-      d_u_setter(NULL),
+      d_u_fcn(NULL),
       d_u_is_div_free(false),
       d_u_is_registered(false),
       d_compute_init_velocity(true),
@@ -323,7 +323,7 @@ void
 AdvectHypPatchOps::registerAdvectedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init,
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
@@ -338,7 +338,7 @@ void
 AdvectHypPatchOps::registerAdvectedQuantity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
@@ -390,7 +390,7 @@ AdvectHypPatchOps::registerAdvectedQuantity(
     d_grad_var.push_back(grad_var);
 
     d_F_var.push_back(NULL);
-    d_F_setter.push_back(NULL);
+    d_F_fcn.push_back(NULL);
 
     d_flux_integral_var.push_back(flux_integral_var);
     d_q_integral_var.push_back(q_integral_var);
@@ -409,15 +409,15 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init,
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter,
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedQuantityWithSourceTerm(
         Q_var, F_var, conservation_form, Q_init,
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
-        F_setter, grad_var);
+        F_fcn, grad_var);
     return;
 }// registerAdvectedQuantityWithSourceTerm
 
@@ -426,9 +426,9 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
     const bool conservation_form,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init,
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter,
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn,
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -485,7 +485,7 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     d_grad_var.push_back(grad_var);
 
     d_F_var.push_back(F_var);
-    d_F_setter.push_back(F_setter);
+    d_F_fcn.push_back(F_fcn);
 
     d_flux_integral_var.push_back(flux_integral_var);
     d_q_integral_var.push_back(q_integral_var);
@@ -503,14 +503,14 @@ void
 AdvectHypPatchOps::registerAdvectionVelocity(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
     const bool u_is_div_free,
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_setter)
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_u_is_registered);
     TBOX_ASSERT(!u_var.isNull());
 #endif
     d_u_var = u_var;
-    d_u_setter = u_setter;
+    d_u_fcn = u_fcn;
     d_u_is_div_free = u_is_div_free;
 
     if (!d_u_is_div_free)
@@ -702,7 +702,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
 
-        // We try to use the IBTK::SetDataStrategy associated with each
+        // We try to use the IBTK::CartGridFunction associated with each
         // advected quantity.  If there is no strategy associated with a given
         // quantity, initialize its value to zero.
         for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
@@ -710,7 +710,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var = d_Q_var[l];
             const int Q_idx = var_db->mapVariableAndContextToIndex(
                 Q_var, getDataContext());
-            SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_init = d_Q_init[l];
+            SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init = d_Q_init[l];
 
             if (!Q_init.isNull())
             {
@@ -728,7 +728,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
             }
         }
 
-        // We try to use the IBTK::SetDataStrategy associated with the source
+        // We try to use the IBTK::CartGridFunction associated with the source
         // term.  If there is no strategy associated with the source term,
         // initialize its value to zero.
         for (CellVariableVector::size_type l = 0; l < d_F_var.size(); ++l)
@@ -739,11 +739,11 @@ AdvectHypPatchOps::initializeDataOnPatch(
             {
                 const int F_idx = var_db->mapVariableAndContextToIndex(
                     F_var, getDataContext());
-                SAMRAI::tbox::Pointer<IBTK::SetDataStrategy>  F_setter = d_F_setter[l];
+                SAMRAI::tbox::Pointer<IBTK::CartGridFunction>  F_fcn = d_F_fcn[l];
 
-                if (!F_setter.isNull())
+                if (!F_fcn.isNull())
                 {
-                    F_setter->setDataOnPatch(
+                    F_fcn->setDataOnPatch(
                         F_idx, F_var, patch, data_time, initial_time);
                 }
                 else
@@ -758,15 +758,15 @@ AdvectHypPatchOps::initializeDataOnPatch(
             }
         }
 
-        // We try to use the IBTK::SetDataStrategy associated with the
+        // We try to use the IBTK::CartGridFunction associated with the
         // advection velocity.  If there is no strategy associated with the
         // advection velocity, initialize its value to zero.
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, getDataContext());
 
-        if (!d_u_setter.isNull())
+        if (!d_u_fcn.isNull())
         {
-            d_u_setter->setDataOnPatch(
+            d_u_fcn->setDataOnPatch(
                 u_idx, d_u_var, patch, data_time, initial_time);
         }
         else
@@ -879,12 +879,12 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     }
 
     // Update the advection velocity.
-    if (!d_u_setter.isNull() && d_u_setter->isTimeDependent() && d_compute_half_velocity)
+    if (!d_u_fcn.isNull() && d_u_fcn->isTimeDependent() && d_compute_half_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, getDataContext());
-        d_u_setter->setDataOnPatch(u_idx, d_u_var, patch, time+0.5*dt);
+        d_u_fcn->setDataOnPatch(u_idx, d_u_var, patch, time+0.5*dt);
     }
 
     // Compute fluxes for those quantities that are to be conservatively
@@ -1119,12 +1119,12 @@ AdvectHypPatchOps::preprocessAdvanceLevelState(
     (void) regrid_advance;
 
     // Update the advection velocity.
-    if (!d_u_setter.isNull() && d_u_setter->isTimeDependent() && d_compute_init_velocity)
+    if (!d_u_fcn.isNull() && d_u_fcn->isTimeDependent() && d_compute_init_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, d_integrator->getScratchContext());
-        d_u_setter->setDataOnPatchLevel(u_idx, d_u_var, level, current_time);
+        d_u_fcn->setDataOnPatchLevel(u_idx, d_u_var, level, current_time);
     }
 
     if (!d_coarse_fine_bdry_op.isNull() && level->inHierarchy())
@@ -1195,9 +1195,9 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var   = d_Q_var[l];
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var = d_F_var[l];
 
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter = d_F_setter[l];
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn = d_F_fcn[l];
 
-        if (!F_var.isNull() && !F_setter.isNull() && F_setter->isTimeDependent())
+        if (!F_var.isNull() && !F_fcn.isNull() && F_fcn->isTimeDependent())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -1216,7 +1216,7 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
                                         patch_box);
             }
 
-            F_setter->setDataOnPatchLevel(F_var, new_context, level, current_time+dt);
+            F_fcn->setDataOnPatchLevel(F_var, new_context, level, current_time+dt);
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
@@ -1256,12 +1256,12 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
     }
 
     // Update the advection velocity.
-    if (!d_u_setter.isNull() && d_u_setter->isTimeDependent() && d_compute_final_velocity)
+    if (!d_u_fcn.isNull() && d_u_fcn->isTimeDependent() && d_compute_final_velocity)
     {
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, d_integrator->getNewContext());
-        d_u_setter->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
+        d_u_fcn->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
     }
 
     t_postprocess_advance_level_state->stop();
