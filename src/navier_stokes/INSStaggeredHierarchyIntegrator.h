@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <01.Mar.2010 13:58:10 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Mar.2010 18:11:55 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -22,11 +22,11 @@
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonFACOperator.h>
+#include <ibtk/CartGridFunction.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SCPoissonFACOperator.h>
-#include <ibtk/SetDataStrategy.h>
 #include <ibtk/SideDataSynchronization.h>
 
 // SAMRAI INCLUDES
@@ -104,7 +104,7 @@ public:
      */
     void
     registerVelocityInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> U_init);
 
     /*!
      * Supply physical boundary conditions for the (side centered) velocity.
@@ -121,21 +121,21 @@ public:
      */
     void
     registerPressureInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> P_init);
 
     /*!
      * Supply an optional side centered body force specification object.
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
 
     /*!
      * Supply an optional cell centered source/sink specification object.
      */
     void
     registerSourceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_setter);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_fcn);
 
     /*!
      * Supply an optional advection-diffusion solver object.
@@ -1037,14 +1037,14 @@ private:
      * pressure is only used for visualization), boundary conditions, and body
      * forcing.
      */
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_U_init, d_P_init;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_star_bc_coefs;
     SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_setter, d_Q_setter;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
 
     /*
      * Optional advection-diffusion solver which will use the computed

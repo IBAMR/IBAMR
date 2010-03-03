@@ -1,14 +1,14 @@
-#ifndef included_IBEulerianSourceSetter
-#define included_IBEulerianSourceSetter
+#ifndef included_IBEulerianForceFunction
+#define included_IBEulerianForceFunction
 
-// Filename: IBEulerianSourceSetter.h
-// Last modified: <17.Apr.2007 19:45:22 griffith@box221.cims.nyu.edu>
-// Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
+// Filename: IBEulerianForceFunction.h
+// Last modified: <02.Mar.2010 18:20:35 griffith@griffith-macbook-pro.local>
+// Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/SetDataStrategy.h>
+#include <ibtk/CartGridFunction.h>
 
 // SAMRAI INCLUDES
 #include <Patch.h>
@@ -20,28 +20,28 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBEulerianSourceSetter is used to communicate the Eulerian fluid
- * source-sink distribution computed by class IBHierarchyIntegrator to the
- * incompressible Navier-Stokes solver.
+ * \brief Class IBEulerianForceFunction is used to communicate the Eulerian body
+ * force computed by class IBHierarchyIntegrator to the incompressible
+ * Navier-Stokes solver.
  */
-class IBEulerianSourceSetter
-    : public IBTK::SetDataStrategy
+class IBEulerianForceFunction
+    : public IBTK::CartGridFunction
 {
 public:
     /*!
      * \brief Constructor.
      */
-    IBEulerianSourceSetter(
+    IBEulerianForceFunction(
         const std::string& object_name,
-        const int Q_current_idx,
-        const int Q_new_idx,
-        const int Q_half_idx);
+        const int F_current_idx,
+        const int F_new_idx,
+        const int F_half_idx);
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~IBEulerianSourceSetter();
+    ~IBEulerianForceFunction();
 
     /*!
      * \brief Set the current and new times for the present timestep.
@@ -52,12 +52,20 @@ public:
         const double new_time);
 
     /*!
+     * \brief Register an optional additional body force specification which
+     * will be added to the IB force.
+     */
+    void
+    registerBodyForceSpecification(
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
+
+    /*!
      * \name Methods to set the data.
      */
     //\{
 
     /*!
-     * \note This concrete IBTK::SetDataStrategy is time-dependent.
+     * \note This concrete IBTK::CartGridFunction is time-dependent.
      */
     virtual bool
     isTimeDependent() const;
@@ -81,7 +89,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBEulerianSourceSetter();
+    IBEulerianForceFunction();
 
     /*!
      * \brief Copy constructor.
@@ -90,8 +98,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBEulerianSourceSetter(
-        const IBEulerianSourceSetter& from);
+    IBEulerianForceFunction(
+        const IBEulerianForceFunction& from);
 
     /*!
      * \brief Assignment operator.
@@ -102,9 +110,9 @@ private:
      *
      * \return A reference to this object.
      */
-    IBEulerianSourceSetter&
+    IBEulerianForceFunction&
     operator=(
-        const IBEulerianSourceSetter& that);
+        const IBEulerianForceFunction& that);
 
     /*!
      * The current and new time for the present timestep.
@@ -112,17 +120,22 @@ private:
     double d_current_time, d_new_time;
 
     /*!
-     * Patch data descriptor indices for the current, new, and half-time
-     * source/sink data.
+     * Patch data descriptor indices for the current, new, and half-time force
+     * data.
      */
-    const int d_Q_current_idx, d_Q_new_idx, d_Q_half_idx;
+    const int d_F_current_idx, d_F_new_idx, d_F_half_idx;
+
+    /*!
+     * Optional body force generator.
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_body_force_fcn;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBEulerianSourceSetter.I>
+//#include <ibamr/IBEulerianForceFunction.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBEulerianSourceSetter
+#endif //#ifndef included_IBEulerianForceFunction

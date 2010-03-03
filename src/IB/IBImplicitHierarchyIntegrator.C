@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <01.Mar.2010 15:39:08 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Mar.2010 18:16:05 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -408,7 +408,7 @@ IBImplicitHierarchyIntegrator::getName() const
 
 void
 IBImplicitHierarchyIntegrator::registerVelocityInitialConditions(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> u_init)
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_init)
 {
     d_u_init = u_init;
     return;
@@ -459,7 +459,7 @@ IBImplicitHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
 
 void
 IBImplicitHierarchyIntegrator::registerPressureInitialConditions(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> p_init)
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> p_init)
 {
     d_p_init = p_init;
     return;
@@ -467,9 +467,9 @@ IBImplicitHierarchyIntegrator::registerPressureInitialConditions(
 
 void
 IBImplicitHierarchyIntegrator::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> body_force_setter)
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> body_force_fcn)
 {
-    d_body_force_setter = body_force_setter;
+    d_body_force_fcn = body_force_fcn;
     return;
 }// registerBodyForceSpecification
 
@@ -1333,9 +1333,9 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
         d_u_bdry_bc_fill_op, current_time);
     d_u_bc_helper->clearBcCoefData();
     d_u_bc_helper->cacheBcCoefData(d_u_scratch_idx, d_u_var, d_u_bc_coefs, new_time, SAMRAI::hier::IntVector<NDIM>(SIDEG), d_hierarchy);
-    if (!d_body_force_setter.isNull())
+    if (!d_body_force_fcn.isNull())
     {
-        d_body_force_setter->setDataOnPatchHierarchy(d_f_scratch_idx, d_f_var, d_hierarchy, current_time+0.5*dt);
+        d_body_force_fcn->setDataOnPatchHierarchy(d_f_scratch_idx, d_f_var, d_hierarchy, current_time+0.5*dt);
         d_hier_sc_data_ops->add(d_u_rhs_idx, d_f_scratch_idx, d_u_rhs_idx);
     }
 
@@ -2353,7 +2353,7 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
         // If no initialization object is provided, initialize the body force to
         // zero.  Otherwise, use the initialization object to set the body force
         // to some specified value.
-        if (d_f_setter.isNull())
+        if (d_f_fcn.isNull())
         {
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -2371,7 +2371,7 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
         else
         {
             // Initialize F.
-            d_f_setter->setDataOnPatchLevel(
+            d_f_fcn->setDataOnPatchLevel(
                 d_f_current_idx, d_f_var, level,
                 init_data_time, initial_time);
             IBTK::PatchMathOps patch_math_ops;

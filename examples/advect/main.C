@@ -38,7 +38,7 @@
 #include <ibtk/HierarchyMathOps.h>
 
 #include "QInit.h"
-#include "USetter.h"
+#include "UFunction.h"
 
 using namespace IBAMR;
 using namespace SAMRAI;
@@ -398,9 +398,9 @@ main(
 
     tbox::Pointer< pdat::FaceVariable<NDIM,double> > u_var =
         new pdat::FaceVariable<NDIM,double>("u");
-    USetter u_setter("USetter", grid_geometry, input_db->getDatabase("USetter"));
+    UFunction u_fcn("UFunction", grid_geometry, input_db->getDatabase("UFunction"));
     hyp_patch_ops->registerAdvectionVelocity(
-        u_var, u_is_div_free, tbox::Pointer<SetDataStrategy>(&u_setter,false));
+        u_var, u_is_div_free, tbox::Pointer<CartGridFunction>(&u_fcn,false));
 
     tbox::Pointer< pdat::CellVariable<NDIM,double> > Q_var =
         new pdat::CellVariable<NDIM,double>("Q");
@@ -411,7 +411,7 @@ main(
         input_db->getDatabase("LocationIndexRobinBcCoefs"));
     hyp_patch_ops->registerAdvectedQuantity(
         Q_var, consv_form,
-        tbox::Pointer<SetDataStrategy>(&Q_init,false),
+        tbox::Pointer<CartGridFunction>(&Q_init,false),
         &physical_bc_coef);
 
     tbox::Pointer<algs::HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =

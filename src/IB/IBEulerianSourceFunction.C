@@ -1,8 +1,8 @@
-// Filename: IBEulerianSourceSetter.C
-// Last modified: <12.Feb.2008 21:13:51 griffith@box221.cims.nyu.edu>
+// Filename: IBEulerianSourceFunction.C
+// Last modified: <02.Mar.2010 18:19:48 griffith@griffith-macbook-pro.local>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
-#include "IBEulerianSourceSetter.h"
+#include "IBEulerianSourceFunction.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -31,12 +31,12 @@ namespace IBAMR
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBEulerianSourceSetter::IBEulerianSourceSetter(
+IBEulerianSourceFunction::IBEulerianSourceFunction(
     const std::string& object_name,
     const int Q_current_idx,
     const int Q_new_idx,
     const int Q_half_idx)
-    : IBTK::SetDataStrategy(object_name),
+    : IBTK::CartGridFunction(object_name),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_Q_current_idx(Q_current_idx),
@@ -45,16 +45,16 @@ IBEulerianSourceSetter::IBEulerianSourceSetter(
 {
     // intentionally blank
     return;
-}// IBEulerianSourceSetter
+}// IBEulerianSourceFunction
 
-IBEulerianSourceSetter::~IBEulerianSourceSetter()
+IBEulerianSourceFunction::~IBEulerianSourceFunction()
 {
     // intentionally blank
     return;
-}// ~IBEulerianSourceSetter
+}// ~IBEulerianSourceFunction
 
 void
-IBEulerianSourceSetter::setTimeInterval(
+IBEulerianSourceFunction::setTimeInterval(
     const double current_time,
     const double new_time)
 {
@@ -64,13 +64,13 @@ IBEulerianSourceSetter::setTimeInterval(
 }// setTimeInterval
 
 bool
-IBEulerianSourceSetter::isTimeDependent() const
+IBEulerianSourceFunction::isTimeDependent() const
 {
     return true;
 }// isTimeDependent
 
 void
-IBEulerianSourceSetter::setDataOnPatch(
+IBEulerianSourceFunction::setDataOnPatch(
     const int data_idx,
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
     SAMRAI::hier::Patch<NDIM>& patch,
@@ -137,6 +137,6 @@ IBEulerianSourceSetter::setDataOnPatch(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBEulerianSourceSetter>;
+template class SAMRAI::tbox::Pointer<IBAMR::IBEulerianSourceFunction>;
 
 //////////////////////////////////////////////////////////////////////////////

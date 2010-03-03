@@ -2,7 +2,7 @@
 #define included_INSHierarchyIntegrator
 
 // Filename: INSHierarchyIntegrator.h
-// Last modified: <01.Mar.2010 13:50:41 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Mar.2010 18:12:06 griffith@griffith-macbook-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -17,9 +17,9 @@
 
 // IBTK INCLUDES
 #include <ibtk/CCPoissonFACOperator.h>
+#include <ibtk/CartGridFunction.h>
 #include <ibtk/LinearSolver.h>
 #include <ibtk/HierarchyMathOps.h>
-#include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -128,7 +128,7 @@ public:
      */
     void
     registerVelocityInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> U_init);
 
     /*!
      * Supply physical boundary conditions for the (cell centered) velocity.
@@ -145,7 +145,7 @@ public:
      */
     void
     registerPressureInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> P_init);
 
     /*!
      * Supply physical boundary conditions for the (cell centered) pressure.
@@ -159,14 +159,14 @@ public:
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
 
     /*!
      * Supply an optional cell centered source/sink specification object.
      */
     void
     registerSourceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> Q_setter);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_fcn);
 
     /*!
      * Register a VisIt data writer so this object will write plot files that
@@ -1109,14 +1109,14 @@ private:
      * pressure is for visualization purposes only), boundary conditions, and
      * body forcing.
      */
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_U_init, d_P_init;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_U_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     std::vector<INSIntermediateVelocityBcCoef*> d_intermediate_U_bc_coefs;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_P_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     INSProjectionBcCoef* d_Phi_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_F_setter, d_Q_setter;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects

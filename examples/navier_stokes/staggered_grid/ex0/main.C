@@ -31,7 +31,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibtk/muParserDataSetter.h>
+#include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
 using namespace IBAMR;
@@ -302,9 +302,9 @@ main(
         /*
          * Create initial condition specification objects.
          */
-        tbox::Pointer<SetDataStrategy> u_init = new muParserDataSetter(
+        tbox::Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
             "u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
-        tbox::Pointer<SetDataStrategy> p_init = new muParserDataSetter(
+        tbox::Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
             "p_init", input_db->getDatabase("PressureInitialConditions"), grid_geometry);
 
         time_integrator->registerVelocityInitialConditions(u_init);
@@ -341,9 +341,9 @@ main(
          */
         if (input_db->keyExists("ForcingFunction"))
         {
-            tbox::Pointer<SetDataStrategy> f_set = new muParserDataSetter(
-                "f_set", input_db->getDatabase("ForcingFunction"), grid_geometry);
-            time_integrator->registerBodyForceSpecification(f_set);
+            tbox::Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+                "f_fcn", input_db->getDatabase("ForcingFunction"), grid_geometry);
+            time_integrator->registerBodyForceSpecification(f_fcn);
         }
 
         /*

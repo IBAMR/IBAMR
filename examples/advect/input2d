@@ -33,7 +33,7 @@ LocationIndexRobinBcCoefs {
    boundary_3 = "value", "0.0"  // y upper boundary
 }
 
-USet {
+UFunction {
    init_type = "UNIFORM"
    uniform_u = -2.0, 1.0
 }

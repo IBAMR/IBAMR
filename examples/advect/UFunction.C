@@ -1,8 +1,8 @@
-// Filename: USetter.C
-// Last modified: <03.Nov.2009 21:20:31 griffith@griffith-macbook-pro.local>
-// Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
+// Filename: UFunction.C
+// Last modified: <02.Mar.2010 19:06:18 griffith@griffith-macbook-pro.local>
+// Created on 23 June 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
-#include "USetter.h"
+#include "UFunction.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -20,6 +20,7 @@
 #include <ArrayData.h>
 #include <Box.h>
 #include <CartesianPatchGeometry.h>
+#include <CellData.h>
 #include <FaceData.h>
 #include <FaceIndex.h>
 #include <FaceIterator.h>
@@ -29,15 +30,17 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-USetter::USetter(
+UFunction::UFunction(
     const string& object_name,
     tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
     tbox::Pointer<tbox::Database> input_db)
-    : SetDataStrategy(object_name),
+    : CartGridFunction(object_name),
       d_object_name(object_name),
       d_grid_geom(grid_geom),
       d_X(NDIM),
       d_init_type("UNIFORM"),
+      d_kappa(NDIM),
+      d_omega(NDIM),
       d_uniform_u(NDIM)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -51,6 +54,8 @@ USetter::USetter(
     for (int d = 0; d < NDIM; ++d)
     {
         d_X[d] = XLower[d] + 0.5*(XUpper[d] - XLower[d]);
+        d_omega[d] = 2.0*M_PI;
+        d_kappa[d] = 0.25;
         d_uniform_u[d] = 1.0;
     }
 
@@ -58,16 +63,16 @@ USetter::USetter(
     getFromInput(input_db);
 
     return;
-}// USetter
+}// UFunction
 
-USetter::~USetter()
+UFunction::~UFunction()
 {
     // intentionally blank
     return;
-}// ~USetter
+}// ~UFunction
 
 void
-USetter::setDataOnPatch(
+UFunction::setDataOnPatch(
     const int data_idx,
     tbox::Pointer<hier::Variable<NDIM> > var,
     hier::Patch<NDIM>& patch,
@@ -84,7 +89,8 @@ USetter::setDataOnPatch(
         for (int axis = 0; axis < NDIM; ++axis)
         {
             u_data->getArrayData(axis).
-                fillAll(d_uniform_u[axis]);
+                fillAll(d_uniform_u[axis]*
+                        (d_kappa[axis]*sin(d_omega[axis]*data_time)+1.0));
         }
     }
     else if (d_init_type == "VORTEX")
@@ -124,11 +130,15 @@ USetter::setDataOnPatch(
                 // 2D vortex
                 if (axis == 0)
                 {
-                    (*u_data)(i) = (X[1] - d_X[axis]);
+                    (*u_data)(i) =
+                        (d_kappa[axis]*sin(d_omega[axis]*data_time)+1.0)*
+                        (X[1] - d_X[axis]);
                 }
                 else if (axis == 1)
                 {
-                    (*u_data)(i) = (d_X[axis] - X[0]);
+                    (*u_data)(i) =
+                        (d_kappa[axis]*sin(d_omega[axis]*data_time)+1.0)*
+                        (d_X[axis] - X[0]);
                 }
                 else
                 {
@@ -150,11 +160,21 @@ USetter::setDataOnPatch(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-USetter::getFromInput(
+UFunction::getFromInput(
     tbox::Pointer<tbox::Database> db)
 {
     if (!db.isNull())
     {
+        if (db->keyExists("omega"))
+        {
+            d_omega = db->getDoubleArray("omega");
+        }
+
+        if (db->keyExists("kappa"))
+        {
+            d_kappa = db->getDoubleArray("kappa");
+        }
+
         if (db->keyExists("X"))
         {
             d_X = db->getDoubleArray("X");

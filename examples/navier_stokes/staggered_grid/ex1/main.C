@@ -309,7 +309,7 @@ main(
                 input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
                 patch_hierarchy);
         time_integrator->registerVelocityInitialConditions(
-            tbox::Pointer<SetDataStrategy>(&u_init,false));
+            tbox::Pointer<CartGridFunction>(&u_init,false));
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(

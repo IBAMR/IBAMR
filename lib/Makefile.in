@@ -89,8 +89,8 @@ am__objects_1 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBBeamForceSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBBeamForceSpecFactory.$(OBJEXT) \
 	libIBAMR2d_a-IBDataPostProcessor.$(OBJEXT) \
-	libIBAMR2d_a-IBEulerianForceSetter.$(OBJEXT) \
-	libIBAMR2d_a-IBEulerianSourceSetter.$(OBJEXT) \
+	libIBAMR2d_a-IBEulerianForceFunction.$(OBJEXT) \
+	libIBAMR2d_a-IBEulerianSourceFunction.$(OBJEXT) \
 	libIBAMR2d_a-IBHDF5Initializer.$(OBJEXT) \
 	libIBAMR2d_a-IBHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-IBImplicitHierarchyIntegrator.$(OBJEXT) \
@@ -152,8 +152,8 @@ am__objects_2 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBBeamForceSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBBeamForceSpecFactory.$(OBJEXT) \
 	libIBAMR3d_a-IBDataPostProcessor.$(OBJEXT) \
-	libIBAMR3d_a-IBEulerianForceSetter.$(OBJEXT) \
-	libIBAMR3d_a-IBEulerianSourceSetter.$(OBJEXT) \
+	libIBAMR3d_a-IBEulerianForceFunction.$(OBJEXT) \
+	libIBAMR3d_a-IBEulerianSourceFunction.$(OBJEXT) \
 	libIBAMR3d_a-IBHDF5Initializer.$(OBJEXT) \
 	libIBAMR3d_a-IBHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-IBImplicitHierarchyIntegrator.$(OBJEXT) \
@@ -499,8 +499,8 @@ pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/IB/IBBeamForceSpec.h \
 	$(top_srcdir)/src/IB/IBBeamForceSpecFactory.h \
 	$(top_srcdir)/src/IB/IBDataPostProcessor.h \
-	$(top_srcdir)/src/IB/IBEulerianForceSetter.h \
-	$(top_srcdir)/src/IB/IBEulerianSourceSetter.h \
+	$(top_srcdir)/src/IB/IBEulerianForceFunction.h \
+	$(top_srcdir)/src/IB/IBEulerianSourceFunction.h \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.h \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.h \
@@ -554,8 +554,8 @@ $(top_srcdir)/src/IB/IBBeamForceGen.C \
 $(top_srcdir)/src/IB/IBBeamForceSpec.C \
 $(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBDataPostProcessor.C \
-$(top_srcdir)/src/IB/IBEulerianForceSetter.C \
-$(top_srcdir)/src/IB/IBEulerianSourceSetter.C \
+$(top_srcdir)/src/IB/IBEulerianForceFunction.C \
+$(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
 $(top_srcdir)/src/IB/IBHDF5Initializer.C \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 $(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
@@ -725,8 +725,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBBeamForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBBeamForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBDataPostProcessor.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBEulerianForceSetter.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceSetter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBEulerianForceFunction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBHDF5Initializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Po@am__quote@
@@ -775,8 +775,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBBeamForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBBeamForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBDataPostProcessor.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBEulerianForceSetter.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceSetter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBEulerianForceFunction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBHDF5Initializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Po@am__quote@
@@ -926,33 +926,33 @@ libIBAMR2d_a-IBDataPostProcessor.obj: $(top_srcdir)/src/IB/IBDataPostProcessor.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBDataPostProcessor.obj `if test -f '$(top_srcdir)/src/IB/IBDataPostProcessor.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBDataPostProcessor.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBDataPostProcessor.C'; fi`
 
-libIBAMR2d_a-IBEulerianForceSetter.o: $(top_srcdir)/src/IB/IBEulerianForceSetter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBEulerianForceSetter.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBEulerianForceSetter.Tpo -c -o libIBAMR2d_a-IBEulerianForceSetter.o `test -f '$(top_srcdir)/src/IB/IBEulerianForceSetter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianForceSetter.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBEulerianForceSetter.Tpo $(DEPDIR)/libIBAMR2d_a-IBEulerianForceSetter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianForceSetter.C' object='libIBAMR2d_a-IBEulerianForceSetter.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR2d_a-IBEulerianForceFunction.o: $(top_srcdir)/src/IB/IBEulerianForceFunction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBEulerianForceFunction.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBEulerianForceFunction.Tpo -c -o libIBAMR2d_a-IBEulerianForceFunction.o `test -f '$(top_srcdir)/src/IB/IBEulerianForceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianForceFunction.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBEulerianForceFunction.Tpo $(DEPDIR)/libIBAMR2d_a-IBEulerianForceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianForceFunction.C' object='libIBAMR2d_a-IBEulerianForceFunction.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBEulerianForceSetter.o `test -f '$(top_srcdir)/src/IB/IBEulerianForceSetter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianForceSetter.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBEulerianForceFunction.o `test -f '$(top_srcdir)/src/IB/IBEulerianForceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianForceFunction.C
 
-libIBAMR2d_a-IBEulerianForceSetter.obj: $(top_srcdir)/src/IB/IBEulerianForceSetter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBEulerianForceSetter.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBEulerianForceSetter.Tpo -c -o libIBAMR2d_a-IBEulerianForceSetter.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianForceSetter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianForceSetter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianForceSetter.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBEulerianForceSetter.Tpo $(DEPDIR)/libIBAMR2d_a-IBEulerianForceSetter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianForceSetter.C' object='libIBAMR2d_a-IBEulerianForceSetter.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR2d_a-IBEulerianForceFunction.obj: $(top_srcdir)/src/IB/IBEulerianForceFunction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBEulerianForceFunction.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBEulerianForceFunction.Tpo -c -o libIBAMR2d_a-IBEulerianForceFunction.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianForceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianForceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianForceFunction.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBEulerianForceFunction.Tpo $(DEPDIR)/libIBAMR2d_a-IBEulerianForceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianForceFunction.C' object='libIBAMR2d_a-IBEulerianForceFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBEulerianForceSetter.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianForceSetter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianForceSetter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianForceSetter.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBEulerianForceFunction.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianForceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianForceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianForceFunction.C'; fi`
 
-libIBAMR2d_a-IBEulerianSourceSetter.o: $(top_srcdir)/src/IB/IBEulerianSourceSetter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBEulerianSourceSetter.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBEulerianSourceSetter.Tpo -c -o libIBAMR2d_a-IBEulerianSourceSetter.o `test -f '$(top_srcdir)/src/IB/IBEulerianSourceSetter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianSourceSetter.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBEulerianSourceSetter.Tpo $(DEPDIR)/libIBAMR2d_a-IBEulerianSourceSetter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianSourceSetter.C' object='libIBAMR2d_a-IBEulerianSourceSetter.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR2d_a-IBEulerianSourceFunction.o: $(top_srcdir)/src/IB/IBEulerianSourceFunction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBEulerianSourceFunction.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Tpo -c -o libIBAMR2d_a-IBEulerianSourceFunction.o `test -f '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianSourceFunction.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Tpo $(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianSourceFunction.C' object='libIBAMR2d_a-IBEulerianSourceFunction.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBEulerianSourceSetter.o `test -f '$(top_srcdir)/src/IB/IBEulerianSourceSetter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianSourceSetter.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBEulerianSourceFunction.o `test -f '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianSourceFunction.C
 
-libIBAMR2d_a-IBEulerianSourceSetter.obj: $(top_srcdir)/src/IB/IBEulerianSourceSetter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBEulerianSourceSetter.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBEulerianSourceSetter.Tpo -c -o libIBAMR2d_a-IBEulerianSourceSetter.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianSourceSetter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianSourceSetter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianSourceSetter.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBEulerianSourceSetter.Tpo $(DEPDIR)/libIBAMR2d_a-IBEulerianSourceSetter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianSourceSetter.C' object='libIBAMR2d_a-IBEulerianSourceSetter.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR2d_a-IBEulerianSourceFunction.obj: $(top_srcdir)/src/IB/IBEulerianSourceFunction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBEulerianSourceFunction.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Tpo -c -o libIBAMR2d_a-IBEulerianSourceFunction.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Tpo $(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianSourceFunction.C' object='libIBAMR2d_a-IBEulerianSourceFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBEulerianSourceSetter.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianSourceSetter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianSourceSetter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianSourceSetter.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBEulerianSourceFunction.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; fi`
 
 libIBAMR2d_a-IBHDF5Initializer.o: $(top_srcdir)/src/IB/IBHDF5Initializer.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBHDF5Initializer.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBHDF5Initializer.Tpo -c -o libIBAMR2d_a-IBHDF5Initializer.o `test -f '$(top_srcdir)/src/IB/IBHDF5Initializer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBHDF5Initializer.C
@@ -1626,33 +1626,33 @@ libIBAMR3d_a-IBDataPostProcessor.obj: $(top_srcdir)/src/IB/IBDataPostProcessor.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBDataPostProcessor.obj `if test -f '$(top_srcdir)/src/IB/IBDataPostProcessor.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBDataPostProcessor.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBDataPostProcessor.C'; fi`
 
-libIBAMR3d_a-IBEulerianForceSetter.o: $(top_srcdir)/src/IB/IBEulerianForceSetter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBEulerianForceSetter.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBEulerianForceSetter.Tpo -c -o libIBAMR3d_a-IBEulerianForceSetter.o `test -f '$(top_srcdir)/src/IB/IBEulerianForceSetter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianForceSetter.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBEulerianForceSetter.Tpo $(DEPDIR)/libIBAMR3d_a-IBEulerianForceSetter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianForceSetter.C' object='libIBAMR3d_a-IBEulerianForceSetter.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR3d_a-IBEulerianForceFunction.o: $(top_srcdir)/src/IB/IBEulerianForceFunction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBEulerianForceFunction.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBEulerianForceFunction.Tpo -c -o libIBAMR3d_a-IBEulerianForceFunction.o `test -f '$(top_srcdir)/src/IB/IBEulerianForceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianForceFunction.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBEulerianForceFunction.Tpo $(DEPDIR)/libIBAMR3d_a-IBEulerianForceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianForceFunction.C' object='libIBAMR3d_a-IBEulerianForceFunction.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBEulerianForceSetter.o `test -f '$(top_srcdir)/src/IB/IBEulerianForceSetter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianForceSetter.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBEulerianForceFunction.o `test -f '$(top_srcdir)/src/IB/IBEulerianForceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianForceFunction.C
 
-libIBAMR3d_a-IBEulerianForceSetter.obj: $(top_srcdir)/src/IB/IBEulerianForceSetter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBEulerianForceSetter.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBEulerianForceSetter.Tpo -c -o libIBAMR3d_a-IBEulerianForceSetter.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianForceSetter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianForceSetter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianForceSetter.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBEulerianForceSetter.Tpo $(DEPDIR)/libIBAMR3d_a-IBEulerianForceSetter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianForceSetter.C' object='libIBAMR3d_a-IBEulerianForceSetter.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR3d_a-IBEulerianForceFunction.obj: $(top_srcdir)/src/IB/IBEulerianForceFunction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBEulerianForceFunction.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBEulerianForceFunction.Tpo -c -o libIBAMR3d_a-IBEulerianForceFunction.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianForceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianForceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianForceFunction.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBEulerianForceFunction.Tpo $(DEPDIR)/libIBAMR3d_a-IBEulerianForceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianForceFunction.C' object='libIBAMR3d_a-IBEulerianForceFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBEulerianForceSetter.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianForceSetter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianForceSetter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianForceSetter.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBEulerianForceFunction.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianForceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianForceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianForceFunction.C'; fi`
 
-libIBAMR3d_a-IBEulerianSourceSetter.o: $(top_srcdir)/src/IB/IBEulerianSourceSetter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBEulerianSourceSetter.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBEulerianSourceSetter.Tpo -c -o libIBAMR3d_a-IBEulerianSourceSetter.o `test -f '$(top_srcdir)/src/IB/IBEulerianSourceSetter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianSourceSetter.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBEulerianSourceSetter.Tpo $(DEPDIR)/libIBAMR3d_a-IBEulerianSourceSetter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianSourceSetter.C' object='libIBAMR3d_a-IBEulerianSourceSetter.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR3d_a-IBEulerianSourceFunction.o: $(top_srcdir)/src/IB/IBEulerianSourceFunction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBEulerianSourceFunction.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Tpo -c -o libIBAMR3d_a-IBEulerianSourceFunction.o `test -f '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianSourceFunction.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Tpo $(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianSourceFunction.C' object='libIBAMR3d_a-IBEulerianSourceFunction.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBEulerianSourceSetter.o `test -f '$(top_srcdir)/src/IB/IBEulerianSourceSetter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianSourceSetter.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBEulerianSourceFunction.o `test -f '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBEulerianSourceFunction.C
 
-libIBAMR3d_a-IBEulerianSourceSetter.obj: $(top_srcdir)/src/IB/IBEulerianSourceSetter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBEulerianSourceSetter.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBEulerianSourceSetter.Tpo -c -o libIBAMR3d_a-IBEulerianSourceSetter.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianSourceSetter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianSourceSetter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianSourceSetter.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBEulerianSourceSetter.Tpo $(DEPDIR)/libIBAMR3d_a-IBEulerianSourceSetter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianSourceSetter.C' object='libIBAMR3d_a-IBEulerianSourceSetter.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR3d_a-IBEulerianSourceFunction.obj: $(top_srcdir)/src/IB/IBEulerianSourceFunction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBEulerianSourceFunction.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Tpo -c -o libIBAMR3d_a-IBEulerianSourceFunction.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Tpo $(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianSourceFunction.C' object='libIBAMR3d_a-IBEulerianSourceFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBEulerianSourceSetter.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianSourceSetter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianSourceSetter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianSourceSetter.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBEulerianSourceFunction.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; fi`
 
 libIBAMR3d_a-IBHDF5Initializer.o: $(top_srcdir)/src/IB/IBHDF5Initializer.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBHDF5Initializer.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBHDF5Initializer.Tpo -c -o libIBAMR3d_a-IBHDF5Initializer.o `test -f '$(top_srcdir)/src/IB/IBHDF5Initializer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBHDF5Initializer.C

@@ -2,13 +2,13 @@
 #define included_FeedbackForcer
 
 // Filename: FeedbackForcer.h
-// Last modified: <12.Mar.2008 23:23:27 griffith@box221.cims.nyu.edu>
+// Last modified: <02.Mar.2010 18:34:24 griffith@griffith-macbook-pro.local>
 // Created on 19 Oct 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/SetDataStrategy.h>
+#include <ibtk/CartGridFunction.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -23,11 +23,11 @@ using namespace std;
 
 /*!
  * \brief Class FeedbackForcer is an implementation of the strategy class
- * SetDataStrategy that is used to specify velocity boundary conditions via a
+ * CartGridFunction that is used to specify velocity boundary conditions via a
  * feedback forcing (i.e., penalty) method.
  */
 class FeedbackForcer
-    : public SetDataStrategy
+    : public CartGridFunction
 {
 public:
     /*!
@@ -54,19 +54,19 @@ public:
     double d_kappa;
 
     /*!
-     * \name Implementation of SetDataStrategy interface.
+     * \name Implementation of CartGridFunction interface.
      */
     //\{
 
     /*!
-     * \brief Indicates whether the concrete SetDataStrategy object is
+     * \brief Indicates whether the concrete CartGridFunction object is
      * time-dependent.
      */
     virtual bool
     isTimeDependent() const { return true; }
 
     /*!
-     * \brief Set data on the specified patch interior.
+     * \brief Evaluate the function on the patch interior.
      */
     virtual void
     setDataOnPatch(

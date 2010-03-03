@@ -55,7 +55,7 @@ CONFIG_CLEAN_VPATH_FILES =
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
 @SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT)
 am__objects_1 = main2d-main.$(OBJEXT) main2d-QInit.$(OBJEXT) \
-	main2d-USetter.$(OBJEXT)
+	main2d-UFunction.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(top_builddir)/lib/libIBAMR2d.a \
@@ -67,7 +67,7 @@ main2d_DEPENDENCIES = $(top_builddir)/lib/libIBAMR2d.a \
 main2d_LINK = $(CXXLD) $(main2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am__objects_2 = main3d-main.$(OBJEXT) main3d-QInit.$(OBJEXT) \
-	main3d-USetter.$(OBJEXT)
+	main3d-UFunction.$(OBJEXT)
 am_main3d_OBJECTS = $(am__objects_2)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
 main3d_DEPENDENCIES = $(top_builddir)/lib/libIBAMR3d.a \
@@ -353,7 +353,7 @@ AM_FFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 AM_FCFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = main.C QInit.C QInit.h USetter.C USetter.h
+SOURCES = main.C QInit.C QInit.h UFunction.C UFunction.h
 EXTRA_DIST = input2d input3d
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/lib/libIBAMR2d.a $(top_builddir)/lib/libIBAMR.a $(top_builddir)/ibtk/lib/libIBTK2d.a $(top_builddir)/ibtk/lib/libIBTK.a $(top_builddir)/ibtk/third_party/qd-2.3.7/fortran/libqdmod.a $(top_builddir)/ibtk/third_party/qd-2.3.7/src/libqd.a
@@ -409,10 +409,10 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-QInit.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-USetter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-UFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-QInit.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-USetter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-UFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-main.Po@am__quote@
 
 .C.o:
@@ -457,19 +457,19 @@ main2d-QInit.obj: QInit.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-QInit.obj `if test -f 'QInit.C'; then $(CYGPATH_W) 'QInit.C'; else $(CYGPATH_W) '$(srcdir)/QInit.C'; fi`
 
-main2d-USetter.o: USetter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-USetter.o -MD -MP -MF $(DEPDIR)/main2d-USetter.Tpo -c -o main2d-USetter.o `test -f 'USetter.C' || echo '$(srcdir)/'`USetter.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main2d-USetter.Tpo $(DEPDIR)/main2d-USetter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='USetter.C' object='main2d-USetter.o' libtool=no @AMDEPBACKSLASH@
+main2d-UFunction.o: UFunction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-UFunction.o -MD -MP -MF $(DEPDIR)/main2d-UFunction.Tpo -c -o main2d-UFunction.o `test -f 'UFunction.C' || echo '$(srcdir)/'`UFunction.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main2d-UFunction.Tpo $(DEPDIR)/main2d-UFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='UFunction.C' object='main2d-UFunction.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-USetter.o `test -f 'USetter.C' || echo '$(srcdir)/'`USetter.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-UFunction.o `test -f 'UFunction.C' || echo '$(srcdir)/'`UFunction.C
 
-main2d-USetter.obj: USetter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-USetter.obj -MD -MP -MF $(DEPDIR)/main2d-USetter.Tpo -c -o main2d-USetter.obj `if test -f 'USetter.C'; then $(CYGPATH_W) 'USetter.C'; else $(CYGPATH_W) '$(srcdir)/USetter.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main2d-USetter.Tpo $(DEPDIR)/main2d-USetter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='USetter.C' object='main2d-USetter.obj' libtool=no @AMDEPBACKSLASH@
+main2d-UFunction.obj: UFunction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-UFunction.obj -MD -MP -MF $(DEPDIR)/main2d-UFunction.Tpo -c -o main2d-UFunction.obj `if test -f 'UFunction.C'; then $(CYGPATH_W) 'UFunction.C'; else $(CYGPATH_W) '$(srcdir)/UFunction.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main2d-UFunction.Tpo $(DEPDIR)/main2d-UFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='UFunction.C' object='main2d-UFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-USetter.obj `if test -f 'USetter.C'; then $(CYGPATH_W) 'USetter.C'; else $(CYGPATH_W) '$(srcdir)/USetter.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-UFunction.obj `if test -f 'UFunction.C'; then $(CYGPATH_W) 'UFunction.C'; else $(CYGPATH_W) '$(srcdir)/UFunction.C'; fi`
 
 main3d-main.o: main.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.o -MD -MP -MF $(DEPDIR)/main3d-main.Tpo -c -o main3d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C
@@ -499,19 +499,19 @@ main3d-QInit.obj: QInit.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-QInit.obj `if test -f 'QInit.C'; then $(CYGPATH_W) 'QInit.C'; else $(CYGPATH_W) '$(srcdir)/QInit.C'; fi`
 
-main3d-USetter.o: USetter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-USetter.o -MD -MP -MF $(DEPDIR)/main3d-USetter.Tpo -c -o main3d-USetter.o `test -f 'USetter.C' || echo '$(srcdir)/'`USetter.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main3d-USetter.Tpo $(DEPDIR)/main3d-USetter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='USetter.C' object='main3d-USetter.o' libtool=no @AMDEPBACKSLASH@
+main3d-UFunction.o: UFunction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-UFunction.o -MD -MP -MF $(DEPDIR)/main3d-UFunction.Tpo -c -o main3d-UFunction.o `test -f 'UFunction.C' || echo '$(srcdir)/'`UFunction.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main3d-UFunction.Tpo $(DEPDIR)/main3d-UFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='UFunction.C' object='main3d-UFunction.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-USetter.o `test -f 'USetter.C' || echo '$(srcdir)/'`USetter.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-UFunction.o `test -f 'UFunction.C' || echo '$(srcdir)/'`UFunction.C
 
-main3d-USetter.obj: USetter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-USetter.obj -MD -MP -MF $(DEPDIR)/main3d-USetter.Tpo -c -o main3d-USetter.obj `if test -f 'USetter.C'; then $(CYGPATH_W) 'USetter.C'; else $(CYGPATH_W) '$(srcdir)/USetter.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main3d-USetter.Tpo $(DEPDIR)/main3d-USetter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='USetter.C' object='main3d-USetter.obj' libtool=no @AMDEPBACKSLASH@
+main3d-UFunction.obj: UFunction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-UFunction.obj -MD -MP -MF $(DEPDIR)/main3d-UFunction.Tpo -c -o main3d-UFunction.obj `if test -f 'UFunction.C'; then $(CYGPATH_W) 'UFunction.C'; else $(CYGPATH_W) '$(srcdir)/UFunction.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main3d-UFunction.Tpo $(DEPDIR)/main3d-UFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='UFunction.C' object='main3d-UFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-USetter.obj `if test -f 'USetter.C'; then $(CYGPATH_W) 'USetter.C'; else $(CYGPATH_W) '$(srcdir)/USetter.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-UFunction.obj `if test -f 'UFunction.C'; then $(CYGPATH_W) 'UFunction.C'; else $(CYGPATH_W) '$(srcdir)/UFunction.C'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

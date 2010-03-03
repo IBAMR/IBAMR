@@ -362,7 +362,7 @@ main(
         /*
          * Create body force specification objects.
          */
-        tbox::Pointer<SetDataStrategy> F_set =
+        tbox::Pointer<CartGridFunction> F_fcn =
             new GravitationalBodyForce(
                 "GravitationalBodyForce",
                 input_db->getDatabase("GravitationalBodyForce"));
@@ -426,7 +426,7 @@ main(
                 patch_hierarchy, navier_stokes_integrator, force_generator);
         time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
         navier_stokes_integrator->registerPressurePhysicalBcCoef(&P_bc_coef);
-        time_integrator->registerBodyForceSpecification(F_set);
+        time_integrator->registerBodyForceSpecification(F_fcn);
 
         tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(

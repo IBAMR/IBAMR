@@ -1,8 +1,8 @@
-// Filename: IBEulerianForceSetter.C
-// Last modified: <03.Nov.2009 21:10:37 griffith@griffith-macbook-pro.local>
+// Filename: IBEulerianForceFunction.C
+// Last modified: <02.Mar.2010 18:20:43 griffith@griffith-macbook-pro.local>
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
-#include "IBEulerianForceSetter.h"
+#include "IBEulerianForceFunction.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -34,31 +34,31 @@ namespace IBAMR
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBEulerianForceSetter::IBEulerianForceSetter(
+IBEulerianForceFunction::IBEulerianForceFunction(
     const std::string& object_name,
     const int F_current_idx,
     const int F_new_idx,
     const int F_half_idx)
-    : IBTK::SetDataStrategy(object_name),
+    : IBTK::CartGridFunction(object_name),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_F_current_idx(F_current_idx),
       d_F_new_idx(F_new_idx),
       d_F_half_idx(F_half_idx),
-      d_body_force_setter(NULL)
+      d_body_force_fcn(NULL)
 {
     // intentionally blank
     return;
-}// IBEulerianForceSetter
+}// IBEulerianForceFunction
 
-IBEulerianForceSetter::~IBEulerianForceSetter()
+IBEulerianForceFunction::~IBEulerianForceFunction()
 {
     // intentionally blank
     return;
-}// ~IBEulerianForceSetter
+}// ~IBEulerianForceFunction
 
 void
-IBEulerianForceSetter::setTimeInterval(
+IBEulerianForceFunction::setTimeInterval(
     const double current_time,
     const double new_time)
 {
@@ -68,21 +68,21 @@ IBEulerianForceSetter::setTimeInterval(
 }// setTimeInterval
 
 bool
-IBEulerianForceSetter::isTimeDependent() const
+IBEulerianForceFunction::isTimeDependent() const
 {
     return true;
 }// isTimeDependent
 
 void
-IBEulerianForceSetter::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter)
+IBEulerianForceFunction::registerBodyForceSpecification(
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn)
 {
-    d_body_force_setter = F_setter;
+    d_body_force_fcn = F_fcn;
     return;
 }// registerBodyForceSpecification
 
 void
-IBEulerianForceSetter::setDataOnPatch(
+IBEulerianForceFunction::setDataOnPatch(
     const int data_idx,
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
     SAMRAI::hier::Patch<NDIM>& patch,
@@ -98,9 +98,9 @@ IBEulerianForceSetter::setDataOnPatch(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_cc_data.isNull() || !f_sc_data.isNull());
 #endif
-    if (!d_body_force_setter.isNull())
+    if (!d_body_force_fcn.isNull())
     {
-        d_body_force_setter->setDataOnPatch(data_idx, var, patch, data_time, initial_time);
+        d_body_force_fcn->setDataOnPatch(data_idx, var, patch, data_time, initial_time);
     }
     else
     {
@@ -163,6 +163,6 @@ IBEulerianForceSetter::setDataOnPatch(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBEulerianForceSetter>;
+template class SAMRAI::tbox::Pointer<IBAMR::IBEulerianForceFunction>;
 
 //////////////////////////////////////////////////////////////////////////////

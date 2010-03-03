@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <01.Mar.2010 15:33:50 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <02.Mar.2010 18:17:05 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -12,14 +12,15 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBDataPostProcessor.h>
-#include <ibamr/IBEulerianForceSetter.h>
-#include <ibamr/IBEulerianSourceSetter.h>
+#include <ibamr/IBEulerianForceFunction.h>
+#include <ibamr/IBEulerianSourceFunction.h>
 #include <ibamr/IBInstrumentPanel.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
 #include <ibamr/IBLagrangianSourceStrategy.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 
 // IBTK INCLUDES
+#include <ibtk/CartGridFunction.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/LNodeInitStrategy.h>
 #if (NDIM == 3)
@@ -27,7 +28,6 @@
 #endif
 #include <ibtk/LagMarker.h>
 #include <ibtk/LagSiloDataWriter.h>
-#include <ibtk/SetDataStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -102,7 +102,7 @@ public:
      */
     void
     registerVelocityInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> U_init);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> U_init);
 
     /*!
      * Supply physical boundary conditions for the (cell centered) velocity.
@@ -119,7 +119,7 @@ public:
      */
     void
     registerPressureInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> P_init);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> P_init);
 
     /*!
      * Supply physical boundary conditions for the (cell centered) pressure.
@@ -135,7 +135,7 @@ public:
      */
     void
     registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> F_setter);
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
@@ -800,7 +800,7 @@ private:
      * Initialization and boundary condition information for the Eulerian data
      * used by the integrator.
      */
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_U_init, d_P_init;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
 
@@ -813,15 +813,15 @@ private:
     /*
      * The force generators.
      */
-    SAMRAI::tbox::Pointer<IBTK::SetDataStrategy> d_body_force_setter;
-    SAMRAI::tbox::Pointer<IBEulerianForceSetter> d_eulerian_force_setter;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_body_force_fcn;
+    SAMRAI::tbox::Pointer<IBEulerianForceFunction> d_eulerian_force_fcn;
     SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_force_strategy;
     bool d_force_strategy_needs_init;
 
     /*
      * The source/sink generators.
      */
-    SAMRAI::tbox::Pointer<IBEulerianSourceSetter> d_eulerian_source_setter;
+    SAMRAI::tbox::Pointer<IBEulerianSourceFunction> d_eulerian_source_fcn;
     SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> d_source_strategy;
     bool d_source_strategy_needs_init;
     std::vector<std::vector<std::vector<double> > > d_X_src;

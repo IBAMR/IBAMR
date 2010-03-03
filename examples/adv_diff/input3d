@@ -89,7 +89,7 @@ LocationIndexRobinBcCoefs {
    boundary_5 = "value", "0.0"  // z upper boundary
 }
 
-USet {
+UFunction {
   init_type = "UNIFORM"
   uniform_u = 10.0 , -5.0 , 5.0
 }
