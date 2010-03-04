@@ -506,7 +506,17 @@ if test "$SILO_ENABLED" == "yes"; then
 
   AC_CHECK_HEADER([silo.h],,AC_MSG_WARN([could not find header file silo.h]))
   AC_LIB_HAVE_LINKFLAGS([silo])
-  LIBS="$LIBSILO $LIBS"
+  if test "$HAVE_LIBSILO" == "yes" ; then
+    LIBS="$LIBSILO $LIBS"
+  else
+    AC_MSG_WARN([could not find working libsilo; checking for libsiloh5])
+    AC_LIB_HAVE_LINKFLAGS([siloh5])
+    if test "$HAVE_LIBSILOH5" == "yes" ; then
+      LIBS="$LIBSILOH5 $LIBS"
+    else
+      AC_MSG_WARN([Silo support is enabled, but could not find working libsilo or libsiloh5])
+    fi
+  fi
 else
   echo
   echo "================================="
