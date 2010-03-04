@@ -176,6 +176,7 @@ HAVE_LIBSAMRAI3D_PDAT_STD = @HAVE_LIBSAMRAI3D_PDAT_STD@
 HAVE_LIBSAMRAI3D_SOLV = @HAVE_LIBSAMRAI3D_SOLV@
 HAVE_LIBSAMRAI3D_XFER = @HAVE_LIBSAMRAI3D_XFER@
 HAVE_LIBSILO = @HAVE_LIBSILO@
+HAVE_LIBSILOH5 = @HAVE_LIBSILOH5@
 HAVE_LIBX11 = @HAVE_LIBX11@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -247,6 +248,8 @@ LIBSAMRAI3D_XFER = @LIBSAMRAI3D_XFER@
 LIBSAMRAI3D_XFER_PREFIX = @LIBSAMRAI3D_XFER_PREFIX@
 LIBSAMRAI_PREFIX = @LIBSAMRAI_PREFIX@
 LIBSILO = @LIBSILO@
+LIBSILOH5 = @LIBSILOH5@
+LIBSILOH5_PREFIX = @LIBSILOH5_PREFIX@
 LIBSILO_PREFIX = @LIBSILO_PREFIX@
 LIBX11 = @LIBX11@
 LIBX11_PREFIX = @LIBX11_PREFIX@
@@ -282,6 +285,7 @@ LTLIBSAMRAI3D_PDAT_STD = @LTLIBSAMRAI3D_PDAT_STD@
 LTLIBSAMRAI3D_SOLV = @LTLIBSAMRAI3D_SOLV@
 LTLIBSAMRAI3D_XFER = @LTLIBSAMRAI3D_XFER@
 LTLIBSILO = @LTLIBSILO@
+LTLIBSILOH5 = @LTLIBSILOH5@
 LTLIBX11 = @LTLIBX11@
 M4 = @M4@
 MAKEINFO = @MAKEINFO@
@@ -853,7 +857,7 @@ install-dvi: install-dvi-recursive
 
 install-dvi-am:
 
-install-exec-am:
+install-exec-am: install-exec-local
 
 install-html: install-html-recursive
 
@@ -906,12 +910,13 @@ uninstall-am:
 	distcleancheck distdir distuninstallcheck dvi dvi-am html \
 	html-am info info-am install install-am install-data \
 	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
-	pdf-am ps ps-am tags tags-recursive uninstall uninstall-am
+	install-exec-am install-exec-local install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	installdirs-am maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic pdf pdf-am ps ps-am tags \
+	tags-recursive uninstall uninstall-am
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
@@ -919,6 +924,13 @@ uninstall-am:
 lib: all
 examples: lib
 	@(cd examples && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+install-exec-local:
+	@echo "===================================================================="
+	@echo "===================================================================="
+	@echo "WARNING: make install is not officially supported by IBAMR!"
+	@echo "         use at your own risk!"
+	@echo "===================================================================="
+	@echo "===================================================================="
 
 copy_headers:
 	cd ibtk && $(MAKE) relink_headers

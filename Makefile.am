@@ -7,6 +7,13 @@ ACLOCAL_AMFLAGS = -I m4
 lib: all
 examples: lib
 	@(cd examples && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+install-exec-local:
+	@echo "===================================================================="
+	@echo "===================================================================="
+	@echo "WARNING: make install is not officially supported by IBAMR!"
+	@echo "         use at your own risk!"
+	@echo "===================================================================="
+	@echo "===================================================================="
 
 ## Add various "extra" files to the IBAMR distribution.
 EXTRA_DIST  = $(top_srcdir)/autogen.sh
