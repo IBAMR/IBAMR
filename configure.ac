@@ -1,10 +1,11 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
+AC_PREREQ([2.61])
 AC_INIT([IBAMR],[091103],[griffith AT cims DOT nyu DOT edu])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config/IBAMR_config.h])
-AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 foreign])
+AM_INIT_AUTOMAKE([1.10 -Wall -Werror dist-bzip2 foreign])
 AC_LANG(C++)
 
 ###########################################################################
