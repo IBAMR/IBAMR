@@ -1,5 +1,5 @@
 // Filename: INSStaggeredProjectionPreconditioner.C
-// Last modified: <17.Aug.2009 16:21:09 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <09.Mar.2010 18:06:20 griffith@griffith-macbook-pro.local>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredProjectionPreconditioner.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBTK INCLUDES
+#include <ibtk/CellNoCornersFillPattern.h>
 
 // C++ STDLIB INCLUDES
 #include <limits>
@@ -263,8 +266,9 @@ INSStaggeredProjectionPreconditioner::initializeSolverState(
     d_wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
     d_volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
 
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = new IBTK::CellNoCornersFillPattern(CELLG);
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent Phi_scratch_component(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    InterpolationTransactionComponent Phi_scratch_component(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, fill_pattern);
     d_Phi_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_Phi_bdry_fill_op->initializeOperatorState(Phi_scratch_component, d_hierarchy);
 

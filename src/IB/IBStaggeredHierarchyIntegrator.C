@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <02.Mar.2010 18:15:18 griffith@griffith-macbook-pro.local>
+// Last modified: <08.Mar.2010 10:27:17 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -158,7 +158,7 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
       d_end_time(std::numeric_limits<double>::max()),
       d_grow_dt(2.0),
       d_max_integrator_steps(std::numeric_limits<int>::max()),
-      d_num_cycles(1),
+      d_num_cycles(2),
       d_regrid_interval(1),
       d_old_dt(-1.0),
       d_integrator_time(std::numeric_limits<double>::quiet_NaN()),
