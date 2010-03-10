@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <02.Mar.2010 18:11:52 griffith@griffith-macbook-pro.local>
+// Last modified: <10.Mar.2010 12:39:05 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1133,10 +1133,6 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(
     integrateHierarchy_initialize(current_time, new_time);
     for (int cycle = 0; cycle < d_num_cycles; ++cycle)
     {
-        if (!d_adv_diff_hier_integrator.isNull() && cycle > 0)
-        {
-            d_adv_diff_hier_integrator->resetHierDataToPreadvanceState();
-        }
         integrateHierarchy(current_time, new_time);
     }
     integrateHierarchy_finalize(current_time, new_time);
@@ -1490,6 +1486,8 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // the optional advection-diffusion solver.
     if (!d_adv_diff_hier_integrator.isNull())
     {
+        d_adv_diff_hier_integrator->resetHierDataToPreadvanceState();
+
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_adv_idx = var_db->mapVariableAndContextToIndex(d_U_fc_var, d_adv_diff_hier_integrator->getCurrentContext());
         const int coarsest_ln = 0;
