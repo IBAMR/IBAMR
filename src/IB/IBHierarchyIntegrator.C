@@ -3550,8 +3550,22 @@ IBHierarchyIntegrator::getFromRestart()
                    << "Restart file version different than class version.");
     }
 
-    d_interp_delta_fcn = db->getString("d_interp_delta_fcn");
-    d_spread_delta_fcn = db->getString("d_spread_delta_fcn");
+    if (db->isString("d_interp_delta_fcn") && db->isString("d_spread_delta_fcn"))
+    {
+        d_interp_delta_fcn = db->getString("d_interp_delta_fcn");
+        d_spread_delta_fcn = db->getString("d_spread_delta_fcn");
+    }
+    else if (db->isString("d_delta_fcn"))
+    {
+        d_interp_delta_fcn = db->getString("d_delta_fcn");
+        d_spread_delta_fcn = db->getString("d_delta_fcn");
+    }
+    else
+    {
+        TBOX_ERROR("Restart database corresponding to "
+                   << d_object_name << " does not contain keys ``d_interp_delta_fcn'', ``d_spread_delta_fcn'', or ``d_delta_fcn''.");
+    }
+
     const int total_flow_volume_sz = db->getInteger("d_total_flow_volume_sz");
     d_total_flow_volume.resize(total_flow_volume_sz, std::numeric_limits<double>::quiet_NaN());
     if (!d_total_flow_volume.empty())
