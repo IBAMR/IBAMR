@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <12.Mar.2010 11:25:21 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Mar.2010 11:35:48 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1133,7 +1133,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                 //
                 // NOTE: We set eta = 0.
                 Vec K_vec = K_data[ln]->getGlobalVec();
-                Vec M_vec = M_data[ln]->getGlobalVec();
                 Vec F_vec = F_data[ln]->getGlobalVec();
                 Vec X_vec = X_data[ln]->getGlobalVec();
                 Vec U_vec = U_data[ln]->getGlobalVec();
@@ -1152,9 +1151,8 @@ IBHierarchyIntegrator::advanceHierarchy(
                 int n_local = 0;
                 ierr = VecGetLocalSize(K_vec, &n_local);  IBTK_CHKERRQ(ierr);
 
-                double* K_arr, * M_arr, * X_arr, * U_arr, * Y_arr, * dY_dt_arr, * F_K_arr;
+                double* K_arr, * X_arr, * U_arr, * Y_arr, * dY_dt_arr, * F_K_arr;
                 ierr = VecGetArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
-                ierr = VecGetArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecGetArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
@@ -1166,8 +1164,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 for (int i = 0; i < n_local; ++i)
                 {
                     const double& K = K_arr[i];
-                    const double& M = M_arr[i];
-                    const double eta = 2.0*sqrt(K*M);
+                    const double eta = 0.0;
                     const double* const X = &X_arr[NDIM*i];
                     const double* const U = &U_arr[NDIM*i];
                     const double* const Y = &Y_arr[NDIM*i];
@@ -1199,7 +1196,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                 }
 
                 ierr = VecRestoreArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
-                ierr = VecRestoreArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
@@ -1353,7 +1349,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                 //
                 // NOTE: We set eta = 0.
                 Vec K_vec = K_data[ln]->getGlobalVec();
-                Vec M_vec = M_data[ln]->getGlobalVec();
                 Vec F_new_vec = F_new_data[ln]->getGlobalVec();
                 Vec X_new_vec = X_new_data[ln]->getGlobalVec();
                 Vec U_vec = U_data[ln]->getGlobalVec();
@@ -1364,9 +1359,8 @@ IBHierarchyIntegrator::advanceHierarchy(
                 int n_local = 0;
                 ierr = VecGetLocalSize(K_vec, &n_local);  IBTK_CHKERRQ(ierr);
 
-                double* K_arr, * M_arr , * X_new_arr, * U_arr, * Y_new_arr, * dY_dt_arr , * F_K_new_arr;
+                double* K_arr, * X_new_arr, * U_arr, * Y_new_arr, * dY_dt_arr , * F_K_new_arr;
                 ierr = VecGetArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
-                ierr = VecGetArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecGetArray(X_new_vec, &X_new_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecGetArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
@@ -1376,7 +1370,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                 for (int i = 0; i < n_local; ++i)
                 {
                     const double& K = K_arr[i];
-                    const double& M = M_arr[i];
                     const double eta = 0.0;
                     const double* const X_new = &X_new_arr[NDIM*i];
                     const double* const U = &U_arr[NDIM*i];
@@ -1393,7 +1386,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                 }
 
                 ierr = VecRestoreArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
-                ierr = VecRestoreArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(X_new_vec, &X_new_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
