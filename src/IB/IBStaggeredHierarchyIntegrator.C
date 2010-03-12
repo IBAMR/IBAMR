@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <11.Mar.2010 18:26:25 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <12.Mar.2010 11:25:44 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -920,8 +920,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             // eta*(dY/dt-dX/dt), and update the pIB-related state variables, Y
             // and dY/dt.
             //
-            // NOTE: We simply choose eta to result in a critically-damped
-            // mass-spring system.
+            // NOTE: We set eta = 0.
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 if (d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -958,7 +957,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                     {
                         const double& K = K_arr[i];
                         const double& M = M_arr[i];
-                        const double eta = 2.0*sqrt(K*M);
+                        const double eta = 0.0;
                         const double* const X_half = &X_half_arr[NDIM*i];
                         const double* const U_half = &U_half_arr[NDIM*i];
                         const double* const Y = &Y_arr[NDIM*i];
