@@ -1,5 +1,5 @@
 // Filename: AdvectHypPatchOps.C
-// Last modified: <02.Mar.2010 18:13:03 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Mar.2010 00:17:23 griffith@griffith-macbook-pro.local>
 // Created on 12 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvectHypPatchOps.h"
@@ -715,7 +715,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
             if (!Q_init.isNull())
             {
                 Q_init->setDataOnPatch(
-                    Q_idx, Q_var, patch, data_time, initial_time);
+                    Q_idx, Q_var, SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >(&patch,false), data_time, initial_time);
             }
             else
             {
@@ -744,7 +744,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
                 if (!F_fcn.isNull())
                 {
                     F_fcn->setDataOnPatch(
-                        F_idx, F_var, patch, data_time, initial_time);
+                        F_idx, F_var, SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >(&patch,false), data_time, initial_time);
                 }
                 else
                 {
@@ -767,7 +767,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
         if (!d_u_fcn.isNull())
         {
             d_u_fcn->setDataOnPatch(
-                u_idx, d_u_var, patch, data_time, initial_time);
+                u_idx, d_u_var, SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >(&patch,false), data_time, initial_time);
         }
         else
         {
@@ -884,7 +884,7 @@ AdvectHypPatchOps::computeFluxesOnPatch(
         SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, getDataContext());
-        d_u_fcn->setDataOnPatch(u_idx, d_u_var, patch, time+0.5*dt);
+        d_u_fcn->setDataOnPatch(u_idx, d_u_var, SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >(&patch,false), time+0.5*dt);
     }
 
     // Compute fluxes for those quantities that are to be conservatively

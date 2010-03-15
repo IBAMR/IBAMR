@@ -1,5 +1,5 @@
 // Filename: IBEulerianSourceFunction.C
-// Last modified: <02.Mar.2010 18:19:48 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Mar.2010 00:15:15 griffith@griffith-macbook-pro.local>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 #include "IBEulerianSourceFunction.h"
@@ -73,11 +73,12 @@ void
 IBEulerianSourceFunction::setDataOnPatch(
     const int data_idx,
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-    SAMRAI::hier::Patch<NDIM>& patch,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
     const double data_time,
-    const bool initial_time)
+    const bool initial_time,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level)
 {
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data = patch.getPatchData(data_idx);
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!q_data.isNull());
 #endif
@@ -89,7 +90,7 @@ IBEulerianSourceFunction::setDataOnPatch(
     {
         if (d_Q_current_idx != -1)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_current_data = patch.getPatchData(d_Q_current_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_current_data = patch->getPatchData(d_Q_current_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(!q_current_data.isNull());
 #endif
@@ -100,7 +101,7 @@ IBEulerianSourceFunction::setDataOnPatch(
     {
         if (d_Q_new_idx != -1)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_new_data = patch.getPatchData(d_Q_new_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_new_data = patch->getPatchData(d_Q_new_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(!q_new_data.isNull());
 #endif
@@ -111,7 +112,7 @@ IBEulerianSourceFunction::setDataOnPatch(
     {
         if (d_Q_half_idx != -1)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_half_data = patch.getPatchData(d_Q_half_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_half_data = patch->getPatchData(d_Q_half_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(!q_half_data.isNull());
 #endif
