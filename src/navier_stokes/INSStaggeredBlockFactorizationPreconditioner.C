@@ -1,5 +1,5 @@
 // Filename: INSStaggeredBlockFactorizationPreconditioner.C
-// Last modified: <17.Aug.2009 16:20:45 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <14.Mar.2010 23:43:48 griffith@griffith-macbook-pro.local>
 // Created on 22 Sep 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredBlockFactorizationPreconditioner.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBTK INCLUDES
+#include <ibtk/CellNoCornersFillPattern.h>
 
 // C++ STDLIB INCLUDES
 #include <limits>
@@ -194,9 +197,10 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     P_out_vec->addComponent(P_out_cc_var, P_out_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
     // Setup the interpolation transaction information.
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = new IBTK::CellNoCornersFillPattern(CELLG);
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_out_transaction_comp(P_out_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef);
-    InterpolationTransactionComponent P_scratch_transaction_comp(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef);
+    InterpolationTransactionComponent     P_out_transaction_comp(      P_out_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
+    InterpolationTransactionComponent P_scratch_transaction_comp(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
 
     // Solve the pressure sub-problem.
     //
@@ -261,8 +265,9 @@ INSStaggeredBlockFactorizationPreconditioner::initializeSolverState(
     d_wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
     d_volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
 
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = new IBTK::CellNoCornersFillPattern(CELLG);
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef);
+    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
     d_P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
     d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
 
