@@ -1,5 +1,5 @@
 // Filename: IBEulerianForceFunction.C
-// Last modified: <02.Mar.2010 18:20:43 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Mar.2010 00:15:39 griffith@griffith-macbook-pro.local>
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBEulerianForceFunction.h"
@@ -85,11 +85,12 @@ void
 IBEulerianForceFunction::setDataOnPatch(
     const int data_idx,
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-    SAMRAI::hier::Patch<NDIM>& patch,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
     const double data_time,
-    const bool initial_time)
+    const bool initial_time,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level)
 {
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > f_data = patch.getPatchData(data_idx);
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_data.isNull());
 #endif
@@ -129,7 +130,7 @@ IBEulerianForceFunction::setDataOnPatch(
                    << "  data time " << data_time << " is not the current, new, or half time." << std::endl);
     }
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > f_ib_data = patch.getPatchData(ib_data_idx);
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > f_ib_data = patch->getPatchData(ib_data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_ib_data.isNull());
 #endif
@@ -142,12 +143,12 @@ IBEulerianForceFunction::setDataOnPatch(
     if (!f_cc_data.isNull())
     {
         SAMRAI::math::PatchCellDataBasicOps<NDIM,double> patch_ops;
-        patch_ops.add(f_cc_data, f_cc_data, f_ib_cc_data, patch.getBox());
+        patch_ops.add(f_cc_data, f_cc_data, f_ib_cc_data, patch->getBox());
     }
     if (!f_sc_data.isNull())
     {
         SAMRAI::math::PatchSideDataBasicOps<NDIM,double> patch_ops;
-        patch_ops.add(f_sc_data, f_sc_data, f_ib_sc_data, patch.getBox());
+        patch_ops.add(f_sc_data, f_sc_data, f_ib_sc_data, patch->getBox());
     }
     return;
 }// setDataOnPatch

@@ -1,5 +1,5 @@
 // Filename: UFunction.C
-// Last modified: <02.Mar.2010 19:06:18 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Mar.2010 00:29:28 griffith@griffith-macbook-pro.local>
 // Created on 23 June 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "UFunction.h"
@@ -75,11 +75,12 @@ void
 UFunction::setDataOnPatch(
     const int data_idx,
     tbox::Pointer<hier::Variable<NDIM> > var,
-    hier::Patch<NDIM>& patch,
+    tbox::Pointer<hier::Patch<NDIM> > patch,
     const double data_time,
-    const bool initial_time)
+    const bool initial_time,
+    tbox::Pointer<hier::PatchLevel<NDIM> > level)
 {
-    tbox::Pointer< pdat::FaceData<NDIM,double> > u_data = patch.getPatchData(data_idx);
+    tbox::Pointer< pdat::FaceData<NDIM,double> > u_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!u_data.isNull());
 #endif
@@ -95,9 +96,9 @@ UFunction::setDataOnPatch(
     }
     else if (d_init_type == "VORTEX")
     {
-        const hier::Box<NDIM>& patch_box = patch.getBox();
+        const hier::Box<NDIM>& patch_box = patch->getBox();
         const hier::Index<NDIM>& patch_lower = patch_box.lower();
-        tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+        tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 
         const double* const XLower = pgeom->getXLower();
         const double* const dx = pgeom->getDx();

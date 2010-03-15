@@ -2,7 +2,7 @@
 #define included_GravitationalBodyForce
 
 // Filename: GravitationalBodyForce.h
-// Last modified: <02.Mar.2010 18:33:43 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Mar.2010 00:21:35 griffith@griffith-macbook-pro.local>
 // Created on 03 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -58,9 +58,10 @@ public:
     setDataOnPatch(
         const int data_idx,
         tbox::Pointer<hier::Variable<NDIM> > var,
-        hier::Patch<NDIM>& patch,
+        tbox::Pointer<hier::Patch<NDIM> > patch,
         const double data_time,
-        const bool initial_time=false);
+        const bool initial_time=false,
+        tbox::Pointer<hier::PatchLevel<NDIM> > level=tbox::Pointer<hier::PatchLevel<NDIM> >(NULL));
 
 protected:
 

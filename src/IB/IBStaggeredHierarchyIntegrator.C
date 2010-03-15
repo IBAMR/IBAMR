@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <08.Mar.2010 10:27:17 griffith@griffith-macbook-pro.local>
+// Last modified: <12.Mar.2010 11:25:44 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -916,8 +916,11 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 
         if (d_using_pIB_method)
         {
-            // Compute pIB-related penalty forces, F_K = K*(Y-X), and update the
-            // pIB-related state variables, Y and dY/dt.
+            // Compute pIB-related penalty forces, F_K = K*(Y-X) +
+            // eta*(dY/dt-dX/dt), and update the pIB-related state variables, Y
+            // and dY/dt.
+            //
+            // NOTE: We set eta = 0.
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 if (d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -927,6 +930,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                     Vec K_vec = K_data[ln]->getGlobalVec();
                     Vec M_vec = M_data[ln]->getGlobalVec();
                     Vec X_half_vec = X_half_data[ln]->getGlobalVec();
+                    Vec U_half_vec = U_half_data[ln]->getGlobalVec();
                     Vec Y_vec = Y_data[ln]->getGlobalVec();
                     Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
                     Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
@@ -936,10 +940,11 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                     int n_local = 0;
                     ierr = VecGetLocalSize(M_vec, &n_local);  IBTK_CHKERRQ(ierr);
 
-                    double* K_arr, * M_arr, * X_half_arr, * Y_arr, * Y_new_arr, * dY_dt_arr, * dY_dt_new_arr, * F_K_half_arr;
+                    double* K_arr, * M_arr, * X_half_arr, * U_half_arr, * Y_arr, * Y_new_arr, * dY_dt_arr, * dY_dt_new_arr, * F_K_half_arr;
                     ierr = VecGetArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
                     ierr = VecGetArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
                     ierr = VecGetArray(X_half_vec, &X_half_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecGetArray(U_half_vec, &U_half_arr);  IBTK_CHKERRQ(ierr);
                     ierr = VecGetArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
                     ierr = VecGetArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
                     ierr = VecGetArray(dY_dt_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
@@ -952,7 +957,9 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                     {
                         const double& K = K_arr[i];
                         const double& M = M_arr[i];
+                        const double eta = 0.0;
                         const double* const X_half = &X_half_arr[NDIM*i];
+                        const double* const U_half = &U_half_arr[NDIM*i];
                         const double* const Y = &Y_arr[NDIM*i];
                         const double* const dY_dt = &dY_dt_arr[NDIM*i];
                         double* const Y_new = &Y_new_arr[NDIM*i];
@@ -963,8 +970,9 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                         for (int d = 0; d < NDIM; ++d)
                         {
                             double Y_minus_X = 0.5*(Y_new[d]+Y[d]) - X_half[d];
-                            displacement += Y_minus_X;
-                            F_K_half[d] = K*Y_minus_X;
+                            double V_minus_U = 0.5*(dY_dt_new[d]+dY_dt[d]) - U_half[d];
+                            displacement += Y_minus_X*Y_minus_X;
+                            F_K_half[d] = K*Y_minus_X + eta*V_minus_U;
                             Y_new[d] = Y[d] + 0.5*dt*(dY_dt_new[d]+dY_dt[d]);
                             dY_dt_new[d] = dY_dt[d] - (dt/M)*F_K_half[d] + dt*d_gravitational_acceleration[d];
                         }
@@ -983,6 +991,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                     ierr = VecRestoreArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
                     ierr = VecRestoreArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
                     ierr = VecRestoreArray(X_half_vec, &X_half_arr);  IBTK_CHKERRQ(ierr);
+                    ierr = VecRestoreArray(U_half_vec, &U_half_arr);  IBTK_CHKERRQ(ierr);
                     ierr = VecRestoreArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
                     ierr = VecRestoreArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
                     ierr = VecRestoreArray(dY_dt_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);

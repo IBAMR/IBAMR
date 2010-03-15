@@ -2,7 +2,7 @@
 #define included_QInit
 
 // Filename: QInit.h
-// Last modified: <02.Mar.2010 19:04:16 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Mar.2010 00:27:50 griffith@griffith-macbook-pro.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -58,9 +58,10 @@ public:
     setDataOnPatch(
         const int data_idx,
         tbox::Pointer<hier::Variable<NDIM> > var,
-        hier::Patch<NDIM>& patch,
+        tbox::Pointer<hier::Patch<NDIM> > patch,
         const double data_time,
-        const bool initial_time=false);
+        const bool initial_time=false,
+        tbox::Pointer<hier::PatchLevel<NDIM> > level=tbox::Pointer<hier::PatchLevel<NDIM> >(NULL));
 
 protected:
 

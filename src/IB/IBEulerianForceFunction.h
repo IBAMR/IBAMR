@@ -2,7 +2,7 @@
 #define included_IBEulerianForceFunction
 
 // Filename: IBEulerianForceFunction.h
-// Last modified: <02.Mar.2010 18:20:35 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Mar.2010 00:14:23 griffith@griffith-macbook-pro.local>
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -77,9 +77,10 @@ public:
     setDataOnPatch(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::hier::Patch<NDIM>& patch,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const double data_time,
-        const bool initial_time=false);
+        const bool initial_time=false,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level=SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 
     //\}
 

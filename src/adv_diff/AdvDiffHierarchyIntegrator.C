@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.C
-// Last modified: <02.Mar.2010 18:14:04 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Mar.2010 00:13:16 griffith@griffith-macbook-pro.local>
 // Created on 17 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHierarchyIntegrator.h"
@@ -966,7 +966,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         // Compute the time-dependent forcing term F(n).
         if (!F_fcn.isNull() && F_fcn->isTimeDependent())
         {
-            F_fcn->setDataOnPatchHierarchy(F_var, getCurrentContext(), d_hierarchy, current_time);
+            F_fcn->setDataOnPatchHierarchy(F_current_idx, F_var, d_hierarchy, current_time);
         }
 
         // Allocate temporary data.
@@ -1081,7 +1081,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         // Compute the time-dependent forcing term F(n+1/2).
         if (!F_fcn.isNull() && F_fcn->isTimeDependent())
         {
-            F_fcn->setDataOnPatchHierarchy(F_var, getCurrentContext(), d_hierarchy, current_time+0.5*dt);
+            F_fcn->setDataOnPatchHierarchy(F_current_idx, F_var, d_hierarchy, current_time+0.5*dt);
         }
 
         if (!F_var.isNull())
