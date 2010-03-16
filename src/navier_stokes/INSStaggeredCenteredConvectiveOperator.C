@@ -1,5 +1,5 @@
 // Filename: INSStaggeredCenteredConvectiveOperator.C
-// Last modified: <14.Aug.2009 18:11:35 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Mar.2010 14:46:17 griffith@griffith-macbook-pro.local>
 // Created on 30 Oct 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredCenteredConvectiveOperator.h"
@@ -108,6 +108,7 @@ namespace IBAMR
 
 namespace
 {
+// Number of ghosts cells used for each variable quantity.
 static const int GADVECTG = 1;
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
@@ -120,6 +121,12 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
+
+// Timers.
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_convective_operator;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_operator_state;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_deallocate_operator_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -170,6 +177,21 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
+
+    // Setup Timers.
+    static bool timers_need_init = true;
+    if (timers_need_init)
+    {
+        t_apply_convective_operator = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator()");
+        t_apply = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::apply()");
+        t_initialize_operator_state = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::initializeOperatorState()");
+        t_deallocate_operator_state = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()");
+        timers_need_init = false;
+    }
     return;
 }// INSStaggeredCenteredConvectiveOperator
 
@@ -184,6 +206,8 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
     const int U_idx,
     const int N_idx)
 {
+    t_apply_convective_operator->start();
+
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator():\n"
@@ -293,6 +317,8 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
             }
         }
     }
+
+    t_apply_convective_operator->stop();
     return;
 }// applyConvectiveOperator
 
@@ -301,6 +327,8 @@ INSStaggeredCenteredConvectiveOperator::apply(
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
 {
+    t_apply->start();
+
     // Initialize the operator (if necessary).
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeOperatorState(x,y);
@@ -314,6 +342,8 @@ INSStaggeredCenteredConvectiveOperator::apply(
 
     // Deallocate the operator (if necessary).
     if (deallocate_at_completion) deallocateOperatorState();
+
+    t_apply->stop();
     return;
 }// apply
 
@@ -322,6 +352,8 @@ INSStaggeredCenteredConvectiveOperator::initializeOperatorState(
     const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out)
 {
+    t_initialize_operator_state->start();
+
     if (d_is_initialized) deallocateOperatorState();
 
     // Get the hierarchy configuration.
@@ -359,6 +391,8 @@ INSStaggeredCenteredConvectiveOperator::initializeOperatorState(
         }
     }
     d_is_initialized = true;
+
+    t_initialize_operator_state->stop();
     return;
 }// initializeOperatorState
 
@@ -366,6 +400,8 @@ void
 INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
+
+    t_deallocate_operator_state->start();
 
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -388,6 +424,8 @@ INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
     d_refine_scheds.clear();
 
     d_is_initialized = false;
+
+    t_deallocate_operator_state->stop();
     return;
 }// deallocateOperatorState
 

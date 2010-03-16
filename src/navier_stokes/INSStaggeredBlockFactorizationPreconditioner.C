@@ -1,5 +1,5 @@
 // Filename: INSStaggeredBlockFactorizationPreconditioner.C
-// Last modified: <14.Mar.2010 23:43:48 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Mar.2010 14:48:58 griffith@griffith-macbook-pro.local>
 // Created on 22 Sep 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredBlockFactorizationPreconditioner.h"
@@ -44,6 +44,11 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
+
+// Timers.
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_solve_system;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_solver_state;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_deallocate_solver_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -117,6 +122,19 @@ INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPrec
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_P_scratch_idx >= 0);
 #endif
+
+    // Setup Timers.
+    static bool timers_need_init = true;
+    if (timers_need_init)
+    {
+        t_solve_system = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredBlockFactorizationPreconditioner::solveSystem()");
+        t_initialize_solver_state = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredBlockFactorizationPreconditioner::initializeSolverState()");
+        t_deallocate_solver_state = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredBlockFactorizationPreconditioner::deallocateSolverState()");
+        timers_need_init = false;
+    }
     return;
 }// INSStaggeredBlockFactorizationPreconditioner
 
@@ -147,6 +165,8 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b)
 {
+    t_solve_system->start();
+
     // Initialize the solver (if necessary).
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeSolverState(x,b);
@@ -240,6 +260,8 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
 
     // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
+
+    t_solve_system->stop();
     return true;
 }// solveSystem
 
@@ -248,6 +270,8 @@ INSStaggeredBlockFactorizationPreconditioner::initializeSolverState(
     const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
     const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b)
 {
+    t_initialize_solver_state->start();
+
     if (d_is_initialized) deallocateSolverState();
 
     // Get the hierarchy configuration.
@@ -285,6 +309,8 @@ INSStaggeredBlockFactorizationPreconditioner::initializeSolverState(
         }
     }
     d_is_initialized = true;
+
+    t_initialize_solver_state->stop();
     return;
 }// initializeSolverState
 
@@ -292,6 +318,8 @@ void
 INSStaggeredBlockFactorizationPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
+
+    t_deallocate_solver_state->start();
 
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -307,6 +335,8 @@ INSStaggeredBlockFactorizationPreconditioner::deallocateSolverState()
         }
     }
     d_is_initialized = false;
+
+    t_deallocate_solver_state->stop();
     return;
 }// deallocateSolverState
 

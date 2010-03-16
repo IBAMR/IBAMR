@@ -1,5 +1,5 @@
 // Filename: INSStaggeredStokesOperator.C
-// Last modified: <14.Mar.2010 22:34:07 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Mar.2010 14:56:04 griffith@griffith-macbook-pro.local>
 // Created on 29 Apr 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredStokesOperator.h"
@@ -48,6 +48,11 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
+
+// Timers.
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_operator_state;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_deallocate_operator_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -74,7 +79,18 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
       d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
       d_x_scratch(NULL)
 {
-    // intentionally blank
+    // Setup Timers.
+    static bool timers_need_init = true;
+    if (timers_need_init)
+    {
+        t_apply = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredStokesOperator::apply()");
+        t_initialize_operator_state = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredStokesOperator::initializeOperatorState()");
+        t_deallocate_operator_state = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredStokesOperator::deallocateOperatorState()");
+        timers_need_init = false;
+    }
     return;
 }// INSStaggeredStokesOperator
 
@@ -146,6 +162,8 @@ INSStaggeredStokesOperator::apply(
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
 {
+    t_apply->start();
+
     // Initialize the operator (if necessary).
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeOperatorState(x,y);
@@ -209,6 +227,8 @@ INSStaggeredStokesOperator::apply(
 
     // Deallocate the operator (if necessary).
     if (deallocate_at_completion) deallocateOperatorState();
+
+    t_apply->stop();
     return;
 }// apply
 
@@ -221,12 +241,13 @@ INSStaggeredStokesOperator::apply(
     return;
 }// apply
 
-
 void
 INSStaggeredStokesOperator::initializeOperatorState(
     const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out)
 {
+    t_initialize_operator_state->start();
+
     if (d_is_initialized) deallocateOperatorState();
 
     d_x_scratch = in.cloneVector("INSStaggeredStokesOperator::x_scratch");
@@ -246,6 +267,8 @@ INSStaggeredStokesOperator::initializeOperatorState(
     d_U_P_bdry_fill_op->initializeOperatorState(U_P_components, d_x_scratch->getPatchHierarchy());
 
     d_is_initialized = true;
+
+    t_initialize_operator_state->stop();
     return;
 }// initializeOperatorState
 
@@ -254,10 +277,14 @@ INSStaggeredStokesOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
+    t_deallocate_operator_state->start();
+
     d_x_scratch->freeVectorComponents();
     d_x_scratch.setNull();
 
     d_is_initialized = false;
+
+    t_deallocate_operator_state->stop();
     return;
 }// deallocateOperatorState
 
