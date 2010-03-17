@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <12.Mar.2010 11:35:48 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <16.Mar.2010 19:42:35 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -1129,15 +1129,11 @@ IBHierarchyIntegrator::advanceHierarchy(
             if (d_using_pIB_method)
             {
                 // Add the penalty force associated with the massive ghost
-                // particles, i.e., F_K = K*(Y-X) + eta*(dY/dt-dX/dt).
-                //
-                // NOTE: We set eta = 0.
+                // particles, i.e., F_K = K*(Y-X).
                 Vec K_vec = K_data[ln]->getGlobalVec();
                 Vec F_vec = F_data[ln]->getGlobalVec();
                 Vec X_vec = X_data[ln]->getGlobalVec();
-                Vec U_vec = U_data[ln]->getGlobalVec();
                 Vec Y_vec = Y_data[ln]->getGlobalVec();
-                Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
                 Vec F_K_vec = F_K_data[ln]->getGlobalVec();
 
                 if (initial_time)
@@ -1151,12 +1147,10 @@ IBHierarchyIntegrator::advanceHierarchy(
                 int n_local = 0;
                 ierr = VecGetLocalSize(K_vec, &n_local);  IBTK_CHKERRQ(ierr);
 
-                double* K_arr, * X_arr, * U_arr, * Y_arr, * dY_dt_arr, * F_K_arr;
+                double* K_arr, * X_arr, * Y_arr, * F_K_arr;
                 ierr = VecGetArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
-                ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecGetArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
-                ierr = VecGetArray(dY_dt_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecGetArray(F_K_vec, &F_K_arr);  IBTK_CHKERRQ(ierr);
 
                 static double max_displacement = 0.0;
@@ -1164,31 +1158,24 @@ IBHierarchyIntegrator::advanceHierarchy(
                 for (int i = 0; i < n_local; ++i)
                 {
                     const double& K = K_arr[i];
-                    const double eta = 0.0;
                     const double* const X = &X_arr[NDIM*i];
-                    const double* const U = &U_arr[NDIM*i];
                     const double* const Y = &Y_arr[NDIM*i];
-                    const double* const dY_dt = &dY_dt_arr[NDIM*i];
                     double* const F_K = &F_K_arr[NDIM*i];
 
                     double displacement = 0.0;
                     for (int d = 0; d < NDIM; ++d)
                     {
                         double Y_minus_X = Y[d] - X[d];
-                        double V_minus_U = dY_dt[d] - U[d];
                         displacement += Y_minus_X*Y_minus_X;
-                        F_K[d] = K*Y_minus_X + eta*V_minus_U;
+                        F_K[d] = K*Y_minus_X;
                     }
                     displacement = sqrt(displacement);
                     max_config_displacement = std::max(displacement,max_config_displacement);
                 }
-
                 max_config_displacement = SAMRAI::tbox::SAMRAI_MPI::maxReduction(max_config_displacement);
-                if (max_config_displacement > max_displacement)
-                {
-                    max_displacement = max_config_displacement;
-                }
-                if (d_do_log && !SAMRAI::tbox::MathUtilities<double>::equalEps(max_config_displacement,0.0))
+
+                max_displacement = std::max(max_config_displacement,max_displacement);
+                if (d_do_log)
                 {
                     SAMRAI::tbox::plog << d_object_name << "::advanceHierarchy():\n";
                     SAMRAI::tbox::plog << "  maximum massive boundary point displacement [present configuration] = " << max_config_displacement << "\n";
@@ -1197,9 +1184,7 @@ IBHierarchyIntegrator::advanceHierarchy(
 
                 ierr = VecRestoreArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
-                ierr = VecRestoreArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
-                ierr = VecRestoreArray(dY_dt_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(F_K_vec, &F_K_arr);  IBTK_CHKERRQ(ierr);
 
                 ierr = VecAXPY(F_vec, 1.0, F_K_vec);  IBTK_CHKERRQ(ierr);
@@ -1345,51 +1330,39 @@ IBHierarchyIntegrator::advanceHierarchy(
             if (d_using_pIB_method)
             {
                 // Add the penalty force associated with the massive ghost
-                // particles, i.e., F_K = K*(Y-X) + eta*(dY/dt-dX/dt).
-                //
-                // NOTE: We set eta = 0.
+                // particles, i.e., F_K = K*(Y-X).
                 Vec K_vec = K_data[ln]->getGlobalVec();
                 Vec F_new_vec = F_new_data[ln]->getGlobalVec();
                 Vec X_new_vec = X_new_data[ln]->getGlobalVec();
-                Vec U_vec = U_data[ln]->getGlobalVec();
                 Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
-                Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
                 Vec F_K_new_vec = F_K_new_data[ln]->getGlobalVec();
 
                 int n_local = 0;
                 ierr = VecGetLocalSize(K_vec, &n_local);  IBTK_CHKERRQ(ierr);
 
-                double* K_arr, * X_new_arr, * U_arr, * Y_new_arr, * dY_dt_arr , * F_K_new_arr;
+                double* K_arr, * X_new_arr, * Y_new_arr, * F_K_new_arr;
                 ierr = VecGetArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecGetArray(X_new_vec, &X_new_arr);  IBTK_CHKERRQ(ierr);
-                ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecGetArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
-                ierr = VecGetArray(dY_dt_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecGetArray(F_K_new_vec, &F_K_new_arr);  IBTK_CHKERRQ(ierr);
 
                 for (int i = 0; i < n_local; ++i)
                 {
                     const double& K = K_arr[i];
-                    const double eta = 0.0;
                     const double* const X_new = &X_new_arr[NDIM*i];
-                    const double* const U = &U_arr[NDIM*i];
                     const double* const Y_new = &Y_new_arr[NDIM*i];
-                    const double* const dY_dt = &dY_dt_arr[NDIM*i];
                     double* const F_K_new = &F_K_new_arr[NDIM*i];
 
                     for (int d = 0; d < NDIM; ++d)
                     {
                         double Y_minus_X = Y_new[d] - X_new[d];
-                        double V_minus_U = dY_dt[d] - U[d];
-                        F_K_new[d] = K*Y_minus_X + eta*V_minus_U;
+                        F_K_new[d] = K*Y_minus_X;
                     }
                 }
 
                 ierr = VecRestoreArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(X_new_vec, &X_new_arr);  IBTK_CHKERRQ(ierr);
-                ierr = VecRestoreArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
-                ierr = VecRestoreArray(dY_dt_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
                 ierr = VecRestoreArray(F_K_new_vec, &F_K_new_arr);  IBTK_CHKERRQ(ierr);
 
                 ierr = VecAXPY(F_new_vec, 1.0, F_K_new_vec);  IBTK_CHKERRQ(ierr);

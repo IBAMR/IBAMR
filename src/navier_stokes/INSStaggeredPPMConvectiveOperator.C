@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPPMConvectiveOperator.C
-// Last modified: <19.Aug.2009 17:36:05 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Mar.2010 14:51:05 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPPMConvectiveOperator.h"
@@ -199,6 +199,12 @@ static const int GADVECTG = 4;
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
+
+// Timers.
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_convective_operator;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_operator_state;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_deallocate_operator_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -235,6 +241,21 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
+
+    // Setup Timers.
+    static bool timers_need_init = true;
+    if (timers_need_init)
+    {
+        t_apply_convective_operator = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredPPMConvectiveOperator::applyConvectiveOperator()");
+        t_apply = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredPPMConvectiveOperator::apply()");
+        t_initialize_operator_state = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredPPMConvectiveOperator::initializeOperatorState()");
+        t_deallocate_operator_state = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredPPMConvectiveOperator::deallocateOperatorState()");
+        timers_need_init = false;
+    }
     return;
 }// INSStaggeredPPMConvectiveOperator
 
@@ -249,6 +270,8 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
     const int U_idx,
     const int N_idx)
 {
+    t_apply_convective_operator->start();
+
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSStaggeredPPMConvectiveOperator::applyConvectiveOperator():\n"
@@ -484,6 +507,8 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
             }
         }
     }
+
+    t_apply_convective_operator->stop();
     return;
 }// applyConvectiveOperator
 
@@ -492,6 +517,8 @@ INSStaggeredPPMConvectiveOperator::apply(
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
     SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
 {
+    t_apply->start();
+
     // Initialize the operator (if necessary).
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeOperatorState(x,y);
@@ -505,6 +532,8 @@ INSStaggeredPPMConvectiveOperator::apply(
 
     // Deallocate the operator (if necessary).
     if (deallocate_at_completion) deallocateOperatorState();
+
+    t_apply->stop();
     return;
 }// apply
 
@@ -513,6 +542,8 @@ INSStaggeredPPMConvectiveOperator::initializeOperatorState(
     const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out)
 {
+    t_initialize_operator_state->start();
+
     if (d_is_initialized) deallocateOperatorState();
 
     // Get the hierarchy configuration.
@@ -550,6 +581,8 @@ INSStaggeredPPMConvectiveOperator::initializeOperatorState(
         }
     }
     d_is_initialized = true;
+
+    t_initialize_operator_state->stop();
     return;
 }// initializeOperatorState
 
@@ -557,6 +590,8 @@ void
 INSStaggeredPPMConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
+
+    t_deallocate_operator_state->start();
 
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -579,6 +614,8 @@ INSStaggeredPPMConvectiveOperator::deallocateOperatorState()
     d_refine_scheds.clear();
 
     d_is_initialized = false;
+
+    t_deallocate_operator_state->stop();
     return;
 }// deallocateOperatorState
 
