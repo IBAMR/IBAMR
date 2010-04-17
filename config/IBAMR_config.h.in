@@ -26,14 +26,44 @@
 /* Define if you have the blitz library. */
 #undef HAVE_LIBBLITZ
 
+/* Define if you have the exodusii library. */
+#undef HAVE_LIBEXODUSII
+
+/* Define if you have the gmv library. */
+#undef HAVE_LIBGMV
+
+/* Define if you have the gzstream library. */
+#undef HAVE_LIBGZSTREAM
+
 /* Define if you have the hdf5 library. */
 #undef HAVE_LIBHDF5
 
 /* Define if you have the hdf5_hl library. */
 #undef HAVE_LIBHDF5_HL
 
+/* Define if you have the hilbert library. */
+#undef HAVE_LIBHILBERT
+
 /* Define if you have the HYPRE library. */
 #undef HAVE_LIBHYPRE
+
+/* Define if you have the laspack library. */
+#undef HAVE_LIBLASPACK
+
+/* Define if you have the mesh library. */
+#undef HAVE_LIBMESH
+
+/* Define if you have the metis library. */
+#undef HAVE_LIBMETIS
+
+/* Define if you have the nemesis library. */
+#undef HAVE_LIBNEMESIS
+
+/* Define if you have the netcdf library. */
+#undef HAVE_LIBNETCDF
+
+/* Define if you have the parmetis library. */
+#undef HAVE_LIBPARMETIS
 
 /* Define if you have the petsc library. */
 #undef HAVE_LIBPETSC
@@ -113,11 +143,23 @@
 /* Define if you have the SAMRAI3d_xfer library. */
 #undef HAVE_LIBSAMRAI3D_XFER
 
+/* Define if you have the sfcurves library. */
+#undef HAVE_LIBSFCURVES
+
 /* Define if you have the silo library. */
 #undef HAVE_LIBSILO
 
 /* Define if you have the siloh5 library. */
 #undef HAVE_LIBSILOH5
+
+/* Define if you have the tetgen library. */
+#undef HAVE_LIBTETGEN
+
+/* Define if you have the triangle library. */
+#undef HAVE_LIBTRIANGLE
+
+/* Define if you have the vtk library. */
+#undef HAVE_LIBVTK
 
 /* Define if you have the X11 library. */
 #undef HAVE_LIBX11

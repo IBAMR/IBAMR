@@ -165,266 +165,6 @@ fi
 # Checks for libraries.
 ###########################################################################
 
-# Required external libraries.
-
-# Check for BLAS and LAPACK libraries.
-echo
-echo "========================================"
-echo "Configuring required package BLAS/LAPACK"
-echo "========================================"
-ACX_BLAS(,)
-ACX_LAPACK(,)
-LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
-
-# Check for hdf5 library and configure hdf5 options.
-echo
-echo "================================="
-echo "Configuring required package hdf5"
-echo "================================="
-AC_ARG_WITH([hdf5],
-  AS_HELP_STRING(--with-hdf5=PATH,location of required hdf5 installation @<:@default=/usr/local/sfw/hdf5/current@:>@),
-  [if test ! -d "$withval" ; then
-     AC_MSG_ERROR([you must specify an existing directory when using --with-hdf5=PATH])
-   fi
-   HDF5_DIR=$withval],
-  [HDF5_DIR=/usr/local/sfw/hdf5/current])
-
-if test -d "${HDF5_DIR}/lib" ; then
-  LDFLAGS="-L${HDF5_DIR}/lib $LDFLAGS"
-fi
-if test -d "${HDF5_DIR}/include" ; then
-  CPPFLAGS="-I${HDF5_DIR}/include $CPPFLAGS"
-fi
-
-AC_CHECK_HEADER([hdf5.h],,AC_MSG_ERROR([could not find header file hdf5.h]))
-AC_CHECK_HEADER([H5LT.h],,AC_MSG_ERROR([could not find header file H5LT.h]))
-
-AC_LIB_HAVE_LINKFLAGS([hdf5],[z,sz])
-LIBS="$LIBHDF5 $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([hdf5_hl])
-LIBS="$LIBHDF5_HL $LIBS"
-
-# Check for hypre library and configure hypre options.
-echo
-echo "=================================="
-echo "Configuring required package hypre"
-echo "=================================="
-AC_ARG_WITH([hypre],
-  AS_HELP_STRING(--with-hypre=PATH,location of required hypre installation @<:@default=/usr/local/sfw/hypre/current@:>@),
-  [if test ! -d "$withval" ; then
-     AC_MSG_ERROR([you must specify an existing directory when using --with-hypre=PATH])
-   fi
-   HYPRE_DIR=$withval],
-  [HYPRE_DIR=/usr/local/sfw/hypre/current])
-
-if test -d "${HYPRE_DIR}/lib" ; then
-  LDFLAGS="-L${HYPRE_DIR}/lib $LDFLAGS"
-fi
-if test -d "${HYPRE_DIR}/include" ; then
-  CPPFLAGS="-I${HYPRE_DIR}/include $CPPFLAGS"
-fi
-
-AC_CHECK_HEADER([HYPRE.h],,AC_MSG_ERROR([could not find header file HYPRE.h]))
-
-AC_LIB_HAVE_LINKFLAGS([HYPRE])
-LIBS="$LIBHYPRE $LIBS"
-
-# Check for PETSc library and configure PETSc options.
-echo
-echo "=================================="
-echo "Configuring required package PETSc"
-echo "=================================="
-AC_ARG_VAR(PETSC_DIR,[the location of the PETSc installation that is to be used.  Note that multiple versions of PETSc may be installed within the same filesystem, with each version corresponding to a different value of PETSC_DIR.])
-AC_ARG_VAR(PETSC_ARCH,[the PETSc configuration that is to be used, corresponding to the configuration located in ${PETSC_DIR}/${PETSC_ARCH}.  Note that multiple configurations of PETSc can be installed for a particular version of the PETSc library.  Each configuration will correspond to a different value of PETSC_ARCH.])
-AC_ARG_WITH([petsc],
-  AS_HELP_STRING(--with-petsc=PATH,location of required PETSc installation @<:@default=PETSC_DIR@:>@),
-  [if test ! -d "$withval" ; then
-     AC_MSG_ERROR([you must specify an existing directory when using --with-petsc=PATH])
-   fi
-   PETSC_DIR=$withval],)
-AC_ARG_WITH([petsc-arch],
-  AS_HELP_STRING(--with-petsc-arch=ARCH,PETSc architecture @<:@default=PETSC_ARCH@:>@),
-  [PETSC_ARCH=$withval],)
-AC_SUBST(PETSC_DIR,$PETSC_DIR)
-AC_SUBST(PETSC_ARCH,$PETSC_ARCH)
-
-echo "using PETSc architecture = ${PETSC_ARCH}"
-echo "using PETSc root    directory = ${PETSC_DIR}"
-echo "using PETSc lib     directory = ${PETSC_DIR}/${PETSC_ARCH}/lib"
-echo "using PETSc include directory = ${PETSC_DIR}/include, ${PETSC_DIR}/${PETSC_ARCH}/include"
-
-if test -d "${PETSC_DIR}/${PETSC_ARCH}/lib" ; then
-  LDFLAGS="-L${PETSC_DIR}/${PETSC_ARCH}/lib $LDFLAGS"
-fi
-if test -d "${PETSC_DIR}/${PETSC_ARCH}/include" ; then
-  CPPFLAGS="-I${PETSC_DIR}/${PETSC_ARCH}/include $CPPFLAGS"
-fi
-if test -d "${PETSC_DIR}/include" ; then
-  CPPFLAGS="-I${PETSC_DIR}/include $CPPFLAGS"
-fi
-
-AC_CHECK_HEADER([petsc.h],,AC_MSG_ERROR([could not find header file petsc.h]))
-
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <petsc.h>
-]], [[
-#ifdef PETSC_HAVE_X11
-#if (PETSC_HAVE_X11 == 1)
-asdf
-#endif
-#endif
-]])],[PETSC_HAS_X11=no],[PETSC_HAS_X11=yes])
-
-if test "$PETSC_HAS_X11" == "yes"; then
-  echo "NOTE: PETSc appears to have been configured with X11 support enabled"
-  echo "looking for libX11"
-  LDFLAGS="-L/usr/X11/lib $LDFLAGS"
-  AC_LIB_HAVE_LINKFLAGS([X11])
-  if test "$HAVE_LIBX11" != "yes"; then
-    AC_MSG_ERROR([could not find working X11 library
-try modifying the value of the LDFLAGS environment variable,
-or reconfigure PETSc with the flag --with-x=0])
-  fi
-  LIBS="$LIBX11 $LIBS"
-fi
-
-AC_LIB_HAVE_LINKFLAGS([petsc])
-LIBS="$LIBPETSC $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([petscvec])
-LIBS="$LIBPETSCVEC $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([petscmat])
-LIBS="$LIBPETSCMAT $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([petscdm])
-LIBS="$LIBPETSCDM $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([petscksp])
-LIBS="$LIBPETSCKSP $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([petscsnes])
-LIBS="$LIBPETSCSNES $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([petscts])
-LIBS="$LIBPETSCTS $LIBS"
-
-# Check for SAMRAI library and configure SAMRAI options.
-echo
-echo "==================================="
-echo "Configuring required package SAMRAI"
-echo "==================================="
-AC_ARG_WITH([samrai],
-  AS_HELP_STRING(--with-samrai=PATH,location of required SAMRAI installation @<:@default=/usr/local/sfw/samrai/current@:>@),
-  [if test ! -d "$withval" ; then
-     AC_MSG_ERROR([you must specify an existing directory when using --with-samrai=PATH])
-   fi
-   SAMRAI_DIR=$withval],
-  [SAMRAI_DIR=/usr/local/sfw/samrai/current])
-
-if test -d "${SAMRAI_DIR}/lib" ; then
-  LDFLAGS="-L${SAMRAI_DIR}/lib $LDFLAGS"
-fi
-if test -d "${SAMRAI_DIR}/include" ; then
-  CPPFLAGS="-I${SAMRAI_DIR}/include $CPPFLAGS"
-fi
-
-AC_SUBST(SAMRAI_DIR,[${SAMRAI_DIR}])
-AC_SUBST(SAMRAI_FORTDIR,[${SAMRAI_DIR}/include])
-
-AC_CHECK_HEADER([SAMRAI_config.h],,AC_MSG_ERROR([could not find header file SAMRAI_config.h]))
-
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <SAMRAI_config.h>
-]], [[
-#ifdef INCLUDE_TEMPLATE_IMPLEMENTATION
-#if (INCLUDE_TEMPLATE_IMPLEMENTATION == 1)
-asdf
-#endif
-#endif
-]])],[SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION=no],[SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION=yes])
-
-if test "$SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION" == "no"; then
-  AC_MSG_ERROR([SAMRAI must be configured with implicit template instantiation enabled
-reconfigure and recompile SAMRAI with the flag --enable-implicit-template-instantiation])
-fi
-
-AC_LIB_HAVE_LINKFLAGS([SAMRAI])
-LIBS="$LIBSAMRAI $LIBS"
-
-AC_ARG_ENABLE([samrai-2d],
-  AS_HELP_STRING(--enable-samrai-2d,enable optional support for two-dimensional SAMRAI objects @<:@default=yes@:>@),
-  [SAMRAI2D=$enablevar], [SAMRAI2D=yes])
-AM_CONDITIONAL([SAMRAI2D_ENABLED],[test "$SAMRAI2D" == "yes"])
-
-if test "$SAMRAI2D" == "yes"; then
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_hier])
-  LIBS="$LIBSAMRAI2D_HIER $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_xfer])
-  LIBS="$LIBSAMRAI2D_XFER $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_pdat_std])
-  LIBS="$LIBSAMRAI2D_PDAT_STD $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_math_std])
-  LIBS="$LIBSAMRAI2D_MATH_STD $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_mesh])
-  LIBS="$LIBSAMRAI2D_MESH $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_geom])
-  LIBS="$LIBSAMRAI2D_GEOM $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_solv])
-  LIBS="$LIBSAMRAI2D_SOLV $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_algs])
-  LIBS="$LIBSAMRAI2D_ALGS $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI2d_appu])
-  LIBS="$LIBSAMRAI2D_APPU $LIBS"
-else
-  AC_MSG_WARN([configuring without the two-dimensional SAMRAI library])
-fi
-
-AC_ARG_ENABLE([samrai-3d],
-  AS_HELP_STRING(--enable-samrai-3d,enable optional support for three-dimensional SAMRAI objects @<:@default=yes@:>@),
-  [SAMRAI3D=$enablevar], [SAMRAI3D=yes])
-AM_CONDITIONAL([SAMRAI3D_ENABLED],[test "$SAMRAI3D" == "yes"])
-
-if test "$SAMRAI3D" == "yes"; then
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_hier])
-  LIBS="$LIBSAMRAI3D_HIER $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_xfer])
-  LIBS="$LIBSAMRAI3D_XFER $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_pdat_std])
-  LIBS="$LIBSAMRAI3D_PDAT_STD $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_math_std])
-  LIBS="$LIBSAMRAI3D_MATH_STD $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_mesh])
-  LIBS="$LIBSAMRAI3D_MESH $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_geom])
-  LIBS="$LIBSAMRAI3D_GEOM $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_solv])
-  LIBS="$LIBSAMRAI3D_SOLV $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_algs])
-  LIBS="$LIBSAMRAI3D_ALGS $LIBS"
-
-  AC_LIB_HAVE_LINKFLAGS([SAMRAI3d_appu])
-  LIBS="$LIBSAMRAI3D_APPU $LIBS"
-else
-  AC_MSG_WARN([configuring without the three-dimensional SAMRAI library])
-fi
-
 # Optional external libraries.
 
 # Check for Blitz++ library and configure Blitz++ options.
@@ -453,17 +193,7 @@ if test "$BLITZ_ENABLED" == "yes"; then
   echo "===================================="
   echo "Configuring optional package Blitz++"
   echo "===================================="
-
-  if test -d "${BLITZ_DIR}/lib" ; then
-    LDFLAGS="-L${BLITZ_DIR}/lib $LDFLAGS"
-  fi
-  if test -d "${BLITZ_DIR}/include" ; then
-   CPPFLAGS="-I${BLITZ_DIR}/include $CPPFLAGS"
-  fi
-
-  AC_CHECK_HEADER([blitz/blitz.h],,AC_MSG_WARN([could not find header file blitz/blitz.h]))
-  AC_LIB_HAVE_LINKFLAGS([blitz])
-  LIBS="$LIBBLITZ $LIBS"
+  CONFIGURE_BLITZ
 else
   echo
   echo "===================================="
@@ -497,33 +227,130 @@ if test "$SILO_ENABLED" == "yes"; then
   echo "================================="
   echo "Configuring optional package Silo"
   echo "================================="
-
-  if test -d "${SILO_DIR}/lib" ; then
-    LDFLAGS="-L${SILO_DIR}/lib $LDFLAGS"
-  fi
-  if test -d "${SILO_DIR}/include" ; then
-    CPPFLAGS="-I${SILO_DIR}/include $CPPFLAGS"
-  fi
-
-  AC_CHECK_HEADER([silo.h],,AC_MSG_WARN([could not find header file silo.h]))
-  AC_LIB_HAVE_LINKFLAGS([silo])
-  if test "$HAVE_LIBSILO" == "yes" ; then
-    LIBS="$LIBSILO $LIBS"
-  else
-    AC_MSG_WARN([could not find working libsilo; checking for libsiloh5])
-    AC_LIB_HAVE_LINKFLAGS([siloh5])
-    if test "$HAVE_LIBSILOH5" == "yes" ; then
-      LIBS="$LIBSILOH5 $LIBS"
-    else
-      AC_MSG_WARN([Silo support is enabled, but could not find working libsilo or libsiloh5])
-    fi
-  fi
+  CONFIGURE_SILO
 else
   echo
   echo "================================="
   echo "Optional package Silo is DISABLED"
   echo "================================="
 fi
+
+# Check for libMesh library and configure libMesh options.
+AC_ARG_ENABLE([libmesh],
+  AS_HELP_STRING(--enable-libmesh,enable support for the optional libMesh library @<:@default=no@:>@),
+  [LIBMESH_ENABLED=$enableval], [LIBMESH_ENABLED=no])
+if test "$LIBMESH_ENABLED" == "" ; then
+  LIBMESH_ENABLED=no
+fi
+
+AC_ARG_WITH([libmesh],
+  AS_HELP_STRING([--with-libmesh=PATH],[location of optional libMesh installation @<:@default=/usr/local/sfw/libmesh/current@:>@]),
+  [if test "$LIBMESH_ENABLED" == "no" ; then
+     AC_MSG_WARN([--with-libmesh is specified, but support for libMesh is DISABLED])
+     LIBMESH_DIR=NONE
+   else
+     if test ! -d "$withval" ; then
+       AC_MSG_ERROR([you must specify an existing directory when using --with-libmesh=PATH])
+     fi
+     LIBMESH_DIR=$withval
+   fi],
+  [LIBMESH_DIR=/usr/local/sfw/libmesh/current])
+
+AC_ARG_WITH([libmesh-compile-mode],
+  AS_HELP_STRING([--with-libmesh-compile-mode=METHOD],[libMesh compile mode options include opt, dbg @<:@default=dbg@:>@]),
+  [if test "$LIBMESH_ENABLED" == "no" ; then
+     AC_MSG_WARN([--with-libmesh-compile-mode is specified, but support for libMesh is DISABLED])
+     LIBMESH_COMPILE_MODE=NONE
+   else
+     LIBMESH_COMPILE_MODE=$withval
+   fi],
+  [LIBMESH_COMPILE_MODE=dbg])
+
+if test "$LIBMESH_ENABLED" == "yes"; then
+  echo
+  echo "===================================="
+  echo "Configuring optional package libMesh"
+  echo "===================================="
+  CONFIGURE_LIBMESH
+else
+  echo
+  echo "===================================="
+  echo "Optional package libMesh is DISABLED"
+  echo "===================================="
+fi
+
+# Required external libraries.
+
+# Check for BLAS and LAPACK libraries.
+echo
+echo "========================================"
+echo "Configuring required package BLAS/LAPACK"
+echo "========================================"
+ACX_BLAS(,)
+ACX_LAPACK(,)
+LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FCLIBS"
+
+# Check for hdf5 library and configure hdf5 options.
+echo
+echo "================================="
+echo "Configuring required package hdf5"
+echo "================================="
+AC_ARG_WITH([hdf5],
+  AS_HELP_STRING(--with-hdf5=PATH,location of required hdf5 installation @<:@default=/usr/local/sfw/hdf5/current@:>@),
+  [if test ! -d "$withval" ; then
+     AC_MSG_ERROR([you must specify an existing directory when using --with-hdf5=PATH])
+   fi
+   HDF5_DIR=$withval],
+  [HDF5_DIR=/usr/local/sfw/hdf5/current])
+CONFIGURE_HDF5
+
+# Check for hypre library and configure hypre options.
+echo
+echo "=================================="
+echo "Configuring required package hypre"
+echo "=================================="
+AC_ARG_WITH([hypre],
+  AS_HELP_STRING(--with-hypre=PATH,location of required hypre installation @<:@default=/usr/local/sfw/hypre/current@:>@),
+  [if test ! -d "$withval" ; then
+     AC_MSG_ERROR([you must specify an existing directory when using --with-hypre=PATH])
+   fi
+   HYPRE_DIR=$withval],
+  [HYPRE_DIR=/usr/local/sfw/hypre/current])
+CONFIGURE_HYPRE
+
+# Check for PETSc library and configure PETSc options.
+echo
+echo "=================================="
+echo "Configuring required package PETSc"
+echo "=================================="
+AC_ARG_VAR(PETSC_DIR,[the location of the PETSc installation that is to be used.  Note that multiple versions of PETSc may be installed within the same filesystem, with each version corresponding to a different value of PETSC_DIR.])
+AC_ARG_VAR(PETSC_ARCH,[the PETSc configuration that is to be used, corresponding to the configuration located in ${PETSC_DIR}/${PETSC_ARCH}.  Note that multiple configurations of PETSc can be installed for a particular version of the PETSc library.  Each configuration will correspond to a different value of PETSC_ARCH.])
+AC_ARG_WITH([petsc],
+  AS_HELP_STRING(--with-petsc=PATH,location of required PETSc installation @<:@default=PETSC_DIR@:>@),
+  [if test ! -d "$withval" ; then
+     AC_MSG_ERROR([you must specify an existing directory when using --with-petsc=PATH])
+   fi
+   PETSC_DIR=$withval],)
+AC_ARG_WITH([petsc-arch],
+  AS_HELP_STRING(--with-petsc-arch=ARCH,PETSc architecture @<:@default=PETSC_ARCH@:>@),
+  [PETSC_ARCH=$withval],)
+AC_SUBST(PETSC_DIR,$PETSC_DIR)
+AC_SUBST(PETSC_ARCH,$PETSC_ARCH)
+CONFIGURE_PETSC
+
+# Check for SAMRAI library and configure SAMRAI options.
+echo
+echo "==================================="
+echo "Configuring required package SAMRAI"
+echo "==================================="
+AC_ARG_WITH([samrai],
+  AS_HELP_STRING(--with-samrai=PATH,location of required SAMRAI installation @<:@default=/usr/local/sfw/samrai/current@:>@),
+  [if test ! -d "$withval" ; then
+     AC_MSG_ERROR([you must specify an existing directory when using --with-samrai=PATH])
+   fi
+   SAMRAI_DIR=$withval],
+  [SAMRAI_DIR=/usr/local/sfw/samrai/current])
+CONFIGURE_SAMRAI
 
 ###########################################################################
 # Output files.
