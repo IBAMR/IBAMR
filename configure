@@ -725,10 +725,14 @@ DOXYGEN_PATH
 DOT
 HAVE_DOT
 DOT_PATH
+BLITZ_ENABLED_TRUE
+BLITZ_ENABLED_FALSE
 HAVE_LIBBLITZ
 LIBBLITZ
 LTLIBBLITZ
 LIBBLITZ_PREFIX
+SILO_ENABLED_TRUE
+SILO_ENABLED_FALSE
 HAVE_LIBSILO
 LIBSILO
 LTLIBSILO
@@ -737,6 +741,8 @@ HAVE_LIBSILOH5
 LIBSILOH5
 LTLIBSILOH5
 LIBSILOH5_PREFIX
+LIBMESH_ENABLED_TRUE
+LIBMESH_ENABLED_FALSE
 HAVE_LIBLASPACK
 LIBLASPACK
 LTLIBLASPACK
@@ -8112,6 +8118,14 @@ else
 fi
 
 
+ if test "$BLITZ_ENABLED" == "yes"; then
+  BLITZ_ENABLED_TRUE=
+  BLITZ_ENABLED_FALSE='#'
+else
+  BLITZ_ENABLED_TRUE='#'
+  BLITZ_ENABLED_FALSE=
+fi
+
 if test "$BLITZ_ENABLED" == "yes"; then
   echo
   echo "===================================="
@@ -8918,6 +8932,14 @@ else
   SILO_DIR=/usr/local/sfw/silo/current
 fi
 
+
+ if test "$SILO_ENABLED" == "yes"; then
+  SILO_ENABLED_TRUE=
+  SILO_ENABLED_FALSE='#'
+else
+  SILO_ENABLED_TRUE='#'
+  SILO_ENABLED_FALSE=
+fi
 
 if test "$SILO_ENABLED" == "yes"; then
   echo
@@ -10236,6 +10258,14 @@ else
   LIBMESH_COMPILE_MODE=dbg
 fi
 
+
+ if test "$LIBMESH_ENABLED" == "yes"; then
+  LIBMESH_ENABLED_TRUE=
+  LIBMESH_ENABLED_FALSE='#'
+else
+  LIBMESH_ENABLED_TRUE='#'
+  LIBMESH_ENABLED_FALSE=
+fi
 
 if test "$LIBMESH_ENABLED" == "yes"; then
   echo
@@ -37847,6 +37877,27 @@ echo "$as_me: error: conditional \"am__fastdepCXX\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
+if test -z "${BLITZ_ENABLED_TRUE}" && test -z "${BLITZ_ENABLED_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"BLITZ_ENABLED\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"BLITZ_ENABLED\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${SILO_ENABLED_TRUE}" && test -z "${SILO_ENABLED_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"SILO_ENABLED\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"SILO_ENABLED\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${LIBMESH_ENABLED_TRUE}" && test -z "${LIBMESH_ENABLED_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"LIBMESH_ENABLED\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"LIBMESH_ENABLED\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
 if test -z "${SAMRAI2D_ENABLED_TRUE}" && test -z "${SAMRAI2D_ENABLED_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"SAMRAI2D_ENABLED\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
@@ -38591,10 +38642,14 @@ DOXYGEN_PATH!$DOXYGEN_PATH$ac_delim
 DOT!$DOT$ac_delim
 HAVE_DOT!$HAVE_DOT$ac_delim
 DOT_PATH!$DOT_PATH$ac_delim
+BLITZ_ENABLED_TRUE!$BLITZ_ENABLED_TRUE$ac_delim
+BLITZ_ENABLED_FALSE!$BLITZ_ENABLED_FALSE$ac_delim
 HAVE_LIBBLITZ!$HAVE_LIBBLITZ$ac_delim
 LIBBLITZ!$LIBBLITZ$ac_delim
 LTLIBBLITZ!$LTLIBBLITZ$ac_delim
 LIBBLITZ_PREFIX!$LIBBLITZ_PREFIX$ac_delim
+SILO_ENABLED_TRUE!$SILO_ENABLED_TRUE$ac_delim
+SILO_ENABLED_FALSE!$SILO_ENABLED_FALSE$ac_delim
 HAVE_LIBSILO!$HAVE_LIBSILO$ac_delim
 LIBSILO!$LIBSILO$ac_delim
 LTLIBSILO!$LTLIBSILO$ac_delim
@@ -38603,6 +38658,8 @@ HAVE_LIBSILOH5!$HAVE_LIBSILOH5$ac_delim
 LIBSILOH5!$LIBSILOH5$ac_delim
 LTLIBSILOH5!$LTLIBSILOH5$ac_delim
 LIBSILOH5_PREFIX!$LIBSILOH5_PREFIX$ac_delim
+LIBMESH_ENABLED_TRUE!$LIBMESH_ENABLED_TRUE$ac_delim
+LIBMESH_ENABLED_FALSE!$LIBMESH_ENABLED_FALSE$ac_delim
 HAVE_LIBLASPACK!$HAVE_LIBLASPACK$ac_delim
 LIBLASPACK!$LIBLASPACK$ac_delim
 LTLIBLASPACK!$LTLIBLASPACK$ac_delim
@@ -38668,12 +38725,6 @@ LIBHDF5_PREFIX!$LIBHDF5_PREFIX$ac_delim
 HAVE_LIBHDF5_HL!$HAVE_LIBHDF5_HL$ac_delim
 LIBHDF5_HL!$LIBHDF5_HL$ac_delim
 LTLIBHDF5_HL!$LTLIBHDF5_HL$ac_delim
-LIBHDF5_HL_PREFIX!$LIBHDF5_HL_PREFIX$ac_delim
-HAVE_LIBHYPRE!$HAVE_LIBHYPRE$ac_delim
-LIBHYPRE!$LIBHYPRE$ac_delim
-LTLIBHYPRE!$LTLIBHYPRE$ac_delim
-LIBHYPRE_PREFIX!$LIBHYPRE_PREFIX$ac_delim
-PETSC_DIR!$PETSC_DIR$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -38715,6 +38766,12 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+LIBHDF5_HL_PREFIX!$LIBHDF5_HL_PREFIX$ac_delim
+HAVE_LIBHYPRE!$HAVE_LIBHYPRE$ac_delim
+LIBHYPRE!$LIBHYPRE$ac_delim
+LTLIBHYPRE!$LTLIBHYPRE$ac_delim
+LIBHYPRE_PREFIX!$LIBHYPRE_PREFIX$ac_delim
+PETSC_DIR!$PETSC_DIR$ac_delim
 PETSC_ARCH!$PETSC_ARCH$ac_delim
 HAVE_LIBX11!$HAVE_LIBX11$ac_delim
 LIBX11!$LIBX11$ac_delim
@@ -38806,12 +38863,6 @@ HAVE_LIBSAMRAI3D_PDAT_STD!$HAVE_LIBSAMRAI3D_PDAT_STD$ac_delim
 LIBSAMRAI3D_PDAT_STD!$LIBSAMRAI3D_PDAT_STD$ac_delim
 LTLIBSAMRAI3D_PDAT_STD!$LTLIBSAMRAI3D_PDAT_STD$ac_delim
 LIBSAMRAI3D_PDAT_STD_PREFIX!$LIBSAMRAI3D_PDAT_STD_PREFIX$ac_delim
-HAVE_LIBSAMRAI3D_MATH_STD!$HAVE_LIBSAMRAI3D_MATH_STD$ac_delim
-LIBSAMRAI3D_MATH_STD!$LIBSAMRAI3D_MATH_STD$ac_delim
-LTLIBSAMRAI3D_MATH_STD!$LTLIBSAMRAI3D_MATH_STD$ac_delim
-LIBSAMRAI3D_MATH_STD_PREFIX!$LIBSAMRAI3D_MATH_STD_PREFIX$ac_delim
-HAVE_LIBSAMRAI3D_MESH!$HAVE_LIBSAMRAI3D_MESH$ac_delim
-LIBSAMRAI3D_MESH!$LIBSAMRAI3D_MESH$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -38853,6 +38904,12 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+HAVE_LIBSAMRAI3D_MATH_STD!$HAVE_LIBSAMRAI3D_MATH_STD$ac_delim
+LIBSAMRAI3D_MATH_STD!$LIBSAMRAI3D_MATH_STD$ac_delim
+LTLIBSAMRAI3D_MATH_STD!$LTLIBSAMRAI3D_MATH_STD$ac_delim
+LIBSAMRAI3D_MATH_STD_PREFIX!$LIBSAMRAI3D_MATH_STD_PREFIX$ac_delim
+HAVE_LIBSAMRAI3D_MESH!$HAVE_LIBSAMRAI3D_MESH$ac_delim
+LIBSAMRAI3D_MESH!$LIBSAMRAI3D_MESH$ac_delim
 LTLIBSAMRAI3D_MESH!$LTLIBSAMRAI3D_MESH$ac_delim
 LIBSAMRAI3D_MESH_PREFIX!$LIBSAMRAI3D_MESH_PREFIX$ac_delim
 HAVE_LIBSAMRAI3D_GEOM!$HAVE_LIBSAMRAI3D_GEOM$ac_delim
@@ -38876,7 +38933,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 21; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 27; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

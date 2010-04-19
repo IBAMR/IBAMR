@@ -188,6 +188,7 @@ AC_ARG_WITH([blitz],
    fi],
   [BLITZ_DIR=/usr/local/sfw/blitz/current])
 
+AM_CONDITIONAL([BLITZ_ENABLED],[test "$BLITZ_ENABLED" == "yes"])
 if test "$BLITZ_ENABLED" == "yes"; then
   echo
   echo "===================================="
@@ -222,6 +223,7 @@ AC_ARG_WITH([silo],
    fi],
   [SILO_DIR=/usr/local/sfw/silo/current])
 
+AM_CONDITIONAL([SILO_ENABLED],[test "$SILO_ENABLED" == "yes"])
 if test "$SILO_ENABLED" == "yes"; then
   echo
   echo "================================="
@@ -266,6 +268,7 @@ AC_ARG_WITH([libmesh-compile-mode],
    fi],
   [LIBMESH_COMPILE_MODE=dbg])
 
+AM_CONDITIONAL([LIBMESH_ENABLED],[test "$LIBMESH_ENABLED" == "yes"])
 if test "$LIBMESH_ENABLED" == "yes"; then
   echo
   echo "===================================="
