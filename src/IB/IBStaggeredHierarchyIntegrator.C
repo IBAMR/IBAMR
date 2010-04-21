@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <16.Mar.2010 19:38:07 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <21.Apr.2010 00:19:33 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -1853,7 +1853,7 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     // possible.
     d_lag_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
-   // Reset the Hierarchy data operations for the new hierarchy configuration.
+    // Reset the Hierarchy data operations for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_sc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_cc_data_ops->resetLevels(0, finest_hier_level);
