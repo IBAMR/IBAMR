@@ -1576,8 +1576,8 @@ Optional Packages:
   --with-libmesh=PATH     location of optional libMesh installation
                           [default=/usr/local/sfw/libmesh/current]
   --with-libmesh-compile-mode=METHOD
-                          libMesh compile mode options include opt, dbg
-                          [default=dbg]
+                          libMesh compile mode options include opt, devel,
+                          dbg, prof, oprof [default=dbg]
   --with-blas=<lib>       use BLAS library <lib>
   --with-lapack=<lib>     use LAPACK library <lib>
   --with-hdf5=PATH        location of required hdf5 installation
@@ -10279,6 +10279,22 @@ LIBMESH_LIBDIR=${LIBMESH_DIR}/lib/${LIBMESH_HOSTTYPE}_${LIBMESH_COMPILE_MODE}
 LIBMESH_CONTRIBDIR=${LIBMESH_DIR}/contrib
 LIBMESH_CONTRIB_LIBDIR=${LIBMESH_DIR}/contrib/lib/${LIBMESH_HOSTTYPE}_${LIBMESH_COMPILE_MODE}
 
+if test "${LIBMESH_COMPILE_MODE}" == "opt" ; then
+  CXXFLAGS="${CXXFLAGS} `grep -A1 opt-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+fi
+if test "${LIBMESH_COMPILE_MODE}" == "devel" ; then
+  CXXFLAGS="${CXXFLAGS} `grep -A1 devel-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+fi
+if test "${LIBMESH_COMPILE_MODE}" == "dbg" ; then
+  CXXFLAGS="${CXXFLAGS} `grep -A1 debug-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+fi
+if test "${LIBMESH_COMPILE_MODE}" == "prof" ; then
+  CXXFLAGS="${CXXFLAGS} `grep -A1 prof-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+fi
+if test "${LIBMESH_COMPILE_MODE}" == "oprof" ; then
+  CXXFLAGS="${CXXFLAGS} `grep -A1 oprof-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+fi
+
 LIBMESH_PETSC_ARCH=`grep "PETSC_ARCH \t*.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
 if test "${PETSC_ARCH}" != "${LIBMESH_PETSC_ARCH}"; then
   { echo "$as_me:$LINENO: WARNING: using libMesh PETSC_ARCH=${LIBMESH_PETSC_ARCH} instead of PETSC_ARCH=${PETSC_ARCH}" >&5
@@ -10309,7 +10325,7 @@ fi
 
 for subdir in base enums error_estimation fe geom mesh numerics parallel partitioning quadrature solvers systems utils; do
   if test -d "${LIBMESH_DIR}/include/${subdir}" ; then
-    CPPFLAGS="-I${LIBMESH_DIR}/include/${subdir} $CPPFLAGS"
+    CPPFLAGS="-I${LIBMESH_DIR}/include/${subdir} ${CPPFLAGS}"
   else
     { echo "$as_me:$LINENO: WARNING: libMesh support is enabled, but could not find expected libMesh include directory ${LIBMESH_DIR}/include/${subdir}" >&5
 echo "$as_me: WARNING: libMesh support is enabled, but could not find expected libMesh include directory ${LIBMESH_DIR}/include/${subdir}" >&2;}
@@ -10319,6 +10335,7 @@ done
 contrib_lib_enabled=`grep "enable-laspack.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
 echo "checking whether libMesh contrib package laspack is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/laspack ${CPPFLAGS}"
 
 
 
@@ -10879,6 +10896,7 @@ fi
 contrib_lib_enabled=`grep "enable-metis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
 echo "checking whether libMesh contrib package metis is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/metis/Lib ${CPPFLAGS}"
 
 
 
@@ -11439,6 +11457,7 @@ fi
 contrib_lib_enabled=`grep "enable-parmetis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
 echo "checking whether libMesh contrib package parmetis is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/parmetis/Lib ${CPPFLAGS}"
 
 
 
@@ -11999,6 +12018,7 @@ fi
 contrib_lib_enabled=`grep "enable-sfcurves.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
 echo "checking whether libMesh contrib package sfcurves is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/sfcurves ${CPPFLAGS}"
 
 
 
@@ -12559,6 +12579,7 @@ fi
 contrib_lib_enabled=`grep "enable-gzstream.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
 echo "checking whether libMesh contrib package gzstream is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/gzstream ${CPPFLAGS}"
 
 
 
@@ -13119,6 +13140,7 @@ fi
 contrib_lib_enabled=`grep "enable-tetgen.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
 echo "checking whether libMesh contrib package tetgen is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/tetgen ${CPPFLAGS}"
 
 
 
@@ -13679,6 +13701,7 @@ fi
 contrib_lib_enabled=`grep "enable-triangle.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
 echo "checking whether libMesh contrib package triangle is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/triangle ${CPPFLAGS}"
 
 
 
@@ -14239,6 +14262,7 @@ fi
 contrib_lib_enabled=`grep "enable-gmv.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
 echo "checking whether libMesh contrib package gmv is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/gmv ${CPPFLAGS}"
 
 
 
@@ -15359,6 +15383,7 @@ fi
 contrib_lib_enabled=`grep "enable-exodus.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
 echo "checking whether libMesh contrib package exodus is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/exodusii/Lib/include ${CPPFLAGS}"
 
 
 
@@ -15919,6 +15944,7 @@ fi
 contrib_lib_enabled=`grep "enable-netcdf.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
 echo "checking whether libMesh contrib package netcdf is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/netcdf/Lib ${CPPFLAGS}"
 
 
 
@@ -16479,6 +16505,7 @@ fi
 contrib_lib_enabled=`grep "enable-nemesis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
 echo "checking whether libMesh contrib package nemesis is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/nemesis/Lib ${CPPFLAGS}"
 
 
 

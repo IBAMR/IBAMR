@@ -259,7 +259,7 @@ AC_ARG_WITH([libmesh],
   [LIBMESH_DIR=/usr/local/sfw/libmesh/current])
 
 AC_ARG_WITH([libmesh-compile-mode],
-  AS_HELP_STRING([--with-libmesh-compile-mode=METHOD],[libMesh compile mode options include opt, dbg @<:@default=dbg@:>@]),
+  AS_HELP_STRING([--with-libmesh-compile-mode=METHOD],[libMesh compile mode options include opt, devel, dbg, prof, oprof @<:@default=dbg@:>@]),
   [if test "$LIBMESH_ENABLED" == "no" ; then
      AC_MSG_WARN([--with-libmesh-compile-mode is specified, but support for libMesh is DISABLED])
      LIBMESH_COMPILE_MODE=NONE
