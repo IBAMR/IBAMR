@@ -416,6 +416,7 @@ EXTRA_DIST = $(top_srcdir)/autogen.sh $(top_srcdir)/doc/Doxyfile.in \
 	$(top_srcdir)/include/ibamr/IBDataPostProcessor.h \
 	$(top_srcdir)/include/ibamr/IBEulerianForceFunction.h \
 	$(top_srcdir)/include/ibamr/IBEulerianSourceFunction.h \
+	$(top_srcdir)/include/ibamr/IBFEHierarchyIntegrator.h \
 	$(top_srcdir)/include/ibamr/IBHDF5Initializer.h \
 	$(top_srcdir)/include/ibamr/IBHierarchyIntegrator.h \
 	$(top_srcdir)/include/ibamr/IBImplicitHierarchyIntegrator.h \

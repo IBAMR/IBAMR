@@ -35,6 +35,7 @@ EXTRA_DIST += $(top_srcdir)/include/ibamr/IBBeamForceSpecFactory.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBDataPostProcessor.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBEulerianForceFunction.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBEulerianSourceFunction.h
+EXTRA_DIST += $(top_srcdir)/include/ibamr/IBFEHierarchyIntegrator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBHDF5Initializer.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBHierarchyIntegrator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBImplicitHierarchyIntegrator.h
