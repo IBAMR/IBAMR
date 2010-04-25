@@ -385,6 +385,7 @@ AC_CONFIG_FILES([
   examples/IBFE/Makefile
   examples/IBFE/explicit/Makefile
   examples/IBFE/explicit/ex0/Makefile
+  examples/IBFE/explicit/ex1/Makefile
   examples/adv_diff/Makefile
   examples/advect/Makefile
   examples/navier_stokes/Makefile

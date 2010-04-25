@@ -1,5 +1,5 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <24.Apr.2010 13:43:25 griffith@griffith-macbook-pro.local>
+// Last modified: <24.Apr.2010 23:16:48 griffith@griffith-macbook-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "IBFEHierarchyIntegrator.h"
@@ -26,6 +26,7 @@
 #include <ibamr/IBInstrumentationSpec.h>
 
 // IBTK INCLUDES
+#include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/libmesh_utilities.h>
 
@@ -36,6 +37,7 @@
 #include <fe.h>
 #include <explicit_system.h>
 #include <numeric_vector.h>
+#include <petsc_vector.h>
 #include <quadrature_gauss.h>
 
 // SAMRAI INCLUDES
@@ -204,6 +206,34 @@ IBFEHierarchyIntegrator::getName() const
 }// getName
 
 void
+IBFEHierarchyIntegrator::setInitialCoordinateMappingFunction(
+    Point (*coordinate_mapping_function)(const Point& s, void* ctx),
+    void* coordinate_mapping_function_ctx)
+{
+    d_coordinate_mapping_function = coordinate_mapping_function;
+    d_coordinate_mapping_function_ctx = coordinate_mapping_function_ctx;
+    return;
+}// setInitialCoordinateMappingFunction
+
+void
+IBFEHierarchyIntegrator::setPK1StressTensorFunction(
+    TensorValue<double> (*PK1_stress_function)(const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const elem, const double& time, void* ctx),
+    void* PK1_stress_function_ctx)
+{
+    d_PK1_stress_function = PK1_stress_function;
+    d_PK1_stress_function_ctx = PK1_stress_function_ctx;
+    return;
+}// setPK1StressTensorFunction
+
+void
+IBFEHierarchyIntegrator::addPeriodicBoundary(
+    const PeriodicBoundary& periodic_boundary)
+{
+    d_periodic_boundaries.push_back(periodic_boundary);
+    return;
+}// addPeriodicBoundaries
+
+void
 IBFEHierarchyIntegrator::registerVelocityInitialConditions(
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> U_init)
 {
@@ -294,6 +324,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Initialize FE system data.
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+
     ExplicitSystem& coords_system = equation_systems->add_system<ExplicitSystem>(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -301,12 +332,23 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
         os << "X_" << d;
         coords_system.add_variable(os.str(), FIRST, LAGRANGE);
     }
-    ExplicitSystem& coords_mapping_system = equation_systems->add_system<ExplicitSystem>("coordinate mapping");
+    for (std::vector<PeriodicBoundary>::const_iterator cit = d_periodic_boundaries.begin();
+         cit != d_periodic_boundaries.end(); ++cit)
+    {
+        coords_system.get_dof_map().add_periodic_boundary(*cit);
+    }
+
+    ExplicitSystem& coords_mapping_system = equation_systems->add_system<ExplicitSystem>("coordinate mapping system");
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         std::ostringstream os;
         os << "dX_" << d;
         coords_mapping_system.add_variable(os.str(), FIRST, LAGRANGE);
+    }
+    for (std::vector<PeriodicBoundary>::const_iterator cit = d_periodic_boundaries.begin();
+         cit != d_periodic_boundaries.end(); ++cit)
+    {
+        coords_mapping_system.get_dof_map().add_periodic_boundary(*cit);
     }
 
     // Initialize all variables.
@@ -338,10 +380,6 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_operator;
 
     const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getCurrentContext());
-    const int U_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getNewContext());
-    const int U_scratch_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getScratchContext());
-    const int P_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVar(), d_ins_hier_integrator->getNewContext());
-    const int P_scratch_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVar(), d_ins_hier_integrator->getScratchContext());
 
     d_ralgs["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVar(), "CONSERVATIVE_LINEAR_REFINE");
@@ -351,20 +389,11 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     d_ralgs["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVar(), "CONSERVATIVE_LINEAR_REFINE");
     d_ralgs["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_V_idx, d_V_idx, d_V_idx, refine_operator);
+    d_rstrategies["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"] = new IBTK::CartExtrapPhysBdryOp(d_V_idx, "QUADRATIC");
 
     d_calgs["U->U::C->C::CONSERVATIVE_COARSEN"] = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
     coarsen_operator = grid_geom->lookupCoarsenOperator(d_V_var, "CONSERVATIVE_COARSEN");
     d_calgs["U->U::C->C::CONSERVATIVE_COARSEN"]->registerCoarsen(U_current_idx, U_current_idx, coarsen_operator);
-
-    d_ralgs["INSTRUMENTATION_DATA_FILL"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVar(), "CONSERVATIVE_LINEAR_REFINE");
-    d_ralgs["INSTRUMENTATION_DATA_FILL"]->registerRefine(U_scratch_idx, U_new_idx, U_scratch_idx, refine_operator);
-    refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getPressureVar(), "LINEAR_REFINE");
-    d_ralgs["INSTRUMENTATION_DATA_FILL"]->registerRefine(P_scratch_idx, P_new_idx, P_scratch_idx, refine_operator);
-    SAMRAI::hier::ComponentSelector instrumentation_data_fill_bc_idxs;
-    instrumentation_data_fill_bc_idxs.setFlag(U_scratch_idx);
-    instrumentation_data_fill_bc_idxs.setFlag(P_scratch_idx);
-    d_rstrategies["INSTRUMENTATION_DATA_FILL"] = new IBTK::CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "QUADRATIC");
 
     // Set the current integration time.
     if (!SAMRAI::tbox::RestartManager::getManager()->isFromRestart())
@@ -385,10 +414,20 @@ IBFEHierarchyIntegrator::initializeHierarchy()
 {
     t_initialize_hierarchy->start();
 
-   // Initialize the data structures and state variables for the FE equation
+    // Initialize the data structures and state variables for the FE equation
     // systems.
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     equation_systems->init();
+    initializeCoordinates();
+    updateCoordinateMapping();
+
+    System& coords_system = equation_systems->get_system<System>(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
+    coords_system.assemble_before_solve = false;
+    coords_system.assemble();
+
+    System& coords_mapping_system = equation_systems->get_system<System>("coordinate mapping system");
+    coords_mapping_system.assemble_before_solve = false;
+    coords_mapping_system.assemble();
 
     // Use the INSStaggeredHierarchyIntegrator to initialize the patch
     // hierarchy.
@@ -397,6 +436,9 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     {
         dt_next = std::min(dt_next, d_dt_max);
     }
+
+    // Initialize the FE data manager.
+    d_fe_data_manager->reinitElementMappings();
 
     t_initialize_hierarchy->stop();
     return dt_next;
@@ -446,8 +488,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getCurrentContext());
     const int U_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getNewContext());
 
-    // Synchronize the Cartesian grid velocity u(n) on the patch hierarchy, then
-    // interpolate the velocity field.
+    // Synchronize the Cartesian grid velocity u(n) on the patch hierarchy.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
         d_cscheds["U->U::C->C::CONSERVATIVE_COARSEN"][ln]->coarsenData();
@@ -460,20 +501,28 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
     // Extract the FE vectors.
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    ExplicitSystem& coords_system = equation_systems->get_system<ExplicitSystem>(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
-    NumericVector<double>& X_current = *(coords_system.solution);
+    System& coords_system = equation_systems->get_system<System>(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
 
-    NumericVector<double>* X_half_ptr = d_fe_data_manager->getGhostedCoordsVector();
+    NumericVector<double>& X_current = *(coords_system.solution);
+    coords_system.get_dof_map().enforce_constraints_exactly(coords_system, &X_current);
+
+    AutoPtr<NumericVector<double> > X_new_ptr = X_current.clone();
+    NumericVector<double>& X_new = *X_new_ptr;
+
+    AutoPtr<NumericVector<double> > X_half_ptr = coords_system.current_local_solution->clone();
     NumericVector<double>& X_half = *X_half_ptr;
 
-    AutoPtr<NumericVector<double> > X_new_ptr  = X_current.clone();
-    NumericVector<double>& X_new  = *X_new_ptr;
+    AutoPtr<NumericVector<double> > G_half_ptr = X_current.clone();
+    NumericVector<double>& G_half = *G_half_ptr;
 
     AutoPtr<NumericVector<double> > U_half_ptr = X_current.clone();
     NumericVector<double>& U_half = *U_half_ptr;
 
-    AutoPtr<NumericVector<double> > G_half_ptr = X_half.clone();
-    NumericVector<double>& G_half = *G_half_ptr;
+    NumericVector<double>* X_half_IB_ghost_ptr = d_fe_data_manager->getGhostedCoordsVector();
+    NumericVector<double>& X_half_IB_ghost = *X_half_IB_ghost_ptr;
+
+    AutoPtr<NumericVector<double> > G_half_IB_ghost_ptr = X_half_IB_ghost.clone();
+    NumericVector<double>& G_half_IB_ghost = *G_half_IB_ghost_ptr;
 
     // Initialize X(n+1) to equal X(n).
     X_new = X_current;
@@ -483,19 +532,23 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     d_ins_hier_integrator->integrateHierarchy_initialize(current_time, new_time);
     for (int cycle = 0; cycle < d_num_cycles; ++cycle)
     {
+        PetscErrorCode ierr;
+
         // Set X(n+1/2) = 0.5*(X(n) + X(n+1)).
-        X_half = X_current;
-        X_half += X_new;
-        X_half.scale(0.5);
+        ierr = VecAXPBYPCZ(dynamic_cast<PetscVector<double>*>(&X_half)->vec(), 0.5, 0.5, 0.0, dynamic_cast<PetscVector<double>*>(&X_current)->vec(), dynamic_cast<PetscVector<double>*>(&X_new)->vec()); IBTK_CHKERRQ(ierr);
 
         // Compute G(n+1/2) = G(X(n+1/2)).
         computeInteriorForceDensity(G_half, X_half, current_time+0.5*dt);
 
+        // Copy data into the "IB ghosted" vectors.
+        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_half)->vec(), dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&G_half)->vec(), dynamic_cast<PetscVector<double>*>(&G_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+
         // Spread G(n+1/2) to f(n+1/2).
-//      spread(d_F_idx, G_half, X_half, d_mesh);
+        d_fe_data_manager->spread(d_F_idx, G_half_IB_ghost, X_half_IB_ghost, d_fe_data_manager->COORDINATES_SYSTEM_NAME);
         if (d_split_interior_and_bdry_forces)
         {
-            spreadBoundaryForceDensity(d_F_idx, X_half, current_time+0.5*dt);
+            spreadBoundaryForceDensity(d_F_idx, X_half_IB_ghost, current_time+0.5*dt);
         }
 
         // Solve the incompressible Navier-Stokes equations.
@@ -505,7 +558,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         d_hier_sc_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
 
         // Interpolate u(n+1/2) to U(n+1/2).
-//      interp(U_half, X_half, d_V_idx, d_mesh);
+        d_fe_data_manager->interpolate(d_V_idx, U_half, X_half_IB_ghost, d_fe_data_manager->COORDINATES_SYSTEM_NAME, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
 
         // Set X(n+1) = X(n) + dt*U(n+1/2).
         X_new = X_current;
@@ -516,6 +569,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
     // Reset X_current to equal X_new.
     X_current = X_new;
+    X_current.localize(*coords_system.current_local_solution);
+
+    // Update the coordinate mapping dX = X - s.
+    updateCoordinateMapping();
 
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -744,7 +801,10 @@ IBFEHierarchyIntegrator::initializeLevelData(
     TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    // Initialize the FE data manager.
+    d_fe_data_manager->setPatchHierarchy(hierarchy);
+    d_fe_data_manager->resetLevels(0,hierarchy->getFinestLevelNumber());
+    d_fe_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
 
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
     // data management as possible.
@@ -771,6 +831,9 @@ IBFEHierarchyIntegrator::resetHierarchyConfiguration(
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
+
+    // Reset the FE data manager.
+    d_fe_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
 
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
     // data management as possible.
@@ -845,13 +908,12 @@ IBFEHierarchyIntegrator::applyGradientDetector(
         tags_data->fillAll(0);
     }
 
-    // Tag cells which contain Lagragian nodes.
-    d_fe_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
-
     // Tag cells for refinement according to the criteria specified by the
     // INSStaggeredHierarchyIntegrator.
     d_ins_hier_integrator->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
 
+    // Tag cells which contain Lagragian nodes.
+    d_fe_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     t_apply_gradient_detector->stop();
     return;
 }// applyGradientDetector
@@ -948,7 +1010,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     QGauss qrule(dim, SIXTH);
     QGauss qrule_face(dim-1, SIXTH);
 
-    ExplicitSystem& system = equation_systems->get_system<ExplicitSystem>(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
+    System& system = equation_systems->get_system<System>(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -976,13 +1038,13 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     // Loop over the elements to accumulate the interior forces at the nodes of
     // the mesh.  These are computed via
     //
-    //    rhs_k = -int{P(s,t) grad phi_k(s)}ds + int{P(s,t) N(s,t) phi_k(s)}dA(s)
+    //    F_k = -int{P(s,t) grad phi_k(s)}ds + int{P(s,t) N(s,t) phi_k(s)}dA(s)
     //
     // This right-hand side vector is used to solve for the nodal values of the
     // interior elastic force density.
-    NumericVector<double>& rhs = *(system.rhs);
-    rhs.zero();
-    std::vector<DenseVector<double> > rhs_e(NDIM);
+    AutoPtr<NumericVector<double> > F = G.clone();
+    F->zero();
+    std::vector<DenseVector<double> > F_e(NDIM);
     const MeshBase::const_element_iterator end_el = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el = mesh.active_local_elements_begin(); el != end_el; ++el)
     {
@@ -993,7 +1055,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         for (unsigned int i = 0; i < NDIM; ++i)
         {
             dof_map.dof_indices(elem, dof_indices[i], i);
-            rhs_e[i].resize(dof_indices[i].size());
+            F_e[i].resize(dof_indices[i].size());
         }
 
         // Loop over interior quadrature points.
@@ -1004,7 +1066,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             const Point& s_qp = q_point[qp];
             const Point& X_qp = IBTK::compute_coordinate(qp,X,phi,dof_indices);
             const TensorValue<double> dX_ds = IBTK::compute_coordinate_mapping_jacobian(qp,X,dphi,dof_indices);
-            const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time);
+            const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
 
             // Accumulate the nodal forces.
             for (unsigned int k = 0; k < phi.size(); ++k)
@@ -1012,7 +1074,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 const VectorValue<double> F_qp = -P*(dphi[k][qp])*JxW[qp];
                 for (unsigned int i = 0; i < NDIM; ++i)
                 {
-                    rhs_e[i](k) += F_qp(i);
+                    F_e[i](k) += F_qp(i);
                 }
             }
         }
@@ -1037,16 +1099,20 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                         const Point& s_qp = q_point_face[qp];
                         const Point& X_qp = IBTK::compute_coordinate(qp,X,phi_face,dof_indices);
                         const TensorValue<double> dX_ds = IBTK::compute_coordinate_mapping_jacobian(qp,X,dphi_face,dof_indices);
-                        const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time);
+                        const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
+                        const TensorValue<double> dX_ds_inv_trans = IBTK::tensor_inverse_transpose(dX_ds, NDIM);
+                        VectorValue<double> n = dX_ds_inv_trans*normal_face[qp];
+                        n /= sqrt(n*n);
+                        const VectorValue<double> F_n_JxW = ((P*normal_face[qp])*n)*n*JxW_face[qp];
 
                         // Accumulate the nodal forces, splitting off only the
                         // normal component of the boundary force.
                         for (unsigned int k = 0; k < phi_face.size(); ++k)
                         {
-                            const VectorValue<double> F_qp = ((P*normal_face[qp]*phi_face[k][qp])*normal_face[qp])*normal_face[qp]*JxW_face[qp];
+                            const VectorValue<double> F_qp = F_n_JxW*phi_face[k][qp];
                             for (unsigned int i = 0; i < NDIM; ++i)
                             {
-                                rhs_e[i](k) += F_qp(i);
+                                F_e[i](k) += F_qp(i);
                             }
                         }
                     }
@@ -1058,22 +1124,22 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         // add the elemental contributions to the global vector.
         for (int i = 0; i < NDIM; ++i)
         {
-            dof_map.constrain_element_vector(rhs_e[i], dof_indices[i]);
-            rhs.add_vector(rhs_e[i], dof_indices[i]);
+            dof_map.constrain_element_vector(F_e[i], dof_indices[i]);
+            F->add_vector(F_e[i], dof_indices[i]);
         }
     }
 
     // Assemble the right hand side vector.
-    rhs.close();
-    dof_map.enforce_constraints_exactly(system, &rhs);
+    F->close();
+    dof_map.enforce_constraints_exactly(system, F.get());
 
-    // Solve for G_k, the nodal interior elastic force density.
+    // Solve for G, the nodal interior elastic force density.
     std::pair<LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components = d_fe_data_manager->getL2ProjectionSolver(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
     LinearSolver<double>* solver = proj_solver_components.first;
     SparseMatrix<double>* M = proj_solver_components.second;
     const double tol = 1.0e-5;
     const unsigned int max_its = 100;
-    solver->solve(*M, *M, G, rhs, tol, max_its);
+    solver->solve(*M, *M, G, *F, tol, max_its);
     dof_map.enforce_constraints_exactly(system, &G);
     return;
 }// computeInteriorForceDensity
@@ -1091,7 +1157,7 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
     QBase* const qrule = d_fe_data_manager->getQuadratureRule();
     AutoPtr<QBase> qrule_face = QBase::build(qrule->type(), dim-1, qrule->get_order());
 
-    ExplicitSystem& system = equation_systems->get_system<ExplicitSystem>(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
+    System& system = equation_systems->get_system<System>(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1100,9 +1166,6 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
         TBOX_ASSERT(dof_map.variable_type(0) == dof_map.variable_type(d));
     }
 #endif
-
-    AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
-    fe->attach_quadrature_rule(qrule);
 
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     fe_face->attach_quadrature_rule(qrule_face.get());
@@ -1135,11 +1198,6 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
         for (std::vector<Elem*>::const_iterator cit = el_begin; cit != el_end; ++cit)
         {
             Elem* const elem = *cit;
-            fe->reinit(elem);
-            for (unsigned int i = 0; i < NDIM; ++i)
-            {
-                dof_map.dof_indices(elem, dof_indices[i], i);
-            }
 
             // Loop over the element boundaries.
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
@@ -1148,6 +1206,10 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
                 if (elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(mesh.boundary_info->boundary_id(elem,side)))
                 {
                     fe_face->reinit(elem, side);
+                    for (unsigned int i = 0; i < NDIM; ++i)
+                    {
+                        dof_map.dof_indices(elem, dof_indices[i], i);
+                    }
 
                     // Loop over boundary quadrature points.
                     T_bdry.resize(T_bdry.size()+NDIM*qrule_face->n_points(),0.0);
@@ -1155,18 +1217,19 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
                     for (unsigned int qp = 0; qp < qrule_face->n_points(); ++qp)
                     {
                         // Compute the value of the first Piola-Kirchoff stress
-                        // tensor at the quadrature point.
+                        // tensor at the quadrature point and evaluate the
+                        // transmission force density.
                         const Point& s_qp = q_point_face[qp];
                         const Point& X_qp = IBTK::compute_coordinate(qp,X_ghost,phi_face,dof_indices);
                         const TensorValue<double> dX_ds = IBTK::compute_coordinate_mapping_jacobian(qp,X_ghost,dphi_face,dof_indices);
-                        const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time);
-
-                        // Evaluate the transmission force at the quadrature
-                        // point.
-                        const VectorValue<double> T_qp = ((-P*normal_face[qp])*normal_face[qp])*normal_face[qp]*JxW_face[qp];
+                        const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
+                        const TensorValue<double> dX_ds_inv_trans = IBTK::tensor_inverse_transpose(dX_ds, NDIM);
+                        VectorValue<double> n = dX_ds_inv_trans*normal_face[qp];
+                        n /= sqrt(n*n);
+                        const VectorValue<double> F_n_JxW = ((P*normal_face[qp])*n)*n*JxW_face[qp];
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
-                            T_bdry[NDIM*(qp+qp_offset)+i] = T_qp(i);
+                            T_bdry[NDIM*(qp+qp_offset)+i] = -F_n_JxW(i);
                             X_bdry[NDIM*(qp+qp_offset)+i] = X_qp(i);
                         }
                     }
@@ -1184,6 +1247,66 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
     }
     return;
 }// spreadBoundaryForceDensity
+
+void
+IBFEHierarchyIntegrator::initializeCoordinates()
+{
+    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+    MeshBase& mesh = equation_systems->get_mesh();
+    System& coords_system = equation_systems->get_system<System>(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
+    const unsigned int coords_system_number = coords_system.number();
+    NumericVector<double>& X_coords = *coords_system.solution;
+    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    {
+        Node* n = *it;
+        if (n->n_vars(coords_system_number) > 0)
+        {
+            libmesh_assert(n->n_vars(coords_system_number) == NDIM);
+            const Point& s = *n;
+            const Point X = d_coordinate_mapping_function == NULL ? s : d_coordinate_mapping_function(s, d_coordinate_mapping_function_ctx);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                const int dof_index = n->dof_number(coords_system_number,d,0);
+                X_coords.set(dof_index,X(d));
+            }
+        }
+    }
+    X_coords.close();
+    X_coords.localize(*coords_system.current_local_solution);
+    return;
+}// initializeCoordinates
+
+void
+IBFEHierarchyIntegrator::updateCoordinateMapping()
+{
+    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+    MeshBase& mesh = equation_systems->get_mesh();
+    System& coords_system = equation_systems->get_system<System>(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
+    const unsigned int coords_system_number = coords_system.number();
+    NumericVector<double>& X_coords = *coords_system.solution;
+    System& coords_mapping_system = equation_systems->get_system<System>("coordinate mapping system");
+    const unsigned int coords_mapping_system_number = coords_mapping_system.number();
+    NumericVector<double>& dX_coords = *coords_mapping_system.solution;
+    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    {
+        Node* n = *it;
+        if (n->n_vars(coords_system_number) > 0)
+        {
+            libmesh_assert(n->n_vars(coords_system_number) == NDIM);
+            libmesh_assert(n->n_vars(coords_mapping_system_number) == NDIM);
+            const Point& s = *n;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                const int X_dof_index = n->dof_number(coords_system_number,d,0);
+                const int dX_dof_index = n->dof_number(coords_mapping_system_number,d,0);
+                dX_coords.set(dX_dof_index,X_coords(X_dof_index)-s(d));
+            }
+        }
+    }
+    dX_coords.close();
+    dX_coords.localize(*coords_mapping_system.current_local_solution);
+    return;
+}// updateCoordinateMapping
 
 void
 IBFEHierarchyIntegrator::getFromInput(
