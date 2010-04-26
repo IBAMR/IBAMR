@@ -173,7 +173,6 @@ main(
             viz_dump_interval = main_db->getInteger("viz_dump_interval");
         }
 
-
         tbox::Array<string> viz_writer(1);
         viz_writer[0] = "VisIt";
         string viz_dump_filename;

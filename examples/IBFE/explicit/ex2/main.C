@@ -421,7 +421,7 @@ main(
         double dt_now = time_integrator->initializeHierarchy();
         tbox::RestartManager::getManager()->closeRestartFile();
 
-
+        // Set up boundary conditions.
         System&    force_system = equation_systems.get_system<System>(IBFEHierarchyIntegrator::   FORCE_SYSTEM_NAME);
         System& velocity_system = equation_systems.get_system<System>(IBFEHierarchyIntegrator::VELOCITY_SYSTEM_NAME);
         DofMap&    force_dof_map =    force_system.get_dof_map();

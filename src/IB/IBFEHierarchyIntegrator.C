@@ -1,5 +1,5 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <25.Apr.2010 22:25:13 griffith@griffith-macbook-pro.local>
+// Last modified: <26.Apr.2010 14:59:10 griffith@boyce-griffiths-mac-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "IBFEHierarchyIntegrator.h"
@@ -1016,8 +1016,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
 
     const MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    QGauss qrule(dim, SIXTH);
-    QGauss qrule_face(dim-1, SIXTH);
+    QGauss qrule(dim, FIFTH);
+    QGauss qrule_face(dim-1, FIFTH);
 
     System& system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();

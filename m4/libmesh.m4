@@ -160,18 +160,6 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   fi
 fi
 
-contrib_lib_enabled=`grep "enable-exodus.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package exodus is enabled... ${contrib_lib_enabled}"
-if test "${contrib_lib_enabled}" == "yes" ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/exodusii/Lib/include ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([exodusii])
-  if test "$HAVE_LIBEXODUSII" == "yes" ; then
-    LIBS="$LIBEXODUSII $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libexodusii is enabled, but could not find working libexodusii])
-  fi
-fi
-
 contrib_lib_enabled=`grep "enable-netcdf.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
 echo "checking whether libMesh contrib package netcdf is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
@@ -181,6 +169,18 @@ if test "${contrib_lib_enabled}" == "yes" ; then
     LIBS="$LIBNETCDF $LIBS"
   else
     AC_MSG_WARN([libMesh contributed lib libnetcdf is enabled, but could not find working libnetcdf])
+  fi
+fi
+
+contrib_lib_enabled=`grep "enable-exodus.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
+echo "checking whether libMesh contrib package exodus is enabled... ${contrib_lib_enabled}"
+if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/exodusii/Lib/include ${CPPFLAGS}"
+  AC_LIB_HAVE_LINKFLAGS([exodusii])
+  if test "$HAVE_LIBEXODUSII" == "yes" ; then
+    LIBS="$LIBEXODUSII $LIBS"
+  else
+    AC_MSG_WARN([libMesh contributed lib libexodusii is enabled, but could not find working libexodusii])
   fi
 fi
 
