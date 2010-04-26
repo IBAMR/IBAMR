@@ -2,7 +2,7 @@
 #define included_IBFEHierarchyIntegrator
 
 // Filename: IBFEHierarchyIntegrator.h
-// Last modified: <25.Apr.2010 19:42:54 griffith@griffith-macbook-pro.local>
+// Last modified: <25.Apr.2010 22:08:47 griffith@griffith-macbook-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -54,9 +54,14 @@ class IBFEHierarchyIntegrator
       public SAMRAI::tbox::Serializable
 {
 public:
-    static const short int                NORMAL_DIRICHLET_BC = 1;
-    static const short int            TANGENTIAL_DIRICHLET_BC = 2;
-    static const short int NORMAL_AND_TANGENTIAL_DIRICHLET_BC = NORMAL_DIRICHLET_BC | TANGENTIAL_DIRICHLET_BC;
+    static const std::string        COORDINATES_SYSTEM_NAME;
+    static const std::string COORDINATE_MAPPING_SYSTEM_NAME;
+    static const std::string              FORCE_SYSTEM_NAME;
+    static const std::string           VELOCITY_SYSTEM_NAME;
+
+    static const short int                NORMAL_DIRICHLET_BOUNDARY_ID = 256;
+    static const short int            TANGENTIAL_DIRICHLET_BOUNDARY_ID = 512;
+    static const short int NORMAL_AND_TANGENTIAL_DIRICHLET_BOUNDARY_ID = NORMAL_DIRICHLET_BOUNDARY_ID | TANGENTIAL_DIRICHLET_BOUNDARY_ID;
 
     /*!
      * Constructor.
@@ -551,18 +556,6 @@ private:
     spreadBoundaryForceDensity(
         const int f_data_idx,
         NumericVector<double>& X_ghost,
-        const double& time);
-
-    /*!
-     * \brief Enforce Dirichlet boundary conditions.
-     *
-     * \note Presently, only homogeneous Dirichlet boundary conditions are
-     * supported.
-     */
-    void
-    imposeDirichletBoundaryConditions(
-        NumericVector<double>& U,
-        NumericVector<double>& X,
         const double& time);
 
     /*!
