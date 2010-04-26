@@ -351,7 +351,6 @@ main(
                 patch_hierarchy, navier_stokes_integrator, fe_data_manager);
         time_integrator->setInitialCoordinateMappingFunction(&coordinate_mapping_function);
         time_integrator->setPK1StressTensorFunction(&PK1_stress_function);
-        time_integrator->addPeriodicBoundary(pbc);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -420,6 +419,11 @@ main(
         // Initialize hierarchy configuration and data on all patches.  Then,
         // close restart file and write initial state for visualization.
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
+        for (unsigned int k = 0; k < equation_systems.n_systems(); ++k)
+        {
+            System& system = equation_systems.get_system(k);
+            system.get_dof_map().add_periodic_boundary(pbc);
+        }
         double dt_now = time_integrator->initializeHierarchy();
         tbox::RestartManager::getManager()->closeRestartFile();
 

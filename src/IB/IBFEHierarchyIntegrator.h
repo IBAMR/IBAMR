@@ -2,7 +2,7 @@
 #define included_IBFEHierarchyIntegrator
 
 // Filename: IBFEHierarchyIntegrator.h
-// Last modified: <24.Apr.2010 16:16:31 griffith@griffith-macbook-pro.local>
+// Last modified: <25.Apr.2010 19:42:54 griffith@griffith-macbook-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -54,6 +54,10 @@ class IBFEHierarchyIntegrator
       public SAMRAI::tbox::Serializable
 {
 public:
+    static const short int                NORMAL_DIRICHLET_BC = 1;
+    static const short int            TANGENTIAL_DIRICHLET_BC = 2;
+    static const short int NORMAL_AND_TANGENTIAL_DIRICHLET_BC = NORMAL_DIRICHLET_BC | TANGENTIAL_DIRICHLET_BC;
+
     /*!
      * Constructor.
      *
@@ -102,13 +106,6 @@ public:
     setPK1StressTensorFunction(
         TensorValue<double> (*PK1_stress_function)(const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const elem, const double& time, void* ctx),
         void* PK1_stress_function_ctx=NULL);
-
-    /*!
-     * Add a periodic boundary to the FE mesh.
-     */
-    void
-    addPeriodicBoundary(
-        const PeriodicBoundary& periodic_boundary);
 
     /*!
      * Supply initial conditions for the (side centered) velocity.
@@ -557,6 +554,18 @@ private:
         const double& time);
 
     /*!
+     * \brief Enforce Dirichlet boundary conditions.
+     *
+     * \note Presently, only homogeneous Dirichlet boundary conditions are
+     * supported.
+     */
+    void
+    imposeDirichletBoundaryConditions(
+        NumericVector<double>& U,
+        NumericVector<double>& X,
+        const double& time);
+
+    /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
      * mapping function.  If no function is provided, the initial coordinates
      * are taken to be the Lagrangian coordinates.
@@ -611,7 +620,6 @@ private:
      */
     IBTK::FEDataManager* d_fe_data_manager;
     bool d_split_interior_and_bdry_forces;
-    std::vector<PeriodicBoundary> d_periodic_boundaries;
 
     /*
      * Function used to compute the initial coordinates of the Lagrangian mesh.

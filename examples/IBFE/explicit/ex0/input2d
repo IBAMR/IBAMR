@@ -82,7 +82,6 @@ IBFEHierarchyIntegrator {
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 2
    dt_max = 0.5*dx
-   dt_max_time_max = dt_max
    num_cycles = 3
    enable_logging = TRUE
    split_interior_and_bdry_forces = TRUE

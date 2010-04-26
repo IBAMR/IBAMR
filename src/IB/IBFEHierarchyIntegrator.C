@@ -1,5 +1,5 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <24.Apr.2010 23:16:48 griffith@griffith-macbook-pro.local>
+// Last modified: <25.Apr.2010 20:01:36 griffith@griffith-macbook-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "IBFEHierarchyIntegrator.h"
@@ -38,6 +38,7 @@
 #include <explicit_system.h>
 #include <numeric_vector.h>
 #include <petsc_vector.h>
+#include <quadrature_trap.h>
 #include <quadrature_gauss.h>
 
 // SAMRAI INCLUDES
@@ -226,14 +227,6 @@ IBFEHierarchyIntegrator::setPK1StressTensorFunction(
 }// setPK1StressTensorFunction
 
 void
-IBFEHierarchyIntegrator::addPeriodicBoundary(
-    const PeriodicBoundary& periodic_boundary)
-{
-    d_periodic_boundaries.push_back(periodic_boundary);
-    return;
-}// addPeriodicBoundaries
-
-void
 IBFEHierarchyIntegrator::registerVelocityInitialConditions(
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> U_init)
 {
@@ -332,11 +325,6 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
         os << "X_" << d;
         coords_system.add_variable(os.str(), FIRST, LAGRANGE);
     }
-    for (std::vector<PeriodicBoundary>::const_iterator cit = d_periodic_boundaries.begin();
-         cit != d_periodic_boundaries.end(); ++cit)
-    {
-        coords_system.get_dof_map().add_periodic_boundary(*cit);
-    }
 
     ExplicitSystem& coords_mapping_system = equation_systems->add_system<ExplicitSystem>("coordinate mapping system");
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -344,11 +332,6 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
         std::ostringstream os;
         os << "dX_" << d;
         coords_mapping_system.add_variable(os.str(), FIRST, LAGRANGE);
-    }
-    for (std::vector<PeriodicBoundary>::const_iterator cit = d_periodic_boundaries.begin();
-         cit != d_periodic_boundaries.end(); ++cit)
-    {
-        coords_mapping_system.get_dof_map().add_periodic_boundary(*cit);
     }
 
     // Initialize all variables.
@@ -454,6 +437,8 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
 #endif
 
+    PetscErrorCode ierr;
+
     const double current_time = d_integrator_time;
     const double new_time     = d_integrator_time+dt;
     const bool initial_time   = SAMRAI::tbox::MathUtilities<double>::equalEps(current_time,d_start_time);
@@ -503,13 +488,13 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& coords_system = equation_systems->get_system<System>(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
 
-    NumericVector<double>& X_current = *(coords_system.solution);
+    NumericVector<double>& X_current = *(coords_system.current_local_solution);
     coords_system.get_dof_map().enforce_constraints_exactly(coords_system, &X_current);
 
     AutoPtr<NumericVector<double> > X_new_ptr = X_current.clone();
     NumericVector<double>& X_new = *X_new_ptr;
 
-    AutoPtr<NumericVector<double> > X_half_ptr = coords_system.current_local_solution->clone();
+    AutoPtr<NumericVector<double> > X_half_ptr = X_current.clone();
     NumericVector<double>& X_half = *X_half_ptr;
 
     AutoPtr<NumericVector<double> > G_half_ptr = X_current.clone();
@@ -532,7 +517,6 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     d_ins_hier_integrator->integrateHierarchy_initialize(current_time, new_time);
     for (int cycle = 0; cycle < d_num_cycles; ++cycle)
     {
-        PetscErrorCode ierr;
 
         // Set X(n+1/2) = 0.5*(X(n) + X(n+1)).
         ierr = VecAXPBYPCZ(dynamic_cast<PetscVector<double>*>(&X_half)->vec(), 0.5, 0.5, 0.0, dynamic_cast<PetscVector<double>*>(&X_current)->vec(), dynamic_cast<PetscVector<double>*>(&X_new)->vec()); IBTK_CHKERRQ(ierr);
@@ -560,6 +544,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         // Interpolate u(n+1/2) to U(n+1/2).
         d_fe_data_manager->interpolate(d_V_idx, U_half, X_half_IB_ghost, d_fe_data_manager->COORDINATES_SYSTEM_NAME, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
 
+        // Strongly impose Dirichlet boundary conditions.
+        U_half.localize(U_half);
+        imposeDirichletBoundaryConditions(U_half, X_half, current_time+0.5*dt);
+
         // Set X(n+1) = X(n) + dt*U(n+1/2).
         X_new = X_current;
         X_new.add(dt, U_half);
@@ -569,7 +557,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
     // Reset X_current to equal X_new.
     X_current = X_new;
-    X_current.localize(*coords_system.current_local_solution);
+    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(coords_system.current_local_solution.get())->vec(), dynamic_cast<PetscVector<double>*>(coords_system.solution.get())->vec()); IBTK_CHKERRQ(ierr);
 
     // Update the coordinate mapping dX = X - s.
     updateCoordinateMapping();
@@ -1079,19 +1067,23 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             }
         }
 
-        // In some cases, it may be beneficial to split off the singular
-        // boundary force from the regular interior force.
-        if (d_split_interior_and_bdry_forces)
+        // Loop over the element boundaries.
+        for (unsigned int side = 0; side < elem->n_sides(); ++side)
         {
-            // Loop over the element boundaries.
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            // Skip non-physical boundaries.
+            const short int bdry_id = mesh.boundary_info->boundary_id(elem,side);
+            const bool at_physical_bdry = elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(bdry_id);
+            if (at_physical_bdry)
             {
-                // Skip non-physical boundaries.
-                if (elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(mesh.boundary_info->boundary_id(elem,side)))
+                const bool nrm_dirichlet_bc = bdry_id ==     NORMAL_DIRICHLET_BC || bdry_id == NORMAL_AND_TANGENTIAL_DIRICHLET_BC;
+                const bool tan_dirichlet_bc = bdry_id == TANGENTIAL_DIRICHLET_BC || bdry_id == NORMAL_AND_TANGENTIAL_DIRICHLET_BC;
+                const bool split_nrm_force = nrm_dirichlet_bc || d_split_interior_and_bdry_forces;
+                const bool split_tan_force = tan_dirichlet_bc;
+
+                // Loop over boundary quadrature points.
+                if (split_nrm_force || split_tan_force)
                 {
                     fe_face->reinit(elem, side);
-
-                    // Loop over boundary quadrature points.
                     for (unsigned int qp = 0; qp < qrule_face.n_points(); ++qp)
                     {
                         // Compute the value of the first Piola-Kirchoff stress
@@ -1100,16 +1092,21 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                         const Point& X_qp = IBTK::compute_coordinate(qp,X,phi_face,dof_indices);
                         const TensorValue<double> dX_ds = IBTK::compute_coordinate_mapping_jacobian(qp,X,dphi_face,dof_indices);
                         const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
+                        const VectorValue<double> F = P*normal_face[qp]*JxW_face[qp];
+
                         const TensorValue<double> dX_ds_inv_trans = IBTK::tensor_inverse_transpose(dX_ds, NDIM);
                         VectorValue<double> n = dX_ds_inv_trans*normal_face[qp];
-                        n /= sqrt(n*n);
-                        const VectorValue<double> F_n_JxW = ((P*normal_face[qp])*n)*n*JxW_face[qp];
+                        n /= n.size();
+                        const VectorValue<double> F_n = (F*n)*n;
+                        const VectorValue<double> F_t = F-F_n;
 
-                        // Accumulate the nodal forces, splitting off only the
-                        // normal component of the boundary force.
+                        // Split off the normal and/or tangential component of
+                        // the force.
                         for (unsigned int k = 0; k < phi_face.size(); ++k)
                         {
-                            const VectorValue<double> F_qp = F_n_JxW*phi_face[k][qp];
+                            VectorValue<double> F_qp;
+                            if (split_nrm_force) F_qp += F_n*phi_face[k][qp];
+                            if (split_tan_force) F_qp += F_t*phi_face[k][qp];
                             for (unsigned int i = 0; i < NDIM; ++i)
                             {
                                 F_e[i](k) += F_qp(i);
@@ -1203,38 +1200,49 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 // Skip non-physical boundaries.
-                if (elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(mesh.boundary_info->boundary_id(elem,side)))
+                const short int bdry_id = mesh.boundary_info->boundary_id(elem,side);
+                const bool at_physical_bdry = elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(bdry_id);
+                if (at_physical_bdry)
                 {
-                    fe_face->reinit(elem, side);
-                    for (unsigned int i = 0; i < NDIM; ++i)
+                    const bool nrm_dirichlet_bc = bdry_id == NORMAL_DIRICHLET_BC || bdry_id == NORMAL_AND_TANGENTIAL_DIRICHLET_BC;
+                    if (d_split_interior_and_bdry_forces && !nrm_dirichlet_bc)
                     {
-                        dof_map.dof_indices(elem, dof_indices[i], i);
-                    }
+                        fe_face->reinit(elem, side);
 
-                    // Loop over boundary quadrature points.
-                    T_bdry.resize(T_bdry.size()+NDIM*qrule_face->n_points(),0.0);
-                    X_bdry.resize(X_bdry.size()+NDIM*qrule_face->n_points(),0.0);
-                    for (unsigned int qp = 0; qp < qrule_face->n_points(); ++qp)
-                    {
-                        // Compute the value of the first Piola-Kirchoff stress
-                        // tensor at the quadrature point and evaluate the
-                        // transmission force density.
-                        const Point& s_qp = q_point_face[qp];
-                        const Point& X_qp = IBTK::compute_coordinate(qp,X_ghost,phi_face,dof_indices);
-                        const TensorValue<double> dX_ds = IBTK::compute_coordinate_mapping_jacobian(qp,X_ghost,dphi_face,dof_indices);
-                        const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
-                        const TensorValue<double> dX_ds_inv_trans = IBTK::tensor_inverse_transpose(dX_ds, NDIM);
-                        VectorValue<double> n = dX_ds_inv_trans*normal_face[qp];
-                        n /= sqrt(n*n);
-                        const VectorValue<double> F_n_JxW = ((P*normal_face[qp])*n)*n*JxW_face[qp];
+                        // Determine the degrees of freedom for the current element.
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
-                            T_bdry[NDIM*(qp+qp_offset)+i] = -F_n_JxW(i);
-                            X_bdry[NDIM*(qp+qp_offset)+i] = X_qp(i);
+                            dof_map.dof_indices(elem, dof_indices[i], i);
                         }
-                    }
 
-                    qp_offset += qrule_face->n_points();
+                        // Loop over boundary quadrature points.
+                        T_bdry.resize(T_bdry.size()+NDIM*qrule_face->n_points(),0.0);
+                        X_bdry.resize(X_bdry.size()+NDIM*qrule_face->n_points(),0.0);
+                        for (unsigned int qp = 0; qp < qrule_face->n_points(); ++qp)
+                        {
+                            // Compute the value of the first Piola-Kirchoff
+                            // stress tensor at the quadrature point and
+                            // evaluate the transmission force density.
+                            const Point& s_qp = q_point_face[qp];
+                            const Point& X_qp = IBTK::compute_coordinate(qp,X_ghost,phi_face,dof_indices);
+                            const TensorValue<double> dX_ds = IBTK::compute_coordinate_mapping_jacobian(qp,X_ghost,dphi_face,dof_indices);
+                            const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
+                            const VectorValue<double> F = P*normal_face[qp]*JxW_face[qp];
+
+                            const TensorValue<double> dX_ds_inv_trans = IBTK::tensor_inverse_transpose(dX_ds, NDIM);
+                            VectorValue<double> n = dX_ds_inv_trans*normal_face[qp];
+                            n /= n.size();
+                            const VectorValue<double> F_n = (F*n)*n;
+
+                            for (unsigned int i = 0; i < NDIM; ++i)
+                            {
+                                T_bdry[NDIM*(qp+qp_offset)+i] = -F_n(i);
+                                X_bdry[NDIM*(qp+qp_offset)+i] = X_qp(i);
+                            }
+                        }
+
+                        qp_offset += qrule_face->n_points();
+                    }
                 }
             }
         }
@@ -1247,6 +1255,130 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
     }
     return;
 }// spreadBoundaryForceDensity
+
+void
+IBFEHierarchyIntegrator::imposeDirichletBoundaryConditions(
+    NumericVector<double>& U,
+    NumericVector<double>& X,
+    const double& time)
+{
+    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+
+    // WARNING: This hack only works for P^1 or Q^1 elements!
+    const MeshBase& mesh = equation_systems->get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+    QTrap qrule_face(dim-1);
+
+    System& system = equation_systems->get_system<System>(d_fe_data_manager->COORDINATES_SYSTEM_NAME);
+    const DofMap& dof_map = system.get_dof_map();
+    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (int d = 1; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(dof_map.variable_type(0) == dof_map.variable_type(d));
+    }
+#endif
+
+    AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
+    fe_face->attach_quadrature_rule(&qrule_face);
+    const std::vector<Point>& q_point_face = fe_face->get_xyz();
+    const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
+    const std::vector<Point>& normal_face = fe_face->get_normals();
+
+    // Loop over the elements and impose normal and/or tangential boundary
+    // conditions.
+    const MeshBase::const_element_iterator e_active_local_end = mesh.active_local_elements_end();
+    for (MeshBase::const_element_iterator e_it = mesh.active_local_elements_begin(); e_it != e_active_local_end; ++e_it)
+    {
+        Elem* const elem = *e_it;
+
+        // Loop over the element boundaries.
+        for (unsigned int side = 0; side < elem->n_sides(); ++side)
+        {
+            // Skip non-physical boundaries.
+            const short int bdry_id = mesh.boundary_info->boundary_id(elem,side);
+            const bool at_physical_bdry = elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(bdry_id);
+            if (at_physical_bdry)
+            {
+                const bool nrm_dirichlet_bc = bdry_id ==     NORMAL_DIRICHLET_BC || bdry_id == NORMAL_AND_TANGENTIAL_DIRICHLET_BC;
+                const bool tan_dirichlet_bc = bdry_id == TANGENTIAL_DIRICHLET_BC || bdry_id == NORMAL_AND_TANGENTIAL_DIRICHLET_BC;
+                if (nrm_dirichlet_bc || tan_dirichlet_bc)
+                {
+                    fe_face->reinit(elem, side);
+
+                    // Determine the degrees of freedom for the current element.
+                    for (unsigned int i = 0; i < NDIM; ++i)
+                    {
+                        dof_map.dof_indices(elem, dof_indices[i], i);
+                    }
+
+                    // Loop over boundary quadrature points --- which happen to
+                    // correspond to the mesh nodes for QTrap.
+                    for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+                    {
+                        if (elem->is_node_on_side(k,side))
+                        {
+                            const Node* const node = elem->get_node(k);
+                            const Point node_point = *node;
+                            for (unsigned int qp = 0; qp < qrule_face.n_points(); ++qp)
+                            {
+                                // Find the quadrature point which corresponds
+                                // to this boundary node.
+                                const double diff = (node_point-q_point_face[qp]).size();
+                                if (diff <= sqrt(std::numeric_limits<double>::epsilon()))
+                                {
+                                    const Point& N = normal_face[qp];
+                                    const TensorValue<double> dX_ds = IBTK::compute_coordinate_mapping_jacobian(qp,X,dphi_face,dof_indices);
+                                    const TensorValue<double> dX_ds_inv_trans = IBTK::tensor_inverse_transpose(dX_ds, NDIM);
+                                    VectorValue<double> n = dX_ds_inv_trans*N;
+                                    n /= n.size();
+
+                                    // Determine the velocity at the boundary node.
+                                    VectorValue<double> U_k;
+                                    for (unsigned int i = 0; i < NDIM; ++i)
+                                    {
+                                        U_k(i) = U(dof_indices[i][qp]);
+                                    }
+
+                                    // Determine the normal and tangential
+                                    // components of the velocity.
+                                    const VectorValue<double> U_k_n = (U_k*n)*n;
+                                    const VectorValue<double> U_k_t = U_k-U_k_n;
+
+                                    // Subtract off the normal and/or tangential
+                                    // components of the velocity.
+                                    if (nrm_dirichlet_bc)
+                                    {
+                                        for (unsigned int i = 0; i < NDIM; ++i)
+                                        {
+                                            U.add(dof_indices[i][qp], -U_k_n(i));
+                                        }
+                                    }
+
+                                    if (tan_dirichlet_bc)
+                                    {
+                                        for (unsigned int i = 0; i < NDIM; ++i)
+                                        {
+                                            U.add(dof_indices[i][qp], -U_k_t(i));
+                                        }
+                                    }
+
+                                    break;
+                                }
+#ifdef DEBUG_CHECK_ASSERTIONS
+                                TBOX_ASSERT(qp != qrule_face.n_points()-1);
+#endif
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    U.close();
+    system.get_dof_map().enforce_constraints_exactly(system, &U);
+    return;
+}// imposeDirichletBoundaryConditions
 
 void
 IBFEHierarchyIntegrator::initializeCoordinates()
