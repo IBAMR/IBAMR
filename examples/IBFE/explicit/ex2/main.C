@@ -306,17 +306,15 @@ main(
 
         // Create the FE data manager used to manage mappings between the FE
         // mesh and the Cartesian grid.
-        EquationSystems equation_systems(mesh);
-        IBTK::FEDataManager* fe_data_manager = IBTK::FEDataManager::getManager("EP FE Manager");
-
-        const int mesh_level_number = input_db->getInteger("MAX_LEVELS")-1;
-        fe_data_manager->setEquationSystems(&equation_systems, mesh_level_number);
-
         const std::string quad_type = input_db->getStringWithDefault("quad_type", "QGAUSS");
         const std::string quad_order = input_db->getStringWithDefault("quad_order", "SIXTH");
         AutoPtr<QBase> qrule = QBase::build(Utility::string_to_enum<QuadratureType>(quad_type),NDIM,Utility::string_to_enum<Order>(quad_order));
         const std::string weighting_fcn = input_db->getStringWithDefault("weighting_fcn", "IB_4");
-        fe_data_manager->setInteractionScheme(weighting_fcn, *qrule);
+        IBTK::FEDataManager* fe_data_manager = IBTK::FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, qrule.get());
+
+        const int mesh_level_number = input_db->getInteger("MAX_LEVELS")-1;
+        EquationSystems equation_systems(mesh);
+        fe_data_manager->setEquationSystems(&equation_systems, mesh_level_number);
 
         const bool use_consistent_mass_matrix = input_db->getBoolWithDefault("use_consistent_mass_matrix", true);
         fe_data_manager->setUseConsistentMassMatrix(use_consistent_mass_matrix);
