@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <21.Apr.2010 00:19:33 griffith@griffith-macbook-pro.local>
+// Last modified: <27.Apr.2010 02:26:23 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -27,6 +27,10 @@
 #include <ibtk/LNodeIndexData.h>
 #include <ibtk/LagMarkerCoarsen.h>
 #include <ibtk/LagMarkerRefine.h>
+#include <ibtk/LagSiloDataWriter.h>
+#if (NDIM == 3)
+#include <ibtk/LagM3DDataWriter.h>
+#endif
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -312,14 +316,9 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
         }
     }
 
-    // Determine the ghost cell width required for side-centered spreading and
-    // interpolating.
-    const int stencil_size = std::max(IBTK::LEInteractor::getStencilSize(d_interp_delta_fcn),
-                                      IBTK::LEInteractor::getStencilSize(d_spread_delta_fcn));
-    d_ghosts = int(floor(0.5*double(stencil_size)))+1;
-
     // Get the Lagrangian Data Manager.
-    d_lag_data_manager = IBTK::LDataManager::getManager(d_object_name+"::LDataManager", d_ghosts, d_registered_for_restart);
+    d_lag_data_manager = IBTK::LDataManager::getManager(d_object_name+"::LDataManager", d_interp_delta_fcn, d_spread_delta_fcn, d_registered_for_restart);
+    d_ghosts = d_lag_data_manager->getGhostCellWidth();
 
     // Create the instrument panel object.
     d_instrument_panel = new IBInstrumentPanel(d_object_name+"::IBInstrumentPanel", (input_db->isDatabase("IBInstrumentPanel") ? input_db->getDatabase("IBInstrumentPanel") : SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL)));
@@ -804,7 +803,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         d_rscheds["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
     }
-    interp(U_data, d_V_idx, false, X_data, false, coarsest_ln, finest_ln);
+    d_lag_data_manager->interpolate(d_V_idx, U_data, X_data);
     resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
 
     // Initialize X(n+1/2) to equal X(n).
@@ -998,7 +997,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         resetAnchorPointValues(F_half_data, coarsest_ln, finest_ln);
 
         // Spread F(n+1/2) to f(n+1/2).
-        spread(d_F_idx, F_half_data, true, X_half_data, true, coarsest_ln, finest_ln);
+        d_hier_sc_data_ops->setToScalar(d_F_idx, 0.0);
+        d_lag_data_manager->spread(d_F_idx, F_half_data, X_half_data, true, true);
 
         // Compute the source/sink strengths corresponding to any distributed
         // internal fluid sources or sinks.
@@ -1014,7 +1014,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         d_hier_sc_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
 
         // Interpolate u(n+1/2) to U(n+1/2).
-        interp(U_half_data, d_V_idx, true, X_half_data, false, coarsest_ln, finest_ln);
+        d_lag_data_manager->interpolate(d_V_idx, U_half_data, X_half_data, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
         resetAnchorPointValues(U_half_data, coarsest_ln, finest_ln);
 
         // Set X(n+1) = X(n) + dt*U(n+1/2).
@@ -1310,7 +1310,7 @@ IBStaggeredHierarchyIntegrator::postProcessData()
 
     // Interpolate u(n) from the Cartesian grid onto the Lagrangian mesh.
     d_hier_sc_data_ops->copyData(d_V_idx, U_current_idx);
-    interp(U_data, d_V_idx, true, X_data, true, coarsest_ln, finest_ln);
+    d_lag_data_manager->interpolate(d_V_idx, U_data, X_data, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], d_integrator_time);
     resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
 
     // Compute F(n) = F(X(n),U(n),n), the Lagrangian force corresponding to
@@ -2138,128 +2138,6 @@ IBStaggeredHierarchyIntegrator::putToDatabase(
 }// putToDatabase
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
-void
-IBStaggeredHierarchyIntegrator::spread(
-    const int f_data_idx,
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data,
-    const bool F_data_ghost_node_update,
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-    const bool X_data_ghost_node_update,
-    const int coarsest_ln_in,
-    const int finest_ln_in)
-{
-    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
-        {
-            if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
-            if (X_data_ghost_node_update) X_data[ln]->beginGhostUpdate();
-        }
-    }
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
-        {
-            if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
-            if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
-        }
-    }
-
-    d_hier_sc_data_ops->setToScalar(f_data_idx, 0.0);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
-        {
-            TBOX_ASSERT(ln == d_hierarchy->getFinestLevelNumber());
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-                const SAMRAI::hier::Box<NDIM>& box = idx_data->getGhostBox();
-                IBTK::LEInteractor::spread(f_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_delta_fcn);
-            }
-        }
-    }
-    return;
-}// spread
-
-void
-IBStaggeredHierarchyIntegrator::interp(
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_data,
-    const int u_data_idx,
-    const bool u_data_ghost_cell_update,
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-    const bool X_data_ghost_node_update,
-    const int coarsest_ln_in,
-    const int finest_ln_in)
-{
-    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-
-    if (u_data_ghost_cell_update)
-    {
-        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var;
-        var_db->mapIndexToVariable(u_data_idx, var);
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(var, "CONSERVATIVE_LINEAR_REFINE");
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > refine_alg = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-        refine_alg->registerRefine(u_data_idx, u_data_idx, u_data_idx, refine_op);
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > refine_sched = d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"][ln];
-            refine_alg->resetSchedule(refine_sched);
-            refine_sched->fillData(d_integrator_time);
-            d_ralgs["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"]->resetSchedule(refine_sched);
-        }
-    }
-
-    if (X_data_ghost_node_update)
-    {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (d_lag_data_manager->levelContainsLagrangianData(ln))
-            {
-                X_data[ln]->beginGhostUpdate();
-            }
-        }
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (d_lag_data_manager->levelContainsLagrangianData(ln))
-            {
-                X_data[ln]->endGhostUpdate();
-            }
-        }
-    }
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
-        {
-            TBOX_ASSERT(ln == d_hierarchy->getFinestLevelNumber());
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_data = patch->getPatchData(u_data_idx);
-                const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
-                const SAMRAI::hier::Box<NDIM>& box = idx_data->getBox();
-                IBTK::LEInteractor::interpolate(U_data[ln], X_data[ln], idx_data, u_data, patch, box, periodic_shift, d_interp_delta_fcn);
-            }
-        }
-    }
-    return;
-}// interp
 
 void
 IBStaggeredHierarchyIntegrator::resetLagrangianForceStrategy(

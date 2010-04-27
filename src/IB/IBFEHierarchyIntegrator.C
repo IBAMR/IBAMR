@@ -1,5 +1,5 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <26.Apr.2010 14:59:10 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Apr.2010 04:09:30 griffith@griffith-macbook-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "IBFEHierarchyIntegrator.h"
@@ -96,10 +96,12 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
     SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
     IBTK::FEDataManager* fe_data_manager,
+    IBTK::LDataManager* lag_data_manager,
     bool register_for_restart)
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
       d_fe_data_manager(fe_data_manager),
+      d_lag_data_manager(lag_data_manager),
       d_hierarchy(hierarchy),
       d_gridding_alg(NULL),
       d_visit_writer(NULL),
@@ -230,6 +232,15 @@ IBFEHierarchyIntegrator::setPK1StressTensorFunction(
     d_PK1_stress_function_ctx = PK1_stress_function_ctx;
     return;
 }// setPK1StressTensorFunction
+
+void
+IBFEHierarchyIntegrator::setLagrangianForceStrategy(
+    SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> lag_force_strategy)
+{
+    d_lag_force_strategy = lag_force_strategy;
+    d_lag_force_strategy_needs_init = true;
+    return;
+}// setLagrangianForceStrategy
 
 void
 IBFEHierarchyIntegrator::registerVelocityInitialConditions(
@@ -445,6 +456,19 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     // Initialize the FE data manager.
     d_fe_data_manager->reinitElementMappings();
 
+    // Reset the Lagrangian data manager.
+    if (d_lag_data_manager != NULL)
+    {
+        const int coarsest_ln = 0;
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        d_lag_data_manager->beginDataRedistribution();
+        d_lag_data_manager->endDataRedistribution();
+        d_lag_data_manager->updateWorkloadData(coarsest_ln, finest_ln);
+    }
+
+    // Indicate that the force strategy needs to be re-initialized.
+    d_lag_force_strategy_needs_init = true;
+
     t_initialize_hierarchy->stop();
     return dt_next;
 }// initializeHierarchy
@@ -481,29 +505,19 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     // Set the current time interval in the force specification objects.
     d_eulerian_force_fcn->registerBodyForceSpecification(d_body_force_fcn);
     d_eulerian_force_fcn->setTimeInterval(current_time, new_time);
+    if (!d_lag_force_strategy.isNull()) d_lag_force_strategy->setTimeInterval(current_time, new_time);
 
-    // Allocate scratch data.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    // (Re)initialize the force strategy object.
+    if (d_lag_force_strategy_needs_init)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_V_idx, current_time);
-        level->allocatePatchData(d_F_idx, current_time);
-    }
-
-    // Get patch data descriptors for the current and new velocity data.
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getCurrentContext());
-    const int U_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getNewContext());
-
-    // Synchronize the Cartesian grid velocity u(n) on the patch hierarchy.
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
-    {
-        d_cscheds["U->U::C->C::CONSERVATIVE_COARSEN"][ln]->coarsenData();
-    }
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        d_rscheds["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+            {
+                d_lag_force_strategy->initializeLevelData(d_hierarchy, ln, current_time, initial_time, d_lag_data_manager);
+            }
+        }
+        d_lag_force_strategy_needs_init = false;
     }
 
     // Extract the FE vectors.
@@ -530,30 +544,115 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     NumericVector<double>* F_half_IB_ghost_ptr = d_fe_data_manager->getGhostedSolutionVector(FORCE_SYSTEM_NAME);
     NumericVector<double>& F_half_IB_ghost = *F_half_IB_ghost_ptr;
 
+    // Initialize the various LNodeLevelData objects on each level of the patch hierarchy.
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_current_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_new_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_half_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_half_data(finest_ln+1);
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_half_data(finest_ln+1);
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            X_current_data[ln] = d_lag_data_manager->getLNodeLevelData(IBTK::LDataManager::POSN_DATA_NAME,ln);
+            X_new_data[ln] = d_lag_data_manager->createLNodeLevelData("X_new",ln,NDIM);
+            X_half_data[ln] = d_lag_data_manager->createLNodeLevelData("X_half",ln,NDIM);
+            U_half_data[ln] = d_lag_data_manager->createLNodeLevelData("U_half",ln,NDIM);
+            F_half_data[ln] = d_lag_data_manager->createLNodeLevelData("F_half",ln,NDIM);
+
+            X_current_data[ln]->restoreLocalFormVec();
+            X_new_data[ln]->restoreLocalFormVec();
+            X_half_data[ln]->restoreLocalFormVec();
+            U_half_data[ln]->restoreLocalFormVec();
+            F_half_data[ln]->restoreLocalFormVec();
+        }
+    }
+
+    // Get patch data descriptors for the current and new velocity data.
+    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getCurrentContext());
+    const int U_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getNewContext());
+
+    // Allocate scratch data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_V_idx, current_time);
+        level->allocatePatchData(d_F_idx, current_time);
+    }
+
+    // Synchronize the Cartesian grid velocity u(n) on the patch hierarchy.
+    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    {
+        d_cscheds["U->U::C->C::CONSERVATIVE_COARSEN"][ln]->coarsenData();
+    }
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        d_rscheds["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
+    }
+
     // Initialize X(n+1) to equal X(n).
-    X_new = X_current;
+    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_current)->vec(),
+                   dynamic_cast<PetscVector<double>*>(&X_new)->vec()); IBTK_CHKERRQ(ierr);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            Vec X_current_vec = X_current_data[ln]->getGlobalVec();
+            Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+            ierr = VecCopy(X_current_vec, X_new_vec); IBTK_CHKERRQ(ierr);
+        }
+    }
 
     // Perform one or more cycles to compute the updated configuration of the
     // coupled fluid-structure system.
     d_ins_hier_integrator->integrateHierarchy_initialize(current_time, new_time);
     for (int cycle = 0; cycle < d_num_cycles; ++cycle)
     {
-
         // Set X(n+1/2) = 0.5*(X(n) + X(n+1)).
-        ierr = VecAXPBYPCZ(dynamic_cast<PetscVector<double>*>(&X_half)->vec(), 0.5, 0.5, 0.0, dynamic_cast<PetscVector<double>*>(&X_current)->vec(), dynamic_cast<PetscVector<double>*>(&X_new)->vec()); IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(dynamic_cast<PetscVector<double>*>(&X_half)->vec(),
+                           0.5, 0.5, 0.0,
+                           dynamic_cast<PetscVector<double>*>(&X_current)->vec(),
+                           dynamic_cast<PetscVector<double>*>(&X_new)->vec()); IBTK_CHKERRQ(ierr);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+            {
+                Vec X_current_vec = X_current_data[ln]->getGlobalVec();
+                Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+                Vec X_half_vec = X_half_data[ln]->getGlobalVec();
+                ierr = VecAXPBYPCZ(X_half_vec, 0.5, 0.5, 0.0, X_current_vec, X_new_vec); IBTK_CHKERRQ(ierr);
+            }
+        }
 
         // Compute F(n+1/2) = F(X(n+1/2),t(n+1/2)).
         computeInteriorForceDensity(F_half, X_half, current_time+0.5*dt);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+            {
+                Vec F_half_vec = F_half_data[ln]->getGlobalVec();
+                ierr = VecSet(F_half_vec, 0.0); IBTK_CHKERRQ(ierr);
+                d_lag_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_lag_data_manager);
+            }
+        }
 
         // Copy data into the "IB ghosted" vectors.
         ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_half)->vec(), dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
         ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&F_half)->vec(), dynamic_cast<PetscVector<double>*>(&F_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
 
         // Spread F(n+1/2) to f(n+1/2).
+        d_hier_sc_data_ops->setToScalar(d_F_idx, 0.0);
         d_fe_data_manager->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME);
         if (d_split_interior_and_bdry_forces)
         {
             spreadBoundaryForceDensity(d_F_idx, X_half_IB_ghost, current_time+0.5*dt);
+        }
+        if (d_lag_data_manager != NULL)
+        {
+            d_lag_data_manager->spread(d_F_idx, F_half_data, X_half_data);
         }
 
         // Solve the incompressible Navier-Stokes equations.
@@ -564,21 +663,50 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
         // Interpolate u(n+1/2) to U(n+1/2).
         d_fe_data_manager->interpolate(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
+        if (d_lag_data_manager != NULL)
+        {
+            d_lag_data_manager->interpolate(d_V_idx, U_half_data, X_half_data, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(), current_time, false);
+        }
 
         // Set X(n+1) = X(n) + dt*U(n+1/2).
-        X_new = X_current;
-        X_new.add(dt, U_half);
+        ierr = VecWAXPY(dynamic_cast<PetscVector<double>*>(&X_new)->vec(),
+                        dt,
+                        dynamic_cast<PetscVector<double>*>(&U_half)->vec(),
+                        dynamic_cast<PetscVector<double>*>(&X_current)->vec()); IBTK_CHKERRQ(ierr);
         coords_system.get_dof_map().enforce_constraints_exactly(coords_system, &X_new);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+            {
+                Vec X_current_vec = X_current_data[ln]->getGlobalVec();
+                Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+                Vec U_half_vec = U_half_data[ln]->getGlobalVec();
+                ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec); IBTK_CHKERRQ(ierr);
+            }
+        }
     }
     d_ins_hier_integrator->integrateHierarchy_finalize(current_time, new_time);
 
     // Reset X_current to equal X_new.
-    X_current = X_new;
+    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_new)->vec(),
+                   dynamic_cast<PetscVector<double>*>(&X_current)->vec()); IBTK_CHKERRQ(ierr);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            Vec X_current_vec = X_current_data[ln]->getGlobalVec();
+            Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+            ierr = VecCopy(X_new_vec, X_current_vec); IBTK_CHKERRQ(ierr);
+        }
+    }
 
     // Copy the ghosted data into the non-ghosted solution vectors.
-    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(  coords_system.current_local_solution.get())->vec(), dynamic_cast<PetscVector<double>*>(  coords_system.solution.get())->vec()); IBTK_CHKERRQ(ierr);
-    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(   force_system.current_local_solution.get())->vec(), dynamic_cast<PetscVector<double>*>(   force_system.solution.get())->vec()); IBTK_CHKERRQ(ierr);
-    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(velocity_system.current_local_solution.get())->vec(), dynamic_cast<PetscVector<double>*>(velocity_system.solution.get())->vec()); IBTK_CHKERRQ(ierr);
+    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(  coords_system.current_local_solution.get())->vec(),
+                   dynamic_cast<PetscVector<double>*>(  coords_system.              solution.get())->vec()); IBTK_CHKERRQ(ierr);
+    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(   force_system.current_local_solution.get())->vec(),
+                   dynamic_cast<PetscVector<double>*>(   force_system.              solution.get())->vec()); IBTK_CHKERRQ(ierr);
+    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(velocity_system.current_local_solution.get())->vec(),
+                   dynamic_cast<PetscVector<double>*>(velocity_system.              solution.get())->vec()); IBTK_CHKERRQ(ierr);
 
     // Update the coordinate mapping dX = X - s.
     updateCoordinateMapping();
@@ -698,9 +826,24 @@ IBFEHierarchyIntegrator::regridHierarchy()
 {
     t_regrid_hierarchy->start();
 
+    // Begin Lagrangian data redistribution.
+    if (d_lag_data_manager != NULL)
+    {
+        d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+        d_lag_data_manager->beginDataRedistribution();
+    }
+
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
     // data management as possible.
     d_ins_hier_integrator->regridHierarchy();
+
+    // Complete Lagrangian data redistribution.
+    if (d_lag_data_manager != NULL)
+    {
+        d_lag_data_manager->endDataRedistribution();
+        d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+    }
+    d_lag_force_strategy_needs_init = true;
 
     t_regrid_hierarchy->stop();
     return;
@@ -815,6 +958,14 @@ IBFEHierarchyIntegrator::initializeLevelData(
     d_fe_data_manager->resetLevels(0,hierarchy->getFinestLevelNumber());
     d_fe_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
 
+    // Initialize the Lagrangian data manager.
+    if (d_lag_data_manager != NULL)
+    {
+        d_lag_data_manager->setPatchHierarchy(hierarchy);
+        d_lag_data_manager->resetLevels(0,hierarchy->getFinestLevelNumber());
+        d_lag_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+    }
+
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
     // data management as possible.
     d_ins_hier_integrator->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
@@ -843,6 +994,12 @@ IBFEHierarchyIntegrator::resetHierarchyConfiguration(
 
     // Reset the FE data manager.
     d_fe_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
+
+    // Reset the Lagrangian data manager.
+    if (d_lag_data_manager != NULL)
+    {
+        d_lag_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
+    }
 
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
     // data management as possible.
@@ -923,6 +1080,11 @@ IBFEHierarchyIntegrator::applyGradientDetector(
 
     // Tag cells which contain Lagragian nodes.
     d_fe_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+    if (d_lag_data_manager != NULL)
+    {
+        d_lag_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+    }
+
     t_apply_gradient_detector->stop();
     return;
 }// applyGradientDetector
@@ -1288,7 +1450,7 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
         // Spread the boundary forces to the grid.
         if (qp_offset > 0)
         {
-            IBTK::LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, box, d_fe_data_manager->getWeightingFunction());
+            IBTK::LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, box, d_fe_data_manager->getSpreadWeightingFunction());
         }
     }
     return;

@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <16.Mar.2010 19:42:35 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Apr.2010 00:57:16 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -342,15 +342,9 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
         }
     }
 
-    // Determine the ghost cell width required for cell-centered spreading and
-    // interpolating.
-    const int stencil_size = std::max(IBTK::LEInteractor::getStencilSize(d_interp_delta_fcn),
-                                      IBTK::LEInteractor::getStencilSize(d_spread_delta_fcn));
-    d_ghosts = int(floor(0.5*double(stencil_size)))+1;
-
     // Get the Lagrangian Data Manager.
-    d_lag_data_manager = IBTK::LDataManager::getManager(
-        d_object_name+"::LDataManager", d_ghosts, d_registered_for_restart);
+    d_lag_data_manager = IBTK::LDataManager::getManager(d_object_name+"::LDataManager", d_interp_delta_fcn, d_spread_delta_fcn, d_registered_for_restart);
+    d_ghosts = d_lag_data_manager->getGhostCellWidth();
 
     // Create the instrument panel object.
     d_instrument_panel = new IBInstrumentPanel(

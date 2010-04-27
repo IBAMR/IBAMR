@@ -2,7 +2,7 @@
 #define included_IBFEHierarchyIntegrator
 
 // Filename: IBFEHierarchyIntegrator.h
-// Last modified: <25.Apr.2010 22:08:47 griffith@griffith-macbook-pro.local>
+// Last modified: <27.Apr.2010 03:00:54 griffith@griffith-macbook-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -12,10 +12,12 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBEulerianForceFunction.h>
+#include <ibamr/IBLagrangianForceStrategy.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 // IBTK INCLUDES
 #include <ibtk/FEDataManager.h>
+#include <ibtk/LDataManager.h>
 
 // LIBMESH INCLUDES
 #include <dof_map.h>
@@ -75,6 +77,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
         IBTK::FEDataManager* fe_data_manager,
+        IBTK::LDataManager* lag_data_manager=NULL,
         bool register_for_restart=true);
 
     /*!
@@ -105,12 +108,20 @@ public:
         void* coordinate_mapping_function_ctx=NULL);
 
     /*!
-     * Set the function used to compute the PK1 stress tensor.
+     * Set the function to compute the PK1 stress tensor, used to compute the
+     * forces on the Lagrangian finite element mesh.
      */
     void
     setPK1StressTensorFunction(
         TensorValue<double> (*PK1_stress_function)(const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const elem, const double& time, void* ctx),
         void* PK1_stress_function_ctx=NULL);
+
+    /*!
+     * Set the function used to compute the forces on the Lagrangian fiber mesh.
+     */
+    void
+    setLagrangianForceStrategy(
+        SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> lag_force_strategy);
 
     /*!
      * Supply initial conditions for the (side centered) velocity.
@@ -625,6 +636,13 @@ private:
      */
     TensorValue<double> (*d_PK1_stress_function)(const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const elem, const double& time, void* ctx);
     void* d_PK1_stress_function_ctx;
+
+    /*
+     * Support for traditional fiber-based Lagrangian data.
+     */
+    IBTK::LDataManager* d_lag_data_manager;
+    SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_lag_force_strategy;
+    bool d_lag_force_strategy_needs_init;
 
     /*
      * Pointers to the patch hierarchy and gridding algorithm objects associated

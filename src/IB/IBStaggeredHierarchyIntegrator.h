@@ -2,10 +2,12 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <02.Mar.2010 18:15:35 griffith@griffith-macbook-pro.local>
+// Last modified: <27.Apr.2010 02:26:28 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+// C++ STDLIB INCLUDES
 
 // IBAMR INCLUDES
 #include <ibamr/IBDataPostProcessor.h>
@@ -17,35 +19,11 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 // IBTK INCLUDES
-#include <ibtk/CartGridFunction.h>
 #include <ibtk/LDataManager.h>
-#include <ibtk/LNodeInitStrategy.h>
-#if (NDIM == 3)
-#include <ibtk/LagM3DDataWriter.h>
-#endif
 #include <ibtk/LagMarker.h>
-#include <ibtk/LagSiloDataWriter.h>
 
 // SAMRAI INCLUDES
-#include <CoarsenAlgorithm.h>
-#include <CoarsenSchedule.h>
-#include <GriddingAlgorithm.h>
 #include <IndexVariable.h>
-#include <IntVector.h>
-#include <LoadBalancer.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <RefineAlgorithm.h>
-#include <RefineSchedule.h>
-#include <VariableContext.h>
-#include <VisItDataWriter.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <map>
-#include <set>
-#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -587,26 +565,6 @@ private:
     IBStaggeredHierarchyIntegrator&
     operator=(
         const IBStaggeredHierarchyIntegrator& that);
-
-    void
-    spread(
-        const int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data,
-        const bool F_data_ghost_node_update,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-        const bool X_data_ghost_node_update,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
-
-    void
-    interp(
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_data,
-        const int u_data_idx,
-        const bool u_data_ghost_cell_update,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-        const bool X_data_ghost_node_update,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
 
     /*!
      * Initialize the IBLagrangianForceStrategy object for the current

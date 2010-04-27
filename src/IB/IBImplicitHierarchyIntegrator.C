@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <15.Mar.2010 00:13:16 griffith@griffith-macbook-pro.local>
+// Last modified: <27.Apr.2010 01:01:04 griffith@griffith-macbook-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -283,13 +283,9 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     // Set the problem coefs.
     d_problem_coefs = new INSCoefs(d_rho, d_mu, d_lambda);
 
-    // Determine the ghost cell width required for side-centered spreading and
-    // interpolating.
-    const int stencil_size = IBTK::LEInteractor::getStencilSize(d_delta_fcn);
-    d_ghosts = int(floor(0.5*double(stencil_size)))+1;
-
     // Get the Lagrangian Data Manager.
-    d_lag_data_manager = IBTK::LDataManager::getManager(d_object_name+"::LDataManager", d_ghosts, d_registered_for_restart);
+    d_lag_data_manager = IBTK::LDataManager::getManager(d_object_name+"::LDataManager", d_delta_fcn, d_delta_fcn, d_registered_for_restart);
+    d_ghosts = d_lag_data_manager->getGhostCellWidth();
 
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager = SAMRAI::math::HierarchyDataOpsManager<NDIM>::getManager();
