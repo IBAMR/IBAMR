@@ -1,5 +1,5 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <27.Apr.2010 04:09:30 griffith@griffith-macbook-pro.local>
+// Last modified: <28.Apr.2010 11:47:48 griffith@boyce-griffiths-mac-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "IBFEHierarchyIntegrator.h"
@@ -101,6 +101,11 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
       d_fe_data_manager(fe_data_manager),
+      d_split_interior_and_bdry_forces(false),
+      d_coordinate_mapping_function(NULL),
+      d_coordinate_mapping_function_ctx(NULL),
+      d_PK1_stress_function(NULL),
+      d_PK1_stress_function_ctx(NULL),
       d_lag_data_manager(lag_data_manager),
       d_hierarchy(hierarchy),
       d_gridding_alg(NULL),
