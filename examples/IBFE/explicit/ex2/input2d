@@ -48,13 +48,13 @@ VelocityBcCoefs_0 {
 }
 
 VelocityBcCoefs_1 {
-   acoef_function_0 = "0.0"
-   acoef_function_1 = "0.0"
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
 
-   bcoef_function_0 = "1.0"
-   bcoef_function_1 = "1.0"
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 

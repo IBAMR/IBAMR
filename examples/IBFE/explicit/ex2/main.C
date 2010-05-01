@@ -62,12 +62,8 @@ PK1_stress_function(
     const double& time,
     void* ctx)
 {
-    TensorValue<double> I;
-    for (unsigned int i = 0; i < NDIM; ++i)
-    {
-        I(i,i) = 1.0;
-    }
-    TensorValue<double> P = mu*(dX_ds-I);
+    static const TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
+    const TensorValue<double> P = mu*(dX_ds-I);
     return P;
 }// PK1_stress_function
 }
