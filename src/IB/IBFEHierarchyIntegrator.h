@@ -2,7 +2,7 @@
 #define included_IBFEHierarchyIntegrator
 
 // Filename: IBFEHierarchyIntegrator.h
-// Last modified: <27.Apr.2010 03:00:54 griffith@griffith-macbook-pro.local>
+// Last modified: <29.Apr.2010 01:00:22 griffith@172-26-26-105.DYNAPOOL.NYU.EDU>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -18,28 +18,13 @@
 // IBTK INCLUDES
 #include <ibtk/FEDataManager.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/LagMarker.h>
 
 // LIBMESH INCLUDES
 #include <dof_map.h>
 
 // SAMRAI INCLUDES
-#include <CoarsenAlgorithm.h>
-#include <CoarsenSchedule.h>
-#include <GriddingAlgorithm.h>
-#include <IntVector.h>
-#include <LoadBalancer.h>
-#include <PatchHierarchy.h>
-#include <RefineAlgorithm.h>
-#include <RefineSchedule.h>
-#include <VariableContext.h>
-#include <VisItDataWriter.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-// STL INCLUDES
-#include <map>
-#include <set>
-#include <vector>
+#include <IndexVariable.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -349,6 +334,21 @@ public:
      */
     virtual void
     resetHierDataToPreadvanceState();
+
+    ///
+    ///  The following routines:
+    ///
+    ///      getLagMarkerVar()
+    ///
+    ///  allows access to the various state variables maintained by the
+    ///  integrator.
+    ///
+
+    /*!
+     * Return a pointer to the LagMarker index data state variable.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > >
+    getLagMarkerVar() const;
 
     ///
     ///  The following routines:
@@ -723,6 +723,13 @@ private:
     bool d_do_log;
 
     /*
+     * Input file for initial marker positions, indices, and clouds.
+     */
+    std::string d_mark_input_file_name;
+    int d_num_mark;
+    std::vector<double> d_mark_init_posns;
+
+    /*
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > d_hier_sc_data_ops;
@@ -742,8 +749,9 @@ private:
      * Variables and variable contexts.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_V_var, d_F_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
-    int d_V_idx, d_F_idx;
+    int d_V_idx, d_F_idx, d_mark_current_idx, d_mark_scratch_idx;
 };
 }// namespace IBAMR
 

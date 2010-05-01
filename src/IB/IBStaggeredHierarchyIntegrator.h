@@ -2,12 +2,10 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <27.Apr.2010 02:26:28 griffith@griffith-macbook-pro.local>
+// Last modified: <29.Apr.2010 00:38:28 griffith@172-26-26-105.DYNAPOOL.NYU.EDU>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-// C++ STDLIB INCLUDES
 
 // IBAMR INCLUDES
 #include <ibamr/IBDataPostProcessor.h>
@@ -603,31 +601,6 @@ private:
         const double data_time);
 
     /*!
-     * Collect all marker data onto the coarsest level of the patch hierarchy to
-     * prepare for regridding the patch hierarchy.
-     */
-    void
-    collectMarkersOnPatchHierarchy();
-
-    /*!
-     * Prune marker data in refined regions of the specified levels of the patch
-     * hierarchy.
-     */
-    void
-    pruneDuplicateMarkers(
-        const int coarsest_ln,
-        const int finest_ln);
-
-    /*!
-     * Count the markers.
-     */
-    int
-    countMarkers(
-        const int coarsest_ln,
-        const int finest_ln,
-        const bool log_results);
-
-    /*!
      * Set the elements of the Lagrangian vector to zero at anchored nodes of
      * the curvilinear mesh.
      */
@@ -636,7 +609,6 @@ private:
         std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > V_data,
         const int coarsest_ln,
         const int finest_ln);
-
 
     /*!
      * Set the values of the distributed internal sources/sinks on the Cartesian

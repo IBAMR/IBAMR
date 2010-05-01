@@ -1,5 +1,5 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <28.Apr.2010 11:47:48 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <30.Apr.2010 19:54:33 griffith@griffith-macbook-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "IBFEHierarchyIntegrator.h"
@@ -28,6 +28,7 @@
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LEInteractor.h>
+#include <ibtk/LagMarkerUtilities.h>
 #include <ibtk/libmesh_utilities.h>
 
 // LIBMESH INCLUDES
@@ -128,6 +129,9 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_dt_max_time_min(-(d_dt_max_time_max-std::numeric_limits<double>::epsilon())),
       d_is_initialized(false),
       d_do_log(false),
+      d_mark_input_file_name(""),
+      d_num_mark(0),
+      d_mark_init_posns(),
       d_hier_sc_data_ops(),
       d_ralgs(),
       d_rstrategies(),
@@ -137,10 +141,13 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_cscheds(),
       d_V_var(NULL),
       d_F_var(NULL),
+      d_mark_var(NULL),
       d_current(NULL),
       d_scratch(NULL),
       d_V_idx(-1),
-      d_F_idx(-1)
+      d_F_idx(-1),
+      d_mark_current_idx(-1),
+      d_mark_scratch_idx(-1)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
@@ -161,6 +168,9 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
         getFromRestart();
     }
     getFromInput(input_db, from_restart);
+
+    // Read in the marker initial positions.
+    if (!from_restart) d_num_mark = IBTK::LagMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_input_file_name, d_hierarchy);
 
     // Obtain the Hierarchy data operations objects.
     SAMRAI::math::HierarchyDataOpsManager<NDIM>* hier_ops_manager = SAMRAI::math::HierarchyDataOpsManager<NDIM>::getManager();
@@ -384,6 +394,14 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     d_F_var = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::F");
     d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, no_ghosts);
 
+    d_mark_var = new SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> >(d_object_name+"::mark");
+    d_mark_current_idx = var_db->registerVariableAndContext(d_mark_var, getCurrentContext(), ghosts);
+    d_mark_scratch_idx = var_db->registerVariableAndContext(d_mark_var, getScratchContext(), ghosts);
+    if (d_registered_for_restart)
+    {
+        var_db->registerPatchDataForRestart(d_mark_current_idx);
+    }
+
     // Initialize the objects used to manage Lagragian-Eulerian interaction.
     d_eulerian_force_fcn = new IBEulerianForceFunction(d_object_name+"::IBEulerianForceFunction", -1, -1, d_F_idx);
     d_ins_hier_integrator->registerBodyForceSpecification(d_eulerian_force_fcn);
@@ -470,6 +488,9 @@ IBFEHierarchyIntegrator::initializeHierarchy()
         d_lag_data_manager->endDataRedistribution();
         d_lag_data_manager->updateWorkloadData(coarsest_ln, finest_ln);
     }
+
+    // Prune duplicate markers following initialization.
+    IBTK::LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
 
     // Indicate that the force strategy needs to be re-initialized.
     d_lag_force_strategy_needs_init = true;
@@ -611,6 +632,20 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         }
     }
 
+    // Initialize X_mark(n+1) to equal X_mark(n).
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > mark_data         = patch->getPatchData(d_mark_current_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
+            mark_scratch_data->copy(*mark_data);
+        }
+    }
+
     // Perform one or more cycles to compute the updated configuration of the
     // coupled fluid-structure system.
     d_ins_hier_integrator->integrateHierarchy_initialize(current_time, new_time);
@@ -689,6 +724,9 @@ IBFEHierarchyIntegrator::advanceHierarchy(
                 ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec); IBTK_CHKERRQ(ierr);
             }
         }
+
+        // Set X_mark(n+1) = X_mark(n) + dt*U(n+1/2).
+        IBTK::LagMarkerUtilities::advectMarkers(d_mark_current_idx, d_mark_scratch_idx, d_V_idx, dt, d_fe_data_manager->getInterpWeightingFunction(), d_hierarchy);
     }
     d_ins_hier_integrator->integrateHierarchy_finalize(current_time, new_time);
 
@@ -715,6 +753,20 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
     // Update the coordinate mapping dX = X - s.
     updateCoordinateMapping();
+
+    // Reset X_mark to equal X_mark_new.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > mark_data = patch->getPatchData(d_mark_current_idx);
+            SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexData<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
+            mark_data->copy(*mark_scratch_data);
+        }
+        level->deallocatePatchData(d_mark_scratch_idx);
+    }
 
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -831,6 +883,10 @@ IBFEHierarchyIntegrator::regridHierarchy()
 {
     t_regrid_hierarchy->start();
 
+    // Update the marker data.
+    if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): resetting markers particles.\n";
+    IBTK::LagMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
+
     // Begin Lagrangian data redistribution.
     if (d_lag_data_manager != NULL)
     {
@@ -849,6 +905,9 @@ IBFEHierarchyIntegrator::regridHierarchy()
         d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
     }
     d_lag_force_strategy_needs_init = true;
+
+    // Prune duplicate markers following regridding.
+    IBTK::LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
 
     t_regrid_hierarchy->stop();
     return;
@@ -958,6 +1017,8 @@ IBFEHierarchyIntegrator::initializeLevelData(
     TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
 
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+
     // Initialize the FE data manager.
     d_fe_data_manager->setPatchHierarchy(hierarchy);
     d_fe_data_manager->resetLevels(0,hierarchy->getFinestLevelNumber());
@@ -974,6 +1035,23 @@ IBFEHierarchyIntegrator::initializeLevelData(
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
     // data management as possible.
     d_ins_hier_integrator->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+
+    // Allocate storage needed to initialize the level and fill data from
+    // coarser levels in AMR hierarchy, if any.
+    //
+    // Since time gets set when we allocate data, re-stamp it to current time if
+    // we don't need to allocate.
+    if (allocate_data)
+    {
+        level->allocatePatchData(d_mark_current_idx, init_data_time);
+    }
+    else
+    {
+        level->setTime(init_data_time, d_mark_current_idx);
+    }
+
+    // Initialize marker data.
+    IBTK::LagMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
 
     t_initialize_level_data->stop();
     return;
@@ -1097,6 +1175,20 @@ IBFEHierarchyIntegrator::applyGradientDetector(
 ///
 ///  The following routines:
 ///
+///      getLagMarkerVar()
+///
+///  allows access to the various state variables maintained by the integrator.
+///
+
+SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > >
+IBFEHierarchyIntegrator::getLagMarkerVar() const
+{
+    return d_mark_var;
+}// getLagMarkerVar
+
+///
+///  The following routines:
+///
 ///      getCurrentContext(),
 ///      getNewContext(),
 ///      getScratchContext()
@@ -1165,6 +1257,16 @@ IBFEHierarchyIntegrator::putToDatabase(
     {
         db->putInteger("instrument_names_sz", instrument_names.size());
         db->putStringArray("instrument_names", &instrument_names[0], instrument_names.size());
+    }
+
+    db->putString("d_mark_input_file_name", d_mark_input_file_name);
+    db->putInteger("d_num_mark", d_num_mark);
+    if (d_num_mark > 0)
+    {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(NDIM*d_num_mark == int(d_mark_init_posns.size()));
+#endif
+        db->putDoubleArray("d_mark_init_posns", &d_mark_init_posns[0], d_mark_init_posns.size());
     }
 
     t_put_to_database->stop();
@@ -1550,6 +1652,7 @@ IBFEHierarchyIntegrator::getFromInput(
     if (!is_from_restart)
     {
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
+        d_mark_input_file_name = db->getStringWithDefault("marker_input_file_name", d_mark_input_file_name);
     }
     return;
 }// getFromInput
@@ -1597,6 +1700,13 @@ IBFEHierarchyIntegrator::getFromRestart()
         IBInstrumentationSpec::setInstrumentNames(instrument_names);
     }
 
+    d_mark_input_file_name = db->getString("d_mark_input_file_name");
+    d_num_mark = db->getInteger("d_num_mark");
+    d_mark_init_posns.resize(NDIM*d_num_mark);
+    if (d_num_mark > 0)
+    {
+        db->getDoubleArray("d_mark_init_posns", &d_mark_init_posns[0], d_mark_init_posns.size());
+    }
     return;
 }// getFromRestart
 
