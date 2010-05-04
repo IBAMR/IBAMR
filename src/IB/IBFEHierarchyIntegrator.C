@@ -1,5 +1,5 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <30.Apr.2010 19:54:33 griffith@griffith-macbook-pro.local>
+// Last modified: <04.May.2010 11:12:10 griffith@boyce-griffiths-mac-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "IBFEHierarchyIntegrator.h"
@@ -35,8 +35,9 @@
 #include <boundary_info.h>
 #include <dense_vector.h>
 #include <dof_map.h>
-#include <fe.h>
 #include <explicit_system.h>
+#include <fe.h>
+#include <mesh_refinement.h>
 #include <numeric_vector.h>
 #include <petsc_vector.h>
 #include <quadrature_trap.h>
@@ -882,6 +883,82 @@ void
 IBFEHierarchyIntegrator::regridHierarchy()
 {
     t_regrid_hierarchy->start();
+
+    // Update the Lagrangian mesh.
+    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+    const unsigned int max_h_level = 0;
+    if (max_h_level > 0)
+    {
+        SAMRAI::tbox::SAMRAI_MPI::barrier();
+        SAMRAI::tbox::pout << "\n*** Remeshing ***" << std::endl;
+
+        MeshBase& mesh = equation_systems->get_mesh();
+        const int mesh_n_elem = mesh.n_elem();
+
+        System& coords_system = equation_systems->get_system<System>(COORDINATES_SYSTEM_NAME);
+        const DofMap& coords_dof_map = coords_system.get_dof_map();
+
+        MeshRefinement mesh_refinement(mesh);
+        mesh_refinement.max_h_level() = max_h_level;
+
+        const bool initial_time = SAMRAI::tbox::MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
+        const int num_refine_iterations = initial_time ? max_h_level : 1;
+        for (int it = 0; it < num_refine_iterations; ++it)
+        {
+            // Flag elements for refinement if they are near fluid-structure
+            // interfaces (i.e., physical boundaries).
+            bool marked_element_for_refine = false;
+            for (MeshBase::element_iterator e_it = mesh.active_elements_begin(); e_it != mesh.active_elements_end(); ++e_it)
+            {
+                Elem* const elem = *e_it;
+
+                // Only flag elements for refinement if they are not already
+                // maximally refined.
+                if (elem->level() < max_h_level)
+                {
+                    // Loop over the element boundaries to determine if this
+                    // element touches the physical boundary.
+                    bool at_physical_bdry = false;
+                    for (unsigned int side = 0; side < elem->n_sides(); ++side)
+                    {
+                        const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
+                        at_physical_bdry = at_physical_bdry || (elem->neighbor(side) == NULL && !coords_dof_map.is_periodic_boundary(boundary_id));
+                    }
+
+                    // Flag the element for refinement
+                    if (at_physical_bdry)
+                    {
+                        marked_element_for_refine = true;
+                        elem->set_refinement_flag(Elem::REFINE);
+                    }
+                }
+            }
+
+            if (marked_element_for_refine && mesh_refinement.refine_and_coarsen_elements())
+            {
+                equation_systems->reinit();
+                d_fe_data_manager->reinitElementMappings();
+
+                // Reinitialize the systems.
+                System& coords_system = equation_systems->get_system<System>(COORDINATES_SYSTEM_NAME);
+                coords_system.assemble_before_solve = false;
+                coords_system.assemble();
+
+                System& coords_mapping_system = equation_systems->get_system<System>(COORDINATE_MAPPING_SYSTEM_NAME);
+                coords_mapping_system.assemble_before_solve = false;
+                coords_mapping_system.assemble();
+
+                SAMRAI::tbox::SAMRAI_MPI::barrier();
+                SAMRAI::tbox::pout << "number of elements before remesh = " << mesh_n_elem   << std::endl
+                                   << "number of elements after  remesh = " << mesh.n_elem() << std::endl << std::endl;
+            }
+            else
+            {
+                SAMRAI::tbox::SAMRAI_MPI::barrier();
+                SAMRAI::tbox::pout << "mesh unchanged" << std::endl << std::endl;
+            }
+        }
+    }
 
     // Update the marker data.
     if (d_do_log) SAMRAI::tbox::plog << d_object_name << "::regridHierarchy(): resetting markers particles.\n";

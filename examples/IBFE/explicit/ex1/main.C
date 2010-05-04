@@ -444,9 +444,11 @@ main(
             }
             if (uses_exodus)
             {
-                std::ostringstream os;
-                os << "output.ex2";
-                exodus_io.write_timestep(os.str(), equation_systems, time_integrator->getIntegratorStep()/viz_dump_interval+1, time_integrator->getIntegratorTime());
+                exodus_io.write_timestep("output.ex2", equation_systems, time_integrator->getIntegratorStep()/viz_dump_interval+1, time_integrator->getIntegratorTime());
+                ExodusII_IO exodus_amr_io(mesh);
+                ostringstream os;
+                os << "output." << time_integrator->getIntegratorStep() << ".ex2";
+                exodus_amr_io.write_equation_systems(os.str(), equation_systems);
             }
         }
 
@@ -495,9 +497,11 @@ main(
                 }
                 if (uses_exodus)
                 {
-                    std::ostringstream os;
-                    os << "output.ex2";
-                    exodus_io.write_timestep(os.str(), equation_systems, iteration_num/viz_dump_interval+1, loop_time);
+                    exodus_io.write_timestep("output.ex2", equation_systems, iteration_num/viz_dump_interval+1, loop_time);
+                    ExodusII_IO exodus_amr_io(mesh);
+                    ostringstream os;
+                    os << "output." << iteration_num << ".ex2";
+                    exodus_amr_io.write_equation_systems(os.str(), equation_systems);
                 }
             }
 

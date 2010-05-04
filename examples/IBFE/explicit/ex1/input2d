@@ -9,7 +9,7 @@ RHO = 1.0
 MAX_LEVELS = 3   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 8                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 1.0                                   // width of computational domain
 M = 2                                     // Lagrangian mesh spacing
@@ -184,7 +184,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt" , "ExodusII"
-   viz_dump_interval     = 1 // NFINEST     // zero to turn off
+   viz_dump_interval     = 50 // NFINEST     // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
