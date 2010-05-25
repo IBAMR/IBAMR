@@ -1,5 +1,5 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <04.May.2010 11:12:10 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <25.May.2010 11:21:09 griffith@griffith-macbook-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "IBFEHierarchyIntegrator.h"
@@ -108,6 +108,8 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_coordinate_mapping_function_ctx(NULL),
       d_PK1_stress_function(NULL),
       d_PK1_stress_function_ctx(NULL),
+      d_extra_force_function(NULL),
+      d_extra_force_function_ctx(NULL),
       d_lag_data_manager(lag_data_manager),
       d_hierarchy(hierarchy),
       d_gridding_alg(NULL),
@@ -248,6 +250,16 @@ IBFEHierarchyIntegrator::setPK1StressTensorFunction(
     d_PK1_stress_function_ctx = PK1_stress_function_ctx;
     return;
 }// setPK1StressTensorFunction
+
+void
+IBFEHierarchyIntegrator::setExtraForceFunction(
+    void (*extra_force_function)(NumericVector<double>& F, NumericVector<double>& X, EquationSystems* equation_systems, const std::string& force_system_name, const std::string& coords_system_name, const double& time, void* ctx),
+    void* extra_force_function_ctx)
+{
+    d_extra_force_function = extra_force_function;
+    d_extra_force_function_ctx = extra_force_function_ctx;
+    return;
+}// setExtraForceFunction
 
 void
 IBFEHierarchyIntegrator::setLagrangianForceStrategy(
@@ -670,6 +682,12 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
         // Compute F(n+1/2) = F(X(n+1/2),t(n+1/2)).
         computeInteriorForceDensity(F_half, X_half, current_time+0.5*dt);
+        if (d_extra_force_function != NULL)
+        {
+            d_extra_force_function(F_half, X_half,
+                                   equation_systems, FORCE_SYSTEM_NAME, COORDINATES_SYSTEM_NAME,
+                                   current_time+0.5*dt, d_extra_force_function_ctx);
+        }
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))

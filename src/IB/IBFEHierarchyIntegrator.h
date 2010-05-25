@@ -2,7 +2,7 @@
 #define included_IBFEHierarchyIntegrator
 
 // Filename: IBFEHierarchyIntegrator.h
-// Last modified: <29.Apr.2010 01:00:22 griffith@172-26-26-105.DYNAPOOL.NYU.EDU>
+// Last modified: <25.May.2010 11:14:38 griffith@griffith-macbook-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -100,6 +100,15 @@ public:
     setPK1StressTensorFunction(
         TensorValue<double> (*PK1_stress_function)(const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const elem, const double& time, void* ctx),
         void* PK1_stress_function_ctx=NULL);
+
+    /*!
+     * Set the (optional) function to compute "extra" forces (e.g., penalty
+     * forces) on the Lagrangian finite element mesh.
+     */
+    void
+    setExtraForceFunction(
+        void (*extra_force_function)(NumericVector<double>& F, NumericVector<double>& X, EquationSystems* equation_systems, const std::string& force_system_name, const std::string& coords_system_name, const double& time, void* ctx),
+        void* extra_force_function_ctx=NULL);
 
     /*!
      * Set the function used to compute the forces on the Lagrangian fiber mesh.
@@ -636,6 +645,13 @@ private:
      */
     TensorValue<double> (*d_PK1_stress_function)(const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const elem, const double& time, void* ctx);
     void* d_PK1_stress_function_ctx;
+
+    /*
+     * Optional function use to compute "extra" forces (e.g., penalty forces) on
+     * the Lagrangian finite element mesh.
+     */
+    void (*d_extra_force_function)(NumericVector<double>& F, NumericVector<double>& X, EquationSystems* equation_systems, const std::string& force_system_name, const std::string& coords_system_name, const double& time, void* ctx);
+    void* d_extra_force_function_ctx;
 
     /*
      * Support for traditional fiber-based Lagrangian data.
