@@ -1,5 +1,5 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <25.May.2010 11:21:09 griffith@griffith-macbook-pro.local>
+// Last modified: <25.May.2010 12:25:06 griffith@griffith-macbook-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "IBFEHierarchyIntegrator.h"
@@ -684,9 +684,11 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         computeInteriorForceDensity(F_half, X_half, current_time+0.5*dt);
         if (d_extra_force_function != NULL)
         {
-            d_extra_force_function(F_half, X_half,
+            AutoPtr<NumericVector<double> > F_extra_half = F_half.zero_clone();
+            d_extra_force_function(*F_extra_half, X_half,
                                    equation_systems, FORCE_SYSTEM_NAME, COORDINATES_SYSTEM_NAME,
                                    current_time+0.5*dt, d_extra_force_function_ctx);
+            F_half += *F_extra_half;
         }
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
