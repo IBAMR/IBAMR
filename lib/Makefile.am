@@ -37,7 +37,6 @@ $(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBDataPostProcessor.C \
 $(top_srcdir)/src/IB/IBEulerianForceFunction.C \
 $(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
-$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C \
 $(top_srcdir)/src/IB/IBHDF5Initializer.C \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 $(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
@@ -81,6 +80,11 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
 
+if LIBMESH_ENABLED
+DIM_INDEPENDENT_SOURCES += \
+$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
+endif
+
 pkg_include_HEADERS += \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.I \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.h \
@@ -92,7 +96,6 @@ $(top_srcdir)/src/IB/IBBeamForceSpecFactory.h \
 $(top_srcdir)/src/IB/IBDataPostProcessor.h \
 $(top_srcdir)/src/IB/IBEulerianForceFunction.h \
 $(top_srcdir)/src/IB/IBEulerianSourceFunction.h \
-$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBHDF5Initializer.h \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.h \
@@ -139,6 +142,11 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h
+
+if LIBMESH_ENABLED
+pkg_include_HEADERS += \
+$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.h
+endif
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
