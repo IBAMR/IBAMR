@@ -1,5 +1,5 @@
 // Filename: INSStaggeredBoxRelaxationFACOperator.C
-// Last modified: <11.Jun.2010 18:33:16 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <11.Jun.2010 18:43:40 griffith@boyce-griffiths-mac-pro.local>
 // Created on 11 Jun 2010 by Boyce Griffith (griffith@boyce-griffiths-mac-pro.local)
 
 #include "INSStaggeredBoxRelaxationFACOperator.h"
@@ -53,8 +53,7 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_operator_state;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_deallocate_operator_state;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int GHOSTS = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -67,7 +66,7 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
       d_is_initialized(false),
       d_solution(NULL),
       d_rhs(NULL),
-      d_gcw(SIDEG),
+      d_gcw(GHOSTS),
       d_patch_vec_e(),
       d_patch_vec_f(),
       d_patch_mat(),
@@ -943,10 +942,10 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     d_U_bc_op = new IBTK::CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
 
 #if (NDIM == 2)
-    d_U_op_stencil_fill_pattern = new IBTK::SideNoCornersFillPattern(SIDEG);
+    d_U_op_stencil_fill_pattern = new IBTK::SideNoCornersFillPattern(GHOSTS);
 #endif
 #if (NDIM == 3)
-    d_U_op_stencil_fill_pattern = new IBTK::SideNoCornersFillPattern(SIDEG,false);
+    d_U_op_stencil_fill_pattern = new IBTK::SideNoCornersFillPattern(GHOSTS,false);
 #endif
     d_U_synch_fill_pattern = new IBTK::SideSynchCopyFillPattern();
 
