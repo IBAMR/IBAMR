@@ -1,5 +1,5 @@
 // Filename: INSHierarchyIntegrator.C
-// Last modified: <02.Mar.2010 18:12:20 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Jun.2010 12:40:54 griffith@boyce-griffiths-mac-pro.local>
 // Created on 02 Apr 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "INSHierarchyIntegrator.h"
@@ -2016,7 +2016,7 @@ INSHierarchyIntegrator::projectVelocity(
         d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_new_idx);
 #endif
 #if (NDIM == 3)
-        d_hier_math_ops->pointwise_L2Norm(
+        d_hier_math_ops->pointwiseL2Norm(
             d_Omega_Norm_idx, d_Omega_Norm_var, // dst
             d_Omega_new_idx , d_Omega_var);     // src
 
@@ -2804,7 +2804,7 @@ INSHierarchyIntegrator::initializeLevelData(
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Omega_Norm_data =
                         new SAMRAI::pdat::CellData<NDIM,double>(patch->getBox(), 1, 0);
 
-                    patch_math_ops.pointwise_L2Norm(Omega_Norm_data, Omega_current_data, patch);
+                    patch_math_ops.pointwiseL2Norm(Omega_Norm_data, Omega_current_data, patch);
                     d_Omega_max = std::max(d_Omega_max,
                                            patch_cc_data_ops.max(Omega_Norm_data, patch->getBox()));
 #endif

@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <27.Apr.2010 01:01:04 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Jun.2010 12:40:55 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -1550,7 +1550,7 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
         d_u_scratch_idx, d_u_var,
         d_no_fill_op, new_time);
 #if (NDIM == 3)
-    d_hier_math_ops->pointwise_L2Norm(
+    d_hier_math_ops->pointwiseL2Norm(
         d_omega_norm_new_idx, d_omega_norm_var,
         d_omega_new_idx, d_omega_var);
 #endif
@@ -2287,7 +2287,7 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
 #if (NDIM == 3)
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > omega_norm_current_data =
                     patch->getPatchData(d_omega_norm_current_idx);
-                patch_math_ops.pointwise_L2Norm(omega_norm_current_data, omega_current_data, patch);
+                patch_math_ops.pointwiseL2Norm(omega_norm_current_data, omega_current_data, patch);
 #endif
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > div_u_current_data =
                     patch->getPatchData(d_div_u_current_idx);

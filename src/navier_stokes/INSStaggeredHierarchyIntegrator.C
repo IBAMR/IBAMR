@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <10.Mar.2010 12:39:05 griffith@griffith-macbook-pro.local>
+// Last modified: <15.Jun.2010 12:40:54 griffith@boyce-griffiths-mac-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -1604,7 +1604,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
         d_U_scratch_idx, d_U_var,
         d_U_bdry_bc_fill_op, new_time);
 #if (NDIM == 3)
-    d_hier_math_ops->pointwise_L2Norm(
+    d_hier_math_ops->pointwiseL2Norm(
         d_Omega_Norm_new_idx, d_Omega_Norm_var,
         d_Omega_new_idx, d_Omega_var);
 #endif
@@ -2017,7 +2017,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
                 patch_math_ops.curl(Omega_current_data, U_scratch_data, patch);
 #if (NDIM == 3)
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Omega_Norm_current_data = patch->getPatchData(d_Omega_Norm_current_idx);
-                patch_math_ops.pointwise_L2Norm(Omega_Norm_current_data, Omega_current_data, patch);
+                patch_math_ops.pointwiseL2Norm(Omega_Norm_current_data, Omega_current_data, patch);
 #endif
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Div_U_current_data = patch->getPatchData(d_Div_U_current_idx);
                 patch_math_ops.div(Div_U_current_data, 1.0, U_scratch_data, 0.0, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> >(NULL), patch);
