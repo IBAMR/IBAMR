@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpec.C
-// Last modified: <15.Dec.2009 19:19:51 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Jun.2010 15:46:23 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceSpec.h"
@@ -31,9 +31,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-bool               IBBeamForceSpec::s_registered_factory = false;
-int                IBBeamForceSpec::s_stashable_id = -1;
-IBTK::DynamicArena IBBeamForceSpec::s_arena(sizeof(IBBeamForceSpec));
+bool IBBeamForceSpec::s_registered_factory = false;
+int  IBBeamForceSpec::s_stashable_id = -1;
 
 void
 IBBeamForceSpec::registerWithStashableManager()

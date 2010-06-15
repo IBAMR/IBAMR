@@ -1,5 +1,5 @@
 // Filename: IBInstrumentationSpec.C
-// Last modified: <15.Dec.2009 19:19:39 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Jun.2010 15:46:31 griffith@boyce-griffiths-mac-pro.local>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBInstrumentationSpec.h"
@@ -31,9 +31,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-bool               IBInstrumentationSpec::s_registered_factory = false;
-int                IBInstrumentationSpec::s_stashable_id = -1;
-IBTK::DynamicArena IBInstrumentationSpec::s_arena(sizeof(IBInstrumentationSpec));
+bool IBInstrumentationSpec::s_registered_factory = false;
+int  IBInstrumentationSpec::s_stashable_id = -1;
 
 std::vector<std::string> IBInstrumentationSpec::s_instrument_names;
 

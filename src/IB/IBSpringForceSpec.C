@@ -1,5 +1,5 @@
 // Filename: IBSpringForceSpec.C
-// Last modified: <15.Dec.2009 19:21:31 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Jun.2010 15:46:50 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceSpec.h"
@@ -31,9 +31,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-bool               IBSpringForceSpec::s_registered_factory = false;
-int                IBSpringForceSpec::s_stashable_id = -1;
-IBTK::DynamicArena IBSpringForceSpec::s_arena(sizeof(IBSpringForceSpec));
+bool IBSpringForceSpec::s_registered_factory = false;
+int  IBSpringForceSpec::s_stashable_id = -1;
 
 void
 IBSpringForceSpec::registerWithStashableManager()

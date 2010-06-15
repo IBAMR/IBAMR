@@ -2,13 +2,12 @@
 #define included_IBBeamForceSpec
 
 // Filename: IBBeamForceSpec.h
-// Last modified: <01.Mar.2010 15:28:11 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Jun.2010 15:40:32 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/DynamicArena.h>
 #include <ibtk/Stashable.h>
 
 // SAMRAI INCLUDES
@@ -59,21 +58,6 @@ public:
      */
     static bool
     getIsRegisteredWithStashableManager();
-
-    /*!
-     * \brief Operator new.
-     */
-    static void*
-    operator new(
-        std::size_t size);
-
-    /*!
-     * \brief Operator delete.
-     */
-    static void
-    operator delete(
-        void* ptr,
-        std::size_t size);
 
     /*!
      * \brief Default constructor.
@@ -206,11 +190,6 @@ private:
      * The stashable ID for this object type.
      */
     static int s_stashable_id;
-
-    /*!
-     * Memory arena for allocating objects.
-     */
-    static IBTK::DynamicArena s_arena;
 
     /*!
      * Data required to define the beam forces.

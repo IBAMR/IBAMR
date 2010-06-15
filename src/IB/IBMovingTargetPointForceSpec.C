@@ -1,5 +1,5 @@
 // Filename: IBMovingTargetPointForceSpec.C
-// Last modified: <15.Dec.2009 19:26:06 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Jun.2010 15:46:38 griffith@boyce-griffiths-mac-pro.local>
 // Created on 14 Aug 2008 by Boyce Griffith (boyce@dm-linux.maths.gla.ac.uk)
 
 #include "IBMovingTargetPointForceSpec.h"
@@ -31,9 +31,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-bool               IBMovingTargetPointForceSpec::s_registered_factory = false;
-int                IBMovingTargetPointForceSpec::s_stashable_id = -1;
-IBTK::DynamicArena IBMovingTargetPointForceSpec::s_arena(sizeof(IBMovingTargetPointForceSpec));
+bool IBMovingTargetPointForceSpec::s_registered_factory = false;
+int  IBMovingTargetPointForceSpec::s_stashable_id = -1;
 
 void
 IBMovingTargetPointForceSpec::registerWithStashableManager()

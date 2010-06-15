@@ -2,13 +2,12 @@
 #define included_IBInstrumentationSpec
 
 // Filename: IBInstrumentationSpec.h
-// Last modified: <01.Mar.2010 15:41:12 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Jun.2010 15:40:39 griffith@boyce-griffiths-mac-pro.local>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/DynamicArena.h>
 #include <ibtk/Stashable.h>
 
 // SAMRAI INCLUDES
@@ -60,21 +59,6 @@ public:
      */
     static const std::vector<std::string>&
     getInstrumentNames();
-
-    /*!
-     * \brief Operator new.
-     */
-    static void*
-    operator new(
-        std::size_t size);
-
-    /*!
-     * \brief Operator delete.
-     */
-    static void
-    operator delete(
-        void* ptr,
-        std::size_t size);
 
     /*!
      * \brief Default constructor.
@@ -186,11 +170,6 @@ private:
      * The stashable ID for this object type.
      */
     static int s_stashable_id;
-
-    /*!
-     * Memory arena for allocating objects.
-     */
-    static IBTK::DynamicArena s_arena;
 
     /*!
      * The names of the instrument names.

@@ -1,5 +1,5 @@
 // Filename: IBAnchorPointSpec.C
-// Last modified: <15.Dec.2009 19:13:06 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Jun.2010 15:39:13 griffith@boyce-griffiths-mac-pro.local>
 // Created on 18 Aug 2008 by Boyce Griffith (boyce@dm-linux.maths.gla.ac.uk)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,29 +21,6 @@ IBAnchorPointSpec::getIsRegisteredWithStashableManager()
 }// getIsRegisteredWithStashableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-
-inline void*
-IBAnchorPointSpec::operator new(
-    std::size_t size)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(size == sizeof(IBAnchorPointSpec));
-#endif
-    return s_arena.alloc(size);
-}// operator new
-
-inline void
-IBAnchorPointSpec::operator delete(
-    void* ptr,
-    std::size_t size)
-{
-    if (ptr == NULL) return;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(size == sizeof(IBAnchorPointSpec));
-#endif
-    s_arena.free(ptr);
-    return;
-}// operator delete
 
 inline
 IBAnchorPointSpec::IBAnchorPointSpec(
