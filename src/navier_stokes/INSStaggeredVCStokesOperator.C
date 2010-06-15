@@ -1,0 +1,324 @@
+// Filename: INSStaggeredVCStokesOperator.C
+// Last modified: <15.Jun.2010 11:51:03 griffith@boyce-griffiths-mac-pro.local>
+// Created on 15 Jun 2010 by Boyce Griffith (griffith@boyce-griffiths-mac-pro.local)
+
+#include "INSStaggeredVCStokesOperator.h"
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
+#endif
+
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#define included_SAMRAI_config
+#endif
+
+// IBAMR INCLUDES
+#include <ibamr/INSStaggeredPressureBcCoef.h>
+
+// IBTK INCLUDES
+#include <ibtk/CellNoCornersFillPattern.h>
+#include <ibtk/SideNoCornersFillPattern.h>
+
+// C++ STDLIB INCLUDES
+#include <limits>
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+namespace IBAMR
+{
+/////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+// Number of ghosts cells used for each variable quantity.
+static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+
+// Type of coarsening to perform prior to setting coarse-fine boundary and
+// physical boundary ghost cell values.
+static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+
+// Type of extrapolation to use at physical boundaries.
+static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
+
+// Whether to enforce consistent interpolated values at Type 2 coarse-fine
+// interface ghost cells.
+static const bool CONSISTENT_TYPE_2_BDRY = false;
+
+// Timers.
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_operator_state;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_deallocate_operator_state;
+}
+
+/////////////////////////////// PUBLIC ///////////////////////////////////////
+
+INSStaggeredVCStokesOperator::INSStaggeredVCStokesOperator(
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
+    : d_is_initialized(false),
+      d_current_time(std::numeric_limits<double>::quiet_NaN()),
+      d_new_time(std::numeric_limits<double>::quiet_NaN()),
+      d_dt(std::numeric_limits<double>::quiet_NaN()),
+      d_hier_math_ops(hier_math_ops),
+      d_homogeneous_bc(false),
+      d_correcting_rhs(false),
+      d_U_bc_coefs(U_bc_coefs),
+      d_U_bc_helper(U_bc_helper),
+      d_P_bc_coef(P_bc_coef),
+      d_U_P_bdry_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
+      d_no_fill_op(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>(NULL)),
+      d_x_scratch(NULL)
+{
+    // Setup Timers.
+    static bool timers_need_init = true;
+    if (timers_need_init)
+    {
+        t_apply = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredVCStokesOperator::apply()");
+        t_initialize_operator_state = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredVCStokesOperator::initializeOperatorState()");
+        t_deallocate_operator_state = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::INSStaggeredVCStokesOperator::deallocateOperatorState()");
+        timers_need_init = false;
+    }
+    return;
+}// INSStaggeredVCStokesOperator
+
+INSStaggeredVCStokesOperator::~INSStaggeredVCStokesOperator()
+{
+    deallocateOperatorState();
+    return;
+}// ~INSStaggeredVCStokesOperator
+
+void
+INSStaggeredVCStokesOperator::setHomogeneousBc(
+    const bool homogeneous_bc)
+{
+    d_homogeneous_bc = homogeneous_bc;
+    return;
+}// setHomogeneousBc
+
+void
+INSStaggeredVCStokesOperator::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    d_current_time = current_time;
+    d_new_time = new_time;
+    d_dt = d_new_time-d_current_time;
+    return;
+}// setTimeInterval
+
+void
+INSStaggeredVCStokesOperator::registerViscosityVariable(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > mu_var,
+    const int mu_data_idx)
+{
+    d_mu_var = mu_var;
+    d_mu_data_idx = mu_data_idx;
+    return;
+}// registerViscosityVariable
+
+void
+INSStaggeredVCStokesOperator::modifyRhsForInhomogeneousBc(
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
+{
+    // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
+    // inhomogeneous boundary conditions.
+    if (!d_homogeneous_bc)
+    {
+        d_correcting_rhs = true;
+
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > x = y.cloneVector("");
+        x->allocateVectorData();
+        x->setToScalar(0.0);
+
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > b = y.cloneVector("");
+        b->allocateVectorData();
+        b->setToScalar(0.0);
+
+        apply(*x,*b);
+        y.subtract(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&y, false), b);
+
+        x->freeVectorComponents();
+        x.setNull();
+
+        b->freeVectorComponents();
+        b.setNull();
+
+        d_correcting_rhs = false;
+    }
+    return;
+}// modifyRhsForInhomogeneousBc
+
+void
+INSStaggeredVCStokesOperator::apply(
+    const bool homogeneous_bc,
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
+{
+    t_apply->start();
+
+    // Initialize the operator (if necessary).
+    const bool deallocate_at_completion = !d_is_initialized;
+    if (!d_is_initialized) initializeOperatorState(x,y);
+
+    // Get the vector components.
+//  const int U_in_idx       =            x.getComponentDescriptorIndex(0);
+//  const int P_in_idx       =            x.getComponentDescriptorIndex(1);
+    const int U_out_idx      =            y.getComponentDescriptorIndex(0);
+    const int P_out_idx      =            y.getComponentDescriptorIndex(1);
+    const int U_scratch_idx  = d_x_scratch->getComponentDescriptorIndex(0);
+    const int P_scratch_idx  = d_x_scratch->getComponentDescriptorIndex(1);
+
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_out_var = y.getComponentVariable(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_out_var = y.getComponentVariable(1);
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_out_sc_var = U_out_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_out_cc_var = P_out_var;
+
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& U_scratch_var = d_x_scratch->getComponentVariable(0);
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& P_scratch_var = d_x_scratch->getComponentVariable(1);
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > U_scratch_sc_var = U_scratch_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > P_scratch_cc_var = P_scratch_var;
+
+    d_x_scratch->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >(&x,false));
+
+    // Reset the interpolation operators and fill the data.
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > sc_fill_pattern = new IBTK::SideNoCornersFillPattern(SIDEG);
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > cc_fill_pattern = new IBTK::CellNoCornersFillPattern(CELLG);
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    InterpolationTransactionComponent U_scratch_component(U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
+    InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
+    std::vector<InterpolationTransactionComponent> U_P_components(2);
+    U_P_components[0] = U_scratch_component;
+    U_P_components[1] = P_scratch_component;
+    INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
+    P_bc_coef->setVelocityNewPatchDataIndex(U_scratch_idx);
+    d_U_P_bdry_fill_op->setHomogeneousBc(homogeneous_bc);
+    d_U_P_bdry_fill_op->resetTransactionComponents(U_P_components);
+    d_U_P_bdry_fill_op->fillData(d_new_time);
+
+    // Compute the action of the operator:
+    //      A*[u;p] = [((rho/dt)*I-0.5*mu*L)*u + grad p; -div u].
+    //
+    // Thomas: Please update the forgoing comment to reflect the form of the
+    // variable-density and variable-viscosity operator.
+    static const bool cf_bdry_synch = true;
+    d_hier_math_ops->grad(
+        U_out_idx, U_out_sc_var,
+        cf_bdry_synch,
+        1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time);
+
+//  This was from the uniform-density and uniform-viscosity implementation:
+//
+//     d_hier_math_ops->laplace(
+//         U_out_idx, U_out_sc_var,
+//         d_helmholtz_spec,
+//         U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
+//         1.0,
+//         U_out_idx, U_out_sc_var);
+//
+//  Thomas: the foregoing needs to be replaced by the appropriate
+//  variable-density and variable-viscosity code.
+
+    d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
+
+    d_hier_math_ops->div(
+        P_out_idx, P_out_cc_var,
+        -1.0, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
+        cf_bdry_synch);
+
+    // Deallocate the operator (if necessary).
+    if (deallocate_at_completion) deallocateOperatorState();
+
+    t_apply->stop();
+    return;
+}// apply
+
+void
+INSStaggeredVCStokesOperator::apply(
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
+{
+    apply(d_correcting_rhs ? d_homogeneous_bc : true,x,y);
+    return;
+}// apply
+
+void
+INSStaggeredVCStokesOperator::initializeOperatorState(
+    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
+    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out)
+{
+    t_initialize_operator_state->start();
+
+    if (d_is_initialized) deallocateOperatorState();
+
+    d_x_scratch = in.cloneVector("INSStaggeredVCStokesOperator::x_scratch");
+    d_x_scratch->allocateVectorData();
+
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > sc_fill_pattern = new IBTK::SideNoCornersFillPattern(SIDEG);
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > cc_fill_pattern = new IBTK::CellNoCornersFillPattern(CELLG);
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    InterpolationTransactionComponent U_scratch_component(d_x_scratch->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
+    InterpolationTransactionComponent P_scratch_component(d_x_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
+
+    std::vector<InterpolationTransactionComponent> U_P_components(2);
+    U_P_components[0] = U_scratch_component;
+    U_P_components[1] = P_scratch_component;
+
+    d_U_P_bdry_fill_op = new IBTK::HierarchyGhostCellInterpolation();
+    d_U_P_bdry_fill_op->initializeOperatorState(U_P_components, d_x_scratch->getPatchHierarchy());
+
+    d_is_initialized = true;
+
+    t_initialize_operator_state->stop();
+    return;
+}// initializeOperatorState
+
+void
+INSStaggeredVCStokesOperator::deallocateOperatorState()
+{
+    if (!d_is_initialized) return;
+
+    t_deallocate_operator_state->start();
+
+    d_x_scratch->freeVectorComponents();
+    d_x_scratch.setNull();
+
+    d_is_initialized = false;
+
+    t_deallocate_operator_state->stop();
+    return;
+}// deallocateOperatorState
+
+void
+INSStaggeredVCStokesOperator::enableLogging(
+    bool enabled)
+{
+    // intentionally blank
+    return;
+}// enableLogging
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+
+}// namespace IBAMR
+
+/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
+
+#include <tbox/Pointer.C>
+template class SAMRAI::tbox::Pointer<IBAMR::INSStaggeredVCStokesOperator>;
+
+//////////////////////////////////////////////////////////////////////////////

@@ -79,6 +79,7 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
+$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
 
 if LIBMESH_ENABLED
@@ -143,6 +144,7 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
+$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h
 
 if LIBMESH_ENABLED

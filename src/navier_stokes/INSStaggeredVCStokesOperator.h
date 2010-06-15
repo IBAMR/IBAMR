@@ -1,14 +1,13 @@
-#ifndef included_INSStaggeredStokesOperator
-#define included_INSStaggeredStokesOperator
+#ifndef included_INSStaggeredVCStokesOperator
+#define included_INSStaggeredVCStokesOperator
 
-// Filename: INSStaggeredStokesOperator.h
-// Last modified: <15.Jun.2010 11:51:15 griffith@boyce-griffiths-mac-pro.local>
-// Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
+// Filename: INSStaggeredVCStokesOperator.h
+// Last modified: <15.Jun.2010 12:07:53 griffith@boyce-griffiths-mac-pro.local>
+// Created on 15 Jun 2010 by Boyce Griffith (griffith@boyce-griffiths-mac-pro.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSCoefs.h>
 #include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 
 // IBTK INCLUDES
@@ -21,24 +20,27 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredStokesOperator is a concrete IBTK::LinearOperator
- * which implements a staggered-grid (MAC) discretization of the incompressible
- * Stokes operator.
+ * \brief Class INSStaggeredVCStokesOperator is a concrete IBTK::LinearOperator
+ * which implements a staggered-grid (MAC) discretization of the
+ * variable-density and variable-viscosity incompressible Stokes operator.
  *
  * This class is intended to be used with an iterative (Krylov or Newton-Krylov)
  * incompressible flow solver.
  *
  * \see INSStaggeredHierarchyIntegrator
+ *
+ * \note This class is experimental and may have an incomplete implementation.
+ * Full support for variable-density and variable-viscosity solvers is currently
+ * under development.
  */
-class INSStaggeredStokesOperator
+class INSStaggeredVCStokesOperator
     : public IBTK::LinearOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    INSStaggeredStokesOperator(
-        const INSCoefs& problem_coefs,
+    INSStaggeredVCStokesOperator(
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
         SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
@@ -48,7 +50,7 @@ public:
      * \brief Virtual destructor.
      */
     virtual
-    ~INSStaggeredStokesOperator();
+    ~INSStaggeredVCStokesOperator();
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.
@@ -64,6 +66,19 @@ public:
     setTimeInterval(
         const double current_time,
         const double new_time);
+
+    /*!
+     * \brief Register the variable and patch data index for the variable
+     * viscosity coefficient with the operator.
+     *
+     * \note Function INSStaggeredVCStokesOperator::apply() does \em not set
+     * ghost cell values for mu.  Any needed ghost cell values \em must be set
+     * prior to calling apply().
+     */
+    void
+    registerViscosityVariable(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > mu_var,
+        const int mu_data_idx);
 
     /*!
      * \brief Implementation of the apply method which supports either
@@ -199,7 +214,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredStokesOperator();
+    INSStaggeredVCStokesOperator();
 
     /*!
      * \brief Copy constructor.
@@ -208,8 +223,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredStokesOperator(
-        const INSStaggeredStokesOperator& from);
+    INSStaggeredVCStokesOperator(
+        const INSStaggeredVCStokesOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -220,9 +235,9 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredStokesOperator&
+    INSStaggeredVCStokesOperator&
     operator=(
-        const INSStaggeredStokesOperator& that);
+        const INSStaggeredVCStokesOperator& that);
 
     // Whether the operator is initialized.
     bool d_is_initialized;
@@ -230,12 +245,12 @@ private:
     // The simulation time.
     double d_current_time, d_new_time, d_dt;
 
-    // Problem coefficients.
-    const INSCoefs& d_problem_coefs;
-    SAMRAI::solv::PoissonSpecifications d_helmholtz_spec;
-
     // Math objects.
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+
+    // Viscosity variable data.
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > d_mu_var;
+    int d_mu_data_idx;
 
     // Boundary condition objects.
     bool d_homogeneous_bc;
@@ -252,8 +267,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredStokesOperator.I>
+//#include <ibamr/INSStaggeredVCStokesOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredStokesOperator
+#endif //#ifndef included_INSStaggeredVCStokesOperator
