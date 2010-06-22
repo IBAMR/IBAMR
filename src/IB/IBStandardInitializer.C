@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <01.Mar.2010 16:07:13 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <22.Jun.2010 17:24:34 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -126,6 +126,7 @@ IBStandardInitializer::IBStandardInitializer(
       d_uniform_bdry_mass(),
       d_using_uniform_bdry_mass_stiffness(),
       d_uniform_bdry_mass_stiffness(),
+      d_directors(),
       d_enable_instrumentation(),
       d_instrument_idx(),
       d_global_index_offset()
@@ -169,6 +170,9 @@ IBStandardInitializer::IBStandardInitializer(
 
         // Process the (optional) mass information.
         readBoundaryMassFiles();
+
+        // Process the (optional) directors information.
+        readDirectorFiles();
 
         // Process the (optional) instrumentation information.
         readInstrumentationFiles();
@@ -447,6 +451,51 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
     }
     return local_node_count;
 }// initializeMassOnPatchLevel
+
+int
+IBStandardInitializer::initializeDirectorDataOnPatchLevel(
+    const int global_index_offset,
+    const int local_index_offset,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& D_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double init_data_time,
+    const bool can_be_refined,
+    const bool initial_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    (void) lag_manager;
+
+    // Loop over all patches in the specified level of the patch level and
+    // initialize the local vertices.
+    int local_idx = -1;
+    int local_node_count = 0;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+
+        // Initialize the vertices whose initial locations will be within the
+        // given patch.
+        std::vector<std::pair<int,int> > patch_vertices;
+        getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
+        local_node_count += patch_vertices.size();
+        for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
+             it != patch_vertices.end(); ++it)
+        {
+            const std::pair<int,int>& point_idx = (*it);
+            const int current_local_idx = ++local_idx + local_index_offset;
+
+            // Initialize the director corresponding to the present vertex.
+            const std::vector<double>& D = getVertexDirectors(point_idx, level_number);
+            for (int d = 0; d < 3*3; ++d)
+            {
+                (*D_data)(current_local_idx,d)= D[d];
+            }
+        }
+    }
+    return local_node_count;
+}// initializeDirectorOnPatchLevel
 
 void
 IBStandardInitializer::tagCellsForInitialRefinement(
@@ -1414,6 +1463,97 @@ IBStandardInitializer::readBoundaryMassFiles()
 }// readBoundaryMassFiles
 
 void
+IBStandardInitializer::readDirectorFiles()
+{
+    std::string line_string;
+    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const int num_base_filename = d_base_filename[ln].size();
+        d_directors[ln].resize(num_base_filename);
+        for (int j = 0; j < num_base_filename; ++j)
+        {
+            // Wait for the previous MPI process to finish reading the current file.
+            if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+
+            d_directors[ln][j].resize(d_num_vertex[ln][j], std::vector<double>(3*3,0.0));
+
+            const std::string directors_filename = d_base_filename[ln][j] + ".director";
+            std::ifstream file_stream;
+            file_stream.open(directors_filename.c_str(), std::ios::in);
+            if (file_stream.is_open())
+            {
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "processing director data from ASCII input file named " << directors_filename << std::endl
+                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+
+                // The first line in the file indicates the number of sets of
+                // directors in the input file.
+                int num_directors_pts;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << directors_filename << std::endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_directors_pts))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << directors_filename << std::endl);
+                    }
+                }
+
+                if (num_directors_pts != d_num_vertex[ln][j])
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << directors_filename << std::endl);
+                }
+
+                // Each successive set of three lines indicates the initial
+                // configuration of a triad.
+                for (int k = 0; k < num_directors_pts; ++k)
+                {
+                    for (int n = 0; n < 3; ++n)
+                    {
+                        if (!std::getline(file_stream, line_string))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << 3*k+n+2 << " of file " << directors_filename << std::endl);
+                        }
+                        else
+                        {
+                            line_string = discard_comments(line_string);
+                            std::istringstream line_stream(line_string);
+                            for (int d = 0; d < 3; ++d)
+                            {
+                                if (!(line_stream >> d_directors[ln][j][k][3*n+d]))
+                                {
+                                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << 3*k+n+2 << " of file " << directors_filename << std::endl);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Close the input file.
+                file_stream.close();
+
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "read " << num_directors_pts << " director triads from ASCII input file named " << directors_filename << std::endl
+                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+            }
+
+            // Free the next MPI process to start reading the current file.
+            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+        }
+    }
+    return;
+}// readDirectorFiles
+
+void
 IBStandardInitializer::readInstrumentationFiles()
 {
     std::string line_string;
@@ -2183,7 +2323,7 @@ IBStandardInitializer::getFromInput(
             SAMRAI::tbox::pout << "  base filename: " << base_filename << std::endl
                                << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << std::endl
                                << "     required files: " << base_filename << ".vertex" << std::endl
-                               << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".target, " << base_filename << ".anchor, " << base_filename << ".mass, " << base_filename << ".inst " << std::endl;
+                               << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".target, " << base_filename << ".anchor, " << base_filename << ".mass, " << base_filename << ".director, " << base_filename << ".inst" << std::endl;
             if (!d_enable_springs[ln][j])
             {
                 SAMRAI::tbox::pout << "  NOTE: spring forces are DISABLED for " << base_filename << std::endl;

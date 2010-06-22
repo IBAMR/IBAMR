@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <01.Mar.2010 16:07:00 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <22.Jun.2010 17:20:16 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -221,6 +221,27 @@ namespace IBAMR
  *
  * \see IBInstrumentPanel
  * \see IBInstrumentationSpec
+ *
+ * <HR>
+ *
+ * <B>Director file format</B>
+ *
+ * Orthonormal director vector input files end with the extension
+ * <TT>".director"</TT> and have the following format, independent of spatial
+ * dimension:
+ \verbatim
+ N                         # number of triads in the file
+ D0_x_0   D0_y_0   D0_z_0  # coordinates of director D0 associated with vertex 0
+ D1_x_0   D1_y_0   D1_z_0  # coordinates of director D1 associated with vertex 0
+ D2_x_0   D2_y_0   D2_z_0  # coordinates of director D2 associated with vertex 0
+ D0_x_1   D0_y_1   D0_z_1  # coordinates of director D0 associated with vertex 1
+ D1_x_1   D1_y_1   D1_z_1  # coordinates of director D1 associated with vertex 1
+ D2_x_1   D2_y_1   D2_z_1  # coordinates of director D2 associated with vertex 1
+ D0_x_2   D0_y_2   D0_z_2  # coordinates of director D0 associated with vertex 2
+ D1_x_2   D1_y_2   D1_z_2  # coordinates of director D1 associated with vertex 2
+ D2_x_2   D2_y_2   D2_z_2  # coordinates of director D2 associated with vertex 2
+ ...
+ \endverbatim
  */
 class IBStandardInitializer
     : public IBTK::LNodeInitStrategy
@@ -324,6 +345,24 @@ public:
         IBTK::LDataManager* const lag_manager);
 
     /*!
+     * \brief Initialize the LNodeLevel data needed to specify director vectors
+     * required by some material models.
+     *
+     * \return The number of local nodes initialized on the patch level.
+     */
+    virtual int
+    initializeDirectorDataOnPatchLevel(
+        const int global_index_offset,
+        const int local_index_offset,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& D_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double init_data_time,
+        const bool can_be_refined,
+        const bool initial_time,
+        IBTK::LDataManager* const lag_manager);
+
+    /*!
      * \brief Tag cells for initial refinement.
      *
      * When the patch hierarchy is being constructed at the initial simulation
@@ -418,6 +457,12 @@ private:
     readBoundaryMassFiles();
 
     /*!
+     * \brief Read the director data from one or more input files.
+     */
+    void
+    readDirectorFiles();
+
+    /*!
      * \brief Read the instrumentation data from one or more input files.
      */
     void
@@ -489,6 +534,14 @@ private:
      */
     double
     getVertexMassStiffness(
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
+
+    /*!
+     * \return The directors associated with a particular node.
+     */
+    const std::vector<double>&
+    getVertexDirectors(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
@@ -641,6 +694,11 @@ private:
 
     std::vector<std::vector<bool> > d_using_uniform_bdry_mass_stiffness;
     std::vector<std::vector<double> > d_uniform_bdry_mass_stiffness;
+
+    /*
+     * Mass information for the pIB method.
+     */
+    std::vector<std::vector<std::vector<std::vector<double> > > > d_directors;
 
     /*
      * Instrumentation information.

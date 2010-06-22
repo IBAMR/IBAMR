@@ -71,7 +71,8 @@ LIBRARIES = $(lib_LIBRARIES)
 ARFLAGS = cru
 libIBAMR_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_a_LIBADD =
-am_libIBAMR_a_OBJECTS = godunov_helpers.$(OBJEXT) TGACoefs.$(OBJEXT)
+am_libIBAMR_a_OBJECTS = godunov_helpers.$(OBJEXT) TGACoefs.$(OBJEXT) \
+	sqrtm.$(OBJEXT)
 libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
 libIBAMR2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR2d_a_LIBADD =
@@ -90,6 +91,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
+	$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
@@ -156,6 +158,7 @@ am__objects_2 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
+	libIBAMR2d_a-IBKirchhoffRodForceGen.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
@@ -223,6 +226,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
+	$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
@@ -287,6 +291,7 @@ am__objects_4 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
+	libIBAMR3d_a-IBKirchhoffRodForceGen.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
@@ -370,6 +375,7 @@ am__pkg_include_HEADERS_DIST = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.h \
+	$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.h \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
@@ -736,7 +742,8 @@ SUFFIXES = .f.m4
 lib_LIBRARIES = libIBAMR.a $(am__append_1) $(am__append_2)
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
-$(top_srcdir)/src/adv_diff/TGACoefs.C
+$(top_srcdir)/src/adv_diff/TGACoefs.C \
+$(top_builddir)/src/fortran/sqrtm.f
 
 pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec.I \
@@ -756,6 +763,7 @@ pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.h \
+	$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.h \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
@@ -812,6 +820,7 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/IBAnchorPointSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
+	$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
@@ -982,6 +991,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po@am__quote@
@@ -1035,6 +1045,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po@am__quote@
@@ -1291,6 +1302,20 @@ libIBAMR2d_a-IBInstrumentationSpecFactory.obj: $(top_srcdir)/src/IB/IBInstrument
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C' object='libIBAMR2d_a-IBInstrumentationSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBInstrumentationSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C'; fi`
+
+libIBAMR2d_a-IBKirchhoffRodForceGen.o: $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBKirchhoffRodForceGen.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Tpo -c -o libIBAMR2d_a-IBKirchhoffRodForceGen.o `test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Tpo $(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' object='libIBAMR2d_a-IBKirchhoffRodForceGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBKirchhoffRodForceGen.o `test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+
+libIBAMR2d_a-IBKirchhoffRodForceGen.obj: $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBKirchhoffRodForceGen.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Tpo -c -o libIBAMR2d_a-IBKirchhoffRodForceGen.obj `if test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Tpo $(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' object='libIBAMR2d_a-IBKirchhoffRodForceGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBKirchhoffRodForceGen.obj `if test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; fi`
 
 libIBAMR2d_a-IBLagrangianForceStrategy.o: $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBLagrangianForceStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Tpo -c -o libIBAMR2d_a-IBLagrangianForceStrategy.o `test -f '$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C
@@ -2034,6 +2059,20 @@ libIBAMR3d_a-IBInstrumentationSpecFactory.obj: $(top_srcdir)/src/IB/IBInstrument
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBInstrumentationSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C'; fi`
 
+libIBAMR3d_a-IBKirchhoffRodForceGen.o: $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBKirchhoffRodForceGen.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Tpo -c -o libIBAMR3d_a-IBKirchhoffRodForceGen.o `test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Tpo $(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' object='libIBAMR3d_a-IBKirchhoffRodForceGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBKirchhoffRodForceGen.o `test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+
+libIBAMR3d_a-IBKirchhoffRodForceGen.obj: $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBKirchhoffRodForceGen.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Tpo -c -o libIBAMR3d_a-IBKirchhoffRodForceGen.obj `if test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Tpo $(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' object='libIBAMR3d_a-IBKirchhoffRodForceGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBKirchhoffRodForceGen.obj `if test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; fi`
+
 libIBAMR3d_a-IBLagrangianForceStrategy.o: $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBLagrangianForceStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Tpo -c -o libIBAMR3d_a-IBLagrangianForceStrategy.o `test -f '$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Tpo $(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Po
@@ -2591,6 +2630,12 @@ godunov_helpers.o: $(top_builddir)/src/advect/fortran/godunov_helpers.f
 
 godunov_helpers.obj: $(top_builddir)/src/advect/fortran/godunov_helpers.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_helpers.obj `if test -f '$(top_builddir)/src/advect/fortran/godunov_helpers.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/godunov_helpers.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/godunov_helpers.f'; fi`
+
+sqrtm.o: $(top_builddir)/src/fortran/sqrtm.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o sqrtm.o `test -f '$(top_builddir)/src/fortran/sqrtm.f' || echo '$(srcdir)/'`$(top_builddir)/src/fortran/sqrtm.f
+
+sqrtm.obj: $(top_builddir)/src/fortran/sqrtm.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o sqrtm.obj `if test -f '$(top_builddir)/src/fortran/sqrtm.f'; then $(CYGPATH_W) '$(top_builddir)/src/fortran/sqrtm.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/fortran/sqrtm.f'; fi`
 
 adv_diff_consdiff2d.o: $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o adv_diff_consdiff2d.o `test -f '$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f

@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <29.Apr.2010 00:38:28 griffith@172-26-26-105.DYNAPOOL.NYU.EDU>
+// Last modified: <22.Jun.2010 15:26:11 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -764,6 +764,11 @@ private:
     std::vector<double> d_gravitational_acceleration;
 
     /*
+     * Whether to include directors for force computations.
+     */
+    bool d_using_orthonormal_directors;
+
+    /*
      * Integrator data read from input or set at initialization.
      */
     double d_start_time;
@@ -831,14 +836,16 @@ private:
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;
 
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_N_fill_op, d_V_fill_op;
+
     /*
      * Variables and variable contexts.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_V_var, d_F_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_V_var, d_W_var, d_F_var, d_N_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
-    int d_V_idx, d_F_idx, d_Q_idx, d_mark_current_idx, d_mark_scratch_idx;
+    int d_V_idx, d_W_idx, d_F_idx, d_N_idx, d_Q_idx, d_mark_current_idx, d_mark_scratch_idx;
 
     /*
      * List of local indices of local anchor points.

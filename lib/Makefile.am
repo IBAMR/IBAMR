@@ -22,7 +22,8 @@ clean-local:
 ## Dimension-independent library
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
-$(top_srcdir)/src/adv_diff/TGACoefs.C
+$(top_srcdir)/src/adv_diff/TGACoefs.C \
+$(top_builddir)/src/fortran/sqrtm.f
 
 pkg_include_HEADERS = \
 $(top_srcdir)/src/adv_diff/TGACoefs.h
@@ -43,6 +44,7 @@ $(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
 $(top_srcdir)/src/IB/IBInstrumentPanel.C \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 $(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
+$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
@@ -105,6 +107,7 @@ $(top_srcdir)/src/IB/IBInstrumentPanel.h \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.h \
 $(top_srcdir)/src/IB/IBInstrumentationSpecFactory.h \
+$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \

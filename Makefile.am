@@ -43,6 +43,7 @@ EXTRA_DIST += $(top_srcdir)/include/ibamr/IBInstrumentPanel.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBInstrumentationSpec.I
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBInstrumentationSpec.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBInstrumentationSpecFactory.h
+EXTRA_DIST += $(top_srcdir)/include/ibamr/IBKirchhoffRodForceGen.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBLagrangianForceStrategy.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBLagrangianForceStrategySet.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBLagrangianSourceStrategy.h
