@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <23.Jun.2010 10:35:06 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <23.Jun.2010 18:19:47 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -997,13 +997,12 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             }
         }
 
-        resetAnchorPointValues(F_half_data, coarsest_ln, finest_ln);
-
         // Spread F(n+1/2) (and possibly N(n+1/2)) to f(n+1/2).
         d_hier_sc_data_ops->setToScalar(d_F_idx, 0.0);
         if (d_using_orthonormal_directors)
         {
             d_hier_sc_data_ops->setToScalar(d_N_idx, 0.0, false);
+            resetAnchorPointValues(N_half_data, coarsest_ln, finest_ln);
             d_lag_data_manager->spread(d_N_idx, N_half_data, X_half_data, true, true);
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
@@ -1013,6 +1012,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             hier_math_ops->curl(d_F_idx, d_F_var, d_N_idx, d_N_var, NULL, current_time);
             d_hier_sc_data_ops->scale(d_F_idx, 0.5, d_F_idx);
         }
+        resetAnchorPointValues(F_half_data, coarsest_ln, finest_ln);
         d_lag_data_manager->spread(d_F_idx, F_half_data, X_half_data, true, true);
 
         // Compute the source/sink strengths corresponding to any distributed
@@ -1074,6 +1074,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 
             // Interpolate w(n+1/2) to W(n+1/2).
             d_lag_data_manager->interpolate(d_W_idx, W_half_data, X_half_data, d_rscheds["W->W::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
+            resetAnchorPointValues(W_half_data, coarsest_ln, finest_ln);
 
             // Compute D(n+1) from D(n) and W(n+1/2), and compute D(n+1/2) from
             // D(n) and D(n+1).
@@ -1101,31 +1102,44 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                         blitz::Array<double,1> e(W_half, blitz::shape(3), blitz::duplicateData);
                         blitz::firstIndex i;
                         const double norm_e = sqrt(blitz::sum(e(i)*e(i)));
-                        e /= norm_e;
-                        const double theta = 0.5*dt*norm_e;
 
-                        const double c_theta = cos(theta);
-                        const double s_theta = sin(theta);
-                        blitz::Array<double,2> R(3,3);
-                        R(0,0) =  c_theta     ;  R(0,1) = -s_theta*e(2);  R(0,2) =  s_theta*e(1);
-                        R(1,0) =  s_theta*e(2);  R(1,1) =  c_theta     ;  R(1,2) = -s_theta*e(0);
-                        R(2,0) = -s_theta*e(1);  R(2,1) =  s_theta*e(0);  R(2,2) =  c_theta     ;
-                        for (int j = 0; j < 3; ++j)
+                        if (norm_e > std::numeric_limits<double>::epsilon())
                         {
-                            for (int i = 0; i < 3; ++i)
+                            e /= norm_e;
+                            const double theta = 0.5*dt*norm_e;
+
+                            const double c_theta = cos(theta);
+                            const double s_theta = sin(theta);
+                            blitz::Array<double,2> R(3,3);
+                            R(0,0) =  c_theta     ;  R(0,1) = -s_theta*e(2);  R(0,2) =  s_theta*e(1);
+                            R(1,0) =  s_theta*e(2);  R(1,1) =  c_theta     ;  R(1,2) = -s_theta*e(0);
+                            R(2,0) = -s_theta*e(1);  R(2,1) =  s_theta*e(0);  R(2,2) =  c_theta     ;
+                            for (int j = 0; j < 3; ++j)
                             {
-                                R(i,j) += (1.0-c_theta)*e(i)*e(j);
+                                for (int i = 0; i < 3; ++i)
+                                {
+                                    R(i,j) += (1.0-c_theta)*e(i)*e(j);
+                                }
+                            }
+
+                            for (int alpha = 0; alpha < 3; ++alpha)
+                            {
+                                blitz::Array<double,1> D_arr(D[alpha], blitz::shape(3), blitz::neverDeleteData);
+                                blitz::Array<double,1> D_new_arr(D_new[alpha], blitz::shape(3), blitz::neverDeleteData);
+
+                                blitz::firstIndex i;
+                                blitz::secondIndex j;
+                                D_new_arr = blitz::sum(R(i,j)*D_arr(j),j);
                             }
                         }
-
-                        for (int alpha = 0; alpha < 3; ++alpha)
+                        else
                         {
-                            blitz::Array<double,1> D_arr(D[alpha], blitz::shape(3), blitz::neverDeleteData);
-                            blitz::Array<double,1> D_new_arr(D_new[alpha], blitz::shape(3), blitz::neverDeleteData);
-
-                            blitz::firstIndex i;
-                            blitz::secondIndex j;
-                            D_new_arr = blitz::sum(R(i,j)*D_arr(j),j);
+                            for (int alpha = 0; alpha < 3; ++alpha)
+                            {
+                                blitz::Array<double,1> D_arr(D[alpha], blitz::shape(3), blitz::neverDeleteData);
+                                blitz::Array<double,1> D_new_arr(D_new[alpha], blitz::shape(3), blitz::neverDeleteData);
+                                D_new_arr = D_arr;
+                            }
                         }
 
                         std::vector<double*> D_half(3);
