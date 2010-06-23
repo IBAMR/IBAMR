@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <01.Mar.2010 15:27:22 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <22.Jun.2010 21:07:39 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -196,8 +196,8 @@ IBBeamForceGen::initializeLevelData(
                 for (unsigned k = 0; k < num_beams; ++k)
                 {
                     petsc_mastr_node_idxs.push_back(mastr_idx);
-                    petsc_next_node_idxs.push_back(nghbrs[k].second);
-                    petsc_prev_node_idxs.push_back(nghbrs[k].first );
+                    petsc_next_node_idxs.push_back(nghbrs[k].first );
+                    petsc_prev_node_idxs.push_back(nghbrs[k].second);
                     bend_rigidities.push_back(bend[k]);
                     mesh_dependent_curvatures.push_back(curv[k]);
                 }
