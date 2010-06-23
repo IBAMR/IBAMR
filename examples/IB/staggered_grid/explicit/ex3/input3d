@@ -1,6 +1,8 @@
 // physical parameters
-MU = 0.005
-RHO = 1.0
+L = 10.0         // length of computational domain (cm)
+RHO = 1.0        // fluid density (g/cm^3)
+MU = 0.01        // fluid viscosity (g/cm*s)
+DT = 0.025       // timestep size (s)
 
 // grid spacing parameters
 MAX_LEVELS = 2   // maximum number of levels in locally refined grid
@@ -15,43 +17,17 @@ VelocityInitialConditions {
    function_2 = "0.0"
 }
 
-LocationIndexRobinBcCoefs_u0 {
-   boundary_0 = "value", "0.0"  // lower x boundary condition
-   boundary_1 = "value", "0.0"  // upper x boundary condition
-   boundary_2 = "value", "0.0"  // lower y boundary condition
-   boundary_3 = "value", "0.0"  // upper y boundary condition
-   boundary_4 = "value", "0.0"  // lower z boundary condition
-   boundary_5 = "value", "0.0"  // upper z boundary condition
-}
-
-LocationIndexRobinBcCoefs_u1 {
-   boundary_0 = "value", "0.0"  // lower x boundary condition
-   boundary_1 = "value", "0.0"  // upper x boundary condition
-   boundary_2 = "value", "0.0"  // lower y boundary condition
-   boundary_3 = "value", "0.0"  // upper y boundary condition
-   boundary_4 = "value", "0.0"  // lower z boundary condition
-   boundary_5 = "value", "0.0"  // upper z boundary condition
-}
-
-LocationIndexRobinBcCoefs_u2 {
-   boundary_0 = "value", "0.0"  // lower x boundary condition
-   boundary_1 = "value", "0.0"  // upper x boundary condition
-   boundary_2 = "value", "0.0"  // lower y boundary condition
-   boundary_3 = "value", "0.0"  // upper y boundary condition
-   boundary_4 = "value", "0.0"  // lower z boundary condition
-   boundary_5 = "value", "0.0"  // upper z boundary condition
-}
-
 IBStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 2.4e0    // final simulation time
+   end_time              = 500.0e0  // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 1
-   dt_max = 1.6e-1/NFINEST
-   num_cycles = 3
+   dt_max = DT
+   num_cycles = 2
    delta_fcn = "IB_4"
    enable_logging = TRUE
+   using_orthonormal_directors = TRUE
 }
 
 LEInteractor {
@@ -67,13 +43,13 @@ PETScVecOps {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_1 = "sphere3d"
+   base_filenames_1 = "curve3d_64"
 }
 
 INSStaggeredHierarchyIntegrator {
    enable_logging = TRUE
 
-   cfl = 0.975
+   cfl = 0.5
 
    tag_buffer = 1
 
@@ -177,7 +153,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/2   // zero to turn off
+   viz_dump_interval     = 16          // zero to turn off
    viz_dump_dirname      = "viz_IB3d"
    visit_number_procs_per_file = 1
 
@@ -191,8 +167,8 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0,0) , (N - 1,N - 1,N - 1) ]
-   x_lo         =  0, 0, 0         // lower end of computational domain.
-   x_up         =  1, 1, 1         // upper end of computational domain.
+   x_lo         = -0.5*L, -0.5*L, -0.5*L   // lower end of computational domain.
+   x_up         =  0.5*L,  0.5*L,  0.5*L   // upper end of computational domain.
    periodic_dimension = 1, 1, 1
 }
 

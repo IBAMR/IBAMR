@@ -33,10 +33,9 @@ build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
-EXTRA_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
-@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
-@SAMRAI3D_ENABLED_TRUE@am__append_2 = main3d
-subdir = examples/IB/staggered_grid/explicit/ex0
+EXTRA_PROGRAMS = $(am__EXEEXT_1)
+@SAMRAI3D_ENABLED_TRUE@am__append_1 = main3d
+subdir = examples/IB/staggered_grid/explicit/ex3
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
 	$(top_srcdir)/m4/ac_cxx_namespaces.m4 \
@@ -52,21 +51,9 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES =
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
-@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT)
-am__objects_1 = main2d-main.$(OBJEXT)
-am_main2d_OBJECTS = $(am__objects_1)
-main2d_OBJECTS = $(am_main2d_OBJECTS)
-main2d_DEPENDENCIES = $(top_builddir)/lib/libIBAMR2d.a \
-	$(top_builddir)/lib/libIBAMR.a \
-	$(top_builddir)/ibtk/lib/libIBTK2d.a \
-	$(top_builddir)/ibtk/lib/libIBTK.a \
-	$(top_builddir)/ibtk/third_party/qd-2.3.7/fortran/libqdmod.a \
-	$(top_builddir)/ibtk/third_party/qd-2.3.7/src/libqd.a
-main2d_LINK = $(CXXLD) $(main2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-am__objects_2 = main3d-main.$(OBJEXT)
-am_main3d_OBJECTS = $(am__objects_2)
+@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_1 = main3d$(EXEEXT)
+am__objects_1 = main3d-main.$(OBJEXT)
+am_main3d_OBJECTS = $(am__objects_1)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
 main3d_DEPENDENCIES = $(top_builddir)/lib/libIBAMR3d.a \
 	$(top_builddir)/lib/libIBAMR.a \
@@ -84,7 +71,7 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES)
+DIST_SOURCES = $(main3d_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -405,16 +392,8 @@ AM_FCFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.C
-EXTRA_DIST = input2d input3d generate_mesh2d.m curve2d_64.vertex \
-	curve2d_128.vertex curve2d_256.vertex curve2d_512.vertex \
-	curve2d_1024.vertex curve2d_64.spring curve2d_128.spring \
-	curve2d_256.spring curve2d_512.spring curve2d_1024.spring \
-	shell2d_64.vertex shell2d_128.vertex shell2d_256.vertex \
-	shell2d_64.spring shell2d_128.spring shell2d_256.spring \
-	sphere3d.vertex sphere3d.spring
-main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-main2d_LDADD = $(top_builddir)/lib/libIBAMR2d.a $(top_builddir)/lib/libIBAMR.a $(top_builddir)/ibtk/lib/libIBTK2d.a $(top_builddir)/ibtk/lib/libIBTK.a $(top_builddir)/ibtk/third_party/qd-2.3.7/fortran/libqdmod.a $(top_builddir)/ibtk/third_party/qd-2.3.7/src/libqd.a
-main2d_SOURCES = $(SOURCES)
+EXTRA_DIST = input3d generate_mesh3d.m curve3d_64.vertex \
+	curve3d_64.beam curve3d_64.director
 main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 main3d_LDADD = $(top_builddir)/lib/libIBAMR3d.a $(top_builddir)/lib/libIBAMR.a $(top_builddir)/ibtk/lib/libIBTK3d.a $(top_builddir)/ibtk/lib/libIBTK.a $(top_builddir)/ibtk/third_party/qd-2.3.7/fortran/libqdmod.a $(top_builddir)/ibtk/third_party/qd-2.3.7/src/libqd.a
 main3d_SOURCES = $(SOURCES)
@@ -431,9 +410,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  examples/IB/staggered_grid/explicit/ex0/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  examples/IB/staggered_grid/explicit/ex3/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  examples/IB/staggered_grid/explicit/ex0/Makefile
+	  $(AUTOMAKE) --foreign  examples/IB/staggered_grid/explicit/ex3/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -451,9 +430,6 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) 
-	@rm -f main2d$(EXEEXT)
-	$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
 main3d$(EXEEXT): $(main3d_OBJECTS) $(main3d_DEPENDENCIES) 
 	@rm -f main3d$(EXEEXT)
 	$(main3d_LINK) $(main3d_OBJECTS) $(main3d_LDADD) $(LIBS)
@@ -464,7 +440,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-main.Po@am__quote@
 
 .C.o:
@@ -480,20 +455,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-main2d-main.o: main.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-main.o -MD -MP -MF $(DEPDIR)/main2d-main.Tpo -c -o main2d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/main2d-main.Tpo $(DEPDIR)/main2d-main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main2d-main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C
-
-main2d-main.obj: main.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-main.obj -MD -MP -MF $(DEPDIR)/main2d-main.Tpo -c -o main2d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/main2d-main.Tpo $(DEPDIR)/main2d-main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main2d-main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
 
 main3d-main.o: main.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.o -MD -MP -MF $(DEPDIR)/main3d-main.Tpo -c -o main3d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C
@@ -689,19 +650,15 @@ uninstall-am:
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/curve2d_{64,128,256,512,1024}.{vertex,spring} $(PWD) ; \
-	  cp -f $(srcdir)/shell2d_{64,128,256}.{vertex,spring} $(PWD) ; \
-	  cp -f $(srcdir)/sphere3d.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/input3d $(PWD) ; \
+	  cp -f $(srcdir)/curve3d_64.{vertex,beam,director} $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[23]d ; \
-	  rm -f $(builddir)/curve2d_{64,128,256,512,1024}.{vertex,spring} ; \
-	  rm -f $(builddir)/shell2d_{64,128,256}.{vertex,spring} ; \
-	  rm -f $(builddir)/sphere3d.{vertex,spring} ; \
+	  rm -f $(builddir)/input3d ; \
+	  rm -f $(builddir)/curve3d_64.{vertex,beam,director} ; \
 	fi ;
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -33,8 +33,8 @@
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <ibamr/IBKirchhoffRodForceGen.h>
 #include <ibamr/IBStaggeredHierarchyIntegrator.h>
-#include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibtk/LagSiloDataWriter.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -409,11 +409,7 @@ main(
                 input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
                 patch_hierarchy);
 
-        tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
-        tbox::Pointer<IBBeamForceGen> beam_force_generator = new IBBeamForceGen();
-        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator = new IBTargetPointForceGen();
-        tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen(
-            spring_force_generator, beam_force_generator, target_point_force_generator);
+        tbox::Pointer<IBKirchhoffRodForceGen> force_generator = new IBKirchhoffRodForceGen();
 
         SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
 
@@ -460,42 +456,6 @@ main(
         tbox::Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
             "u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
         time_integrator->registerVelocityInitialConditions(u_init);
-
-        /*
-         * Create boundary condition specification objects (when necessary).
-         */
-        const hier::IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        const bool periodic_domain = periodic_shift.min() != 0;
-
-        vector<solv::RobinBcCoefStrategy<NDIM>*> u_bc_coefs;
-        if (!periodic_domain)
-        {
-            for (int d = 0; d < NDIM; ++d)
-            {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
-
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
-
-                u_bc_coefs.push_back(
-                    new muParserRobinBcCoefs(
-                        bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry));
-            }
-            time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
-        }
-
-        /*
-         * Create body force function specification objects (when necessary).
-         */
-        if (input_db->keyExists("ForcingFunction"))
-        {
-            tbox::Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
-                "f_fcn", input_db->getDatabase("ForcingFunction"), grid_geometry);
-            time_integrator->registerBodyForceSpecification(f_fcn);
-        }
 
         /*
          * Set up visualization plot file writer.
@@ -786,18 +746,6 @@ main(
                 tbox::pout << "ERROR: could not remove lock file: " << lock_file_name << endl;
                 tbox::SAMRAI_MPI::abort();
                 return -1;
-            }
-        }
-
-        /*
-         * Cleanup boundary condition specification objects (when necessary).
-         */
-        if (!periodic_domain)
-        {
-            for (vector<solv::RobinBcCoefStrategy<NDIM>*>::const_iterator cit = u_bc_coefs.begin();
-                 cit != u_bc_coefs.end(); ++cit)
-            {
-                delete (*cit);
             }
         }
     }// cleanup all smart Pointers prior to shutdown
