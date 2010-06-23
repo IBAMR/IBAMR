@@ -25,6 +25,7 @@ r1 = r0*cos(beta);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 vertex_fid = fopen(['curve3d_' num2str(N) '.vertex'], 'w');
+spring_fid = fopen(['curve3d_' num2str(N) '.spring'], 'w');
 beam_fid = fopen(['curve3d_' num2str(N) '.beam'], 'w');
 director_fid = fopen(['curve3d_' num2str(N) '.director'], 'w');
 
@@ -46,6 +47,7 @@ for r = 0:nr-1
   r_next = mod(r+1,nr);
   r_prev = mod(r-1,nr);
 
+  fprintf(spring_fid, '%6d %6d %1.16e %1.16e\n', r, r_next, 0.0, 0.0);
   fprintf(beam_fid, '%6d %6d %6d %1.16e\n', r_prev, r, r_next, 0.0);
 
   D3 =  cos(beta)*Theta + sin(beta)*Z;
@@ -59,6 +61,7 @@ for r = 0:nr-1
 end %for
 
 fclose(vertex_fid);
+fclose(spring_fid);
 fclose(beam_fid);
 fclose(director_fid);
 
