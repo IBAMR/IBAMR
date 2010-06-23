@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <22.Jun.2010 17:24:34 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <23.Jun.2010 11:02:53 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -1527,11 +1527,22 @@ IBStandardInitializer::readDirectorFiles()
                         {
                             line_string = discard_comments(line_string);
                             std::istringstream line_stream(line_string);
+                            double D_norm_squared = 0.0;
                             for (int d = 0; d < 3; ++d)
                             {
                                 if (!(line_stream >> d_directors[ln][j][k][3*n+d]))
                                 {
                                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << 3*k+n+2 << " of file " << directors_filename << std::endl);
+                                }
+                                D_norm_squared += d_directors[ln][j][k][3*n+d]*d_directors[ln][j][k][3*n+d];
+                            }
+                            const double D_norm = sqrt(D_norm_squared);
+                            if (!SAMRAI::tbox::MathUtilities<double>::equalEps(D_norm,1.0))
+                            {
+                                TBOX_WARNING(d_object_name << ":\n  Director vector on line " << 3*k+n+2 << " of file " << directors_filename << " is not normalized; norm = " << D_norm << std::endl);
+                                for (int d = 0; d < 3; ++d)
+                                {
+                                    d_directors[ln][j][k][3*n+d] /= D_norm;
                                 }
                             }
                         }
@@ -1861,6 +1872,14 @@ IBStandardInitializer::getVertexMassStiffness(
     return d_bdry_mass_stiffness[level_number][point_index.first][point_index.second];
 }// getVertexMassStiffness
 
+const std::vector<double>&
+IBStandardInitializer::getVertexDirectors(
+    const std::pair<int,int>& point_index,
+    const int level_number) const
+{
+    return d_directors[level_number][point_index.first][point_index.second];
+}// getVertexDirectors
+
 std::pair<int,int>
 IBStandardInitializer::getVertexInstrumentationIndices(
     const std::pair<int,int>& point_index,
@@ -2062,6 +2081,8 @@ IBStandardInitializer::getFromInput(
     d_uniform_bdry_mass.resize(d_max_levels);
     d_using_uniform_bdry_mass_stiffness.resize(d_max_levels);
     d_uniform_bdry_mass_stiffness.resize(d_max_levels);
+
+    d_directors.resize(d_max_levels);
 
     d_enable_instrumentation.resize(d_max_levels);
     d_instrument_idx.resize(d_max_levels);

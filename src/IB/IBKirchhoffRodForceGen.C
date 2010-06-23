@@ -1,5 +1,5 @@
 // Filename: IBKirchhoffRodForceGen.C
-// Last modified: <22.Jun.2010 17:03:30 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <22.Jun.2010 22:05:19 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Jun 2010 by Boyce Griffith (griffith@boyce-griffiths-mac-pro.local)
 
 #include "IBKirchhoffRodForceGen.h"
@@ -96,7 +96,7 @@ cross(
     const blitz::Array<double,1>& y)
 {
     blitz::Array<double,1> x_cross_y(3);
-    x_cross_y = x(1)*y(2) - y(1)*x(2), y(0)*x(2) - x(0)*y(2), x(0)*y(1) - y(0)*x(1);
+    x_cross_y = x(1)*y(2) - y(1)*x(2) , y(0)*x(2) - x(0)*y(2) , x(0)*y(1) - y(0)*x(1);
     return x_cross_y;
 }// cross
 
@@ -135,24 +135,26 @@ compute_force_and_torque(
     const double b1 = 54.0;
     const double b2 = 54.0;
     const double b3 = 54.0;
-    const double ds = 0.0785;
+    const double ds = 0.0785398163397448;
 
-    const double F1 = b1* dot(D1_half, blitz::Array<double,1>((X_next-X)/ds));
-    const double F2 = b2* dot(D2_half, blitz::Array<double,1>((X_next-X)/ds));
-    const double F3 = b3*(dot(D3_half, blitz::Array<double,1>((X_next-X)/ds)) - 1.0);
+    const blitz::Array<double,1> dX_ds((X_next-X)/ds);
+    const double F1 = b1* dot(D1_half, dX_ds);
+    const double F2 = b2* dot(D2_half, dX_ds);
+    const double F3 = b3*(dot(D3_half, dX_ds) - 1.0);
     F_half = F1*D1_half + F2*D2_half + F3*D3_half;
 
-    const double N1 = a1*dot(blitz::Array<double,1>((D2_next-D2)/ds),D3_half);
-    const double N2 = a2*dot(blitz::Array<double,1>((D3_next-D3)/ds),D1_half);
-    const double N3 = a3*dot(blitz::Array<double,1>((D1_next-D1)/ds),D2_half);
+    const blitz::Array<double,1> dD1_ds((D1_next-D1)/ds);
+    const blitz::Array<double,1> dD2_ds((D2_next-D2)/ds);
+    const blitz::Array<double,1> dD3_ds((D3_next-D3)/ds);
+    const double N1 = a1*dot(dD2_ds,D3_half);
+    const double N2 = a2*dot(dD3_ds,D1_half);
+    const double N3 = a3*dot(dD1_ds,D2_half);
     N_half = N1*D1_half + N2*D2_half + N3*D3_half;
     return;
 }// compute_force_and_torque
 
 // Timers.
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian_nonzero_structure;
+static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_and_torque;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 }
 
@@ -176,12 +178,8 @@ IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_compute_lagrangian_force = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::IBKirchhoffRodForceGen::computeLagrangianForce()");
-        t_compute_lagrangian_force_jacobian = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::IBKirchhoffRodForceGen::computeLagrangianForceJacobian()");
-        t_compute_lagrangian_force_jacobian_nonzero_structure = SAMRAI::tbox::TimerManager::getManager()->
-            getTimer("IBAMR::IBKirchhoffRodForceGen::computeLagrangianForceJacobianNonzeroStructure()");
+        t_compute_lagrangian_force_and_torque = SAMRAI::tbox::TimerManager::getManager()->
+            getTimer("IBAMR::IBKirchhoffRodForceGen::computeLagrangianForceAndTorque()");
         t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
             getTimer("IBAMR::IBKirchhoffRodForceGen::initializeLevelData()");
         timers_need_init = false;
@@ -316,8 +314,8 @@ IBKirchhoffRodForceGen::initializeLevelData(
                 for (unsigned k = 0; k < num_beams; ++k)
                 {
                     petsc_mastr_node_idxs.push_back(mastr_idx);
-                    petsc_next_node_idxs.push_back(nghbrs[k].second);
-                    petsc_prev_node_idxs.push_back(nghbrs[k].first );
+                    petsc_next_node_idxs.push_back(nghbrs[k].first );
+                    petsc_prev_node_idxs.push_back(nghbrs[k].second);
                 }
             }
         }
@@ -504,7 +502,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
-    t_compute_lagrangian_force->start();
+    t_compute_lagrangian_force_and_torque->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(level_number < int(d_is_initialized.size()));
@@ -517,6 +515,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
 
     // Create appropriately sized temporary vectors.
     int i_start, i_stop;
+
     ierr = MatGetOwnershipRange(d_D_next_mats[level_number], &i_start, &i_stop);
     IBTK_CHKERRQ(ierr);
 
@@ -529,6 +528,9 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     Vec D_prev_vec;
     ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &D_prev_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecSetBlockSize(D_prev_vec, 3*3);                                           IBTK_CHKERRQ(ierr);
+
+    ierr = MatGetOwnershipRange(d_X_next_mats[level_number], &i_start, &i_stop);
+    IBTK_CHKERRQ(ierr);
 
     Vec X_vec = X_data->getGlobalVec();
 
@@ -583,14 +585,14 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
         blitz::Array<double,1> D1_prev(&D_prev_vals[k*3*3],blitz::shape(3),blitz::neverDeleteData);
 
         const int D2_offset = 3;
-        blitz::Array<double,1> D2(&D_vals[(petsc_mastr_node_idxs[k]-global_offset)*3*3]+D2_offset,blitz::shape(3),blitz::neverDeleteData);
-        blitz::Array<double,1> D2_next(&D_next_vals[k*3*3]+D2_offset,blitz::shape(3),blitz::neverDeleteData);
-        blitz::Array<double,1> D2_prev(&D_prev_vals[k*3*3]+D2_offset,blitz::shape(3),blitz::neverDeleteData);
+        blitz::Array<double,1> D2(&D_vals[(petsc_mastr_node_idxs[k]-global_offset)*3*3+D2_offset],blitz::shape(3),blitz::neverDeleteData);
+        blitz::Array<double,1> D2_next(&D_next_vals[k*3*3+D2_offset],blitz::shape(3),blitz::neverDeleteData);
+        blitz::Array<double,1> D2_prev(&D_prev_vals[k*3*3+D2_offset],blitz::shape(3),blitz::neverDeleteData);
 
         const int D3_offset = 6;
-        blitz::Array<double,1> D3(&D_vals[(petsc_mastr_node_idxs[k]-global_offset)*3*3]+D3_offset,blitz::shape(3),blitz::neverDeleteData);
-        blitz::Array<double,1> D3_next(&D_next_vals[k*3*3]+D3_offset,blitz::shape(3),blitz::neverDeleteData);
-        blitz::Array<double,1> D3_prev(&D_prev_vals[k*3*3]+D3_offset,blitz::shape(3),blitz::neverDeleteData);
+        blitz::Array<double,1> D3(&D_vals[(petsc_mastr_node_idxs[k]-global_offset)*3*3+D3_offset],blitz::shape(3),blitz::neverDeleteData);
+        blitz::Array<double,1> D3_next(&D_next_vals[k*3*3+D3_offset],blitz::shape(3),blitz::neverDeleteData);
+        blitz::Array<double,1> D3_prev(&D_prev_vals[k*3*3+D3_offset],blitz::shape(3),blitz::neverDeleteData);
 
         blitz::Array<double,1> X(&X_vals[(petsc_mastr_node_idxs[k]-global_offset)*NDIM],blitz::shape(NDIM),blitz::neverDeleteData);
         blitz::Array<double,1> X_next(&X_next_vals[k*NDIM],blitz::shape(NDIM),blitz::neverDeleteData);
@@ -602,8 +604,8 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
         blitz::Array<double,1> F_minus_half(3), N_minus_half(3);
         compute_force_and_torque(F_minus_half, N_minus_half, X_prev, X, D1_prev, D1, D2_prev, D2, D3_prev, D3);
 
-        F = -(F_plus_half-F_minus_half);
-        N = -(N_plus_half-N_minus_half) - 0.5*(cross(blitz::Array<double,1>(X_next-X),F_plus_half) + cross(blitz::Array<double,1>(X-X_prev),F_minus_half));
+        F = F_plus_half-F_minus_half;
+        N = N_plus_half-N_minus_half + 0.5*(cross(blitz::Array<double,1>(X_next-X),F_plus_half) + cross(blitz::Array<double,1>(X-X_prev),F_minus_half));
     }
 
     ierr = VecRestoreArray(D_vec, &D_vals);            IBTK_CHKERRQ(ierr);
@@ -641,7 +643,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     ierr = IBTK::PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
     ierr = IBTK::PETScVecOps::VecAssemblyEnd(N_vec);    IBTK_CHKERRQ(ierr);
 
-    t_compute_lagrangian_force->stop();
+    t_compute_lagrangian_force_and_torque->stop();
     return;
 }// computeLagrangianForceAndTorque
 

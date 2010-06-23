@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <22.Jun.2010 16:09:23 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <23.Jun.2010 10:35:06 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -116,6 +116,22 @@ static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_reset_hierarchy_configuration;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_apply_gradient_detector;
 static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_put_to_database;
+
+// Number of ghosts cells used for each variable quantity.
+static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+
+// Type of coarsening to perform prior to setting coarse-fine boundary and
+// physical boundary ghost cell values.
+static const std::string CELL_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+static const std::string SIDE_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+
+// Type of extrapolation to use at physical boundaries.
+static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
+
+// Whether to enforce consistent interpolated values at Type 2 coarse-fine
+// interface ghost cells.
+static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Version of IBStaggeredHierarchyIntegrator restart file data.
 static const int IB_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
@@ -464,10 +480,10 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     if (d_using_orthonormal_directors)
     {
         d_W_var = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::W");
-        d_W_idx = var_db->registerVariableAndContext(d_W_var, d_scratch, ghosts);
+        d_W_idx = var_db->registerVariableAndContext(d_W_var, d_scratch, SIDEG);
 
         d_N_var = new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::N");
-        d_N_idx = var_db->registerVariableAndContext(d_N_var, d_scratch, no_ghosts);
+        d_N_idx = var_db->registerVariableAndContext(d_N_var, d_scratch, ghosts);
     }
 
     if (!d_source_strategy.isNull())
@@ -537,6 +553,10 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (d_using_orthonormal_directors)
     {
+        d_ralgs["N->N::S->S::CONSERVATIVE_LINEAR_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+        refine_operator = grid_geom->lookupRefineOperator(d_N_var, "CONSERVATIVE_LINEAR_REFINE");
+        d_ralgs["N->N::S->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_N_idx, d_N_idx, d_N_idx, refine_operator);
+
         d_ralgs["W->W::S->S::CONSERVATIVE_LINEAR_REFINE"] = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
         refine_operator = grid_geom->lookupRefineOperator(d_W_var, "CONSERVATIVE_LINEAR_REFINE");
         d_ralgs["W->W::S->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_W_idx, d_W_idx, d_W_idx, refine_operator);
@@ -847,6 +867,17 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 
     if (d_using_orthonormal_directors)
     {
+        // Initialize D(n+1/2) to equal D(n).
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_lag_data_manager->levelContainsLagrangianData(ln))
+            {
+                Vec D_vec = D_data[ln]->getGlobalVec();
+                Vec D_half_vec = D_half_data[ln]->getGlobalVec();
+                int ierr = VecCopy(D_vec, D_half_vec);  IBTK_CHKERRQ(ierr);
+            }
+        }
+
         // Initialize D(n+1) to equal D(n).
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -966,47 +997,20 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             }
         }
 
-        if (d_using_orthonormal_directors)
-        {
-            // Compute D(n+1/2) from D(n) and D(n+1).
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                if (d_lag_data_manager->levelContainsLagrangianData(ln))
-                {
-                    const int n_local = d_lag_data_manager->getNumberOfLocalNodes(ln);
-                    for (int l = 0; l < n_local; ++l)
-                    {
-                        std::vector<double*> D(3);
-                        for (int alpha = 0; alpha < 3; ++alpha)
-                        {
-                            D[alpha] = &(*D_data[ln])(l,alpha);
-                        }
-                        std::vector<double*> D_new(3);
-                        for (int alpha = 0; alpha < 3; ++alpha)
-                        {
-                            D_new[alpha] = &(*D_new_data[ln])(l,alpha);
-                        }
-
-                        std::vector<double*> D_half(3);
-                        for (int alpha = 0; alpha < 3; ++alpha)
-                        {
-                            D_half[alpha] = &(*D_half_data[ln])(l,alpha);
-                        }
-
-                        interpolate_directors(D_half, D, D_new);
-                    }
-                }
-            }
-        }
-
         resetAnchorPointValues(F_half_data, coarsest_ln, finest_ln);
 
         // Spread F(n+1/2) (and possibly N(n+1/2)) to f(n+1/2).
         d_hier_sc_data_ops->setToScalar(d_F_idx, 0.0);
         if (d_using_orthonormal_directors)
         {
+            d_hier_sc_data_ops->setToScalar(d_N_idx, 0.0, false);
             d_lag_data_manager->spread(d_N_idx, N_half_data, X_half_data, true, true);
-            hier_math_ops->curl(d_F_idx, d_F_var, d_N_idx, d_N_var, d_N_fill_op, current_time);
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                d_rscheds["N->N::S->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
+            }
+            hier_math_ops->curl(d_F_idx, d_F_var, d_N_idx, d_N_var, NULL, current_time);
             d_hier_sc_data_ops->scale(d_F_idx, 0.5, d_F_idx);
         }
         d_lag_data_manager->spread(d_F_idx, F_half_data, X_half_data, true, true);
@@ -1061,12 +1065,18 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         if (d_using_orthonormal_directors)
         {
             // Set w(n+1/2) = curl u(n+1/2).
-            hier_math_ops->curl(d_W_idx, d_W_var, d_V_idx, d_V_var, d_V_fill_op, current_time);
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
+            }
+            hier_math_ops->curl(d_W_idx, d_W_var, d_V_idx, d_V_var, NULL, current_time);
 
             // Interpolate w(n+1/2) to W(n+1/2).
             d_lag_data_manager->interpolate(d_W_idx, W_half_data, X_half_data, d_rscheds["W->W::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
 
-            // Compute D(n+1) from D(n) and W(n+1/2).
+            // Compute D(n+1) from D(n) and W(n+1/2), and compute D(n+1/2) from
+            // D(n) and D(n+1).
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 if (d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -1077,13 +1087,13 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                         std::vector<double*> D(3);
                         for (int alpha = 0; alpha < 3; ++alpha)
                         {
-                            D[alpha] = &(*D_data[ln])(l,alpha);
+                            D[alpha] = &(*D_data[ln])(l,3*alpha);
                         }
 
                         std::vector<double*> D_new(3);
                         for (int alpha = 0; alpha < 3; ++alpha)
                         {
-                            D_new[alpha] = &(*D_new_data[ln])(l,alpha);
+                            D_new[alpha] = &(*D_new_data[ln])(l,3*alpha);
                         }
 
                         double* W_half = &(*W_half_data[ln])(l,0);
@@ -1108,7 +1118,6 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                             }
                         }
 
-                        std::vector<double*> D_half(3);
                         for (int alpha = 0; alpha < 3; ++alpha)
                         {
                             blitz::Array<double,1> D_arr(D[alpha], blitz::shape(3), blitz::neverDeleteData);
@@ -1118,6 +1127,14 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                             blitz::secondIndex j;
                             D_new_arr = blitz::sum(R(i,j)*D_arr(j),j);
                         }
+
+                        std::vector<double*> D_half(3);
+                        for (int alpha = 0; alpha < 3; ++alpha)
+                        {
+                            D_half[alpha] = &(*D_half_data[ln])(l,3*alpha);
+                        }
+
+                        interpolate_directors(D_half, D, D_new);
                     }
                 }
             }
@@ -1671,6 +1688,12 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
                 M_data, K_data,
                 hierarchy, level_number,
                 init_data_time, can_be_refined, initial_time, d_lag_data_manager);
+
+            if (!d_silo_writer.isNull())
+            {
+                d_silo_writer->registerVariableData("M", M_data, level_number);
+                d_silo_writer->registerVariableData("Y", Y_data, level_number);
+            }
         }
 
         if (d_using_orthonormal_directors)
@@ -1684,6 +1707,13 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
                 D_data,
                 hierarchy, level_number,
                 init_data_time, can_be_refined, initial_time, d_lag_data_manager);
+
+            if (!d_silo_writer.isNull())
+            {
+                d_silo_writer->registerVariableData("D1", D_data, 0, 3, level_number);
+                d_silo_writer->registerVariableData("D2", D_data, 3, 3, level_number);
+                d_silo_writer->registerVariableData("D3", D_data, 6, 3, level_number);
+            }
         }
     }
 

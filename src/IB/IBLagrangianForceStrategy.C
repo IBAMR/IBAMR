@@ -1,5 +1,5 @@
 // Filename: IBLagrangianForceStrategy.C
-// Last modified: <22.Jun.2010 15:17:00 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <22.Jun.2010 17:45:29 griffith@boyce-griffiths-mac-pro.local>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBLagrangianForceStrategy.h"
@@ -73,6 +73,21 @@ IBLagrangianForceStrategy::computeLagrangianForceAndTorque(
                << "  not implemented for this IBLagrangianForceStrategy." << std::endl);
     return;
 }// computeLagrangianForceAndTorque
+
+void
+IBLagrangianForceStrategy::computeLagrangianForce(
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double data_time,
+    IBTK::LDataManager* const lag_manager)
+{
+    TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForce():\n"
+               << "  not implemented for this IBLagrangianForceStrategy." << std::endl);
+    return;
+}// computeLagrangianForce
 
 void
 IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(

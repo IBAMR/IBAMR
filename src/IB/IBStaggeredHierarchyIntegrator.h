@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <22.Jun.2010 15:26:11 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <22.Jun.2010 22:54:37 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -835,8 +835,6 @@ private:
     CoarsenAlgMap           d_calgs;
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;
-
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_N_fill_op, d_V_fill_op;
 
     /*
      * Variables and variable contexts.
