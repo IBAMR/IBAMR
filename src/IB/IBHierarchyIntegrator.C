@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <27.Apr.2010 00:57:16 griffith@griffith-macbook-pro.local>
+// Last modified: <23.Jun.2010 10:12:18 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -2316,6 +2316,12 @@ IBHierarchyIntegrator::initializeLevelData(
                 M_data, K_data,
                 hierarchy, level_number,
                 init_data_time, can_be_refined, initial_time, d_lag_data_manager);
+
+            if (!d_silo_writer.isNull())
+            {
+                d_silo_writer->registerVariableData("M", M_data, level_number);
+                d_silo_writer->registerVariableData("Y", Y_data, level_number);
+            }
         }
     }
 
