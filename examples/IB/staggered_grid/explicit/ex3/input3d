@@ -160,6 +160,10 @@ Main {
    restart_interval      = 0           // zero to turn off
    restart_write_dirname = "restart_IB3d"
 
+// data dump parameters
+   hier_dump_interval      = 16        // zero to turn off
+   hier_dump_dirname = "data_IB3d"
+
 // timer dump parameters
    timer_dump_interval   = 0           // zero to turn off
 }

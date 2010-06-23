@@ -46,7 +46,7 @@ using namespace std;
 
 namespace
 {
-static double freq = 0.5;  // Rotation frequency in Hz.
+static double FREQ = 0.5;  // Rotation frequency in Hz.
 
 void
 update_triads(
@@ -56,7 +56,7 @@ update_triads(
     const double dt)
 {
     // The angular velocity.
-    static const double angw = 2.0*M_PI*freq;
+    static const double angw = 2.0*M_PI*FREQ;
 
     // Get the patch data descriptor index for the LNodeIndexData.
     const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
@@ -74,10 +74,21 @@ update_triads(
              it != idx_data->lnode_index_end(); ++it)
         {
             const LNodeIndex& node_idx = *it;
+
+            // If spec is NULL, then the IB point is NOT anchored.  Otherwise,
+            // the IB point IS anchored.
             SAMRAI::tbox::Pointer<IBAnchorPointSpec> spec = node_idx.getStashData<IBAnchorPointSpec>();
             if (!spec.isNull())
             {
+                // `global_idx' is the index of the vertex in the input file.
+                const int global_idx = node_idx.getLagrangianIndex();
+                (void) global_idx;  // to prevent compiler warnings...
+
+                // `local_petsc_idx' is the index of the vertex in the internal
+                // IBAMR data structures.  Generally, global_idx !=
+                // local_petsc_idx.
                 const int local_petsc_idx = node_idx.getLocalPETScIndex();
+
                 double* D1 = &(*D_data)(local_petsc_idx,0);
                 D1[0] =  cos(angw*current_time);
                 D1[1] =  sin(angw*current_time);
@@ -422,7 +433,7 @@ main(
         /*
          * Read the rotational frequency from the input database.
          */
-        freq = input_db->getDoubleWithDefault("freq", freq);
+        FREQ = input_db->getDoubleWithDefault("FREQ", FREQ);
 
         /*
          * Set up visualization plot file writer.
@@ -498,44 +509,19 @@ main(
          */
         if (write_hier_data && iteration_num%hier_dump_interval == 0)
         {
-            /*
-             * Write Cartesian data.
-             */
-            hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-
             tbox::plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
             tbox::plog << "simulation time is " << loop_time << endl;
 
-            string file_name = hier_dump_dirname + "/" + "hier_data.";
+            PetscViewer viewer;
+            string file_name;
             char temp_buf[128];
-            sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, tbox::SAMRAI_MPI::getRank());
-            file_name += temp_buf;
-
-            tbox::Pointer<tbox::HDFDatabase> hier_db = new tbox::HDFDatabase("hier_db");
-            hier_db->create(file_name);
-
-            hier::ComponentSelector hier_data;
-            hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVar(),
-                                                                   navier_stokes_integrator->getCurrentContext()));
-            hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVar(),
-                                                                   navier_stokes_integrator->getCurrentContext()));
-            hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getExtrapolatedPressureVar(),
-                                                                   navier_stokes_integrator->getCurrentContext()));
-
-            patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-            hier_db->putDouble("loop_time", loop_time);
-            hier_db->putDouble("end_time", loop_time_end);
-            hier_db->putDouble("dt", dt_now);
-            hier_db->putInteger("iteration_num", iteration_num);
-            hier_db->putInteger("hier_dump_interval", hier_dump_interval);
-
-            hier_db->close();
 
             /*
              * Write Lagrangian data.
              */
             const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
             LDataManager* lag_manager = time_integrator->getLDataManager();
+
             tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X", finest_hier_level);
             Vec X_petsc_vec = X_data->getGlobalVec();
             Vec X_lag_vec;
@@ -544,11 +530,23 @@ main(
             file_name = hier_dump_dirname + "/" + "X.";
             sprintf(temp_buf, "%05d", iteration_num);
             file_name += temp_buf;
-            PetscViewer viewer;
             PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
             VecView(X_lag_vec, viewer);
             PetscViewerDestroy(viewer);
             VecDestroy(X_lag_vec);
+
+            tbox::Pointer<LNodeLevelData> D_data = lag_manager->getLNodeLevelData("D", finest_hier_level);
+            Vec D_petsc_vec = D_data->getGlobalVec();
+            Vec D_lag_vec;
+            VecDuplicate(D_petsc_vec, &D_lag_vec);
+            lag_manager->scatterPETScToLagrangian(D_petsc_vec, D_lag_vec, finest_hier_level);
+            file_name = hier_dump_dirname + "/" + "D.";
+            sprintf(temp_buf, "%05d", iteration_num);
+            file_name += temp_buf;
+            PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
+            VecView(D_lag_vec, viewer);
+            PetscViewerDestroy(viewer);
+            VecDestroy(D_lag_vec);
         }
 
         while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
@@ -612,44 +610,19 @@ main(
              */
             if (write_hier_data && iteration_num%hier_dump_interval == 0)
             {
-                /*
-                 * Write Cartesian data.
-                 */
-                hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-
                 tbox::plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
                 tbox::plog << "simulation time is " << loop_time << endl;
 
-                string file_name = hier_dump_dirname + "/" + "hier_data.";
+                PetscViewer viewer;
+                string file_name;
                 char temp_buf[128];
-                sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, tbox::SAMRAI_MPI::getRank());
-                file_name += temp_buf;
-
-                tbox::Pointer<tbox::HDFDatabase> hier_db = new tbox::HDFDatabase("hier_db");
-                hier_db->create(file_name);
-
-                hier::ComponentSelector hier_data;
-                hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVar(),
-                                                                       navier_stokes_integrator->getCurrentContext()));
-                hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVar(),
-                                                                       navier_stokes_integrator->getCurrentContext()));
-                hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getExtrapolatedPressureVar(),
-                                                                       navier_stokes_integrator->getCurrentContext()));
-
-                patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-                hier_db->putDouble("loop_time", loop_time);
-                hier_db->putDouble("end_time", loop_time_end);
-                hier_db->putDouble("dt", dt_now);
-                hier_db->putInteger("iteration_num", iteration_num);
-                hier_db->putInteger("hier_dump_interval", hier_dump_interval);
-
-                hier_db->close();
 
                 /*
                  * Write Lagrangian data.
                  */
                 const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
                 LDataManager* lag_manager = time_integrator->getLDataManager();
+
                 tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X", finest_hier_level);
                 Vec X_petsc_vec = X_data->getGlobalVec();
                 Vec X_lag_vec;
@@ -658,11 +631,23 @@ main(
                 file_name = hier_dump_dirname + "/" + "X.";
                 sprintf(temp_buf, "%05d", iteration_num);
                 file_name += temp_buf;
-                PetscViewer viewer;
                 PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
                 VecView(X_lag_vec, viewer);
                 PetscViewerDestroy(viewer);
                 VecDestroy(X_lag_vec);
+
+                tbox::Pointer<LNodeLevelData> D_data = lag_manager->getLNodeLevelData("D", finest_hier_level);
+                Vec D_petsc_vec = D_data->getGlobalVec();
+                Vec D_lag_vec;
+                VecDuplicate(D_petsc_vec, &D_lag_vec);
+                lag_manager->scatterPETScToLagrangian(D_petsc_vec, D_lag_vec, finest_hier_level);
+                file_name = hier_dump_dirname + "/" + "D.";
+                sprintf(temp_buf, "%05d", iteration_num);
+                file_name += temp_buf;
+                PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
+                VecView(D_lag_vec, viewer);
+                PetscViewerDestroy(viewer);
+                VecDestroy(D_lag_vec);
             }
         }
 

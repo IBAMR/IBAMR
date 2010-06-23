@@ -3,6 +3,7 @@ L = 10.0         // length of computational domain (cm)
 RHO = 1.0        // fluid density (g/cm^3)
 MU = 0.01        // fluid viscosity (g/cm*s)
 DT = 0.025       // timestep size (s)
+FREQ = 0.1       // rotation frequency (Hz)
 
 // grid spacing parameters
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
@@ -159,6 +160,10 @@ Main {
 // restart dump parameters
    restart_interval      = 0           // zero to turn off
    restart_write_dirname = "restart_IB3d"
+
+// data dump parameters
+   hier_dump_interval      = 16        // zero to turn off
+   hier_dump_dirname = "data_IB3d"
 
 // timer dump parameters
    timer_dump_interval   = 0           // zero to turn off
