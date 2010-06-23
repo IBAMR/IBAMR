@@ -17,21 +17,30 @@ p = 5;            % number of twists
 epsilon = 0.001;  % perturbation parameter
 
 a = 0.3;
+a1 = a;
+a2 = a;
 a3 = (2/3)*a;
+
 b = 54;
+b1 = b;
+b2 = b;
+b3 = b;
+
+kappa1 = 0.0;
+kappa2 = 0.0;
+tau = 0.0;
+
 beta = asin(-(a3*p)/(b*r0^2+a3-a));
 r1 = r0*cos(beta);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 vertex_fid = fopen(['curve3d_' num2str(N) '.vertex'], 'w');
-spring_fid = fopen(['curve3d_' num2str(N) '.spring'], 'w');
-beam_fid = fopen(['curve3d_' num2str(N) '.beam'], 'w');
+rod_fid = fopen(['curve3d_' num2str(N) '.rod'], 'w');
 director_fid = fopen(['curve3d_' num2str(N) '.director'], 'w');
 
 fprintf(vertex_fid, '%d\n', nr);
-fprintf(spring_fid, '%d\n', nr);
-fprintf(beam_fid, '%d\n', nr);
+fprintf(rod_fid, '%d\n', nr);
 fprintf(director_fid, '%d\n', nr);
 
 for r = 0:nr-1
@@ -45,11 +54,12 @@ for r = 0:nr-1
 
   fprintf(vertex_fid, '%1.16e %1.16e %1.16e\n', X(1), X(2), X(3));
 
+  r_curr = r;
   r_next = mod(r+1,nr);
-  r_prev = mod(r-1,nr);
 
-  fprintf(spring_fid, '%6d %6d %1.16e %1.16e\n', r, r_next, 0.0, 0.0);
-  fprintf(beam_fid, '%6d %6d %6d %1.16e\n', r_prev, r, r_next, 0.0);
+  fprintf(rod_fid, ['%6d %6d %1.16e %1.16e %1.16e %1.16e %1.16e %1.16e ' ...
+                    '%1.16e %1.16e %1.16e %1.16e\n'], r_curr, r_next, ds, ...
+          a1, a2, a3, b1, b2, b3, kappa1, kappa2, tau);
 
   D3 =  cos(beta)*Theta + sin(beta)*Z;
   E  = -sin(beta)*Theta + cos(beta)*Z;
@@ -62,8 +72,7 @@ for r = 0:nr-1
 end %for
 
 fclose(vertex_fid);
-fclose(spring_fid);
-fclose(beam_fid);
+fclose(rod_fid);
 fclose(director_fid);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

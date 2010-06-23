@@ -51,6 +51,8 @@ $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C \
+$(top_srcdir)/src/IB/IBRodForceSpec.C \
+$(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBSpringForceGen.C \
 $(top_srcdir)/src/IB/IBSpringForceSpec.C \
 $(top_srcdir)/src/IB/IBSpringForceSpecFactory.C \
@@ -115,6 +117,9 @@ $(top_srcdir)/src/IB/IBMovingTargetPointForceGen.h \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.I \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.h \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.h \
+$(top_srcdir)/src/IB/IBRodForceSpec.I \
+$(top_srcdir)/src/IB/IBRodForceSpec.h \
+$(top_srcdir)/src/IB/IBRodForceSpecFactory.h \
 $(top_srcdir)/src/IB/IBSpringForceGen.h \
 $(top_srcdir)/src/IB/IBSpringForceSpec.I \
 $(top_srcdir)/src/IB/IBSpringForceSpec.h \

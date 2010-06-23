@@ -2,7 +2,7 @@
 #define included_IBKirchhoffRodForceGen
 
 // Filename: IBKirchhoffRodForceGen.h
-// Last modified: <22.Jun.2010 15:56:52 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <23.Jun.2010 15:43:34 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Jun 2010 by Boyce Griffith (griffith@boyce-griffiths-mac-pro.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -112,8 +112,9 @@ private:
      * \name Data maintained separately for each level of the patch hierarchy.
      */
     //\{
-    std::vector<Mat> d_D_next_mats, d_D_prev_mats, d_X_next_mats, d_X_prev_mats;
-    std::vector<std::vector<int> > d_petsc_mastr_node_idxs, d_petsc_next_node_idxs, d_petsc_prev_node_idxs;
+    std::vector<Mat> d_D_next_mats, d_X_next_mats;
+    std::vector<std::vector<int> > d_petsc_curr_node_idxs, d_petsc_next_node_idxs;
+    std::vector<std::vector<std::vector<double> > > d_material_params;
     std::vector<bool> d_is_initialized;
     //\}
 };

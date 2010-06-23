@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <23.Jun.2010 11:02:53 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <23.Jun.2010 16:07:51 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -20,6 +20,7 @@
 #include <ibamr/IBAnchorPointSpec.h>
 #include <ibamr/IBBeamForceSpec.h>
 #include <ibamr/IBInstrumentationSpec.h>
+#include <ibamr/IBRodForceSpec.h>
 #include <ibamr/IBSpringForceSpec.h>
 #include <ibamr/IBTargetPointForceSpec.h>
 
@@ -110,6 +111,9 @@ IBStandardInitializer::IBStandardInitializer(
       d_beam_specs(),
       d_using_uniform_beam_bend_rigidity(),
       d_uniform_beam_bend_rigidity(),
+      d_enable_rods(),
+      d_rod_edge_map(),
+      d_rod_specs(),
       d_enable_target_points(),
       d_target_stiffness(),
       d_target_damping(),
@@ -140,6 +144,7 @@ IBStandardInitializer::IBStandardInitializer(
     IBAnchorPointSpec::registerWithStashableManager();
     IBBeamForceSpec::registerWithStashableManager();
     IBInstrumentationSpec::registerWithStashableManager();
+    IBRodForceSpec::registerWithStashableManager();
     IBSpringForceSpec::registerWithStashableManager();
     IBTargetPointForceSpec::registerWithStashableManager();
 
@@ -161,6 +166,9 @@ IBStandardInitializer::IBStandardInitializer(
 
         // Process the (optional) beam information.
         readBeamFiles();
+
+        // Process the (optional) rod information.
+        readRodFiles();
 
         // Process the (optional) target point information.
         readTargetPointFiles();
@@ -587,6 +595,12 @@ IBStandardInitializer::initializeLagSiloDataWriter(
                 d_silo_writer->registerUnstructuredMesh(
                     d_base_filename[level_number][j] + "_mesh",
                     d_spring_edge_map[level_number][j], level_number);
+            }
+            else if (d_rod_edge_map[level_number][j].size() > 0)
+            {
+                d_silo_writer->registerUnstructuredMesh(
+                    d_base_filename[level_number][j] + "_mesh",
+                    d_rod_edge_map[level_number][j], level_number);
             }
         }
     }
@@ -1087,6 +1101,269 @@ IBStandardInitializer::readBeamFiles()
     if (d_use_file_batons) SAMRAI::tbox::SAMRAI_MPI::barrier();
     return;
 }// readBeamFiles
+
+void
+IBStandardInitializer::readRodFiles()
+{
+    std::string line_string;
+    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const int num_base_filename = d_base_filename[ln].size();
+        d_rod_edge_map[ln].resize(num_base_filename);
+        d_rod_specs[ln].resize(num_base_filename);
+        for (int j = 0; j < num_base_filename; ++j)
+        {
+            // Wait for the previous MPI process to finish reading the current file.
+            if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+
+            const std::string rod_filename = d_base_filename[ln][j] + ".rod";
+            std::ifstream file_stream;
+            file_stream.open(rod_filename.c_str(), std::ios::in);
+            if (file_stream.is_open())
+            {
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "processing rod data from ASCII input file named " << rod_filename << std::endl
+                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+
+                // The first line in the file indicates the number of rods in
+                // the input file.
+                int num_rods;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << rod_filename << std::endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_rods))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << rod_filename << std::endl);
+                    }
+                }
+
+                if (num_rods <= 0)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << rod_filename << std::endl);
+                }
+
+                // Each successive line provides the connectivity and material
+                // parameter information for each rod in the structure.
+                for (int k = 0; k < num_rods; ++k)
+                {
+                    int curr_idx, next_idx;
+                    std::vector<double> properties(10);
+                    double& ds = properties[0];
+                    double& a1 = properties[1];
+                    double& a2 = properties[2];
+                    double& a3 = properties[3];
+                    double& b1 = properties[4];
+                    double& b2 = properties[5];
+                    double& b3 = properties[6];
+                    double& kappa1 = properties[7];
+                    double& kappa2 = properties[8];
+                    double& tau = properties[9];
+
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << rod_filename << std::endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+                        std::istringstream line_stream(line_string);
+
+                        if (!(line_stream >> curr_idx))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if ((curr_idx < 0) || (curr_idx >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  vertex index " << curr_idx << " is out of range" << std::endl);
+                        }
+
+                        if (!(line_stream >> next_idx))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if ((next_idx < 0) || (next_idx >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  vertex index " << next_idx << " is out of range" << std::endl);
+                        }
+
+                        if (!(line_stream >> ds))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (ds < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant ds is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> a1))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (a1 < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant a1 is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> a2))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (a2 < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant a2 is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> a3))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (a3 < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant a3 is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> b1))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (b1 < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant b1 is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> b2))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (b2 < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant b2 is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> b3))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (b3 < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant b3 is negative" << std::endl);
+                        }
+
+                        bool curvature_data_found_in_input = false;
+
+                        if (!(line_stream >> kappa1))
+                        {
+                            kappa1 = 0.0;
+                        }
+                        else
+                        {
+                            curvature_data_found_in_input = true;
+                        }
+
+                        if (!(line_stream >> kappa2))
+                        {
+                            kappa2 = 0.0;
+                            if (curvature_data_found_in_input)
+                            {
+                                TBOX_WARNING(d_object_name << ":\n  Potentially invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                             << "  intrinsic curvature kappa1 was specified but kappa2 was not" << std::endl);
+                            }
+                        }
+                        else
+                        {
+                            curvature_data_found_in_input = true;
+                        }
+
+                        if (!(line_stream >> tau))
+                        {
+                            tau = 0.0;
+                            if (curvature_data_found_in_input)
+                            {
+                                TBOX_WARNING(d_object_name << ":\n  Potentially invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                             << "  intrinsic curvatures kappa1 and kappa2 were specified but intrinsic twist tau was not" << std::endl);
+                            }
+                        }
+                        else
+                        {
+                            curvature_data_found_in_input = true;
+                        }
+                    }
+
+                    // Correct the node numbers to be in the global Lagrangian
+                    // indexing scheme.
+                    curr_idx += d_vertex_offset[ln][j];
+                    next_idx += d_vertex_offset[ln][j];
+
+                    // Check to see if the edge has already been inserted in the
+                    // edge map.
+                    Edge e;
+                    e.first  = std::min(curr_idx,next_idx);
+                    e.second = std::max(curr_idx,next_idx);
+                    bool duplicate_edge = false;
+                    for (std::multimap<int,Edge>::const_iterator it =
+                             d_rod_edge_map[ln][j].lower_bound(e.first);
+                         it != d_rod_edge_map[ln][j].upper_bound(e.first); ++it)
+                    {
+                        const Edge& other_e = (*it).second;
+                        if (e.first  == other_e.first &&
+                            e.second == other_e.second)
+                        {
+                            // This is a duplicate edge and should not be
+                            // inserted into the edge map.
+                            duplicate_edge = true;
+                        }
+                    }
+
+                    // Initialize the map data corresponding to the present
+                    // edge.
+                    if (!duplicate_edge)
+                    {
+                        d_rod_edge_map[ln][j].insert(std::make_pair(e.first,e));
+                    }
+
+                    // Initialize the map data corresponding to the present rod.
+                    //
+                    // Note that in the rod property map, each edge is
+                    // associated with only the "current" vertex.
+                    d_rod_specs[ln][j].insert(std::make_pair(curr_idx, std::make_pair(next_idx,properties)));
+                }
+
+                // Close the input file.
+                file_stream.close();
+
+                SAMRAI::tbox::plog << d_object_name << ":  "
+                                   << "read " << num_rods << " rods from ASCII input file named " << rod_filename << std::endl
+                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+            }
+
+            // Free the next MPI process to start reading the current file.
+            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+        }
+    }
+
+    // Synchronize the processes.
+    if (d_use_file_batons) SAMRAI::tbox::SAMRAI_MPI::barrier();
+    return;
+}// readRodFiles
 
 void
 IBStandardInitializer::readTargetPointFiles()
@@ -1967,6 +2244,27 @@ IBStandardInitializer::initializeSpecs(
         }
     }
 
+    // Initialize any rod specifications associated with the present vertex.
+    if (d_enable_rods[level_number][j])
+    {
+        std::vector<int> rod_next_idxs;
+        std::vector<std::vector<double> > rod_material_params;
+        for (std::multimap<int,std::pair<int,std::vector<double> > >::const_iterator it = d_rod_specs[level_number][j].lower_bound(mastr_idx);
+             it != d_rod_specs[level_number][j].upper_bound(mastr_idx); ++it)
+        {
+            const int next_idx = (*it).second.first;
+            const std::vector<double> & material_params = (*it).second.second;
+            rod_next_idxs.push_back(next_idx);
+            rod_material_params.push_back(material_params);
+        }
+        if (!rod_next_idxs.empty())
+        {
+            vertex_specs.push_back(
+                new IBRodForceSpec(
+                    mastr_idx, rod_next_idxs, rod_material_params));
+        }
+    }
+
     // Initialize any target point specifications associated with the present
     // vertex.
     if (d_enable_target_points[level_number][j])
@@ -2062,6 +2360,10 @@ IBStandardInitializer::getFromInput(
     d_beam_specs.resize(d_max_levels);
     d_using_uniform_beam_bend_rigidity.resize(d_max_levels);
     d_uniform_beam_bend_rigidity.resize(d_max_levels);
+
+    d_enable_rods.resize(d_max_levels);
+    d_rod_edge_map.resize(d_max_levels);
+    d_rod_specs.resize(d_max_levels);
 
     d_enable_target_points.resize(d_max_levels);
     d_target_stiffness.resize(d_max_levels);
@@ -2185,6 +2487,8 @@ IBStandardInitializer::getFromInput(
         d_using_uniform_beam_bend_rigidity[ln].resize(num_base_filename,false);
         d_uniform_beam_bend_rigidity[ln].resize(num_base_filename,-1.0);
 
+        d_enable_rods[ln].resize(num_base_filename,true);
+
         d_enable_target_points[ln].resize(num_base_filename,true);
 
         d_using_uniform_target_stiffness[ln].resize(num_base_filename,false);
@@ -2222,6 +2526,10 @@ IBStandardInitializer::getFromInput(
                 if (sub_db->keyExists("enable_beams"))
                 {
                     d_enable_beams[ln][j] = sub_db->getBool("enable_beams");
+                }
+                if (sub_db->keyExists("enable_rods"))
+                {
+                    d_enable_rods[ln][j] = sub_db->getBool("enable_rods");
                 }
                 if (sub_db->keyExists("enable_target_points"))
                 {
@@ -2344,7 +2652,7 @@ IBStandardInitializer::getFromInput(
             SAMRAI::tbox::pout << "  base filename: " << base_filename << std::endl
                                << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << std::endl
                                << "     required files: " << base_filename << ".vertex" << std::endl
-                               << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".target, " << base_filename << ".anchor, " << base_filename << ".mass, " << base_filename << ".director, " << base_filename << ".inst" << std::endl;
+                               << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".rod, " << base_filename << ".target, " << base_filename << ".anchor, " << base_filename << ".mass, " << base_filename << ".director, " << base_filename << ".inst" << std::endl;
             if (!d_enable_springs[ln][j])
             {
                 SAMRAI::tbox::pout << "  NOTE: spring forces are DISABLED for " << base_filename << std::endl;

@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <22.Jun.2010 17:20:16 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <23.Jun.2010 15:55:53 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -113,6 +113,33 @@ namespace IBAMR
  *
  * \see IBBeamForceGen
  * \see IBBeamForceSpec
+ *
+ * <HR>
+ *
+ * <B> Rod file format</B>
+ *
+ * Rod input files end with the extension <TT>".rod"</TT> and have the following
+ * format:
+ \verbatim
+ M                                                                                          # number of rods in the file
+ i_0   j_0   ds_0   a1_0   a2_0   a3_0   b1_0   b2_0   b3_0   kappa1_0   kappa2_0   tau_0   # first  vertex index, second vertex index, material parameters
+ i_1   j_1   ds_1   a1_1   a2_1   a3_1   b1_1   b2_1   b3_1   kappa1_1   kappa2_1   tau_1   # second vertex index, second vertex index, material parameters
+ i_2   j_2   ds_2   a1_2   a2_2   a3_2   b1_2   b2_2   b3_2   kappa1_2   kappa2_2   tau_2   # third  vertex index, second vertex index, material parameters
+ ...
+ \endverbatim
+ *
+ * \note There is no restriction on the number of rods that may be associated
+ * with any particular node of the Lagrangian mesh.
+ *
+ * \note The first vertex index is always used as the "master" node index when
+ * constructing the corresponding IBRodForceSpec object.
+ *
+ * \note The parameters kappa1, kappa2, and tau (the intrinsic curvatures and
+ * twist of the rod) are optional.  If not provided in the input file, they are
+ * assumed to be zero.
+ *
+ * \see IBKirchhoffRodForceGen
+ * \see IBRodForceSpec
  *
  * <HR>
  *
@@ -439,6 +466,12 @@ private:
     readBeamFiles();
 
     /*!
+     * \brief Read the rod data from one or more input files.
+     */
+    void
+    readRodFiles();
+
+    /*!
      * \brief Read the target point data from one or more input files.
      */
     void
@@ -664,6 +697,16 @@ private:
 
     std::vector<std::vector<bool> > d_using_uniform_beam_bend_rigidity;
     std::vector<std::vector<double> > d_uniform_beam_bend_rigidity;
+
+    /*
+     * Rod information.
+     */
+    std::vector<std::vector<bool> > d_enable_rods;
+    std::vector<std::vector<std::multimap<int,Edge> > > d_rod_edge_map;
+    std::vector<std::vector<std::multimap<int,std::pair<int,std::vector<double> > > > > d_rod_specs;
+
+    std::vector<std::vector<bool> > d_using_uniform_rod_specs;
+    std::vector<std::vector<std::vector<double> > > d_uniform_rod_specs;
 
     /*
      * Target point information.
