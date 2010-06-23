@@ -380,7 +380,7 @@ AM_FFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 AM_FCFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = ex0 ex1 ex2 ex3
+SUBDIRS = ex0 ex1 ex2 ex3 ex4
 all: all-recursive
 
 .SUFFIXES:
@@ -697,6 +697,7 @@ examples:
 	@(cd ex1 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd ex2 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd ex3 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd ex4 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

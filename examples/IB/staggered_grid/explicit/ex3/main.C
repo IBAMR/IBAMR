@@ -2,9 +2,6 @@
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
-// Headers for IO routines for file locking
-#include <fcntl.h>
-
 // Headers for basic PETSc functions
 #include <petsc.h>
 
@@ -44,64 +41,6 @@ using namespace IBAMR;
 using namespace IBTK;
 using namespace SAMRAI;
 using namespace std;
-
-/*
- * A simple post-processor to compute the total energy in the system.
- */
-class myPostProcessor
-    : public IBDataPostProcessor
-{
-public:
-    tbox::Pointer<IBLagrangianForceStrategy> d_force_generator;
-
-    myPostProcessor()
-    {
-        // intentionally blank
-        return;
-    }// myPostProcessor()
-
-    ~myPostProcessor()
-    {
-        // intentionally blank
-        return;
-    }// ~myPostProcessor()
-
-    virtual void
-    postProcessData(
-        const int u_idx,
-        const int p_idx,
-        const int f_idx,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_level_number,
-        const int finest_level_number,
-        const double data_time,
-        IBTK::LDataManager* const lag_manager)
-    {
-        // Compute the total energy in the system as 0.5*|u|^2 - X*F.
-        IBTK::HierarchyMathOps hier_math_ops("HierarchyMathOps", hierarchy);
-        hier_math_ops.setPatchHierarchy(hierarchy);
-        hier_math_ops.resetLevels(coarsest_level_number, finest_level_number);
-        const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
-
-        math::HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(hierarchy, coarsest_level_number, finest_level_number);
-        const double kinetic_energy = 0.5*hier_sc_data_ops.dot(u_idx, u_idx, wgt_sc_idx);
-
-        double potential_energy = 0.0;
-        for (int ln = coarsest_level_number; ln <= finest_level_number; ++ln)
-        {
-            potential_energy += d_force_generator->computeLagrangianEnergy(X_data[ln], U_data[ln], hierarchy, ln, data_time, lag_manager);
-        }
-
-        SAMRAI::tbox::pout << "\ntime = " << data_time << "\n"
-                           << "kinetic energy = " << kinetic_energy << "\n"
-                           << "potential energy = " << potential_energy << "\n"
-                           << "total energy = " << kinetic_energy + potential_energy << "\n\n";
-        return;
-    }// postProcessData
-};
 
 /************************************************************************
  * For each run, the input filename and restart information (if         *
@@ -345,36 +284,6 @@ main(
             tbox::TimerManager::createManager(input_db->getDatabase("TimerManager"));
         }
 
-        int postprocess_interval = 0;
-        if (main_db->keyExists("postprocess_interval"))
-        {
-            postprocess_interval = main_db->getInteger("postprocess_interval");
-        }
-
-        const bool postprocess_data = (postprocess_interval > 0);
-
-        /*
-         * Create the lock file.
-         */
-        string lock_file_name;
-        if (main_db->keyExists("lock_file_name"))
-        {
-            lock_file_name = main_db->getString("lock_file_name");
-        }
-
-        const bool enable_lock_file = !lock_file_name.empty();
-
-        if (enable_lock_file && tbox::SAMRAI_MPI::getRank() == 0)
-        {
-            int fd = open(lock_file_name.c_str(), O_WRONLY | O_CREAT | O_EXCL);
-            if (fd < 0)
-            {
-                tbox::pout << "ERROR: could not create lock file: " << lock_file_name << endl;
-                tbox::SAMRAI_MPI::abort();
-                return -1;
-            }
-        }
-
         /*
          * Get the restart manager and root restart database.  If run is from
          * restart, open the restart file.
@@ -413,16 +322,12 @@ main(
 
         SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
 
-        myPostProcessor* t_post_processor = new myPostProcessor();
-        t_post_processor->d_force_generator = force_generator;
-        tbox::Pointer<IBDataPostProcessor> post_processor = t_post_processor;
-
         tbox::Pointer<IBStaggeredHierarchyIntegrator> time_integrator =
             new IBStaggeredHierarchyIntegrator(
                 "IBStaggeredHierarchyIntegrator",
                 input_db->getDatabase("IBStaggeredHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator,
-                force_generator, source_generator, post_processor);
+                force_generator, source_generator);
 
         tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(
@@ -514,14 +419,6 @@ main(
                     time_integrator->getIntegratorStep(),
                     time_integrator->getIntegratorTime());
             }
-        }
-
-        /*
-         * Perform initial post processing.
-         */
-        if (postprocess_data)
-        {
-            time_integrator->postProcessData();
         }
 
         /*
@@ -702,14 +599,6 @@ main(
                 PetscViewerDestroy(viewer);
                 VecDestroy(X_lag_vec);
             }
-
-            /*
-             * At specified intervals, post-process data.
-             */
-            if (postprocess_data && iteration_num%postprocess_interval == 0)
-            {
-                time_integrator->postProcessData();
-            }
         }
 
         /*
@@ -736,18 +625,6 @@ main(
             }
         }
 
-        /*
-         * Delete the lock file.
-         */
-        if (enable_lock_file && tbox::SAMRAI_MPI::getRank() == 0)
-        {
-            if (remove(lock_file_name.c_str()) != 0)
-            {
-                tbox::pout << "ERROR: could not remove lock file: " << lock_file_name << endl;
-                tbox::SAMRAI_MPI::abort();
-                return -1;
-            }
-        }
     }// cleanup all smart Pointers prior to shutdown
 
     tbox::SAMRAIManager::shutdown();
