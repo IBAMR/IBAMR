@@ -30,9 +30,11 @@
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <ibamr/IBAnchorPointSpec.h>
 #include <ibamr/IBKirchhoffRodForceGen.h>
 #include <ibamr/IBStaggeredHierarchyIntegrator.h>
 #include <ibamr/IBStandardInitializer.h>
+#include <ibtk/LNodeIndexData.h>
 #include <ibtk/LagSiloDataWriter.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -41,6 +43,61 @@ using namespace IBAMR;
 using namespace IBTK;
 using namespace SAMRAI;
 using namespace std;
+
+namespace
+{
+static double freq = 0.5;  // Rotation frequency in Hz.
+
+void
+update_triads(
+    tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
+    LDataManager* const lag_manager,
+    const double current_time,
+    const double dt)
+{
+    // The angular velocity.
+    static const double angw = 2.0*M_PI*freq;
+
+    // Get the patch data descriptor index for the LNodeIndexData.
+    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
+
+    // Update the director triads for all anchored points.
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+    tbox::Pointer<LNodeLevelData> D_data = lag_manager->getLNodeLevelData("D", finest_ln);
+    tbox::Pointer<hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(finest_ln);
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+             it != idx_data->lnode_index_end(); ++it)
+        {
+            const LNodeIndex& node_idx = *it;
+            SAMRAI::tbox::Pointer<IBAnchorPointSpec> spec = node_idx.getStashData<IBAnchorPointSpec>();
+            if (!spec.isNull())
+            {
+                const int local_petsc_idx = node_idx.getLocalPETScIndex();
+                double* D1 = &(*D_data)(local_petsc_idx,0);
+                D1[0] =  cos(angw*current_time);
+                D1[1] =  sin(angw*current_time);
+                D1[2] = 0.0;
+
+                double* D2 = &(*D_data)(local_petsc_idx,3);
+                D2[0] = -sin(angw*current_time);
+                D2[1] =  cos(angw*current_time);
+                D2[2] = 0.0;
+
+                double* D3 = &(*D_data)(local_petsc_idx,6);
+                D3[0] = 0.0;
+                D3[1] = 0.0;
+                D3[2] = 1.0;
+            }
+        }
+    }
+    return;
+}// update_triads
+}
 
 /************************************************************************
  * For each run, the input filename and restart information (if         *
@@ -363,6 +420,11 @@ main(
         time_integrator->registerVelocityInitialConditions(u_init);
 
         /*
+         * Read the rotational frequency from the input database.
+         */
+        freq = input_db->getDoubleWithDefault("freq", freq);
+
+        /*
          * Set up visualization plot file writer.
          */
         tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
@@ -498,6 +560,9 @@ main(
             tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++"  << endl;
             tbox::pout << "At beginning of timestep # " <<  iteration_num - 1 << endl;
             tbox::pout << "Simulation time is " << loop_time                  << endl;
+
+            LDataManager* const lag_data_manager = time_integrator->getLDataManager();
+            update_triads(patch_hierarchy, lag_data_manager, loop_time, dt_now);
 
             dt_old = dt_now;
             double dt_new = time_integrator->advanceHierarchy(dt_now);

@@ -35,7 +35,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
 EXTRA_PROGRAMS = $(am__EXEEXT_1)
 @SAMRAI3D_ENABLED_TRUE@am__append_1 = main3d
-subdir = examples/IB/staggered_grid/explicit/ex3
+subdir = examples/IB/staggered_grid/explicit/ex4
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
 	$(top_srcdir)/m4/ac_cxx_namespaces.m4 \
@@ -393,7 +393,7 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.C
 EXTRA_DIST = input3d generate_mesh3d.m curve3d_64.vertex \
-	curve3d_64.rod curve3d_64.director
+	curve3d_64.rod curve3d_64.anchor curve3d_64.director
 main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 main3d_LDADD = $(top_builddir)/lib/libIBAMR3d.a $(top_builddir)/lib/libIBAMR.a $(top_builddir)/ibtk/lib/libIBTK3d.a $(top_builddir)/ibtk/lib/libIBTK.a $(top_builddir)/ibtk/third_party/qd-2.3.7/fortran/libqdmod.a $(top_builddir)/ibtk/third_party/qd-2.3.7/src/libqd.a
 main3d_SOURCES = $(SOURCES)
@@ -410,9 +410,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  examples/IB/staggered_grid/explicit/ex3/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  examples/IB/staggered_grid/explicit/ex4/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  examples/IB/staggered_grid/explicit/ex3/Makefile
+	  $(AUTOMAKE) --foreign  examples/IB/staggered_grid/explicit/ex4/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -651,14 +651,14 @@ uninstall-am:
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input3d $(PWD) ; \
-	  cp -f $(srcdir)/curve3d_64.{vertex,rod,director} $(PWD) ; \
+	  cp -f $(srcdir)/curve3d_64.{vertex,rod,anchor,director} $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input3d ; \
-	  rm -f $(builddir)/curve3d_64.{vertex,rod,director} ; \
+	  rm -f $(builddir)/curve3d_64.{vertex,rod,anchor,director} ; \
 	fi ;
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
