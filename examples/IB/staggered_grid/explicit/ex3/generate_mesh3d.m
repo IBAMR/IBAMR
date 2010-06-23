@@ -30,6 +30,7 @@ beam_fid = fopen(['curve3d_' num2str(N) '.beam'], 'w');
 director_fid = fopen(['curve3d_' num2str(N) '.director'], 'w');
 
 fprintf(vertex_fid, '%d\n', nr);
+fprintf(spring_fid, '%d\n', nr);
 fprintf(beam_fid, '%d\n', nr);
 fprintf(director_fid, '%d\n', nr);
 
