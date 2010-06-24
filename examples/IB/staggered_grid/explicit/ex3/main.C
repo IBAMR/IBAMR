@@ -42,6 +42,15 @@ using namespace IBTK;
 using namespace SAMRAI;
 using namespace std;
 
+// Function prototypes
+void
+output_data(
+    tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy,
+    LDataManager* lag_manager,
+    const int iteration_num,
+    const double loop_time,
+    const std::string& data_dump_dirname);
+
 /************************************************************************
  * For each run, the input filename and restart information (if         *
  * needed) must be given on the command line.  For non-restarted case,  *
@@ -235,41 +244,31 @@ main(
         const bool write_restart = restart_interval > 0
             && !restart_write_dirname.empty();
 
-        bool stop_after_writing_restart = false;
-        if (write_restart)
+        int data_dump_interval = 0;
+        if (main_db->keyExists("data_dump_interval"))
         {
-            if (main_db->keyExists("stop_after_writing_restart"))
-            {
-                stop_after_writing_restart = main_db->getBool("stop_after_writing_restart");
-            }
+            data_dump_interval = main_db->getInteger("data_dump_interval");
         }
 
-
-        int hier_dump_interval = 0;
-        if (main_db->keyExists("hier_dump_interval"))
+        string data_dump_dirname;
+        if (data_dump_interval > 0)
         {
-            hier_dump_interval = main_db->getInteger("hier_dump_interval");
-        }
-
-        string hier_dump_dirname;
-        if (hier_dump_interval > 0)
-        {
-            if (main_db->keyExists("hier_dump_dirname"))
+            if (main_db->keyExists("data_dump_dirname"))
             {
-                hier_dump_dirname = main_db->getString("hier_dump_dirname");
+                data_dump_dirname = main_db->getString("data_dump_dirname");
             }
             else
             {
-                TBOX_ERROR("hier_dump_interval > 0, but key `hier_dump_dirname'"
+                TBOX_ERROR("data_dump_interval > 0, but key `data_dump_dirname'"
                            << " not specified in input file");
             }
         }
 
-        const bool write_hier_data = (hier_dump_interval > 0)
-            && !(hier_dump_dirname.empty());
-        if (write_hier_data)
+        const bool write_data = (data_dump_interval > 0)
+            && !(data_dump_dirname.empty());
+        if (write_data)
         {
-            tbox::Utilities::recursiveMkdir(hier_dump_dirname);
+            tbox::Utilities::recursiveMkdir(data_dump_dirname);
         }
 
         int timer_dump_interval = 0;
@@ -320,14 +319,11 @@ main(
 
         tbox::Pointer<IBKirchhoffRodForceGen> force_generator = new IBKirchhoffRodForceGen();
 
-        SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
-
         tbox::Pointer<IBStaggeredHierarchyIntegrator> time_integrator =
             new IBStaggeredHierarchyIntegrator(
                 "IBStaggeredHierarchyIntegrator",
                 input_db->getDatabase("IBStaggeredHierarchyIntegrator"),
-                patch_hierarchy, navier_stokes_integrator,
-                force_generator, source_generator);
+                patch_hierarchy, navier_stokes_integrator, force_generator);
 
         tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(
@@ -434,46 +430,9 @@ main(
         /*
          * At specified intervals, write state data for post-processing.
          */
-        if (write_hier_data && iteration_num%hier_dump_interval == 0)
+        if (write_data && iteration_num%data_dump_interval == 0)
         {
-            tbox::plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-            tbox::plog << "simulation time is " << loop_time << endl;
-
-            PetscViewer viewer;
-            string file_name;
-            char temp_buf[128];
-
-            /*
-             * Write Lagrangian data.
-             */
-            const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-            LDataManager* lag_manager = time_integrator->getLDataManager();
-
-            tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X", finest_hier_level);
-            Vec X_petsc_vec = X_data->getGlobalVec();
-            Vec X_lag_vec;
-            VecDuplicate(X_petsc_vec, &X_lag_vec);
-            lag_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
-            file_name = hier_dump_dirname + "/" + "X.";
-            sprintf(temp_buf, "%05d", iteration_num);
-            file_name += temp_buf;
-            PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
-            VecView(X_lag_vec, viewer);
-            PetscViewerDestroy(viewer);
-            VecDestroy(X_lag_vec);
-
-            tbox::Pointer<LNodeLevelData> D_data = lag_manager->getLNodeLevelData("D", finest_hier_level);
-            Vec D_petsc_vec = D_data->getGlobalVec();
-            Vec D_lag_vec;
-            VecDuplicate(D_petsc_vec, &D_lag_vec);
-            lag_manager->scatterPETScToLagrangian(D_petsc_vec, D_lag_vec, finest_hier_level);
-            file_name = hier_dump_dirname + "/" + "D.";
-            sprintf(temp_buf, "%05d", iteration_num);
-            file_name += temp_buf;
-            PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
-            VecView(D_lag_vec, viewer);
-            PetscViewerDestroy(viewer);
-            VecDestroy(D_lag_vec);
+            output_data(patch_hierarchy, time_integrator->getLDataManager(), iteration_num, loop_time, data_dump_dirname);
         }
 
         while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
@@ -500,7 +459,7 @@ main(
 
             /*
              * At specified intervals, write visualization and restart files,
-             * and print out timer data.
+             * print out timer data, and write state data.
              */
             if (write_timer_data && iteration_num%timer_dump_interval == 0)
             {
@@ -525,53 +484,11 @@ main(
                 tbox::pout << "\nWriting restart files...\n\n";
                 tbox::RestartManager::getManager()->writeRestartFile(
                     restart_write_dirname, iteration_num);
-
-                if (stop_after_writing_restart) break;
             }
 
-            /*
-             * At specified intervals, write state data for post-processing.
-             */
-            if (write_hier_data && iteration_num%hier_dump_interval == 0)
+            if (write_data && iteration_num%data_dump_interval == 0)
             {
-                tbox::plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-                tbox::plog << "simulation time is " << loop_time << endl;
-
-                PetscViewer viewer;
-                string file_name;
-                char temp_buf[128];
-
-                /*
-                 * Write Lagrangian data.
-                 */
-                const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-                LDataManager* lag_manager = time_integrator->getLDataManager();
-
-                tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X", finest_hier_level);
-                Vec X_petsc_vec = X_data->getGlobalVec();
-                Vec X_lag_vec;
-                VecDuplicate(X_petsc_vec, &X_lag_vec);
-                lag_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
-                file_name = hier_dump_dirname + "/" + "X.";
-                sprintf(temp_buf, "%05d", iteration_num);
-                file_name += temp_buf;
-                PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
-                VecView(X_lag_vec, viewer);
-                PetscViewerDestroy(viewer);
-                VecDestroy(X_lag_vec);
-
-                tbox::Pointer<LNodeLevelData> D_data = lag_manager->getLNodeLevelData("D", finest_hier_level);
-                Vec D_petsc_vec = D_data->getGlobalVec();
-                Vec D_lag_vec;
-                VecDuplicate(D_petsc_vec, &D_lag_vec);
-                lag_manager->scatterPETScToLagrangian(D_petsc_vec, D_lag_vec, finest_hier_level);
-                file_name = hier_dump_dirname + "/" + "D.";
-                sprintf(temp_buf, "%05d", iteration_num);
-                file_name += temp_buf;
-                PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
-                VecView(D_lag_vec, viewer);
-                PetscViewerDestroy(viewer);
-                VecDestroy(D_lag_vec);
+                output_data(patch_hierarchy, time_integrator->getLDataManager(), iteration_num, loop_time, data_dump_dirname);
             }
         }
 
@@ -606,3 +523,126 @@ main(
 
     return 0;
 }// main
+
+void
+output_data(
+    tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy,
+    LDataManager* lag_manager,
+    const int iteration_num,
+    const double loop_time,
+    const std::string& data_dump_dirname)
+{
+    tbox::pout << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
+    tbox::pout << "simulation time is " << loop_time << endl;
+
+    const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
+
+    string file_name;
+    char temp_buf[128];
+
+    /*
+     * Write Lagrangian data.
+     */
+    tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X", finest_hier_level);
+    Vec X_petsc_vec = X_data->getGlobalVec();
+    Vec X_lag_vec;
+    VecDuplicate(X_petsc_vec, &X_lag_vec);
+    lag_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
+    file_name = data_dump_dirname + "/" + "X.";
+    sprintf(temp_buf, "%05d", iteration_num);
+    file_name += temp_buf;
+    for (int rank = 0; rank < tbox::SAMRAI_MPI::getNodes(); ++rank)
+    {
+        if (tbox::SAMRAI_MPI::getRank() == rank)
+        {
+            ofstream str(file_name.c_str(), rank == 0 ? ios_base::trunc : ios_base::app);
+
+            if (rank == 0)
+            {
+                str << X_data->getGlobalNodeCount() << "\n";
+            }
+
+            int size;
+            VecGetLocalSize(X_lag_vec, &size);
+            if (size > 0)
+            {
+                str.precision(12);
+                str.setf(ios::scientific);
+                str.setf(ios::showpos);
+                double* X_lag_arr;
+                VecGetArray(X_lag_vec, &X_lag_arr);
+                const int depth = NDIM;
+                for (int k = 0; k < size/depth; ++k)
+                {
+                    for (int d = 0; d < depth; ++d)
+                    {
+                        str << X_lag_arr[depth*k+d];
+                        if (d < depth-1)
+                        {
+                            str << " ";
+                        }
+                        else
+                        {
+                            str << "\n";
+                        }
+                    }
+                }
+                VecRestoreArray(X_lag_vec, &X_lag_arr);
+            }
+        }
+        tbox::SAMRAI_MPI::barrier();
+    }
+    VecDestroy(X_lag_vec);
+
+    tbox::Pointer<LNodeLevelData> D_data = lag_manager->getLNodeLevelData("D", finest_hier_level);
+    Vec D_petsc_vec = D_data->getGlobalVec();
+    Vec D_lag_vec;
+    VecDuplicate(D_petsc_vec, &D_lag_vec);
+    lag_manager->scatterPETScToLagrangian(D_petsc_vec, D_lag_vec, finest_hier_level);
+    file_name = data_dump_dirname + "/" + "D.";
+    sprintf(temp_buf, "%05d", iteration_num);
+    file_name += temp_buf;
+    for (int rank = 0; rank < tbox::SAMRAI_MPI::getNodes(); ++rank)
+    {
+        if (tbox::SAMRAI_MPI::getRank() == rank)
+        {
+            ofstream str(file_name.c_str(), rank == 0 ? ios_base::trunc : ios_base::app);
+
+            if (rank == 0)
+            {
+                str << D_data->getGlobalNodeCount() << "\n";
+            }
+
+            int size;
+            VecGetLocalSize(D_lag_vec, &size);
+            if (size > 0)
+            {
+                str.precision(12);
+                str.setf(ios::scientific);
+                str.setf(ios::showpos);
+                double* D_lag_arr;
+                VecGetArray(D_lag_vec, &D_lag_arr);
+                const int depth = 3;
+                for (int k = 0; k < size/depth; ++k)
+                {
+                    for (int d = 0; d < depth; ++d)
+                    {
+                        str << D_lag_arr[depth*k+d];
+                        if (d < depth-1)
+                        {
+                            str << " ";
+                        }
+                        else
+                        {
+                            str << "\n";
+                        }
+                    }
+                }
+                VecRestoreArray(D_lag_vec, &D_lag_arr);
+            }
+        }
+        tbox::SAMRAI_MPI::barrier();
+    }
+    VecDestroy(D_lag_vec);
+    return;
+}// output_data

@@ -5,11 +5,11 @@ MU = 0.01        // fluid viscosity (g/cm*s)
 DT = 0.025       // timestep size (s)
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
+NUM_LEVELS = 1   // number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
 N = 64                                    // coarsest grid spacing
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
+NFINEST = (REF_RATIO^(NUM_LEVELS - 1))*N  // finest   grid spacing
 
 VelocityInitialConditions {
    function_0 = "0.0"
@@ -42,8 +42,11 @@ PETScVecOps {
 }
 
 IBStandardInitializer {
-   max_levels = MAX_LEVELS
-   base_filenames_0 = "curve3d_64"
+   max_levels = NUM_LEVELS
+   structure_names = "curve3d_64"
+   curve3d_64 {
+      level_number = NUM_LEVELS - 1  // assign the structure to the finest level of the AMR patch hierarchy
+   }
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -161,8 +164,8 @@ Main {
    restart_write_dirname = "restart_IB3d"
 
 // data dump parameters
-   hier_dump_interval      = 16        // zero to turn off
-   hier_dump_dirname = "data_IB3d"
+   data_dump_interval = 16             // zero to turn off
+   data_dump_dirname = "data_IB3d"
 
 // timer dump parameters
    timer_dump_interval   = 0           // zero to turn off
@@ -178,7 +181,7 @@ CartesianGeometry {
 GriddingAlgorithm {
    allow_patches_smaller_than_ghostwidth = TRUE
 
-   max_levels = MAX_LEVELS                     // Maximum number of levels in hierarchy.
+   max_levels = NUM_LEVELS                     // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO,REF_RATIO  // vector ratio to next coarser level
       level_2 = REF_RATIO,REF_RATIO,REF_RATIO
