@@ -49,7 +49,7 @@ output_data(
     LDataManager* lag_manager,
     const int iteration_num,
     const double loop_time,
-    const std::string& data_dump_dirname);
+    const string& data_dump_dirname);
 
 /************************************************************************
  * For each run, the input filename and restart information (if         *
@@ -530,7 +530,7 @@ output_data(
     LDataManager* lag_manager,
     const int iteration_num,
     const double loop_time,
-    const std::string& data_dump_dirname)
+    const string& data_dump_dirname)
 {
     tbox::pout << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     tbox::pout << "simulation time is " << loop_time << endl;
