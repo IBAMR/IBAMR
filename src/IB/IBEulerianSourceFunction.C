@@ -1,5 +1,5 @@
 // Filename: IBEulerianSourceFunction.C
-// Last modified: <15.Mar.2010 00:15:15 griffith@griffith-macbook-pro.local>
+// Last modified: <27.Jun.2010 15:28:48 griffith@griffith-macbook-pro.local>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 #include "IBEulerianSourceFunction.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
 
 // SAMRAI INCLUDES
 #include <CellData.h>
@@ -36,7 +39,7 @@ IBEulerianSourceFunction::IBEulerianSourceFunction(
     const int Q_current_idx,
     const int Q_new_idx,
     const int Q_half_idx)
-    : IBTK::CartGridFunction(object_name),
+    : CartGridFunction(object_name),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_Q_current_idx(Q_current_idx),
@@ -72,13 +75,13 @@ IBEulerianSourceFunction::isTimeDependent() const
 void
 IBEulerianSourceFunction::setDataOnPatch(
     const int data_idx,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    Pointer<Variable<NDIM> > var,
+    Pointer<Patch<NDIM> > patch,
     const double data_time,
     const bool initial_time,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level)
+    Pointer<PatchLevel<NDIM> > level)
 {
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data = patch->getPatchData(data_idx);
+    Pointer<CellData<NDIM,double> > q_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!q_data.isNull());
 #endif
@@ -86,33 +89,33 @@ IBEulerianSourceFunction::setDataOnPatch(
     {
         q_data->fillAll(0.0);
     }
-    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, d_current_time))
+    else if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         if (d_Q_current_idx != -1)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_current_data = patch->getPatchData(d_Q_current_idx);
+            Pointer<CellData<NDIM,double> > q_current_data = patch->getPatchData(d_Q_current_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(!q_current_data.isNull());
 #endif
             q_data->copy(*q_current_data);
         }
     }
-    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
         if (d_Q_new_idx != -1)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_new_data = patch->getPatchData(d_Q_new_idx);
+            Pointer<CellData<NDIM,double> > q_new_data = patch->getPatchData(d_Q_new_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(!q_new_data.isNull());
 #endif
             q_data->copy(*q_new_data);
         }
     }
-    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, 0.5*(d_current_time+d_new_time)))
+    else if (MathUtilities<double>::equalEps(data_time, 0.5*(d_current_time+d_new_time)))
     {
         if (d_Q_half_idx != -1)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_half_data = patch->getPatchData(d_Q_half_idx);
+            Pointer<CellData<NDIM,double> > q_half_data = patch->getPatchData(d_Q_half_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(!q_half_data.isNull());
 #endif
@@ -138,6 +141,6 @@ IBEulerianSourceFunction::setDataOnPatch(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBEulerianSourceFunction>;
+template class Pointer<IBAMR::IBEulerianSourceFunction>;
 
 //////////////////////////////////////////////////////////////////////////////

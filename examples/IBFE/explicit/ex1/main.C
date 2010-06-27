@@ -304,7 +304,7 @@ main(
         const std::string quad_order = input_db->getStringWithDefault("quad_order", "SIXTH");
         AutoPtr<QBase> qrule = QBase::build(Utility::string_to_enum<QuadratureType>(quad_type),NDIM,Utility::string_to_enum<Order>(quad_order));
         const std::string weighting_fcn = input_db->getStringWithDefault("weighting_fcn", "IB_4");
-        IBTK::FEDataManager* fe_data_manager = IBTK::FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, qrule.get());
+        FEDataManager* fe_data_manager = FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, qrule.get());
 
         const int mesh_level_number = input_db->getInteger("MAX_LEVELS")-1;
         EquationSystems equation_systems(mesh);

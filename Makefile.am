@@ -70,6 +70,7 @@ EXTRA_DIST += $(top_srcdir)/include/ibamr/INSHierarchyIntegrator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSIntermediateVelocityBcCoef.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSProjectionBcCoef.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredBlockFactorizationPreconditioner.h
+EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredBoxRelaxationFACOperator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredCenteredConvectiveOperator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredHierarchyIntegrator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredIntermediateVelocityBcCoef.h
@@ -81,6 +82,7 @@ EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredProjectionPreconditioner.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredStokesOperator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredVelocityBcCoef.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/TGACoefs.h
+EXTRA_DIST += $(top_srcdir)/include/ibamr/namespaces.h
 
 ## Automatically link header files in $(top_srcdir)/include and
 ## refresh emacs TAGS file.

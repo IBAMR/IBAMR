@@ -584,19 +584,14 @@ main(
     {
         patch_hierarchy->getPatchLevel(ln)->allocatePatchData(Q_cloned_idx, loop_time);
     }
+    Q_init.setDataOnPatchHierarchy(Q_cloned_idx, Q_var, patch_hierarchy, loop_time);
 
-    Q_init.setDataOnPatchHierarchy(
-        Q_cloned_idx, Q_var, patch_hierarchy, loop_time);
-
-    IBTK::HierarchyMathOps hier_math_ops(
-        "HierarchyMathOps", patch_hierarchy);
+    HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
     hier_math_ops.setPatchHierarchy(patch_hierarchy);
     hier_math_ops.resetLevels(coarsest_ln, finest_ln);
     const int wgt_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-    math::HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(
-        patch_hierarchy, coarsest_ln, finest_ln);
-
+    math::HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
     hier_cc_data_ops.subtract(Q_cloned_idx, Q_idx, Q_cloned_idx);
     tbox::pout << "Error in " << Q_var->getName() << " at time " << loop_time << ":\n"
                << "  L1-norm:  " << hier_cc_data_ops.L1Norm(Q_cloned_idx,wgt_idx)  << "\n"

@@ -26,7 +26,8 @@ $(top_srcdir)/src/adv_diff/TGACoefs.C \
 $(top_builddir)/src/fortran/sqrtm.f
 
 pkg_include_HEADERS = \
-$(top_srcdir)/src/adv_diff/TGACoefs.h
+$(top_srcdir)/src/adv_diff/TGACoefs.h \
+$(top_srcdir)/src/utilities/namespaces.h
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
@@ -73,7 +74,6 @@ $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C \
@@ -85,6 +85,8 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
+
+### $(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
@@ -142,7 +144,6 @@ $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.h \
-$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.h \
@@ -154,6 +155,8 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h
+
+### $(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.h
 
 if LIBMESH_ENABLED
 pkg_include_HEADERS += \

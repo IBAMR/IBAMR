@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.C
-// Last modified: <22.Jul.2008 16:59:16 griffith@box230.cims.nyu.edu>
+// Last modified: <27.Jun.2010 15:57:17 griffith@griffith-macbook-pro.local>
 // Created on 22 Feb 2007 by Boyce Griffith (boyce@trasnaform2.local)
 
 #include "INSProjectionBcCoef.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/PhysicalBoundaryUtilities.h>
@@ -51,7 +54,7 @@ extern "C"
 #if (NDIM == 3)
         ,const int& blower2, const int& bupper2
 #endif
-                                                      );
+                                                     );
 
     void
     NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS_FC(
@@ -76,7 +79,7 @@ extern "C"
         const int& using_pressure_increment,
         const double& rho,
         const double& dt
-                                                           );
+                                                          );
 
     void
     NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS_FC(
@@ -101,7 +104,7 @@ extern "C"
         const int& using_pressure_increment,
         const double& rho,
         const double& dt
-                                                           );
+                                                          );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -114,16 +117,16 @@ namespace IBAMR
 
 INSProjectionBcCoef::INSProjectionBcCoef(
     const int P_idx,
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef,
+    RobinBcCoefStrategy<NDIM>* const P_bc_coef,
     const std::string& projection_type,
     const int u_idx,
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const bool homogeneous_bc)
     : d_P_idx(-1),
       d_P_bc_coef(NULL),
       d_projection_type(),
       d_u_idx(-1),
-      d_u_bc_coefs(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_u_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_homogeneous_bc(false),
       d_rho(std::numeric_limits<double>::quiet_NaN()),
       d_dt(std::numeric_limits<double>::quiet_NaN())
@@ -177,7 +180,7 @@ INSProjectionBcCoef::setProjectionType(
 
 void
 INSProjectionBcCoef::setPressurePhysicalBcCoef(
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef)
+    RobinBcCoefStrategy<NDIM>* const P_bc_coef)
 {
     d_P_bc_coef = P_bc_coef;
     return;
@@ -193,7 +196,7 @@ INSProjectionBcCoef::setIntermediateVelocityPatchDataIndex(
 
 void
 INSProjectionBcCoef::setVelocityPhysicalBcCoefs(
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
 {
     if (u_bc_coefs.size() != NDIM)
     {
@@ -222,12 +225,12 @@ INSProjectionBcCoef::setHomogeneousBc(
 
 void
 INSProjectionBcCoef::setBcCoefs(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-    const SAMRAI::hier::Patch<NDIM>& patch,
-    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+    Pointer<ArrayData<NDIM,double> >& acoef_data,
+    Pointer<ArrayData<NDIM,double> >& bcoef_data,
+    Pointer<ArrayData<NDIM,double> >& gcoef_data,
+    const Pointer<Variable<NDIM> >& variable,
+    const Patch<NDIM>& patch,
+    const BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -240,8 +243,8 @@ INSProjectionBcCoef::setBcCoefs(
     const int location_index   = bdry_box.getLocationIndex();
     const int bdry_normal_axis = location_index/2;
 //  const bool is_lower        = location_index%2 == 0;
-    const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
-    const SAMRAI::hier::Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    const Box<NDIM>& patch_box = patch.getBox();
+    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
 
     // Set the normal velocity bc coefs.
     d_u_bc_coefs[bdry_normal_axis]->setBcCoefs(
@@ -262,7 +265,7 @@ INSProjectionBcCoef::setBcCoefs(
 #if (NDIM == 3)
         ,bc_coef_box.lower(2), bc_coef_box.upper(2)
 #endif
-                                                      );
+                                                     );
 
     if (d_homogeneous_bc && !gcoef_data.isNull()) gcoef_data->fillAll(0.0);
 
@@ -271,9 +274,9 @@ INSProjectionBcCoef::setBcCoefs(
     if (d_homogeneous_bc) return;
 
     // Loop over the boundary box and reset the inhomogeneous coefficients.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_fc_data = patch.getPatchData(d_u_idx);
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_sc_data = patch.getPatchData(d_u_idx);
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > P_data = patch.getPatchData(d_P_idx);
+    Pointer<FaceData<NDIM,double> > u_fc_data = patch.getPatchData(d_u_idx);
+    Pointer<SideData<NDIM,double> > u_sc_data = patch.getPatchData(d_u_idx);
+    Pointer<CellData<NDIM,double> > P_data = patch.getPatchData(d_P_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!u_fc_data.isNull() || !u_sc_data.isNull());
     TBOX_ASSERT(u_fc_data.isNull() || u_fc_data->getGhostCellWidth().max() == u_fc_data->getGhostCellWidth().min());
@@ -284,12 +287,12 @@ INSProjectionBcCoef::setBcCoefs(
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > acoef_data_P =
-        new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > bcoef_data_P =
-        new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > gcoef_data_P =
-        new SAMRAI::pdat::ArrayData<NDIM,double>(bc_coef_box, 1);
+    Pointer<ArrayData<NDIM,double> > acoef_data_P =
+        new ArrayData<NDIM,double>(bc_coef_box, 1);
+    Pointer<ArrayData<NDIM,double> > bcoef_data_P =
+        new ArrayData<NDIM,double>(bc_coef_box, 1);
+    Pointer<ArrayData<NDIM,double> > gcoef_data_P =
+        new ArrayData<NDIM,double>(bc_coef_box, 1);
 
     if (d_P_bc_coef != NULL)
     {
@@ -356,7 +359,7 @@ INSProjectionBcCoef::setBcCoefs(
     return;
 }// setBcCoefs
 
-SAMRAI::hier::IntVector<NDIM>
+IntVector<NDIM>
 INSProjectionBcCoef::numberOfExtensionsFillable() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -366,10 +369,10 @@ INSProjectionBcCoef::numberOfExtensionsFillable() const
         TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
     }
 #endif
-    SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (int d = 0; d < NDIM; ++d)
     {
-        ret_val = SAMRAI::hier::IntVector<NDIM>::min(
+        ret_val = IntVector<NDIM>::min(
             ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;

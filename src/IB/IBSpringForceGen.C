@@ -1,5 +1,5 @@
 // Filename: IBSpringForceGen.C
-// Last modified: <01.Mar.2010 15:56:15 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 16:02:10 griffith@griffith-macbook-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceGen.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBSpringForceSpec.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -49,17 +50,17 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian_nonzero_structure;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_energy;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
+static Pointer<Timer> t_compute_lagrangian_force;
+static Pointer<Timer> t_compute_lagrangian_force_jacobian;
+static Pointer<Timer> t_compute_lagrangian_force_jacobian_nonzero_structure;
+static Pointer<Timer> t_compute_lagrangian_energy;
+static Pointer<Timer> t_initialize_level_data;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBSpringForceGen::IBSpringForceGen(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+    Pointer<Database> input_db)
     : d_D_mats(),
       d_lag_mastr_node_idxs(),
       d_lag_slave_node_idxs(),
@@ -81,15 +82,15 @@ IBSpringForceGen::IBSpringForceGen(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_compute_lagrangian_force = SAMRAI::tbox::TimerManager::getManager()->
+        t_compute_lagrangian_force = TimerManager::getManager()->
             getTimer("IBAMR::IBSpringForceGen::computeLagrangianForce()");
-        t_compute_lagrangian_force_jacobian = SAMRAI::tbox::TimerManager::getManager()->
+        t_compute_lagrangian_force_jacobian = TimerManager::getManager()->
             getTimer("IBAMR::IBSpringForceGen::computeLagrangianForceJacobian()");
-        t_compute_lagrangian_force_jacobian_nonzero_structure = SAMRAI::tbox::TimerManager::getManager()->
+        t_compute_lagrangian_force_jacobian_nonzero_structure = TimerManager::getManager()->
             getTimer("IBAMR::IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure()");
-        t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
+        t_initialize_level_data = TimerManager::getManager()->
             getTimer("IBAMR::IBSpringForceGen::initializeLevelData()");
-        t_compute_lagrangian_energy = SAMRAI::tbox::TimerManager::getManager()->
+        t_compute_lagrangian_energy = TimerManager::getManager()->
             getTimer("IBAMR::IBSpringForceGen::computeLagrangianEnergy()");
         timers_need_init = false;
     }
@@ -120,11 +121,11 @@ IBSpringForceGen::registerSpringForceFunction(
 
 void
 IBSpringForceGen::initializeLevelData(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -138,7 +139,7 @@ IBSpringForceGen::initializeLevelData(
 
     int ierr;
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
@@ -180,16 +181,16 @@ IBSpringForceGen::initializeLevelData(
 
     // Determine the "master" and "slave" node indices for all springs
     // associated with the present MPI process.
-    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
              it != idx_data->lnode_index_end(); ++it)
         {
-            const IBTK::LNodeIndex& node_idx = *it;
-            SAMRAI::tbox::Pointer<IBSpringForceSpec> force_spec = node_idx.getStashData<IBSpringForceSpec>();
+            const LNodeIndex& node_idx = *it;
+            Pointer<IBSpringForceSpec> force_spec = node_idx.getStashData<IBSpringForceSpec>();
             if (!force_spec.isNull())
             {
                 const int& mastr_idx = node_idx.getLagrangianIndex();
@@ -292,13 +293,13 @@ IBSpringForceGen::initializeLevelData(
 
 void
 IBSpringForceGen::computeLagrangianForce(
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData> F_data,
+    Pointer<LNodeLevelData> X_data,
+    Pointer<LNodeLevelData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -380,18 +381,18 @@ IBSpringForceGen::computeLagrangianForce(
     ierr = VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
 #else
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec,
-                                                  petsc_mastr_node_idxs.size(),
-                                                  !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0] : PETSC_NULL,
-                                                  !petsc_mastr_node_idxs.empty() ? &    F_mastr_node_vals[0] : PETSC_NULL,
-                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec,
-                                                  petsc_slave_node_idxs.size(),
-                                                  !petsc_slave_node_idxs.empty() ? &petsc_slave_node_idxs[0] : PETSC_NULL,
-                                                  !petsc_slave_node_idxs.empty() ? &    F_slave_node_vals[0] : PETSC_NULL,
-                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
+                                            petsc_mastr_node_idxs.size(),
+                                            !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0] : PETSC_NULL,
+                                            !petsc_mastr_node_idxs.empty() ? &    F_mastr_node_vals[0] : PETSC_NULL,
+                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
+                                            petsc_slave_node_idxs.size(),
+                                            !petsc_slave_node_idxs.empty() ? &petsc_slave_node_idxs[0] : PETSC_NULL,
+                                            !petsc_slave_node_idxs.empty() ? &    F_slave_node_vals[0] : PETSC_NULL,
+                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
 #endif
     t_compute_lagrangian_force->stop();
     return;
@@ -401,10 +402,10 @@ void
 IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& d_nnz,
     std::vector<int>& o_nnz,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -493,13 +494,13 @@ IBSpringForceGen::computeLagrangianForceJacobian(
     Mat& J_mat,
     MatAssemblyType assembly_type,
     const double X_coef,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    Pointer<LNodeLevelData> X_data,
     const double U_coef,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -602,15 +603,15 @@ IBSpringForceGen::computeLagrangianForceJacobian(
 
 double
 IBSpringForceGen::computeLagrangianEnergy(
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData> X_data,
+    Pointer<LNodeLevelData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     TBOX_WARNING("IBSpringForceGen::computeLagrangianEnergy():\n"
-               << "  the implementation of this function is specialized to linear springs." << std::endl);
+                 << "  the implementation of this function is specialized to linear springs." << std::endl);
 
     if (!lag_manager->levelContainsLagrangianData(level_number)) return 0.0;
 
@@ -670,7 +671,7 @@ IBSpringForceGen::computeLagrangianEnergy(
     ierr = VecDestroy(D_vec);                IBTK_CHKERRQ(ierr);
 
     t_compute_lagrangian_energy->stop();
-    return SAMRAI::tbox::SAMRAI_MPI::sumReduction(energy);
+    return SAMRAI_MPI::sumReduction(energy);
 }// computeLagrangianEnergy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
@@ -679,7 +680,7 @@ IBSpringForceGen::computeLagrangianEnergy(
 
 void
 IBSpringForceGen::getFromInput(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+    Pointer<Database> db)
 {
     if (!db.isNull())
     {
@@ -695,6 +696,6 @@ IBSpringForceGen::getFromInput(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBSpringForceGen>;
+template class Pointer<IBAMR::IBSpringForceGen>;
 
 //////////////////////////////////////////////////////////////////////////////

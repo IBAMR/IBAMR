@@ -1,5 +1,5 @@
 // Filename: IBKirchhoffRodForceGen.C
-// Last modified: <23.Jun.2010 15:51:00 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 16:01:28 griffith@griffith-macbook-pro.local>
 // Created on 22 Jun 2010 by Boyce Griffith (griffith@boyce-griffiths-mac-pro.local)
 
 #include "IBKirchhoffRodForceGen.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBRodForceSpec.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -158,14 +159,14 @@ compute_force_and_torque(
 }// compute_force_and_torque
 
 // Timers.
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_and_torque;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
+static Pointer<Timer> t_compute_lagrangian_force_and_torque;
+static Pointer<Timer> t_initialize_level_data;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+    Pointer<Database> input_db)
     : d_D_next_mats(),
       d_X_next_mats(),
       d_petsc_curr_node_idxs(),
@@ -180,9 +181,9 @@ IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_compute_lagrangian_force_and_torque = SAMRAI::tbox::TimerManager::getManager()->
+        t_compute_lagrangian_force_and_torque = TimerManager::getManager()->
             getTimer("IBAMR::IBKirchhoffRodForceGen::computeLagrangianForceAndTorque()");
-        t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
+        t_initialize_level_data = TimerManager::getManager()->
             getTimer("IBAMR::IBKirchhoffRodForceGen::initializeLevelData()");
         timers_need_init = false;
     }
@@ -211,11 +212,11 @@ IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
 
 void
 IBKirchhoffRodForceGen::initializeLevelData(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -229,7 +230,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
     int ierr;
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
@@ -266,16 +267,16 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
     // Determine the "next" node indices for all rods associated with the
     // present MPI process.
-    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
              it != idx_data->lnode_index_end(); ++it)
         {
-            const IBTK::LNodeIndex& node_idx = *it;
-            const SAMRAI::tbox::Pointer<IBRodForceSpec> force_spec = node_idx.getStashData<IBRodForceSpec>();
+            const LNodeIndex& node_idx = *it;
+            const Pointer<IBRodForceSpec> force_spec = node_idx.getStashData<IBRodForceSpec>();
             if (!force_spec.isNull())
             {
                 const int& curr_idx = node_idx.getLagrangianIndex();
@@ -406,15 +407,15 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
 void
 IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> N_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> D_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData> F_data,
+    Pointer<LNodeLevelData> N_data,
+    Pointer<LNodeLevelData> X_data,
+    Pointer<LNodeLevelData> D_data,
+    Pointer<LNodeLevelData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -523,33 +524,33 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     ierr = VecDestroy(X_next_vec);                     IBTK_CHKERRQ(ierr);
 
     Vec F_vec = F_data->getGlobalVec();
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec,
-                                                  petsc_curr_node_idxs.size(),
-                                                  !petsc_curr_node_idxs.empty() ? &petsc_curr_node_idxs[0] : PETSC_NULL,
-                                                  !petsc_curr_node_idxs.empty() ? &    F_curr_node_vals[0] : PETSC_NULL,
-                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec,
-                                                  petsc_next_node_idxs.size(),
-                                                  !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
-                                                  !petsc_next_node_idxs.empty() ? &    F_next_node_vals[0] : PETSC_NULL,
-                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
+                                            petsc_curr_node_idxs.size(),
+                                            !petsc_curr_node_idxs.empty() ? &petsc_curr_node_idxs[0] : PETSC_NULL,
+                                            !petsc_curr_node_idxs.empty() ? &    F_curr_node_vals[0] : PETSC_NULL,
+                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
+                                            petsc_next_node_idxs.size(),
+                                            !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
+                                            !petsc_next_node_idxs.empty() ? &    F_next_node_vals[0] : PETSC_NULL,
+                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
     Vec N_vec = N_data->getGlobalVec();
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(N_vec,
-                                                  petsc_curr_node_idxs.size(),
-                                                  !petsc_curr_node_idxs.empty() ? &petsc_curr_node_idxs[0] : PETSC_NULL,
-                                                  !petsc_curr_node_idxs.empty() ? &    N_curr_node_vals[0] : PETSC_NULL,
-                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(N_vec,
-                                                  petsc_next_node_idxs.size(),
-                                                  !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
-                                                  !petsc_next_node_idxs.empty() ? &    N_next_node_vals[0] : PETSC_NULL,
-                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecSetValuesBlocked(N_vec,
+                                            petsc_curr_node_idxs.size(),
+                                            !petsc_curr_node_idxs.empty() ? &petsc_curr_node_idxs[0] : PETSC_NULL,
+                                            !petsc_curr_node_idxs.empty() ? &    N_curr_node_vals[0] : PETSC_NULL,
+                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecSetValuesBlocked(N_vec,
+                                            petsc_next_node_idxs.size(),
+                                            !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
+                                            !petsc_next_node_idxs.empty() ? &    N_next_node_vals[0] : PETSC_NULL,
+                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
-    ierr = IBTK::PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecAssemblyBegin(N_vec);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecAssemblyEnd(N_vec);    IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecAssemblyBegin(N_vec);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecAssemblyEnd(N_vec);    IBTK_CHKERRQ(ierr);
 
     t_compute_lagrangian_force_and_torque->stop();
     return;
@@ -561,7 +562,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
 
 void
 IBKirchhoffRodForceGen::getFromInput(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+    Pointer<Database> db)
 {
     if (!db.isNull())
     {
@@ -577,6 +578,6 @@ IBKirchhoffRodForceGen::getFromInput(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBKirchhoffRodForceGen>;
+template class Pointer<IBAMR::IBKirchhoffRodForceGen>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -326,12 +326,12 @@ main(
             tbox::Pointer<hier::PatchLevel<NDIM> > src_level =           fine_patch_hierarchy->getPatchLevel(ln);
 
             tbox::Pointer<xfer::CoarsenOperator<NDIM> > coarsen_op;
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(dst_level); p; p++)
+            for (hier::PatchLevel<NDIM>::Iterator p(dst_level); p; p++)
             {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > dst_patch = dst_level->getPatch(p());
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > src_patch = src_level->getPatch(p());
-                const SAMRAI::hier::Box<NDIM>& coarse_box = dst_patch->getBox();
-                TBOX_ASSERT(SAMRAI::hier::Box<NDIM>::coarsen(src_patch->getBox(),2) == coarse_box);
+                tbox::Pointer<hier::Patch<NDIM> > dst_patch = dst_level->getPatch(p());
+                tbox::Pointer<hier::Patch<NDIM> > src_patch = src_level->getPatch(p());
+                const hier::Box<NDIM>& coarse_box = dst_patch->getBox();
+                TBOX_ASSERT(hier::Box<NDIM>::coarsen(src_patch->getBox(),2) == coarse_box);
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
                 coarsen_op->coarsen(*dst_patch,*src_patch,U_interp_idx,U_idx,coarse_box,2);

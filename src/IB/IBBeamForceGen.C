@@ -1,5 +1,5 @@
 // Filename: IBBeamForceGen.C
-// Last modified: <22.Jun.2010 21:07:39 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 15:59:51 griffith@griffith-macbook-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceGen.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBBeamForceSpec.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -46,16 +47,16 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_lagrangian_force_jacobian_nonzero_structure;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_level_data;
+static Pointer<Timer> t_compute_lagrangian_force;
+static Pointer<Timer> t_compute_lagrangian_force_jacobian;
+static Pointer<Timer> t_compute_lagrangian_force_jacobian_nonzero_structure;
+static Pointer<Timer> t_initialize_level_data;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBBeamForceGen::IBBeamForceGen(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+    Pointer<Database> input_db)
     : d_D_next_mats(),
       d_D_prev_mats(),
       d_petsc_mastr_node_idxs(),
@@ -72,13 +73,13 @@ IBBeamForceGen::IBBeamForceGen(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_compute_lagrangian_force = SAMRAI::tbox::TimerManager::getManager()->
+        t_compute_lagrangian_force = TimerManager::getManager()->
             getTimer("IBAMR::IBBeamForceGen::computeLagrangianForce()");
-        t_compute_lagrangian_force_jacobian = SAMRAI::tbox::TimerManager::getManager()->
+        t_compute_lagrangian_force_jacobian = TimerManager::getManager()->
             getTimer("IBAMR::IBBeamForceGen::computeLagrangianForceJacobian()");
-        t_compute_lagrangian_force_jacobian_nonzero_structure = SAMRAI::tbox::TimerManager::getManager()->
+        t_compute_lagrangian_force_jacobian_nonzero_structure = TimerManager::getManager()->
             getTimer("IBAMR::IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure()");
-        t_initialize_level_data = SAMRAI::tbox::TimerManager::getManager()->
+        t_initialize_level_data = TimerManager::getManager()->
             getTimer("IBAMR::IBBeamForceGen::initializeLevelData()");
         timers_need_init = false;
     }
@@ -107,11 +108,11 @@ IBBeamForceGen::~IBBeamForceGen()
 
 void
 IBBeamForceGen::initializeLevelData(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -125,7 +126,7 @@ IBBeamForceGen::initializeLevelData(
 
     int ierr;
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
@@ -168,16 +169,16 @@ IBBeamForceGen::initializeLevelData(
 
     // Determine the "next" and "prev" node indices for all beams associated
     // with the present MPI process.
-    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
              it != idx_data->lnode_index_end(); ++it)
         {
-            const IBTK::LNodeIndex& node_idx = *it;
-            const SAMRAI::tbox::Pointer<IBBeamForceSpec> force_spec = node_idx.getStashData<IBBeamForceSpec>();
+            const LNodeIndex& node_idx = *it;
+            const Pointer<IBBeamForceSpec> force_spec = node_idx.getStashData<IBBeamForceSpec>();
             if (!force_spec.isNull())
             {
                 const int& mastr_idx = node_idx.getLagrangianIndex();
@@ -315,13 +316,13 @@ IBBeamForceGen::initializeLevelData(
 
 void
 IBBeamForceGen::computeLagrangianForce(
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData> F_data,
+    Pointer<LNodeLevelData> X_data,
+    Pointer<LNodeLevelData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -412,23 +413,23 @@ IBBeamForceGen::computeLagrangianForce(
     ierr = VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
 #else
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec,
-                                                  petsc_mastr_node_idxs.size(),
-                                                  !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0] : PETSC_NULL,
-                                                  !petsc_mastr_node_idxs.empty() ? &    F_mastr_node_vals[0] : PETSC_NULL,
-                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec,
-                                                  petsc_next_node_idxs.size(),
-                                                  !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
-                                                  !petsc_next_node_idxs.empty() ? &   F_nghbr_node_vals[0] : PETSC_NULL,
-                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecSetValuesBlocked(F_vec,
-                                                  petsc_prev_node_idxs.size(),
-                                                  !petsc_prev_node_idxs.empty() ? &petsc_prev_node_idxs[0] : PETSC_NULL,
-                                                  !petsc_prev_node_idxs.empty() ? &   F_nghbr_node_vals[0] : PETSC_NULL,
-                                                  ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
-    ierr = IBTK::PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
+                                            petsc_mastr_node_idxs.size(),
+                                            !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0] : PETSC_NULL,
+                                            !petsc_mastr_node_idxs.empty() ? &    F_mastr_node_vals[0] : PETSC_NULL,
+                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
+                                            petsc_next_node_idxs.size(),
+                                            !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
+                                            !petsc_next_node_idxs.empty() ? &   F_nghbr_node_vals[0] : PETSC_NULL,
+                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
+                                            petsc_prev_node_idxs.size(),
+                                            !petsc_prev_node_idxs.empty() ? &petsc_prev_node_idxs[0] : PETSC_NULL,
+                                            !petsc_prev_node_idxs.empty() ? &   F_nghbr_node_vals[0] : PETSC_NULL,
+                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
+    ierr = PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
 #endif
     t_compute_lagrangian_force->stop();
     return;
@@ -438,10 +439,10 @@ void
 IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& d_nnz,
     std::vector<int>& o_nnz,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -565,13 +566,13 @@ IBBeamForceGen::computeLagrangianForceJacobian(
     Mat& J_mat,
     MatAssemblyType assembly_type,
     const double X_coef,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    Pointer<LNodeLevelData> X_data,
     const double U_coef,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -635,15 +636,15 @@ IBBeamForceGen::computeLagrangianForceJacobian(
 
 double
 IBBeamForceGen::computeLagrangianEnergy(
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData> X_data,
+    Pointer<LNodeLevelData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     TBOX_WARNING("IBBeamForceGen::computeLagrangianEnergy():\n"
-               << "  unimplemented; returning 0.0." << std::endl);
+                 << "  unimplemented; returning 0.0." << std::endl);
     return 0.0;
 }// computeLagrangianEnergy
 
@@ -653,7 +654,7 @@ IBBeamForceGen::computeLagrangianEnergy(
 
 void
 IBBeamForceGen::getFromInput(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+    Pointer<Database> db)
 {
     if (!db.isNull())
     {
@@ -669,6 +670,6 @@ IBBeamForceGen::getFromInput(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBBeamForceGen>;
+template class Pointer<IBAMR::IBBeamForceGen>;
 
 //////////////////////////////////////////////////////////////////////////////

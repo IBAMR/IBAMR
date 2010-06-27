@@ -564,11 +564,11 @@ update_triads(
     const int finest_ln = hierarchy->getFinestLevelNumber();
     tbox::Pointer<LNodeLevelData> D_data = lag_manager->getLNodeLevelData("D", finest_ln);
     tbox::Pointer<hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(finest_ln);
-    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::tbox::Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+        tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
+        const hier::Box<NDIM>& patch_box = patch->getBox();
+        const tbox::Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
         for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
              it != idx_data->lnode_index_end(); ++it)
         {
@@ -576,7 +576,7 @@ update_triads(
 
             // If spec is NULL, then the IB point is NOT anchored.  Otherwise,
             // the IB point IS anchored.
-            SAMRAI::tbox::Pointer<IBAnchorPointSpec> spec = node_idx.getStashData<IBAnchorPointSpec>();
+            tbox::Pointer<IBAnchorPointSpec> spec = node_idx.getStashData<IBAnchorPointSpec>();
             if (!spec.isNull())
             {
                 // `global_idx' is the index of the vertex in the input file.

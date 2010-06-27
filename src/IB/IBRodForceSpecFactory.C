@@ -1,5 +1,5 @@
 // Filename: IBRodForceSpecFactory.C
-// Last modified: <23.Jun.2010 16:42:20 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 15:30:25 griffith@griffith-macbook-pro.local>
 // Created on 23 Jun 2010 by Boyce Griffith (griffith@boyce-griffiths-mac-pro.local)
 
 #include "IBRodForceSpecFactory.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBRodForceSpec.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/StashableManager.h>
@@ -34,7 +35,7 @@ int IBRodForceSpecFactory::s_stashable_id = -1;
 
 IBRodForceSpecFactory::IBRodForceSpecFactory()
 {
-    setStashableID(IBTK::StashableManager::getUnregisteredID());
+    setStashableID(StashableManager::getUnregisteredID());
     return;
 }// IBRodForceSpecFactory
 
@@ -58,10 +59,10 @@ IBRodForceSpecFactory::setStashableID(
     return;
 }// setStashableID
 
-SAMRAI::tbox::Pointer<IBTK::Stashable>
+Pointer<Stashable>
 IBRodForceSpecFactory::unpackStream(
-    SAMRAI::tbox::AbstractStream& stream,
-    const SAMRAI::hier::IntVector<NDIM>& offset)
+    AbstractStream& stream,
+    const IntVector<NDIM>& offset)
 {
     int num_rods;
     stream.unpack(&num_rods,1);
@@ -88,6 +89,6 @@ IBRodForceSpecFactory::unpackStream(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBRodForceSpecFactory>;
+template class Pointer<IBAMR::IBRodForceSpecFactory>;
 
 //////////////////////////////////////////////////////////////////////////////

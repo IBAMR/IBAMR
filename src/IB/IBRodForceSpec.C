@@ -1,5 +1,5 @@
 // Filename: IBRodForceSpec.C
-// Last modified: <23.Jun.2010 16:42:37 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 15:30:18 griffith@griffith-macbook-pro.local>
 // Created on 23 Jun 2010 by Boyce Griffith (griffith@boyce-griffiths-mac-pro.local)
 
 #include "IBRodForceSpec.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBRodForceSpecFactory.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/StashableManager.h>
@@ -41,13 +42,13 @@ IBRodForceSpec::registerWithStashableManager()
     // register the stashable factory with the stashable manager, and to ensure
     // that all processes employ the same stashable id for the IBRodForceSpec
     // object.
-    SAMRAI::tbox::SAMRAI_MPI::barrier();
+    SAMRAI_MPI::barrier();
     if (!s_registered_factory)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(s_stashable_id == -1);
 #endif
-        s_stashable_id = IBTK::StashableManager::getManager()->registerFactory(
+        s_stashable_id = StashableManager::getManager()->registerFactory(
             new IBRodForceSpecFactory());
         s_registered_factory = true;
     }
@@ -67,6 +68,6 @@ IBRodForceSpec::registerWithStashableManager()
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBRodForceSpec>;
+template class Pointer<IBAMR::IBRodForceSpec>;
 
 //////////////////////////////////////////////////////////////////////////////

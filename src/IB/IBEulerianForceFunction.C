@@ -1,5 +1,5 @@
 // Filename: IBEulerianForceFunction.C
-// Last modified: <15.Mar.2010 00:15:39 griffith@griffith-macbook-pro.local>
+// Last modified: <27.Jun.2010 15:28:44 griffith@griffith-macbook-pro.local>
 // Created on 28 Sep 2004 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBEulerianForceFunction.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
 
 // SAMRAI INCLUDES
 #include <CellData.h>
@@ -39,7 +42,7 @@ IBEulerianForceFunction::IBEulerianForceFunction(
     const int F_current_idx,
     const int F_new_idx,
     const int F_half_idx)
-    : IBTK::CartGridFunction(object_name),
+    : CartGridFunction(object_name),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_F_current_idx(F_current_idx),
@@ -75,7 +78,7 @@ IBEulerianForceFunction::isTimeDependent() const
 
 void
 IBEulerianForceFunction::registerBodyForceSpecification(
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn)
+    Pointer<CartGridFunction> F_fcn)
 {
     d_body_force_fcn = F_fcn;
     return;
@@ -84,18 +87,18 @@ IBEulerianForceFunction::registerBodyForceSpecification(
 void
 IBEulerianForceFunction::setDataOnPatch(
     const int data_idx,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    Pointer<Variable<NDIM> > var,
+    Pointer<Patch<NDIM> > patch,
     const double data_time,
     const bool initial_time,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level)
+    Pointer<PatchLevel<NDIM> > level)
 {
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
+    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_data.isNull());
 #endif
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_cc_data = f_data;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_sc_data = f_data;
+    Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+    Pointer<SideData<NDIM,double> > f_sc_data = f_data;
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_cc_data.isNull() || !f_sc_data.isNull());
 #endif
@@ -112,15 +115,15 @@ IBEulerianForceFunction::setDataOnPatch(
     if (initial_time) return;
 
     int ib_data_idx = -1;
-    if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         ib_data_idx = d_F_current_idx;
     }
-    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
         ib_data_idx = d_F_new_idx;
     }
-    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, 0.5*(d_current_time+d_new_time)))
+    else if (MathUtilities<double>::equalEps(data_time, 0.5*(d_current_time+d_new_time)))
     {
         ib_data_idx = d_F_half_idx;
     }
@@ -130,24 +133,24 @@ IBEulerianForceFunction::setDataOnPatch(
                    << "  data time " << data_time << " is not the current, new, or half time." << std::endl);
     }
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > f_ib_data = patch->getPatchData(ib_data_idx);
+    Pointer<PatchData<NDIM> > f_ib_data = patch->getPatchData(ib_data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_ib_data.isNull());
 #endif
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > f_ib_cc_data = f_ib_data;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > f_ib_sc_data = f_ib_data;
+    Pointer<CellData<NDIM,double> > f_ib_cc_data = f_ib_data;
+    Pointer<SideData<NDIM,double> > f_ib_sc_data = f_ib_data;
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_ib_cc_data.isNull() || !f_ib_sc_data.isNull());
     TBOX_ASSERT((!f_ib_cc_data.isNull() && !f_cc_data.isNull()) || (!f_ib_sc_data.isNull() && !f_sc_data.isNull()));
 #endif
     if (!f_cc_data.isNull())
     {
-        SAMRAI::math::PatchCellDataBasicOps<NDIM,double> patch_ops;
+        PatchCellDataBasicOps<NDIM,double> patch_ops;
         patch_ops.add(f_cc_data, f_cc_data, f_ib_cc_data, patch->getBox());
     }
     if (!f_sc_data.isNull())
     {
-        SAMRAI::math::PatchSideDataBasicOps<NDIM,double> patch_ops;
+        PatchSideDataBasicOps<NDIM,double> patch_ops;
         patch_ops.add(f_sc_data, f_sc_data, f_ib_sc_data, patch->getBox());
     }
     return;
@@ -164,6 +167,6 @@ IBEulerianForceFunction::setDataOnPatch(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBEulerianForceFunction>;
+template class Pointer<IBAMR::IBEulerianForceFunction>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 // Filename: INSStaggeredIntermediateVelocityBcCoef.C
-// Last modified: <24.Nov.2008 15:36:48 griffith@box230.cims.nyu.edu>
+// Last modified: <27.Jun.2010 15:27:08 griffith@griffith-macbook-pro.local>
 // Created on 24 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredIntermediateVelocityBcCoef.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
 
 // SAMRAI INCLUDES
 #include <tbox/Utilities.h>
@@ -32,10 +35,10 @@ namespace IBAMR
 
 INSStaggeredIntermediateVelocityBcCoef::INSStaggeredIntermediateVelocityBcCoef(
     const int comp_idx,
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
-      d_u_bc_coefs(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_u_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_target_idx(-1),
       d_homogeneous_bc(false)
 {
@@ -52,7 +55,7 @@ INSStaggeredIntermediateVelocityBcCoef::~INSStaggeredIntermediateVelocityBcCoef(
 
 void
 INSStaggeredIntermediateVelocityBcCoef::setVelocityPhysicalBcCoefs(
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
 {
     if (u_bc_coefs.size() != NDIM)
     {
@@ -81,12 +84,12 @@ INSStaggeredIntermediateVelocityBcCoef::setHomogeneousBc(
 
 void
 INSStaggeredIntermediateVelocityBcCoef::setBcCoefs(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-    const SAMRAI::hier::Patch<NDIM>& patch,
-    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+    Pointer<ArrayData<NDIM,double> >& acoef_data,
+    Pointer<ArrayData<NDIM,double> >& bcoef_data,
+    Pointer<ArrayData<NDIM,double> >& gcoef_data,
+    const Pointer<Variable<NDIM> >& variable,
+    const Patch<NDIM>& patch,
+    const BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -104,7 +107,7 @@ INSStaggeredIntermediateVelocityBcCoef::setBcCoefs(
     return;
 }// setBcCoefs
 
-SAMRAI::hier::IntVector<NDIM>
+IntVector<NDIM>
 INSStaggeredIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -114,10 +117,10 @@ INSStaggeredIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
         TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
     }
 #endif
-    SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (int d = 0; d < NDIM; ++d)
     {
-        ret_val = SAMRAI::hier::IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 }// numberOfExtensionsFillable

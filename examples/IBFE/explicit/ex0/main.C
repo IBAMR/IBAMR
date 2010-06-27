@@ -303,7 +303,7 @@ main(
         const std::string quad_order = input_db->getStringWithDefault("quad_order", "SIXTH");
         AutoPtr<QBase> qrule = QBase::build(Utility::string_to_enum<QuadratureType>(quad_type),NDIM,Utility::string_to_enum<Order>(quad_order));
         const std::string weighting_fcn = input_db->getStringWithDefault("weighting_fcn", "IB_4");
-        IBTK::FEDataManager* fe_data_manager = IBTK::FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, qrule.get());
+        FEDataManager* fe_data_manager = FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, qrule.get());
 
         const int mesh_level_number = input_db->getInteger("MAX_LEVELS")-1;
         EquationSystems equation_systems(mesh);
@@ -504,7 +504,7 @@ main(
             u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
             p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time-0.5*dt_now);
 
-            IBTK::HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
+            HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
             hier_math_ops.setPatchHierarchy(patch_hierarchy);
             hier_math_ops.resetLevels(coarsest_ln, finest_ln);
             const double volume  = hier_math_ops.getVolumeOfPhysicalDomain();

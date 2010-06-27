@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceSpecFactory.C
-// Last modified: <30.Jul.2008 17:13:46 griffith@box230.cims.nyu.edu>
+// Last modified: <27.Jun.2010 15:31:25 griffith@griffith-macbook-pro.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceSpecFactory.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBTargetPointForceSpec.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/StashableManager.h>
@@ -34,7 +35,7 @@ int IBTargetPointForceSpecFactory::s_stashable_id = -1;
 
 IBTargetPointForceSpecFactory::IBTargetPointForceSpecFactory()
 {
-    setStashableID(IBTK::StashableManager::getUnregisteredID());
+    setStashableID(StashableManager::getUnregisteredID());
     return;
 }// IBTargetPointForceSpecFactory
 
@@ -58,10 +59,10 @@ IBTargetPointForceSpecFactory::setStashableID(
     return;
 }// setStashableID
 
-SAMRAI::tbox::Pointer<IBTK::Stashable>
+Pointer<Stashable>
 IBTargetPointForceSpecFactory::unpackStream(
-    SAMRAI::tbox::AbstractStream& stream,
-    const SAMRAI::hier::IntVector<NDIM>& offset)
+    AbstractStream& stream,
+    const IntVector<NDIM>& offset)
 {
     int mastr_idx;
     stream.unpack(&mastr_idx,1);
@@ -85,6 +86,6 @@ IBTargetPointForceSpecFactory::unpackStream(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBTargetPointForceSpecFactory>;
+template class Pointer<IBAMR::IBTargetPointForceSpecFactory>;
 
 //////////////////////////////////////////////////////////////////////////////

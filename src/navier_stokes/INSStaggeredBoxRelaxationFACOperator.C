@@ -1,5 +1,5 @@
 // Filename: INSStaggeredBoxRelaxationFACOperator.C
-// Last modified: <11.Jun.2010 18:43:40 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 15:57:37 griffith@griffith-macbook-pro.local>
 // Created on 11 Jun 2010 by Boyce Griffith (griffith@boyce-griffiths-mac-pro.local)
 
 #include "INSStaggeredBoxRelaxationFACOperator.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
@@ -42,15 +45,15 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_restrict_solution;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_restrict_residual;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_prolong_error_and_correct;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_smooth_error;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_solve_coarsest_level;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_composite_residual_on_level;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_compute_residual_norm;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_initialize_operator_state;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_deallocate_operator_state;
+static Pointer<Timer> t_restrict_solution;
+static Pointer<Timer> t_restrict_residual;
+static Pointer<Timer> t_prolong_error_and_correct;
+static Pointer<Timer> t_smooth_error;
+static Pointer<Timer> t_solve_coarsest_level;
+static Pointer<Timer> t_compute_composite_residual_on_level;
+static Pointer<Timer> t_compute_residual_norm;
+static Pointer<Timer> t_initialize_operator_state;
+static Pointer<Timer> t_deallocate_operator_state;
 
 // Number of ghosts cells used for each variable quantity.
 static const int GHOSTS = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
@@ -61,7 +64,7 @@ static const int GHOSTS = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
     const std::string& object_name,
     const INSCoefs& problem_coefs,
-    const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db)
+    const Pointer<Database>& input_db)
     : d_object_name(object_name),
       d_is_initialized(false),
       d_solution(NULL),
@@ -96,10 +99,10 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
       d_side_scratch_idx(-1),
       d_cell_scratch_idx(-1),
       d_U_bc_op(NULL),
-      d_default_U_bc_coef(new SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_U_bc_coef", SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL))),
-      d_U_bc_coefs(std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef)),
+      d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_U_bc_coef", Pointer<Database>(NULL))),
+      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef)),
       d_P_bc_op(NULL),
-      d_default_P_bc_coef(new SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_P_bc_coef", SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(NULL))),
+      d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_P_bc_coef", Pointer<Database>(NULL))),
       d_P_bc_coef(d_default_P_bc_coef),
       d_homogeneous_bc(false),
       d_current_time(0.0),
@@ -170,16 +173,15 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
 
     // Initialize the boundary conditions objects.
     setHomogeneousBc(d_homogeneous_bc);
-    setPhysicalBcCoefs(std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef),d_default_P_bc_coef);
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef),d_default_P_bc_coef);
 
     // Setup scratch variables.
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(d_object_name+"::CONTEXT");
 
-    const SAMRAI::hier::IntVector<NDIM> side_ghosts = d_gcw;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > side_scratch_var =
-        new SAMRAI::pdat::SideVariable<NDIM,double>(d_object_name+"::side_scratch");
+    const IntVector<NDIM> side_ghosts = d_gcw;
+    Pointer<SideVariable<NDIM,double> > side_scratch_var =
+        new SideVariable<NDIM,double>(d_object_name+"::side_scratch");
     if (var_db->checkVariableExists(side_scratch_var->getName()))
     {
         side_scratch_var = var_db->getVariable(side_scratch_var->getName());
@@ -188,10 +190,9 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
     }
     d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
 
-    const SAMRAI::hier::IntVector<NDIM> cell_ghosts = d_gcw;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cell_scratch_var =
-        new SAMRAI::pdat::CellVariable<NDIM,double>(d_object_name+"::cell_scratch");
+    const IntVector<NDIM> cell_ghosts = d_gcw;
+    Pointer<CellVariable<NDIM,double> > cell_scratch_var =
+        new CellVariable<NDIM,double>(d_object_name+"::cell_scratch");
     if (var_db->checkVariableExists(cell_scratch_var->getName()))
     {
         cell_scratch_var = var_db->getVariable(cell_scratch_var->getName());
@@ -204,15 +205,15 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_restrict_solution                   = SAMRAI::tbox::TimerManager::getManager()->getTimer("IBTK::INSStaggeredBoxRelaxationFACOperator::restrictSolution()");
-        t_restrict_residual                   = SAMRAI::tbox::TimerManager::getManager()->getTimer("IBTK::INSStaggeredBoxRelaxationFACOperator::restrictResidual()");
-        t_prolong_error_and_correct           = SAMRAI::tbox::TimerManager::getManager()->getTimer("IBTK::INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect()");
-        t_smooth_error                        = SAMRAI::tbox::TimerManager::getManager()->getTimer("IBTK::INSStaggeredBoxRelaxationFACOperator::smoothError()");
-        t_solve_coarsest_level                = SAMRAI::tbox::TimerManager::getManager()->getTimer("IBTK::INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel()");
-        t_compute_composite_residual_on_level = SAMRAI::tbox::TimerManager::getManager()->getTimer("IBTK::INSStaggeredBoxRelaxationFACOperator::computeCompositeResidualOnLevel()");
-        t_compute_residual_norm               = SAMRAI::tbox::TimerManager::getManager()->getTimer("IBTK::INSStaggeredBoxRelaxationFACOperator::computeResidualNorm()");
-        t_initialize_operator_state           = SAMRAI::tbox::TimerManager::getManager()->getTimer("IBTK::INSStaggeredBoxRelaxationFACOperator::initializeOperatorState()");
-        t_deallocate_operator_state           = SAMRAI::tbox::TimerManager::getManager()->getTimer("IBTK::INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()");
+        t_restrict_solution                   = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::restrictSolution()");
+        t_restrict_residual                   = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::restrictResidual()");
+        t_prolong_error_and_correct           = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect()");
+        t_smooth_error                        = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::smoothError()");
+        t_solve_coarsest_level                = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel()");
+        t_compute_composite_residual_on_level = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::computeCompositeResidualOnLevel()");
+        t_compute_residual_norm               = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::computeResidualNorm()");
+        t_initialize_operator_state           = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::initializeOperatorState()");
+        t_deallocate_operator_state           = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()");
         timers_need_init = false;
     }
     return;
@@ -228,8 +229,8 @@ INSStaggeredBoxRelaxationFACOperator::~INSStaggeredBoxRelaxationFACOperator()
 
 void
 INSStaggeredBoxRelaxationFACOperator::setPhysicalBcCoefs(
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef)
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+    RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
@@ -279,7 +280,7 @@ INSStaggeredBoxRelaxationFACOperator::setTimeInterval(
 
 void
 INSStaggeredBoxRelaxationFACOperator::setPreconditioner(
-    const SAMRAI::solv::FACPreconditioner<NDIM>* preconditioner)
+    const FACPreconditioner<NDIM>* preconditioner)
 {
     if (d_is_initialized)
     {
@@ -310,7 +311,7 @@ INSStaggeredBoxRelaxationFACOperator::setResetLevels(
 
 void
 INSStaggeredBoxRelaxationFACOperator::setGhostCellWidth(
-    const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width)
+    const IntVector<NDIM>& ghost_cell_width)
 {
     if (d_is_initialized)
     {
@@ -325,33 +326,33 @@ INSStaggeredBoxRelaxationFACOperator::setGhostCellWidth(
     d_gcw = ghost_cell_width;
     sanityCheck();
 
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM> > var;
 
     var_db->mapIndexToVariable(d_side_scratch_idx, var);
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > side_scratch_var = var;
+    Pointer<SideVariable<NDIM,double> > side_scratch_var = var;
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!side_scratch_var.isNull());
 #endif
     var_db->removePatchDataIndex(d_side_scratch_idx);
-    const SAMRAI::hier::IntVector<NDIM> side_ghosts = d_gcw;
+    const IntVector<NDIM> side_ghosts = d_gcw;
     d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataFactory<NDIM,double> > side_scratch_pdat_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_side_scratch_idx);
+    Pointer<SideDataFactory<NDIM,double> > side_scratch_pdat_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_side_scratch_idx);
     TBOX_ASSERT(!side_scratch_pdat_fac.isNull());
     TBOX_ASSERT(side_scratch_pdat_fac->getGhostCellWidth() == d_gcw);
 #endif
 
     var_db->mapIndexToVariable(d_cell_scratch_idx, var);
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > cell_scratch_var = var;
+    Pointer<CellVariable<NDIM,double> > cell_scratch_var = var;
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!cell_scratch_var.isNull());
 #endif
     var_db->removePatchDataIndex(d_cell_scratch_idx);
-    const SAMRAI::hier::IntVector<NDIM> cell_ghosts = d_gcw;
+    const IntVector<NDIM> cell_ghosts = d_gcw;
     d_cell_scratch_idx = var_db->registerVariableAndContext(cell_scratch_var, d_context, cell_ghosts);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataFactory<NDIM,double> > cell_scratch_pdat_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_cell_scratch_idx);
+    Pointer<CellDataFactory<NDIM,double> > cell_scratch_pdat_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_cell_scratch_idx);
     TBOX_ASSERT(!cell_scratch_pdat_fac.isNull());
     TBOX_ASSERT(cell_scratch_pdat_fac->getGhostCellWidth() == d_gcw);
 #endif
@@ -515,32 +516,37 @@ INSStaggeredBoxRelaxationFACOperator::setSkipRestrictResidual(
 ///      deallocateOperatorState()
 ///
 ///  are concrete implementations of functions declared in the
-///  SAMRAI::solv::FACOperatorStrategy abstract base class.
+///  FACOperatorStrategy abstract base class.
 ///
 
 void
 INSStaggeredBoxRelaxationFACOperator::restrictSolution(
-    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
-    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
+    const SAMRAIVectorReal<NDIM,double>& src,
+    SAMRAIVectorReal<NDIM,double>& dst,
     int dst_ln)
 {
     if (d_skip_restrict_sol) return;
 
     t_restrict_solution->start();
 
-    const int src_idx = src.getComponentDescriptorIndex(0);
-    const int dst_idx = dst.getComponentDescriptorIndex(0);
+    const int U_src_idx = src.getComponentDescriptorIndex(0);
+    const int P_src_idx = src.getComponentDescriptorIndex(1);
+    const std::pair<int,int> src_idxs = std::make_pair(U_src_idx,P_src_idx);
 
-    xeqScheduleURestriction(dst_idx, src_idx, dst_ln);
+    const int U_dst_idx = dst.getComponentDescriptorIndex(0);
+    const int P_dst_idx = dst.getComponentDescriptorIndex(1);
+    const std::pair<int,int> dst_idxs = std::make_pair(U_dst_idx,P_dst_idx);
+
+    xeqScheduleURestriction(dst_idxs, src_idxs, dst_ln);
 
     static const bool homogeneous_bc = true;
     if (dst_ln == d_coarsest_ln)
     {
-        xeqScheduleGhostFillNoCoarse(dst_idx, dst_ln, homogeneous_bc);
+        xeqScheduleGhostFillNoCoarse(dst_idxs, dst_ln, homogeneous_bc);
     }
     else
     {
-        xeqScheduleGhostFill(dst_idx, dst_ln, homogeneous_bc);
+        xeqScheduleGhostFill(dst_idxs, dst_ln, homogeneous_bc);
     }
 
     t_restrict_solution->stop();
@@ -549,18 +555,23 @@ INSStaggeredBoxRelaxationFACOperator::restrictSolution(
 
 void
 INSStaggeredBoxRelaxationFACOperator::restrictResidual(
-    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
-    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
+    const SAMRAIVectorReal<NDIM,double>& src,
+    SAMRAIVectorReal<NDIM,double>& dst,
     int dst_ln)
 {
     if (d_skip_restrict_residual) return;
 
     t_restrict_residual->start();
 
-    const int src_idx = src.getComponentDescriptorIndex(0);
-    const int dst_idx = dst.getComponentDescriptorIndex(0);
+    const int U_src_idx = src.getComponentDescriptorIndex(0);
+    const int P_src_idx = src.getComponentDescriptorIndex(1);
+    const std::pair<int,int> src_idxs = std::make_pair(U_src_idx,P_src_idx);
 
-    xeqScheduleRRestriction(dst_idx, src_idx, dst_ln);
+    const int U_dst_idx = dst.getComponentDescriptorIndex(0);
+    const int P_dst_idx = dst.getComponentDescriptorIndex(1);
+    const std::pair<int,int> dst_idxs = std::make_pair(U_dst_idx,P_dst_idx);
+
+    xeqScheduleRRestriction(dst_idxs, src_idxs, dst_ln);
 
     t_restrict_residual->stop();
     return;
@@ -568,8 +579,8 @@ INSStaggeredBoxRelaxationFACOperator::restrictResidual(
 
 void
 INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect(
-    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
-    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
+    const SAMRAIVectorReal<NDIM,double>& src,
+    SAMRAIVectorReal<NDIM,double>& dst,
     int dst_ln)
 {
     t_prolong_error_and_correct->start();
@@ -581,10 +592,16 @@ INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect(
 
     // Refine the correction from the coarse level src data directly into the
     // fine level error.
-    const int dst_idx = dst.getComponentDescriptorIndex(0);
-    const int src_idx = src.getComponentDescriptorIndex(0);
+    const int U_src_idx = src.getComponentDescriptorIndex(0);
+    const int P_src_idx = src.getComponentDescriptorIndex(1);
+    const std::pair<int,int> src_idxs = std::make_pair(U_src_idx,P_src_idx);
+
+    const int U_dst_idx = dst.getComponentDescriptorIndex(0);
+    const int P_dst_idx = dst.getComponentDescriptorIndex(1);
+    const std::pair<int,int> dst_idxs = std::make_pair(U_dst_idx,P_dst_idx);
+
     static const bool homogeneous_bc = true;
-    xeqScheduleProlongation(dst_idx, src_idx, dst_ln, homogeneous_bc);
+    xeqScheduleProlongation(dst_idxs, src_idxs, dst_ln, homogeneous_bc);
 
     t_prolong_error_and_correct->stop();
     return;
@@ -592,23 +609,24 @@ INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect(
 
 void
 INSStaggeredBoxRelaxationFACOperator::smoothError(
-    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
-    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
+    SAMRAIVectorReal<NDIM,double>& error,
+    const SAMRAIVectorReal<NDIM,double>& residual,
     int level_num,
     int num_sweeps)
 {
+#if 0
     if (num_sweeps == 0) return;
 
     t_smooth_error->start();
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     const int error_idx = error.getComponentDescriptorIndex(0);
     const int scratch_idx = d_side_scratch_idx;
 
     // Cache coarse-fine interface ghost cell values in the "scratch" data.
     if (level_num > d_coarsest_ln)
     {
-        SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> hierarchy_sc_data_ops(d_hierarchy, level_num, level_num);
+        HierarchySideDataOpsReal<NDIM,double> hierarchy_sc_data_ops(d_hierarchy, level_num, level_num);
         hierarchy_sc_data_ops.copyData(scratch_idx, error_idx, false);
     }
 
@@ -622,14 +640,14 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
             {
                 // Copy the coarse-fine interface ghost cell values which are
                 // cached in the scratch data into the error data.
-                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     const int patch_num = patch->getPatchNumber();
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> >   error_data = error.getComponentPatchData(0, *patch);
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > scratch_data = patch->getPatchData(scratch_idx);
+                    Pointer<SideData<NDIM,double> >   error_data = error.getComponentPatchData(0, *patch);
+                    Pointer<SideData<NDIM,double> > scratch_data = patch->getPatchData(scratch_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    const SAMRAI::hier::Box<NDIM>& ghost_box = error_data->getGhostBox();
+                    const Box<NDIM>& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
                     TBOX_ASSERT(  error_data->getGhostCellWidth() == d_gcw);
                     TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
@@ -639,7 +657,7 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
                         error_data->getArrayData(axis).copy(
                             scratch_data->getArrayData(axis),
                             d_patch_bc_box_overlap[level_num][patch_num][axis],
-                            SAMRAI::hier::IntVector<NDIM>(0));
+                            IntVector<NDIM>(0));
                     }
                 }
 
@@ -651,11 +669,11 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
             // Complete the coarse-fine interface interpolation by computing the
             // normal extension.
             d_U_cf_bdry_op->setPatchDataIndex(error_idx);
-            const SAMRAI::hier::IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill = patch->getPatchData(error_idx)->getGhostCellWidth();
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const IntVector<NDIM>& ghost_width_to_fill = patch->getPatchData(error_idx)->getGhostCellWidth();
                 d_U_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
             }
         }
@@ -666,14 +684,14 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
         }
 
         // Smooth the error on the patches.
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const int patch_num = patch->getPatchNumber();
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> >    error_data = error   .getComponentPatchData(0, *patch);
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > residual_data = residual.getComponentPatchData(0, *patch);
+            Pointer<SideData<NDIM,double> >    error_data = error   .getComponentPatchData(0, *patch);
+            Pointer<SideData<NDIM,double> > residual_data = residual.getComponentPatchData(0, *patch);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            const SAMRAI::hier::Box<NDIM>& ghost_box = error_data->getGhostBox();
+            const Box<NDIM>& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
             TBOX_ASSERT(   error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
@@ -685,7 +703,7 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
                 residual_data->getArrayData(axis).copy(
                     error_data->getArrayData(axis),
                     d_patch_bc_box_overlap[level_num][patch_num][axis],
-                    SAMRAI::hier::IntVector<NDIM>(0));
+                    IntVector<NDIM>(0));
 
                 // Setup the PETSc Vec wrappers for the given patch data and axis.
                 int ierr;
@@ -725,12 +743,13 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
 
     t_smooth_error->stop();
     return;
+#endif
 }// smoothError
 
 int
 INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel(
-    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
-    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
+    SAMRAIVectorReal<NDIM,double>& error,
+    const SAMRAIVectorReal<NDIM,double>& residual,
     int coarsest_ln)
 {
     t_solve_coarsest_level->start();
@@ -742,9 +761,12 @@ INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel(
     smoothError(error, residual, coarsest_ln, d_coarse_solver_max_its);
 
     // Re-fill ghost values.
-    const int error_idx = error.getComponentDescriptorIndex(0);
+    const int U_error_idx = error.getComponentDescriptorIndex(0);
+    const int P_error_idx = error.getComponentDescriptorIndex(1);
+    const std::pair<int,int> error_idxs = std::make_pair(U_error_idx,P_error_idx);
+
     static const bool homogeneous_bc = true;
-    xeqScheduleGhostFillNoCoarse(error_idx, coarsest_ln, homogeneous_bc);
+    xeqScheduleGhostFillNoCoarse(error_idxs, coarsest_ln, homogeneous_bc);
 
     t_solve_coarsest_level->stop();
     static const int ret_val = 1;
@@ -753,9 +775,9 @@ INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel(
 
 void
 INSStaggeredBoxRelaxationFACOperator::computeCompositeResidualOnLevel(
-    SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
+    SAMRAIVectorReal<NDIM,double>& residual,
+    const SAMRAIVectorReal<NDIM,double>& solution,
+    const SAMRAIVectorReal<NDIM,double>& rhs,
     int level_num,
     bool error_equation_indicator)
 {
@@ -777,12 +799,21 @@ INSStaggeredBoxRelaxationFACOperator::computeCompositeResidualOnLevel(
         // IMPORTANT NOTE: We assume that the FAC algorithm being used does not
         // use the composite residual in postsweeps.
         static const bool interior_only = false;
-        SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> hierarchy_sc_data_ops(d_hierarchy, level_num, level_num);
-        const int dst_idx = residual.getComponentDescriptorIndex(0);
-        const int src_idx = rhs.getComponentDescriptorIndex(0);
-        if (dst_idx != src_idx)
+
+        HierarchySideDataOpsReal<NDIM,double> hierarchy_sc_data_ops(d_hierarchy, level_num, level_num);
+        const int U_dst_idx = residual.getComponentDescriptorIndex(0);
+        const int U_src_idx = rhs.getComponentDescriptorIndex(0);
+        if (U_dst_idx != U_src_idx)
         {
-            hierarchy_sc_data_ops.copyData(dst_idx, src_idx, interior_only);
+            hierarchy_sc_data_ops.copyData(U_dst_idx, U_src_idx, interior_only);
+        }
+
+        HierarchyCellDataOpsReal<NDIM,double> hierarchy_cc_data_ops(d_hierarchy, level_num, level_num);
+        const int P_dst_idx = residual.getComponentDescriptorIndex(1);
+        const int P_src_idx = rhs.getComponentDescriptorIndex(1);
+        if (P_dst_idx != P_src_idx)
+        {
+            hierarchy_cc_data_ops.copyData(P_dst_idx, P_src_idx, interior_only);
         }
     }
     else
@@ -802,7 +833,7 @@ INSStaggeredBoxRelaxationFACOperator::computeCompositeResidualOnLevel(
 
 double
 INSStaggeredBoxRelaxationFACOperator::computeResidualNorm(
-    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
+    const SAMRAIVectorReal<NDIM,double>& residual,
     int fine_ln,
     int coarse_ln)
 {
@@ -817,13 +848,13 @@ INSStaggeredBoxRelaxationFACOperator::computeResidualNorm(
     }
 
     t_compute_residual_norm->stop();
-    return IBTK::NormOps::L2Norm(&residual);
+    return NormOps::L2Norm(&residual);
 }// computeResidualNorm
 
 void
 INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
-    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-    const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs)
+    const SAMRAIVectorReal<NDIM,double>& solution,
+    const SAMRAIVectorReal<NDIM,double>& rhs)
 {
     t_initialize_operator_state->start();
     d_in_initialize_operator_state = true;
@@ -851,33 +882,6 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     d_rhs = rhs.cloneVector(rhs.getName());
     d_rhs->allocateVectorData();
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > solution_var = solution.getComponentVariable(0);
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >      rhs_var =      rhs.getComponentVariable(0);
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataFactory<NDIM,double> > solution_pdat_fac = solution_var->getPatchDataFactory();
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataFactory<NDIM,double> >      rhs_pdat_fac =      rhs_var->getPatchDataFactory();
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!solution_var.isNull());
-    TBOX_ASSERT(!rhs_var.isNull());
-    TBOX_ASSERT(!solution_pdat_fac.isNull());
-    TBOX_ASSERT(!rhs_pdat_fac.isNull());
-#endif
-
-    if (solution_pdat_fac->getDefaultDepth() != rhs_pdat_fac->getDefaultDepth())
-    {
-        TBOX_ERROR("INSStaggeredBoxRelaxationFACOperator::initializeOperatorState()\n"
-                   << "  solution and rhs vectors must have the same data depths\n"
-                   << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
-                   << "  rhs      data depth = " << rhs_pdat_fac     ->getDefaultDepth() << std::endl);
-    }
-
-    if (solution_pdat_fac->getDefaultDepth() != 1)
-    {
-        TBOX_ERROR("INSStaggeredBoxRelaxationFACOperator::initializeOperatorState()\n"
-                   << "  velocity data must have depth of 1" << std::endl);
-    }
-
     // Reset the hierarchy configuration.
     d_hierarchy   = solution.getPatchHierarchy();
     d_coarsest_ln = solution.getCoarsestLevelNumber();
@@ -886,26 +890,28 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     // Allocate scratch data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_side_scratch_idx)) level->allocatePatchData(d_side_scratch_idx);
+        if (!level->checkAllocated(d_cell_scratch_idx)) level->allocatePatchData(d_cell_scratch_idx);
     }
 
     // Get the transfer operators.
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
     static bool need_to_add_cubic_coarsen = true;
     if (need_to_add_cubic_coarsen)
     {
-        geometry->addSpatialCoarsenOperator(new IBTK::CartSideDoubleCubicCoarsen());
+        geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
+        geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
         need_to_add_cubic_coarsen = false;
     }
 
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM> > var;
 
     var_db->mapIndexToVariable(d_side_scratch_idx, var);
     d_U_prolongation_refine_operator = geometry->lookupRefineOperator(var, d_U_prolongation_method);
 
-    d_U_cf_bdry_op = new IBTK::CartSideDoubleQuadraticCFInterpolation();
+    d_U_cf_bdry_op = new CartSideDoubleQuadraticCFInterpolation();
     d_U_cf_bdry_op->setConsistentInterpolationScheme(false);
     d_U_cf_bdry_op->setPatchDataIndex(d_side_scratch_idx);
     d_U_cf_bdry_op->setPatchHierarchy(d_hierarchy);
@@ -913,7 +919,7 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     var_db->mapIndexToVariable(d_cell_scratch_idx, var);
     d_P_prolongation_refine_operator = geometry->lookupRefineOperator(var, d_P_prolongation_method);
 
-    d_P_cf_bdry_op = new IBTK::CartCellDoubleQuadraticCFInterpolation();
+    d_P_cf_bdry_op = new CartCellDoubleQuadraticCFInterpolation();
     d_P_cf_bdry_op->setConsistentInterpolationScheme(false);
     d_P_cf_bdry_op->setPatchDataIndex(d_cell_scratch_idx);
     d_P_cf_bdry_op->setPatchHierarchy(d_hierarchy);
@@ -939,20 +945,25 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     // Make space for saving communication schedules.  There is no need to
     // delete the old schedules first because we have deallocated the solver
     // state above.
-    d_U_bc_op = new IBTK::CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
+    d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
+    d_P_bc_op = new CartCellRobinPhysBdryOp(d_cell_scratch_idx, d_P_bc_coef, false);
 
 #if (NDIM == 2)
-    d_U_op_stencil_fill_pattern = new IBTK::SideNoCornersFillPattern(GHOSTS);
+    d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(GHOSTS);
+    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(GHOSTS);
 #endif
 #if (NDIM == 3)
-    d_U_op_stencil_fill_pattern = new IBTK::SideNoCornersFillPattern(GHOSTS,false);
+    d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(GHOSTS,false);
+    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(GHOSTS,false);
 #endif
-    d_U_synch_fill_pattern = new IBTK::SideSynchCopyFillPattern();
+    d_U_synch_fill_pattern = new SideSynchCopyFillPattern();
 
-    std::vector<SAMRAI::xfer::RefinePatchStrategy<NDIM>*> prolongation_refine_patch_strategies;
+    std::vector<RefinePatchStrategy<NDIM>*> prolongation_refine_patch_strategies;
     prolongation_refine_patch_strategies.push_back(d_U_cf_bdry_op);
+    prolongation_refine_patch_strategies.push_back(d_P_cf_bdry_op);
     prolongation_refine_patch_strategies.push_back(d_U_bc_op);
-    d_prolongation_refine_patch_strategy = new IBTK::RefinePatchStrategySet(
+    prolongation_refine_patch_strategies.push_back(d_P_bc_op);
+    d_prolongation_refine_patch_strategy = new RefinePatchStrategySet(
         prolongation_refine_patch_strategies.begin(), prolongation_refine_patch_strategies.end(), false);
 
     d_prolongation_refine_schedules.resize(d_finest_ln+1);
@@ -962,12 +973,12 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     d_ghostfill_nocoarse_refine_schedules.resize(d_finest_ln+1);
     d_U_synch_refine_schedules.resize(d_finest_ln+1);
 
-    d_prolongation_refine_algorithm = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    d_urestriction_coarsen_algorithm = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
-    d_rrestriction_coarsen_algorithm = new SAMRAI::xfer::CoarsenAlgorithm<NDIM>();
-    d_ghostfill_refine_algorithm = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    d_ghostfill_nocoarse_refine_algorithm = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
-    d_U_synch_refine_algorithm = new SAMRAI::xfer::RefineAlgorithm<NDIM>();
+    d_prolongation_refine_algorithm = new RefineAlgorithm<NDIM>();
+    d_urestriction_coarsen_algorithm = new CoarsenAlgorithm<NDIM>();
+    d_rrestriction_coarsen_algorithm = new CoarsenAlgorithm<NDIM>();
+    d_ghostfill_refine_algorithm = new RefineAlgorithm<NDIM>();
+    d_ghostfill_nocoarse_refine_algorithm = new RefineAlgorithm<NDIM>();
+    d_U_synch_refine_algorithm = new RefineAlgorithm<NDIM>();
 
     d_prolongation_refine_algorithm->registerRefine(
         d_side_scratch_idx,
@@ -975,26 +986,57 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
         d_side_scratch_idx,
         d_U_prolongation_refine_operator,
         d_U_op_stencil_fill_pattern);
+    d_prolongation_refine_algorithm->registerRefine(
+        d_cell_scratch_idx,
+        solution.getComponentDescriptorIndex(1),
+        d_cell_scratch_idx,
+        d_P_prolongation_refine_operator,
+        d_P_op_stencil_fill_pattern);
+
     d_urestriction_coarsen_algorithm->registerCoarsen(
         d_side_scratch_idx,
         d_side_scratch_idx,
         d_U_urestriction_coarsen_operator);
+    d_urestriction_coarsen_algorithm->registerCoarsen(
+        d_cell_scratch_idx,
+        d_cell_scratch_idx,
+        d_P_urestriction_coarsen_operator);
+
     d_rrestriction_coarsen_algorithm->registerCoarsen(
         d_side_scratch_idx,
         d_side_scratch_idx,
         d_U_rrestriction_coarsen_operator);
+    d_rrestriction_coarsen_algorithm->registerCoarsen(
+        d_cell_scratch_idx,
+        d_cell_scratch_idx,
+        d_P_rrestriction_coarsen_operator);
+
     d_ghostfill_refine_algorithm->registerRefine(
         d_side_scratch_idx,
         d_side_scratch_idx,
         d_side_scratch_idx,
         d_U_ghostfill_refine_operator,
         d_U_op_stencil_fill_pattern);
+    d_ghostfill_refine_algorithm->registerRefine(
+        d_cell_scratch_idx,
+        d_cell_scratch_idx,
+        d_cell_scratch_idx,
+        d_P_ghostfill_refine_operator,
+        d_P_op_stencil_fill_pattern);
+
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(
         d_side_scratch_idx,
         d_side_scratch_idx,
         d_side_scratch_idx,
         d_U_ghostfill_nocoarse_refine_operator,
         d_U_op_stencil_fill_pattern);
+    d_ghostfill_nocoarse_refine_algorithm->registerRefine(
+        d_cell_scratch_idx,
+        d_cell_scratch_idx,
+        d_cell_scratch_idx,
+        d_P_ghostfill_nocoarse_refine_operator,
+        d_P_op_stencil_fill_pattern);
+
     d_U_synch_refine_algorithm->registerRefine(
         solution.getComponentDescriptorIndex(0),
         solution.getComponentDescriptorIndex(0),
@@ -1009,7 +1051,7 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
         d_prolongation_refine_schedules[dst_ln] =
             d_prolongation_refine_algorithm->createSchedule(
                 d_hierarchy->getPatchLevel(dst_ln),
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(),
+                Pointer<PatchLevel<NDIM> >(),
                 dst_ln-1, d_hierarchy, d_prolongation_refine_patch_strategy.getPointer());
 
         d_ghostfill_refine_schedules[dst_ln] =
@@ -1023,7 +1065,7 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
 
         d_U_synch_refine_schedules[dst_ln] =
             d_U_synch_refine_algorithm->createSchedule(
-                d_hierarchy->getPatchLevel(dst_ln), NULL, new IBTK::SideSynchCopyTransactionFactory());
+                d_hierarchy->getPatchLevel(dst_ln), NULL, new SideSynchCopyTransactionFactory());
     }
 
     d_ghostfill_nocoarse_refine_schedules[d_coarsest_ln] =
@@ -1032,7 +1074,7 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
 
     d_U_synch_refine_schedules[d_coarsest_ln] =
         d_U_synch_refine_algorithm->createSchedule(
-            d_hierarchy->getPatchLevel(d_coarsest_ln), NULL, new IBTK::SideSynchCopyTransactionFactory());
+            d_hierarchy->getPatchLevel(d_coarsest_ln), NULL, new SideSynchCopyTransactionFactory());
 
     for (int dst_ln = d_coarsest_ln; dst_ln < d_finest_ln; ++dst_ln)
     {
@@ -1058,14 +1100,14 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     d_patch_mat.resize(d_finest_ln+1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const int patch_num = patch->getPatchNumber();
 
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            const SAMRAI::hier::Box<NDIM>  ghost_box = SAMRAI::hier::Box<NDIM>::grow(patch_box, d_gcw);
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Box<NDIM>  ghost_box = Box<NDIM>::grow(patch_box, d_gcw);
 
             std::vector<Vec>& e = d_patch_vec_e[ln][patch_num];
             std::vector<Vec>& f = d_patch_vec_f[ln][patch_num];
@@ -1077,7 +1119,7 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
             {
                 int ierr;
 
-                const SAMRAI::hier::Box<NDIM> axis_ghost_box = SAMRAI::pdat::SideGeometry<NDIM>::toSideBox(ghost_box,axis);
+                const Box<NDIM> axis_ghost_box = SideGeometry<NDIM>::toSideBox(ghost_box,axis);
                 const int size = axis_ghost_box.size();
 
                 ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, size, PETSC_NULL, &e[axis]);  IBTK_CHKERRQ(ierr);
@@ -1092,18 +1134,18 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     d_patch_bc_box_overlap.resize(d_finest_ln+1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const SAMRAI::hier::BoxArray<NDIM>& box_array = level->getBoxes();
-        const SAMRAI::tbox::Array<int>& local_ids = level->getProcessorMapping().getLocalIndices();
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const BoxArray<NDIM>& box_array = level->getBoxes();
+        const Array<int>& local_ids = level->getProcessorMapping().getLocalIndices();
         for (int k = 0; k < local_ids.size(); ++k)
         {
             const int local_id = local_ids[k];
             d_patch_bc_box_overlap[ln][local_id].resize(NDIM);
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                const SAMRAI::hier::Box<NDIM> side_box = SAMRAI::pdat::SideGeometry<NDIM>::toSideBox(box_array[local_id],axis);
-                const SAMRAI::hier::Box<NDIM> side_ghost_box = SAMRAI::hier::Box<NDIM>::grow(side_box, 1);
-                d_patch_bc_box_overlap[ln][local_id][axis] = SAMRAI::hier::BoxList<NDIM>(side_ghost_box);
+                const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box_array[local_id],axis);
+                const Box<NDIM> side_ghost_box = Box<NDIM>::grow(side_box, 1);
+                d_patch_bc_box_overlap[ln][local_id][axis] = BoxList<NDIM>(side_ghost_box);
                 d_patch_bc_box_overlap[ln][local_id][axis].removeIntersections(side_box);
             }
         }
@@ -1143,7 +1185,7 @@ INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()
         {
             if (ln <= d_hierarchy->getFinestLevelNumber())
             {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
                 if (level->checkAllocated(d_side_scratch_idx)) level->deallocatePatchData(d_side_scratch_idx);
             }
 
@@ -1179,7 +1221,7 @@ INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()
                 }
             }
             d_patch_mat[ln].clear();
-         }
+        }
 
         // Delete the solution and rhs vectors.
         d_solution->resetLevels(d_solution->getCoarsestLevelNumber(), std::min(d_solution->getFinestLevelNumber(),d_hierarchy->getFinestLevelNumber()));
@@ -1257,7 +1299,7 @@ INSStaggeredBoxRelaxationFACOperator::xeqScheduleProlongation(
     d_U_bc_op->setHomogeneousBc(homogeneous_bc);
     d_U_cf_bdry_op->setPatchDataIndex(dst_idx);
 
-    SAMRAI::xfer::RefineAlgorithm<NDIM> refiner;
+    RefineAlgorithm<NDIM> refiner;
     refiner.registerRefine(dst_idx, src_idx, dst_idx, d_U_prolongation_refine_operator, d_U_op_stencil_fill_pattern);
     refiner.resetSchedule(d_prolongation_refine_schedules[dst_ln]);
     d_prolongation_refine_schedules[dst_ln]->fillData(d_new_time);
@@ -1271,7 +1313,7 @@ INSStaggeredBoxRelaxationFACOperator::xeqScheduleURestriction(
     const int src_idx,
     const int dst_ln)
 {
-    SAMRAI::xfer::CoarsenAlgorithm<NDIM> coarsener;
+    CoarsenAlgorithm<NDIM> coarsener;
     coarsener.registerCoarsen(dst_idx, src_idx, d_U_urestriction_coarsen_operator);
     coarsener.resetSchedule(d_urestriction_coarsen_schedules[dst_ln]);
     d_urestriction_coarsen_schedules[dst_ln]->coarsenData();
@@ -1285,7 +1327,7 @@ INSStaggeredBoxRelaxationFACOperator::xeqScheduleRRestriction(
     const int src_idx,
     const int dst_ln)
 {
-    SAMRAI::xfer::CoarsenAlgorithm<NDIM> coarsener;
+    CoarsenAlgorithm<NDIM> coarsener;
     coarsener.registerCoarsen(dst_idx, src_idx, d_U_rrestriction_coarsen_operator);
     coarsener.resetSchedule(d_rrestriction_coarsen_schedules[dst_ln]);
     d_rrestriction_coarsen_schedules[dst_ln]->coarsenData();
@@ -1303,7 +1345,7 @@ INSStaggeredBoxRelaxationFACOperator::xeqScheduleGhostFill(
     d_U_bc_op->setPhysicalBcCoefs(d_U_bc_coefs);
     d_U_bc_op->setHomogeneousBc(homogeneous_bc);
 
-    SAMRAI::xfer::RefineAlgorithm<NDIM> refiner;
+    RefineAlgorithm<NDIM> refiner;
     refiner.registerRefine(dst_idx, dst_idx, dst_idx, d_U_ghostfill_refine_operator, d_U_op_stencil_fill_pattern);
     refiner.resetSchedule(d_ghostfill_refine_schedules[dst_ln]);
     d_ghostfill_refine_schedules[dst_ln]->fillData(d_new_time);
@@ -1321,7 +1363,7 @@ INSStaggeredBoxRelaxationFACOperator::xeqScheduleGhostFillNoCoarse(
     d_U_bc_op->setPhysicalBcCoefs(d_U_bc_coefs);
     d_U_bc_op->setHomogeneousBc(homogeneous_bc);
 
-    SAMRAI::xfer::RefineAlgorithm<NDIM> refiner;
+    RefineAlgorithm<NDIM> refiner;
     refiner.registerRefine(dst_idx, dst_idx, dst_idx, d_U_ghostfill_nocoarse_refine_operator, d_U_op_stencil_fill_pattern);
     refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_new_time);
@@ -1334,7 +1376,7 @@ INSStaggeredBoxRelaxationFACOperator::xeqScheduleSideDataSynch(
     const int dst_idx,
     const int dst_ln)
 {
-    SAMRAI::xfer::RefineAlgorithm<NDIM> refiner;
+    RefineAlgorithm<NDIM> refiner;
     refiner.registerRefine(dst_idx, dst_idx, dst_idx, d_U_synch_refine_operator, d_U_synch_fill_pattern);
     refiner.resetSchedule(d_U_synch_refine_schedules[dst_ln]);
     d_U_synch_refine_schedules[dst_ln]->fillData(d_new_time);
@@ -1346,9 +1388,9 @@ void
 INSStaggeredBoxRelaxationFACOperator::buildPatchOperator(
     Mat& A,
     const INSCoefs& problem_coefs,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const Pointer<Patch<NDIM> >& patch,
     const int component_axis,
-    const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width)
+    const IntVector<NDIM>& ghost_cell_width)
 {
     const double C = 0.0; // XXXX
     const double D = 0.0;
@@ -1356,21 +1398,21 @@ INSStaggeredBoxRelaxationFACOperator::buildPatchOperator(
     int ierr;
 
     // Allocate a PETSc matrix for the patch operator.
-    const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-    const SAMRAI::hier::Box<NDIM> side_box = SAMRAI::pdat::SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
-    const SAMRAI::hier::Box<NDIM> ghost_box = SAMRAI::hier::Box<NDIM>::grow(side_box, ghost_cell_width);
+    const Box<NDIM>& patch_box = patch->getBox();
+    const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
+    const Box<NDIM> ghost_box = Box<NDIM>::grow(side_box, ghost_cell_width);
     const int size = ghost_box.size();
-    SAMRAI::hier::IntVector<NDIM> component_axis_shift = 0;
+    IntVector<NDIM> component_axis_shift = 0;
     component_axis_shift(component_axis) = -1;
 
     static const int stencil_sz = 2*NDIM+1;
 
-    SAMRAI::hier::BoxList<NDIM> ghost_boxes(ghost_box);
+    BoxList<NDIM> ghost_boxes(ghost_box);
     ghost_boxes.removeIntersections(side_box);
     std::vector<int> nnz(size, stencil_sz);
-    for (SAMRAI::hier::BoxList<NDIM>::Iterator bl(ghost_boxes); bl; bl++)
+    for (BoxList<NDIM>::Iterator bl(ghost_boxes); bl; bl++)
     {
-        for (SAMRAI::hier::Box<NDIM>::Iterator b(bl()); b; b++)
+        for (Box<NDIM>::Iterator b(bl()); b; b++)
         {
             nnz[ghost_box.offset(b())] = 1;
         }
@@ -1418,12 +1460,12 @@ INSStaggeredBoxRelaxationFACOperator::buildPatchOperator(
     // coarse-fine interfaces are implicitly treated by setting ghost cell
     // values appropriately.  Thus the matrix coefficients are independent of
     // any boundary conditions.
-    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    for (SAMRAI::hier::Box<NDIM>::Iterator b(side_box); b; b++)
+    for (Box<NDIM>::Iterator b(side_box); b; b++)
     {
-        const SAMRAI::hier::Index<NDIM>& i = b();
+        const Index<NDIM>& i = b();
 
         std::vector<double> mat_vals(stencil_sz,0.0);
         mat_vals[NDIM] = C;
@@ -1451,9 +1493,9 @@ INSStaggeredBoxRelaxationFACOperator::buildPatchOperator(
 
     // Set the entries in the ghost cell region so that ghost cell values are
     // not modified by the smoother.
-    for (SAMRAI::hier::BoxList<NDIM>::Iterator bl(ghost_boxes); bl; bl++)
+    for (BoxList<NDIM>::Iterator bl(ghost_boxes); bl; bl++)
     {
-        for (SAMRAI::hier::Box<NDIM>::Iterator b(bl()); b; b++)
+        for (Box<NDIM>::Iterator b(bl()); b; b++)
         {
             const int i = ghost_box.offset(b());
             ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
@@ -1532,6 +1574,6 @@ INSStaggeredBoxRelaxationFACOperator::sanityCheck()
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::INSStaggeredBoxRelaxationFACOperator>;
+template class Pointer<IBAMR::INSStaggeredBoxRelaxationFACOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

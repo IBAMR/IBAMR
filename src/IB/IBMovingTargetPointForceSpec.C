@@ -1,5 +1,5 @@
 // Filename: IBMovingTargetPointForceSpec.C
-// Last modified: <15.Jun.2010 15:46:38 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 15:30:05 griffith@griffith-macbook-pro.local>
 // Created on 14 Aug 2008 by Boyce Griffith (boyce@dm-linux.maths.gla.ac.uk)
 
 #include "IBMovingTargetPointForceSpec.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBMovingTargetPointForceSpecFactory.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/StashableManager.h>
@@ -41,13 +42,13 @@ IBMovingTargetPointForceSpec::registerWithStashableManager()
     // register the stashable factory with the stashable manager, and to ensure
     // that all processes employ the same stashable id for the
     // IBMovingTargetPointForceSpec object.
-    SAMRAI::tbox::SAMRAI_MPI::barrier();
+    SAMRAI_MPI::barrier();
     if (!s_registered_factory)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(s_stashable_id == -1);
 #endif
-        s_stashable_id = IBTK::StashableManager::getManager()->registerFactory(
+        s_stashable_id = StashableManager::getManager()->registerFactory(
             new IBMovingTargetPointForceSpecFactory());
         s_registered_factory = true;
     }
@@ -67,6 +68,6 @@ IBMovingTargetPointForceSpec::registerWithStashableManager()
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBMovingTargetPointForceSpec>;
+template class Pointer<IBAMR::IBMovingTargetPointForceSpec>;
 
 //////////////////////////////////////////////////////////////////////////////

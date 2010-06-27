@@ -559,7 +559,7 @@ main(
         u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
         p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time-0.5*dt_old);
 
-        IBTK::HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
+        HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
         hier_math_ops.setPatchHierarchy(patch_hierarchy);
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();

@@ -1,5 +1,5 @@
 // Filename: IBSpringForceSpec.C
-// Last modified: <15.Jun.2010 15:46:50 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 15:30:39 griffith@griffith-macbook-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceSpec.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBSpringForceSpecFactory.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/StashableManager.h>
@@ -41,13 +42,13 @@ IBSpringForceSpec::registerWithStashableManager()
     // register the stashable factory with the stashable manager, and to ensure
     // that all processes employ the same stashable id for the IBSpringForceSpec
     // object.
-    SAMRAI::tbox::SAMRAI_MPI::barrier();
+    SAMRAI_MPI::barrier();
     if (!s_registered_factory)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(s_stashable_id == -1);
 #endif
-        s_stashable_id = IBTK::StashableManager::getManager()->registerFactory(
+        s_stashable_id = StashableManager::getManager()->registerFactory(
             new IBSpringForceSpecFactory());
         s_registered_factory = true;
     }
@@ -67,6 +68,6 @@ IBSpringForceSpec::registerWithStashableManager()
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBSpringForceSpec>;
+template class Pointer<IBAMR::IBSpringForceSpec>;
 
 //////////////////////////////////////////////////////////////////////////////

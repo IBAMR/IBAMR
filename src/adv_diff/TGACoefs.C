@@ -1,10 +1,13 @@
 // Filename: TGACoefs.C
-// Last modified: <26.Aug.2007 15:59:14 griffith@box221.cims.nyu.edu>
+// Last modified: <27.Jun.2010 15:28:00 griffith@griffith-macbook-pro.local>
 // Created on 26 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "TGACoefs.h"
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

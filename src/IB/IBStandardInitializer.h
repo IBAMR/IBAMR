@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <23.Jun.2010 15:55:53 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 16:03:01 griffith@griffith-macbook-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -269,7 +269,7 @@ namespace IBAMR
  D2_x_2   D2_y_2   D2_z_2  # coordinates of director D2 associated with vertex 2
  ...
  \endverbatim
- */
+*/
 class IBStandardInitializer
     : public IBTK::LNodeInitStrategy
 {

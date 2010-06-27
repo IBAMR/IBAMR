@@ -1,5 +1,5 @@
 // Filename: IBInstrumentationSpec.C
-// Last modified: <15.Jun.2010 15:46:31 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 15:29:29 griffith@griffith-macbook-pro.local>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBInstrumentationSpec.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBInstrumentationSpecFactory.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/StashableManager.h>
@@ -43,13 +44,13 @@ IBInstrumentationSpec::registerWithStashableManager()
     // register the stashable factory with the stashable manager, and to ensure
     // that all processes employ the same stashable id for the IBInstrumentationSpec
     // object.
-    SAMRAI::tbox::SAMRAI_MPI::barrier();
+    SAMRAI_MPI::barrier();
     if (!s_registered_factory)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(s_stashable_id == -1);
 #endif
-        s_stashable_id = IBTK::StashableManager::getManager()->registerFactory(
+        s_stashable_id = StashableManager::getManager()->registerFactory(
             new IBInstrumentationSpecFactory());
         s_registered_factory = true;
     }
@@ -77,6 +78,6 @@ IBInstrumentationSpec::setInstrumentNames(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBInstrumentationSpec>;
+template class Pointer<IBAMR::IBInstrumentationSpec>;
 
 //////////////////////////////////////////////////////////////////////////////
