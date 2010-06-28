@@ -1,5 +1,5 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
-// Last modified: <27.Jun.2010 15:57:58 griffith@griffith-macbook-pro.local>
+// Last modified: <27.Jun.2010 23:38:31 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "INSStaggeredHierarchyIntegrator.h"
@@ -763,10 +763,11 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_stokes_solver->setKSPType("fgmres");
 
     // Setup the preconditioner and preconditioner sub-solvers.
-    std::vector<std::string> pc_shell_types(3);
+    std::vector<std::string> pc_shell_types(4);
     pc_shell_types[0] = "projection";
-    pc_shell_types[1] = "block_factorization";
-    pc_shell_types[2] = "none";
+    pc_shell_types[1] = "vanka";
+    pc_shell_types[2] = "block_factorization";
+    pc_shell_types[3] = "none";
     d_stokes_solver->setValidPCShellTypes(pc_shell_types);
 
     size_t len = 255;
@@ -812,11 +813,11 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
             stokes_pc_shell_type = std::string(stokes_pc_shell_type_str);
         }
 
-        if (!(stokes_pc_shell_type == "none" || stokes_pc_shell_type == "projection" || stokes_pc_shell_type == "block_factorization"))
+        if (!(stokes_pc_shell_type == "none" || stokes_pc_shell_type == "projection" || stokes_pc_shell_type == "vanka" || stokes_pc_shell_type == "block_factorization"))
         {
             TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n" <<
                        "  invalid stokes shell preconditioner type: " << stokes_pc_shell_type << "\n"
-                       "  valid stokes shell preconditioner types: projection, block_factorization, none" << std::endl);
+                       "  valid stokes shell preconditioner types: projection, vanka, block_factorization, none" << std::endl);
         }
     }
     else
@@ -910,7 +911,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 if (d_poisson_hypre_pc_db.isNull())
                 {
                     TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                                 "  poisson hypre pc solver database is null." << std::endl);
+                                 "  Poisson hypre PC solver database is null." << std::endl);
                 }
                 d_poisson_hypre_pc = new CCPoissonHypreLevelSolver(d_object_name+"::Poisson Preconditioner", d_poisson_hypre_pc_db);
                 d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
@@ -922,7 +923,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 if (d_poisson_fac_pc_db.isNull())
                 {
                     TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                                 "  poisson fac pc solver database is null." << std::endl);
+                                 "  Poisson FAC PC solver database is null." << std::endl);
                 }
                 d_poisson_fac_op = new CCPoissonFACOperator(d_object_name+"::Poisson FAC Operator", d_poisson_fac_pc_db);
                 d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
@@ -964,6 +965,21 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
             d_projection_pc_needs_init = true;
             d_projection_pc = new INSStaggeredProjectionPreconditioner(*d_problem_coefs, d_Phi_bc_coef, d_normalize_pressure, d_helmholtz_solver, d_poisson_solver, d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
             d_stokes_solver->setPreconditioner(d_projection_pc);
+        }
+        else if (stokes_pc_shell_type == "vanka")
+        {
+            d_vanka_pc_needs_init = true;
+
+            if (d_vanka_fac_pc_db.isNull())
+            {
+                TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
+                             "  Vanka FAC PC solver database is null." << std::endl);
+            }
+            d_vanka_fac_op = new INSStaggeredBoxRelaxationFACOperator(d_object_name+"::Vanka FAC Operator", *d_problem_coefs, d_old_dt, d_vanka_fac_pc_db);
+            d_vanka_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::Vanka Preconditioner", *d_vanka_fac_op, d_vanka_fac_pc_db);
+            d_vanka_fac_op->setPreconditioner(d_vanka_fac_pc);
+
+            d_stokes_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_vanka_fac_pc, d_vanka_fac_pc_db));
         }
         else if (stokes_pc_shell_type == "block_factorization")
         {
@@ -2212,6 +2228,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     d_helmholtz_solver_needs_init = true;
     d_poisson_solver_needs_init = true;
     d_projection_pc_needs_init = true;
+    d_vanka_pc_needs_init = true;
     d_block_pc_needs_init = true;
     d_stokes_solver_needs_init = true;
 
@@ -2885,6 +2902,20 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_projection_pc_needs_init = false;
     }
 
+    if (!d_vanka_fac_pc.isNull())
+    {
+        d_vanka_fac_op->setProblemCoefficients(*d_problem_coefs,dt);
+        d_vanka_fac_op->setTimeInterval(current_time,new_time);
+        d_vanka_fac_op->setPhysicalBcCoefs(d_U_star_bc_coefs,d_Phi_bc_coef);
+        d_vanka_fac_op->setHomogeneousBc(true);
+        if (d_vanka_pc_needs_init && !d_stokes_solver_needs_init)
+        {
+            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing Vanka preconditioner" << std::endl;
+            d_vanka_fac_pc->initializeSolverState(*sol_vec,*rhs_vec);
+        }
+        d_vanka_pc_needs_init = false;
+    }
+
     if (!d_block_pc.isNull())
     {
         d_block_pc->setTimeInterval(current_time,new_time);
@@ -3081,6 +3112,7 @@ INSStaggeredHierarchyIntegrator::getFromInput(
     d_helmholtz_fac_pc_db         = db->isDatabase("HelmholtzFACSolver"  ) ? db->getDatabase("HelmholtzFACSolver"  ) : Pointer<Database>(NULL);
     d_poisson_hypre_pc_db         = db->isDatabase("PoissonHypreSolver"  ) ? db->getDatabase("PoissonHypreSolver"  ) : Pointer<Database>(NULL);
     d_poisson_fac_pc_db           = db->isDatabase("PoissonFACSolver"    ) ? db->getDatabase("PoissonFACSolver"    ) : Pointer<Database>(NULL);
+    d_vanka_fac_pc_db             = db->isDatabase("VankaFACSolver"      ) ? db->getDatabase("VankaFACSolver"      ) : Pointer<Database>(NULL);
     d_regrid_projection_fac_pc_db = db->isDatabase("PoissonFACSolver"    ) ? db->getDatabase("PoissonFACSolver"    ) : Pointer<Database>(NULL);
 
     d_regrid_max_div_growth_factor = db->getDoubleWithDefault("regrid_max_div_growth_factor", d_regrid_max_div_growth_factor);

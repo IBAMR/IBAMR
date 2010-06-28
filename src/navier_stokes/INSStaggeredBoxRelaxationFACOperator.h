@@ -2,13 +2,13 @@
 #define included_INSStaggeredBoxRelaxationFACOperator
 
 // Filename: INSStaggeredBoxRelaxationFACOperator.h
-// Last modified: <11.Jun.2010 18:25:30 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 21:46:01 griffith@griffith-macbook-pro.local>
 // Created on 11 Jun 2010 by Boyce Griffith (griffith@boyce-griffiths-mac-pro.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSc INCLUDES
-#include <petscmat.h>
+#include <petscksp.h>
 
 // IBAMR INCLUDES
 #include <ibamr/INSCoefs.h>
@@ -47,6 +47,7 @@ public:
     INSStaggeredBoxRelaxationFACOperator(
         const std::string& object_name,
         const INSCoefs& problem_coefs,
+        const double dt,
         const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db=NULL);
 
     /*!
@@ -58,6 +59,15 @@ public:
      * \name Functions for specifying the problem coefficients.
      */
     //\{
+
+    /*!
+     * \brief Set the INSCoefs object and timestep size used to specify the
+     * coefficients for the time-dependent incompressible Stokes operator.
+     */
+    void
+    setProblemCoefficients(
+        const INSCoefs& problem_coefs,
+        const double dt);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -568,8 +578,8 @@ private:
      */
     void
     xeqScheduleProlongation(
-        const int dst_idx,
-        const int src_idx,
+        const std::pair<int,int>& dst_idxs,
+        const std::pair<int,int>& src_idxs,
         const int dst_ln,
         const bool homogeneous_bc);
 
@@ -578,8 +588,8 @@ private:
      */
     void
     xeqScheduleURestriction(
-        const int dst_idx,
-        const int src_idx,
+        const std::pair<int,int>& dst_idxs,
+        const std::pair<int,int>& src_idxs,
         const int dst_ln);
 
     /*!
@@ -587,8 +597,8 @@ private:
      */
     void
     xeqScheduleRRestriction(
-        const int dst_idx,
-        const int src_idx,
+        const std::pair<int,int>& dst_idxs,
+        const std::pair<int,int>& src_idxs,
         const int dst_ln);
 
     /*!
@@ -596,7 +606,7 @@ private:
      */
     void
     xeqScheduleGhostFill(
-        const int dst_idx,
+        const std::pair<int,int>& dst_idxs,
         const int dst_ln,
         const bool homogeneous_bc);
 
@@ -605,7 +615,7 @@ private:
      */
     void
     xeqScheduleGhostFillNoCoarse(
-        const int dst_idx,
+        const std::pair<int,int>& dst_idxs,
         const int dst_ln,
         const bool homogeneous_bc);
 
@@ -614,7 +624,7 @@ private:
      */
     void
     xeqScheduleSideDataSynch(
-        const int dst_idx,
+        const int U_dst_idx,
         const int dst_ln);
 
     //\}
@@ -627,8 +637,28 @@ private:
     buildPatchOperator(
         Mat& A,
         const INSCoefs& problem_coefs,
+        const double dt,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-        const int component_axis,
+        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
+
+    /*!
+     * \brief Copy patch data to the patch Vec object.
+     */
+    static void
+    copyToVec(
+        std::pair<int,int> data_idxs,
+        Vec& v,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
+
+    /*!
+     * \brief Copy patch data from the patch Vec object.
+     */
+    static void
+    copyFromVec(
+        std::pair<int,int> data_idxs,
+        Vec& v,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
     /*!
@@ -663,9 +693,11 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::map<int,std::vector<Vec> > > d_patch_vec_e, d_patch_vec_f;
-    std::vector<std::map<int,std::vector<Mat> > > d_patch_mat;
-    std::vector<std::map<int,std::vector<SAMRAI::hier::BoxList<NDIM> > > > d_patch_bc_box_overlap;
+    std::vector<std::map<int,Vec> > d_patch_vec_e, d_patch_vec_f;
+    std::vector<std::map<int,Mat> > d_patch_mat;
+    std::vector<std::map<int,KSP> > d_patch_ksp;
+    std::vector<std::map<int,std::vector<SAMRAI::hier::BoxList<NDIM> > > > d_patch_side_bc_box_overlap;
+    std::vector<std::map<int,SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 
     /*
      * Reference patch hierarchy and range of levels involved in the solve.
@@ -694,7 +726,8 @@ private:
     /*
      * Problem coefficient specifications.
      */
-    const INSCoefs& d_problem_coefs;
+    INSCoefs d_problem_coefs;
+    double d_dt;
 
     /*
      * The kind of smoothing to perform.
@@ -781,8 +814,10 @@ private:
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_P_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
 
+    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_U_P_bc_op;
+
     bool d_homogeneous_bc;
-    double d_current_time, d_new_time, d_dt;
+    double d_current_time, d_new_time;
 
     //\}
 
