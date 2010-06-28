@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <28.Jun.2010 13:05:16 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <28.Jun.2010 17:34:47 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -259,7 +259,10 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
     }
 
     // Get the Lagrangian Data Manager.
-    d_lag_data_manager = LDataManager::getManager(d_object_name+"::LDataManager", d_interp_delta_fcn, d_spread_delta_fcn, d_registered_for_restart);
+    d_lag_data_manager = LDataManager::getManager(d_object_name+"::LDataManager",
+                                                  d_interp_delta_fcn, d_spread_delta_fcn,
+                                                  d_ghosts,
+                                                  d_registered_for_restart);
     d_ghosts = d_lag_data_manager->getGhostCellWidth();
 
     // Read in the marker initial positions.
@@ -2591,6 +2594,14 @@ IBStaggeredHierarchyIntegrator::getFromInput(
         {
             d_interp_delta_fcn = db->getStringWithDefault("delta_fcn", d_interp_delta_fcn);
             d_spread_delta_fcn = db->getStringWithDefault("delta_fcn", d_spread_delta_fcn);
+        }
+        if (db->isInteger("min_ghost_cell_width"))
+        {
+            d_ghosts = db->getInteger("min_ghost_cell_width");
+        }
+        else if (db->isDouble("min_ghost_cell_width"))
+        {
+            d_ghosts = std::ceil(db->getDouble("min_ghost_cell_width"));
         }
         d_using_pIB_method = db->getBoolWithDefault("using_pIB_method", d_using_pIB_method);
         if (d_using_pIB_method)

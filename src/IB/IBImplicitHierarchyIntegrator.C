@@ -1,5 +1,5 @@
 // Filename: IBImplicitHierarchyIntegrator.C
-// Last modified: <27.Jun.2010 16:01:02 griffith@griffith-macbook-pro.local>
+// Last modified: <28.Jun.2010 17:35:30 griffith@boyce-griffiths-mac-pro.local>
 // Created on 08 May 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "IBImplicitHierarchyIntegrator.h"
@@ -285,7 +285,10 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     d_problem_coefs = new INSCoefs(d_rho, d_mu, d_lambda);
 
     // Get the Lagrangian Data Manager.
-    d_lag_data_manager = LDataManager::getManager(d_object_name+"::LDataManager", d_delta_fcn, d_delta_fcn, d_registered_for_restart);
+    d_lag_data_manager = LDataManager::getManager(d_object_name+"::LDataManager",
+                                                  d_delta_fcn, d_delta_fcn,
+                                                  d_ghosts,
+                                                  d_registered_for_restart);
     d_ghosts = d_lag_data_manager->getGhostCellWidth();
 
     // Obtain the Hierarchy data operations objects.
@@ -4232,6 +4235,15 @@ IBImplicitHierarchyIntegrator::getFromInput(
 
     if (!is_from_restart)
     {
+        if (db->isInteger("min_ghost_cell_width"))
+        {
+            d_ghosts = db->getInteger("min_ghost_cell_width");
+        }
+        else if (db->isDouble("min_ghost_cell_width"))
+        {
+            d_ghosts = std::ceil(db->getDouble("min_ghost_cell_width"));
+        }
+
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
 
         d_normalize_pressure = db->getBoolWithDefault(
