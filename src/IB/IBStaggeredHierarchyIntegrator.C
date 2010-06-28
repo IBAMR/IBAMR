@@ -1,5 +1,5 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
-// Last modified: <27.Jun.2010 16:02:36 griffith@griffith-macbook-pro.local>
+// Last modified: <28.Jun.2010 13:05:16 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBStaggeredHierarchyIntegrator.h"
@@ -58,11 +58,11 @@
 #include <numeric>
 
 // FORTRAN ROUTINES
-#define SQRTM_FC FC_FUNC(sqrtm,SQRTM)
+#define DSQRTM_FC FC_FUNC(dsqrtm,DSQRTM)
 extern "C"
 {
     void
-    SQRTM_FC(
+    DSQRTM_FC(
         double* X, const double* A);
 }
 
@@ -90,7 +90,7 @@ interpolate_directors(
     }
 
     blitz::Array<double,2> sqrt_A(3,3,blitz::ColumnMajorArray<2>());
-    SQRTM_FC(sqrt_A.data(), A.data());
+    DSQRTM_FC(sqrt_A.data(), A.data());
 
     for (int alpha = 0; alpha < 3; ++alpha)
     {

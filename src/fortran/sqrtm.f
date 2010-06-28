@@ -1,97 +1,86 @@
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Compute the principal square root XX of a 3x3 matrix AA.
+c     Compute the principal square root X of an N-by-N real matrix A,
+c     specialized to the case N=3.
+c
+c     The algorithm implemented herein is described in: A. Bjorck and
+c     S. Hammarling, A Schur method for the square root of a matrix, Lin
+c     Algebra Appl, 52-53:127--140 (1983).
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine sqrtm(XX,AA)
+      subroutine dsqrtm(X,A)
 c
       implicit none
 c
-      integer*8 N, LDA, LDVS, LWORK
-      parameter (N = 3)
-      parameter (LDA = N)
-      parameter (LDVS = 2 * N)
-      parameter (LWORK = 3 * N)
+c     External functions.
+c
+      EXTERNAL DUMMY_SELECT
+c
+c     Parameters.
+c
+      INTEGER N,LWORK
+      PARAMETER(N=3,LWORK=16*N)
+      COMPLEX*16 ONE,ZERO
+      PARAMETER(ONE=(1.d0,0.d0),ZERO=(0.d0,0.d0))
 c
 c     Input.
 c
-      real*8 AA(N,N)
+      REAL*8 A(N,N)
 c
 c     Ouput.
 c
-      real*8 XX(N,N)
+      REAL*8 X(N,N)
 c
 c     Local variables.
 c
-      complex*16 A(LDA,N), VS(LDVS,N)
-      complex*16 WORK(LWORK), W(N)
-
-      double precision RWORK(N)
-      integer*8 SDIM,INFO
-
-      logical*8 BWORK(1:N)
-      logical DUMMY_SELECT
-      external DUMMY_SELECT
-
-      integer*8   i,j,k
-      complex*16  Q(N,N), QR(N,N), QH(N,N), R(N,N), X(N,N)
-      complex*16  summ
+      INTEGER i,j,k,sdiag
+      INTEGER SDIM,INFO
+      COMPLEX*16 Q(N,N),S(N,N),U(N,N),W(N),WORK(LWORK)
+      COMPLEX*16 QUQH(N,N),QU(N,N)
+      REAL*8 RWORK(N)
+      LOGICAL BWORK(N)
 c
-c     Copy AA into the complex matrix A.
+c     Compute the Schur form Q*S*(Q**H)
 c
       do j = 1,N
          do i = 1,N
-            A(i,j) = dcmplx(AA(i,j))
+            S(i,j) = dcmplx(A(i,j))
          enddo
       enddo
+      call ZGEES('V', 'N', DUMMY_SELECT, N, S, N, SDIM, W, Q, N, WORK,
+     &     LWORK, RWORK, BWORK, INFO)
 c
-c     Compute the eigenvalues and Schur vectors of A.
+c     Compute the square root U of S one super-diagonal at a time.
 c
-      call ZGEES('V','N',DUMMY_SELECT, N, A, LDA, SDIM, W, VS, LDVS,
-     $     WORK, LWORK, RWORK, BWORK, INFO)
-c
-c     Compute the square root R of T one column at a time.
-c
-      do j = 1,N
-         do i = 1,N
-            R(i,j)=0.0
+      do j = 1,N-1              ! set the lower triangle to zero
+         do i = j+1,N
+            U(i,j) = ZERO
          enddo
       enddo
-      summ=0.0
-      do j = 1,N
-         R(j,j) = sqrt(A(j,j))
-         do i = j-1,1,-1
+
+      do i = 1,N                ! set the diagonal elements
+         U(i,i) = zsqrt(S(i,i))
+      enddo
+
+      do sdiag = 1,N-1          ! loop over the N-1 super-diagonals
+         do i = 1,N-sdiag
+            j = i+sdiag
+            U(i,j) = S(i,j)
             do k = i+1,j-1
-               summ = summ + R(i,k)*R(k,j)
+               U(i,j) = U(i,j) - U(i,k)*U(k,j)
             enddo
-            R(i,j) = (A(i,j) - summ)/(R(i,i) + R(j,j))
+            U(i,j) = U(i,j) / (U(i,i) + U(j,j))
          enddo
       enddo
 c
-c     Copy VS into Q.
+c     Compute X = Q*U*(Q**H).
 c
+      call ZGEMM('N', 'N', N, N, N, ONE, Q, N, U, N, ZERO, QU, N)
+      call ZGEMM('N', 'C', N, N, N, ONE, QU, N, Q, N, ZERO, QUQH, N)
       do j = 1,N
          do i = 1,N
-            Q(i,j) = VS(i,j)
-         enddo
-      enddo
-c
-c     Set X to be the square root of A : X = real(Q*R*Q**H).
-c
-      do j = 1,N
-         do i = 1,N
-            QH(i,j) = CONJG(Q(j,i))
-         enddo
-      enddo
-      QR = MATMUL(Q,R)
-      X = MATMUL(QR,QH)
-c
-c     Set XX to be the real part of X.
-c
-      do j = 1,N
-         do i = 1,N
-            XX(i,j) = dble(X(i,j))
+            X(i,j) = dble(QUQH(i,j))
          enddo
       enddo
 c
@@ -110,11 +99,11 @@ c
 c
 c     Input.
 c
-      complex*16 ARG
+      COMPLEX*16 ARG
 C
-C     The value computed is always .TRUE.  It is computed in the
-C     peculiar way below to avoid compiler messages about unused
-C     function arguments.
+C     The return value is always .TRUE. unless ARG is nan.  It is
+C     computed in the peculiar way below to avoid compiler messages
+C     about unused function arguments.
 c
       PRINT 1000
       DUMMY_SELECT = (ARG .EQ. ARG)
